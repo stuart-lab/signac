@@ -1,0 +1,10 @@
+.Rproj.user
+.Rhistory
+.RData
+.RDataTmp
+src/*.o
+src/*.so
+.DS_Store
+*.pdf
+*.Rproj
+testcode/*
