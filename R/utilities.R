@@ -24,6 +24,7 @@
 #' @param window Smoothing window to use
 #'
 #' @importFrom zoo rollapply
+#' @importFrom dplyr bind_rows
 #' @export
 CalculateCoverages <- function(
   reads,
@@ -32,8 +33,7 @@ CalculateCoverages <- function(
   cells.per.group <- table(reads$group)
   lut <- as.vector(x = cells.per.group)
   names(lut) <- names(x = cells.per.group)
-  # TODO this step takes forever, there should be a better way to do it
-  expanded <- do.call(what = rbind, args = lapply(X = 1:nrow(reads), FUN = function(x) {
+  expanded <- bind_rows(lapply(X = 1:nrow(reads), FUN = function(x) {
     interval = reads[x, 'start']:reads[x, 'stop']
     return(data.frame(position = interval, value = 1, cell = reads[x, 'cell'], group = reads[x, 'group']))
   }))
