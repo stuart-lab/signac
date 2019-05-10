@@ -107,8 +107,7 @@ GetReadsInRegion <- function(
   if (verbose) {
     message('Extracting reads in requested region')
   }
-  # TODO if the region is not in correct format, just hangs and have to restart R
-  # region <- SanitizeRegion(region = region)
+  region <- CheckRegion(region = region)
   reads <- tabix.read.table(tabixFile = fragment.path, tabixRange = region)
   colnames(reads) <- c('chrom', 'start', 'stop', 'cell', 'reads')
   reads <- reads[reads$cell %in% names(group.by), ]
@@ -123,28 +122,17 @@ GetReadsInRegion <- function(
   return(reads)
 }
 
-#' Add genomic annotation information to a Seurat object
+#' CheckRegion
 #'
-#' @param object A Seurat object
-#' @param annotation A genomic feature annotation
-#' @param key Key used to store the annotation information, eg "gene", "TE", "promoter", etc.
+#' Make sure that the given region is ok. Raises error if not correct, otherwise returns region.
 #'
+#' @param region A genomic region, or a vector of regions
 #' @export
-#'
-SetAnnotations <- function(
-  object,
-  annotation,
-  key
+CheckRegion <- function(
+  region
 ) {
-  # TODO check what the input format should be, eg something from bioconductor. Will depend on plotting requirements
-  current.tools <- slot(object = object, name = 'tools')
-  if ('annotations' %in% names(x = current.tools)) {
-    current.tools$annotations[[key]] <- annotation
-  } else {
-    current.tools$annotations <- list(key = annotation)
-  }
-  slot(object = object, name = 'tools') <- current.tools
-  return(object)
+  # TODO
+  return(region)
 }
 
 #' Set the fragments file path for creating plots

@@ -1,10 +1,14 @@
 
+#' CoveragePlot
+#'
 #' Plot coverage within given region for groups of cells
+#'
+#' Thanks to Andrew Hill for providing an early version of this function
+#'  \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
 #'
 #' @param object A Seurat object
 #' @param region A set of genomic coordinates to show
-#' @param annotation A set of genomic feature annotations. Must be the name of a set of features
-#' stored using the \code{SetAnnotations} function
+#' @param annotation An Ensembl based annotation package
 #' @param assay Which assay to plot
 #' @param fragment.path Path to an index fragment file. If NULL, will look for a path stored for the
 #' requested assay using the \code{SetFragments} function
@@ -12,9 +16,13 @@
 #' @param window Smoothing window size
 #' @param downsample Fraction of positions to retain in the plot. Default is 0.1 (retain 10 percent, ie every 10th position)
 #' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
-#' @param cols Vector of colors, where each color corresponds to an identity class. By default, use the ggplot2 colors.
 #'
 #' @importFrom ggplot2 geom_bar facet_wrap xlab ylab theme_classic aes ylim theme
+#' @import patchwork
+#' @importFrom AnnotationFilter GRangesFilter AnnotationFilterList GeneBiotypeFilter
+#' @importFrom GenomicRanges GRanges
+#' @importFrom IRanges IRanges
+#'
 #' @export
 #'
 CoveragePlot <- function(
@@ -26,8 +34,7 @@ CoveragePlot <- function(
   group.by = NULL,
   window = 100,
   downsample = 0.1,
-  cells = NULL,
-  cols = NULL
+  cells = NULL
 ) {
   reads <- GetReadsInRegion(
     object = object,
@@ -46,13 +53,19 @@ CoveragePlot <- function(
     warning('Requested downsampling <0%, retaining all positions')
     downsample <- 1
   }
+
   chromosome <- unlist(strsplit(region, ':'))[[1]]
+  pos <- unlist(strsplit(region, ':'))[[2]]
+  start.pos <- as.numeric(unlist(strsplit(pos, '-'))[[1]])
+  end.pos <- as.numeric(unlist(strsplit(pos, '-'))[[2]])
+
   stepsize <- 1 / downsample
-  total_range <- coverages[nrow(coverages), 'position'] - coverages[1, 'position']
+  total_range <- end.pos - start.pos
   steps <- ceiling(total_range / stepsize)
-  retain_positions <- seq(coverages[1, 'position'], coverages[nrow(coverages), 'position'], by = stepsize)
+  retain_positions <- seq(start.pos, end.pos, by = stepsize)
   downsampled_coverage <- coverages[coverages$position %in% retain_positions, ]
   ymax <- round(max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
+
   p <- ggplot(downsampled_coverage, aes(position, coverage, fill = group)) +
     geom_bar(stat = 'identity') +
     facet_wrap(~group, strip.position = 'right', ncol = 1) +
@@ -60,9 +73,28 @@ CoveragePlot <- function(
     ylab(paste0('Normalized coverage (range 0 - ', as.character(ymax), ')')) +
     ylim(c(0, ymax)) +
     theme_classic() +
-    theme(axis.text.y = element_blank())
+    theme(axis.text.y = element_blank(), legend.position = 'none')
+
+  if (!is.null(annotation)) {
+    gr <- GRanges(
+      seqnames = gsub(pattern = 'chr', replacement = '', x = chromosome),
+      IRanges(start = start.pos, end = end.pos)
+    )
+    filters <- AnnotationFilterList(GRangesFilter(value = gr), GeneBiotypeFilter('protein_coding'))
+    genes <- suppressMessages(autoplot(EnsDb.Hsapiens.v75, filters, names.expr = 'gene_name'))
+    gene.plot <- genes@ggplot +
+      xlim(start.pos, end.pos) +
+      xlab(paste0(chromosome, ' position (bp)')) +
+      theme_classic()
+    p <- p + theme(
+      axis.title.x = element_blank(),
+      axis.text.x = element_blank(),
+      axis.line.x.bottom = element_blank(),
+      axis.ticks.x.bottom = element_blank()
+      )
+    p <- p + gene.plot + plot_layout(ncol = 1, heights = c(4, 1))
+  }
   return(p)
-  # TODO add optional gene annotation track
 }
 
 #' Plot coverage pileup centered on a given genomic feature

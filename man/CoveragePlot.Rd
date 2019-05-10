@@ -2,19 +2,18 @@
 % Please edit documentation in R/visualization.R
 \name{CoveragePlot}
 \alias{CoveragePlot}
-\title{Plot coverage within given region for groups of cells}
+\title{CoveragePlot}
 \usage{
 CoveragePlot(object, region, annotation = NULL, assay = NULL,
   fragment.path = NULL, group.by = NULL, window = 100,
-  downsample = 0.1, cells = NULL, cols = NULL)
+  downsample = 0.1, cells = NULL)
 }
 \arguments{
 \item{object}{A Seurat object}
 
 \item{region}{A set of genomic coordinates to show}
 
-\item{annotation}{A set of genomic feature annotations. Must be the name of a set of features
-stored using the \code{SetAnnotations} function}
+\item{annotation}{An Ensembl based annotation package}
 
 \item{assay}{Which assay to plot}
 
@@ -28,9 +27,11 @@ requested assay using the \code{SetFragments} function}
 \item{downsample}{Fraction of positions to retain in the plot. Default is 0.1 (retain 10 percent, ie every 10th position)}
 
 \item{cells}{Which cells to plot. Default all cells}
-
-\item{cols}{Vector of colors, where each color corresponds to an identity class. By default, use the ggplot2 colors.}
 }
 \description{
 Plot coverage within given region for groups of cells
+}
+\details{
+Thanks to Andrew Hill for providing an early version of this function
+ \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
 }
