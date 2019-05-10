@@ -4,13 +4,14 @@
 \alias{CoveragePlot}
 \title{Plot coverage within given region for groups of cells}
 \usage{
-CoveragePlot(object, coords, annotation = NULL, assay = NULL,
-  fragment.path = NULL, group.by = NULL, cells = NULL, cols = NULL)
+CoveragePlot(object, region, annotation = NULL, assay = NULL,
+  fragment.path = NULL, group.by = NULL, window = 100,
+  downsample = 0.1, cells = NULL, cols = NULL)
 }
 \arguments{
 \item{object}{A Seurat object}
 
-\item{coords}{A set of genomic coordinates to show}
+\item{region}{A set of genomic coordinates to show}
 
 \item{annotation}{A set of genomic feature annotations. Must be the name of a set of features
 stored using the \code{SetAnnotations} function}
@@ -21,6 +22,10 @@ stored using the \code{SetAnnotations} function}
 requested assay using the \code{SetFragments} function}
 
 \item{group.by}{Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities}
+
+\item{window}{Smoothing window size}
+
+\item{downsample}{Fraction of positions to retain in the plot. Default is 0.1 (retain 10 percent, ie every 10th position)}
 
 \item{cells}{Which cells to plot. Default all cells}
 
