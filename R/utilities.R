@@ -74,15 +74,14 @@ SetFragments <- function(
   assay = NULL
 ) {
   assay <- assay %||% DefaultAssay(object = object)
+  if (!(assay %in% names(x = slot(object = object, name = 'assays')))) {
+    stop('Requested assay not present in object')
+  }
   index.file <- paste0(file, '.tbi')
   if (all(file.exists(file, index.file))) {
     file <- normalizePath(path = file)
     current.tools <- slot(object = object, name = 'tools')
-    if ('fragments' %in% names(x = current.tools)) {
-      current.tools$fragments[[assay]] <- file
-    } else {
-      current.tools$fragments <- list(assay = file)
-    }
+    current.tools$fragments[[assay]] <- file
     slot(object = object, name = 'tools') <- current.tools
     return(object)
   } else {
