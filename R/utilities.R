@@ -31,6 +31,70 @@ Extend <- function(x, upstream = 0, downstream = 0) {
   return(x)
 }
 
+#' GetReadsInRegion
+#'
+#' Extract reads for each cell within a given genomic region or set of regions
+#'
+#' @param object A Seurat object
+#' @param region A genomic region, specified as a string in the format 'chr:start-end'. Can be a vector of regions.
+#' @param assay Name of assay to use
+#' @param fragment.path Path to indexed fragment file
+#' @param group.by Cell grouping information to add
+#' @param cells Cells to include. Default is all cells present in the object.
+#' @param verbose Display messages
+#'
+#' @importFrom seqminer tabix.read.table
+#'
+#' @return Returns a data frame
+#' @export
+GetReadsInRegion <- function(
+  object,
+  region,
+  assay = NULL,
+  fragment.path = NULL,
+  group.by = NULL,
+  cells = NULL,
+  verbose = TRUE
+) {
+  assay <- assay %||% DefaultAssay(object)
+  if (is.null(group.by)) {
+    group.by <- Idents(object)
+  } else {
+    meta.data <- object[[]]
+    group.by <- meta.data[[group.by]]
+    names(group.by) <- rownames(meta.data)
+  }
+  if (is.null(fragment.path)) {
+    tools <- slot(object = object, name = 'tools')
+    if ('fragments' %in% names(x = tools)) {
+      if (assay %in% names(x = tools$fragments)) {
+        fragment.path <- tools$fragments[[assay]]
+      } else {
+        stop('Fragment file not supplied for the requested assay')
+      }
+    } else {
+      stop('Fragment file not set. Run SetFragments to set the fragment file path.')
+    }
+  } else if (!(all(file.exists(fragment.path, paste0(fragment.path, '.tbi'))))) {
+    stop('Requested file does not exist or is not indexed')
+  }
+  if (verbose) {
+    message('Extracting reads in requested region')
+  }
+  reads <- tabix.read.table(tabixFile = fragment.path, tabixRange = region)
+  colnames(reads) <- c('chrom', 'start', 'stop', 'cell', 'reads')
+  reads <- reads[reads$cell %in% names(group.by), ]
+  if (!is.null(cells)) {
+    reads <- reads[reads$cell %in% cells, ]
+  }
+  if (nrow(reads) == 0) {
+    stop('No cells present in the requested region')
+  }
+  reads$length <- reads$stop - reads$start
+  reads$group <- group.by[reads$cell]
+  return(reads)
+}
+
 #' Add genomic annotation information to a Seurat object
 #'
 #' @param object A Seurat object
