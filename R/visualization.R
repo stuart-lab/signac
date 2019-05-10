@@ -1,5 +1,5 @@
 
-#' CoveragePlot
+#' SingleCoveragePlot
 #'
 #' Plot coverage within given region for groups of cells
 #'
@@ -25,7 +25,7 @@
 #'
 #' @export
 #'
-CoveragePlot <- function(
+SingleCoveragePlot <- function(
   object,
   region,
   annotation = NULL,
@@ -95,6 +95,30 @@ CoveragePlot <- function(
     p <- p + gene.plot + plot_layout(ncol = 1, heights = c(4, 1))
   }
   return(p)
+}
+
+#' CoveragePlot
+#'
+#' Plot coverage within given region for groups of cells
+#'
+#' @param object A Seurat object
+#' @param region A set of genomic coordinates to show
+#' @param ... Arguments passed to SingleCoveragePlot
+#'
+#' @importFrom patchwork wrap_plots
+#' @export
+#'
+CoveragePlot <- function(
+  object,
+  region,
+  ...
+) {
+  if (length(region) > 1) {
+    plot.list <- lapply(region, SingleCoveragePlot, object = object, ...)
+    return(wrap_plots(plot.list))
+  } else {
+    return(SingleCoveragePlot(object = object, region = region, ...))
+  }
 }
 
 #' Plot coverage pileup centered on a given genomic feature

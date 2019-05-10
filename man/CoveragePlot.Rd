@@ -4,34 +4,15 @@
 \alias{CoveragePlot}
 \title{CoveragePlot}
 \usage{
-CoveragePlot(object, region, annotation = NULL, assay = NULL,
-  fragment.path = NULL, group.by = NULL, window = 100,
-  downsample = 0.1, cells = NULL)
+CoveragePlot(object, region, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
 
 \item{region}{A set of genomic coordinates to show}
 
-\item{annotation}{An Ensembl based annotation package}
-
-\item{assay}{Which assay to plot}
-
-\item{fragment.path}{Path to an index fragment file. If NULL, will look for a path stored for the
-requested assay using the \code{SetFragments} function}
-
-\item{group.by}{Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities}
-
-\item{window}{Smoothing window size}
-
-\item{downsample}{Fraction of positions to retain in the plot. Default is 0.1 (retain 10 percent, ie every 10th position)}
-
-\item{cells}{Which cells to plot. Default all cells}
+\item{...}{Arguments passed to SingleCoveragePlot}
 }
 \description{
 Plot coverage within given region for groups of cells
-}
-\details{
-Thanks to Andrew Hill for providing an early version of this function
- \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
 }
