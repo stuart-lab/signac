@@ -2,7 +2,7 @@
 % Please edit documentation in R/preprocessing.R
 \name{FRiP}
 \alias{FRiP}
-\title{Calculate approximate fraction of reads in peaks per cell}
+\title{Calculate fraction of reads in peaks per cell}
 \usage{
 FRiP(object, peak.assay, bin.assay, verbose = TRUE)
 }
@@ -16,5 +16,5 @@ FRiP(object, peak.assay, bin.assay, verbose = TRUE)
 \item{verbose}{Display messages}
 }
 \description{
-Calculate approximate fraction of reads in peaks per cell
+Calculate fraction of reads in peaks per cell
 }

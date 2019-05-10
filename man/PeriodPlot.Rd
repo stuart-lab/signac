@@ -5,7 +5,7 @@
 \title{Plot fragment length periodicity}
 \usage{
 PeriodPlot(object, assay = NULL, fragment.path = NULL,
-  group.by = NULL, cells = NULL, cols = NULL)
+  range = "chr1:1-1000000", group.by = NULL, cells = NULL)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -15,11 +15,14 @@ PeriodPlot(object, assay = NULL, fragment.path = NULL,
 \item{fragment.path}{Path to an index fragment file. If NULL, will look for a path stored for the
 requested assay using the \code{SetFragments} function}
 
+\item{range}{Genomic range to use. Default is fist megabase of chromosome 1.}
+
 \item{group.by}{Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities}
 
 \item{cells}{Which cells to plot. Default all cells}
-
-\item{cols}{Vector of colors, where each color corresponds to an identity class. By default, use the ggplot2 colors.}
+}
+\value{
+Returns a ggplot2 object
 }
 \description{
 Plot fragment length periodicity
