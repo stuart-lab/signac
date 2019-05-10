@@ -260,7 +260,7 @@ FindTopFeatures.Seurat <- function(
   return(object)
 }
 
-#' Calculate approximate fraction of reads in peaks per cell
+#' Calculate fraction of reads in peaks per cell
 #'
 #' @param object A Seurat object
 #' @param peak.assay Name of the assay containing a peak x cell matrix
@@ -279,7 +279,7 @@ FRiP <- function(
   verbose = TRUE
 ) {
   if (verbose) {
-    message('Calculating approximate fraction of reads in peaks per cell')
+    message('Calculating fraction of reads in peaks per cell')
   }
   peak.counts <- colSums(x = GetAssayData(object = object, assay = peak.assay, slot = 'counts'))
   bin.counts <-colSums(x = GetAssayData(object = object, assay = bin.assay, slot = 'counts'))
