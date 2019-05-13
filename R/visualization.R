@@ -136,6 +136,7 @@ CoveragePlot <- function(
 #'
 PileupPlot <- function(
   object,
+  annotation,
   assay = NULL,
   feature = 'TSS',
   fragment.path = NULL,

@@ -131,8 +131,11 @@ GetReadsInRegion <- function(
 CheckRegion <- function(
   region
 ) {
-  # TODO
-  return(region)
+  if (grepl(pattern = '[0-9a-zA-Z_]*:[0-9]+-[0-9]+$', x = region)) {
+    return(region)
+  } else {
+    stop('Bad region')
+  }
 }
 
 #' Set the fragments file path for creating plots

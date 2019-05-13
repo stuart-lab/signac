@@ -1,16 +1,3 @@
-#' AddMotifMatrix
-#'
-#' Add a motif x region matrix to a Seurat assay
-#'
-#' @param object A Seurat object
-#' @param ... Arguments passed to other methods
-#' @return Returns a Seurat object
-#' @rdname AddMotifMatrix
-#' @export AddMotifMatrix
-AddMotifMatrix <- function(object, ...) {
-  UseMethod(generic = 'AddMotifMatrix', object = object)
-}
-
 #' BinarizeCounts
 #'
 #' Set counts >1 to 1 in a count matrix

@@ -4,7 +4,7 @@
 \alias{PileupPlot}
 \title{Plot coverage pileup centered on a given genomic feature}
 \usage{
-PileupPlot(object, assay = NULL, feature = "TSS",
+PileupPlot(object, annotation, assay = NULL, feature = "TSS",
   fragment.path = NULL, group.by = NULL, cells = NULL, cols = NULL)
 }
 \arguments{
