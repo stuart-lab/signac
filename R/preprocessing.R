@@ -157,6 +157,7 @@ FindTopFeatures.default <- function(
     count = featurecounts,
     percentile = e.dist(featurecounts)
   )
+  hvf.info <- hvf.info[order(hvf.info$count, decreasing = TRUE), ]
   return(hvf.info)
 }
 

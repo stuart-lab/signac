@@ -42,18 +42,27 @@ CalculateCoverages <- function(
   return(expanded)
 }
 
-# Resize GenomicRanges upstream and or downstream
-# from https://support.bioconductor.org/p/78652/
-#
+#' Extend
+#'
+#' Resize GenomicRanges upstream and or downstream.
+#' From \url{https://support.bioconductor.org/p/78652/}
+#'
+#' @param x A range
+#' @param upstream Length to extend upstream
+#' @param downstream Length to extend downstream
+#'
+#' @importFrom GenomicRanges strand start end trim
+#' @importFrom IRanges ranges IRanges
+#' @export
 Extend <- function(x, upstream = 0, downstream = 0) {
-  if (any(GenomicRanges::strand(x = x) == "*")) {
+  if (any(strand(x = x) == "*")) {
     warning("'*' ranges were treated as '+'")
   }
-  on_plus <- GenomicRanges::strand(x = x) == "+" | GenomicRanges::strand(x = x) == "*"
-  new_start <- GenomicRanges::start(x = x) - ifelse(test = on_plus, yes = upstream, no = downstream)
-  new_end <- GenomicRanges::end(x = x) + ifelse(test = on_plus, yes = downstream, no = upstream)
-  IRanges::ranges(x = x) <- IRanges::IRanges(start = new_start, end = new_end)
-  x <- GenomicRanges::trim(x = x)
+  on_plus <- strand(x = x) == "+" | strand(x = x) == "*"
+  new_start <- start(x = x) - ifelse(test = on_plus, yes = upstream, no = downstream)
+  new_end <- end(x = x) + ifelse(test = on_plus, yes = downstream, no = upstream)
+  ranges(x = x) <- IRanges(start = new_start, end = new_end)
+  x <- trim(x = x)
   return(x)
 }
 
@@ -82,15 +91,15 @@ GetReadsInRegion <- function(
   cells = NULL,
   verbose = TRUE
 ) {
-  assay <- assay %||% DefaultAssay(object)
+  assay <- assay %||% DefaultAssay(object = object)
   if (is.null(group.by)) {
-    group.by <- Idents(object)
+    group.by <- Idents(object = object)
   } else {
     meta.data <- object[[]]
     group.by <- meta.data[[group.by]]
-    names(group.by) <- rownames(meta.data)
+    names(group.by) <- rownames(x = meta.data)
   }
-  if (is.null(fragment.path)) {
+  if (is.null(x = fragment.path)) {
     tools <- slot(object = object, name = 'tools')
     if ('fragments' %in% names(x = tools)) {
       if (assay %in% names(x = tools$fragments)) {
@@ -111,7 +120,7 @@ GetReadsInRegion <- function(
   reads <- tabix.read.table(tabixFile = fragment.path, tabixRange = region)
   colnames(reads) <- c('chrom', 'start', 'stop', 'cell', 'reads')
   reads <- reads[reads$cell %in% names(group.by), ]
-  if (!is.null(cells)) {
+  if (!is.null(x = cells)) {
     reads <- reads[reads$cell %in% cells, ]
   }
   if (nrow(reads) == 0) {

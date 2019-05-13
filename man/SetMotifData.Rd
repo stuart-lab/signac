@@ -2,13 +2,16 @@
 % Please edit documentation in R/generics.R, R/objects.R
 \name{SetMotifData}
 \alias{SetMotifData}
+\alias{SetMotifData.Motif}
 \alias{SetMotifData.Assay}
 \alias{SetMotifData.Seurat}
 \title{SetMotifData}
 \usage{
 SetMotifData(object, ...)
 
-\method{SetMotifData}{Assay}(object, data, ...)
+\method{SetMotifData}{Motif}(object, slot, new.data, ...)
+
+\method{SetMotifData}{Assay}(object, slot, new.data, ...)
 
 \method{SetMotifData}{Seurat}(object, data, assay = NULL, ...)
 }
@@ -16,6 +19,8 @@ SetMotifData(object, ...)
 \item{object}{A Seurat object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{new.data}{New data to add}
 
 \item{data}{motif matrix to add. Should be matrix or sparse matrix class}
 

@@ -121,6 +121,32 @@ CoveragePlot <- function(
   }
 }
 
+#' MotifPlot
+#'
+#' Plot motifs
+#'
+#' @param object A Seurat object
+#' @param motifs A list of motifs to plot
+#' @param assay Name of the assay to use
+#' @param ... Additional parameters passed to \code{\link{ggseqlogo}}
+#'
+#' @importFrom ggseqlogo ggseqlogo
+#'
+MotifPlot <- function(
+  object,
+  motifs,
+  assay = NULL,
+  ...
+) {
+  data.use <- GetMotifData(object = object, assay = assay, slot = 'pwm')
+  if (length(x = pwm) == 0) {
+    stop('Position weight matrix list for the requested assay is empty')
+  }
+  data.use <- data.use[motifs]
+  p <- ggseqlogo(data = data.use, ...)
+  return(p)
+}
+
 #' Plot coverage pileup centered on a given genomic feature
 #'
 #' @param object A Seurat object

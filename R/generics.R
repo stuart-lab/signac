@@ -1,3 +1,14 @@
+
+#' AddMotifObject
+#'
+#' @param object A Seurat object
+#' @rdname AddMotifObject
+#' @return Returns a Seurat object
+#' @export
+AddMotifObject <- function(object, ...) {
+  UseMethod(generic = 'AddMotifObject', object = object)
+}
+
 #' BinarizeCounts
 #'
 #' Set counts >1 to 1 in a count matrix
@@ -51,7 +62,6 @@ RunSVD <- function(object, ...) {
   UseMethod(generic = 'RunSVD', object = object)
 }
 
-
 #' RunTFIDF
 #'
 #' Run term frequency inverse document frequency normalization
@@ -76,4 +86,13 @@ RunTFIDF <- function(object, ...) {
 #' @export SetMotifData
 SetMotifData <- function(object, ...) {
   UseMethod(generic = 'SetMotifData', object = object)
+}
+
+#' Return a subset of a Motif object
+#'
+#' @param object A Motif object
+#' @rdname subset.Motif
+#' @export
+subset <- function(object, ...) {
+  UseMethod(generic = 'subset', object = object)
 }

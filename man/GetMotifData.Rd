@@ -2,20 +2,25 @@
 % Please edit documentation in R/generics.R, R/objects.R
 \name{GetMotifData}
 \alias{GetMotifData}
+\alias{GetMotifData.Motif}
 \alias{GetMotifData.Assay}
 \alias{GetMotifData.Seurat}
 \title{GetMotifData}
 \usage{
 GetMotifData(object, ...)
 
-\method{GetMotifData}{Assay}(object, ...)
+\method{GetMotifData}{Motif}(object, slot = "data", ...)
 
-\method{GetMotifData}{Seurat}(object, assay = NULL, ...)
+\method{GetMotifData}{Assay}(object, slot = "data", ...)
+
+\method{GetMotifData}{Seurat}(object, assay = NULL, slot = "data", ...)
 }
 \arguments{
 \item{object}{A Seurat object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{slot}{Information to pull from object (data, pwm, meta.data)}
 
 \item{assay}{Which assay to use. Default is the current active assay}
 }
