@@ -13,11 +13,13 @@
 #' @param fragment.path Path to an index fragment file. If NULL, will look for a path stored for the
 #' requested assay using the \code{SetFragments} function
 #' @param cells Which cells to plot. Default all cells
+#' @param idents Which identities to include in the plot. Default is all identities.
 #' @param window Smoothing window size
 #' @param downsample Fraction of positions to retain in the plot. Default is 0.1 (retain 10 percent, ie every 10th position)
 #' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
 #'
-#' @importFrom ggplot2 geom_bar facet_wrap xlab ylab theme_classic aes ylim theme
+#' @importFrom ggplot2 geom_bar facet_wrap xlab ylab theme_classic aes ylim theme element_blank
+#' @importFrom ggbio autoplot
 #' @import patchwork
 #' @importFrom AnnotationFilter GRangesFilter AnnotationFilterList GeneBiotypeFilter
 #' @importFrom GenomicRanges GRanges
@@ -34,8 +36,14 @@ SingleCoveragePlot <- function(
   group.by = NULL,
   window = 100,
   downsample = 0.1,
-  cells = NULL
+  cells = NULL,
+  idents = NULL
 ) {
+  cells <- cells %||% colnames(x = object)
+  if (!is.null(x = idents)) {
+    ident.cells <- WhichCells(object = object, idents = idents)
+    cells <- intersect(x = cells, y = ident.cells)
+  }
   reads <- GetReadsInRegion(
     object = object,
     assay = assay,
@@ -64,7 +72,7 @@ SingleCoveragePlot <- function(
   steps <- ceiling(total_range / stepsize)
   retain_positions <- seq(start.pos, end.pos, by = stepsize)
   downsampled_coverage <- coverages[coverages$position %in% retain_positions, ]
-  ymax <- round(max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
+  ymax <- signif(max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
 
   p <- ggplot(downsampled_coverage, aes(position, coverage, fill = group)) +
     geom_bar(stat = 'identity') +

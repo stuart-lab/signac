@@ -6,7 +6,7 @@
 \usage{
 SingleCoveragePlot(object, region, annotation = NULL, assay = NULL,
   fragment.path = NULL, group.by = NULL, window = 100,
-  downsample = 0.1, cells = NULL)
+  downsample = 0.1, cells = NULL, idents = NULL)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -27,6 +27,8 @@ requested assay using the \code{SetFragments} function}
 \item{downsample}{Fraction of positions to retain in the plot. Default is 0.1 (retain 10 percent, ie every 10th position)}
 
 \item{cells}{Which cells to plot. Default all cells}
+
+\item{idents}{Which identities to include in the plot. Default is all identities.}
 }
 \description{
 Plot coverage within given region for groups of cells
