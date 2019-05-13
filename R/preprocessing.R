@@ -33,7 +33,8 @@ BinarizeCounts.Assay <- function(
   return(object)
 }
 
-#' @param assay Name of assay to use
+#' @param assay Name of assay to use. Can be a list of assays,
+#' and binarization will be applied to each.
 #' @rdname BinarizeCounts
 #' @method BinarizeCounts Seurat
 #' @importFrom Seurat GetAssay
@@ -44,13 +45,15 @@ BinarizeCounts.Seurat <- function(
   verbose = TRUE
 ) {
   assay <- assay %||% DefaultAssay(object)
-  assay.data <- GetAssay(object = object, assay = assay)
-  assay.data <- BinarizeCounts(
-    object = assay.data,
-    assay = assay,
-    verbose = verbose
-  )
-  object[[assay]] <- assay.data
+  for (i in 1:length(x = assay)) {
+    assay.data <- GetAssay(object = object, assay = assay[[i]])
+    assay.data <- BinarizeCounts(
+      object = assay.data,
+      assay = assay[[i]],
+      verbose = verbose
+    )
+    object[[assay[[i]]]] <- assay.data
+  }
   return(object)
 }
 

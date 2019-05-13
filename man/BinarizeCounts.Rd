@@ -20,7 +20,8 @@ BinarizeCounts(object, ...)
 
 \item{...}{Arguments passed to other methods}
 
-\item{assay}{Name of assay to use}
+\item{assay}{Name of assay to use. Can be a list of assays,
+and binarization will be applied to each.}
 
 \item{verbose}{Display messages}
 }
