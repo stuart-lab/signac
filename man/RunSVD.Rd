@@ -8,14 +8,14 @@
 \title{RunSVD}
 \usage{
 \method{RunSVD}{default}(object, assay = NULL, n = 50,
-  reduction.key = "LSI_", scale.max = NULL, seed.use = 42,
+  reduction.key = "SVD_", scale.max = NULL, seed.use = 42,
   verbose = TRUE, ...)
 
 \method{RunSVD}{Assay}(object, assay = NULL, features = NULL, n = 50,
-  reduction.key = "LSI_", scale.max = NULL, verbose = TRUE, ...)
+  reduction.key = "SVD_", scale.max = NULL, verbose = TRUE, ...)
 
 \method{RunSVD}{Seurat}(object, assay = NULL, features = NULL,
-  n = 50, reduction.key = "LSI_", reduction.name = "lsi",
+  n = 50, reduction.key = "SVD_", reduction.name = "svd",
   scale.max = NULL, verbose = TRUE, ...)
 
 RunSVD(object, ...)

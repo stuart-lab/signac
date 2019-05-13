@@ -14,7 +14,7 @@ RunSVD.default <- function(
   object,
   assay = NULL,
   n = 50,
-  reduction.key = 'LSI_',
+  reduction.key = 'SVD_',
   scale.max = NULL,
   seed.use = 42,
   verbose = TRUE,
@@ -65,7 +65,7 @@ RunSVD.Assay <- function(
   assay = NULL,
   features = NULL,
   n = 50,
-  reduction.key = 'LSI_',
+  reduction.key = 'SVD_',
   scale.max = NULL,
   verbose = TRUE,
   ...
@@ -99,8 +99,8 @@ RunSVD.Seurat <- function(
   assay = NULL,
   features = NULL,
   n = 50,
-  reduction.key = 'LSI_',
-  reduction.name = 'lsi',
+  reduction.key = 'SVD_',
+  reduction.name = 'svd',
   scale.max = NULL,
   verbose = TRUE,
   ...
