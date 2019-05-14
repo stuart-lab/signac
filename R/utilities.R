@@ -16,6 +16,28 @@
   }
 }
 
+#' StringToGRanges
+#'
+#' Convert a genomic coordinate string to a GRanges object
+#'
+#' @param regions Vector of genomic region strings
+#' @return Returns a GRanges object
+#' @importFrom GenomicRanges GRanges
+#' @importFrom IRanges IRanges
+#' @examples
+#' regions <- c('chr1:1-10', 'chr2:12-3121')
+#' StringToGRanges(regions = regions)
+#'
+#' @export
+StringToGRanges <- function(regions) {
+  chrom <- sapply(X = regions, FUN = function(a) {unlist(x = strsplit(x = a, split = ':'))[[1]]})
+  coords <- sapply(X = regions, FUN = function(a) {unlist(x = strsplit(x = a, split = ':'))[[2]]})
+  start <- sapply(X = coords, function(a) {as.numeric(x = unlist(x = strsplit(x = a, split = '-')))[[1]]})
+  end <- sapply(X = coords, function(a) {as.numeric(x = unlist(x = strsplit(x = a, split = '-')))[[2]]})
+  gr <- GRanges(seqnames = chrom, ranges = IRanges(start = start, end = end))
+  return(gr)
+}
+
 #' CalculateCoverages
 #'
 #' Calculate normalized read coverage per base per cell group
