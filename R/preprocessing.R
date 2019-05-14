@@ -89,13 +89,6 @@ CreateGeneActivityMatrix <- function(
   downstream = 0,
   verbose = TRUE
 ) {
-  if (!PackageCheck('GenomicRanges', error = FALSE)) {
-    stop("Please install GenomicRanges from Bioconductor.")
-  }
-  if (!PackageCheck('rtracklayer', error = FALSE)) {
-    stop("Please install rtracklayer from Bioconductor.")
-  }
-
   # convert peak matrix to GRanges object
   peak.df <- rownames(x = peak.matrix)
   peak.df <- do.call(what = rbind, args = strsplit(x = gsub(peak.df, pattern = ":", replacement = "-"), split = "-"))
