@@ -1,9 +1,12 @@
 #' @importFrom methods setClass
 #' @importClassesFrom Matrix dgCMatrix
+#' @importClassesFrom TFBSTools PFMatrixList
 #'
 NULL
 
 ## Class definitions
+
+setClassUnion(name = 'AnyPWM', c("list", "PFMatrixList"))
 
 #' The Motif class
 #'
@@ -22,8 +25,8 @@ Motif <- setClass(
   Class = 'Motif',
   slots = list(
     data = 'dgCMatrix',
-    pwm = 'ANY',
-    meta.data = 'ANY'
+    pwm = 'AnyPWM',
+    meta.data = 'data.frame'
   )
 )
 
@@ -77,31 +80,34 @@ AddMotifObject.Seurat <- function(
 #'
 #' Create an object of class \code{Motif}
 #'
-#' @param data A
+#' @param data A motif x region matrix
+#' @param pwm A list of position weight matrices matching the motif names in \code{data}.
+#' Can be of class PFMatrixList
+#' @param meta.data A data.frame containing metadata
+#'
 CreateMotifObject <- function(
-  data,
+  data = NULL,
   pwm = NULL,
   meta.data = NULL
 ) {
+  data <- data %||% new(Class = 'dgCMatrix')
+  pwm <- pwm %||% list()
+  meta.data <- meta.data %||% data.frame()
   if (!(class(x = data) %in% c('matrix', 'dgCMatrix'))) {
-    stop('Data must be matrix or sparse matrix class. Supplied ', class(data))
+    stop('Data must be matrix or sparse matrix class. Supplied ', class(x = data))
   }
   if (class(x = data) == 'matrix') {
     data <- as(Class = 'dgCMatrix', object = data)
   }
-  if (!is.null(x = pwm)) {
+  if ((nrow(x = data) > 0) & (length(x = pwm) > 0)) {
     if (!all(names(x = pwm) == rownames(x = data))) {
       stop('Motif names in data matrix and PWM list are inconsistent')
     }
-  } else {
-    pwm <- list()
   }
-  if (!is.null(x = meta.data)) {
+  if ((nrow(x = data) > 0) & (nrow(x = meta.data) > 0)) {
     if (!all(rownames(x = meta.data) == rownames(x = data))) {
       stop('Motif names in data matrix and metadata are inconsistent')
     }
-  } else {
-    meta.data <- data.frame()
   }
   motif.obj <- new(
     Class = 'Motif',
@@ -169,14 +175,16 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
 #' @method SetMotifData Assay
 #' @import Matrix
 SetMotifData.Assay <- function(object, slot, new.data, ...) {
-  if (!(class(x = new.data) %in% c('matrix', 'dgCMatrix'))) {
-    stop('Data must be matrix or sparse matrix class. Supplied ', class(x = new.data))
-  }
-  if (!all(rownames(x = object) == colnames(x = new.data))) {
-    stop('Features do not match existing assay data. Column names in motif matrix should match row names in assay data')
-  }
-  if (class(x = new.data) == 'matrix') {
-    new.data <- as(Class = 'dgCMatrix', object = new.data)
+  if (slot == 'data') {
+    if (!(class(x = new.data) %in% c('matrix', 'dgCMatrix'))) {
+      stop('Data must be matrix or sparse matrix class. Supplied ', class(x = new.data))
+    }
+    if (!all(rownames(x = object) == colnames(x = new.data))) {
+      stop('Features do not match existing assay data. Column names in motif matrix should match row names in assay data')
+    }
+    if (class(x = new.data) == 'matrix') {
+      new.data <- as(Class = 'dgCMatrix', object = new.data)
+    }
   }
   misc.data <- slot(object = object, name = 'misc') %||% list()
   if (class(misc.data) != 'list') {

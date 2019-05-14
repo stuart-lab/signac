@@ -142,6 +142,31 @@ CreateGeneActivityMatrix <- function(
   return(as(object = newmat, Class = 'dgCMatrix'))
 }
 
+#' CreateMotifMatrix
+#'
+#' Create a motif x feature matrix from a set of genomic ranges,
+#' the genome, and a set of position weight matrices
+#'
+#' @param features A set of genomic features. Must be specified as chr:start-end
+#' @param genome A BSgenome
+#' @param pwm A list of position weight matrices
+#' @param min.score Minimum score to record a motif match for the feature
+#'
+#' @return Returns a sparse matrix
+#' @importFrom Biostrings matchPWM
+#' @export
+CreateMotifMatrix <- function(
+  features,
+  genome,
+  pwm
+) {
+  # TODO
+  # 1. for each PWM in list, get list of matching genome positions
+  # 2. Intersect genome positions with the set of features
+  # 3. construct matrix
+  return()
+}
+
 #' @importFrom Matrix rowSums
 #' @importFrom stats ecdf
 #' @rdname FindTopFeatures

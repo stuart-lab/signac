@@ -139,6 +139,7 @@ CoveragePlot <- function(
 #' @param ... Additional parameters passed to \code{\link{ggseqlogo}}
 #'
 #' @importFrom ggseqlogo ggseqlogo
+#' @importFrom TFBSTools Matrix
 #'
 MotifPlot <- function(
   object,
@@ -147,11 +148,17 @@ MotifPlot <- function(
   ...
 ) {
   data.use <- GetMotifData(object = object, assay = assay, slot = 'pwm')
-  if (length(x = pwm) == 0) {
+  if (length(x = data.use) == 0) {
     stop('Position weight matrix list for the requested assay is empty')
   }
   data.use <- data.use[motifs]
-  p <- ggseqlogo(data = data.use, ...)
+  if (class(x = data.use) == "PFMatrixList") {
+    pwm <- Matrix(data.use)
+    names(x = pwm) <- name(x = data.use)
+  } else {
+    pwm <- data.use
+  }
+  p <- ggseqlogo(data = pwm)
   return(p)
 }
 

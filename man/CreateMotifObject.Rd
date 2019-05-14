@@ -4,10 +4,15 @@
 \alias{CreateMotifObject}
 \title{CreateMotifObject}
 \usage{
-CreateMotifObject(data, pwm = NULL, meta.data = NULL)
+CreateMotifObject(data = NULL, pwm = NULL, meta.data = NULL)
 }
 \arguments{
-\item{data}{A}
+\item{data}{A motif x region matrix}
+
+\item{pwm}{A list of position weight matrices matching the motif names in \code{data}.
+Can be of class PFMatrixList}
+
+\item{meta.data}{A data.frame containing metadata}
 }
 \description{
 Create an object of class \code{Motif}
