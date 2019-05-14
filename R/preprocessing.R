@@ -71,6 +71,13 @@ BinarizeCounts.Seurat <- function(
 #' @param downstream Number of bases downstream to consider
 #' @param verbose Print progress/messages
 #'
+#' @importFrom GenomicRanges makeGRangesFromDataFrame distanceToNearest
+#' @importFrom rtracklayer import mcols
+#' @importFrom GenomeInfoDb keepSeqlevels seqlevelsStyle
+#' @importFrom SummarizedExperiment promoters
+#' @importFrom S4Vectors queryHits subjectHits
+#' @importFrom Matrix colSums
+#'
 #' @export
 #'
 CreateGeneActivityMatrix <- function(
@@ -94,24 +101,24 @@ CreateGeneActivityMatrix <- function(
   peak.df <- do.call(what = rbind, args = strsplit(x = gsub(peak.df, pattern = ":", replacement = "-"), split = "-"))
   peak.df <- as.data.frame(x = peak.df)
   colnames(x = peak.df) <- c("chromosome", 'start', 'end')
-  peaks.gr <- GenomicRanges::makeGRangesFromDataFrame(df = peak.df)
+  peaks.gr <- makeGRangesFromDataFrame(df = peak.df)
 
   # get annotation file, select genes
-  gtf <- rtracklayer::import(con = annotation.file)
-  gtf <- GenomeInfoDb::keepSeqlevels(x = gtf, value = seq.levels, pruning.mode = 'coarse')
-  GenomeInfoDb::seqlevelsStyle(gtf) <- "UCSC"
+  gtf <- import(con = annotation.file)
+  gtf <- keepSeqlevels(x = gtf, value = seq.levels, pruning.mode = 'coarse')
+  seqlevelsStyle(gtf) <- "UCSC"
   gtf.genes <- gtf[gtf$type == 'gene']
 
   # Extend definition up/downstream
   if (include.body) {
     gtf.body_prom <- Extend(x = gtf.genes, upstream = upstream, downstream = downstream)
   } else {
-    gtf.body_prom <- SummarizedExperiment::promoters(x = gtf.genes, upstream = upstream, downstream = downstream)
+    gtf.body_prom <- promoters(x = gtf.genes, upstream = upstream, downstream = downstream)
   }
-  gene.distances <- GenomicRanges::distanceToNearest(x = peaks.gr, subject = gtf.body_prom)
-  keep.overlaps <- gene.distances[rtracklayer::mcols(x = gene.distances)$distance == 0]
-  peak.ids <- peaks.gr[S4Vectors::queryHits(x = keep.overlaps)]
-  gene.ids <- gtf.genes[S4Vectors::subjectHits(x = keep.overlaps)]
+  gene.distances <- distanceToNearest(x = peaks.gr, subject = gtf.body_prom)
+  keep.overlaps <- gene.distances[mcols(x = gene.distances)$distance == 0]
+  peak.ids <- peaks.gr[queryHits(x = keep.overlaps)]
+  gene.ids <- gtf.genes[subjectHits(x = keep.overlaps)]
   peak.ids$gene.name <- gene.ids$gene_name
   peak.ids <- as.data.frame(x = peak.ids)
   peak.ids$peak <- paste0(peak.ids$seqnames, ":", peak.ids$start, "-", peak.ids$end)
@@ -131,7 +138,7 @@ CreateGeneActivityMatrix <- function(
     features.use <- annotations[annotations$new_feature == all.features[[x]], ]$feature
     submat <- peak.matrix[features.use, ]
     if (length(x = features.use) > 1) {
-      return(Matrix::colSums(x = submat))
+      return(colSums(x = submat))
     } else {
       return(submat)
     }

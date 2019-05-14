@@ -139,7 +139,7 @@ CoveragePlot <- function(
 #' @param ... Additional parameters passed to \code{\link{ggseqlogo}}
 #'
 #' @importFrom ggseqlogo ggseqlogo
-#' @importFrom TFBSTools Matrix
+#' @importFrom TFBSTools Matrix name
 #'
 MotifPlot <- function(
   object,
