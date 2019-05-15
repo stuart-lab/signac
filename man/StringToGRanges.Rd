@@ -4,10 +4,12 @@
 \alias{StringToGRanges}
 \title{StringToGRanges}
 \usage{
-StringToGRanges(regions)
+StringToGRanges(regions, sep = "-")
 }
 \arguments{
 \item{regions}{Vector of genomic region strings}
+
+\item{sep}{Regular expression used to separate the genomic coordinates}
 }
 \value{
 Returns a GRanges object
@@ -16,7 +18,7 @@ Returns a GRanges object
 Convert a genomic coordinate string to a GRanges object
 }
 \examples{
-regions <- c('chr1:1-10', 'chr2:12-3121')
+regions <- c('chr1-1-10', 'chr2-12-3121')
 StringToGRanges(regions = regions)
 
 }

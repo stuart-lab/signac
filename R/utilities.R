@@ -16,26 +16,44 @@
   }
 }
 
+PlanThreads <- function ()
+{
+  nthreads <- eval(expr = formals(fun = plan())$workers)
+  return(nthreads %||% 1)
+}
+
 #' StringToGRanges
 #'
 #' Convert a genomic coordinate string to a GRanges object
 #'
 #' @param regions Vector of genomic region strings
+#' @param sep Regular expression used to separate the genomic coordinates
 #' @return Returns a GRanges object
-#' @importFrom GenomicRanges GRanges
-#' @importFrom IRanges IRanges
+#' @importFrom GenomicRanges makeGRangesFromDataFrame
+#' @importFrom tidyr separate
 #' @examples
-#' regions <- c('chr1:1-10', 'chr2:12-3121')
+#' regions <- c('chr1-1-10', 'chr2-12-3121')
 #' StringToGRanges(regions = regions)
 #'
 #' @export
-StringToGRanges <- function(regions) {
-  chrom <- sapply(X = regions, FUN = function(a) {unlist(x = strsplit(x = a, split = ':'))[[1]]})
-  coords <- sapply(X = regions, FUN = function(a) {unlist(x = strsplit(x = a, split = ':'))[[2]]})
-  start <- sapply(X = coords, function(a) {as.numeric(x = unlist(x = strsplit(x = a, split = '-')))[[1]]})
-  end <- sapply(X = coords, function(a) {as.numeric(x = unlist(x = strsplit(x = a, split = '-')))[[2]]})
-  gr <- GRanges(seqnames = chrom, ranges = IRanges(start = start, end = end))
-  return(gr)
+StringToGRanges <- function(regions, sep = "-") {
+  ranges.df <- data.frame(ranges = regions)
+  ranges.df <- separate(data = ranges.df, col = 'ranges', sep = sep, into = c('chr', 'start', 'end'))
+  granges <- makeGRangesFromDataFrame(df = ranges.df)
+  return(granges)
+}
+
+#' GRangesToString
+#'
+#' Convert GRanges object to a vector of strings
+#'
+#' @param grange A GRanges object
+#' @param sep Separator for the genomic coordinate string
+#' @importFrom GenomicRanges seqnames start end
+#' @export
+GRangesToString <- function(grange, sep = c("-", "-")) {
+  regions <- paste0(as.character(seqnames(x = grange)), sep[[1]], start(grange), sep[[2]], end(grange))
+  return(regions)
 }
 
 #' CalculateCoverages
@@ -64,6 +82,57 @@ CalculateCoverages <- function(
   return(expanded)
 }
 
+#' ConstructBinMatrix
+#'
+#' Construct a bin x cell matrix from a fragments file
+#'
+#' @param fragments Path to tabix-indexed fragments file
+#' @param genome A GRanges object for the genome
+#' @param cells Vector of cells to include. If NULL, include all cells found
+#' in the fragments file
+#' @param binsize Size of the genome bins to use
+#' @param verbose Display messages
+#'
+#' @importFrom GenomicRanges tileGenome seqlengths
+#' @importFrom future.apply future_sapply
+#' @importFrom pbapply pbsapply
+#' @importFrom Matrix sparseMatrix
+#'
+#' @export
+ConstructBinMatrix <- function(
+  fragments,
+  genome,
+  cells = NULL,
+  binsize = 5000,
+  verbose = TRUE
+) {
+  tiles <- unlist(x = tileGenome(seqlengths = seqlengths(genome), tilewidth = binsize))
+  stringtiles <- GRangesToString(grange = tiles, sep = c(':', '-'))
+  if (PlanThreads() > 1) {
+    mysapply <- future_sapply
+  } else {
+    mysapply <- ifelse(test = verbose, yes = pbsapply, no = sapply)
+  }
+  cells.in.regions <- mysapply(
+    X = stringtiles,
+    FUN = GetCellsInBin,
+    tabix = fragments,
+    cells = cells
+  )
+  region.df <- do.call(what = rbind, args = cells.in.regions)
+  region.df$region.ident <- as.integer(x = region.df$region)
+  region.df$cell.ident <- as.integer(x = region.df$cell)
+  binmat <- sparseMatrix(
+    i = region.df$region.ident,
+    j = region.df$cell.ident,
+    x = rep(x = 1, nrow(x = region.df))
+  )
+  binmat <- as(Class = 'dgCMatrix', object = binmat)
+  rownames(binmat) <- unique(region.df$region)
+  colnames(binmat) <- unique(region.df$cell)
+  return(binmat)
+}
+
 #' Extend
 #'
 #' Resize GenomicRanges upstream and or downstream.
@@ -86,6 +155,35 @@ Extend <- function(x, upstream = 0, downstream = 0) {
   ranges(x = x) <- IRanges(start = new_start, end = new_end)
   x <- trim(x = x)
   return(x)
+}
+
+#' GetCellsInBin
+#'
+#' Extract cell names containing reads mapped within a given genomic region
+#'
+#' @param fragments Tabix-indexed fragments file
+#' @param region A string giving the region to extract from the fragments file
+#' @param cells Vector of cells to include in output. If NULL, include all cells.
+#'
+#' @importFrom seqminer tabix.read.table
+#' @export
+GetCellsInBin <- function(fragments, region, cells = NULL) {
+  bin.reads <- tabix.read.table(
+    tabixFile = fragments,
+    tabixRange = region
+  )
+  if (nrow(x = bin.reads) > 0) {
+    if (!is.null(x = cells)) {
+      bin.reads <- bin.reads[bin.reads$V4 %in% cells, ]
+    }
+    if (nrow(x = bin.reads) > 0) {
+      return(data.frame(region = region, cell = bin.reads$V4, stringsAsFactors = TRUE))
+    } else {
+      return(data.frame())
+    }
+  } else {
+    return(data.frame())
+  }
 }
 
 #' GetReadsInRegion
@@ -138,7 +236,6 @@ GetReadsInRegion <- function(
   if (verbose) {
     message('Extracting reads in requested region')
   }
-  region <- CheckRegion(region = region)
   reads <- tabix.read.table(tabixFile = fragment.path, tabixRange = region)
   colnames(reads) <- c('chrom', 'start', 'stop', 'cell', 'reads')
   reads <- reads[reads$cell %in% names(group.by), ]
@@ -153,20 +250,63 @@ GetReadsInRegion <- function(
   return(reads)
 }
 
-#' CheckRegion
+#' IntersectRegionCounts
 #'
-#' Make sure that the given region is ok. Raises error if not correct, otherwise returns region.
+#' Count reads per cell overlapping a given set of regions
 #'
-#' @param region A genomic region, or a vector of regions
+#' @param object A Seurat object
+#' @param assay Name of assay in the object to use
+#' @param regions A GRanges object
+#' @param sep Separator to use when extracting genomic coordinates from the Seurat object
+#' @param ... Additional arguments passed to \code{findOverlaps}
+#'
+#' @importFrom IRanges findOverlaps
+#' @importFrom S4Vectors queryHits
+#' @importFrom Matrix colSums
+#'
 #' @export
-CheckRegion <- function(
-  region
+IntersectRegionCounts <- function(
+  object,
+  assay,
+  regions,
+  sep = "-",
+  ...
 ) {
-  if (grepl(pattern = '[0-9a-zA-Z_]*:[0-9]+-[0-9]+$', x = region)) {
-    return(region)
-  } else {
-    stop('Bad region')
-  }
+  obj.regions <- rownames(x = object[[assay]])
+  obj.granges <- StringToGRanges(regions = obj.regions, sep = sep)
+  overlaps <- findOverlaps(query = obj.granges, subject = regions, ...)
+  hit.regions <- GRangesToString(grange = obj.granges[queryHits(x = overlaps)], sep = sep)
+  data.matrix <- GetAssayData(object = object, assay = assay, slot = 'counts')[hit.regions, ]
+  return(colSums(data.matrix))
+}
+
+#' FractionCountsInRegion
+#'
+#' Find the fraction of counts per cell that overlap a given set of genomic ranges
+#'
+#' @param object A Seurat object
+#' @param assay Name of assay to use
+#' @param regions A GRanges object containing a set of genomic regions
+#' @param sep The separator used to separate genomic coordinate information in the assay feature names
+#' @param ... Additional arguments passed to \code{\link{IntersectRegionCounts}}
+#'
+#' @export
+FractionCountsInRegion <- function(
+  object,
+  assay,
+  regions,
+  sep = "-",
+  ...
+) {
+  reads.in.region <- IntersectRegionCounts(
+    object = object,
+    regions = regions,
+    assay = assay,
+    sep = sep,
+    ...
+  )
+  total.reads <- colSums(GetAssayData(object = object, assay = assay, slot = 'counts'))
+  return(reads.in.region / total.reads)
 }
 
 #' Set the fragments file path for creating plots
