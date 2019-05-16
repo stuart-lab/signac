@@ -2,7 +2,7 @@
 #'
 #' Find motifs enriched in a given set of peaks.
 #'
-#' Performs matrix multiplication between a motix x feature and feature x cell matrix to produce motif
+#' Performs matrix multiplication between a motif x feature and feature x cell matrix to produce motif
 #' counts per cell. This is repeated using a set of background features to calculate the relative enrichment
 #' of each motif in tested features. A permutation test can also be performed by setting the \code{permute}
 #' argument, and the enrichment testing will be repeated \emph{n} times using features sampled at random from
@@ -42,6 +42,12 @@ FindMotifs <- function(
   }
   data.use <- GetAssayData(object = object, assay = assay, slot = 'counts')[, cells]
   motif.all <- GetMotifData(object = object, assay = assay, slot = 'data')
+  pwm <- GetMotifData(object = object, assay = assay, slot = 'pwm')
+  if (class(x = pwm) == 'PFMatrixList') {
+    motif.names <- name(x = pwm)
+  } else {
+    motif.names <- NULL
+  }
   top.motifs <- TestEnrichment(
     motif.matrix = motif.all,
     feature.matrix = data.use[features, ]
@@ -50,14 +56,17 @@ FindMotifs <- function(
     motif.matrix = motif.all,
     feature.matrix = data.use[background, ]
   )
-  enrichment <- sort(x = top.motifs / background.scores, decreasing = TRUE)
+  enrichment <- top.motifs / background.scores
   results <- data.frame(
     motif = names(x = enrichment),
     score = enrichment,
     row.names = names(enrichment)
   )
+  if (!is.null(x = motif.names)) {
+    results$motif.name <- motif.names
+  }
   if (is.null(x = permute)) {
-    return(results)
+    return(results[order(results$enrichment, decreasing = TRUE), ])
   } else {
     message("Permuting feature sets ", permute, " times")
     n.features <- length(features)
@@ -79,7 +88,7 @@ FindMotifs <- function(
     test.results <- permuted.scores >= enrichment
     p.vals <- rowSums(test.results) / permute
     results$pvalue <- p.vals
-    return(results)
+    return(results[with(data = results, expr = order(pvalue, -score)), ])
   }
 }
 
