@@ -44,13 +44,13 @@ AddMotifObject.Assay <- function(
   if ('motif' %in% names(x = misc.data)) {
     warning('Overwriting existing motif object in assay')
   }
-  if (!all(rownames(x = object) == colnames(x = motif.object))) {
-    keep.features <- intersect(x = colnames(x = motif.object), y = rownames(x = object))
+  if (!all(rownames(x = object) == rownames(x = motif.object))) {
+    keep.features <- intersect(x = rownames(x = motif.object), y = rownames(x = object))
     if (length(x = keep.features) == 0) {
       stop('No features in common between the Assay and Motif objects')
     } else {
       warning('Features do not match in Assay and Motif object. Subsetting the Motif object.')
-      motif.object <- motif.obj[, keep.features]
+      motif.object <- motif.obj[keep.features, ]
     }
   }
   misc.data[['motif']] <- motif.object
@@ -100,7 +100,7 @@ CreateMotifObject <- function(
     data <- as(Class = 'dgCMatrix', object = data)
   }
   if ((nrow(x = data) > 0) & (length(x = pwm) > 0)) {
-    if (!all(names(x = pwm) == rownames(x = data))) {
+    if (!all(names(x = pwm) == colnames(x = data))) {
       stop('Motif names in data matrix and PWM list are inconsistent')
     }
   }
@@ -145,7 +145,9 @@ GetMotifData.Assay <- function(object, slot = 'data', ...) {
 GetMotifData.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
   assay <- assay %||% DefaultAssay(object = object)
   return(GetMotifData(
-    object = GetAssay(object = object, assay = assay)
+    object = GetAssay(object = object, assay = assay),
+    slot = slot,
+    ...
   ))
 }
 

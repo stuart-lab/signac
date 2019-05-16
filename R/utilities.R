@@ -93,7 +93,8 @@ CalculateCoverages <- function(
 #' @param binsize Size of the genome bins to use
 #' @param verbose Display messages
 #'
-#' @importFrom GenomicRanges tileGenome seqlengths
+#' @importFrom GenomicRanges tileGenome
+#' @importFrom GenomeInfoDb seqlengths
 #' @importFrom future.apply future_sapply
 #' @importFrom pbapply pbsapply
 #' @importFrom Matrix sparseMatrix
@@ -104,10 +105,16 @@ ConstructBinMatrix <- function(
   genome,
   cells = NULL,
   binsize = 5000,
+  chunk = 1e4,
   verbose = TRUE
 ) {
   tiles <- unlist(x = tileGenome(seqlengths = seqlengths(genome), tilewidth = binsize))
-  stringtiles <- GRangesToString(grange = tiles, sep = c(':', '-'))
+  chunks <- unlist(x = tileGenome(seqlengths = seqlengths(genome), ntile = chunk))
+  stringchunks <- GRangesToString(grange = chunks, sep = c(':', '-'))
+  # TODO this is WIP. Need to retrieve large chunks at a time, rather than small bins
+  #      Then intersect with tiles granges to record what cells fall in what bin.
+  #      This should speed things up by reducing the number of reads from tabix, and reducing the
+  #      number of things to be combined at the end.
   if (PlanThreads() > 1) {
     mysapply <- future_sapply
   } else {
@@ -116,9 +123,10 @@ ConstructBinMatrix <- function(
   cells.in.regions <- mysapply(
     X = stringtiles,
     FUN = GetCellsInBin,
-    tabix = fragments,
+    fragments = fragments,
     cells = cells
   )
+  # TODO this part is very slow, should find an alternative
   region.df <- do.call(what = rbind, args = cells.in.regions)
   region.df$region.ident <- as.integer(x = region.df$region)
   region.df$cell.ident <- as.integer(x = region.df$cell)
@@ -199,6 +207,7 @@ GetCellsInBin <- function(fragments, region, cells = NULL) {
 #' @param verbose Display messages
 #'
 #' @importFrom seqminer tabix.read.table
+#' @importFrom future plan
 #'
 #' @return Returns a data frame
 #' @export

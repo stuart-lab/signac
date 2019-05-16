@@ -147,24 +147,28 @@ CreateGeneActivityMatrix <- function(
 #' Create a motif x feature matrix from a set of genomic ranges,
 #' the genome, and a set of position weight matrices
 #'
-#' @param features A set of genomic features. Must be specified as chr:start-end
-#' @param genome A BSgenome
-#' @param pwm A list of position weight matrices
-#' @param min.score Minimum score to record a motif match for the feature
+#' @param features A GRanges object containing a set of genomic features
+#' @param pwm A PFMatrixList object containing position weight matrices to use
+#' @param genome Any object compatible with the \code{genome} argument in \code{\link{matchMotifs}}
+#' @param sep A length-2 character vector containing the separators to be used when constructing
+#' matrix rownames from the GRanges
+#' @param ... Additional arguments passed to \code{\link{matchMotifs}}
 #'
 #' @return Returns a sparse matrix
-#' @importFrom Biostrings matchPWM
+#' @importFrom motifmatchr matchMotifs motifMatches
 #' @export
 CreateMotifMatrix <- function(
   features,
+  pwm,
   genome,
-  pwm
+  sep = c("-", "-"),
+  ...
 ) {
-  # TODO
-  # 1. for each PWM in list, get list of matching genome positions
-  # 2. Intersect genome positions with the set of features
-  # 3. construct matrix
-  return()
+  motif_ix <- matchMotifs(pwms = PFMatrixList, subject = features, genome = genome)
+  motif.matrix <- motifMatches(object = motif_ix)
+  motif.matrix <- as(Class = 'dgCMatrix', object = motif.matrix)
+  rownames(motif.matrix) <- GRangesToString(grange = features, sep = sep)
+  return(motif.matrix)
 }
 
 #' @importFrom Matrix rowSums

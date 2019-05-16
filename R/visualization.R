@@ -139,7 +139,7 @@ CoveragePlot <- function(
 #' @param ... Additional parameters passed to \code{\link{ggseqlogo}}
 #'
 #' @importFrom ggseqlogo ggseqlogo
-#' @importFrom TFBSTools Matrix name
+#' @importFrom TFBSTools name
 #'
 MotifPlot <- function(
   object,
@@ -153,7 +153,7 @@ MotifPlot <- function(
   }
   data.use <- data.use[motifs]
   if (class(x = data.use) == "PFMatrixList") {
-    pwm <- Matrix(data.use)
+    pwm <- TFBSTools::Matrix(data.use)
     names(x = pwm) <- name(x = data.use)
   } else {
     pwm <- data.use

@@ -4,16 +4,19 @@
 \alias{CreateMotifMatrix}
 \title{CreateMotifMatrix}
 \usage{
-CreateMotifMatrix(features, genome, pwm)
+CreateMotifMatrix(features, pwm, genome, sep = c("-", "-"), ...)
 }
 \arguments{
-\item{features}{A set of genomic features. Must be specified as chr:start-end}
+\item{features}{A GRanges object containing a set of genomic features}
 
-\item{genome}{A BSgenome}
+\item{pwm}{A PFMatrixList object containing position weight matrices to use}
 
-\item{pwm}{A list of position weight matrices}
+\item{genome}{Any object compatible with the \code{genome} argument in \code{\link{matchMotifs}}}
 
-\item{min.score}{Minimum score to record a motif match for the feature}
+\item{sep}{A length-2 character vector containing the separators to be used when constructing
+matrix rownames from the GRanges}
+
+\item{...}{Additional arguments passed to \code{\link{matchMotifs}}}
 }
 \value{
 Returns a sparse matrix
