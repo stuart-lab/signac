@@ -30,7 +30,7 @@ Returns a data.frame
 Find motifs enriched in a given set of peaks.
 }
 \details{
-Performs matrix multiplication between a motix x feature and feature x cell matrix to produce motif
+Performs matrix multiplication between a motif x feature and feature x cell matrix to produce motif
 counts per cell. This is repeated using a set of background features to calculate the relative enrichment
 of each motif in tested features. A permutation test can also be performed by setting the \code{permute}
 argument, and the enrichment testing will be repeated \emph{n} times using features sampled at random from
