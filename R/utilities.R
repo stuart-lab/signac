@@ -36,9 +36,14 @@ PlanThreads <- function ()
 #' StringToGRanges(regions = regions)
 #'
 #' @export
-StringToGRanges <- function(regions, sep = "-") {
+StringToGRanges <- function(regions, sep = c("-", "-")) {
   ranges.df <- data.frame(ranges = regions)
-  ranges.df <- separate(data = ranges.df, col = 'ranges', sep = sep, into = c('chr', 'start', 'end'))
+  ranges.df <- separate(
+    data = ranges.df,
+    col = 'ranges',
+    sep = paste0(sep[[1]], "|", sep[[2]]),
+    into = c('chr', 'start', 'end')
+  )
   granges <- makeGRangesFromDataFrame(df = ranges.df)
   return(granges)
 }
@@ -278,7 +283,7 @@ IntersectRegionCounts <- function(
   object,
   assay,
   regions,
-  sep = "-",
+  sep = c("-", '-'),
   ...
 ) {
   obj.regions <- rownames(x = object[[assay]])

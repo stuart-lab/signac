@@ -4,7 +4,7 @@
 \alias{IntersectRegionCounts}
 \title{IntersectRegionCounts}
 \usage{
-IntersectRegionCounts(object, assay, regions, sep = "-", ...)
+IntersectRegionCounts(object, assay, regions, sep = c("-", "-"), ...)
 }
 \arguments{
 \item{object}{A Seurat object}

@@ -4,7 +4,7 @@
 \alias{StringToGRanges}
 \title{StringToGRanges}
 \usage{
-StringToGRanges(regions, sep = "-")
+StringToGRanges(regions, sep = c("-", "-"))
 }
 \arguments{
 \item{regions}{Vector of genomic region strings}
