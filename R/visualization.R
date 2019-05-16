@@ -141,6 +141,7 @@ CoveragePlot <- function(
 #' @importFrom ggseqlogo ggseqlogo
 #' @importFrom TFBSTools name
 #'
+#' @export
 MotifPlot <- function(
   object,
   motifs,

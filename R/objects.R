@@ -84,6 +84,7 @@ AddMotifObject.Seurat <- function(
 #' @param pwm A list of position weight matrices matching the motif names in \code{data}.
 #' Can be of class PFMatrixList
 #' @param meta.data A data.frame containing metadata
+#' @export
 #'
 CreateMotifObject <- function(
   data = NULL,
