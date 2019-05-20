@@ -78,10 +78,10 @@ CalculateCoverages <- function(
   cells.per.group <- table(reads$group)
   lut <- as.vector(x = cells.per.group)
   names(lut) <- names(x = cells.per.group)
-  expanded <- bind_rows(lapply(X = 1:nrow(reads), FUN = function(x) {
+  expanded <- suppressWarnings(bind_rows(lapply(X = 1:nrow(reads), FUN = function(x) {
     interval = reads[x, 'start']:reads[x, 'stop']
     return(data.frame(position = interval, value = 1, cell = reads[x, 'cell'], group = reads[x, 'group']))
-  }))
+  })))
   expanded$norm.value <- expanded$value / as.vector(x = lut[as.character(x = expanded$group)])
   expanded$coverage <- rollapply(data = expanded$norm.value, width = window, FUN = mean, align = 'center', fill = NA)
   return(expanded)
@@ -96,12 +96,14 @@ CalculateCoverages <- function(
 #' @param cells Vector of cells to include. If NULL, include all cells found
 #' in the fragments file
 #' @param binsize Size of the genome bins to use
+#' @param chunk Number of chunks to use when processing the fragments file. Fewer chunks may enable faster processing,
+#'  but will use more memory.
 #' @param verbose Display messages
 #'
 #' @importFrom GenomicRanges tileGenome
 #' @importFrom GenomeInfoDb seqlengths
-#' @importFrom future.apply future_sapply
-#' @importFrom pbapply pbsapply
+#' @importFrom future.apply future_lapply
+#' @importFrom pbapply pblapply
 #' @importFrom Matrix sparseMatrix
 #'
 #' @export
@@ -110,39 +112,42 @@ ConstructBinMatrix <- function(
   genome,
   cells = NULL,
   binsize = 5000,
-  chunk = 1e4,
+  chunk = 100,
   verbose = TRUE
 ) {
   tiles <- unlist(x = tileGenome(seqlengths = seqlengths(genome), tilewidth = binsize))
   chunks <- unlist(x = tileGenome(seqlengths = seqlengths(genome), ntile = chunk))
   stringchunks <- GRangesToString(grange = chunks, sep = c(':', '-'))
-  # TODO this is WIP. Need to retrieve large chunks at a time, rather than small bins
-  #      Then intersect with tiles granges to record what cells fall in what bin.
-  #      This should speed things up by reducing the number of reads from tabix, and reducing the
-  #      number of things to be combined at the end.
-  if (PlanThreads() > 1) {
-    mysapply <- future_sapply
-  } else {
-    mysapply <- ifelse(test = verbose, yes = pbsapply, no = sapply)
+  if (verbose) {
+    message('Extracting reads overlapping genome bins')
   }
-  cells.in.regions <- mysapply(
-    X = stringtiles,
+  if (PlanThreads() > 1) {
+    mylapply <- future_lapply
+  } else {
+    mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
+  }
+  cells.in.regions <- mylapply(
+    X = stringchunks,
     FUN = GetCellsInBin,
     fragments = fragments,
-    cells = cells
+    cells = cells,
+    bins = tiles
   )
-  # TODO this part is very slow, should find an alternative
-  region.df <- do.call(what = rbind, args = cells.in.regions)
-  region.df$region.ident <- as.integer(x = region.df$region)
-  region.df$cell.ident <- as.integer(x = region.df$cell)
+  if (verbose) {
+    message("Constructing matrix")
+  }
+  bin.regions <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 1))
+  cell.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 2))
   binmat <- sparseMatrix(
-    i = region.df$region.ident,
-    j = region.df$cell.ident,
-    x = rep(x = 1, nrow(x = region.df))
+    i = bin.regions,
+    j = as.integer(as.factor(x = cell.vector)),
+    x = rep(x = 1, length(x = cell.vector))
   )
   binmat <- as(Class = 'dgCMatrix', object = binmat)
-  rownames(binmat) <- unique(region.df$region)
-  colnames(binmat) <- unique(region.df$cell)
+  tilestring <- GRangesToString(grange = tiles)
+  bin.range <- 1:max(bin.regions)
+  rownames(binmat) <- tilestring[bin.range]
+  colnames(binmat) <- unique(x = cell.vector)
   return(binmat)
 }
 
@@ -176,11 +181,14 @@ Extend <- function(x, upstream = 0, downstream = 0) {
 #'
 #' @param fragments Tabix-indexed fragments file
 #' @param region A string giving the region to extract from the fragments file
-#' @param cells Vector of cells to include in output. If NULL, include all cells.
+#' @param bins A GRanges object containing the full set of genome bins
+#' @param cells Vector of cells to include in output. If NULL, include all cells
+#' @param ... Additional arguments passed to GRangesToString
 #'
 #' @importFrom seqminer tabix.read.table
+#' @importFrom GenomicRanges makeGRangesFromDataFrame findOverlaps
 #' @export
-GetCellsInBin <- function(fragments, region, cells = NULL) {
+GetCellsInBin <- function(fragments, region, bins, cells = NULL, ...) {
   bin.reads <- tabix.read.table(
     tabixFile = fragments,
     tabixRange = region
@@ -190,12 +198,15 @@ GetCellsInBin <- function(fragments, region, cells = NULL) {
       bin.reads <- bin.reads[bin.reads$V4 %in% cells, ]
     }
     if (nrow(x = bin.reads) > 0) {
-      return(data.frame(region = region, cell = bin.reads$V4, stringsAsFactors = TRUE))
+      colnames(bin.reads) <- c('chrom', 'start', 'end', 'cell', 'count')
+      gr.reads <- makeGRangesFromDataFrame(df = bin.reads, keep.extra.columns = TRUE)
+      overlaps <- findOverlaps(query = gr.reads, subject = bins, select = 'first')
+      return(list(bin = overlaps, cell = bin.reads$cell))
     } else {
-      return(data.frame())
+      return(NULL)
     }
   } else {
-    return(data.frame())
+    return(NULL)
   }
 }
 
