@@ -27,7 +27,8 @@ PlanThreads <- function ()
 #' Convert a genomic coordinate string to a GRanges object
 #'
 #' @param regions Vector of genomic region strings
-#' @param sep Regular expression used to separate the genomic coordinates
+#' @param sep Vector of separators to use for genomic string. First element is used to separate chromosome
+#' and coordinates, second separator is used to separate start and end coordinates.
 #' @return Returns a GRanges object
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @importFrom tidyr separate
@@ -53,7 +54,8 @@ StringToGRanges <- function(regions, sep = c("-", "-")) {
 #' Convert GRanges object to a vector of strings
 #'
 #' @param grange A GRanges object
-#' @param sep Separator for the genomic coordinate string
+#' @param sep Vector of separators to use for genomic string. First element is used to separate chromosome
+#' and coordinates, second separator is used to separate start and end coordinates.
 #' @importFrom GenomicRanges seqnames start end
 #' @export
 GRangesToString <- function(grange, sep = c("-", "-")) {
@@ -98,6 +100,8 @@ CalculateCoverages <- function(
 #' @param binsize Size of the genome bins to use
 #' @param chunk Number of chunks to use when processing the fragments file. Fewer chunks may enable faster processing,
 #'  but will use more memory.
+#' @param sep Vector of separators to use for genomic string. First element is used to separate chromosome
+#' and coordinates, second separator is used to separate start and end coordinates.
 #' @param verbose Display messages
 #'
 #' @importFrom GenomicRanges tileGenome
@@ -113,6 +117,7 @@ ConstructBinMatrix <- function(
   cells = NULL,
   binsize = 5000,
   chunk = 100,
+  sep = c('-', '-'),
   verbose = TRUE
 ) {
   tiles <- unlist(x = tileGenome(seqlengths = seqlengths(genome), tilewidth = binsize))
@@ -138,16 +143,19 @@ ConstructBinMatrix <- function(
   }
   bin.regions <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 1))
   cell.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 2))
+  all.cells <- unique(x = cell.vector)
+  cell.lookup <- seq_along(along.with = all.cells)
+  names(x = cell.lookup) <- all.cells
   binmat <- sparseMatrix(
     i = bin.regions,
-    j = as.integer(as.factor(x = cell.vector)),
+    j = cell.lookup[cell.vector],
     x = rep(x = 1, length(x = cell.vector))
   )
   binmat <- as(Class = 'dgCMatrix', object = binmat)
-  tilestring <- GRangesToString(grange = tiles)
+  tilestring <- GRangesToString(grange = tiles, sep = sep)
   bin.range <- 1:max(bin.regions)
   rownames(binmat) <- tilestring[bin.range]
-  colnames(binmat) <- unique(x = cell.vector)
+  colnames(binmat) <- names(x = cell.lookup)
   return(binmat)
 }
 
@@ -183,12 +191,11 @@ Extend <- function(x, upstream = 0, downstream = 0) {
 #' @param region A string giving the region to extract from the fragments file
 #' @param bins A GRanges object containing the full set of genome bins
 #' @param cells Vector of cells to include in output. If NULL, include all cells
-#' @param ... Additional arguments passed to GRangesToString
 #'
 #' @importFrom seqminer tabix.read.table
 #' @importFrom GenomicRanges makeGRangesFromDataFrame findOverlaps
 #' @export
-GetCellsInBin <- function(fragments, region, bins, cells = NULL, ...) {
+GetCellsInBin <- function(fragments, region, bins, cells = NULL) {
   bin.reads <- tabix.read.table(
     tabixFile = fragments,
     tabixRange = region
@@ -199,7 +206,7 @@ GetCellsInBin <- function(fragments, region, bins, cells = NULL, ...) {
     }
     if (nrow(x = bin.reads) > 0) {
       colnames(bin.reads) <- c('chrom', 'start', 'end', 'cell', 'count')
-      gr.reads <- makeGRangesFromDataFrame(df = bin.reads, keep.extra.columns = TRUE)
+      gr.reads <- makeGRangesFromDataFrame(df = bin.reads)
       overlaps <- findOverlaps(query = gr.reads, subject = bins, select = 'first')
       return(list(bin = overlaps, cell = bin.reads$cell))
     } else {

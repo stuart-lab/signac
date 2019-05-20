@@ -4,7 +4,7 @@
 \alias{GetCellsInBin}
 \title{GetCellsInBin}
 \usage{
-GetCellsInBin(fragments, region, bins, cells = NULL, ...)
+GetCellsInBin(fragments, region, bins, cells = NULL)
 }
 \arguments{
 \item{fragments}{Tabix-indexed fragments file}
@@ -14,8 +14,6 @@ GetCellsInBin(fragments, region, bins, cells = NULL, ...)
 \item{bins}{A GRanges object containing the full set of genome bins}
 
 \item{cells}{Vector of cells to include in output. If NULL, include all cells}
-
-\item{...}{Additional arguments passed to GRangesToString}
 }
 \description{
 Extract cell names containing reads mapped within a given genomic region

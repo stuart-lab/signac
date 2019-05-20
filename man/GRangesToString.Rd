@@ -9,7 +9,8 @@ GRangesToString(grange, sep = c("-", "-"))
 \arguments{
 \item{grange}{A GRanges object}
 
-\item{sep}{Separator for the genomic coordinate string}
+\item{sep}{Vector of separators to use for genomic string. First element is used to separate chromosome
+and coordinates, second separator is used to separate start and end coordinates.}
 }
 \description{
 Convert GRanges object to a vector of strings

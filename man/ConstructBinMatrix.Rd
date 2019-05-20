@@ -5,7 +5,7 @@
 \title{ConstructBinMatrix}
 \usage{
 ConstructBinMatrix(fragments, genome, cells = NULL, binsize = 5000,
-  chunk = 100, verbose = TRUE)
+  chunk = 100, sep = c("-", "-"), verbose = TRUE)
 }
 \arguments{
 \item{fragments}{Path to tabix-indexed fragments file}
@@ -19,6 +19,9 @@ in the fragments file}
 
 \item{chunk}{Number of chunks to use when processing the fragments file. Fewer chunks may enable faster processing,
 but will use more memory.}
+
+\item{sep}{Vector of separators to use for genomic string. First element is used to separate chromosome
+and coordinates, second separator is used to separate start and end coordinates.}
 
 \item{verbose}{Display messages}
 }
