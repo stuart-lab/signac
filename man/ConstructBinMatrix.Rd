@@ -5,7 +5,7 @@
 \title{ConstructBinMatrix}
 \usage{
 ConstructBinMatrix(fragments, genome, cells = NULL, binsize = 5000,
-  chunk = 10000, verbose = TRUE)
+  chunk = 100, verbose = TRUE)
 }
 \arguments{
 \item{fragments}{Path to tabix-indexed fragments file}
@@ -16,6 +16,9 @@ ConstructBinMatrix(fragments, genome, cells = NULL, binsize = 5000,
 in the fragments file}
 
 \item{binsize}{Size of the genome bins to use}
+
+\item{chunk}{Number of chunks to use when processing the fragments file. Fewer chunks may enable faster processing,
+but will use more memory.}
 
 \item{verbose}{Display messages}
 }
