@@ -4,7 +4,7 @@
 \alias{FractionCountsInRegion}
 \title{FractionCountsInRegion}
 \usage{
-FractionCountsInRegion(object, assay, regions, sep = "-", ...)
+FractionCountsInRegion(object, assay, regions, sep = c("-", "-"), ...)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -15,7 +15,7 @@ FractionCountsInRegion(object, assay, regions, sep = "-", ...)
 
 \item{sep}{The separator used to separate genomic coordinate information in the assay feature names}
 
-\item{...}{Additional arguments passed to \code{\link{IntersectRegionCounts}}}
+\item{...}{Additional arguments passed to \code{\link{CountsInRegion}}}
 }
 \description{
 Find the fraction of counts per cell that overlap a given set of genomic ranges

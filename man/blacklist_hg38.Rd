@@ -3,7 +3,7 @@
 \docType{data}
 \name{blacklist_hg38}
 \alias{blacklist_hg38}
-\title{Genomic blacklist regions for Human hg19/GRCh38}
+\title{Genomic blacklist regions for Human GRCh38}
 \format{A GRanges object}
 \source{
 https://sites.google.com/site/anshulkundaje/projects/blacklists
@@ -12,6 +12,6 @@ https://sites.google.com/site/anshulkundaje/projects/blacklists
 blacklist_hg38
 }
 \description{
-Genomic blacklist regions for Human hg19/GRCh38
+Genomic blacklist regions for Human GRCh38
 }
 \keyword{datasets}

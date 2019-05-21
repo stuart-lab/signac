@@ -120,7 +120,7 @@ ConstructBinMatrix <- function(
   sep = c('-', '-'),
   verbose = TRUE
 ) {
-  tiles <- unlist(x = tileGenome(seqlengths = seqlengths(genome), tilewidth = binsize))
+  tiles <- tileGenome(seqlengths = seqlengths(genome), tilewidth = binsize, cut.last.tile.in.chrom = TRUE)
   chunks <- unlist(x = tileGenome(seqlengths = seqlengths(genome), ntile = chunk))
   stringchunks <- GRangesToString(grange = chunks, sep = c(':', '-'))
   if (verbose) {
@@ -181,6 +181,35 @@ Extend <- function(x, upstream = 0, downstream = 0) {
   ranges(x = x) <- IRanges(start = new_start, end = new_end)
   x <- trim(x = x)
   return(x)
+}
+
+#' FilterFragments
+#'
+#' Remove cells from a fragments file that are not present in a given list of cells.
+#'
+#' @param fragment.path Path to a tabix-indexed fragments file
+#' @param cells A vector of cells to retain
+#' @param output.path Name and path for output tabix file. A tabix index file will also be created in the same location, with
+#' the .tbi file extension.
+#' @param chunk Number of chunks to use when processing the fragments. Fewer chunks may be faster, but will use more memory.
+#' @param verbose Display messages
+#'
+#' @importFrom seqminer tabix.read.table tabix.createIndex
+#' @export
+FilterFragments <- function(
+  fragment.path,
+  cells,
+  output.path,
+  chunk,
+  verbose
+) {
+  if (verbose) {
+    message("Filtering cell from fragments file. Retaining ", length(cells), " cells")
+  }
+  #
+  if (verbose) {
+    message("Completed")
+  }
 }
 
 #' GetCellsInBin
@@ -282,7 +311,7 @@ GetReadsInRegion <- function(
   return(reads)
 }
 
-#' IntersectRegionCounts
+#' CountsInRegion
 #'
 #' Count reads per cell overlapping a given set of regions
 #'
@@ -297,7 +326,7 @@ GetReadsInRegion <- function(
 #' @importFrom Matrix colSums
 #'
 #' @export
-IntersectRegionCounts <- function(
+CountsInRegion <- function(
   object,
   assay,
   regions,
@@ -320,17 +349,17 @@ IntersectRegionCounts <- function(
 #' @param assay Name of assay to use
 #' @param regions A GRanges object containing a set of genomic regions
 #' @param sep The separator used to separate genomic coordinate information in the assay feature names
-#' @param ... Additional arguments passed to \code{\link{IntersectRegionCounts}}
+#' @param ... Additional arguments passed to \code{\link{CountsInRegion}}
 #'
 #' @export
 FractionCountsInRegion <- function(
   object,
   assay,
   regions,
-  sep = "-",
+  sep = c("-", "-"),
   ...
 ) {
-  reads.in.region <- IntersectRegionCounts(
+  reads.in.region <- CountsInRegion(
     object = object,
     regions = regions,
     assay = assay,
