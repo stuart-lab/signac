@@ -1,6 +1,6 @@
-#' FindMotifs
+#' MotifCellEnrichment
 #'
-#' Find motifs enriched in a given set of peaks.
+#' Find motifs enriched in a given set of peaks for a set of cells.
 #'
 #' Performs matrix multiplication between a motif x feature and feature x cell matrix to produce motif
 #' counts per cell. This is repeated using a set of background features to calculate the relative enrichment
@@ -21,10 +21,11 @@
 #' @importFrom Matrix rowSums
 #' @importFrom future plan
 #' @importFrom future.apply future_sapply
+#' @importFrom pbapply pbsapply
 #'
 #' @return Returns a data.frame
 #' @export
-FindMotifs <- function(
+MotifCellEnrichment <- function(
   object,
   cells = NULL,
   features = NULL,
@@ -90,6 +91,70 @@ FindMotifs <- function(
     results$pvalue <- p.vals
     return(results[with(data = results, expr = order(pvalue, -score)), ])
   }
+}
+
+#' FindMotifs
+#'
+#' Find motifs overrepresented in a given set of genomic features. Computes the number of features
+#' containing the motif (observed) and compares this to the total number of features containing the
+#' motif (background) using the hypergeometric test.
+#'
+#' @param object A Seurat object
+#' @param features A vector of features to test for enrichments over background
+#' @param assay Which assay to use. Default is the active assay
+#' @param background Vector of features to use as the background set. If NULL, use all features in the assay.
+#' @param verbose Display messages
+#'
+#' @return Returns a data frame
+#'
+#' @importFrom Matrix colSums
+#' @importFrom stats phyper
+#'
+#' @export
+FindMotifs <- function(
+  object,
+  features,
+  assay = NULL,
+  background = NULL,
+  verbose = TRUE
+) {
+  assay <- assay %||% DefaultAssay(object = object)
+  background <- background %||% rownames(x = object)
+  if (verbose) {
+    message('Testing motif enrichment in ', length(features), ' regions')
+  }
+  motif.all <- GetMotifData(object = object, assay = assay, slot = 'data')
+  pwm <- GetMotifData(object = object, assay = assay, slot = 'pwm')
+  if (class(x = pwm) == 'PFMatrixList') {
+    motif.names <- name(x = pwm)
+  } else {
+    motif.names <- NULL
+  }
+  subs.motifs <- motif.all[features, ]
+  subs.counts <- colSums(x = subs.motifs)
+  all.counts <- colSums(x = motif.all)
+  obs.expect <- subs.counts / all.counts
+  p.list <- c()
+  for (i in seq_along(along.with = subs.counts)) {
+    p.list[[i]] <- phyper(
+      q = subs.counts[[i]]-1,
+      m = all.counts[[i]],
+      n = nrow(x = motif.all) - all.counts[[i]],
+      k = length(x = features),
+      lower.tail = FALSE
+    )
+  }
+  results <- data.frame(
+    motif = names(x = subs.counts),
+    observed = subs.counts,
+    background = all.counts,
+    enrichment = obs.expect,
+    p = p.list
+  )
+  if (!is.null(x = motif.names)) {
+    results$motif.name <- motif.names
+  }
+  return(results[with(data = results, expr = order(p, -enrichment)), ])
 }
 
 #' TestEnrichment
