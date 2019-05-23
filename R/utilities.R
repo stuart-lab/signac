@@ -105,10 +105,11 @@ CalculateCoverages <- function(
 #' @param verbose Display messages
 #'
 #' @importFrom GenomicRanges tileGenome
-#' @importFrom GenomeInfoDb seqlengths
+#' @importFrom GenomeInfoDb seqlengths keepSeqlevels
 #' @importFrom future.apply future_lapply
 #' @importFrom pbapply pblapply
 #' @importFrom Matrix sparseMatrix
+#' @importFrom Rsamtools TabixFile seqnamesTabix
 #'
 #' @export
 ConstructBinMatrix <- function(
@@ -120,11 +121,30 @@ ConstructBinMatrix <- function(
   sep = c('-', '-'),
   verbose = TRUE
 ) {
-  # TODO update this to use the Rsamtools scanTabix function. Should be much faster. Can still do in parallel.
-  tiles <- tileGenome(seqlengths = seqlengths(genome), tilewidth = binsize, cut.last.tile.in.chrom = TRUE)
-
-  # separate tiles into n chunks (list of granges). This will be used in parallel processing
-
+  tiles <- tileGenome(
+    seqlengths = seqlengths(genome),
+    tilewidth = binsize,
+    cut.last.tile.in.chrom = TRUE
+  )
+  tbx <- TabixFile(file = fragments)
+  tiles <- keepSeqlevels(
+    x = tiles,
+    value = seqnamesTabix(file = tbx),
+    pruning.mode = "coarse"
+  )
+  chunksize <- as.integer(x = (length(tiles) / chunk))
+  tile.list <- sapply(1:chunk, function(x) {
+    chunkupper <- (x * chunksize) -1
+    if (x == 1) {
+      chunklower <- 1
+    } else {
+      chunklower <- (x-1) * chunksize
+    }
+    if (chunkupper > length(tiles)) {
+      chunkupper <- length(tiles)
+    }
+    return(tiles[chunklower:chunkupper])
+  })
   if (verbose) {
     message('Extracting reads overlapping genome bins')
   }
@@ -134,31 +154,32 @@ ConstructBinMatrix <- function(
     mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
   }
   cells.in.regions <- mylapply(
-    X = chunks,
-    FUN = GetCellsInBin,
-    fragments = fragments,
-    cells = cells,
-    bins = tiles
+    X = tile.list,
+    FUN = GetCellsInRegion,
+    tabix = tbx,
+    cells = cells
   )
   if (verbose) {
     message("Constructing matrix")
   }
-  bin.regions <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 1))
-  cell.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 2))
+  cell.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 1))
+  bin.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 2))
   all.cells <- unique(x = cell.vector)
+  all.bins <- unique(x = bin.vector)
   cell.lookup <- seq_along(along.with = all.cells)
+  bin.lookup <- seq_along(along.with = all.bins)
   names(x = cell.lookup) <- all.cells
+  names(x = bin.lookup) <- all.bins
   binmat <- sparseMatrix(
-    i = bin.regions,
+    i = bin.lookup[bin.vector],
     j = cell.lookup[cell.vector],
     x = rep(x = 1, length(x = cell.vector))
   )
   binmat <- as(Class = 'dgCMatrix', object = binmat)
-  tilestring <- GRangesToString(grange = tiles, sep = sep)
-  bin.range <- 1:max(bin.regions)
-  rownames(binmat) <- tilestring[bin.range]
+  rownames(binmat) <- names(x = bin.lookup)
   colnames(binmat) <- names(x = cell.lookup)
-  return(binmat)
+  cells.accept <- intersect(cells, colnames(x = binmat))
+  return(binmat[, cells.accept])
 }
 
 #' CreateMotifActivityMatrix
@@ -277,42 +298,36 @@ FilterFragments <- function(
   }
 }
 
-#' GetCellsInBin
+#' GetCellsInRegion
 #'
 #' Extract cell names containing reads mapped within a given genomic region
 #'
-#' @param fragments Tabix-indexed fragments file
+#' @param tabix Tabix object
 #' @param region A string giving the region to extract from the fragments file
-#' @param bins A GRanges object containing the full set of genome bins
 #' @param cells Vector of cells to include in output. If NULL, include all cells
 #'
 #' @importFrom Rsamtools TabixFile scanTabix
-#' @importFrom GenomicRanges makeGRangesFromDataFrame findOverlaps
 #' @export
-GetCellsInBin <- function(fragments, region, bins, cells = NULL) {
+GetCellsInRegion <- function(tabix, region, cells = NULL) {
   if (!(class(region) == 'GRanges')) {
     region <- StringToGRanges(regions = region)
   }
-  # TODO this can be updated now that I'm using Rsamtools, since you can easily record which region
-  # was overlapped by supplying GRanges, so don't need to do the GRanges intersection
-  # not sure if this function is even needed anymore
-  tbx <- TabixFile(file = fragments)
-  bin.reads <- scanTabix(file = tbx, param = region)
-  bin.reads <- TabixOutputToDataFrame(reads = bin.reads)
-  if (nrow(x = bin.reads) > 0) {
-    if (!is.null(x = cells)) {
-      bin.reads <- bin.reads[bin.reads$cell %in% cells, ]
-    }
-    if (nrow(x = bin.reads) > 0) {
-      gr.reads <- makeGRangesFromDataFrame(df = bin.reads)
-      overlaps <- findOverlaps(query = gr.reads, subject = bins, select = 'first')
-      return(list(bin = overlaps, cell = bin.reads$cell))
-    } else {
-      return(NULL)
-    }
-  } else {
-    return(NULL)
+  bin.reads <- scanTabix(file = tabix, param = region)
+  reads <- sapply(X = bin.reads, FUN = ExtractCell)
+  if (!is.null(x = cells)) {
+    reads <- sapply(X = reads, FUN = function(x) {
+      x <- x[x %in% cells]
+      if (length(x = x) == 0) {
+        return(NULL)
+      } else {
+        return(x)
+      }
+    })
   }
+  nrep <- sapply(X = reads, FUN = length)
+  regions <- rep(x = names(x = reads), nrep)
+  cellnames <- as.vector(x = unlist(x = reads))
+  return(list(cells = cellnames, region = regions))
 }
 
 #' GetReadsInRegion
@@ -416,6 +431,21 @@ CountsInRegion <- function(
   return(colSums(data.matrix))
 }
 
+#' ExtractCell
+#'
+#' Extract cell barcode from list of tab delimited character vectors (output of \code{\link{scanTabix}})
+#'
+#' @param x List of character vectors
+#' @export
+ExtractCell <- function(x) {
+  if (length(x = x) == 0) {
+    return(NULL)
+  } else {
+    tmp <- strsplit(x = x, split = "\t")
+    return(unlist(x = tmp)[5*(1:length(x = tmp))-1])
+  }
+}
+
 #' FractionCountsInRegion
 #'
 #' Find the fraction of counts per cell that overlap a given set of genomic ranges
@@ -490,6 +520,9 @@ SetFragments <- function(
 #' @export
 TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
   df.list <- lapply(X = 1:length(reads), FUN = function(x) {
+    if (length(x = reads[[x]]) == 0) {
+      return(NULL)
+    }
     df <- read.table(file = textConnection(reads[[x]]), header = FALSE, sep = "\t", stringsAsFactors = FALSE)
     colnames(x = df) <- c('chr', 'start', 'end', 'cell', 'count')
     if (record.ident) {
