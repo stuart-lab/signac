@@ -120,9 +120,11 @@ ConstructBinMatrix <- function(
   sep = c('-', '-'),
   verbose = TRUE
 ) {
+  # TODO update this to use the Rsamtools scanTabix function. Should be much faster. Can still do in parallel.
   tiles <- tileGenome(seqlengths = seqlengths(genome), tilewidth = binsize, cut.last.tile.in.chrom = TRUE)
-  chunks <- unlist(x = tileGenome(seqlengths = seqlengths(genome), ntile = chunk))
-  stringchunks <- GRangesToString(grange = chunks, sep = c(':', '-'))
+
+  # separate tiles into n chunks (list of granges). This will be used in parallel processing
+
   if (verbose) {
     message('Extracting reads overlapping genome bins')
   }
@@ -132,7 +134,7 @@ ConstructBinMatrix <- function(
     mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
   }
   cells.in.regions <- mylapply(
-    X = stringchunks,
+    X = chunks,
     FUN = GetCellsInBin,
     fragments = fragments,
     cells = cells,
@@ -157,6 +159,27 @@ ConstructBinMatrix <- function(
   rownames(binmat) <- tilestring[bin.range]
   colnames(binmat) <- names(x = cell.lookup)
   return(binmat)
+}
+
+#' CreateMotifActivityMatrix
+#'
+#' Create a matrix of the normalized motif accessibility per cell
+#'
+#' @param object A Seurat object
+#' @param assay Which assay to use. This must contain a Motif object.
+#' @return Returns a matrix
+#' @importFrom Matrix crossprod
+#' @export
+CreateMotifActivityMatrix <- function(
+  object,
+  assay = NULL
+) {
+  assay <- assay %||% DefaultAssay(object = object)
+  motifs <- GetMotifData(object = object, assay = assay, slot = 'data')
+  accessibility <- GetAssayData(object = object, assay = assay, slot = 'counts')
+  motif.accessibility <- crossprod(x = motifs, y = accessibility)
+  norm.motif.accessibility <- motif.accessibility / colSums(accessibility)
+  return(norm.motif.accessibility)
 }
 
 #' Extend
@@ -186,29 +209,71 @@ Extend <- function(x, upstream = 0, downstream = 0) {
 #' FilterFragments
 #'
 #' Remove cells from a fragments file that are not present in a given list of cells.
+#' Note that this reads the whole fragments file into memory, so may require a lot of memory
+#' depending on the size of the fragments file.
 #'
 #' @param fragment.path Path to a tabix-indexed fragments file
 #' @param cells A vector of cells to retain
 #' @param output.path Name and path for output tabix file. A tabix index file will also be created in the same location, with
 #' the .tbi file extension.
-#' @param chunk Number of chunks to use when processing the fragments. Fewer chunks may be faster, but will use more memory.
+#' @param compress Compress filtered fragments using bgzip (default TRUE)
+#' @param index Index the filtered tabix file (default TRUE)
 #' @param verbose Display messages
 #'
-#' @importFrom seqminer tabix.read.table tabix.createIndex
+#' @importFrom data.table fread fwrite
+#' @importFrom Rsamtools indexTabix bgzip
+#'
 #' @export
 FilterFragments <- function(
   fragment.path,
   cells,
   output.path,
-  chunk,
-  verbose
+  compress = TRUE,
+  index = TRUE,
+  verbose = TRUE,
+  ...
 ) {
   if (verbose) {
-    message("Filtering cell from fragments file. Retaining ", length(cells), " cells")
+    message("Retaining ", length(x = cells), " cells")
+    message("Reading fragments")
   }
-  #
+  reads <- fread(
+    file = fragment.path,
+    col.names = c('chr', 'start', 'end', 'cell', 'count'),
+    showProgress = verbose
+  )
+  reads <- reads[reads$cell %in% cells, ]
   if (verbose) {
-    message("Completed")
+    message("Sorting fragments")
+  }
+  reads <- reads[with(data = reads, expr = order(chr, start)), ]
+  if (verbose) {
+    message("Writing output")
+  }
+  fwrite(
+    x = reads,
+    file = output.path,
+    row.names = FALSE,
+    quote = FALSE,
+    col.names = FALSE,
+    sep = '\t'
+  )
+  rm(reads)
+  invisible(x = gc())
+  if (compress) {
+    if (verbose) {
+      message("Compressing output")
+    }
+    outf <- bgzip(file = output.path)
+    if (file.exists(outf)) {
+      file.remove(output.path)
+    }
+    if (index) {
+      if (verbose) {
+        message("Building index")
+      }
+      index.file <- indexTabix(file = paste0(outf), format = 'bed', zeroBased = TRUE)
+    }
   }
 }
 
@@ -221,20 +286,24 @@ FilterFragments <- function(
 #' @param bins A GRanges object containing the full set of genome bins
 #' @param cells Vector of cells to include in output. If NULL, include all cells
 #'
-#' @importFrom seqminer tabix.read.table
+#' @importFrom Rsamtools TabixFile scanTabix
 #' @importFrom GenomicRanges makeGRangesFromDataFrame findOverlaps
 #' @export
 GetCellsInBin <- function(fragments, region, bins, cells = NULL) {
-  bin.reads <- tabix.read.table(
-    tabixFile = fragments,
-    tabixRange = region
-  )
+  if (!(class(region) == 'GRanges')) {
+    region <- StringToGRanges(regions = region)
+  }
+  # TODO this can be updated now that I'm using Rsamtools, since you can easily record which region
+  # was overlapped by supplying GRanges, so don't need to do the GRanges intersection
+  # not sure if this function is even needed anymore
+  tbx <- TabixFile(file = fragments)
+  bin.reads <- scanTabix(file = tbx, param = region)
+  bin.reads <- TabixOutputToDataFrame(reads = bin.reads)
   if (nrow(x = bin.reads) > 0) {
     if (!is.null(x = cells)) {
-      bin.reads <- bin.reads[bin.reads$V4 %in% cells, ]
+      bin.reads <- bin.reads[bin.reads$cell %in% cells, ]
     }
     if (nrow(x = bin.reads) > 0) {
-      colnames(bin.reads) <- c('chrom', 'start', 'end', 'cell', 'count')
       gr.reads <- makeGRangesFromDataFrame(df = bin.reads)
       overlaps <- findOverlaps(query = gr.reads, subject = bins, select = 'first')
       return(list(bin = overlaps, cell = bin.reads$cell))
@@ -257,8 +326,9 @@ GetCellsInBin <- function(fragments, region, bins, cells = NULL) {
 #' @param group.by Cell grouping information to add
 #' @param cells Cells to include. Default is all cells present in the object.
 #' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #'
-#' @importFrom seqminer tabix.read.table
+#' @importFrom Rsamtools TabixFile scanTabix
 #' @importFrom future plan
 #'
 #' @return Returns a data frame
@@ -297,8 +367,12 @@ GetReadsInRegion <- function(
   if (verbose) {
     message('Extracting reads in requested region')
   }
-  reads <- tabix.read.table(tabixFile = fragment.path, tabixRange = region)
-  colnames(reads) <- c('chrom', 'start', 'stop', 'cell', 'reads')
+  if (!(class(x = region) == 'GRanges')) {
+    region <- StringToGRanges(regions = region, ...)
+  }
+  tbx <- TabixFile(file = fragment.path)
+  reads <- scanTabix(file = tbx, param = region)
+  reads <- TabixOutputToDataFrame(reads = reads)
   reads <- reads[reads$cell %in% names(group.by), ]
   if (!is.null(x = cells)) {
     reads <- reads[reads$cell %in% cells, ]
@@ -308,6 +382,7 @@ GetReadsInRegion <- function(
   }
   reads$length <- reads$stop - reads$start
   reads$group <- group.by[reads$cell]
+  tbx <- close(con = tbx)
   return(reads)
 }
 
@@ -402,4 +477,25 @@ SetFragments <- function(
   } else {
     stop('Requested file does not exist or is not indexed')
   }
+}
+
+#' TabixOutputToDataFrame
+#'
+#' Create a single dataframe from list of character vectors
+#'
+#' @param reads List of character vectors (the output of \code{\link{scanTabix}})
+#' @param record.ident Add a column recording which region the reads overlapped with (default TRUE)
+#' @importFrom dplyr bind_rows
+#' @return Returns a data.frame
+#' @export
+TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
+  df.list <- lapply(X = 1:length(reads), FUN = function(x) {
+    df <- read.table(file = textConnection(reads[[x]]), header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+    colnames(x = df) <- c('chr', 'start', 'end', 'cell', 'count')
+    if (record.ident) {
+      df$ident <- x
+    }
+    return(df)
+  })
+  return(bind_rows(df.list))
 }
