@@ -81,7 +81,7 @@ CalculateCoverages <- function(
   lut <- as.vector(x = cells.per.group)
   names(lut) <- names(x = cells.per.group)
   expanded <- suppressWarnings(bind_rows(lapply(X = 1:nrow(reads), FUN = function(x) {
-    interval = reads[x, 'start']:reads[x, 'stop']
+    interval = reads[x, 'start']:reads[x, 'end']
     return(data.frame(position = interval, value = 1, cell = reads[x, 'cell'], group = reads[x, 'group']))
   })))
   expanded$norm.value <- expanded$value / as.vector(x = lut[as.character(x = expanded$group)])
@@ -355,7 +355,8 @@ GetReadsInRegion <- function(
   fragment.path = NULL,
   group.by = NULL,
   cells = NULL,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
   assay <- assay %||% DefaultAssay(object = object)
   if (is.null(group.by)) {
@@ -395,9 +396,8 @@ GetReadsInRegion <- function(
   if (nrow(reads) == 0) {
     stop('No cells present in the requested region')
   }
-  reads$length <- reads$stop - reads$start
+  reads$length <- reads$end - reads$start
   reads$group <- group.by[reads$cell]
-  tbx <- close(con = tbx)
   return(reads)
 }
 
