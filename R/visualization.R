@@ -227,6 +227,7 @@ PileupPlot <- function(
 #' @param fragment.path Path to an index fragment file. If NULL, will look for a path stored for the
 #' requested assay using the \code{SetFragments} function
 #' @param region Genomic range to use. Default is fist megabase of chromosome 1.
+#' @param sep Separators to use for supplied genomic region
 #' @param cells Which cells to plot. Default all cells
 #' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
 #'
@@ -240,6 +241,7 @@ PeriodPlot <- function(
   assay = NULL,
   fragment.path = NULL,
   region = 'chr1:1-1000000',
+  sep = c(":", "-"),
   group.by = NULL,
   cells = NULL
 ) {
@@ -250,7 +252,8 @@ PeriodPlot <- function(
     cells = cells,
     group.by = group.by,
     fragment.path = fragment.path,
-    verbose = FALSE
+    verbose = FALSE,
+    sep = sep
   )
   if (length(unique(reads$group)) == 1) {
     p <- ggplot(data = reads, aes(length)) +
