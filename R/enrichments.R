@@ -109,6 +109,7 @@ MotifCellEnrichment <- function(
 #'
 #' @importFrom Matrix colSums
 #' @importFrom stats phyper
+#' @importFrom future plan
 #'
 #' @export
 FindMotifs <- function(
@@ -149,12 +150,12 @@ FindMotifs <- function(
     observed = subs.counts,
     background = all.counts,
     enrichment = obs.expect,
-    p = p.list
+    pvalue = p.list
   )
   if (!is.null(x = motif.names)) {
     results$motif.name <- motif.names
   }
-  return(results[with(data = results, expr = order(p, -enrichment)), ])
+  return(results[with(data = results, expr = order(pvalue, -enrichment)), ])
 }
 
 #' TestEnrichment
