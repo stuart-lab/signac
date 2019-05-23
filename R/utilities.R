@@ -71,7 +71,7 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
 #' @param window Smoothing window to use
 #'
 #' @importFrom zoo rollapply
-#' @importFrom dplyr bind_rows
+#' @importFrom data.table rbindlist
 #' @export
 CalculateCoverages <- function(
   reads,
@@ -80,10 +80,19 @@ CalculateCoverages <- function(
   cells.per.group <- table(reads$group)
   lut <- as.vector(x = cells.per.group)
   names(lut) <- names(x = cells.per.group)
-  expanded <- suppressWarnings(bind_rows(lapply(X = 1:nrow(reads), FUN = function(x) {
-    interval = reads[x, 'start']:reads[x, 'end']
-    return(data.frame(position = interval, value = 1, cell = reads[x, 'cell'], group = reads[x, 'group']))
-  })))
+  # TODO create list of vectors rather than binding dataframes, should be much faster
+  expanded <- rbindlist(
+    l = lapply(
+      X = 1:nrow(reads),
+      FUN = function(x) {
+        interval <- as.numeric(reads[x, 'start']):as.numeric(reads[x, 'end'])
+        df <- data.frame(
+          position = interval,
+          value = 1,
+          cell = reads[x, 'cell'],
+          group = reads[x, 'group']
+        )
+  }))
   expanded$norm.value <- expanded$value / as.vector(x = lut[as.character(x = expanded$group)])
   expanded$coverage <- rollapply(data = expanded$norm.value, width = window, FUN = mean, align = 'center', fill = NA)
   return(expanded)
@@ -515,7 +524,7 @@ SetFragments <- function(
 #'
 #' @param reads List of character vectors (the output of \code{\link{scanTabix}})
 #' @param record.ident Add a column recording which region the reads overlapped with (default TRUE)
-#' @importFrom dplyr bind_rows
+#' @importFrom data.table rbindlist
 #' @return Returns a data.frame
 #' @export
 TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
@@ -530,5 +539,5 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
     }
     return(df)
   })
-  return(bind_rows(df.list))
+  return(rbindlist(df.list))
 }
