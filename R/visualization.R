@@ -37,7 +37,8 @@ SingleCoveragePlot <- function(
   window = 100,
   downsample = 0.1,
   cells = NULL,
-  idents = NULL
+  idents = NULL,
+  sep = c("-", "-")
 ) {
   cells <- cells %||% colnames(x = object)
   if (!is.null(x = idents)) {
@@ -61,12 +62,15 @@ SingleCoveragePlot <- function(
     warning('Requested downsampling <0%, retaining all positions')
     downsample <- 1
   }
-
-  chromosome <- unlist(strsplit(region, ':'))[[1]]
-  pos <- unlist(strsplit(region, ':'))[[2]]
-  start.pos <- as.numeric(unlist(strsplit(pos, '-'))[[1]])
-  end.pos <- as.numeric(unlist(strsplit(pos, '-'))[[2]])
-
+  chromosome <- unlist(strsplit(region, sep[[1]]))[[1]]
+  if (sep[[1]] == sep[[2]]) {
+    start.pos <- as.numeric(unlist(strsplit(region, sep[[1]]))[[2]])
+    end.pos <- as.numeric(unlist(strsplit(region, sep[[1]]))[[3]])
+  } else {
+    pos <- unlist(strsplit(region, sep[[1]]))[[2]]
+    start.pos <- as.numeric(unlist(strsplit(pos, sep[[2]]))[[1]])
+    end.pos <- as.numeric(unlist(strsplit(pos, sep[[2]]))[[2]])
+  }
   stepsize <- 1 / downsample
   total_range <- end.pos - start.pos
   steps <- ceiling(total_range / stepsize)
@@ -127,6 +131,27 @@ CoveragePlot <- function(
   } else {
     return(SingleCoveragePlot(object = object, region = region, ...))
   }
+}
+
+#' MotifHeatmap
+#'
+#' Plot motif enrichment scores for groups of cells
+#'
+#' @param object A Seurat object
+#' @param motifs List of motifs to plot
+#' @param assay Which assay to use. Default is the active assay.
+#' @param ... Additional arguments
+#'
+MotifHeatmap <- function(
+  object,
+  motifs,
+  assay = NULL,
+  ...
+) {
+  # TODO
+  # this should plot a heatmap of clusters by motifs, showing average motif accessibility per cluster
+  # need another function upstream of that to compute average accessibilities
+  return(p)
 }
 
 #' MotifPlot
@@ -205,8 +230,8 @@ PileupPlot <- function(
 #' @param cells Which cells to plot. Default all cells
 #' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
 #'
-#' @importFrom seqminer tabix.read.table
 #' @importFrom ggplot2 ggplot geom_histogram theme_bw aes facet_wrap xlim
+#'
 #' @return Returns a ggplot2 object
 #' @export
 #'
