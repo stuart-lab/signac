@@ -4,7 +4,8 @@
 \alias{FilterFragments}
 \title{FilterFragments}
 \usage{
-FilterFragments(fragment.path, cells, output.path, chunk, verbose)
+FilterFragments(fragment.path, cells, output.path, compress = TRUE,
+  index = TRUE, verbose = TRUE, ...)
 }
 \arguments{
 \item{fragment.path}{Path to a tabix-indexed fragments file}
@@ -14,10 +15,14 @@ FilterFragments(fragment.path, cells, output.path, chunk, verbose)
 \item{output.path}{Name and path for output tabix file. A tabix index file will also be created in the same location, with
 the .tbi file extension.}
 
-\item{chunk}{Number of chunks to use when processing the fragments. Fewer chunks may be faster, but will use more memory.}
+\item{compress}{Compress filtered fragments using bgzip (default TRUE)}
+
+\item{index}{Index the filtered tabix file (default TRUE)}
 
 \item{verbose}{Display messages}
 }
 \description{
 Remove cells from a fragments file that are not present in a given list of cells.
+Note that this reads the whole fragments file into memory, so may require a lot of memory
+depending on the size of the fragments file.
 }

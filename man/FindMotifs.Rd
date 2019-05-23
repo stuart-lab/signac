@@ -4,36 +4,25 @@
 \alias{FindMotifs}
 \title{FindMotifs}
 \usage{
-FindMotifs(object, cells = NULL, features = NULL, assay = NULL,
-  permute = NULL, background = NULL, verbose = TRUE)
+FindMotifs(object, features, assay = NULL, background = NULL,
+  verbose = TRUE)
 }
 \arguments{
 \item{object}{A Seurat object}
 
-\item{cells}{A vector of cells to include in enrichment tests}
-
-\item{features}{A vector of features to test}
+\item{features}{A vector of features to test for enrichments over background}
 
 \item{assay}{Which assay to use. Default is the active assay}
 
-\item{permute}{Number of times to permute the set of features. If NULL, do not perform any permutation}
-
-\item{background}{Set of background features to use when calculating relative enrichment. If NULL
-use all features present in the object}
+\item{background}{Vector of features to use as the background set. If NULL, use all features in the assay.}
 
 \item{verbose}{Display messages}
 }
 \value{
-Returns a data.frame
+Returns a data frame
 }
 \description{
-Find motifs enriched in a given set of peaks.
-}
-\details{
-Performs matrix multiplication between a motif x feature and feature x cell matrix to produce motif
-counts per cell. This is repeated using a set of background features to calculate the relative enrichment
-of each motif in tested features. A permutation test can also be performed by setting the \code{permute}
-argument, and the enrichment testing will be repeated \emph{n} times using features sampled at random from
-the background set. A p-value is then computed for each motif, which is equal to the number of times
-a permuted enrichment score greater or equal to the tested enrichment score was observed.
+Find motifs overrepresented in a given set of genomic features. Computes the number of features
+containing the motif (observed) and compares this to the total number of features containing the
+motif (background) using the hypergeometric test.
 }

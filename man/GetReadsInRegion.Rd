@@ -5,7 +5,7 @@
 \title{GetReadsInRegion}
 \usage{
 GetReadsInRegion(object, region, assay = NULL, fragment.path = NULL,
-  group.by = NULL, cells = NULL, verbose = TRUE)
+  group.by = NULL, cells = NULL, verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -21,6 +21,8 @@ GetReadsInRegion(object, region, assay = NULL, fragment.path = NULL,
 \item{cells}{Cells to include. Default is all cells present in the object.}
 
 \item{verbose}{Display messages}
+
+\item{...}{Additional arguments passed to \code{\link{StringToGRanges}}}
 }
 \value{
 Returns a data frame

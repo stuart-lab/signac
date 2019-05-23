@@ -6,7 +6,7 @@
 \usage{
 SingleCoveragePlot(object, region, annotation = NULL, assay = NULL,
   fragment.path = NULL, group.by = NULL, window = 100,
-  downsample = 0.1, cells = NULL, idents = NULL)
+  downsample = 0.1, cells = NULL, idents = NULL, sep = c("-", "-"))
 }
 \arguments{
 \item{object}{A Seurat object}
