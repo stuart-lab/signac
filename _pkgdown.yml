@@ -1,0 +1,13 @@
+url: https://timoast.github.io/chroma
+
+navbar:
+  structure:
+    left:  [home, introduction, reference, tutorials, news]
+    right: [github]
+
+template:
+  params:
+    bootswatch: paper
+
+news:
+- one_page: false
