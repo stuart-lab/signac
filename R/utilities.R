@@ -57,6 +57,9 @@ StringToGRanges <- function(regions, sep = c("-", "-")) {
 #' @param sep Vector of separators to use for genomic string. First element is used to separate chromosome
 #' and coordinates, second separator is used to separate start and end coordinates.
 #' @importFrom GenomicRanges seqnames start end
+#' @examples
+#' GRangesToString(grange = blacklist_hg19)
+#'
 #' @export
 GRangesToString <- function(grange, sep = c("-", "-")) {
   regions <- paste0(as.character(seqnames(x = grange)), sep[[1]], start(grange), sep[[2]], end(grange))
@@ -98,9 +101,12 @@ CalculateCoverages <- function(
   return(expanded)
 }
 
-#' ConstructBinMatrix
+#' GenomeBinMatrix
 #'
-#' Construct a bin x cell matrix from a fragments file
+#' Construct a bin x cell matrix from a fragments file.
+#'
+#' This function bins the genome and calls \code{\link{FeatureMatrix}} to
+#' construct a bin x cell matrix.
 #'
 #' @param fragments Path to tabix-indexed fragments file
 #' @param genome A GRanges object for the genome
@@ -114,19 +120,15 @@ CalculateCoverages <- function(
 #' @param verbose Display messages
 #'
 #' @importFrom GenomicRanges tileGenome
-#' @importFrom GenomeInfoDb seqlengths keepSeqlevels
-#' @importFrom future.apply future_lapply
-#' @importFrom pbapply pblapply
-#' @importFrom Matrix sparseMatrix
-#' @importFrom Rsamtools TabixFile seqnamesTabix
+#' @importFrom GenomeInfoDb seqlengths
 #'
 #' @export
-ConstructBinMatrix <- function(
+GenomeBinMatrix <- function(
   fragments,
   genome,
   cells = NULL,
   binsize = 5000,
-  chunk = 100,
+  chunk = 50,
   sep = c('-', '-'),
   verbose = TRUE
 ) {
@@ -135,25 +137,57 @@ ConstructBinMatrix <- function(
     tilewidth = binsize,
     cut.last.tile.in.chrom = TRUE
   )
+  binmat <- FeatureMatrix(
+    fragments = fragments,
+    features = tiles,
+    cells = cells,
+    chunk = chunk,
+    sep = sep,
+    verbose = verbose
+  )
+  return(binmat)
+}
+
+#' FeatureMatrix
+#'
+#' Construct a feature x cell matrix from a genomic fragments file
+#'
+#' @param fragments Path to tabix-indexed fragments file
+#' @param genome A GRanges object for the genome
+#' @param cells Vector of cells to include. If NULL, include all cells found
+#' in the fragments file
+#' @param binsize Size of the genome bins to use
+#' @param chunk Number of chunks to use when processing the fragments file. Fewer chunks may enable faster processing,
+#'  but will use more memory.
+#' @param sep Vector of separators to use for genomic string. First element is used to separate chromosome
+#' and coordinates, second separator is used to separate start and end coordinates.
+#' @param verbose Display messages
+#'
+#' @importFrom GenomeInfoDb keepSeqlevels
+#' @importFrom future.apply future_lapply
+#' @importFrom pbapply pblapply
+#' @importFrom Matrix sparseMatrix
+#' @importFrom Rsamtools TabixFile seqnamesTabix
+#'
+#' @export
+FeatureMatrix <- function(
+  fragments,
+  features,
+  cells = NULL,
+  chunk = 50,
+  sep = c('-', '-'),
+  verbose = TRUE
+) {
   tbx <- TabixFile(file = fragments)
-  tiles <- keepSeqlevels(
-    x = tiles,
+  features <- keepSeqlevels(
+    x = features,
     value = seqnamesTabix(file = tbx),
     pruning.mode = "coarse"
   )
-  chunksize <- as.integer(x = (length(tiles) / chunk))
-  tile.list <- sapply(1:chunk, function(x) {
-    chunkupper <- (x * chunksize) -1
-    if (x == 1) {
-      chunklower <- 1
-    } else {
-      chunklower <- (x-1) * chunksize
-    }
-    if (chunkupper > length(tiles)) {
-      chunkupper <- length(tiles)
-    }
-    return(tiles[chunklower:chunkupper])
-  })
+  feature.list <- ChunkGRanges(
+    granges = features,
+    nchunk = chunk
+  )
   if (verbose) {
     message('Extracting reads overlapping genome bins')
   }
@@ -163,7 +197,7 @@ ConstructBinMatrix <- function(
     mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
   }
   cells.in.regions <- mylapply(
-    X = tile.list,
+    X = feature.list,
     FUN = GetCellsInRegion,
     tabix = tbx,
     cells = cells
@@ -172,23 +206,55 @@ ConstructBinMatrix <- function(
     message("Constructing matrix")
   }
   cell.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 1))
-  bin.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 2))
+  feature.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 2))
   all.cells <- unique(x = cell.vector)
-  all.bins <- unique(x = bin.vector)
+  all.features <- unique(x = feature.vector)
   cell.lookup <- seq_along(along.with = all.cells)
-  bin.lookup <- seq_along(along.with = all.bins)
+  feature.lookup <- seq_along(along.with = all.features)
   names(x = cell.lookup) <- all.cells
-  names(x = bin.lookup) <- all.bins
-  binmat <- sparseMatrix(
-    i = bin.lookup[bin.vector],
-    j = cell.lookup[cell.vector],
+  names(x = feature.lookup) <- all.features
+  matrix.features <- feature.lookup[feature.vector]
+  matrix.cells <- cell.lookup[cell.vector]
+  featmat <- sparseMatrix(
+    i = matrix.features,
+    j = matrix.cells,
     x = rep(x = 1, length(x = cell.vector))
   )
-  binmat <- as(Class = 'dgCMatrix', object = binmat)
-  rownames(binmat) <- names(x = bin.lookup)
-  colnames(binmat) <- names(x = cell.lookup)
-  cells.accept <- intersect(cells, colnames(x = binmat))
-  return(binmat[, cells.accept])
+  featmat <- as(Class = 'dgCMatrix', object = featmat)
+  rownames(featmat) <- names(x = feature.lookup)
+  colnames(featmat) <- names(x = cell.lookup)
+  if (!is.null(x = cells)) {
+    cells.accept <- intersect(cells, colnames(x = featmat))
+    return(featmat[, cells.accept])
+  } else {
+    return(featmat)
+  }
+}
+
+#' ChunkGRanges
+#'
+#' Split a genomic ranges object into evenly sized chunks
+#'
+#' @param granges A GRanges object
+#' @param nchunk Number of chunks to split into
+#'
+#' @return Returns a list of GRanges objects
+#' @export
+ChunkGRanges <- function(granges, nchunk) {
+  chunksize <- as.integer(x = (length(granges) / nchunk))
+  range.list <- sapply(1:nchunk, function(x) {
+    chunkupper <- (x * chunksize) -1
+    if (x == 1) {
+      chunklower <- 1
+    } else {
+      chunklower <- (x-1) * chunksize
+    }
+    if (chunkupper > length(granges)) {
+      chunkupper <- length(granges)
+    }
+    return(granges[chunklower:chunkupper])
+  })
+  return(range.list)
 }
 
 #' CreateMotifActivityMatrix
@@ -246,6 +312,8 @@ Extend <- function(x, upstream = 0, downstream = 0) {
 #' @param cells A vector of cells to retain
 #' @param output.path Name and path for output tabix file. A tabix index file will also be created in the same location, with
 #' the .tbi file extension.
+#' @param assume.sorted Assume sorted input and don't sort the filtered file. Can save a lot of time, but indexing will
+#' fail if assumption is wrong.
 #' @param compress Compress filtered fragments using bgzip (default TRUE)
 #' @param index Index the filtered tabix file (default TRUE)
 #' @param verbose Display messages
@@ -258,6 +326,7 @@ FilterFragments <- function(
   fragment.path,
   cells,
   output.path,
+  assume.sorted = FALSE,
   compress = TRUE,
   index = TRUE,
   verbose = TRUE,
@@ -273,10 +342,12 @@ FilterFragments <- function(
     showProgress = verbose
   )
   reads <- reads[reads$cell %in% cells, ]
-  if (verbose) {
-    message("Sorting fragments")
+  if (!assume.sorted) {
+    if (verbose) {
+      message("Sorting fragments")
+    }
+    reads <- reads[with(data = reads, expr = order(chr, start)), ]
   }
-  reads <- reads[with(data = reads, expr = order(chr, start)), ]
   if (verbose) {
     message("Writing output")
   }
@@ -418,7 +489,7 @@ GetReadsInRegion <- function(
 #' @param assay Name of assay in the object to use
 #' @param regions A GRanges object
 #' @param sep Separator to use when extracting genomic coordinates from the Seurat object
-#' @param ... Additional arguments passed to \code{findOverlaps}
+#' @param ... Additional arguments passed to \code{\link[IRanges]{findOverlaps}}
 #'
 #' @importFrom IRanges findOverlaps
 #' @importFrom S4Vectors queryHits
