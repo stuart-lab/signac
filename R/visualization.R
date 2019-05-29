@@ -161,7 +161,7 @@ MotifHeatmap <- function(
 #' @param object A Seurat object
 #' @param motifs A list of motifs to plot
 #' @param assay Name of the assay to use
-#' @param ... Additional parameters passed to \code{\link{ggseqlogo}}
+#' @param ... Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}
 #'
 #' @importFrom ggseqlogo ggseqlogo
 #' @importFrom TFBSTools name
@@ -184,7 +184,7 @@ MotifPlot <- function(
   } else {
     pwm <- data.use
   }
-  p <- ggseqlogo(data = pwm)
+  p <- ggseqlogo(data = pwm, ...)
   return(p)
 }
 
