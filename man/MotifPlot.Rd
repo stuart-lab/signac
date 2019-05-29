@@ -13,7 +13,7 @@ MotifPlot(object, motifs, assay = NULL, ...)
 
 \item{assay}{Name of the assay to use}
 
-\item{...}{Additional parameters passed to \code{\link{ggseqlogo}}}
+\item{...}{Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}}
 }
 \description{
 Plot motifs

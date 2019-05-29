@@ -15,7 +15,7 @@ CountsInRegion(object, assay, regions, sep = c("-", "-"), ...)
 
 \item{sep}{Separator to use when extracting genomic coordinates from the Seurat object}
 
-\item{...}{Additional arguments passed to \code{findOverlaps}}
+\item{...}{Additional arguments passed to \code{\link[IRanges]{findOverlaps}}}
 }
 \description{
 Count reads per cell overlapping a given set of regions

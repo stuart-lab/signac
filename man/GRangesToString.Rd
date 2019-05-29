@@ -15,3 +15,7 @@ and coordinates, second separator is used to separate start and end coordinates.
 \description{
 Convert GRanges object to a vector of strings
 }
+\examples{
+GRangesToString(grange = blacklist_hg19)
+
+}

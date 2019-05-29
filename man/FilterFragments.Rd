@@ -4,8 +4,8 @@
 \alias{FilterFragments}
 \title{FilterFragments}
 \usage{
-FilterFragments(fragment.path, cells, output.path, compress = TRUE,
-  index = TRUE, verbose = TRUE, ...)
+FilterFragments(fragment.path, cells, output.path, assume.sorted = FALSE,
+  compress = TRUE, index = TRUE, verbose = TRUE, ...)
 }
 \arguments{
 \item{fragment.path}{Path to a tabix-indexed fragments file}
@@ -14,6 +14,9 @@ FilterFragments(fragment.path, cells, output.path, compress = TRUE,
 
 \item{output.path}{Name and path for output tabix file. A tabix index file will also be created in the same location, with
 the .tbi file extension.}
+
+\item{assume.sorted}{Assume sorted input and don't sort the filtered file. Can save a lot of time, but indexing will
+fail if assumption is wrong.}
 
 \item{compress}{Compress filtered fragments using bgzip (default TRUE)}
 
