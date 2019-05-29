@@ -171,6 +171,165 @@ CreateMotifMatrix <- function(
   return(motif.matrix)
 }
 
+#' FeatureMatrix
+#'
+#' Construct a feature x cell matrix from a genomic fragments file
+#'
+#' @param fragments Path to tabix-indexed fragments file
+#' @param features A GRanges object containing a set of genomic intervals. These will form the rows of the
+#' matrix, with each entry recording the number of unique reads falling in the genomic region for each cell.
+#' @param cells Vector of cells to include. If NULL, include all cells found
+#' in the fragments file
+#' @param chunk Number of chunks to use when processing the fragments file. Fewer chunks may enable faster processing,
+#'  but will use more memory.
+#' @param sep Vector of separators to use for genomic string. First element is used to separate chromosome
+#' and coordinates, second separator is used to separate start and end coordinates.
+#' @param verbose Display messages
+#'
+#' @importFrom GenomeInfoDb keepSeqlevels
+#' @importFrom future.apply future_lapply
+#' @importFrom pbapply pblapply
+#' @importFrom Matrix sparseMatrix
+#' @importFrom Rsamtools TabixFile seqnamesTabix
+#'
+#' @export
+FeatureMatrix <- function(
+  fragments,
+  features,
+  cells = NULL,
+  chunk = 50,
+  sep = c('-', '-'),
+  verbose = TRUE
+) {
+  tbx <- TabixFile(file = fragments)
+  features <- keepSeqlevels(
+    x = features,
+    value = seqnamesTabix(file = tbx),
+    pruning.mode = "coarse"
+  )
+  feature.list <- ChunkGRanges(
+    granges = features,
+    nchunk = chunk
+  )
+  if (verbose) {
+    message('Extracting reads overlapping genome bins')
+  }
+  if (PlanThreads() > 1) {
+    mylapply <- future_lapply
+  } else {
+    mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
+  }
+  cells.in.regions <- mylapply(
+    X = feature.list,
+    FUN = GetCellsInRegion,
+    tabix = tbx,
+    cells = cells
+  )
+  if (verbose) {
+    message("Constructing matrix")
+  }
+  cell.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 1))
+  feature.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 2))
+  all.cells <- unique(x = cell.vector)
+  all.features <- unique(x = feature.vector)
+  cell.lookup <- seq_along(along.with = all.cells)
+  feature.lookup <- seq_along(along.with = all.features)
+  names(x = cell.lookup) <- all.cells
+  names(x = feature.lookup) <- all.features
+  matrix.features <- feature.lookup[feature.vector]
+  matrix.cells <- cell.lookup[cell.vector]
+  featmat <- sparseMatrix(
+    i = matrix.features,
+    j = matrix.cells,
+    x = rep(x = 1, length(x = cell.vector))
+  )
+  featmat <- as(Class = 'dgCMatrix', object = featmat)
+  rownames(featmat) <- names(x = feature.lookup)
+  colnames(featmat) <- names(x = cell.lookup)
+  if (!is.null(x = cells)) {
+    cells.accept <- intersect(cells, colnames(x = featmat))
+    return(featmat[, cells.accept])
+  } else {
+    return(featmat)
+  }
+}
+
+#' FilterFragments
+#'
+#' Remove cells from a fragments file that are not present in a given list of cells.
+#' Note that this reads the whole fragments file into memory, so may require a lot of memory
+#' depending on the size of the fragments file.
+#'
+#' @param fragment.path Path to a tabix-indexed fragments file
+#' @param cells A vector of cells to retain
+#' @param output.path Name and path for output tabix file. A tabix index file will also be created in the same location, with
+#' the .tbi file extension.
+#' @param assume.sorted Assume sorted input and don't sort the filtered file. Can save a lot of time, but indexing will
+#' fail if assumption is wrong.
+#' @param compress Compress filtered fragments using bgzip (default TRUE)
+#' @param index Index the filtered tabix file (default TRUE)
+#' @param verbose Display messages
+#'
+#' @importFrom data.table fread fwrite
+#' @importFrom Rsamtools indexTabix bgzip
+#'
+#' @export
+FilterFragments <- function(
+  fragment.path,
+  cells,
+  output.path,
+  assume.sorted = FALSE,
+  compress = TRUE,
+  index = TRUE,
+  verbose = TRUE,
+  ...
+) {
+  if (verbose) {
+    message("Retaining ", length(x = cells), " cells")
+    message("Reading fragments")
+  }
+  reads <- fread(
+    file = fragment.path,
+    col.names = c('chr', 'start', 'end', 'cell', 'count'),
+    showProgress = verbose
+  )
+  reads <- reads[reads$cell %in% cells, ]
+  if (!assume.sorted) {
+    if (verbose) {
+      message("Sorting fragments")
+    }
+    reads <- reads[with(data = reads, expr = order(chr, start)), ]
+  }
+  if (verbose) {
+    message("Writing output")
+  }
+  fwrite(
+    x = reads,
+    file = output.path,
+    row.names = FALSE,
+    quote = FALSE,
+    col.names = FALSE,
+    sep = '\t'
+  )
+  rm(reads)
+  invisible(x = gc())
+  if (compress) {
+    if (verbose) {
+      message("Compressing output")
+    }
+    outf <- bgzip(file = output.path)
+    if (file.exists(outf)) {
+      file.remove(output.path)
+    }
+    if (index) {
+      if (verbose) {
+        message("Building index")
+      }
+      index.file <- indexTabix(file = paste0(outf), format = 'bed', zeroBased = TRUE)
+    }
+  }
+}
+
 #' @importFrom Matrix rowSums
 #' @importFrom stats ecdf
 #' @rdname FindTopFeatures
@@ -276,6 +435,54 @@ FRiP <- function(
   return(object)
 }
 
+#' GenomeBinMatrix
+#'
+#' Construct a bin x cell matrix from a fragments file.
+#'
+#' This function bins the genome and calls \code{\link{FeatureMatrix}} to
+#' construct a bin x cell matrix.
+#'
+#' @param fragments Path to tabix-indexed fragments file
+#' @param genome A vector of chromosome sizes for the genome. This is used to construct the
+#' genome bin coordinates. The can be obtained by calling \code{\link[GenomeInfoDb]{seqlengths}} on
+#' a \code{\link[BSgenome]{BSgenome-class}} object.
+#' @param cells Vector of cells to include. If NULL, include all cells found
+#' in the fragments file
+#' @param binsize Size of the genome bins to use
+#' @param chunk Number of chunks to use when processing the fragments file. Fewer chunks may enable faster processing,
+#'  but will use more memory.
+#' @param sep Vector of separators to use for genomic string. First element is used to separate chromosome
+#' and coordinates, second separator is used to separate start and end coordinates.
+#' @param verbose Display messages
+#'
+#' @importFrom GenomicRanges tileGenome
+#'
+#' @export
+GenomeBinMatrix <- function(
+  fragments,
+  genome,
+  cells = NULL,
+  binsize = 5000,
+  chunk = 50,
+  sep = c('-', '-'),
+  verbose = TRUE
+) {
+  tiles <- tileGenome(
+    seqlengths = genome,
+    tilewidth = binsize,
+    cut.last.tile.in.chrom = TRUE
+  )
+  binmat <- FeatureMatrix(
+    fragments = fragments,
+    features = tiles,
+    cells = cells,
+    chunk = chunk,
+    sep = sep,
+    verbose = verbose
+  )
+  return(binmat)
+}
+
 #' Calculate periodogram score per cell
 #'
 #' @param object A Seurat object
@@ -305,7 +512,7 @@ Period <- function(
 #' @export
 #' @examples
 #' mat <- matrix(data = rbinom(n = 25, size = 5, prob = 0.2), nrow = 5)
-#' mat_norm <- RunTFIDF(data = mat)
+#' mat_norm <- RunTFIDF(object = mat)
 #'
 RunTFIDF.default <- function(
   object,
@@ -397,4 +604,38 @@ RunTFIDF.Seurat <- function(
   )
   object[[assay]] <- assay.data
   return(object)
+}
+
+#' Set the fragments file path for creating plots
+#'
+#' Give path of indexed fragments file that goes with data in the object.
+#' Checks for a valid path and an index file with the same name (.tbi) at the same path.
+#' Stores the path under the tools slot for access by visualization functions.
+#' One fragments file can be stored for each assay.
+#'
+#' @param object A Seurat object
+#' @param file Path to indexed fragment file. See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
+#' @param assay Assay used to generate the fragments. If NULL, use the active assay.
+#'
+#' @export
+#'
+SetFragments <- function(
+  object,
+  file,
+  assay = NULL
+) {
+  assay <- assay %||% DefaultAssay(object = object)
+  if (!(assay %in% names(x = slot(object = object, name = 'assays')))) {
+    stop('Requested assay not present in object')
+  }
+  index.file <- paste0(file, '.tbi')
+  if (all(file.exists(file, index.file))) {
+    file <- normalizePath(path = file)
+    current.tools <- slot(object = object, name = 'tools')
+    current.tools$fragments[[assay]] <- file
+    slot(object = object, name = 'tools') <- current.tools
+    return(object)
+  } else {
+    stop('Requested file does not exist or is not indexed')
+  }
 }
