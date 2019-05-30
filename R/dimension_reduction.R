@@ -73,7 +73,7 @@ RunSVD.Assay <- function(
   features <- features %||% VariableFeatures(object)
   data.use <- GetAssayData(
     object = object,
-    slot = 'counts'
+    slot = 'data'
   )[features, ]
   reduction.data <- RunSVD(
     object = data.use,
