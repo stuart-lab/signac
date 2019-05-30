@@ -16,12 +16,6 @@
   }
 }
 
-PlanThreads <- function ()
-{
-  nthreads <- eval(expr = formals(fun = plan())$workers)
-  return(nthreads %||% 1)
-}
-
 #' StringToGRanges
 #'
 #' Convert a genomic coordinate string to a GRanges object
@@ -218,7 +212,6 @@ GetCellsInRegion <- function(tabix, region, cells = NULL) {
 #' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #'
 #' @importFrom Rsamtools TabixFile scanTabix
-#' @importFrom future plan
 #'
 #' @return Returns a data frame
 #' @export

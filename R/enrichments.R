@@ -19,8 +19,8 @@
 #' @param verbose Display messages
 #'
 #' @importFrom Matrix rowSums
-#' @importFrom future plan
 #' @importFrom future.apply future_sapply
+#' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pbsapply
 #'
 #' @return Returns a data.frame
@@ -71,7 +71,7 @@ MotifCellEnrichment <- function(
   } else {
     message("Permuting feature sets ", permute, " times")
     n.features <- length(features)
-    if (PlanThreads() > 1) {
+    if (nbrOfWorkers() > 1) {
       mysapply <- future_sapply
     } else {
       mysapply <- ifelse(test = verbose, yes = pbsapply, no = sapply)
@@ -109,7 +109,6 @@ MotifCellEnrichment <- function(
 #'
 #' @importFrom Matrix colSums
 #' @importFrom stats phyper
-#' @importFrom future plan
 #'
 #' @export
 FindMotifs <- function(

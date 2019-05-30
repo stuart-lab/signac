@@ -77,6 +77,9 @@ BinarizeCounts.Seurat <- function(
 #' @importFrom SummarizedExperiment promoters
 #' @importFrom S4Vectors queryHits subjectHits
 #' @importFrom Matrix colSums
+#' @importFrom future nbrOfWorkers
+#' @importFrom future.apply future_sapply
+#' @importFrom pbapply pbsapply
 #'
 #' @export
 #'
@@ -122,7 +125,7 @@ CreateGeneActivityMatrix <- function(
   peak.matrix <- as(object = peak.matrix, Class = 'matrix')
   all.features <- unique(x = annotations$new_feature)
 
-  if (PlanThreads() > 1) {
+  if (nbrOfWorkers() > 1) {
     mysapply <- future_sapply
   } else {
     mysapply <- ifelse(test = verbose, yes = pbsapply, no = sapply)
@@ -149,10 +152,10 @@ CreateGeneActivityMatrix <- function(
 #'
 #' @param features A GRanges object containing a set of genomic features
 #' @param pwm A PFMatrixList object containing position weight matrices to use
-#' @param genome Any object compatible with the \code{genome} argument in \code{\link{matchMotifs}}
+#' @param genome Any object compatible with the \code{genome} argument in \code{\link[motifmatchr]{matchMotifs}}
 #' @param sep A length-2 character vector containing the separators to be used when constructing
 #' matrix rownames from the GRanges
-#' @param ... Additional arguments passed to \code{\link{matchMotifs}}
+#' @param ... Additional arguments passed to \code{\link[motifmatchr]{matchMotifs}}
 #'
 #' @return Returns a sparse matrix
 #' @importFrom motifmatchr matchMotifs motifMatches
@@ -164,7 +167,7 @@ CreateMotifMatrix <- function(
   sep = c("-", "-"),
   ...
 ) {
-  motif_ix <- matchMotifs(pwms = PFMatrixList, subject = features, genome = genome)
+  motif_ix <- matchMotifs(pwms = PFMatrixList, subject = features, genome = genome, ...)
   motif.matrix <- motifMatches(object = motif_ix)
   motif.matrix <- as(Class = 'dgCMatrix', object = motif.matrix)
   rownames(motif.matrix) <- GRangesToString(grange = features, sep = sep)
@@ -188,6 +191,7 @@ CreateMotifMatrix <- function(
 #'
 #' @importFrom GenomeInfoDb keepSeqlevels
 #' @importFrom future.apply future_lapply
+#' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
 #' @importFrom Matrix sparseMatrix
 #' @importFrom Rsamtools TabixFile seqnamesTabix
@@ -214,7 +218,7 @@ FeatureMatrix <- function(
   if (verbose) {
     message('Extracting reads overlapping genome bins')
   }
-  if (PlanThreads() > 1) {
+  if (nbrOfWorkers() > 1) {
     mylapply <- future_lapply
   } else {
     mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
