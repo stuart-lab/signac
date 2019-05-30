@@ -11,12 +11,12 @@ CreateMotifMatrix(features, pwm, genome, sep = c("-", "-"), ...)
 
 \item{pwm}{A PFMatrixList object containing position weight matrices to use}
 
-\item{genome}{Any object compatible with the \code{genome} argument in \code{\link{matchMotifs}}}
+\item{genome}{Any object compatible with the \code{genome} argument in \code{\link[motifmatchr]{matchMotifs}}}
 
 \item{sep}{A length-2 character vector containing the separators to be used when constructing
 matrix rownames from the GRanges}
 
-\item{...}{Additional arguments passed to \code{\link{matchMotifs}}}
+\item{...}{Additional arguments passed to \code{\link[motifmatchr]{matchMotifs}}}
 }
 \value{
 Returns a sparse matrix
