@@ -36,7 +36,7 @@
 #' @source https://sites.google.com/site/anshulkundaje/projects/blacklists
 "blacklist_dm3"
 
-#' Genomic blacklist regions for C. elegans ce10s
+#' Genomic blacklist regions for C. elegans ce10
 #'
 #' @format A GRanges object
 #' @source https://sites.google.com/site/anshulkundaje/projects/blacklists
