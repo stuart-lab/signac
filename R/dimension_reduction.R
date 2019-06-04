@@ -1,3 +1,125 @@
+RunJaccard.default <- function(
+  object,
+  assay = NULL
+) {
+  # TODO
+  return()
+}
+
+#' @rdname RunMotifTSNE
+#' @method RunMotifTSNE Motif
+#' @importFrom Seurat RunTSNE
+#' @export
+RunMotifTSNE.Motif <- function(
+  object,
+  assay = NULL,
+  verbose = TRUE,
+  graph.name = 'nn',
+  ...
+) {
+  neighbor.graph <- GetMotifData(object = object, slot = 'neighbors')
+  if (!(graph.name %in% names(x = neighbor.graph))) {
+    stop("Requested neighbor graph is not present")
+  }
+  tsne.obj <- RunTSNE(object = as.matrix(x = neighbor.graph[[graph.name]]), is_distance = TRUE, assay = 'Motif', ...)
+  reductions <- GetMotifData(object = object, slot = 'reductions')
+  reductions$tSNE <- tsne.obj
+  object <- SetMotifData(object = object, slot = 'reductions', new.data = reductions)
+  return(object)
+}
+
+#' @rdname RunMotifTSNE
+#' @method RunMotifTSNE Assay
+#' @export
+RunMotifTSNE.Assay <- function(
+  object,
+  assay = NULL,
+  verbose = TRUE,
+  ...
+) {
+  motif.obj <- GetMotifObject(object = object)
+  motif.obj <- RunMotifTSNE(object = motif.obj, verbose = verbose, ...)
+  object <- AddMotifObject(object = object, motif.object = motif.obj, verbose = FALSE)
+  return(object)
+}
+
+#' @rdname RunMotifTSNE
+#' @method RunMotifTSNE Seurat
+#' @export
+RunMotifTSNE.Seurat <- function(
+  object,
+  assay = NULL,
+  verbose = TRUE,
+  ...
+) {
+  assay <- assay %||% DefaultAssay(object = object)
+  assay.data <- GetAssay(object = object, assay = assay)
+  assay.data <- RunMotifTSNE(
+    object = assay.data,
+    verbose = verbose,
+    ...
+  )
+  object[[assay]] <- assay.data
+  return(object)
+}
+
+#' @importFrom Seurat RunUMAP
+#' @rdname RunMotifUMAP
+#' @method RunMotifUMAP Motif
+#' @export
+RunMotifUMAP.Motif <- function(
+  object,
+  assay = NULL,
+  verbose = TRUE,
+  graph.name = 'nn',
+  ...
+) {
+  neighbor.graph <- GetMotifData(object = object, slot = 'neighbors')
+  if (!(graph.name %in% names(x = neighbor.graph))) {
+    stop("Requested neighbor graph is not present")
+  }
+  umap.obj <- RunUMAP(object = as.matrix(x = neighbor.graph[[graph.name]]), assay = 'Motif', ...)
+  reductions <- GetMotifData(object = object, slot = 'reductions')
+  reductions$UMAP <- umap.obj
+  object <- SetMotifData(object = object, slot = 'reductions', new.data = reductions)
+  return(object)
+}
+
+#' @rdname RunMotifUMAP
+#' @method RunMotifUMAP Assay
+#' @export
+RunMotifUMAP.Assay <- function(
+  object,
+  assay = NULL,
+  verbose = TRUE,
+  ...
+) {
+  motif.obj <- GetMotifObject(object = object)
+  motif.obj <- RunMotifUMAP(object = motif.obj, verbose = verbose, ...)
+  object <- AddMotifObject(object = object, motif.object = motif.obj, verbose = FALSE)
+  return(object)
+}
+
+#' @rdname RunMotifUMAP
+#' @method RunMotifUMAP Seurat
+#' @export
+RunMotifUMAP.Seurat <- function(
+  object,
+  assay = NULL,
+  verbose = TRUE,
+  ...
+) {
+  assay <- assay %||% DefaultAssay(object = object)
+  assay.data <- GetAssay(object = object, assay = assay)
+  assay.data <- RunMotifUMAP(
+    object = assay.data,
+    verbose = verbose,
+    ...
+  )
+  object[[assay]] <- assay.data
+  return(object)
+}
+
 #' @param assay Which assay to use. If NULL, use the default assay
 #' @param n Number of singular values to compute
 #' @param reduction.key Key for dimension reduction object
