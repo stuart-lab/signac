@@ -15,6 +15,8 @@ setClassUnion(name = 'AnyPWM', c("list", "PFMatrixList"))
 #' @slot data A sparse, binary, motif x feature matrix. Rows correspond to motif IDs, columns correspond to genomic features (peaks or bins).
 #' Entries in the matrix should be 1 if the genomic feature contains the motif, and 0 otherwise.
 #' @slot pwm A list of position weight matrices for each motif
+#' @slot neighbors A list of nearest neighbors graphs
+#' @slot reductions A list of \code{\link[Seurat]{DimReduc}} objects
 #' @slot meta.data A dataframe for storage of additional information related to each motif. This could include the names of proteins that bind the motif.
 #'
 #' @name Motif-class
@@ -26,8 +28,11 @@ Motif <- setClass(
   slots = list(
     data = 'dgCMatrix',
     pwm = 'AnyPWM',
+    neighbors = 'list',
+    reductions = 'list',
     meta.data = 'data.frame'
   )
+  # TODO add reductions slot. Can use the Seurat DimReduc object class
 )
 
 ## Functions
@@ -38,10 +43,11 @@ Motif <- setClass(
 #' @export
 AddMotifObject.Assay <- function(
   object,
-  motif.object
+  motif.object,
+  verbose = TRUE
 ) {
   misc.data <- slot(object = object, name = 'misc') %||% list()
-  if ('motif' %in% names(x = misc.data)) {
+  if ('motif' %in% names(x = misc.data) & verbose) {
     warning('Overwriting existing motif object in assay')
   }
   if (!all(rownames(x = object) == rownames(x = motif.object))) {
@@ -89,10 +95,14 @@ AddMotifObject.Seurat <- function(
 CreateMotifObject <- function(
   data = NULL,
   pwm = NULL,
+  neighbors = NULL,
+  reductions = NULL,
   meta.data = NULL
 ) {
   data <- data %||% new(Class = 'dgCMatrix')
   pwm <- pwm %||% list()
+  neighbors <- neighbors %||% list()
+  reductions <- reductions %||% list()
   meta.data <- meta.data %||% data.frame()
   if (!(class(x = data) %in% c('matrix', 'dgCMatrix'))) {
     stop('Data must be matrix or sparse matrix class. Supplied ', class(x = data))
@@ -110,13 +120,40 @@ CreateMotifObject <- function(
       stop('Motif names in data matrix and metadata are inconsistent')
     }
   }
+  # TODO add checks for correct dimensions / names in reductions and neighbors if supplied
   motif.obj <- new(
     Class = 'Motif',
     data = data,
     pwm = pwm,
+    neighbors = neighbors,
+    reductions = reductions,
     meta.data = meta.data
   )
   return(motif.obj)
+}
+
+#' @rdname GetMotifObject
+#' @method GetMotifObject Assay
+#' @export
+GetMotifObject.Assay <- function(object, ...) {
+  misc.data <- slot(object = object, name = 'misc')
+  if ('motif' %in% names(x = misc.data)) {
+    return(misc.data[['motif']])
+  } else {
+    stop('Motif object not present in assay')
+  }
+}
+
+#' @param assay Which assay to use. Default is the current active assay
+#' @rdname GetMotifObject
+#' @method GetMotifObject Seurat
+#' @export
+GetMotifObject.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
+  assay <- assay %||% DefaultAssay(object = object)
+  return(GetMotifObject(
+    object = GetAssay(object = object, assay = assay),
+    ...
+  ))
 }
 
 #' @param slot Information to pull from object (data, pwm, meta.data)
@@ -155,11 +192,11 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
 #' @param new.data New data to add
 #' @rdname SetMotifData
 #' @method SetMotifData Motif
+#' @importFrom methods slotNames
 #' @export
 SetMotifData.Motif <- function(object, slot, new.data, ...) {
-  slots.use <- c('data', 'pwm', 'meta.data')
-  if (!(slot %in% slots.use)) {
-    stop('slot must be one of ', paste(slots.use, collapse = ', '), call. = FALSE)
+  if (!(slot %in% slotNames(x = object))) {
+    stop('slot must be one of ', paste(slotNames(x = object), collapse = ', '), call. = FALSE)
   }
   if (slot == 'data') {
     if (class(x = new.data) == 'matrix') {
