@@ -133,6 +133,49 @@ CoveragePlot <- function(
   }
 }
 
+#' MotifDimPlot
+#'
+#' Plot motifs in reduced dimesions.
+#'
+#' @param object A Seurat object
+#' @param assay Which assay to use. Default is the active assay.
+#' @param group.by A set of identities to group by (present in the Motif object metadata).
+#' @param reduction Which dimension reduction to use. Default is tSNE.
+#'
+#' @importFrom Seurat Embeddings
+#' @importFrom ggplot2 ggplot aes geom_point xlab ylab theme_bw
+#'
+#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @export
+MotifDimPlot <- function(
+  object,
+  assay = NULL,
+  group.by = NULL,
+  reduction = 'tSNE',
+  ...
+) {
+  coords.use <- GetMotifData(object = object, assay = assay, slot = 'reductions')
+  if (!(reduction %in% names(coords.use))) {
+    stop("Requested dimension reduction is not present")
+  }
+  coords.use <- as.data.frame(x = Embeddings(object = coords.use[[reduction]]))
+  if (!is.null(x = group.by)) {
+    meta.data <- GetMotifData(object = object, slot = 'meta.data')
+    if (!(group.by %in% colnames(x = meta.data))) {
+      stop("Requested grouping variable not present in Motif metadata")
+    }
+    coords.use[['ident']] <- meta.data[[group.by]]
+  } else {
+    coords.use[['ident']] <- 'Motif'
+  }
+  colnames(x = coords.use) <- c('dim1', 'dim2', 'ident')
+  p <- ggplot(data = coords.use, aes(x = dim1, y = dim2, color = ident)) +
+    geom_point() +
+    xlab(paste0(reduction, '_1')) + ylab(paste0(reduction, '_2')) +
+    theme_bw()
+  return(p)
+}
+
 #' MotifHeatmap
 #'
 #' Plot motif enrichment scores for groups of cells
