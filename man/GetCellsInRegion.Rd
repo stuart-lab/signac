@@ -4,7 +4,7 @@
 \alias{GetCellsInRegion}
 \title{GetCellsInRegion}
 \usage{
-GetCellsInRegion(tabix, region, cells = NULL)
+GetCellsInRegion(tabix, region, sep = c("-", "-"), cells = NULL)
 }
 \arguments{
 \item{tabix}{Tabix object}

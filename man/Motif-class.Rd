@@ -16,6 +16,10 @@ Entries in the matrix should be 1 if the genomic feature contains the motif, and
 
 \item{\code{pwm}}{A list of position weight matrices for each motif}
 
+\item{\code{neighbors}}{A list of nearest neighbors graphs}
+
+\item{\code{reductions}}{A list of \code{\link[Seurat]{DimReduc}} objects}
+
 \item{\code{meta.data}}{A dataframe for storage of additional information related to each motif. This could include the names of proteins that bind the motif.}
 }}
 

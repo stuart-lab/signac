@@ -8,7 +8,7 @@
 \usage{
 AddMotifObject(object, ...)
 
-\method{AddMotifObject}{Assay}(object, motif.object)
+\method{AddMotifObject}{Assay}(object, motif.object, verbose = TRUE)
 
 \method{AddMotifObject}{Seurat}(object, motif.object, assay = NULL)
 }
