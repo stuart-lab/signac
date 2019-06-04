@@ -1,3 +1,72 @@
+#' @param ... Additional arguments passed to \code{\link[Seurat]{FindNeighbors}} and \code{\link[Seurat]{FindClusters}}
+#' @rdname ClusterMotifs
+#' @method ClusterMotifs Motif
+#' @importFrom Matrix crossprod colSums
+#' @importFrom Seurat FindNeighbors FindClusters
+#' @export
+ClusterMotifs.Motif <- function(
+  object,
+  assay = NULL,
+  verbose = TRUE,
+  ...
+) {
+  data.use <- GetMotifData(object = object, slot = 'data')
+  motif.jaccard <- as.matrix(x = crossprod(x = data.use)) / colSums(data.use)
+  object <- SetMotifData(
+    object = object,
+    slot = 'neighbors',
+    new.data = FindNeighbors(object = 1/motif.jaccard, distance.matrix = TRUE, verbose = verbose, ...)
+  )
+  clusters <- FindClusters(
+    object = GetMotifData(object = object, slot = 'neighbors')$nn,
+    verbose = verbose,
+    ...
+  )
+  meta.data <- GetMotifData(object = object, slot = 'meta.data')
+  if (nrow(x = meta.data) == 0) {
+    meta.data <- clusters
+  } else {
+    meta.data[[colnames(x = clusters)]] <- clusters[, 1]
+  }
+  object <- SetMotifData(object = object, slot = 'meta.data', new.data = meta.data)
+  return(object)
+}
+
+#' @rdname ClusterMotifs
+#' @method ClusterMotifs Assay
+#' @export
+ClusterMotifs.Assay <- function(
+  object,
+  verbose = TRUE,
+  ...
+) {
+  motif.obj <- GetMotifObject(object = object)
+  motif.obj <- ClusterMotifs(object = motif.obj, verbose = verbose, ...)
+  object <- AddMotifObject(object = object, motif.object = motif.obj, verbose = FALSE)
+  return(object)
+}
+
+#' @param assay Which assay to use
+#' @rdname ClusterMotifs
+#' @method ClusterMotifs Seurat
+#' @export
+ClusterMotifs.Seurat <- function(
+  object,
+  assay = NULL,
+  verbose = TRUE,
+  ...
+) {
+  assay <- assay %||% DefaultAssay(object = object)
+  assay.data <- GetAssay(object = object, assay = assay)
+  assay.data <- ClusterMotifs(
+    object = assay.data,
+    verbose = verbose,
+    ...
+  )
+  object[[assay]] <- assay.data
+  return(object)
+}
+
 #' MotifCellEnrichment
 #'
 #' Find motifs enriched in a given set of peaks for a set of cells.
