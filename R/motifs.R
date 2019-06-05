@@ -67,6 +67,60 @@ ClusterMotifs.Seurat <- function(
   return(object)
 }
 
+#' CreateMotifActivityMatrix
+#'
+#' Create a matrix of the normalized motif accessibility per cell.
+#' Fits a loess model per motif between the total cell accessibility and the sequencing depth for the cell,
+#' and stores the model residual as the normalized motif activity in the cell.
+#'
+#' @param object A Seurat object
+#' @param assay Which assay to use. This must contain a Motif object.
+#' @param span Degree of loess smoothing, passed to \code{\link[stats]{loess}}. Default is 0.5.
+#' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{\link[stats]{loess}}
+#'
+#' @importFrom Matrix crossprod colSums
+#' @importFrom future nbrOfWorkers
+#' @importFrom future.apply future_sapply
+#' @importFrom pbapply pbsapply
+#' @importFrom stats loess
+#'
+#' @return Returns a matrix
+#' @export
+CreateMotifActivityMatrix <- function(
+  object,
+  assay = NULL,
+  span = 0.5,
+  verbose = TRUE,
+  ...
+) {
+  assay <- assay %||% DefaultAssay(object = object)
+  motifs <- GetMotifData(object = object, assay = assay, slot = 'data')
+  accessibility <- GetAssayData(object = object, assay = assay, slot = 'counts')
+  if (verbose) {
+    message("Computing motif accessibility per cell")
+  }
+  motif.accessibility <- as.matrix(crossprod(x = motifs, y = accessibility))
+  seq.depth <- colSums(accessibility)
+  if (nbrOfWorkers() > 1) {
+    mysapply <- future_sapply
+  } else {
+    mysapply <- ifelse(test = verbose, yes = pbsapply, no = sapply)
+  }
+  if (verbose) {
+    message("Fitting models")
+  }
+  residuals <- mysapply(
+    X = seq_along(along.with = rownames(x = motif.accessibility)),
+    FUN = function(x) {
+      loess(formula = motif.accessibility[x, ] ~ seq.depth, span = span, ...)$residuals
+    }
+  )
+  colnames(residuals) <- rownames(x = motif.accessibility)
+  return(t(residuals))
+}
+
+
 #' MotifCellEnrichment
 #'
 #' Find motifs enriched in a given set of peaks for a set of cells.
