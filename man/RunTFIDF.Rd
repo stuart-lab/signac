@@ -12,8 +12,8 @@ RunTFIDF(object, ...)
 \method{RunTFIDF}{default}(object, assay = NULL, method = 1,
   scale.factor = 10000, verbose = TRUE, ...)
 
-\method{RunTFIDF}{Assay}(object, assay = NULL, method = 1,
-  scale.factor = 10000, verbose = TRUE, ...)
+\method{RunTFIDF}{Assay}(object, features = NULL, assay = NULL,
+  method = 1, scale.factor = 10000, verbose = TRUE, ...)
 
 \method{RunTFIDF}{Seurat}(object, assay = NULL, method = 1,
   scale.factor = 10000, verbose = TRUE, ...)
