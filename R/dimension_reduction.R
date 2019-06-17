@@ -1,9 +1,35 @@
-RunJaccard.default <- function(
-  object,
-  assay = NULL
-) {
-  # TODO
-  return()
+#' Calculate the Jaccard index between two matrices
+#'
+#' Finds the Jaccard similarity between rows of the two matricies. Note that the matrices must be binary,
+#' and any rows with zero total counts will result in an NaN entry that could cause problems in downstream analyses.
+#'
+#' This will calculate the raw Jaccard index, without normalizing for the expected similarity
+#' between cells due to differences in sequencing depth.
+#'
+#' @param x The first matrix
+#' @param y The second matrix
+#'
+#' @importFrom Matrix tcrossprod rowSums
+#' @return Returns a matrix
+#'
+#' @export
+Jaccard <- function(x, y) {
+  if (any(x > 1) | any(y > 1)) {
+    warning("Matrices contain values greater than 1. Please binarize matrices before running Jaccard")
+  }
+  intersection <- tcrossprod(x = x, y = y)
+  union.counts.x <- rowSums(x)
+  union.counts.y <- rowSums(y)
+  A <- matrix(
+    data = rep(x = union.counts.x, ncol(x = intersection)),
+    ncol = ncol(x = intersection)
+  )
+  B <- matrix(
+    data = rep(x = union.counts.y, nrow(x = intersection)),
+    ncol = nrow(x = intersection)
+  )
+  jaccard.matrix <- as.matrix(intersection / ((A + t(B)) - intersection))
+  return(jaccard.matrix)
 }
 
 #' @rdname RunMotifTSNE

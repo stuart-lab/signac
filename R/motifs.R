@@ -10,8 +10,8 @@ ClusterMotifs.Motif <- function(
   verbose = TRUE,
   ...
 ) {
-  data.use <- GetMotifData(object = object, slot = 'data')
-  motif.jaccard <- as.matrix(x = crossprod(x = data.use)) / colSums(data.use)
+  data.use <- t(GetMotifData(object = object, slot = 'data'))
+  motif.jaccard <- Jaccard(x = data.use, y = data.use)
   object <- SetMotifData(
     object = object,
     slot = 'neighbors',
