@@ -312,8 +312,8 @@ setMethod(
   f = 'show',
   signature = 'Motif',
   definition = function(object) {
-    cat('A Motif object containing', nrow(x = slot(object = object, name = "data")),
-        "motifs in", ncol(x = slot(object = object, name = "data")), "regions\n")
+    cat('A Motif object containing', ncol(x = slot(object = object, name = "data")),
+        "motifs in", nrow(x = slot(object = object, name = "data")), "regions\n")
   }
 )
 
