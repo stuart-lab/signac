@@ -16,6 +16,37 @@
   }
 }
 
+#' ClosestFeature
+#'
+#' Find the closest feature to a given set of genomic regions
+#'
+#' @param regions A set of genomic regions to query
+#' @param annotations Annotation information
+#' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
+#'
+#' @importFrom GenomicRanges distanceToNearest
+#' @importFrom S4Vectors subjectHits mcols
+#'
+#' @return Returns a dataframe with the name of each region, the closest feature in the annotation,
+#' and the distance to the feature.
+#'
+#' @export
+ClosestFeature <- function(
+  regions,
+  annotation,
+  ...
+) {
+  if (!(class(x = regions) == 'GRanges')) {
+    regions <- StringToGRanges(regions = regions, ...)
+  }
+  nearest_feature <- distanceToNearest(x = regions, subject = annotation)
+  feature_hits <- annotation[subjectHits(x = nearest_feature)]
+  df <- as.data.frame(x = mcols(x = feature_hits))
+  df$region <- GRangesToString(grange = feature_hits)
+  df$distance <- mcols(x = nearest_feature)$distance
+  return(df)
+}
+
 #' Set the fragments file path for creating plots
 #'
 #' Give path of indexed fragments file that goes with data in the object.
