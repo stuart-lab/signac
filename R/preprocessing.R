@@ -1,3 +1,83 @@
+#' BandingScore
+#'
+#' Compute the nucleosome periodicity score per cell.
+#' Computes the fast Fourier transformation of fragment sizes and sums
+#' the spectral densities between 100 bp and 300 bp.
+#'
+#' Note that this is much slower than running \code{\link{NucleosomeScore}} and gives similar results.
+#'
+#' This function was adapted from Cusanovich and Hill, 2018: \url{https://doi.org/10.1016/j.cell.2018.06.052}
+#'
+#' @param object A Seurat object
+#' @param assay Which assay to use. Only needed is a fragment path is not provided.
+#' If NULL, use the active assay.
+#' @param fragment.path Path to an indexed fragment file for cells in the object. If NULL,
+#' look for a path stored in the object
+#' @param region Which genomic region to use when computing the banding score. Can be a set of GRanges,
+#' or a set of strings specifying the chromosomal coordinates. Default is human chromosome 1.
+#' @param verbose Display messages
+#'
+#' @return Returns a vector of banding scores
+#' @export
+BandingScore <-function(
+  object,
+  assay = NULL,
+  fragment.path = NULL,
+  region = 'chr1-1-249250621',
+  verbose = TRUE
+) {
+  fragments <- GetReadsInRegion(object = pbmc, region = region, assay = 'peaks')
+  if (verbose) {
+    message('Computing nucleosome banding score per cell')
+  }
+  scores <- sapply(X = colnames(pbmc), FUN = BandingScoreSingleCell, fragments = fragments)
+  return(scores)
+}
+
+#' BandingScoreSingleCell
+#'
+#' Compute the nucleosome periodicity score for a single cell. See \code{\link{BandingScore}}.
+#'
+#' @param fragments A dataframe containing fragment information for each cell. See \code{\link{GetReadsInRegion}}
+#' @param cell Name of cell to compute the banding score for
+#'
+#' @importFrom stats spec.pgram
+#'
+#' @return Returns a number
+BandingScoreSingleCell <- function(fragments, cell) {
+  size_range <- 0:1000
+  rows.use <- fragments$cell == cell
+  frag <- fragments[rows.use, ]
+  counts <- as.data.frame(table(frag$length), stringsAsFactors = FALSE)
+  colnames(counts) <- c('insert_size', 'read_count')
+  counts$insert_size <- as.integer(counts$insert_size)
+  counts$cell <- cell
+  missing_rows = do.call(
+    what = rbind,
+    args = lapply(
+      X = size_range[! size_range %in% counts$insert_size],
+      FUN = function(x) {
+        data.frame(cell = cell,
+                   insert_size = x,
+                   read_count = 0)
+      }
+    )
+  )
+  counts = rbind(counts, missing_rows)
+  counts <- counts[order(counts$insert_size), ]
+  periodogram = spec.pgram(
+    x = counts$read_count / max(counts$read_count),
+    pad = 0.3,
+    taper = 0.5,
+    spans = 2,
+    plot = FALSE,
+    fast = TRUE
+  )
+  periodogram$freq = 1 / periodogram$freq
+  banding_score = sum(periodogram$spec[periodogram$freq >= 100 & periodogram$freq <= 300])
+  return(banding_score)
+}
+
 #' @param verbose Display messages
 #' @rdname BinarizeCounts
 #' @export
@@ -57,94 +137,6 @@ BinarizeCounts.Seurat <- function(
   return(object)
 }
 
-#' Convert a peak matrix to a gene activity matrix
-#'
-#' This function will take in a peak matrix and an annotation file (gtf) and collapse the peak
-#' matrix to a gene activity matrix. It makes the simplifying assumption that all counts in the gene
-#' body plus X kb up and or downstream should be attributed to that gene.
-#'
-#' @param peak.matrix Matrix of peak counts
-#' @param annotation.file Path to GTF annotation file
-#' @param seq.levels Which seqlevels to keep (corresponds to chromosomes usually)
-#' @param include.body Include the gene body?
-#' @param upstream Number of bases upstream to consider
-#' @param downstream Number of bases downstream to consider
-#' @param verbose Print progress/messages
-#'
-#' @importFrom GenomicRanges makeGRangesFromDataFrame distanceToNearest
-#' @importFrom rtracklayer import mcols
-#' @importFrom GenomeInfoDb keepSeqlevels seqlevelsStyle
-#' @importFrom SummarizedExperiment promoters
-#' @importFrom S4Vectors queryHits subjectHits
-#' @importFrom Matrix colSums
-#' @importFrom future nbrOfWorkers
-#' @importFrom future.apply future_sapply
-#' @importFrom pbapply pbsapply
-#'
-#' @export
-#'
-CreateGeneActivityMatrix <- function(
-  peak.matrix,
-  annotation.file,
-  seq.levels = c(1:22, "X", "Y"),
-  include.body = TRUE,
-  upstream = 2000,
-  downstream = 0,
-  verbose = TRUE
-) {
-  # convert peak matrix to GRanges object
-  peak.df <- rownames(x = peak.matrix)
-  peak.df <- do.call(what = rbind, args = strsplit(x = gsub(peak.df, pattern = ":", replacement = "-"), split = "-"))
-  peak.df <- as.data.frame(x = peak.df)
-  colnames(x = peak.df) <- c("chromosome", 'start', 'end')
-  peaks.gr <- makeGRangesFromDataFrame(df = peak.df)
-
-  # get annotation file, select genes
-  gtf <- import(con = annotation.file)
-  gtf <- keepSeqlevels(x = gtf, value = seq.levels, pruning.mode = 'coarse')
-  seqlevelsStyle(gtf) <- "UCSC"
-  gtf.genes <- gtf[gtf$type == 'gene']
-
-  # Extend definition up/downstream
-  if (include.body) {
-    gtf.body_prom <- Extend(x = gtf.genes, upstream = upstream, downstream = downstream)
-  } else {
-    gtf.body_prom <- promoters(x = gtf.genes, upstream = upstream, downstream = downstream)
-  }
-  gene.distances <- distanceToNearest(x = peaks.gr, subject = gtf.body_prom)
-  keep.overlaps <- gene.distances[mcols(x = gene.distances)$distance == 0]
-  peak.ids <- peaks.gr[queryHits(x = keep.overlaps)]
-  gene.ids <- gtf.genes[subjectHits(x = keep.overlaps)]
-  peak.ids$gene.name <- gene.ids$gene_name
-  peak.ids <- as.data.frame(x = peak.ids)
-  peak.ids$peak <- paste0(peak.ids$seqnames, ":", peak.ids$start, "-", peak.ids$end)
-  annotations <- peak.ids[, c('peak', 'gene.name')]
-  colnames(x = annotations) <- c('feature', 'new_feature')
-
-  # collapse into expression matrix
-  peak.matrix <- as(object = peak.matrix, Class = 'matrix')
-  all.features <- unique(x = annotations$new_feature)
-
-  if (nbrOfWorkers() > 1) {
-    mysapply <- future_sapply
-  } else {
-    mysapply <- ifelse(test = verbose, yes = pbsapply, no = sapply)
-  }
-  newmat <- mysapply(X = 1:length(x = all.features), FUN = function(x){
-    features.use <- annotations[annotations$new_feature == all.features[[x]], ]$feature
-    submat <- peak.matrix[features.use, ]
-    if (length(x = features.use) > 1) {
-      return(colSums(x = submat))
-    } else {
-      return(submat)
-    }
-  })
-  newmat <- t(x = newmat)
-  rownames(x = newmat) <- all.features
-  colnames(x = newmat) <- colnames(x = peak.matrix)
-  return(as(object = newmat, Class = 'dgCMatrix'))
-}
-
 #' CreateMotifMatrix
 #'
 #' Create a motif x feature matrix from a set of genomic ranges,
@@ -172,6 +164,37 @@ CreateMotifMatrix <- function(
   motif.matrix <- as(Class = 'dgCMatrix', object = motif.matrix)
   rownames(motif.matrix) <- GRangesToString(grange = features, sep = sep)
   return(motif.matrix)
+}
+
+#' DownsampleFeatures
+#'
+#' Randomly downsample features and assign to VariableFeatures for the object. This will
+#' select n features at random.
+#'
+#' @param object A Seurat object
+#' @param assay Name of assay to use. Default is the active assay.
+#' @param n Number of features to retain (default 20000).
+#' @param verbose Display messages
+#'
+#' @return Returns a Seurat object with VariableFeatures set to the randomly sampled features.
+#'
+#' @export
+DownsampleFeatures <- function(
+  object,
+  assay = NULL,
+  n = 20000,
+  verbose = TRUE
+) {
+  assay <- assay %||% DefaultAssay(object = object)
+  counts <- GetAssayData(object = object, assay = assay, slot = 'counts')
+  if (n > nrow(object[[assay]])) {
+    stop("Requested more features than present in the assay")
+  }
+  if (verbose) {
+    message("Randomly downsampling features")
+  }
+  VariableFeatures(object = object) <- sample(x = rownames(object[[assay]]), size = n, replace = FALSE)
+  return(object)
 }
 
 #' FeatureMatrix
@@ -216,7 +239,7 @@ FeatureMatrix <- function(
     nchunk = chunk
   )
   if (verbose) {
-    message('Extracting reads overlapping genome bins')
+    message('Extracting reads overlapping genomic regions')
   }
   if (nbrOfWorkers() > 1) {
     mylapply <- future_lapply
@@ -227,7 +250,8 @@ FeatureMatrix <- function(
     X = feature.list,
     FUN = GetCellsInRegion,
     tabix = tbx,
-    cells = cells
+    cells = cells,
+    sep = sep
   )
   if (verbose) {
     message("Constructing matrix")
@@ -487,19 +511,63 @@ GenomeBinMatrix <- function(
   return(binmat)
 }
 
-#' Calculate periodogram score per cell
+#' NucleosomeSignal
+#'
+#' Calculate the strength of the nucleosome signal per cell.
+#' Computes the ratio of fragments < 147 bp to fragments between 147 bp and 294 bp.
 #'
 #' @param object A Seurat object
-#' @param fragments Path to an indexed fragment file
+#' @param assay Name of assay to use. Only required if a fragment path is not provided. If NULL, use the active assay.
+#' @param fragment.path Path to an indexed fragments file containing fragment information for cells in the Seurat object.
+#' @param region Which region to use. Can be a GRanges region, a string, or a vector of strings. Default is human chromosome 1.
+#' @param min.threshold Lower bound for the mononucleosome size. Default is 147
+#' @param max.threshold Upper bound for the mononucleosome size. Default is 294
+#' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{\link{GetReadsInRegion}}
 #'
+#' @importFrom dplyr group_by summarize
+#' @importFrom stats ecdf
+#'
+#' @return Returns a dataframe containing the ratio of mononucleosomal to nucleosome-free fragments
+#' per cell, and the percentile rank of each ratio.
 #' @export
-#'
-Period <- function(
+NucleosomeSignal <- function(
   object,
-  fragments = NULL
+  assay = NULL,
+  fragment.path = NULL,
+  region = 'chr1-1-249250621',
+  min.threshold = 147,
+  max.threshold = 294,
+  verbose = TRUE,
+  ...
 ) {
-  # TODO
-  return(object)
+  assay <- assay %||% DefaultAssay(object = object)
+  fragment.path <- fragment.path %||% GetFragments(object = object, assay = assay)
+  fragments.use <- GetReadsInRegion(
+    object = object,
+    region = region,
+    assay = assay,
+    fragment.path = fragment.path,
+    cells = colnames(x = object),
+    verbose = verbose,
+    ...
+  )
+  mn_ratio <- function(x) {
+    mononucleosome = sum(x[x > min.threshold & x < max.threshold])
+    nucleosome_free <- sum(x[x <= min.threshold])
+    return(mononucleosome / nucleosome_free)
+  }
+  if (verbose) {
+    message("Computing ratio of mononucleosomal to nucleosome-free fragments")
+  }
+  fragments.use <- as.data.frame(x = fragments.use[, c('cell', 'length')])
+  fragments.use <- group_by(fragments.use, cell)
+  fragment.summary <- as.data.frame(x = summarise(fragments.use, mononucleosome_ratio = mn_ratio(length)))
+  rownames(x = fragment.summary) <- fragment.summary$cell
+  fragment.summary$cell <- NULL
+  e.dist <- ecdf(x = fragment.summary$mononucleosome_ratio)
+  fragment.summary$mononucleosome_percentile <- round(x = e.dist(fragment.summary$mononucleosome_ratio), digits = 2)
+  return(fragment.summary)
 }
 
 #' @param method Which TF-IDF implementation to use. Choice of:
@@ -562,6 +630,7 @@ RunTFIDF.default <- function(
 #' @export
 RunTFIDF.Assay <- function(
   object,
+  features = NULL,
   assay = NULL,
   method = 1,
   scale.factor = 1e4,
@@ -608,38 +677,4 @@ RunTFIDF.Seurat <- function(
   )
   object[[assay]] <- assay.data
   return(object)
-}
-
-#' Set the fragments file path for creating plots
-#'
-#' Give path of indexed fragments file that goes with data in the object.
-#' Checks for a valid path and an index file with the same name (.tbi) at the same path.
-#' Stores the path under the tools slot for access by visualization functions.
-#' One fragments file can be stored for each assay.
-#'
-#' @param object A Seurat object
-#' @param file Path to indexed fragment file. See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
-#' @param assay Assay used to generate the fragments. If NULL, use the active assay.
-#'
-#' @export
-#'
-SetFragments <- function(
-  object,
-  file,
-  assay = NULL
-) {
-  assay <- assay %||% DefaultAssay(object = object)
-  if (!(assay %in% names(x = slot(object = object, name = 'assays')))) {
-    stop('Requested assay not present in object')
-  }
-  index.file <- paste0(file, '.tbi')
-  if (all(file.exists(file, index.file))) {
-    file <- normalizePath(path = file)
-    current.tools <- slot(object = object, name = 'tools')
-    current.tools$fragments[[assay]] <- file
-    slot(object = object, name = 'tools') <- current.tools
-    return(object)
-  } else {
-    stop('Requested file does not exist or is not indexed')
-  }
 }
