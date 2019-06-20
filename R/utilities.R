@@ -16,6 +16,40 @@
   }
 }
 
+#' Set the fragments file path for creating plots
+#'
+#' Give path of indexed fragments file that goes with data in the object.
+#' Checks for a valid path and an index file with the same name (.tbi) at the same path.
+#' Stores the path under the tools slot for access by visualization functions.
+#' One fragments file can be stored for each assay.
+#'
+#' @param object A Seurat object
+#' @param file Path to indexed fragment file. See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
+#' @param assay Assay used to generate the fragments. If NULL, use the active assay.
+#'
+#' @export
+#'
+SetFragments <- function(
+  object,
+  file,
+  assay = NULL
+) {
+  assay <- assay %||% DefaultAssay(object = object)
+  if (!(assay %in% names(x = slot(object = object, name = 'assays')))) {
+    stop('Requested assay not present in object')
+  }
+  index.file <- paste0(file, '.tbi')
+  if (all(file.exists(file, index.file))) {
+    file <- normalizePath(path = file)
+    current.tools <- slot(object = object, name = 'tools')
+    current.tools$fragments[[assay]] <- file
+    slot(object = object, name = 'tools') <- current.tools
+    return(object)
+  } else {
+    stop('Requested file does not exist or is not indexed')
+  }
+}
+
 #' StringToGRanges
 #'
 #' Convert a genomic coordinate string to a GRanges object
@@ -214,20 +248,7 @@ GetReadsInRegion <- function(
     group.by <- meta.data[[group.by]]
     names(group.by) <- rownames(x = meta.data)
   }
-  if (is.null(x = fragment.path)) {
-    tools <- slot(object = object, name = 'tools')
-    if ('fragments' %in% names(x = tools)) {
-      if (assay %in% names(x = tools$fragments)) {
-        fragment.path <- tools$fragments[[assay]]
-      } else {
-        stop('Fragment file not supplied for the requested assay')
-      }
-    } else {
-      stop('Fragment file not set. Run SetFragments to set the fragment file path.')
-    }
-  } else if (!(all(file.exists(fragment.path, paste0(fragment.path, '.tbi'))))) {
-    stop('Requested file does not exist or is not indexed')
-  }
+  fragment.path <- fragment.path %||% GetFragments(object = object, assay = assay)
   if (verbose) {
     message('Extracting reads in requested region')
   }
@@ -247,6 +268,37 @@ GetReadsInRegion <- function(
   reads$length <- reads$end - reads$start
   reads$group <- group.by[reads$cell]
   return(reads)
+}
+
+#' GetFragments
+#'
+#' Retrieve path to fragments file from assay object, and checks that the file exists and
+#' is indexed before returning the file path.
+#'
+#' @param object A Seurat object
+#' @param assay Name of the assay use to store the fragments file path
+#'
+#' @return Returns the path to a fragments file stored in the Assay if present
+#' @export
+GetFragments <- function(
+  object,
+  assay
+) {
+    tools <- slot(object = object, name = 'tools')
+    if ('fragments' %in% names(x = tools)) {
+      if (assay %in% names(x = tools$fragments)) {
+        fragment.path <- tools$fragments[[assay]]
+      } else {
+        stop('Fragment file not supplied for the requested assay')
+      }
+    } else {
+      stop('Fragment file not set. Run SetFragments to set the fragment file path.')
+    }
+  if (!(all(file.exists(fragment.path, paste0(fragment.path, '.tbi'))))) {
+    stop('Requested file does not exist or is not indexed')
+  } else {
+    return(fragment.path)
+  }
 }
 
 #' CountsInRegion
