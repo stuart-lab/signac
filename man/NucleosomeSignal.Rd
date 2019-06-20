@@ -26,7 +26,7 @@ NucleosomeSignal(object, assay = NULL, fragment.path = NULL,
 \item{...}{Additional arguments passed to \code{\link{GetReadsInRegion}}}
 }
 \value{
-Returns a dataframe containing the ratio of mononucleosomal to nucleosome-free fragments
+Returns a Seurat object with added metadata for the ratio of mononucleosomal to nucleosome-free fragments
 per cell, and the percentile rank of each ratio.
 }
 \description{
