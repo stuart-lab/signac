@@ -234,6 +234,8 @@ PileupPlot <- function(
   cols = NULL
 ) {
   # TODO
+  assay <- assay %||% DefaultAssay(object = object)
+  fragment.path <- fragment.path %||% GetFragments(object = object, assay = assay)
   # need to go from set of annotations to list of positions (single base)
   # separate into + and - strand
   # get upstream / downstream for each
@@ -248,10 +250,11 @@ PileupPlot <- function(
 #' @param assay Which assay to use. Default is the active assay.
 #' @param fragment.path Path to an index fragment file. If NULL, will look for a path stored for the
 #' requested assay using the \code{SetFragments} function
-#' @param region Genomic range to use. Default is fist megabase of chromosome 1.
-#' @param sep Separators to use for supplied genomic region
+#' @param region Genomic range to use. Default is fist two megabases of chromosome 1. Can be a GRanges object, a string, or a vector
+#' of strings.
 #' @param cells Which cells to plot. Default all cells
 #' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
+#' @param ... Additional arguments passed to \code{\link{GetReadsInRegion}}
 #'
 #' @importFrom ggplot2 ggplot geom_histogram theme_bw aes facet_wrap xlim
 #'
@@ -262,10 +265,10 @@ PeriodPlot <- function(
   object,
   assay = NULL,
   fragment.path = NULL,
-  region = 'chr1:1-1000000',
-  sep = c(":", "-"),
+  region = 'chr1-1-2000000',
   group.by = NULL,
-  cells = NULL
+  cells = NULL,
+  ...
 ) {
   reads <- GetReadsInRegion(
     object = object,
@@ -275,7 +278,7 @@ PeriodPlot <- function(
     group.by = group.by,
     fragment.path = fragment.path,
     verbose = FALSE,
-    sep = sep
+    ...
   )
   if (length(unique(reads$group)) == 1) {
     p <- ggplot(data = reads, aes(length)) +
