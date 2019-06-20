@@ -448,7 +448,7 @@ GenomeBinMatrix <- function(
 #' @importFrom dplyr group_by summarize
 #' @importFrom stats ecdf
 #'
-#' @return Returns a dataframe containing the ratio of mononucleosomal to nucleosome-free fragments
+#' @return Returns a Seurat object with added metadata for the ratio of mononucleosomal to nucleosome-free fragments
 #' per cell, and the percentile rank of each ratio.
 #' @export
 NucleosomeSignal <- function(
@@ -482,12 +482,13 @@ NucleosomeSignal <- function(
   }
   fragments.use <- as.data.frame(x = fragments.use[, c('cell', 'length')])
   fragments.use <- group_by(fragments.use, cell)
-  fragment.summary <- as.data.frame(x = summarise(fragments.use, mononucleosome_ratio = mn_ratio(length)))
+  fragment.summary <- as.data.frame(x = summarize(fragments.use, nucleosome_signal = mn_ratio(length)))
   rownames(x = fragment.summary) <- fragment.summary$cell
   fragment.summary$cell <- NULL
-  e.dist <- ecdf(x = fragment.summary$mononucleosome_ratio)
-  fragment.summary$mononucleosome_percentile <- round(x = e.dist(fragment.summary$mononucleosome_ratio), digits = 2)
-  return(fragment.summary)
+  e.dist <- ecdf(x = fragment.summary$nucleosome_signal)
+  fragment.summary$nucleosome_percentile <- round(x = e.dist(fragment.summary$nucleosome_signal), digits = 2)
+  object <- AddMetaData(object = object, metadata = fragment.summary)
+  return(object)
 }
 
 #' @param method Which TF-IDF implementation to use. Choice of:
