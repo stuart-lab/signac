@@ -176,27 +176,6 @@ MotifDimPlot <- function(
   return(p)
 }
 
-#' MotifHeatmap
-#'
-#' Plot motif enrichment scores for groups of cells
-#'
-#' @param object A Seurat object
-#' @param motifs List of motifs to plot
-#' @param assay Which assay to use. Default is the active assay.
-#' @param ... Additional arguments
-#'
-MotifHeatmap <- function(
-  object,
-  motifs,
-  assay = NULL,
-  ...
-) {
-  # TODO
-  # this should plot a heatmap of clusters by motifs, showing average motif accessibility per cluster
-  # need another function upstream of that to compute average accessibilities
-  return(p)
-}
-
 #' MotifPlot
 #'
 #' Plot motifs
