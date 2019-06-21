@@ -71,7 +71,8 @@ SingleCoveragePlot <- function(
     ylab(paste0('Normalized coverage (range 0 - ', as.character(ymax), ')')) +
     ylim(c(0, ymax)) +
     theme_classic() +
-    theme(axis.text.y = element_blank(), legend.position = 'none')
+    theme(axis.text.y = element_blank(), legend.position = 'none') +
+    theme(strip.text.y = element_text(angle = 0))
 
   if (!is.null(annotation)) {
     gr <- GRanges(
