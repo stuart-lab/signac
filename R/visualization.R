@@ -1,22 +1,6 @@
-
-#' SingleCoveragePlot
+#' CoveragePlot
 #'
-#' Plot coverage within given region for groups of cells
-#'
-#' Thanks to Andrew Hill for providing an early version of this function
-#'  \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
-#'
-#' @param object A Seurat object
-#' @param region A set of genomic coordinates to show
-#' @param annotation An Ensembl based annotation package
-#' @param assay Which assay to plot
-#' @param fragment.path Path to an index fragment file. If NULL, will look for a path stored for the
-#' requested assay using the \code{SetFragments} function
-#' @param cells Which cells to plot. Default all cells
-#' @param idents Which identities to include in the plot. Default is all identities.
-#' @param window Smoothing window size
-#' @param downsample Fraction of positions to retain in the plot. Default is 0.1 (retain 10 percent, ie every 10th position)
-#' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
+#' @rdname CoveragePlot
 #'
 #' @importFrom ggplot2 geom_bar facet_wrap xlab ylab theme_classic aes ylim theme element_blank
 #' @importFrom ggbio autoplot
@@ -24,6 +8,8 @@
 #' @importFrom AnnotationFilter GRangesFilter AnnotationFilterList GeneBiotypeFilter
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
+#' @importFrom GenomeInfoDb seqnames
+#' @importFrom BiocGenerics start end
 #'
 #' @export
 #'
@@ -36,6 +22,8 @@ SingleCoveragePlot <- function(
   group.by = NULL,
   window = 100,
   downsample = 0.1,
+  extend.upstream = 0,
+  extend.downstream = 0,
   cells = NULL,
   idents = NULL,
   sep = c("-", "-")
@@ -45,6 +33,10 @@ SingleCoveragePlot <- function(
     ident.cells <- WhichCells(object = object, idents = idents)
     cells <- intersect(x = cells, y = ident.cells)
   }
+  if (class(x = region) != 'GRanges') {
+    region <- StringToGRanges(regions = region, sep = sep)
+  }
+  region <- suppressWarnings(expr = Extend(x = region, upstream = extend.upstream, downstream = extend.downstream))
   reads <- GetReadsInRegion(
     object = object,
     assay = assay,
@@ -62,15 +54,9 @@ SingleCoveragePlot <- function(
     warning('Requested downsampling <0%, retaining all positions')
     downsample <- 1
   }
-  chromosome <- unlist(strsplit(region, sep[[1]]))[[1]]
-  if (sep[[1]] == sep[[2]]) {
-    start.pos <- as.numeric(unlist(strsplit(region, sep[[1]]))[[2]])
-    end.pos <- as.numeric(unlist(strsplit(region, sep[[1]]))[[3]])
-  } else {
-    pos <- unlist(strsplit(region, sep[[1]]))[[2]]
-    start.pos <- as.numeric(unlist(strsplit(pos, sep[[2]]))[[1]])
-    end.pos <- as.numeric(unlist(strsplit(pos, sep[[2]]))[[2]])
-  }
+  chromosome <- as.character(x = seqnames(x = region))
+  start.pos <- start(x = region)
+  end.pos <- end(x = region)
   stepsize <- 1 / downsample
   total_range <- end.pos - start.pos
   steps <- ceiling(total_range / stepsize)
@@ -93,29 +79,46 @@ SingleCoveragePlot <- function(
       IRanges(start = start.pos, end = end.pos)
     )
     filters <- AnnotationFilterList(GRangesFilter(value = gr), GeneBiotypeFilter('protein_coding'))
-    genes <- suppressMessages(autoplot(EnsDb.Hsapiens.v75, filters, names.expr = 'gene_name'))
-    gene.plot <- genes@ggplot +
-      xlim(start.pos, end.pos) +
-      xlab(paste0(chromosome, ' position (bp)')) +
-      theme_classic()
-    p <- p + theme(
-      axis.title.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.line.x.bottom = element_blank(),
-      axis.ticks.x.bottom = element_blank()
-      )
-    p <- p + gene.plot + plot_layout(ncol = 1, heights = c(4, 1))
+    if (suppressMessages(expr = nrow(x = select(x = annotation, filters)) > 0)) {
+      genes <- suppressMessages(autoplot(annotation, filters, names.expr = 'gene_name'))
+      gene.plot <- genes@ggplot +
+        xlim(start.pos, end.pos) +
+        xlab(paste0(chromosome, ' position (bp)')) +
+        theme_classic()
+      p <- p + theme(
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.line.x.bottom = element_blank(),
+        axis.ticks.x.bottom = element_blank()
+        )
+      p <- p + gene.plot + plot_layout(ncol = 1, heights = c(4, 1))
+    }
   }
   return(p)
 }
 
 #' CoveragePlot
 #'
-#' Plot coverage within given region for groups of cells
+#' Plot coverage within given regions for groups of cells
+#'
+#' Thanks to Andrew Hill for providing an early version of this function
+#'  \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
 #'
 #' @param object A Seurat object
-#' @param region A set of genomic coordinates to show
-#' @param ... Arguments passed to SingleCoveragePlot
+#' @param region A set of genomic coordinates to show. Can be a GRanges object, a string, or a vector of strings describing the genomic
+#' coordinates to plot.
+#' @param annotation An Ensembl based annotation package
+#' @param assay Name of the  assay to plot
+#' @param fragment.path Path to an index fragment file. If NULL, will look for a path stored for the
+#' requested assay using the \code{\link{SetFragments}} function
+#' @param cells Which cells to plot. Default all cells
+#' @param idents Which identities to include in the plot. Default is all identities.
+#' @param window Smoothing window size
+#' @param downsample Fraction of positions to retain in the plot. Default is 0.1 (retain 10 percent, ie every 10th position)
+#' @param extend.upstream Number of bases to extend the region upstream (Default 0)
+#' @param extend.downstream Number of bases to extend the region downstream (Default 0)
+#' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
+#' @param ... Additional arguments passed to \code{\link[patchwork]{wrap_plots}}
 #'
 #' @importFrom patchwork wrap_plots
 #' @export
@@ -123,13 +126,53 @@ SingleCoveragePlot <- function(
 CoveragePlot <- function(
   object,
   region,
+  annotation = NULL,
+  assay = NULL,
+  fragment.path = NULL,
+  group.by = NULL,
+  window = 100,
+  downsample = 0.1,
+  extend.upstream = 0,
+  extend.downstream = 0,
+  cells = NULL,
+  idents = NULL,
+  sep = c("-", "-"),
   ...
 ) {
   if (length(region) > 1) {
-    plot.list <- lapply(region, SingleCoveragePlot, object = object, ...)
-    return(wrap_plots(plot.list))
+    plot.list <- lapply(
+      X = region,
+      FUN = SingleCoveragePlot,
+      object = object,
+      annotation = annotation,
+      assay = assay,
+      fragment.path = fragment.path,
+      group.by = group.by,
+      window = window,
+      downsample = downsample,
+      extend.upstream = extend.upstream,
+      extend.downstream = extend.downstream,
+      cells = cells,
+      idents = idents,
+      sep = sep
+    )
+    return(wrap_plots(plot.list, ...))
   } else {
-    return(SingleCoveragePlot(object = object, region = region, ...))
+    return(SingleCoveragePlot(
+      object = object,
+      region = region,
+      annotation = annotation,
+      assay = assay,
+      fragment.path = fragment.path,
+      group.by = group.by,
+      window = window,
+      downsample = downsample,
+      extend.upstream = extend.upstream,
+      extend.downstream = extend.downstream,
+      cells = cells,
+      idents = idents,
+      sep = sep
+    ))
   }
 }
 
