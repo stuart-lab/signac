@@ -11,7 +11,7 @@ ClosestFeature(regions, annotation, ...)
 
 \item{...}{Additional arguments passed to \code{\link{StringToGRanges}}}
 
-\item{annotations}{Annotation information}
+\item{annotations}{Annotation information. Can be a GRanges object or an EnsDb object}
 }
 \value{
 Returns a dataframe with the name of each region, the closest feature in the annotation,
