@@ -10,8 +10,7 @@ GetMotifObject(object, ...)
 
 \method{GetMotifObject}{Assay}(object, ...)
 
-\method{GetMotifObject}{Seurat}(object, assay = NULL, slot = "data",
-  ...)
+\method{GetMotifObject}{Seurat}(object, assay = NULL, ...)
 }
 \arguments{
 \item{object}{A Seurat object}

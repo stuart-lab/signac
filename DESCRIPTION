@@ -10,4 +10,29 @@ LazyData: true
 RoxygenNote: 6.1.1
 URL: https://github.com/timoast/chroma; https://timoast.github.io/chroma
 BugReports: https://github.com/timoast/chroma/issues
-VignetteBuilder: knitr
+Imports: 
+    AnnotationFilter,
+    BiocGenerics,
+    GenomeInfoDb,
+    GenomicFeatures,
+    GenomicRanges,
+    IRanges,
+    Matrix,
+    Rsamtools,
+    S4Vectors,
+    Seurat,
+    TFBSTools,
+    data.table,
+    dplyr,
+    future,
+    future.apply,
+    ggbio,
+    ggplot2,
+    ggseqlogo,
+    irlba,
+    methods,
+    motifmatchr,
+    patchwork,
+    pbapply,
+    tidyr,
+    zoo

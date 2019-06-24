@@ -5,7 +5,8 @@
 BinarizeCounts.default <- function(
   object,
   assay = NULL,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
   if (class(x = object) == 'dgCMatrix') {
     object@x <- rep.int(x = 1, times = length(x = object@x))
@@ -22,7 +23,8 @@ BinarizeCounts.default <- function(
 BinarizeCounts.Assay <- function(
   object,
   assay = NULL,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
   data.matrix <- GetAssayData(object = object, slot = 'counts')
   object <- SetAssayData(
@@ -42,7 +44,8 @@ BinarizeCounts.Assay <- function(
 BinarizeCounts.Seurat <- function(
   object,
   assay = NULL,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
   assay <- assay %||% DefaultAssay(object = object)
   for (i in 1:length(x = assay)) {
@@ -80,7 +83,7 @@ CreateMotifMatrix <- function(
   sep = c("-", "-"),
   ...
 ) {
-  motif_ix <- matchMotifs(pwms = PFMatrixList, subject = features, genome = genome, ...)
+  motif_ix <- matchMotifs(pwms = pwm, subject = features, genome = genome, ...)
   motif.matrix <- motifMatches(object = motif_ix)
   motif.matrix <- as(Class = 'dgCMatrix', object = motif.matrix)
   rownames(motif.matrix) <- GRangesToString(grange = features, sep = sep)
@@ -96,6 +99,8 @@ CreateMotifMatrix <- function(
 #' @param assay Name of assay to use. Default is the active assay.
 #' @param n Number of features to retain (default 20000).
 #' @param verbose Display messages
+#'
+#' @importFrom Seurat DefaultAssay GetAssayData "VariableFeatures<-"
 #'
 #' @return Returns a Seurat object with VariableFeatures set to the randomly sampled features.
 #'
@@ -230,8 +235,7 @@ FilterFragments <- function(
   assume.sorted = FALSE,
   compress = TRUE,
   index = TRUE,
-  verbose = TRUE,
-  ...
+  verbose = TRUE
 ) {
   if (verbose) {
     message("Retaining ", length(x = cells), " cells")
@@ -279,6 +283,15 @@ FilterFragments <- function(
   }
 }
 
+#' @param assay Name of assay to use
+#' @param min.cutoff Cutoff for feature to be included in the VariableFeatures for the object.
+#' This can be a percentile specified as 'q' followed by the minimum percentile, for example 'q5' to set
+#' the top 95% most common features as the VariableFeatures for the object. Alternatively, this can be
+#' an integer specifying the minumum number of cells containing the feature for the feature to be included
+#' in the set of VariableFeatures. For example, setting to 10 will include features in >10 cells in the
+#' set of VariableFeatures. If NULL, include all features in VariableFeatures.
+#' @param verbose Display messages
+#'
 #' @importFrom Matrix rowSums
 #' @importFrom stats ecdf
 #' @rdname FindTopFeatures
@@ -560,7 +573,6 @@ RunTFIDF.default <- function(
 #' @export
 RunTFIDF.Assay <- function(
   object,
-  features = NULL,
   assay = NULL,
   method = 1,
   scale.factor = 1e4,

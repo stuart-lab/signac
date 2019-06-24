@@ -5,7 +5,7 @@
 \title{FilterFragments}
 \usage{
 FilterFragments(fragment.path, cells, output.path, assume.sorted = FALSE,
-  compress = TRUE, index = TRUE, verbose = TRUE, ...)
+  compress = TRUE, index = TRUE, verbose = TRUE)
 }
 \arguments{
 \item{fragment.path}{Path to a tabix-indexed fragments file}

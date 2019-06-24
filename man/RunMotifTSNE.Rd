@@ -7,10 +7,10 @@
 \alias{RunMotifTSNE}
 \title{RunMotifTSNE}
 \usage{
-\method{RunMotifTSNE}{Motif}(object, assay = NULL, verbose = TRUE,
-  graph.name = "nn", ...)
+\method{RunMotifTSNE}{Motif}(object, verbose = TRUE, graph.name = "nn",
+  ...)
 
-\method{RunMotifTSNE}{Assay}(object, assay = NULL, verbose = TRUE, ...)
+\method{RunMotifTSNE}{Assay}(object, verbose = TRUE, ...)
 
 \method{RunMotifTSNE}{Seurat}(object, assay = NULL, verbose = TRUE,
   ...)
@@ -20,7 +20,13 @@ RunMotifTSNE(object, ...)
 \arguments{
 \item{object}{A Seurat object}
 
+\item{verbose}{Display messages}
+
+\item{graph.name}{Name of the neighbor graph to use ('nn' or 'snn')}
+
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{Name of assay to use}
 }
 \value{
 Returns a Seurat object

@@ -42,6 +42,9 @@ requested assay using the \code{\link{SetFragments}} function}
 
 \item{idents}{Which identities to include in the plot. Default is all identities.}
 
+\item{sep}{Separators to use for strings encoding genomic coordinates. First element is used to separate the
+chromosome from the coordinates, second element is used to separate the start from end coordinate.}
+
 \item{...}{Additional arguments passed to \code{\link[patchwork]{wrap_plots}}}
 }
 \description{

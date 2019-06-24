@@ -10,6 +10,8 @@ PileupPlot(object, annotation, assay = NULL, feature = "TSS",
 \arguments{
 \item{object}{A Seurat object}
 
+\item{annotation}{An EnsDb annotation object}
+
 \item{assay}{Which assay to use. Default is the active assay.}
 
 \item{feature}{Which genomic feature to center on. Options are: 'TSS', 'TTS'}

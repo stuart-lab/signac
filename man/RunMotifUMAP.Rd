@@ -7,10 +7,10 @@
 \alias{RunMotifUMAP}
 \title{RunMotifUMAP}
 \usage{
-\method{RunMotifUMAP}{Motif}(object, assay = NULL, verbose = TRUE,
-  graph.name = "nn", ...)
+\method{RunMotifUMAP}{Motif}(object, verbose = TRUE, graph.name = "nn",
+  ...)
 
-\method{RunMotifUMAP}{Assay}(object, assay = NULL, verbose = TRUE, ...)
+\method{RunMotifUMAP}{Assay}(object, verbose = TRUE, ...)
 
 \method{RunMotifUMAP}{Seurat}(object, assay = NULL, verbose = TRUE,
   ...)
@@ -20,7 +20,13 @@ RunMotifUMAP(object, ...)
 \arguments{
 \item{object}{A Seurat object}
 
+\item{verbose}{Display messages}
+
+\item{graph.name}{Name of the neighbor graph to use ('nn' or 'snn')}
+
 \item{...}{Arguments passed to other methods}
+
+\item{assay}{Name of assay to use}
 }
 \value{
 Returns a Seurat object

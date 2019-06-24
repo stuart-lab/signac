@@ -10,6 +10,7 @@
 #' @importFrom IRanges IRanges
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom BiocGenerics start end
+#' @importFrom Seurat WhichCells
 #'
 #' @export
 #'
@@ -127,6 +128,8 @@ SingleCoveragePlot <- function(
 #' @param extend.upstream Number of bases to extend the region upstream (Default 0)
 #' @param extend.downstream Number of bases to extend the region downstream (Default 0)
 #' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
+#' @param sep Separators to use for strings encoding genomic coordinates. First element is used to separate the
+#' chromosome from the coordinates, second element is used to separate the start from end coordinate.
 #' @param ... Additional arguments passed to \code{\link[patchwork]{wrap_plots}}
 #'
 #' @importFrom patchwork wrap_plots
@@ -203,8 +206,7 @@ MotifDimPlot <- function(
   object,
   assay = NULL,
   group.by = NULL,
-  reduction = 'tSNE',
-  ...
+  reduction = 'tSNE'
 ) {
   coords.use <- GetMotifData(object = object, assay = assay, slot = 'reductions')
   if (!(reduction %in% names(x = coords.use))) {
@@ -239,7 +241,7 @@ MotifDimPlot <- function(
 #' @param ... Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}
 #'
 #' @importFrom ggseqlogo ggseqlogo
-#' @importFrom TFBSTools name Matrix
+#' @importFrom TFBSTools name
 #'
 #' @export
 MotifPlot <- function(
@@ -254,7 +256,7 @@ MotifPlot <- function(
   }
   data.use <- data.use[motifs]
   if (class(x = data.use) == "PFMatrixList") {
-    pwm <- Matrix(x = data.use)
+    pwm <- TFBSTools::Matrix(x = data.use)
     names(x = pwm) <- name(x = data.use)
   } else {
     pwm <- data.use
@@ -266,6 +268,7 @@ MotifPlot <- function(
 #' Plot coverage pileup centered on a given genomic feature
 #'
 #' @param object A Seurat object
+#' @param annotation An EnsDb annotation object
 #' @param assay Which assay to use. Default is the active assay.
 #' @param feature Which genomic feature to center on. Options are: 'TSS', 'TTS'
 #' @param fragment.path Path to an index fragment file. If NULL, will look for a path stored for the

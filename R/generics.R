@@ -22,7 +22,6 @@ BinarizeCounts <- function(object, ...) {
   UseMethod(generic = 'BinarizeCounts', object = object)
 }
 
-
 #' ClusterMotifs
 #'
 #' Cluster motifs by co-occurrence in genomic regions.
@@ -31,7 +30,6 @@ BinarizeCounts <- function(object, ...) {
 #' Motifs are then clustered, and cluster identities stored in the Motif object meta data.
 #'
 #' @param object A Seurat object
-#' @param ... Arguments passed to other methods
 #' @return Returns a Seurat object
 #' @rdname ClusterMotifs
 #' @export ClusterMotifs
@@ -149,9 +147,10 @@ SetMotifData <- function(object, ...) {
 
 #' Return a subset of a Motif object
 #'
-#' @param object A Motif object
+#' @param x A Motif object
+#' @param ... Arguments passed to other methods
 #' @rdname subset.Motif
 #' @export
-subset <- function(object, ...) {
-  UseMethod(generic = 'subset', object = object)
+subset <- function(x, ...) {
+  UseMethod(generic = 'subset', object = x)
 }

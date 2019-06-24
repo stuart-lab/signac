@@ -32,13 +32,14 @@ Jaccard <- function(x, y) {
   return(jaccard.matrix)
 }
 
+#' @param verbose Display messages
+#' @param graph.name Name of the neighbor graph to use ('nn' or 'snn')
 #' @rdname RunMotifTSNE
 #' @method RunMotifTSNE Motif
 #' @importFrom Seurat RunTSNE
 #' @export
 RunMotifTSNE.Motif <- function(
   object,
-  assay = NULL,
   verbose = TRUE,
   graph.name = 'nn',
   ...
@@ -64,7 +65,6 @@ RunMotifTSNE.Motif <- function(
 #' @export
 RunMotifTSNE.Assay <- function(
   object,
-  assay = NULL,
   verbose = TRUE,
   ...
 ) {
@@ -74,6 +74,7 @@ RunMotifTSNE.Assay <- function(
   return(object)
 }
 
+#' @param assay Name of assay to use
 #' @rdname RunMotifTSNE
 #' @method RunMotifTSNE Seurat
 #' @export
@@ -94,13 +95,14 @@ RunMotifTSNE.Seurat <- function(
   return(object)
 }
 
+#' @param verbose Display messages
+#' @param graph.name Name of the neighbor graph to use ('nn' or 'snn')
 #' @importFrom Seurat RunUMAP
 #' @rdname RunMotifUMAP
 #' @method RunMotifUMAP Motif
 #' @export
 RunMotifUMAP.Motif <- function(
   object,
-  assay = NULL,
   verbose = TRUE,
   graph.name = 'nn',
   ...
@@ -125,7 +127,6 @@ RunMotifUMAP.Motif <- function(
 #' @export
 RunMotifUMAP.Assay <- function(
   object,
-  assay = NULL,
   verbose = TRUE,
   ...
 ) {
@@ -135,6 +136,7 @@ RunMotifUMAP.Assay <- function(
   return(object)
 }
 
+#' @param assay Name of assay to use
 #' @rdname RunMotifUMAP
 #' @method RunMotifUMAP Seurat
 #' @export
@@ -164,6 +166,8 @@ RunMotifUMAP.Seurat <- function(
 #' @param verbose Print messages
 #'
 #' @importFrom irlba irlba
+#' @importFrom stats sd
+#' @importFrom Seurat CreateDimReducObject
 #'
 #' @rdname RunSVD
 #' @export
@@ -215,6 +219,7 @@ RunSVD.default <- function(
 #' @param features Which features to use. If NULL, use variable features
 #'
 #' @rdname RunSVD
+#' @importFrom Seurat VariableFeatures GetAssayData
 #' @export
 #' @method RunSVD Assay
 RunSVD.Assay <- function(

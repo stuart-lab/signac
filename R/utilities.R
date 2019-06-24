@@ -21,13 +21,13 @@
 #' Find the closest feature to a given set of genomic regions
 #'
 #' @param regions A set of genomic regions to query
-#' @param annotations Annotation information. Can be a GRanges object or an EnsDb object
+#' @param annotation Annotation information. Can be a GRanges object or an EnsDb object
 #' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #'
 #' @importFrom GenomicRanges distanceToNearest
 #' @importFrom S4Vectors subjectHits mcols
 #' @importFrom GenomicFeatures genes
-#' @importFrom GenomeInfoDb seqlevelsStyle
+#' @importFrom GenomeInfoDb seqlevelsStyle "seqlevelsStyle<-"
 #'
 #' @return Returns a dataframe with the name of each region, the closest feature in the annotation,
 #' and the distance to the feature.
@@ -66,6 +66,8 @@ ClosestFeature <- function(
 #' @param file Path to indexed fragment file.
 #' See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
 #' @param assay Assay used to generate the fragments. If NULL, use the active assay.
+#'
+#' @importFrom methods "slot<-"
 #'
 #' @export
 #'
@@ -217,7 +219,7 @@ ChunkGRanges <- function(granges, nchunk) {
 #' @param downstream Length to extend downstream
 #'
 #' @importFrom GenomicRanges strand start end trim
-#' @importFrom IRanges ranges IRanges
+#' @importFrom IRanges ranges IRanges "ranges<-"
 #' @export
 Extend <- function(x, upstream = 0, downstream = 0) {
   if (any(strand(x = x) == "*")) {
@@ -237,6 +239,8 @@ Extend <- function(x, upstream = 0, downstream = 0) {
 #'
 #' @param tabix Tabix object
 #' @param region A string giving the region to extract from the fragments file
+#' @param sep Vector of separators to use for genomic string. First element is used to separate chromosome
+#' and coordinates, second separator is used to separate start and end coordinates.
 #' @param cells Vector of cells to include in output. If NULL, include all cells
 #'
 #' @importFrom Rsamtools TabixFile scanTabix
@@ -280,6 +284,7 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 #' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #'
 #' @importFrom Rsamtools TabixFile scanTabix
+#' @importFrom Seurat Idents DefaultAssay
 #'
 #' @return Returns a data frame
 #' @export
@@ -436,6 +441,7 @@ FractionCountsInRegion <- function(
 #' @param reads List of character vectors (the output of \code{\link{scanTabix}})
 #' @param record.ident Add a column recording which region the reads overlapped with (default TRUE)
 #' @importFrom data.table rbindlist
+#' @importFrom utils read.table
 #' @return Returns a data.frame
 #' @export
 TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {

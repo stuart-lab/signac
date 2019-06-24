@@ -20,6 +20,8 @@ SetMotifData(object, ...)
 
 \item{...}{Arguments passed to other methods}
 
+\item{slot}{Name of slot to use}
+
 \item{new.data}{New data to add}
 
 \item{data}{motif matrix to add. Should be matrix or sparse matrix class}

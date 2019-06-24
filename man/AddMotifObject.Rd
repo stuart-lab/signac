@@ -8,14 +8,18 @@
 \usage{
 AddMotifObject(object, ...)
 
-\method{AddMotifObject}{Assay}(object, motif.object, verbose = TRUE)
+\method{AddMotifObject}{Assay}(object, motif.object, verbose = TRUE, ...)
 
-\method{AddMotifObject}{Seurat}(object, motif.object, assay = NULL)
+\method{AddMotifObject}{Seurat}(object, motif.object, assay = NULL, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
 
+\item{...}{Additional arguments}
+
 \item{motif.object}{An object of class Motif}
+
+\item{verbose}{Display messages}
 
 \item{assay}{Name of assay to store motif object in}
 }

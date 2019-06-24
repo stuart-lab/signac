@@ -20,12 +20,12 @@ ClusterMotifs(object, ...)
 \arguments{
 \item{object}{A Seurat object}
 
-\item{...}{Arguments passed to other methods}
+\item{...}{Additional arguments passed to \code{\link[Seurat]{FindNeighbors}}
+and \code{\link[Seurat]{FindClusters}}}
 
 \item{assay}{Which assay to use}
 
-\item{...}{Additional arguments passed to \code{\link[Seurat]{FindNeighbors}}
-and \code{\link[Seurat]{FindClusters}}}
+\item{verbose}{Display messages}
 }
 \value{
 Returns a Seurat object

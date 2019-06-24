@@ -38,13 +38,17 @@ Motif <- setClass(
 ## Functions
 
 #' @param motif.object An object of class Motif
+#' @param verbose Display messages
+#' @param ... Additional arguments
 #' @rdname AddMotifObject
 #' @method AddMotifObject Assay
+#' @importFrom methods slot "slot<-"
 #' @export
 AddMotifObject.Assay <- function(
   object,
   motif.object,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
   misc.data <- slot(object = object, name = 'misc') %||% list()
   if ('motif' %in% names(x = misc.data) & verbose) {
@@ -56,7 +60,7 @@ AddMotifObject.Assay <- function(
       stop('No features in common between the Assay and Motif objects')
     } else {
       warning('Features do not match in Assay and Motif object. Subsetting the Motif object.')
-      motif.object <- motif.obj[keep.features, ]
+      motif.object <- motif.object[keep.features, ]
     }
   }
   misc.data[['motif']] <- motif.object
@@ -66,12 +70,14 @@ AddMotifObject.Assay <- function(
 
 #' @param assay Name of assay to store motif object in
 #' @rdname AddMotifObject
+#' @importFrom Seurat DefaultAssay
 #' @method AddMotifObject Seurat
 #' @export
 AddMotifObject.Seurat <- function(
   object,
   motif.object,
-  assay = NULL
+  assay = NULL,
+  ...
 ) {
   assay <- assay %||% DefaultAssay(object = object)
   object[[assay]] <- AddMotifObject(
@@ -89,9 +95,12 @@ AddMotifObject.Seurat <- function(
 #' @param data A motif x region matrix
 #' @param pwm A list of position weight matrices matching the motif names in \code{data}.
 #' Can be of class PFMatrixList
+#' @param neighbors Neighbor data
+#' @param reductions Dimension reduction data
 #' @param meta.data A data.frame containing metadata
-#' @export
 #'
+#' @importFrom methods new as
+#' @export
 CreateMotifObject <- function(
   data = NULL,
   pwm = NULL,
@@ -120,7 +129,6 @@ CreateMotifObject <- function(
       stop('Motif names in data matrix and metadata are inconsistent')
     }
   }
-  # TODO add checks for correct dimensions / names in reductions and neighbors if supplied
   motif.obj <- new(
     Class = 'Motif',
     data = data,
@@ -134,6 +142,7 @@ CreateMotifObject <- function(
 
 #' @rdname GetMotifObject
 #' @method GetMotifObject Assay
+#' @importFrom methods slot
 #' @export
 GetMotifObject.Assay <- function(object, ...) {
   misc.data <- slot(object = object, name = 'misc')
@@ -146,9 +155,10 @@ GetMotifObject.Assay <- function(object, ...) {
 
 #' @param assay Which assay to use. Default is the current active assay
 #' @rdname GetMotifObject
+#' @importFrom Seurat DefaultAssay GetAssay
 #' @method GetMotifObject Seurat
 #' @export
-GetMotifObject.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
+GetMotifObject.Seurat <- function(object, assay = NULL, ...) {
   assay <- assay %||% DefaultAssay(object = object)
   return(GetMotifObject(
     object = GetAssay(object = object, assay = assay),
@@ -158,6 +168,7 @@ GetMotifObject.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
 
 #' @param slot Information to pull from object (data, pwm, meta.data)
 #' @rdname GetMotifData
+#' @importFrom methods slot
 #' @method GetMotifData Motif
 #' @export
 GetMotifData.Motif <- function(object, slot = 'data', ...) {
@@ -166,6 +177,7 @@ GetMotifData.Motif <- function(object, slot = 'data', ...) {
 
 #' @rdname GetMotifData
 #' @method GetMotifData Assay
+#' @importFrom methods slot
 #' @export
 GetMotifData.Assay <- function(object, slot = 'data', ...) {
   misc.data <- slot(object = object, name = 'misc')
@@ -179,6 +191,7 @@ GetMotifData.Assay <- function(object, slot = 'data', ...) {
 #' @param assay Which assay to use. Default is the current active assay
 #' @rdname GetMotifData
 #' @method GetMotifData Seurat
+#' @importFrom Seurat DefaultAssay GetAssay
 #' @export
 GetMotifData.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
   assay <- assay %||% DefaultAssay(object = object)
@@ -192,7 +205,7 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
 #' @param new.data New data to add
 #' @rdname SetMotifData
 #' @method SetMotifData Motif
-#' @importFrom methods slotNames
+#' @importFrom methods slotNames as "slot<-"
 #' @export
 SetMotifData.Motif <- function(object, slot, new.data, ...) {
   if (!(slot %in% slotNames(x = object))) {
@@ -210,10 +223,12 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
 }
 
 #' @param data motif matrix to add. Should be matrix or sparse matrix class
+#' @param slot Name of slot to use
 #' @rdname SetMotifData
 #' @export
 #' @method SetMotifData Assay
 #' @import Matrix
+#' @importFrom methods slot as "slot<-"
 SetMotifData.Assay <- function(object, slot, new.data, ...) {
   if (slot == 'data') {
     if (!(class(x = new.data) %in% c('matrix', 'dgCMatrix'))) {
@@ -242,6 +257,7 @@ SetMotifData.Assay <- function(object, slot, new.data, ...) {
 
 #' @param assay Name of assay whose data should be set
 #' @rdname SetMotifData
+#' @importFrom Seurat DefaultAssay
 #' @export
 #' @method SetMotifData Seurat
 SetMotifData.Seurat <- function(object, data, assay = NULL, ...) {
@@ -250,10 +266,13 @@ SetMotifData.Seurat <- function(object, data, assay = NULL, ...) {
   return(object)
 }
 
+#' @param features Which features to retain
+#' @param motifs Which motifs to retain
 #' @method subset Motif
 #' @aliases subset
 #' @rdname subset.Motif
 #' @seealso \code{\link[base]{subset}}
+#' @importFrom methods new
 #' @export
 subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
   features <- features %||% colnames(x = x)
@@ -271,6 +290,8 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
 }
 
 #' @inheritParams subset.Motif
+#' @param i Which columns to retain
+#' @param j Which rows to retain
 #'
 #' @rdname subset.Motif
 #' @export

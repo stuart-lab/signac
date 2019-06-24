@@ -13,6 +13,10 @@ CreateMotifObject(data = NULL, pwm = NULL, neighbors = NULL,
 \item{pwm}{A list of position weight matrices matching the motif names in \code{data}.
 Can be of class PFMatrixList}
 
+\item{neighbors}{Neighbor data}
+
+\item{reductions}{Dimension reduction data}
+
 \item{meta.data}{A data.frame containing metadata}
 }
 \description{

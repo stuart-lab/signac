@@ -5,7 +5,7 @@
 \title{MotifDimPlot}
 \usage{
 MotifDimPlot(object, assay = NULL, group.by = NULL,
-  reduction = "tSNE", ...)
+  reduction = "tSNE")
 }
 \arguments{
 \item{object}{A Seurat object}

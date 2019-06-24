@@ -9,9 +9,9 @@ ClosestFeature(regions, annotation, ...)
 \arguments{
 \item{regions}{A set of genomic regions to query}
 
-\item{...}{Additional arguments passed to \code{\link{StringToGRanges}}}
+\item{annotation}{Annotation information. Can be a GRanges object or an EnsDb object}
 
-\item{annotations}{Annotation information. Can be a GRanges object or an EnsDb object}
+\item{...}{Additional arguments passed to \code{\link{StringToGRanges}}}
 }
 \value{
 Returns a dataframe with the name of each region, the closest feature in the annotation,

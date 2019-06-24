@@ -6,14 +6,24 @@
 \alias{[.Motif}
 \title{Return a subset of a Motif object}
 \usage{
-subset(object, ...)
+subset(x, ...)
 
 \method{subset}{Motif}(x, features = NULL, motifs = NULL, ...)
 
 \method{[}{Motif}(x, i, j, ...)
 }
 \arguments{
-\item{object}{A Motif object}
+\item{x}{A Motif object}
+
+\item{...}{Arguments passed to other methods}
+
+\item{features}{Which features to retain}
+
+\item{motifs}{Which motifs to retain}
+
+\item{i}{Which columns to retain}
+
+\item{j}{Which rows to retain}
 }
 \description{
 Return a subset of a Motif object
