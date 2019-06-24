@@ -1,3 +1,4 @@
+#' @include generics.R
 #' @importFrom methods setClass
 #' @importClassesFrom Matrix dgCMatrix
 #' @importClassesFrom TFBSTools PFMatrixList
@@ -266,14 +267,22 @@ SetMotifData.Seurat <- function(object, data, assay = NULL, ...) {
   return(object)
 }
 
+#' Return a subset of a Motif object
+#'
+#' @param x A Motif object
 #' @param features Which features to retain
 #' @param motifs Which motifs to retain
-#' @method subset Motif
+#' @param ... Arguments passed to other methods
+#'
 #' @aliases subset
 #' @rdname subset.Motif
+#' @method subset Motif
+#'
 #' @seealso \code{\link[base]{subset}}
 #' @importFrom methods new
+#' @return Returns a subsetted Motif object
 #' @export
+#'
 subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
   features <- features %||% colnames(x = x)
   motifs <- motifs %||% rownames(x = x)
