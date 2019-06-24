@@ -42,7 +42,7 @@ ClosestFeature <- function(
     regions <- StringToGRanges(regions = regions, ...)
   }
   if (class(x = annotation) == 'EnsDb') {
-    annotation <- genes(annotation, filter = ~ gene_biotype == "protein_coding")
+    annotation <- genes(x = annotation, filter = ~ gene_biotype == "protein_coding")
     if (seqlevelsStyle(x = regions) != seqlevelsStyle(x = annotation)) {
       seqlevelsStyle(x = annotation) <- seqlevelsStyle(x = regions)
     }
@@ -63,7 +63,8 @@ ClosestFeature <- function(
 #' One fragments file can be stored for each assay.
 #'
 #' @param object A Seurat object
-#' @param file Path to indexed fragment file. See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
+#' @param file Path to indexed fragment file.
+#' See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
 #' @param assay Assay used to generate the fragments. If NULL, use the active assay.
 #'
 #' @export
@@ -129,7 +130,13 @@ StringToGRanges <- function(regions, sep = c("-", "-")) {
 #'
 #' @export
 GRangesToString <- function(grange, sep = c("-", "-")) {
-  regions <- paste0(as.character(seqnames(x = grange)), sep[[1]], start(grange), sep[[2]], end(grange))
+  regions <- paste0(
+    as.character(x = seqnames(x = grange)),
+    sep[[1]],
+    start(x = grange),
+    sep[[2]],
+    end(x = grange)
+  )
   return(regions)
 }
 
@@ -149,13 +156,13 @@ CalculateCoverages <- function(
 ) {
   cells.per.group <- table(reads$group)
   lut <- as.vector(x = cells.per.group)
-  names(lut) <- names(x = cells.per.group)
+  names(x = lut) <- names(x = cells.per.group)
   # TODO create list of vectors rather than binding dataframes, should be much faster
   expanded <- rbindlist(
     l = lapply(
       X = 1:nrow(reads),
       FUN = function(x) {
-        interval <- as.numeric(reads[x, 'start']):as.numeric(reads[x, 'end'])
+        interval <- as.numeric(x = reads[x, 'start']):as.numeric(x = reads[x, 'end'])
         df <- data.frame(
           position = interval,
           value = 1,
@@ -164,7 +171,13 @@ CalculateCoverages <- function(
         )
   }))
   expanded$norm.value <- expanded$value / as.vector(x = lut[as.character(x = expanded$group)])
-  expanded$coverage <- rollapply(data = expanded$norm.value, width = window, FUN = mean, align = 'center', fill = NA)
+  expanded$coverage <- rollapply(
+    data = expanded$norm.value,
+    width = window,
+    FUN = mean,
+    align = 'center',
+    fill = NA
+  )
   return(expanded)
 }
 
@@ -179,15 +192,15 @@ CalculateCoverages <- function(
 #' @export
 ChunkGRanges <- function(granges, nchunk) {
   chunksize <- as.integer(x = (length(granges) / nchunk))
-  range.list <- sapply(1:nchunk, function(x) {
+  range.list <- sapply(X = 1:nchunk, FUN = function(x) {
     chunkupper <- (x * chunksize) -1
     if (x == 1) {
       chunklower <- 1
     } else {
       chunklower <- (x-1) * chunksize
     }
-    if (chunkupper > length(granges)) {
-      chunkupper <- length(granges)
+    if (chunkupper > length(x = granges)) {
+      chunkupper <- length(x = granges)
     }
     return(granges[chunklower:chunkupper])
   })
@@ -229,7 +242,7 @@ Extend <- function(x, upstream = 0, downstream = 0) {
 #' @importFrom Rsamtools TabixFile scanTabix
 #' @export
 GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
-  if (!(class(region) == 'GRanges')) {
+  if (!(class(x = region) == 'GRanges')) {
     region <- StringToGRanges(regions = region)
   }
   bin.reads <- scanTabix(file = tabix, param = region)
@@ -257,7 +270,8 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 #' Extract reads for each cell within a given genomic region or set of regions
 #'
 #' @param object A Seurat object
-#' @param region A genomic region, specified as a string in the format 'chr:start-end'. Can be a vector of regions.
+#' @param region A genomic region, specified as a string in the format
+#' 'chr:start-end'. Can be a vector of regions.
 #' @param assay Name of assay to use
 #' @param fragment.path Path to indexed fragment file
 #' @param group.by Cell grouping information to add
@@ -280,12 +294,12 @@ GetReadsInRegion <- function(
   ...
 ) {
   assay <- assay %||% DefaultAssay(object = object)
-  if (is.null(group.by)) {
+  if (is.null(x = group.by)) {
     group.by <- Idents(object = object)
   } else {
     meta.data <- object[[]]
     group.by <- meta.data[[group.by]]
-    names(group.by) <- rownames(x = meta.data)
+    names(x = group.by) <- rownames(x = meta.data)
   }
   fragment.path <- fragment.path %||% GetFragments(object = object, assay = assay)
   if (verbose) {
@@ -372,7 +386,8 @@ CountsInRegion <- function(
 
 #' ExtractCell
 #'
-#' Extract cell barcode from list of tab delimited character vectors (output of \code{\link{scanTabix}})
+#' Extract cell barcode from list of tab delimited character
+#' vectors (output of \code{\link{scanTabix}})
 #'
 #' @param x List of character vectors
 #' @export
@@ -410,7 +425,7 @@ FractionCountsInRegion <- function(
     sep = sep,
     ...
   )
-  total.reads <- colSums(GetAssayData(object = object, assay = assay, slot = 'counts'))
+  total.reads <- colSums(x = GetAssayData(object = object, assay = assay, slot = 'counts'))
   return(reads.in.region / total.reads)
 }
 
@@ -428,12 +443,17 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
     if (length(x = reads[[x]]) == 0) {
       return(NULL)
     }
-    df <- read.table(file = textConnection(reads[[x]]), header = FALSE, sep = "\t", stringsAsFactors = FALSE)
+    df <- read.table(
+      file = textConnection(object = reads[[x]]),
+      header = FALSE,
+      sep = "\t",
+      stringsAsFactors = FALSE
+    )
     colnames(x = df) <- c('chr', 'start', 'end', 'cell', 'count')
     if (record.ident) {
       df$ident <- x
     }
     return(df)
   })
-  return(rbindlist(df.list))
+  return(rbindlist(l = df.list))
 }

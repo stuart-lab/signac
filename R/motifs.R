@@ -1,4 +1,5 @@
-#' @param ... Additional arguments passed to \code{\link[Seurat]{FindNeighbors}} and \code{\link[Seurat]{FindClusters}}
+#' @param ... Additional arguments passed to \code{\link[Seurat]{FindNeighbors}}
+#' and \code{\link[Seurat]{FindClusters}}
 #' @rdname ClusterMotifs
 #' @method ClusterMotifs Motif
 #' @importFrom Matrix crossprod colSums
@@ -10,12 +11,17 @@ ClusterMotifs.Motif <- function(
   verbose = TRUE,
   ...
 ) {
-  data.use <- t(GetMotifData(object = object, slot = 'data'))
+  data.use <- t(x = GetMotifData(object = object, slot = 'data'))
   motif.jaccard <- Jaccard(x = data.use, y = data.use)
   object <- SetMotifData(
     object = object,
     slot = 'neighbors',
-    new.data = FindNeighbors(object = 1/motif.jaccard, distance.matrix = TRUE, verbose = verbose, ...)
+    new.data = FindNeighbors(
+      object = 1/motif.jaccard,
+      distance.matrix = TRUE,
+      verbose = verbose,
+      ...
+    )
   )
   clusters <- FindClusters(
     object = GetMotifData(object = object, slot = 'neighbors')$nn,
@@ -100,8 +106,8 @@ CreateMotifActivityMatrix <- function(
   if (verbose) {
     message("Computing motif accessibility per cell")
   }
-  motif.accessibility <- as.matrix(crossprod(x = motifs, y = accessibility))
-  seq.depth <- colSums(accessibility)
+  motif.accessibility <- as.matrix(x = crossprod(x = motifs, y = accessibility))
+  seq.depth <- colSums(x = accessibility)
   if (nbrOfWorkers() > 1) {
     mysapply <- future_sapply
   } else {
@@ -148,7 +154,7 @@ FindMotifs <- function(
   assay <- assay %||% DefaultAssay(object = object)
   background <- background %||% rownames(x = object)
   if (verbose) {
-    message('Testing motif enrichment in ', length(features), ' regions')
+    message('Testing motif enrichment in ', length(x = features), ' regions')
   }
   motif.all <- GetMotifData(object = object, assay = assay, slot = 'data')
   pwm <- GetMotifData(object = object, assay = assay, slot = 'pwm')

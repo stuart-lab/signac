@@ -10,7 +10,8 @@ GetReadsInRegion(object, region, assay = NULL, fragment.path = NULL,
 \arguments{
 \item{object}{A Seurat object}
 
-\item{region}{A genomic region, specified as a string in the format 'chr:start-end'. Can be a vector of regions.}
+\item{region}{A genomic region, specified as a string in the format
+'chr:start-end'. Can be a vector of regions.}
 
 \item{assay}{Name of assay to use}
 

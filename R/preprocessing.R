@@ -7,8 +7,8 @@ BinarizeCounts.default <- function(
   assay = NULL,
   verbose = TRUE
 ) {
-  if (class(object) == 'dgCMatrix') {
-    object@x <- rep.int(x = 1, times = length(object@x))
+  if (class(x = object) == 'dgCMatrix') {
+    object@x <- rep.int(x = 1, times = length(x = object@x))
   } else {
     object[object > 1] <- 1
   }
@@ -44,7 +44,7 @@ BinarizeCounts.Seurat <- function(
   assay = NULL,
   verbose = TRUE
 ) {
-  assay <- assay %||% DefaultAssay(object)
+  assay <- assay %||% DefaultAssay(object = object)
   for (i in 1:length(x = assay)) {
     assay.data <- GetAssay(object = object, assay = assay[[i]])
     assay.data <- BinarizeCounts(
@@ -64,7 +64,8 @@ BinarizeCounts.Seurat <- function(
 #'
 #' @param features A GRanges object containing a set of genomic features
 #' @param pwm A PFMatrixList object containing position weight matrices to use
-#' @param genome Any object compatible with the \code{genome} argument in \code{\link[motifmatchr]{matchMotifs}}
+#' @param genome Any object compatible with the \code{genome} argument
+#' in \code{\link[motifmatchr]{matchMotifs}}
 #' @param sep A length-2 character vector containing the separators to be used when constructing
 #' matrix rownames from the GRanges
 #' @param ... Additional arguments passed to \code{\link[motifmatchr]{matchMotifs}}
@@ -113,7 +114,7 @@ DownsampleFeatures <- function(
   if (verbose) {
     message("Randomly downsampling features")
   }
-  VariableFeatures(object = object) <- sample(x = rownames(object[[assay]]), size = n, replace = FALSE)
+  VariableFeatures(object = object) <- sample(x = rownames(x = object[[assay]]), size = n, replace = FALSE)
   return(object)
 }
 
@@ -192,10 +193,10 @@ FeatureMatrix <- function(
     x = rep(x = 1, length(x = cell.vector))
   )
   featmat <- as(Class = 'dgCMatrix', object = featmat)
-  rownames(featmat) <- names(x = feature.lookup)
-  colnames(featmat) <- names(x = cell.lookup)
+  rownames(x = featmat) <- names(x = feature.lookup)
+  colnames(x = featmat) <- names(x = cell.lookup)
   if (!is.null(x = cells)) {
-    cells.accept <- intersect(cells, colnames(x = featmat))
+    cells.accept <- intersect(x = cells, y = colnames(x = featmat))
     return(featmat[, cells.accept])
   } else {
     return(featmat)
@@ -289,10 +290,10 @@ FindTopFeatures.default <- function(
   verbose = TRUE,
   ...
 ) {
-  featurecounts <- rowSums(object)
-  e.dist <- ecdf(featurecounts)
+  featurecounts <- rowSums(x = object)
+  e.dist <- ecdf(x = featurecounts)
   hvf.info <- data.frame(
-    row.names = names(featurecounts),
+    row.names = names(x = featurecounts),
     count = featurecounts,
     percentile = e.dist(featurecounts)
   )
@@ -320,13 +321,13 @@ FindTopFeatures.Assay <- function(
     ...
   )
   object[[names(x = hvf.info)]] <- hvf.info
-  if (is.null(min.cutoff)) {
-    VariableFeatures(object) <- rownames(hvf.info)
-  } else if (is.numeric(min.cutoff)) {
-    VariableFeatures(object) <- rownames(hvf.info[hvf.info$count > min.cutoff, ])
+  if (is.null(x = min.cutoff)) {
+    VariableFeatures(object = object) <- rownames(x = hvf.info)
+  } else if (is.numeric(x = min.cutoff)) {
+    VariableFeatures(object = object) <- rownames(x = hvf.info[hvf.info$count > min.cutoff, ])
   } else {
     percentile.use <- as.numeric(x = sub(pattern = "q", replacement = "", x = as.character(x = min.cutoff)))/100
-    VariableFeatures(object) <- rownames(hvf.info[hvf.info$percentile > percentile.use, ])
+    VariableFeatures(object = object) <- rownames(x = hvf.info[hvf.info$percentile > percentile.use, ])
   }
   return(object)
 }
@@ -481,12 +482,20 @@ NucleosomeSignal <- function(
     message("Computing ratio of mononucleosomal to nucleosome-free fragments")
   }
   fragments.use <- as.data.frame(x = fragments.use[, c('cell', 'length')])
-  fragments.use <- group_by(fragments.use, cell)
-  fragment.summary <- as.data.frame(x = summarize(fragments.use, nucleosome_signal = mn_ratio(length)))
+  fragments.use <- group_by(.data = fragments.use, cell)
+  fragment.summary <- as.data.frame(
+    x = summarize(
+      .data = fragments.use,
+      nucleosome_signal = mn_ratio(x = length)
+    )
+  )
   rownames(x = fragment.summary) <- fragment.summary$cell
   fragment.summary$cell <- NULL
   e.dist <- ecdf(x = fragment.summary$nucleosome_signal)
-  fragment.summary$nucleosome_percentile <- round(x = e.dist(fragment.summary$nucleosome_signal), digits = 2)
+  fragment.summary$nucleosome_percentile <- round(
+    x = e.dist(fragment.summary$nucleosome_signal),
+    digits = 2
+  )
   object <- AddMetaData(object = object, metadata = fragment.summary)
   return(object)
 }

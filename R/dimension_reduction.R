@@ -18,8 +18,8 @@ Jaccard <- function(x, y) {
     warning("Matrices contain values greater than 1. Please binarize matrices before running Jaccard")
   }
   intersection <- tcrossprod(x = x, y = y)
-  union.counts.x <- rowSums(x)
-  union.counts.y <- rowSums(y)
+  union.counts.x <- rowSums(x = x)
+  union.counts.y <- rowSums(x = y)
   A <- matrix(
     data = rep(x = union.counts.x, ncol(x = intersection)),
     ncol = ncol(x = intersection)
@@ -28,7 +28,7 @@ Jaccard <- function(x, y) {
     data = rep(x = union.counts.y, nrow(x = intersection)),
     ncol = nrow(x = intersection)
   )
-  jaccard.matrix <- as.matrix(intersection / ((A + t(B)) - intersection))
+  jaccard.matrix <- as.matrix(x = intersection / ((A + t(B)) - intersection))
   return(jaccard.matrix)
 }
 
@@ -47,7 +47,12 @@ RunMotifTSNE.Motif <- function(
   if (!(graph.name %in% names(x = neighbor.graph))) {
     stop("Requested neighbor graph is not present")
   }
-  tsne.obj <- RunTSNE(object = as.matrix(x = neighbor.graph[[graph.name]]), is_distance = TRUE, assay = 'Motif', ...)
+  tsne.obj <- RunTSNE(
+    object = as.matrix(x = neighbor.graph[[graph.name]]),
+    is_distance = TRUE,
+    assay = 'Motif',
+    ...
+  )
   reductions <- GetMotifData(object = object, slot = 'reductions')
   reductions$tSNE <- tsne.obj
   object <- SetMotifData(object = object, slot = 'reductions', new.data = reductions)
@@ -104,7 +109,11 @@ RunMotifUMAP.Motif <- function(
   if (!(graph.name %in% names(x = neighbor.graph))) {
     stop("Requested neighbor graph is not present")
   }
-  umap.obj <- RunUMAP(object = as.matrix(x = neighbor.graph[[graph.name]]), assay = 'Motif', ...)
+  umap.obj <- RunUMAP(
+    object = as.matrix(x = neighbor.graph[[graph.name]]),
+    assay = 'Motif',
+    ...
+  )
   reductions <- GetMotifData(object = object, slot = 'reductions')
   reductions$UMAP <- umap.obj
   object <- SetMotifData(object = object, slot = 'reductions', new.data = reductions)
@@ -168,16 +177,16 @@ RunSVD.default <- function(
   verbose = TRUE,
   ...
 ) {
-  if (!is.null(seed.use)) {
+  if (!is.null(x = seed.use)) {
     set.seed(seed = seed.use)
   }
-  n <- min(n, ncol(x = object) - 1)
+  n <- min(n, (ncol(x = object) - 1))
   if (verbose) {
     message("Running SVD")
   }
   components <- irlba(A = t(object), nv = n)
   feature.loadings <- components$v
-  sdev <- components$d / sqrt(max(1, nrow(x = object) - 1))
+  sdev <- components$d / sqrt(x = max(1, nrow(x = object) - 1))
   cell.embeddings <- components$u
   if (verbose) {
     message('Scaling cell embeddings')
@@ -218,7 +227,7 @@ RunSVD.Assay <- function(
   verbose = TRUE,
   ...
 ) {
-  features <- features %||% VariableFeatures(object)
+  features <- features %||% VariableFeatures(object = object)
   data.use <- GetAssayData(
     object = object,
     slot = 'data'
@@ -253,7 +262,7 @@ RunSVD.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- assay %||% DefaultAssay(object)
+  assay <- assay %||% DefaultAssay(object = object)
   assay.data <- GetAssay(object = object, assay = assay)
   reduction.data <- RunSVD(
     object = assay.data,

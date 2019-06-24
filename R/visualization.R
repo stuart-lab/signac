@@ -2,7 +2,7 @@
 #'
 #' @rdname CoveragePlot
 #'
-#' @importFrom ggplot2 geom_bar facet_wrap xlab ylab theme_classic aes ylim theme element_blank
+#' @importFrom ggplot2 geom_bar facet_wrap xlab ylab theme_classic aes ylim theme element_blank element_text
 #' @importFrom ggbio autoplot
 #' @import patchwork
 #' @importFrom AnnotationFilter GRangesFilter AnnotationFilterList GeneBiotypeFilter
@@ -36,7 +36,12 @@ SingleCoveragePlot <- function(
   if (class(x = region) != 'GRanges') {
     region <- StringToGRanges(regions = region, sep = sep)
   }
-  region <- suppressWarnings(expr = Extend(x = region, upstream = extend.upstream, downstream = extend.downstream))
+  region <- suppressWarnings(expr = Extend(
+    x = region,
+    upstream = extend.upstream,
+    downstream = extend.downstream
+    )
+  )
   reads <- GetReadsInRegion(
     object = object,
     assay = assay,
@@ -59,32 +64,35 @@ SingleCoveragePlot <- function(
   end.pos <- end(x = region)
   stepsize <- 1 / downsample
   total_range <- end.pos - start.pos
-  steps <- ceiling(total_range / stepsize)
-  retain_positions <- seq(start.pos, end.pos, by = stepsize)
+  steps <- ceiling(x = (total_range / stepsize))
+  retain_positions <- seq(from = start.pos, to = end.pos, by = stepsize)
   downsampled_coverage <- coverages[coverages$position %in% retain_positions, ]
-  ymax <- signif(max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
+  ymax <- signif(x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
 
-  p <- ggplot(downsampled_coverage, aes(position, coverage, fill = group)) +
+  p <- ggplot(data = downsampled_coverage, mapping = aes(x = position, y = coverage, fill = group)) +
     geom_bar(stat = 'identity') +
-    facet_wrap(~group, strip.position = 'right', ncol = 1) +
-    xlab(paste0(chromosome, ' position (bp)')) +
-    ylab(paste0('Normalized coverage (range 0 - ', as.character(ymax), ')')) +
+    facet_wrap(facets = ~group, strip.position = 'right', ncol = 1) +
+    xlab(label = paste0(chromosome, ' position (bp)')) +
+    ylab(label = paste0('Normalized coverage (range 0 - ', as.character(x = ymax), ')')) +
     ylim(c(0, ymax)) +
     theme_classic() +
-    theme(axis.text.y = element_blank(), legend.position = 'none') +
-    theme(strip.text.y = element_text(angle = 0))
+    theme(
+      axis.text.y = element_blank(),
+      legend.position = 'none',
+      strip.text.y = element_text(angle = 0)
+    )
 
-  if (!is.null(annotation)) {
+  if (!is.null(x = annotation)) {
     gr <- GRanges(
       seqnames = gsub(pattern = 'chr', replacement = '', x = chromosome),
       IRanges(start = start.pos, end = end.pos)
     )
-    filters <- AnnotationFilterList(GRangesFilter(value = gr), GeneBiotypeFilter('protein_coding'))
+    filters <- AnnotationFilterList(GRangesFilter(value = gr), GeneBiotypeFilter(value = 'protein_coding'))
     if (suppressMessages(expr = nrow(x = select(x = annotation, filters)) > 0)) {
-      genes <- suppressMessages(autoplot(annotation, filters, names.expr = 'gene_name'))
+      genes <- suppressMessages(expr = autoplot(object = annotation, filters, names.expr = 'gene_name'))
       gene.plot <- genes@ggplot +
         xlim(start.pos, end.pos) +
-        xlab(paste0(chromosome, ' position (bp)')) +
+        xlab(label = paste0(chromosome, ' position (bp)')) +
         theme_classic()
       p <- p + theme(
         axis.title.x = element_blank(),
@@ -140,7 +148,7 @@ CoveragePlot <- function(
   sep = c("-", "-"),
   ...
 ) {
-  if (length(region) > 1) {
+  if (length(x = region) > 1) {
     plot.list <- lapply(
       X = region,
       FUN = SingleCoveragePlot,
@@ -199,7 +207,7 @@ MotifDimPlot <- function(
   ...
 ) {
   coords.use <- GetMotifData(object = object, assay = assay, slot = 'reductions')
-  if (!(reduction %in% names(coords.use))) {
+  if (!(reduction %in% names(x = coords.use))) {
     stop("Requested dimension reduction is not present")
   }
   coords.use <- as.data.frame(x = Embeddings(object = coords.use[[reduction]]))
@@ -213,9 +221,10 @@ MotifDimPlot <- function(
     coords.use[['ident']] <- 'Motif'
   }
   colnames(x = coords.use) <- c('dim1', 'dim2', 'ident')
-  p <- ggplot(data = coords.use, aes(x = dim1, y = dim2, color = ident)) +
+  p <- ggplot(data = coords.use, mapping = aes(x = dim1, y = dim2, color = ident)) +
     geom_point() +
-    xlab(paste0(reduction, '_1')) + ylab(paste0(reduction, '_2')) +
+    xlab(label = paste0(reduction, '_1')) +
+    ylab(label = paste0(reduction, '_2')) +
     theme_bw()
   return(p)
 }
@@ -230,7 +239,7 @@ MotifDimPlot <- function(
 #' @param ... Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}
 #'
 #' @importFrom ggseqlogo ggseqlogo
-#' @importFrom TFBSTools name
+#' @importFrom TFBSTools name Matrix
 #'
 #' @export
 MotifPlot <- function(
@@ -245,7 +254,7 @@ MotifPlot <- function(
   }
   data.use <- data.use[motifs]
   if (class(x = data.use) == "PFMatrixList") {
-    pwm <- TFBSTools::Matrix(data.use)
+    pwm <- Matrix(x = data.use)
     names(x = pwm) <- name(x = data.use)
   } else {
     pwm <- data.use
@@ -324,13 +333,13 @@ PeriodPlot <- function(
     verbose = FALSE,
     ...
   )
-  if (length(unique(reads$group)) == 1) {
+  if (length(x = unique(x = reads$group)) == 1) {
     p <- ggplot(data = reads, aes(length)) +
       geom_histogram(bins = 200) +
       xlim(c(0, 800)) +
       theme_bw()
   } else {
-    p <- ggplot(data = reads, aes(length, fill = group)) +
+    p <- ggplot(data = reads, mapping = aes(x = length, fill = group)) +
       geom_histogram(bins = 200) +
       facet_wrap(~group, scales = 'free_y') +
       xlim(c(0, 800)) +

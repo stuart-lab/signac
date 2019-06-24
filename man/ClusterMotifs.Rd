@@ -24,7 +24,8 @@ ClusterMotifs(object, ...)
 
 \item{assay}{Which assay to use}
 
-\item{...}{Additional arguments passed to \code{\link[Seurat]{FindNeighbors}} and \code{\link[Seurat]{FindClusters}}}
+\item{...}{Additional arguments passed to \code{\link[Seurat]{FindNeighbors}}
+and \code{\link[Seurat]{FindClusters}}}
 }
 \value{
 Returns a Seurat object
