@@ -1,3 +1,7 @@
+#' @include generics.R
+#'
+NULL
+
 #' Calculate the Jaccard index between two matrices
 #'
 #' Finds the Jaccard similarity between rows of the two matricies. Note that the matrices must be binary,

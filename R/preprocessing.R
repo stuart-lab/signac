@@ -1,3 +1,7 @@
+#' @include generics.R
+#'
+NULL
+
 #' @param verbose Display messages
 #' @rdname BinarizeCounts
 #' @export

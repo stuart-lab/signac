@@ -144,13 +144,3 @@ RunMotifUMAP <- function(object, ...) {
 SetMotifData <- function(object, ...) {
   UseMethod(generic = 'SetMotifData', object = object)
 }
-
-#' Return a subset of a Motif object
-#'
-#' @param x A Motif object
-#' @param ... Arguments passed to other methods
-#' @rdname subset.Motif
-#' @export
-subset <- function(x, ...) {
-  UseMethod(generic = 'subset', object = x)
-}

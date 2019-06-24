@@ -1,3 +1,7 @@
+#' @include generics.R
+#'
+NULL
+
 #' @param verbose Display messages
 #' @param ... Additional arguments passed to \code{\link[Seurat]{FindNeighbors}}
 #' and \code{\link[Seurat]{FindClusters}}

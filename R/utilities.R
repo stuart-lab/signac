@@ -1,3 +1,7 @@
+#' @include generics.R
+#'
+NULL
+
 # Set a default value if an object is null
 #
 # @param lhs An object to set if it's null

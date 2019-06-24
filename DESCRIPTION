@@ -36,3 +36,12 @@ Imports:
     pbapply,
     tidyr,
     zoo
+Collate: 
+    'data.R'
+    'generics.R'
+    'dimension_reduction.R'
+    'motifs.R'
+    'objects.R'
+    'preprocessing.R'
+    'utilities.R'
+    'visualization.R'
