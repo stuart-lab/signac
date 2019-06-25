@@ -39,6 +39,8 @@ RunTFIDF(object, ...)
 }
 \value{
 Returns a Seurat object
+
+Returns a sparse matrix
 }
 \description{
 Run term frequency inverse document frequency normalization

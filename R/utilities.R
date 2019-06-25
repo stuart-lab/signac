@@ -32,6 +32,7 @@ NULL
 #' @importFrom S4Vectors subjectHits mcols
 #' @importFrom GenomicFeatures genes
 #' @importFrom GenomeInfoDb seqlevelsStyle "seqlevelsStyle<-"
+#' @importFrom methods is
 #'
 #' @return Returns a dataframe with the name of each region, the closest feature in the annotation,
 #' and the distance to the feature.
@@ -71,7 +72,7 @@ ClosestFeature <- function(
 #' See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
 #' @param assay Assay used to generate the fragments. If NULL, use the active assay.
 #'
-#' @importFrom methods "slot<-"
+#' @importFrom methods "slot<-" slot is
 #'
 #' @export
 #'
@@ -248,6 +249,7 @@ Extend <- function(x, upstream = 0, downstream = 0) {
 #' @param cells Vector of cells to include in output. If NULL, include all cells
 #'
 #' @importFrom Rsamtools TabixFile scanTabix
+#' @importFrom methods is
 #' @export
 GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
   if (!is(object = region, class2 = 'GRanges')) {
@@ -339,6 +341,8 @@ GetReadsInRegion <- function(
 #'
 #' @param object A Seurat object
 #' @param assay Name of the assay use to store the fragments file path
+#'
+#' @importFrom methods slot
 #'
 #' @return Returns the path to a fragments file stored in the Assay if present
 #' @export
