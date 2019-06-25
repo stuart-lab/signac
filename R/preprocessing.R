@@ -4,8 +4,8 @@ NULL
 
 #' @param verbose Display messages
 #' @rdname BinarizeCounts
+#' @importFrom methods is slot "slot<-"
 #' @export
-#'
 BinarizeCounts.default <- function(
   object,
   assay = NULL,
@@ -13,7 +13,12 @@ BinarizeCounts.default <- function(
   ...
 ) {
   if (is(object = object, class2 = 'dgCMatrix')) {
-    object@x <- rep.int(x = 1, times = length(x = object@x))
+    slot(object = object, name = 'x') <- rep.int(
+      x = 1,
+      times = length(
+        x = slot(object = object, name = 'x')
+        )
+      )
   } else {
     object[object > 1] <- 1
   }
@@ -43,7 +48,7 @@ BinarizeCounts.Assay <- function(
 #' and binarization will be applied to each.
 #' @rdname BinarizeCounts
 #' @method BinarizeCounts Seurat
-#' @importFrom Seurat GetAssay
+#' @importFrom Seurat GetAssay DefaultAssay
 #' @export
 BinarizeCounts.Seurat <- function(
   object,
@@ -52,7 +57,7 @@ BinarizeCounts.Seurat <- function(
   ...
 ) {
   assay <- assay %||% DefaultAssay(object = object)
-  for (i in 1:length(x = assay)) {
+  for (i in seq_along(along.with = assay)) {
     assay.data <- GetAssay(object = object, assay = assay[[i]])
     assay.data <- BinarizeCounts(
       object = assay.data,
@@ -528,7 +533,11 @@ NucleosomeSignal <- function(
 #' @param verbose Print progress
 #' @rdname RunTFIDF
 #' @importFrom Matrix colSums rowSums t Diagonal
+#' @importFrom methods is "slot<-" slot
+#'
 #' @export
+#' @return Returns a sparse matrix
+#'
 #' @examples
 #' mat <- matrix(data = rbinom(n = 25, size = 5, prob = 0.2), nrow = 5)
 #' mat_norm <- RunTFIDF(object = mat)
@@ -560,12 +569,12 @@ RunTFIDF.default <- function(
   if (method == 2) {
     idf <- log(1 + idf)
   } else if (method == 3) {
-    tf@x <- log1p(x = tf@x * scale.factor)
+    slot(object = tf, name = 'x') <- log1p(x = slot(object = tf, name = 'x') * scale.factor)
     idf <- log(1 + idf)
   }
   norm.data <- Diagonal(n = length(x = idf), x = idf) %*% tf
   if (method == 1) {
-    norm.data@x <- log1p(x = norm.data@x * scale.factor)
+    slot(object = norm.data, name = 'x') <- log1p(x = slot(object = norm.data, name = 'x') * scale.factor)
   }
   colnames(x = norm.data) <- colnames(x = object)
   rownames(x = norm.data) <- rownames(x = object)
