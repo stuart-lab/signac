@@ -5,7 +5,8 @@
 \title{Plot fragment length periodicity}
 \usage{
 PeriodPlot(object, assay = NULL, fragment.path = NULL,
-  region = "chr1-1-2000000", group.by = NULL, cells = NULL, ...)
+  region = "chr1-1-2000000", group.by = NULL, cells = NULL,
+  log.scale = FALSE, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -21,6 +22,8 @@ of strings.}
 \item{group.by}{Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities}
 
 \item{cells}{Which cells to plot. Default all cells}
+
+\item{log.scale}{Display Y-axis on log scale. Default is FALSE.}
 
 \item{...}{Additional arguments passed to \code{\link{GetReadsInRegion}}}
 }
