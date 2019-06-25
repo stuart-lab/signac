@@ -12,7 +12,7 @@ BinarizeCounts.default <- function(
   verbose = TRUE,
   ...
 ) {
-  if (class(x = object) == 'dgCMatrix') {
+  if (is(object = object, class2 = 'dgCMatrix')) {
     object@x <- rep.int(x = 1, times = length(x = object@x))
   } else {
     object[object > 1] <- 1
@@ -541,10 +541,10 @@ RunTFIDF.default <- function(
   verbose = TRUE,
   ...
 ) {
-  if (class(x = object) == "data.frame") {
+  if (is(object = object, class2 = "data.frame")) {
     object <- as.matrix(x = object)
   }
-  if (class(x = object) != "dgCMatrix") {
+  if (!is(object = object, class2 = "dgCMatrix")) {
     object <- as(object = object, Class = "dgCMatrix")
   }
   if (verbose) {

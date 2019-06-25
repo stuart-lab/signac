@@ -1,5 +1,5 @@
 #' @include generics.R
-#' @importFrom methods setClass
+#' @importFrom methods setClass is slot slot<- new as slotNames
 #' @importClassesFrom Matrix dgCMatrix
 #' @importClassesFrom TFBSTools PFMatrixList
 #'
@@ -43,7 +43,6 @@ Motif <- setClass(
 #' @param ... Additional arguments
 #' @rdname AddMotifObject
 #' @method AddMotifObject Assay
-#' @importFrom methods slot "slot<-"
 #' @export
 AddMotifObject.Assay <- function(
   object,
@@ -100,7 +99,6 @@ AddMotifObject.Seurat <- function(
 #' @param reductions Dimension reduction data
 #' @param meta.data A data.frame containing metadata
 #'
-#' @importFrom methods new as
 #' @export
 CreateMotifObject <- function(
   data = NULL,
@@ -117,7 +115,7 @@ CreateMotifObject <- function(
   if (!(class(x = data) %in% c('matrix', 'dgCMatrix'))) {
     stop('Data must be matrix or sparse matrix class. Supplied ', class(x = data))
   }
-  if (class(x = data) == 'matrix') {
+  if (is(object = data, class2 = 'matrix')) {
     data <- as(Class = 'dgCMatrix', object = data)
   }
   if ((nrow(x = data) > 0) & (length(x = pwm) > 0)) {
@@ -143,7 +141,6 @@ CreateMotifObject <- function(
 
 #' @rdname GetMotifObject
 #' @method GetMotifObject Assay
-#' @importFrom methods slot
 #' @export
 GetMotifObject.Assay <- function(object, ...) {
   misc.data <- slot(object = object, name = 'misc')
@@ -169,7 +166,6 @@ GetMotifObject.Seurat <- function(object, assay = NULL, ...) {
 
 #' @param slot Information to pull from object (data, pwm, meta.data)
 #' @rdname GetMotifData
-#' @importFrom methods slot
 #' @method GetMotifData Motif
 #' @export
 GetMotifData.Motif <- function(object, slot = 'data', ...) {
@@ -178,7 +174,6 @@ GetMotifData.Motif <- function(object, slot = 'data', ...) {
 
 #' @rdname GetMotifData
 #' @method GetMotifData Assay
-#' @importFrom methods slot
 #' @export
 GetMotifData.Assay <- function(object, slot = 'data', ...) {
   misc.data <- slot(object = object, name = 'misc')
@@ -206,14 +201,13 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
 #' @param new.data New data to add
 #' @rdname SetMotifData
 #' @method SetMotifData Motif
-#' @importFrom methods slotNames as "slot<-"
 #' @export
 SetMotifData.Motif <- function(object, slot, new.data, ...) {
   if (!(slot %in% slotNames(x = object))) {
     stop('slot must be one of ', paste(slotNames(x = object), collapse = ', '), call. = FALSE)
   }
   if (slot == 'data') {
-    if (class(x = new.data) == 'matrix') {
+    if (is(object = new.data, class2 = 'matrix')) {
       new.data <- as(Class = 'dgCMatrix', object = new.data)
     }
   }
@@ -229,7 +223,6 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
 #' @export
 #' @method SetMotifData Assay
 #' @import Matrix
-#' @importFrom methods slot as "slot<-"
 SetMotifData.Assay <- function(object, slot, new.data, ...) {
   if (slot == 'data') {
     if (!(class(x = new.data) %in% c('matrix', 'dgCMatrix'))) {
@@ -238,12 +231,12 @@ SetMotifData.Assay <- function(object, slot, new.data, ...) {
     if (!all(rownames(x = object) == colnames(x = new.data))) {
       stop('Features do not match existing assay data. Column names in motif matrix should match row names in assay data')
     }
-    if (class(x = new.data) == 'matrix') {
+    if (is(object = new.data, class2 = 'matrix')) {
       new.data <- as(Class = 'dgCMatrix', object = new.data)
     }
   }
   misc.data <- slot(object = object, name = 'misc') %||% list()
-  if (class(misc.data) != 'list') {
+  if (!is(object = misc.data, class2 = 'list')) {
     stop('misc slot already occupied and would be overwritten.
          This can be avoided by converting the data in misc to a list,
          so that additional data can be added')
@@ -279,7 +272,6 @@ SetMotifData.Seurat <- function(object, data, assay = NULL, ...) {
 #' @method subset Motif
 #'
 #' @seealso \code{\link[base]{subset}}
-#' @importFrom methods new
 #' @return Returns a subsetted Motif object
 #' @export
 #'

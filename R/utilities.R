@@ -42,10 +42,10 @@ ClosestFeature <- function(
   annotation,
   ...
 ) {
-  if (!(class(x = regions) == 'GRanges')) {
+  if (!is(object = regions, class2 = 'GRanges')) {
     regions <- StringToGRanges(regions = regions, ...)
   }
-  if (class(x = annotation) == 'EnsDb') {
+  if (is(object = annotation, class2 = 'EnsDb')) {
     annotation <- genes(x = annotation, filter = ~ gene_biotype == "protein_coding")
     if (seqlevelsStyle(x = regions) != seqlevelsStyle(x = annotation)) {
       seqlevelsStyle(x = annotation) <- seqlevelsStyle(x = regions)
@@ -250,7 +250,7 @@ Extend <- function(x, upstream = 0, downstream = 0) {
 #' @importFrom Rsamtools TabixFile scanTabix
 #' @export
 GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
-  if (!(class(x = region) == 'GRanges')) {
+  if (!is(object = region, class2 = 'GRanges')) {
     region <- StringToGRanges(regions = region)
   }
   bin.reads <- scanTabix(file = tabix, param = region)
@@ -314,7 +314,7 @@ GetReadsInRegion <- function(
   if (verbose) {
     message('Extracting reads in requested region')
   }
-  if (!(class(x = region) == 'GRanges')) {
+  if (!is(object = region, class2 = 'GRanges')) {
     region <- StringToGRanges(regions = region, ...)
   }
   tbx <- TabixFile(file = fragment.path)

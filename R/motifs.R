@@ -163,7 +163,7 @@ FindMotifs <- function(
   }
   motif.all <- GetMotifData(object = object, assay = assay, slot = 'data')
   pwm <- GetMotifData(object = object, assay = assay, slot = 'pwm')
-  if (class(x = pwm) == 'PFMatrixList') {
+  if (is(object = pwm, class2 = 'PFMatrixList')) {
     motif.names <- name(x = pwm)
   } else {
     motif.names <- NULL
