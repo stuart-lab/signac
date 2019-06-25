@@ -38,7 +38,7 @@ SingleCoveragePlot <- function(
     ident.cells <- WhichCells(object = object, idents = idents)
     cells <- intersect(x = cells, y = ident.cells)
   }
-  if (class(x = region) != 'GRanges') {
+  if (!is(object = region, class2 = 'GRanges')) {
     region <- StringToGRanges(regions = region, sep = sep)
   }
   region <- suppressWarnings(expr = Extend(
@@ -259,7 +259,7 @@ MotifPlot <- function(
     stop('Position weight matrix list for the requested assay is empty')
   }
   data.use <- data.use[motifs]
-  if (class(x = data.use) == "PFMatrixList") {
+  if (is(object = data.use, class2 = "PFMatrixList")) {
     pwm <- TFBSTools::Matrix(x = data.use)
     names(x = pwm) <- name(x = data.use)
   } else {
@@ -314,9 +314,10 @@ PileupPlot <- function(
 #' of strings.
 #' @param cells Which cells to plot. Default all cells
 #' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
+#' @param log.scale Display Y-axis on log scale. Default is FALSE.
 #' @param ... Additional arguments passed to \code{\link{GetReadsInRegion}}
 #'
-#' @importFrom ggplot2 ggplot geom_histogram theme_bw aes facet_wrap xlim
+#' @importFrom ggplot2 ggplot geom_histogram theme_bw aes facet_wrap xlim scale_y_log10
 #'
 #' @return Returns a ggplot2 object
 #' @export
@@ -328,6 +329,7 @@ PeriodPlot <- function(
   region = 'chr1-1-2000000',
   group.by = NULL,
   cells = NULL,
+  log.scale = FALSE,
   ...
 ) {
   reads <- GetReadsInRegion(
@@ -351,6 +353,9 @@ PeriodPlot <- function(
       facet_wrap(~group, scales = 'free_y') +
       xlim(c(0, 800)) +
       theme_bw()
+  }
+  if (log.scale) {
+    p <- p + scale_y_log10()
   }
   return(p)
 }
