@@ -187,7 +187,8 @@ FindMotifs <- function(
     observed = subs.counts,
     background = all.counts,
     enrichment = obs.expect,
-    pvalue = p.list
+    pvalue = p.list,
+    stringsAsFactors = FALSE
   )
   if (!is.null(x = motif.names)) {
     results$motif.name <- motif.names
