@@ -165,8 +165,7 @@ RunMotifUMAP.Seurat <- function(
 #' @param n Number of singular values to compute
 #' @param reduction.key Key for dimension reduction object
 #' @param scale.max Clipping value for cell embeddings. Default (NULL) is no clipping.
-#' @param seed.use Set a random seed. By default, sets the seed to 42. Setting
-#' NULL will not set a seed.
+#' @param seed.use Set a random seed. By default, no seed is set.
 #' @param verbose Print messages
 #'
 #' @importFrom irlba irlba
@@ -181,7 +180,7 @@ RunSVD.default <- function(
   n = 50,
   reduction.key = 'SVD_',
   scale.max = NULL,
-  seed.use = 42,
+  seed.use = NULL,
   verbose = TRUE,
   ...
 ) {
