@@ -8,3 +8,4 @@ src/*.so
 *.pdf
 *.Rproj
 testcode/*
+vignettes/*
