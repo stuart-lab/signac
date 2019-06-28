@@ -1,4 +1,4 @@
-Package: chroma
+Package: Signac
 Title: Tools for the analysis of single-cell chromatin data
 Version: 0.0.0.9000
 Authors@R: person("Tim", "Stuart", email = "tstuart@nygenome.org", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-3044-0897"))
@@ -8,8 +8,8 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.1.1
-URL: https://github.com/timoast/chroma; https://timoast.github.io/chroma
-BugReports: https://github.com/timoast/chroma/issues
+URL: https://github.com/timoast/Signac; https://timoast.github.io/Signac
+BugReports: https://github.com/timoast/Signac/issues
 Imports: 
     AnnotationFilter,
     BiocGenerics,

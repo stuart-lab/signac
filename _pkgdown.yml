@@ -1,4 +1,4 @@
-url: https://timoast.github.io/chroma
+url: https://timoast.github.io/Signac
 
 navbar:
   structure:
@@ -7,7 +7,4 @@ navbar:
 
 template:
   params:
-    bootswatch: paper
-
-news:
-- one_page: false
+    bootswatch: readable
