@@ -10,7 +10,7 @@
 RunSVD(object, ...)
 
 \method{RunSVD}{default}(object, assay = NULL, n = 50,
-  reduction.key = "SVD_", scale.max = NULL, seed.use = 42,
+  reduction.key = "SVD_", scale.max = NULL, seed.use = NULL,
   verbose = TRUE, ...)
 
 \method{RunSVD}{Assay}(object, assay = NULL, features = NULL, n = 50,
@@ -33,8 +33,7 @@ RunSVD(object, ...)
 
 \item{scale.max}{Clipping value for cell embeddings. Default (NULL) is no clipping.}
 
-\item{seed.use}{Set a random seed. By default, sets the seed to 42. Setting
-NULL will not set a seed.}
+\item{seed.use}{Set a random seed. By default, no seed is set.}
 
 \item{verbose}{Print messages}
 

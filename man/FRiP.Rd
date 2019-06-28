@@ -4,7 +4,8 @@
 \alias{FRiP}
 \title{Calculate fraction of reads in peaks per cell}
 \usage{
-FRiP(object, peak.assay, bin.assay, verbose = TRUE)
+FRiP(object, peak.assay, bin.assay, chromosome = "chr1",
+  verbose = TRUE)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -12,6 +13,8 @@ FRiP(object, peak.assay, bin.assay, verbose = TRUE)
 \item{peak.assay}{Name of the assay containing a peak x cell matrix}
 
 \item{bin.assay}{Name of the assay containing a bin x cell matrix}
+
+\item{chromosome}{Which chromosome to use. Default is chromosome 1 ('chr1'). If NULL, use the whole genome.}
 
 \item{verbose}{Display messages}
 }

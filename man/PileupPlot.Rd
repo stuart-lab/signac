@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{PileupPlot}
 \alias{PileupPlot}
-\title{Plot coverage pileup centered on a given genomic feature}
+\title{PileupPlot}
 \usage{
 PileupPlot(object, annotation, assay = NULL, feature = "TSS",
   fragment.path = NULL, group.by = NULL, cells = NULL, cols = NULL)
