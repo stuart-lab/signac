@@ -6,7 +6,9 @@
 \title{Genomic blacklist regions for Human hg19}
 \format{A GRanges object}
 \source{
-https://www.encodeproject.org/annotations/ENCSR636HFF/
+\url{https://github.com/Boyle-Lab/Blacklist}
+
+\url{https://doi.org/10.1038/s41598-019-45839-z}
 }
 \usage{
 blacklist_hg19

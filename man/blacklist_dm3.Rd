@@ -6,7 +6,9 @@
 \title{Genomic blacklist regions for Drosophila dm3}
 \format{A GRanges object}
 \source{
-https://sites.google.com/site/anshulkundaje/projects/blacklists
+\url{https://github.com/Boyle-Lab/Blacklist}
+
+\url{https://doi.org/10.1038/s41598-019-45839-z}
 }
 \usage{
 blacklist_dm3
