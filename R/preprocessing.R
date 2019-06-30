@@ -404,6 +404,7 @@ FindTopFeatures.Seurat <- function(
 #' @param object A Seurat object
 #' @param peak.assay Name of the assay containing a peak x cell matrix
 #' @param bin.assay Name of the assay containing a bin x cell matrix
+#' @param chromosome Which chromosome to use. Default is chromosome 1 ('chr1'). If NULL, use the whole genome.
 #' @param verbose Display messages
 #'
 #' @importFrom Matrix colSums
@@ -415,13 +416,20 @@ FRiP <- function(
   object,
   peak.assay,
   bin.assay,
+  chromosome = 'chr1',
   verbose = TRUE
 ) {
   if (verbose) {
     message('Calculating fraction of reads in peaks per cell')
   }
-  peak.counts <- colSums(x = GetAssayData(object = object, assay = peak.assay, slot = 'counts'))
-  bin.counts <-colSums(x = GetAssayData(object = object, assay = bin.assay, slot = 'counts'))
+  peak.data <- GetAssayData(object = object, assay = peak.assay, slot = 'counts')
+  bin.data <- GetAssayData(object = object, assay = bin.assay, slot = 'counts')
+  if (!is.null(x = chromosome)) {
+    peak.data <- peak.data[grepl(pattern = paste0('^', chromosome, '\\-|^', chromosome, ':'), x = rownames(x = peak.data)), ]
+    bin.data <- bin.data[grepl(pattern = paste0('^', chromosome, '\\-|^', chromosome, ':'), x = rownames(x = bin.data)), ]
+  }
+  peak.counts <- colSums(x = peak.data)
+  bin.counts <-colSums(x = bin.data)
   frip <- peak.counts / bin.counts
   object <- AddMetaData(object = object, metadata = frip, col.name = 'FRiP')
   return(object)
