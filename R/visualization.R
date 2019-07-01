@@ -56,10 +56,16 @@ SingleCoveragePlot <- function(
     fragment.path = fragment.path,
     verbose = FALSE
   )
-  coverages <- CalculateCoverages(
-    reads = reads,
-    window = window
+  cells.per.group <- CellsPerGroup(
+    object = object,
+    group.by = group.by
   )
+  coverages <- suppressWarnings(CalculateCoverages(
+    reads = reads,
+    cells.per.group = cells.per.group,
+    window = window,
+    verbose = FALSE
+  ))
   if (downsample > 1) {
     warning('Requested downsampling <0%, retaining all positions')
     downsample <- 1
@@ -269,6 +275,8 @@ MotifPlot <- function(
   return(p)
 }
 
+#' PileupPlot
+#'
 #' Plot coverage pileup centered on a given genomic feature
 #'
 #' @param object A Seurat object
@@ -281,6 +289,7 @@ MotifPlot <- function(
 #' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
 #' @param cols Vector of colors, where each color corresponds to an identity class. By default, use the ggplot2 colors.
 #'
+#' @importFrom Seurat DefaultAssay
 #' @export
 #'
 PileupPlot <- function(
