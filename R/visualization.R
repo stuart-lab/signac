@@ -85,6 +85,7 @@ SingleCoveragePlot <- function(
   retain_positions <- seq(from = start.pos, to = end.pos, by = stepsize)
   downsampled_coverage <- coverages[coverages$position %in% retain_positions, ]
   ymax <- signif(x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
+  downsampled_coverage <- downsampled_coverage[!is.na(x = downsampled_coverage$coverage), ]
 
   p <- ggplot(data = downsampled_coverage, mapping = aes(x = position, y = coverage, fill = group)) +
     geom_bar(stat = 'identity') +
