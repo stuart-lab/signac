@@ -60,9 +60,15 @@ SingleCoveragePlot <- function(
     object = object,
     group.by = group.by
   )
+  reads.per.group <- AverageCounts(
+    object = object,
+    group.by = group.by,
+    verbose = FALSE
+  )
   coverages <- suppressWarnings(CalculateCoverages(
     reads = reads,
     cells.per.group = cells.per.group,
+    reads.per.group = reads.per.group,
     window = window,
     verbose = FALSE
   ))
