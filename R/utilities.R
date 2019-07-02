@@ -225,7 +225,6 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
 #' @param verbose Display messages
 #'
 #' @importFrom zoo rollapply
-#' @importFrom data.table rbindlist
 #' @importFrom dplyr group_by mutate summarize arrange ungroup
 #' @export
 CalculateCoverages <- function(
@@ -236,25 +235,34 @@ CalculateCoverages <- function(
   window = 100,
   verbose = TRUE
 ) {
-  # reads.per.group <- table(reads$group)
-  # lut <- as.vector(x = reads.per.group)
-  # names(x = lut) <- names(x = reads.per.group)
   if (verbose) {
     message("Computing coverage per base")
   }
-  # TODO create list of vectors rather than binding dataframes, should be much faster
-  expanded <- rbindlist(
-    l = lapply(
-      X = 1:nrow(reads),
-      FUN = function(x) {
-        interval <- as.numeric(x = reads[x, 'start']):as.numeric(x = reads[x, 'end'])
-        df <- data.frame(
-          position = interval,
-          value = 1,
-          cell = reads[x, 'cell'],
-          group = reads[x, 'group']
-        )
-  }))
+  templist <- list()
+  y <- 1
+  n_allocate <- sum(reads$length)
+  templist$position <- rep(x = 0, n_allocate)
+  templist$value <- rep(x = 0, n_allocate)
+  templist$cell <- rep(x = '0', n_allocate)
+  templist$group <- rep(x = '0', n_allocate)
+  startpos <- reads[,][['start']]
+  endpos <- reads[,][['end']]
+  cellnames <- as.character(x = reads[,][['cell']])
+  groupnames <- as.character(x = reads[,][['group']])
+  for (i in seq_len(length.out = nrow(x = reads))) {
+    interval <- startpos[[i]]:endpos[[i]]
+    for (j in interval) {
+      templist$position[y] <- j
+      templist$value[y] <- 1
+      templist$cell[[y]] <- cellnames[[i]]
+      templist$group[[y]] <- groupnames[[i]]
+      y <- y + 1
+    }
+  }
+  expanded <- as.data.frame(x = t(x = do.call(what = rbind, args = templist)), stringsAsFactors = FALSE)
+  expanded$position <- as.numeric(x = expanded$position)
+  expanded$value <- as.numeric(x = expanded$value)
+  expanded$group <- factor(x = expanded$group, levels = levels(reads$group))
   expanded$norm.value <- expanded$value / reads.per.group[expanded$group] / cells.per.group[expanded$group] * scale.factor
   expanded <- group_by(.data = expanded, position, group)
   coverages <- summarize(.data = expanded, total = sum(norm.value))
