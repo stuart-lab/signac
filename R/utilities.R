@@ -262,7 +262,9 @@ CalculateCoverages <- function(
   expanded <- as.data.frame(x = t(x = do.call(what = rbind, args = templist)), stringsAsFactors = FALSE)
   expanded$position <- as.numeric(x = expanded$position)
   expanded$value <- as.numeric(x = expanded$value)
-  expanded$group <- factor(x = expanded$group, levels = levels(reads$group))
+  if (is(object = reads$group, class2 = 'factor')) {
+    expanded$group <- factor(x = expanded$group, levels = levels(reads$group))
+  }
   expanded$norm.value <- expanded$value / reads.per.group[expanded$group] / cells.per.group[expanded$group] * scale.factor
   expanded <- group_by(.data = expanded, position, group)
   coverages <- summarize(.data = expanded, total = sum(norm.value))
