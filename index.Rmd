@@ -31,7 +31,6 @@ For more information about installing Seurat, see the Seurat [website](https://s
 ### Bioconductor packages {.tabset}
 
 ```{r}
-#install Bioconductor packages
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install()
