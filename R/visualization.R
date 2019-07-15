@@ -10,6 +10,7 @@ NULL
 #' @importFrom ggbio autoplot
 #' @import patchwork
 #' @importFrom AnnotationFilter GRangesFilter AnnotationFilterList GeneBiotypeFilter
+#' @importFrom AnnotationDbi select
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 #' @importFrom GenomeInfoDb seqnames
