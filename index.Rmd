@@ -15,20 +15,14 @@ Signac is as extension of [Seurat](https://satijalab.org/seurat) for the analysi
 
 To use Signac, please install the software and its dependencies:
 
-### CRAN and GitHub packages
-
 ```{r}
-#install Signac
 install.packages('devtools')
-devtools::install_github('timoast/Signac')
-
-#install Seurat
-install.packages("Seurat")
+devtools::install_github('timoast/signac')
 ```
 
-For more information about installing Seurat, see the Seurat [website](https://satijalab.org/seurat/install.html)
+For information about installing Seurat, see the Seurat [website](https://satijalab.org/seurat/install.html)
 
-### Bioconductor packages {.tabset}
+### Bioconductor dependencies
 
 ```{r}
 if (!requireNamespace("BiocManager", quietly = TRUE))
@@ -36,7 +30,7 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 BiocManager::install()
 ```
 
-It can be also useful to also install species-speciic packages from bioconductor:
+It can be also useful to also install species-specific packages from bioconductor:
 
 #### Human 
 
