@@ -33,7 +33,6 @@ Motif <- setClass(
     reductions = 'list',
     meta.data = 'data.frame'
   )
-  # TODO add reductions slot. Can use the Seurat DimReduc object class
 )
 
 ## Functions

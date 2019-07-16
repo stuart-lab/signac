@@ -132,27 +132,6 @@ DownsampleFeatures <- function(
   return(object)
 }
 
-#' EnrichmentScore
-#'
-#' Compute the enrichment of reads centered on a given feature (for example,
-#' transcriptional start sites). This will compute the ratio of reads 1000 bp upstream
-#' and 1000 bp downstream to the centered position.
-#'
-#' See \url{https://www.encodeproject.org/data-standards/terms/#enrichment}
-#'
-#' @param object A Seurat object
-#' @param assay Name of assay to use
-#' @param verbose Display messages
-#'
-EnrichmentScore <- function(
-  object,
-  assay,
-  verbose = TRUE
-) {
-  # TODO
-  return()
-}
-
 #' FeatureMatrix
 #'
 #' Construct a feature x cell matrix from a genomic fragments file
