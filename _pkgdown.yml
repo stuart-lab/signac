@@ -3,6 +3,8 @@ url: https://satijalab.org/signac
 navbar:
   title: "Signac"
   left:
+    - text: "Functions"
+      href: reference/index.html
     - text: "News"
       href: news/index.html
     - text: "Get started"
