@@ -1,9 +1,21 @@
 url: https://satijalab.org/signac
 
 navbar:
-  structure:
-    left:  [home, introduction, reference, tutorials, news]
-    right: [github]
+  title: "Signac"
+  left:
+    - text: "News"
+      href: news/index.html
+    - text: "Get started"
+      href: articles/pbmc_vignette.html
+    - text: "Vignettes"
+      menu:
+        - text: "Human PBMCs"
+          href: articles/pbmc_vignette.html
+        - text: "Adult mouse brain"
+          href: articles/mouse_brain_vignette.html
+  right:
+    - icon: fa-github
+      href: https://github.com/timoast/signac
 
 template:
   params:
