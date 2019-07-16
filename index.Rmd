@@ -9,7 +9,19 @@ knitr::opts_chunk$set(eval = FALSE)
 
 # Signac
 
-Signac is as extension of [Seurat](https://satijalab.org/seurat) for the analysis of single-cell chromatin data.
+Signac is an extension of [Seurat](https://github.com/satijalab/seurat) for the analysis, interpretation, and exploration of single-cell chromatin datasets.
+
+## Features
+
+Signac is currently focused on the analysis of single-cell ATAC-seq data, but new features will be added as experimental methods for other chromatin-based modalities the single-cell resolution become more widespread. Signac is under active development, and the software supports the following features:
+
+* Calculating single-cell QC metrics
+* Dimensional reduction, visualization, and clustering
+* Identifying cell type-specific peaks
+* Visualizing 'pseudo-bulk' coverage tracks
+* Integration with single-cell RNA-seq datasets
+
+Please see the Signac vignettes page for examples.
 
 ## Installation
 
@@ -30,7 +42,7 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 BiocManager::install()
 ```
 
-It can be also useful to also install species-specific packages from bioconductor:
+It can also be useful to install species-specific packages from bioconductor:
 
 #### Human 
 
@@ -43,13 +55,3 @@ BiocManager::install(c('BSgenome.Hsapiens.UCSC.hg19', 'EnsDb.Hsapiens.v75'))
 ```{r}
 BiocManager::install(c('BSgenome.Mmusculus.UCSC.mm10', 'EnsDb.Mmusculus.v79'))
 ```
-
-## Features
-
-Signac is an R toolkit that extends [Seurat](https://github.com/satijalab/seurat) for the analysis, interpretation, and exploration of single-cell chromatin datasets. Currently in active development, the software supports the following features:
-
-* Calculating single-cell QC metrics
-* Dimensional reduction, visualization, and clustering
-* Identifying cell type-specific peaks
-* Visualizing 'pseudo-bulk' coverage tracks
-* Integration with single-cell RNA-seq datasets
