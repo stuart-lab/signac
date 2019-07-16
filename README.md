@@ -8,5 +8,5 @@ Documentation can be found at https://satijalab.org/signac
 
 ```r
 install.packages('devtools')
-devtools::install_github('timoast/Signac')
+devtools::install_github('timoast/signac')
 ```
