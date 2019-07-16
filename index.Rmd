@@ -13,7 +13,7 @@ Signac is an extension of [Seurat](https://github.com/satijalab/seurat) for the 
 
 ## Features
 
-Signac is currently focused on the analysis of single-cell ATAC-seq data, but new features will be added as experimental methods for other chromatin-based modalities the single-cell resolution become more widespread. Signac is under active development, and the software supports the following features:
+Signac is currently focused on the analysis of single-cell ATAC-seq data, but new features will be added as experimental methods for measuring other chromatin-based modalities at single-cell resolution become more widespread. Signac is under active development, and the software supports the following features:
 
 * Calculating single-cell QC metrics
 * Dimensional reduction, visualization, and clustering
