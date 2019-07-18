@@ -25,24 +25,31 @@ Please see the Signac vignettes page for examples.
 
 ## Installation
 
-To use Signac, please install the software and its dependencies:
+To use Signac first install the package dependencies:
 
 ```{r}
-install.packages('devtools')
-devtools::install_github('timoast/signac')
+# GitHub dependency
+installed.packages("devtools")
+devtools::install_github("thomasp85/patchwork")
+
+# Install bioconductor
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install()
+
+# Tell R to also check bioconductor when installing dependencies
+setRepositories(ind=1:2)
+```
+
+Finally, install Signac:
+
+```{r}
+devtools::install_github("timoast/signac")
 ```
 
 For information about installing Seurat, see the Seurat [website](https://satijalab.org/seurat/install.html)
 
-### Bioconductor dependencies
-
-```{r}
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-BiocManager::install()
-```
-
-It can also be useful to install species-specific packages from bioconductor:
+It can also be useful (but not essential) to install species-specific packages from bioconductor:
 
 #### Human 
 
