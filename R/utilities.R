@@ -293,13 +293,13 @@ CalculateCoverages <- function(
 ChunkGRanges <- function(granges, nchunk) {
   chunksize <- as.integer(x = (length(granges) / nchunk))
   range.list <- sapply(X = 1:nchunk, FUN = function(x) {
-    chunkupper <- (x * chunksize) -1
+    chunkupper <- (x * chunksize)
     if (x == 1) {
       chunklower <- 1
     } else {
-      chunklower <- (x-1) * chunksize
+      chunklower <- ((x-1) * chunksize) + 1
     }
-    if (chunkupper > length(x = granges)) {
+    if (x == nchunk) {
       chunkupper <- length(x = granges)
     }
     return(granges[chunklower:chunkupper])
