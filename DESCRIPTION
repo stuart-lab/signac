@@ -49,3 +49,5 @@ Collate:
     'preprocessing.R'
     'utilities.R'
     'visualization.R'
+Suggests: 
+    testthat (>= 2.1.0)
