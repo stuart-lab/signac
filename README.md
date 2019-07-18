@@ -1,8 +1,8 @@
 # Signac v0.1.0
 
-Signac is as extension of [Seurat](https://satijalab.org/seurat) for the analysis of single-cell chromatin data.
+Signac is an extension of [Seurat](https://satijalab.org/seurat) for the analysis of single-cell chromatin data.
 
-Documentation can be found at https://satijalab.org/signac
+Documentation can be found at https://satijalab.org/signac/
 
 ## Install
 
