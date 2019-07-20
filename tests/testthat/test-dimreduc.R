@@ -28,18 +28,18 @@ test_that("LSI works", {
     expected = c(0,2,0,1,2)
   )
 
-  lsi <- suppressWarnings(RunLSI(object = mat))
-  embeddings <- Embeddings(object = lsi)
-  loadings <- Loadings(object = lsi)
+  lsi <- suppressWarnings(RunSVD(object = mat))
+  embeddings <- Seurat::Embeddings(object = lsi)
+  loadings <- Seurat::Loadings(object = lsi)
 
   expect_equal(
     object = as.vector(embeddings[1,]),
-    expected = c(-0.7714376,0.3486544,1.2587576,-0.8359745),
+    expected = c(-1.1359375,-0.54487602,0.8306875,0.85012602),
     tolerance = 1/1000
   )
   expect_equal(
     object = as.vector(loadings[1,]),
-    expected = c(-0.3794225,-0.7083228,-0.3884213,0.3063033),
+    expected = c(-0.4024075,-0.42924685,-0.64636436,0.1740785),
     tolerance = 1/1000
   )
 })
