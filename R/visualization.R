@@ -8,7 +8,7 @@ NULL
 #'
 #' @importFrom ggplot2 geom_bar facet_wrap xlab ylab theme_classic aes ylim theme element_blank element_text
 #' @importFrom ggbio autoplot
-#' @import patchwork
+#' @importFrom cowplot plot_grid
 #' @importFrom AnnotationFilter GRangesFilter AnnotationFilterList GeneBiotypeFilter
 #' @importFrom AnnotationDbi select
 #' @importFrom GenomicRanges GRanges
@@ -119,7 +119,14 @@ SingleCoveragePlot <- function(
         axis.line.x.bottom = element_blank(),
         axis.ticks.x.bottom = element_blank()
         )
-      p <- p + gene.plot + plot_layout(ncol = 1, heights = c(4, 1))
+      p <- suppressWarnings(plot_grid(
+        p, gene.plot,
+        ncol = 1,
+        axis = 'btlr',
+        rel_heights = c(2, 1),
+        align = 'v',
+        greedy = FALSE
+      ))
     }
   }
   return(p)
@@ -148,9 +155,9 @@ SingleCoveragePlot <- function(
 #' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
 #' @param sep Separators to use for strings encoding genomic coordinates. First element is used to separate the
 #' chromosome from the coordinates, second element is used to separate the start from end coordinate.
-#' @param ... Additional arguments passed to \code{\link[patchwork]{wrap_plots}}
+#' @param ... Additional arguments passed to \code{\link[cowplot]{plot_grid}}
 #'
-#' @importFrom patchwork wrap_plots
+#' @importFrom cowplot plot_grid
 #' @export
 #'
 CoveragePlot <- function(
@@ -186,7 +193,7 @@ CoveragePlot <- function(
       idents = idents,
       sep = sep
     )
-    return(wrap_plots(plot.list, ...))
+    return(plot_grid(plotlist = plot.list, ...))
   } else {
     return(SingleCoveragePlot(
       object = object,
