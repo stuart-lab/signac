@@ -1,3 +1,5 @@
 ^chrom\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+vignettes/
+vignette_data/
