@@ -35,11 +35,11 @@ Imports:
     irlba,
     methods,
     motifmatchr,
-    patchwork,
     pbapply,
     tidyr,
     zoo,
-    AnnotationDbi
+    AnnotationDbi,
+    cowplot
 Collate: 
     'data.R'
     'generics.R'
