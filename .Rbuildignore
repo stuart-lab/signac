@@ -3,3 +3,5 @@
 ^LICENSE\.md$
 vignettes/
 vignette_data/
+_pkgdown.yml
+index.Rmd
