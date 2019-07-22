@@ -45,7 +45,7 @@ requested assay using the \code{\link{SetFragments}} function}
 \item{sep}{Separators to use for strings encoding genomic coordinates. First element is used to separate the
 chromosome from the coordinates, second element is used to separate the start from end coordinate.}
 
-\item{...}{Additional arguments passed to \code{\link[patchwork]{wrap_plots}}}
+\item{...}{Additional arguments passed to \code{\link[cowplot]{plot_grid}}}
 }
 \description{
 Plot coverage within given regions for groups of cells

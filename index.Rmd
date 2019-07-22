@@ -25,13 +25,9 @@ Please see the Signac vignettes page for examples.
 
 ## Installation
 
-To use Signac first install the package dependencies:
+To use Signac first make sure Bioconductor is installed:
 
 ```{r}
-# GitHub dependency
-installed.packages("devtools")
-devtools::install_github("thomasp85/patchwork")
-
 # Install bioconductor
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
@@ -41,9 +37,10 @@ BiocManager::install()
 setRepositories(ind=1:2)
 ```
 
-Finally, install Signac:
+Next install Signac using `devtools`:
 
 ```{r}
+install.packages("devtools")
 devtools::install_github("timoast/signac")
 ```
 

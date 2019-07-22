@@ -7,7 +7,7 @@ test_that("BinarizeCounts works", {
   bin_mat <- BinarizeCounts(object = mat)
 
   # sparse matrix
-  mat_sparse <- as.sparse(x = mat)
+  mat_sparse <- as(object = mat, Class = 'dgCMatrix')
   bin_mat_sparse <- BinarizeCounts(object = mat_sparse)
 
   expect_equal(object = as.vector(bin_mat[1,]), expected = c(0,1,0,1,1))

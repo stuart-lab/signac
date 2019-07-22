@@ -3,3 +3,7 @@
 ^LICENSE\.md$
 .travis.yml
 appveyor.yml
+vignettes/
+vignette_data/
+_pkgdown.yml
+index.Rmd

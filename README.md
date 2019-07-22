@@ -7,10 +7,6 @@ Documentation can be found at https://satijalab.org/signac/
 ## Install
 
 ```{r}
-# Install GitHub dependency
-installed.packages("devtools")
-devtools::install_github("thomasp85/patchwork")
-
 # Install Bioconductor
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
@@ -20,5 +16,6 @@ BiocManager::install()
 setRepositories(ind=1:2)
 
 # Install Signac
+install.packages("devtools")
 devtools::install_github("timoast/signac")
 ```
