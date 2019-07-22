@@ -25,7 +25,4 @@ bioc_packages:
   - motifmatchr
   - AnnotationDbi
 
-r_github_packages:
-  - thomasp85/patchwork
-
 warnings_are_errors: false
