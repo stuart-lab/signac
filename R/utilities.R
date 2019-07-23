@@ -535,6 +535,54 @@ FractionCountsInRegion <- function(
   return(reads.in.region / total.reads)
 }
 
+#' Intersect genomic coordinates with matrix rows
+#'
+#' Remove or retain matrix rows that intersect given genomic regions
+#'
+#' @param matrix A matrix with genomic regions in the rows
+#' @param regions A set of genomic regions to intersect with regions in the matrix.
+#' Either a vector of strings encoding the genomic coordinates, or a GRanges object.
+#' @param invert Discard rows intersecting the genomic regions supplied, rather than retain. Default FALSE.
+#' @param sep A length-2 character vector containing the separators to be used for
+#' extracting genomic coordinates from a string. The first element will be used to separate the
+#' chromosome name from coordinates, and the second element used to separate start and end
+#' coordinates.
+#' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{\link[IRanges]{findOverlaps}}
+#'
+#' @importFrom IRanges findOverlaps
+#' @importFrom S4Vectors queryHits
+#'
+#' @export
+#'
+IntersectMatrix <- function(
+  matrix,
+  regions,
+  invert = FALSE,
+  sep = c(":", "-"),
+  verbose = TRUE,
+  ...
+) {
+  if (is(object = regions, class2 = 'character')) {
+    regions <- StringToGRanges(regions = regions, sep = sep)
+  }
+  rowranges <- StringToGRanges(regions = rownames(x = matrix), sep = sep)
+  if (verbose) {
+    message("Intersecting genomic regions")
+  }
+  region.overlaps <- findOverlaps(query = rowranges, subject = regions, ...)
+  keep.rows <- queryHits(x = region.overlaps)
+  if (invert) {
+    all.rows <- seq_len(length.out = nrow(matrix))
+    keep.rows <- setdiff(x = all.rows, y = keep.rows)
+  }
+  if (verbose) {
+    message("Subsetting matrix")
+  }
+  matrix <- matrix[keep.rows, ]
+  return(matrix)
+}
+
 #' TabixOutputToDataFrame
 #'
 #' Create a single dataframe from list of character vectors

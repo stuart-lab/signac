@@ -1,5 +1,5 @@
 ---
-title: "Signac v0.1.0"
+title: "Signac v0.1.1"
 output: html_document
 ---
 
