@@ -14,7 +14,7 @@ env:
 addons:
   apt:
     packages:
-      - gsl-bin
+      - libgsl-dev
 
 bioc_packages:
   - AnnotationFilter
