@@ -6,7 +6,9 @@ Authors@R: c(
   person(given = 'Rahul', family = 'Satija', email = 'rsatija@nygenome.org', role = 'ctb', comment = c(ORCID = '0000-0001-9448-8833'))
   )
 Description: A toolkit for the analysis, quality control, visualization, and exploration of single-cell chromatin data. 
-Depends: R (>= 3.4.0)
+Depends:
+    R (>= 3.4.0),
+    methods
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -33,7 +35,6 @@ Imports:
     ggplot2,
     ggseqlogo,
     irlba,
-    methods,
     motifmatchr,
     pbapply,
     tidyr,
