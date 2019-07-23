@@ -37,7 +37,6 @@ ClusterMotifs <- function(object, ...) {
   UseMethod(generic = 'ClusterMotifs', object = object)
 }
 
-
 #' FindTopFeatures
 #'
 #' Find top binary features for a given assay based on total number of cells containing feature.

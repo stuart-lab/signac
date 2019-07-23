@@ -1,5 +1,5 @@
 #' @include generics.R
-#' @importFrom methods setClass is slot slot<- new as slotNames
+#' @importFrom methods setClass setClassUnion setMethod is slot slot<- new as slotNames
 #' @importClassesFrom Matrix dgCMatrix
 #' @importClassesFrom TFBSTools PFMatrixList
 #'
