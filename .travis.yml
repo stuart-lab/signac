@@ -1,0 +1,28 @@
+language: r
+cache: packages
+
+os:
+  - linux
+  - osx
+
+r: release
+
+env:
+  global:
+    - _R_CHECK_FORCE_SUGGESTS_=FALSE
+
+bioc_packages:
+  - AnnotationFilter
+  - BiocGenerics
+  - GenomeInfoDb
+  - GenomicFeatures
+  - GenomicRanges
+  - IRanges
+  - Rsamtools
+  - S4Vectors
+  - TFBSTools
+  - ggbio
+  - motifmatchr
+  - AnnotationDbi
+
+warnings_are_errors: false
