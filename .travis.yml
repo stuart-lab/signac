@@ -11,6 +11,11 @@ env:
   global:
     - _R_CHECK_FORCE_SUGGESTS_=FALSE
 
+addons:
+  apt:
+    packages:
+      - gsl-bin
+
 bioc_packages:
   - AnnotationFilter
   - BiocGenerics
