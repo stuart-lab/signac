@@ -16,6 +16,18 @@ addons:
     packages:
       - libgsl-dev
 
+r_binary_packages:
+  - data.table
+  - dplyr
+  - future
+  - future.apply
+  - ggplot2
+  - irlba
+  - pbapply
+  - tidyr
+  - zoo
+  - cowplot
+
 bioc_packages:
   - AnnotationFilter
   - BiocGenerics
