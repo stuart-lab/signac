@@ -22,3 +22,4 @@ navbar:
 template:
   params:
     bootswatch: readable
+    ganalytics: UA-144505535-1
