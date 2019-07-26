@@ -23,3 +23,6 @@ template:
   params:
     bootswatch: readable
     ganalytics: UA-144505535-1
+    docsearch:
+      api_key: 6f41d2052819b9deda704726769f8647
+      index_name: signac
