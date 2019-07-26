@@ -40,7 +40,9 @@ Imports:
     tidyr,
     zoo,
     AnnotationDbi,
-    cowplot
+    cowplot,
+    Biostrings,
+    BSgenome
 Collate: 
     'data.R'
     'generics.R'

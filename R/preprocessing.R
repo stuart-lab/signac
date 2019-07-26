@@ -530,6 +530,90 @@ NucleosomeSignal <- function(
   return(object)
 }
 
+
+#' @param genome A BSgenome object
+#' @param verbose Display messages
+#' @param sep A length-2 character vector containing the separators to be used when constructing
+#' genomic coordinates from the regions. The first element is used to separate the chromosome
+#' from the genomic coordinates, and the second element used to separate the start and
+#' end coordinates.
+#'
+#' @importFrom Biostrings letterFrequency dinucleotideFrequency
+#' @importFrom IRanges width
+#' @importFrom BSgenome getSeq
+#' @rdname RegionStats
+#' @export
+RegionStats.default <- function(
+  object,
+  genome,
+  sep = c('-', '-'),
+  verbose = TRUE,
+  ...
+) {
+  if (is(object = object, class2 = 'character')) {
+    object <- StringToGRanges(regions = object, sep = sep)
+  }
+  sequence.length <- width(x = object)
+  sequences <- getSeq(x = genome, names = object)
+  gc <- letterFrequency(x = sequences, letters = 'CG') / sequence.length * 100
+  colnames(gc) <- 'GC.percent'
+  dinuc <- dinucleotideFrequency(sequences)
+  sequence.stats <- cbind(dinuc, gc, sequence.length)
+  rownames(sequence.stats) <- GRangesToString(grange = object, sep = sep)
+  return(sequence.stats)
+}
+
+#' @rdname RegionStats
+#' @method RegionStats Assay
+#' @importFrom methods slot
+#' @importFrom Seurat GetAssayData
+#' @export
+RegionStats.Assay <- function(
+  object,
+  genome,
+  sep = c('-', '-'),
+  verbose = TRUE,
+  ...
+) {
+  regions <- rownames(x = object)
+  feature.metadata <- RegionStats(
+    object = regions,
+    genome = genome,
+    sep = sep,
+    verbose = verbose,
+    ...
+  )
+  meta.data <- GetAssayData(object = object, slot = 'meta.features')
+  meta.data <- cbind(meta.data, feature.metadata)
+  slot(object = object, name = 'meta.features') <- meta.data
+  return(object)
+}
+
+#' @param assay Name of assay to use
+#' @rdname RegionStats
+#' @method RegionStats Seurat
+#' @export
+RegionStats.Seurat <- function(
+  object,
+  genome,
+  assay = NULL,
+  sep = c('-', '-'),
+  verbose = TRUE,
+  ...
+) {
+  assay <- assay %||% DefaultAssay(object = object)
+  assay.data <- GetAssay(object = object, assay = assay)
+  assay.data <- RegionStats(
+    object = assay.data,
+    genome = genome,
+    sep = sep,
+    verbose = verbose,
+    ...
+  )
+  object[[assay]] <- assay.data
+  return(object)
+}
+
 #' @param method Which TF-IDF implementation to use. Choice of:
 #' \itemize{
 #'  \item{1}: The LSI implementation used by Stuart & Butler et al. 2019 (\url{https://doi.org/10.1101/460147}).

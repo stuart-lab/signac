@@ -77,6 +77,19 @@ GetMotifObject <- function(object, ...) {
   UseMethod(generic = 'GetMotifObject', object = object)
 }
 
+#' Compute base composition information for genomic ranges
+#'
+#' Compute the GC content, region lengths, and dinucleotide base frequencies
+#' for regions in the assay and add to the feature metadata.
+#'
+#' @param object A Seurat object, Assay object, or set of genomic ranges
+#' @param ... Arguments passed to other methods
+#' @rdname RegionStats
+#' @export RegionStats
+RegionStats <- function(object, ...) {
+  UseMethod(generic = 'RegionStats', object = object)
+}
+
 #' RunSVD
 #'
 #' Run singular value decomposition
