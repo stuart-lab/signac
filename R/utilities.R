@@ -592,7 +592,8 @@ IntersectMatrix <- function(
 #' @param regions Set of query regions. Must be present in rown
 #' @param n Number of regions to select, with characteristics matching the query
 #' @param features.match Which features of the query to match when selecting a set of
-#' regions. Default is GC content and CG dinucleotide frequency.
+#' regions. A vector of column names present in the feature metadata can be supplied to
+#' match multiple characteristics at once. Default is GC content.
 #' @param verbose Display messages
 #' @param ... Arguments passed to other functions
 #' @return Returns a character vector
@@ -602,7 +603,7 @@ IntersectMatrix <- function(
 MatchRegionStats <- function(
   meta.feature,
   regions,
-  features.match = c('GC.percent', 'CG'),
+  features.match = c('GC.percent'),
   n = 10000,
   verbose = TRUE,
   ...
