@@ -4,8 +4,8 @@
 \alias{MatchRegionStats}
 \title{Match DNA sequence characteristics}
 \usage{
-MatchRegionStats(meta.feature, regions, features.match = c("GC.percent",
-  "CG"), n = 10000, verbose = TRUE, ...)
+MatchRegionStats(meta.feature, regions, features.match = c("GC.percent"),
+  n = 10000, verbose = TRUE, ...)
 }
 \arguments{
 \item{meta.feature}{A dataframe containing DNA sequence information}
@@ -13,7 +13,8 @@ MatchRegionStats(meta.feature, regions, features.match = c("GC.percent",
 \item{regions}{Set of query regions. Must be present in rown}
 
 \item{features.match}{Which features of the query to match when selecting a set of
-regions. Default is GC content and CG dinucleotide frequency.}
+regions. A vector of column names present in the feature metadata can be supplied to
+match multiple characteristics at once. Default is GC content.}
 
 \item{n}{Number of regions to select, with characteristics matching the query}
 

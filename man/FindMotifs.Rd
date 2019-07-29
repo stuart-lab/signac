@@ -4,7 +4,7 @@
 \alias{FindMotifs}
 \title{FindMotifs}
 \usage{
-FindMotifs(object, features, background = 20000, assay = NULL,
+FindMotifs(object, features, background = 40000, assay = NULL,
   verbose = TRUE, ...)
 }
 \arguments{

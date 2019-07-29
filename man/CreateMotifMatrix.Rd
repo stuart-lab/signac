@@ -4,7 +4,8 @@
 \alias{CreateMotifMatrix}
 \title{CreateMotifMatrix}
 \usage{
-CreateMotifMatrix(features, pwm, genome, sep = c("-", "-"), ...)
+CreateMotifMatrix(features, pwm, genome, use.counts = FALSE,
+  sep = c("-", "-"), ...)
 }
 \arguments{
 \item{features}{A GRanges object containing a set of genomic features}
@@ -13,6 +14,8 @@ CreateMotifMatrix(features, pwm, genome, sep = c("-", "-"), ...)
 
 \item{genome}{Any object compatible with the \code{genome} argument
 in \code{\link[motifmatchr]{matchMotifs}}}
+
+\item{use.counts}{Record motif counts per region. If FALSE (default), record presence/absence of motif.}
 
 \item{sep}{A length-2 character vector containing the separators to be used when constructing
 matrix rownames from the GRanges}
