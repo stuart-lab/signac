@@ -193,8 +193,8 @@ FindMotifs <- function(
   background.motifs <- motif.all[background, ]
   query.counts <- colSums(x = query.motifs)
   background.counts <- colSums(x = background.motifs)
-  percent.observed = query.counts / length(x = features) * 100
-  percent.background = background.counts / length(x = background) * 100
+  percent.observed <- query.counts / length(x = features) * 100
+  percent.background <- background.counts / length(x = background) * 100
   fold.enrichment <- percent.observed / percent.background
   p.list <- c()
   for (i in seq_along(along.with = query.counts)) {
