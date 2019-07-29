@@ -583,6 +583,63 @@ IntersectMatrix <- function(
   return(matrix)
 }
 
+#' Match DNA sequence characteristics
+#'
+#' Return a vector if genomic regions that match the distribution of a set of query regions
+#' for any given set of characteristics, specified in the input \code{meta.feature} dataframe.
+#'
+#' @param meta.feature A dataframe containing DNA sequence information
+#' @param regions Set of query regions. Must be present in rown
+#' @param n Number of regions to select, with characteristics matching the query
+#' @param features.match Which features of the query to match when selecting a set of
+#' regions. Default is GC content and CG dinucleotide frequency.
+#' @param verbose Display messages
+#' @param ... Arguments passed to other functions
+#' @return Returns a character vector
+#'
+#' @importFrom stats density approx
+#' @export
+MatchRegionStats <- function(
+  meta.feature,
+  regions,
+  features.match = c('GC.percent', 'CG'),
+  n = 10000,
+  verbose = TRUE,
+  ...
+) {
+  if (length(x = features.match) == 0) {
+    stop("Must supply at least one sequence characteristic to match")
+  }
+  mf.query <- meta.feature[regions, ]
+  choosefrom <- setdiff(x = rownames(x = meta.feature), y = rownames(x = mf.query))
+  if (length(x = choosefrom) < n) {
+    n <- length(x = choosefrom)
+    warning("Requested more features than present in supplied data. Returning ", n, " features")
+  }
+  features.choose <- meta.feature[choosefrom, ]
+  feature.weights <- rep(0, nrow(features.choose))
+  for (i in features.match) {
+    if (verbose) {
+      message("Matching ", i, " distribution")
+    }
+    density.estimate <- density(x = mf.query[[i]], kernel = "gaussian", bw = 1)
+    weights <- approx(
+      x = density.estimate$x,
+      y = density.estimate$y,
+      xout = features.choose[[i]],
+      yright = 0.0001,
+      yleft = 0.0001
+    )$y
+    feature.weights <- feature.weights + weights
+  }
+  feature.select <- sample(
+    x = rownames(x = features.choose),
+    size = n,
+    prob = feature.weights
+  )
+  return(feature.select)
+}
+
 #' TabixOutputToDataFrame
 #'
 #' Create a single dataframe from list of character vectors

@@ -4,19 +4,26 @@
 \alias{FindMotifs}
 \title{FindMotifs}
 \usage{
-FindMotifs(object, features, assay = NULL, background = NULL,
-  verbose = TRUE)
+FindMotifs(object, features, background = 20000, assay = NULL,
+  verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
 
 \item{features}{A vector of features to test for enrichments over background}
 
+\item{background}{Either a vector of features to use as the background set,
+or a number specify the number of features to randomly select as a background set.
+If a number is provided, regions will be selected to match the sequence characteristics
+of the query features. To match the sequence characteristics, these characteristics
+must be stored in the feature metadata for the assay. This can be added using the
+ \code{\link{RegionStats}} function. If NULL, use all features in the assay.}
+
 \item{assay}{Which assay to use. Default is the active assay}
 
-\item{background}{Vector of features to use as the background set. If NULL, use all features in the assay.}
-
 \item{verbose}{Display messages}
+
+\item{...}{Arguments passed to \code{\link{MatchRegionStats}}.}
 }
 \value{
 Returns a data frame

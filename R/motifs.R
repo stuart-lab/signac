@@ -121,6 +121,7 @@ CreateMotifActivityMatrix <- function(
   if (verbose) {
     message("Fitting models")
   }
+  # TODO add cell downsampling to speed up model fit
   residuals <- mysapply(
     X = seq_along(along.with = rownames(x = motif.accessibility)),
     FUN = function(x) {
@@ -140,24 +141,44 @@ CreateMotifActivityMatrix <- function(
 #' @param object A Seurat object
 #' @param features A vector of features to test for enrichments over background
 #' @param assay Which assay to use. Default is the active assay
-#' @param background Vector of features to use as the background set. If NULL, use all features in the assay.
+#' @param background Either a vector of features to use as the background set,
+#' or a number specify the number of features to randomly select as a background set.
+#' If a number is provided, regions will be selected to match the sequence characteristics
+#' of the query features. To match the sequence characteristics, these characteristics
+#' must be stored in the feature metadata for the assay. This can be added using the
+#'  \code{\link{RegionStats}} function. If NULL, use all features in the assay.
 #' @param verbose Display messages
+#' @param ... Arguments passed to \code{\link{MatchRegionStats}}.
 #'
 #' @return Returns a data frame
 #'
 #' @importFrom Matrix colSums
 #' @importFrom stats phyper
+#' @importFrom methods is
 #'
 #' @export
 FindMotifs <- function(
   object,
   features,
+  background = 40000,
   assay = NULL,
-  background = NULL,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
   assay <- assay %||% DefaultAssay(object = object)
   background <- background %||% rownames(x = object)
+  if (is(object = background, class2 = 'numeric')) {
+    if (verbose) {
+      message("Selecting background regions to match input sequence characteristics")
+    }
+    background <- MatchRegionStats(
+      meta.feature = GetAssayData(object = object, assay = assay, slot = 'meta.features'),
+      regions = features,
+      n = background,
+      verbose = verbose,
+      ...
+    )
+  }
   if (verbose) {
     message('Testing motif enrichment in ', length(x = features), ' regions')
   }
@@ -168,30 +189,35 @@ FindMotifs <- function(
   } else {
     motif.names <- NULL
   }
-  subs.motifs <- motif.all[features, ]
-  subs.counts <- colSums(x = subs.motifs)
-  all.counts <- colSums(x = motif.all)
-  obs.expect <- subs.counts / all.counts
+  query.motifs <- motif.all[features, ]
+  background.motifs <- motif.all[background, ]
+  query.counts <- colSums(x = query.motifs)
+  background.counts <- colSums(x = background.motifs)
+  percent.observed = query.counts / length(x = features) * 100
+  percent.background = background.counts / length(x = background) * 100
+  fold.enrichment <- percent.observed / percent.background
   p.list <- c()
-  for (i in seq_along(along.with = subs.counts)) {
+  for (i in seq_along(along.with = query.counts)) {
     p.list[[i]] <- phyper(
-      q = subs.counts[[i]]-1,
-      m = all.counts[[i]],
-      n = nrow(x = motif.all) - all.counts[[i]],
+      q = query.counts[[i]]-1,
+      m = background.counts[[i]],
+      n = nrow(x = background.motifs) - background.counts[[i]],
       k = length(x = features),
       lower.tail = FALSE
     )
   }
   results <- data.frame(
-    motif = names(x = subs.counts),
-    observed = subs.counts,
-    background = all.counts,
-    enrichment = obs.expect,
+    motif = names(x = query.counts),
+    observed = query.counts,
+    background = background.counts,
+    percent.observed = percent.observed,
+    percent.background = percent.background,
+    fold.enrichment = fold.enrichment,
     pvalue = p.list,
     stringsAsFactors = FALSE
   )
   if (!is.null(x = motif.names)) {
     results$motif.name <- motif.names
   }
-  return(results[with(data = results, expr = order(pvalue, -enrichment)), ])
+  return(results[with(data = results, expr = order(pvalue, -fold.enrichment)), ])
 }
