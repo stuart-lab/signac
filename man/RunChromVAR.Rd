@@ -4,13 +4,15 @@
 \alias{RunChromVAR}
 \title{Run chromVAR}
 \usage{
-RunChromVAR(object, genome, assay = NULL, sep = c(":", "-"),
-  verbose = TRUE, ...)
+RunChromVAR(object, genome, motif.matrix = NULL, assay = NULL,
+  sep = c(":", "-"), verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
 
 \item{genome}{A BSgenome object}
+
+\item{motif.matrix}{A peak x motif matrix. If NULL, pull the peak x motif matrix from a Motif object stored in the assay.}
 
 \item{assay}{Name of assay to use}
 

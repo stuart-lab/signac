@@ -1,10 +1,15 @@
+# Signac 0.1.2
 
-### v0.1.1
+* New `RunChromVAR` function to run chromVAR through Signac  
+* New `RegionStats` function to add statistics about peak sequences to the feature metadata  
+* Improvements to `FindMotifs`: now selects a set of background peaks matching the sequence characteristics of the input
+
+# Signac 0.1.1
 
 * Added `IntersectMatrix`  
 * Added unit tests  
 * Bug fixes for `ChunkGRanges`
 
-### v0.1.0
+# Signac 0.1.0
 
 * This is the first release of Signac!
