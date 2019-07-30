@@ -132,6 +132,77 @@ CreateMotifActivityMatrix <- function(
   return(t(residuals))
 }
 
+#' Run chromVAR
+#'
+#' Wrapper to run \code{\link[chromVAR]{chromVAR}} on an assay with a motif object present.
+#' Will return a new Seurat assay with the motif activities stored.
+#'
+#' @param object A Seurat object
+#' @param genome A BSgenome object
+#' @param assay Name of assay to use
+#' @param motif.matrix A peak x motif matrix. If NULL, pull the peak x motif matrix from a Motif object stored in the assay.
+#' @param sep A length-2 character vector containing the separators passed to \code{\link{StringToGRanges}}.
+#' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{\link[chromVAR]{getBackgroundPeaks}}
+#'
+#' @importFrom Seurat GetAssayData DefaultAssay CreateAssayObject
+#' @importFrom Matrix rowSums
+#'
+#' @export
+#'
+RunChromVAR <- function(
+  object,
+  genome,
+  motif.matrix = NULL,
+  assay = NULL,
+  sep = c(":", "-"),
+  verbose = TRUE,
+  ...
+) {
+  if (!requireNamespace('chromVAR', quietly = TRUE)) {
+    stop("Please install chromVAR. https://greenleaflab.github.io/chromVAR/")
+  }
+  assay <- assay %||% DefaultAssay(object = object)
+  motif.matrix <- motif.matrix %||% GetMotifData(object = object, assay = assay, slot = 'data')
+  peak.matrix <- GetAssayData(object = object, assay = assay, slot = 'counts')
+  peak.matrix <- peak.matrix[rowSums(x = peak.matrix) > 0, ]
+  motif.matrix <- motif.matrix[rownames(x = peak.matrix), ]
+  peak.ranges <- StringToGRanges(regions = rownames(peak.matrix), sep = sep)
+
+  chromvar.obj <- SummarizedExperiment::SummarizedExperiment(
+    assays = list(counts = peak.matrix),
+    rowRanges = peak.ranges
+  )
+  if (verbose) {
+    message("Computing GC bias per region")
+  }
+  chromvar.obj <- chromVAR::addGCBias(
+    object = chromvar.obj,
+    genome = genome
+  )
+  if (verbose) {
+    message("Selecting background regions")
+  }
+  bg <- chromVAR::getBackgroundPeaks(
+    object = chromvar.obj,
+    ...
+  )
+  if (verbose) {
+    message("Computing motif deviations from background")
+  }
+  dev <- chromVAR::computeDeviations(
+    object = chromvar.obj,
+    annotations = motif.matrix,
+    background_peaks = bg
+  )
+  chromvar.z <- SummarizedExperiment::assays(dev)[[2]]
+  if (verbose) {
+    message("Constructing chromVAR assay")
+  }
+  chromvar.assay <- CreateAssayObject(data = chromvar.z)
+  return(chromvar.assay)
+}
+
 #' FindMotifs
 #'
 #' Find motifs overrepresented in a given set of genomic features. Computes the number of features
