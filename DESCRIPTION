@@ -54,4 +54,5 @@ Collate:
     'visualization.R'
 Suggests: 
     testthat (>= 2.1.0),
-    chromVAR
+    chromVAR,
+    SummarizedExperiment
