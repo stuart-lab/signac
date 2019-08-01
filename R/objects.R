@@ -13,7 +13,7 @@ setClassUnion(name = 'AnyPWM', c("list", "PFMatrixList"))
 #'
 #' The Motif class stores DNA motif information
 #'
-#' @slot data A sparse, binary, motif x feature matrix. Rows correspond to motif IDs, columns correspond to genomic features (peaks or bins).
+#' @slot data A sparse, binary, feature x motif matrix. Columns correspond to motif IDs, rows correspond to genomic features (peaks or bins).
 #' Entries in the matrix should be 1 if the genomic feature contains the motif, and 0 otherwise.
 #' @slot pwm A list of position weight matrices for each motif
 #' @slot neighbors A list of nearest neighbors graphs
