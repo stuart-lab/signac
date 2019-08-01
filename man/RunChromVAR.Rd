@@ -4,13 +4,16 @@
 \alias{RunChromVAR}
 \title{Run chromVAR}
 \usage{
-RunChromVAR(object, genome, motif.matrix = NULL, assay = NULL,
-  sep = c(":", "-"), verbose = TRUE, ...)
+RunChromVAR(object, genome, new.assay.name = "chromvar",
+  motif.matrix = NULL, assay = NULL, sep = c(":", "-"),
+  verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
 
 \item{genome}{A BSgenome object}
+
+\item{new.assay.name}{Name of new assay used to store the chromVAR results. Default is "chromvar".}
 
 \item{motif.matrix}{A peak x motif matrix. If NULL, pull the peak x motif matrix from a Motif object stored in the assay.}
 
@@ -21,6 +24,9 @@ RunChromVAR(object, genome, motif.matrix = NULL, assay = NULL,
 \item{verbose}{Display messages}
 
 \item{...}{Additional arguments passed to \code{\link[chromVAR]{getBackgroundPeaks}}}
+}
+\value{
+Returns a \code{\link[Seurat]{Seurat}} object with a new assay
 }
 \description{
 Wrapper to run \code{\link[chromVAR]{chromVAR}} on an assay with a motif object present.

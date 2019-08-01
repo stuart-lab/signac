@@ -140,6 +140,7 @@ CreateMotifActivityMatrix <- function(
 #' @param object A Seurat object
 #' @param genome A BSgenome object
 #' @param assay Name of assay to use
+#' @param new.assay.name Name of new assay used to store the chromVAR results. Default is "chromvar".
 #' @param motif.matrix A peak x motif matrix. If NULL, pull the peak x motif matrix from a Motif object stored in the assay.
 #' @param sep A length-2 character vector containing the separators passed to \code{\link{StringToGRanges}}.
 #' @param verbose Display messages
@@ -148,11 +149,14 @@ CreateMotifActivityMatrix <- function(
 #' @importFrom Seurat GetAssayData DefaultAssay CreateAssayObject
 #' @importFrom Matrix rowSums
 #'
+#' @return Returns a \code{\link[Seurat]{Seurat}} object with a new assay
+#'
 #' @export
 #'
 RunChromVAR <- function(
   object,
   genome,
+  new.assay.name = 'chromvar',
   motif.matrix = NULL,
   assay = NULL,
   sep = c(":", "-"),
@@ -161,6 +165,9 @@ RunChromVAR <- function(
 ) {
   if (!requireNamespace('chromVAR', quietly = TRUE)) {
     stop("Please install chromVAR. https://greenleaflab.github.io/chromVAR/")
+  }
+  if (!requireNamespace('SummarizedExperiment', quietly = TRUE)) {
+    stop("Please install SummarizedExperiment")
   }
   assay <- assay %||% DefaultAssay(object = object)
   motif.matrix <- motif.matrix %||% GetMotifData(object = object, assay = assay, slot = 'data')
@@ -199,8 +206,8 @@ RunChromVAR <- function(
   if (verbose) {
     message("Constructing chromVAR assay")
   }
-  chromvar.assay <- CreateAssayObject(data = chromvar.z)
-  return(chromvar.assay)
+  object[['chromvar']] <- CreateAssayObject(data = chromvar.z)
+  return(object)
 }
 
 #' FindMotifs
