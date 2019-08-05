@@ -443,16 +443,16 @@ GetFragments <- function(
   object,
   assay
 ) {
-    tools <- slot(object = object, name = 'tools')
-    if ('fragments' %in% names(x = tools)) {
-      if (assay %in% names(x = tools$fragments)) {
-        fragment.path <- tools$fragments[[assay]]
-      } else {
-        stop('Fragment file not supplied for the requested assay')
-      }
+  tools <- slot(object = object, name = 'tools')
+  if ('fragments' %in% names(x = tools)) {
+    if (assay %in% names(x = tools$fragments)) {
+      fragment.path <- tools$fragments[[assay]]
     } else {
-      stop('Fragment file not set. Run SetFragments to set the fragment file path.')
+      stop('Fragment file not supplied for the requested assay')
     }
+  } else {
+    stop('Fragment file not set. Run SetFragments to set the fragment file path.')
+  }
   if (!(all(file.exists(fragment.path, paste0(fragment.path, '.tbi'))))) {
     stop('Requested file does not exist or is not indexed')
   } else {
@@ -515,6 +515,8 @@ ExtractCell <- function(x) {
 #' @param regions A GRanges object containing a set of genomic regions
 #' @param sep The separator used to separate genomic coordinate information in the assay feature names
 #' @param ... Additional arguments passed to \code{\link{CountsInRegion}}
+#' @importFrom Matrix colSums
+#' @importFrom Seurat GetAssayData
 #'
 #' @export
 FractionCountsInRegion <- function(
@@ -641,6 +643,120 @@ MatchRegionStats <- function(
   return(feature.select)
 }
 
+#' Region-aware object merging
+#'
+#' This will find intersecting regions in both objects and rename the
+#' overlapping features with the region coordinates of the first object
+#' (by default; this can be changed with the regions.use parameter).
+#'
+#' This allows a merged object to be constructed with common feature names.
+#'
+#' @param object.1 The first Seurat object
+#' @param object.2 The second Seurat object
+#' @param assay.1 Name of the assay to use in the first object. If NULL, use
+#' the default assay
+#' @param assay.2 Name of the assay to use in the second object. If NULL, use
+#' the default assay
+#' @param sep.1 Genomic coordinate separators to use for the first object
+#' @param sep.2 Genomic coordinate separators to use for the second object
+#' @param regions.use Which regions to use when naming regions in the merged object.
+#' Options are:
+#' \itemize{
+#'  \item{1}: Use the region coordinates from the first object
+#'  \item{2}: Use the region coordinates from the second object
+#' }
+#' @param keep.unique.regions Whether to discard (FALSE) or retain (TRUE) regions
+#' that are unique to one object (no intersection found)
+#' @param distance Maximum distance between regions allowed for an intersection to
+#' be recorded. Default is 0.
+#' @param new.assay.name Name for the merged assay. Default is 'peaks'
+#' @param project Project name for the new object
+#' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{\link[Seurat]{CreateAssayObject}}
+#'
+#' @importFrom GenomicRanges distanceToNearest
+#' @importFrom S4Vectors subjectHits queryHits mcols
+#' @importFrom Seurat DefaultAssay CreateAssayObject GetAssayData
+#'
+#' @export
+#' @return Returns a Seurat object
+#'
+MergeWithRegions <- function(
+  object.1,
+  object.2,
+  assay.1 = NULL,
+  assay.2 = NULL,
+  sep.1 = c("-", "-"),
+  sep.2 = c("-", "-"),
+  regions.use = 1,
+  distance = 0,
+  keep.unique.regions = FALSE,
+  new.assay.name = 'peaks',
+  project = 'SeuratProject',
+  verbose = TRUE,
+  ...
+) {
+  assay.1 <- assay.1 %||% DefaultAssay(object = object.1)
+  assay.2 <- assay.2 %||% DefaultAssay(object = object.2)
+  regions.1 <- StringToGRanges(regions = rownames(x = object.1[[assay.1]]), sep = sep.1)
+  regions.2 <- StringToGRanges(regions = rownames(x = object.2[[assay.2]]), sep = sep.2)
+  if (verbose) {
+    message("Intersecting regions across objects")
+  }
+  region.intersections <- distanceToNearest(x = regions.1, subject = regions.2)
+  keep.intersections <- mcols(x = region.intersections)$distance <= distance
+  region.intersections <- region.intersections[keep.intersections, ]
+  intersect.object1 <- regions.1[queryHits(x = region.intersections)]
+  intersect.object2 <- regions.2[subjectHits(x = region.intersections)]
+  regions.obj1 <- GRangesToString(grange = intersect.object1, sep = sep.1)
+  regions.obj2 <- GRangesToString(grange = intersect.object2, sep = sep.2)
+  if (regions.use == 1) {
+    region.names <- regions.obj1
+  } else if (regions.use == 2) {
+    region.names <-regions.obj2
+  } else {
+    # TODO add option to rename regions as coordinate merge
+    # TODO add option to rename regions as coordinate intersect
+    stop("Choose either 1 or 2 for regions.use")
+  }
+  combined.meta.data <- data.frame(row.names = c(colnames(object.1, colnames(object.2))))
+  new.idents <- c()
+  for (object in c(object.1, object.2)) {
+    old.meta.data <- object[[]]
+    if (any(!colnames(x = old.meta.data) %in% colnames(x = combined.meta.data))) {
+      cols.to.add <- colnames(x = old.meta.data)[!colnames(x = old.meta.data) %in% colnames(x = combined.meta.data)]
+      combined.meta.data[, cols.to.add] <- NA
+    }
+    i <- sapply(X = old.meta.data, FUN = is.factor)
+    old.meta.data[i] <- lapply(X = old.meta.data[i], FUN = as.vector)
+    combined.meta.data[rownames(x = old.meta.data), colnames(x = old.meta.data)] <- old.meta.data
+    new.idents <- c(new.idents, as.vector(Idents(object = object)))
+  }
+  names(x = new.idents) <- rownames(x = combined.meta.data)
+  new.idents <- factor(x = new.idents)
+  if (verbose) {
+    message("Constructing merged object")
+  }
+  counts.1 <- GetAssayData(object = object.1, assay = assay.1, slot = 'counts')[regions.obj1, ]
+  counts.2 <- GetAssayData(object = object.2, assay = assay.2, slot = 'counts')[regions.obj2, ]
+  rownames(counts.1) <- region.names
+  rownames(counts.2) <- region.names
+  allcounts <- cbind(counts.1, counts.2)
+  assays <- list()
+  new.assay <- CreateAssayObject(counts = allcounts, ...)
+  assays[[new.assay.name]] <- new.assay
+  merged.object <- new(
+    Class = 'Seurat',
+    assays = assays,
+    meta.data = combined.meta.data,
+    active.assay = new.assay.name,
+    active.ident = new.idents,
+    project.name = project,
+    version = packageVersion(pkg = 'Seurat')
+  )
+  return(merged.object)
+}
+
 #' TabixOutputToDataFrame
 #'
 #' Create a single dataframe from list of character vectors
@@ -652,6 +768,7 @@ MatchRegionStats <- function(
 #' @return Returns a data.frame
 #' @export
 TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
+  # TODO rewrite this without rbindlist
   df.list <- lapply(X = 1:length(reads), FUN = function(x) {
     if (length(x = reads[[x]]) == 0) {
       return(NULL)
