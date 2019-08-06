@@ -47,7 +47,6 @@ Collate:
     'data.R'
     'generics.R'
     'dimension_reduction.R'
-    'integration.R'
     'motifs.R'
     'objects.R'
     'preprocessing.R'
@@ -56,5 +55,4 @@ Collate:
 Suggests: 
     testthat (>= 2.1.0),
     chromVAR,
-    SummarizedExperiment,
-    harmony
+    SummarizedExperiment
