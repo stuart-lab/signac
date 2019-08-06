@@ -22,7 +22,9 @@ Signac is currently focused on the analysis of single-cell ATAC-seq data, but ne
 * Dimensional reduction, visualization, and clustering
 * Identifying cell type-specific peaks
 * Visualizing 'pseudo-bulk' coverage tracks
+* Integration of multiple single-cell ATAC-seq datasets
 * Integration with single-cell RNA-seq datasets
+* Motif enrichment analysis
 
 Please see the Signac vignettes page for examples.
 
