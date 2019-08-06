@@ -665,8 +665,6 @@ MatchRegionStats <- function(
 #'  \item{1}: Use the region coordinates from the first object
 #'  \item{2}: Use the region coordinates from the second object
 #' }
-#' @param keep.unique.regions Whether to discard (FALSE) or retain (TRUE) regions
-#' that are unique to one object (no intersection found)
 #' @param distance Maximum distance between regions allowed for an intersection to
 #' be recorded. Default is 0.
 #' @param new.assay.name Name for the merged assay. Default is 'peaks'
@@ -690,7 +688,6 @@ MergeWithRegions <- function(
   sep.2 = c("-", "-"),
   regions.use = 1,
   distance = 0,
-  keep.unique.regions = FALSE,
   new.assay.name = 'peaks',
   project = 'SeuratProject',
   verbose = TRUE,
@@ -703,6 +700,7 @@ MergeWithRegions <- function(
   if (verbose) {
     message("Intersecting regions across objects")
   }
+  # TODO add option to keep non-overlapping regions
   region.intersections <- distanceToNearest(x = regions.1, subject = regions.2)
   keep.intersections <- mcols(x = region.intersections)$distance <= distance
   region.intersections <- region.intersections[keep.intersections, ]

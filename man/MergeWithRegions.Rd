@@ -6,8 +6,7 @@
 \usage{
 MergeWithRegions(object.1, object.2, assay.1 = NULL, assay.2 = NULL,
   sep.1 = c("-", "-"), sep.2 = c("-", "-"), regions.use = 1,
-  distance = 0, keep.unique.regions = FALSE,
-  new.assay.name = "peaks", project = "SeuratProject",
+  distance = 0, new.assay.name = "peaks", project = "SeuratProject",
   verbose = TRUE, ...)
 }
 \arguments{
@@ -34,9 +33,6 @@ Options are:
 
 \item{distance}{Maximum distance between regions allowed for an intersection to
 be recorded. Default is 0.}
-
-\item{keep.unique.regions}{Whether to discard (FALSE) or retain (TRUE) regions
-that are unique to one object (no intersection found)}
 
 \item{new.assay.name}{Name for the merged assay. Default is 'peaks'}
 
