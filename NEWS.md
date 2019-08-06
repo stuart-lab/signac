@@ -1,3 +1,8 @@
+# Signac 0.1.3
+
+* New `Harmonize` function to run Harmony on scATAC-seq data  
+* New `MergeWithRegions` function to perform region-aware Seurat object merging  
+
 # Signac 0.1.2
 
 * New `RunChromVAR` function to run chromVAR through Signac  
