@@ -1,7 +1,9 @@
 #' @include generics.R
+#' @importFrom utils globalVariables
 #'
 NULL
 
+globalVariables(names = c('position', 'coverage', 'group'), package = 'Signac')
 #' CoveragePlot
 #'
 #' @rdname CoveragePlot
@@ -213,6 +215,7 @@ CoveragePlot <- function(
   }
 }
 
+globalVariables(names = c('dim1', 'dim2', 'ident'), package = 'Signac')
 #' MotifDimPlot
 #'
 #' Plot motifs in reduced dimesions.
@@ -290,6 +293,7 @@ MotifPlot <- function(
   return(p)
 }
 
+globalVariables(names = 'group', package = 'Signac')
 #' Plot fragment length periodicity
 #'
 #' @param object A Seurat object

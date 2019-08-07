@@ -1,4 +1,5 @@
 #' @include generics.R
+#' @importFrom utils globalVariables
 #'
 NULL
 
@@ -468,6 +469,7 @@ GenomeBinMatrix <- function(
   return(binmat)
 }
 
+globalVariables(names = 'cell', package = 'Signac')
 #' NucleosomeSignal
 #'
 #' Calculate the strength of the nucleosome signal per cell.

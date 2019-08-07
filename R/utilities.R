@@ -1,5 +1,5 @@
 #' @include generics.R
-#'
+#' @importFrom utils globalVariables
 NULL
 
 # Set a default value if an object is null
@@ -20,6 +20,7 @@ NULL
   }
 }
 
+globalVariables(names = c('group', 'readcount'), package = 'Signac')
 #' AverageCounts
 #'
 #' Compute the mean counts per group of cells for a given assay
@@ -213,6 +214,7 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
   return(regions)
 }
 
+globalVariables(names = c('position', 'group', 'norm.value', 'total'), package = 'Signac')
 #' CalculateCoverages
 #'
 #' Calculate normalized read coverage per base per cell group
@@ -675,6 +677,7 @@ MatchRegionStats <- function(
 #' @importFrom GenomicRanges distanceToNearest
 #' @importFrom S4Vectors subjectHits queryHits mcols
 #' @importFrom Seurat DefaultAssay CreateAssayObject GetAssayData
+#' @importFrom utils packageVersion
 #'
 #' @export
 #' @return Returns a Seurat object
