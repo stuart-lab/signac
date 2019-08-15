@@ -15,6 +15,10 @@ navbar:
           href: articles/pbmc_vignette.html
         - text: "Adult mouse brain"
           href: articles/mouse_brain_vignette.html
+        - text: "Motif analysis"
+          href: articles/motif_vignette.html
+        - text: "scATAC-seq integration"
+          href: articles/integration.html
   right:
     - icon: fa-github
       href: https://github.com/timoast/signac
