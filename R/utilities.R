@@ -127,6 +127,61 @@ ClosestFeature <- function(
   return(df)
 }
 
+#' Find interesecting regions between two objects
+#'
+#' Intersects the regions stored in the rownames of two objects and
+#' returns a vector containing the names of rows that interesect
+#' for each object. The order of the row names return corresponds
+#' to the intersecting regions, ie the nth feature of the first vector
+#' will intersect the nth feature in the second vector. A distance
+#' parameter can be given, in which case features within the given
+#' distance will be called as intersecting.
+#'
+#' @param object.1 The first Seurat object
+#' @param object.2 The second Seurat object
+#' @param assay.1 Name of the assay to use in the first object. If NULL, use
+#' the default assay
+#' @param assay.2 Name of the assay to use in the second object. If NULL, use
+#' the default assay
+#' @param sep.1 Genomic coordinate separators to use for the first object
+#' @param sep.2 Genomic coordinate separators to use for the second object
+#' @param distance Maximum distance between regions allowed for an intersection to
+#' be recorded. Default is 0.
+#'
+#' @importFrom GenomicRanges distanceToNearest
+#' @importFrom S4Vectors subjectHits queryHits mcols
+#' @importFrom Seurat DefaultAssay
+#' @export
+#' @return Returns a list of two character vectors containing the row names
+#' in each object that overlap each other.
+#'
+GetIntersectingFeatures <- function(
+  object.1,
+  object.2,
+  assay.1 = NULL,
+  assay.2 = NULL,
+  distance = 0,
+  sep.1 = c("-", "-"),
+  sep.2 = c("-", "-"),
+  verbose = TRUE
+) {
+  assay.1 <- assay.1 %||% DefaultAssay(object = object.1)
+  assay.2 <- assay.2 %||% DefaultAssay(object = object.2)
+  regions.1 <- StringToGRanges(regions = rownames(x = object.1[[assay.1]]), sep = sep.1)
+  regions.2 <- StringToGRanges(regions = rownames(x = object.2[[assay.2]]), sep = sep.2)
+  if (verbose) {
+    message("Intersecting regions across objects")
+  }
+  region.intersections <- distanceToNearest(x = regions.1, subject = regions.2)
+  keep.intersections <- mcols(x = region.intersections)$distance <= distance
+  region.intersections <- region.intersections[keep.intersections, ]
+  intersect.object1 <- regions.1[queryHits(x = region.intersections)]
+  intersect.object2 <- regions.2[subjectHits(x = region.intersections)]
+  regions.obj1 <- GRangesToString(grange = intersect.object1, sep = sep.1)
+  regions.obj2 <- GRangesToString(grange = intersect.object2, sep = sep.2)
+  return(list(regions.obj1, regions.obj2))
+}
+
 #' Set the fragments file path for creating plots
 #'
 #' Give path of indexed fragments file that goes with data in the object.
@@ -674,8 +729,6 @@ MatchRegionStats <- function(
 #' @param verbose Display messages
 #' @param ... Additional arguments passed to \code{\link[Seurat]{CreateAssayObject}}
 #'
-#' @importFrom GenomicRanges distanceToNearest
-#' @importFrom S4Vectors subjectHits queryHits mcols
 #' @importFrom Seurat DefaultAssay CreateAssayObject GetAssayData
 #' @importFrom utils packageVersion
 #'
@@ -698,19 +751,19 @@ MergeWithRegions <- function(
 ) {
   assay.1 <- assay.1 %||% DefaultAssay(object = object.1)
   assay.2 <- assay.2 %||% DefaultAssay(object = object.2)
-  regions.1 <- StringToGRanges(regions = rownames(x = object.1[[assay.1]]), sep = sep.1)
-  regions.2 <- StringToGRanges(regions = rownames(x = object.2[[assay.2]]), sep = sep.2)
-  if (verbose) {
-    message("Intersecting regions across objects")
-  }
+  intersecting.regions <- GetIntersectingFeatures(
+    object.1 = object.1,
+    object.2 = object.2,
+    assay.1 = assay.1,
+    assay.2 = assay.2,
+    sep.1 = sep.1,
+    sep.2 = sep.2,
+    distance = distance,
+    verbose = verbose
+  )
+  regions.obj1 <- intersecting.regions[[1]]
+  regions.obj2 <- intersecting.regions[[2]]
   # TODO add option to keep non-overlapping regions
-  region.intersections <- distanceToNearest(x = regions.1, subject = regions.2)
-  keep.intersections <- mcols(x = region.intersections)$distance <= distance
-  region.intersections <- region.intersections[keep.intersections, ]
-  intersect.object1 <- regions.1[queryHits(x = region.intersections)]
-  intersect.object2 <- regions.2[subjectHits(x = region.intersections)]
-  regions.obj1 <- GRangesToString(grange = intersect.object1, sep = sep.1)
-  regions.obj2 <- GRangesToString(grange = intersect.object2, sep = sep.2)
   if (regions.use == 1) {
     region.names <- regions.obj1
   } else if (regions.use == 2) {
