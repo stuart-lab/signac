@@ -8,7 +8,7 @@ globalVariables(names = c('position', 'coverage', 'group'), package = 'Signac')
 #'
 #' @rdname CoveragePlot
 #'
-#' @importFrom ggplot2 geom_bar facet_wrap xlab ylab theme_classic aes ylim theme element_blank element_text
+#' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic aes ylim theme element_blank element_text
 #' @importFrom ggbio autoplot
 #' @importFrom cowplot plot_grid
 #' @importFrom AnnotationFilter GRangesFilter AnnotationFilterList GeneBiotypeFilter
@@ -30,6 +30,7 @@ SingleCoveragePlot <- function(
   group.by = NULL,
   window = 100,
   downsample = 0.1,
+  height.tracks = 2,
   extend.upstream = 0,
   extend.downstream = 0,
   cells = NULL,
@@ -88,14 +89,15 @@ SingleCoveragePlot <- function(
   retain_positions <- seq(from = start.pos, to = end.pos, by = stepsize)
   downsampled_coverage <- coverages[coverages$position %in% retain_positions, ]
   ymax <- signif(x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
+  ymin <- 0
   downsampled_coverage <- downsampled_coverage[!is.na(x = downsampled_coverage$coverage), ]
-
   p <- ggplot(data = downsampled_coverage, mapping = aes(x = position, y = coverage, fill = group)) +
-    geom_bar(stat = 'identity') +
+    geom_area(stat = 'identity') +
+    geom_hline(yintercept = 0, size = 0.1) +
     facet_wrap(facets = ~group, strip.position = 'right', ncol = 1) +
     xlab(label = paste0(chromosome, ' position (bp)')) +
-    ylab(label = paste0('Normalized coverage (range 0 - ', as.character(x = ymax), ')')) +
-    ylim(c(0, ymax)) +
+    ylab(label = paste0('Normalized accessibility \n(range ', as.character(x = ymin), ' - ', as.character(x = ymax), ')')) +
+    ylim(c(ymin, ymax)) +
     theme_classic() +
     theme(
       axis.text.y = element_blank(),
@@ -125,7 +127,7 @@ SingleCoveragePlot <- function(
         p, gene.plot,
         ncol = 1,
         axis = 'btlr',
-        rel_heights = c(2, 1),
+        rel_heights = c(height.tracks, 1),
         align = 'v',
         greedy = FALSE
       ))
@@ -152,6 +154,8 @@ SingleCoveragePlot <- function(
 #' @param idents Which identities to include in the plot. Default is all identities.
 #' @param window Smoothing window size
 #' @param downsample Fraction of positions to retain in the plot. Default is 0.1 (retain 10 percent, ie every 10th position)
+#' @param height.tracks Height of the accessibility tracks relative to the height of the gene annotation track.
+#' Default is 2 (twice as high as annotation track).
 #' @param extend.upstream Number of bases to extend the region upstream (Default 0)
 #' @param extend.downstream Number of bases to extend the region downstream (Default 0)
 #' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
@@ -171,6 +175,7 @@ CoveragePlot <- function(
   group.by = NULL,
   window = 100,
   downsample = 0.1,
+  height.tracks = 2,
   extend.upstream = 0,
   extend.downstream = 0,
   cells = NULL,
@@ -206,6 +211,7 @@ CoveragePlot <- function(
       group.by = group.by,
       window = window,
       downsample = downsample,
+      height.tracks = height.tracks,
       extend.upstream = extend.upstream,
       extend.downstream = extend.downstream,
       cells = cells,
