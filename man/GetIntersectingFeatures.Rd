@@ -25,6 +25,8 @@ be recorded. Default is 0.}
 \item{sep.1}{Genomic coordinate separators to use for the first object}
 
 \item{sep.2}{Genomic coordinate separators to use for the second object}
+
+\item{verbose}{Display messages}
 }
 \value{
 Returns a list of two character vectors containing the row names

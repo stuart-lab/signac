@@ -7,13 +7,15 @@
 \usage{
 SingleCoveragePlot(object, region, annotation = NULL, assay = NULL,
   fragment.path = NULL, group.by = NULL, window = 100,
-  downsample = 0.1, extend.upstream = 0, extend.downstream = 0,
-  cells = NULL, idents = NULL, sep = c("-", "-"))
+  downsample = 0.1, height.tracks = 2, extend.upstream = 0,
+  extend.downstream = 0, cells = NULL, idents = NULL, sep = c("-",
+  "-"))
 
 CoveragePlot(object, region, annotation = NULL, assay = NULL,
   fragment.path = NULL, group.by = NULL, window = 100,
-  downsample = 0.1, extend.upstream = 0, extend.downstream = 0,
-  cells = NULL, idents = NULL, sep = c("-", "-"), ...)
+  downsample = 0.1, height.tracks = 2, extend.upstream = 0,
+  extend.downstream = 0, cells = NULL, idents = NULL, sep = c("-",
+  "-"), ...)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -33,6 +35,9 @@ requested assay using the \code{\link{SetFragments}} function}
 \item{window}{Smoothing window size}
 
 \item{downsample}{Fraction of positions to retain in the plot. Default is 0.1 (retain 10 percent, ie every 10th position)}
+
+\item{height.tracks}{Height of the accessibility tracks relative to the height of the gene annotation track.
+Default is 2 (twice as high as annotation track).}
 
 \item{extend.upstream}{Number of bases to extend the region upstream (Default 0)}
 

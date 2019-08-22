@@ -4,7 +4,7 @@
 \alias{GetFragments}
 \title{GetFragments}
 \usage{
-GetFragments(object, assay)
+GetFragments(object, assay = NULL)
 }
 \arguments{
 \item{object}{A Seurat object}
