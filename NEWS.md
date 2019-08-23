@@ -1,3 +1,7 @@
+# Signac 0.1.4
+
+* Updates to `CoveragePlot`: now plots a Tn5 integration score per base, rather than the whole fragment.
+
 # Signac 0.1.3
 
 * New `GetIntersectingFeatures` function to find overlapping peaks between objects  
