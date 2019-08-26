@@ -18,3 +18,6 @@ AverageCounts(object, assay = NULL, group.by = NULL, verbose = TRUE)
 \description{
 Compute the mean counts per group of cells for a given assay
 }
+\examples{
+AverageCounts(atac_small)
+}

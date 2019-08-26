@@ -17,3 +17,6 @@ Returns a vector
 \description{
 Count the number of cells in each group
 }
+\examples{
+CellsPerGroup(atac_small)
+}

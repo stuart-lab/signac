@@ -47,6 +47,5 @@ Run term frequency inverse document frequency normalization
 }
 \examples{
 mat <- matrix(data = rbinom(n = 25, size = 5, prob = 0.2), nrow = 5)
-mat_norm <- RunTFIDF(object = mat)
-
+RunTFIDF(object = mat)
 }

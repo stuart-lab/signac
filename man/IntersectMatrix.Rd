@@ -4,7 +4,7 @@
 \alias{IntersectMatrix}
 \title{Intersect genomic coordinates with matrix rows}
 \usage{
-IntersectMatrix(matrix, regions, invert = FALSE, sep = c(":", "-"),
+IntersectMatrix(matrix, regions, invert = FALSE, sep = c("-", "-"),
   verbose = TRUE, ...)
 }
 \arguments{
@@ -26,4 +26,11 @@ coordinates.}
 }
 \description{
 Remove or retain matrix rows that intersect given genomic regions
+}
+\examples{
+\dontrun{
+library(Seurat)
+counts <- GetAssayData(object = atac_small, assay = 'bins', slot = 'counts')
+IntersectMatrix(matrix = counts, regions = blacklist_hg19)
+}
 }

@@ -25,3 +25,6 @@ Returns a Motif object
 \description{
 Get motif object from given assay
 }
+\examples{
+GetMotifObject(object = atac_small)
+}

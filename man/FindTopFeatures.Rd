@@ -41,3 +41,6 @@ Returns a Seurat object
 Find top binary features for a given assay based on total number of cells containing feature.
 Can specify a minumum cell count, or a lower percentile bound.
 }
+\examples{
+FindTopFeatures(atac_small)
+}

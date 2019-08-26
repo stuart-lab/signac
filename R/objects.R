@@ -72,6 +72,9 @@ AddMotifObject.Assay <- function(
 #' @importFrom Seurat DefaultAssay
 #' @method AddMotifObject Seurat
 #' @export
+#' @examples 
+#' obj <- GetMotifObject(object = atac_small)
+#' atac_small <- AddMotifObject(object = atac_small, motif.object = obj)
 AddMotifObject.Seurat <- function(
   object,
   motif.object,
@@ -99,6 +102,9 @@ AddMotifObject.Seurat <- function(
 #' @param meta.data A data.frame containing metadata
 #'
 #' @export
+#' @examples 
+#' motif.matrix <- matrix(data = sample(c(0,1), size = 100, replace = TRUE), ncol = 5)
+#' motif <- CreateMotifObject(data = motif.matrix)
 CreateMotifObject <- function(
   data = NULL,
   pwm = NULL,
@@ -155,6 +161,8 @@ GetMotifObject.Assay <- function(object, ...) {
 #' @importFrom Seurat DefaultAssay GetAssay
 #' @method GetMotifObject Seurat
 #' @export
+#' @examples
+#' GetMotifObject(object = atac_small)
 GetMotifObject.Seurat <- function(object, assay = NULL, ...) {
   assay <- assay %||% DefaultAssay(object = object)
   return(GetMotifObject(
@@ -188,6 +196,8 @@ GetMotifData.Assay <- function(object, slot = 'data', ...) {
 #' @method GetMotifData Seurat
 #' @importFrom Seurat DefaultAssay GetAssay
 #' @export
+#' @examples
+#' GetMotifData(object = atac_small)
 GetMotifData.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
   assay <- assay %||% DefaultAssay(object = object)
   return(GetMotifData(
@@ -197,7 +207,6 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
   ))
 }
 
-#' @param new.data New data to add
 #' @rdname SetMotifData
 #' @method SetMotifData Motif
 #' @export
@@ -216,7 +225,7 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
   return(object)
 }
 
-#' @param data motif matrix to add. Should be matrix or sparse matrix class
+#' @param new.data motif matrix to add. Should be matrix or sparse matrix class
 #' @param slot Name of slot to use
 #' @rdname SetMotifData
 #' @export
@@ -227,7 +236,7 @@ SetMotifData.Assay <- function(object, slot, new.data, ...) {
     if (!(class(x = new.data) %in% c('matrix', 'dgCMatrix'))) {
       stop('Data must be matrix or sparse matrix class. Supplied ', class(x = new.data))
     }
-    if (!all(rownames(x = object) == colnames(x = new.data))) {
+    if (!all(rownames(x = object) == rownames(x = new.data))) {
       stop('Features do not match existing assay data. Column names in motif matrix should match row names in assay data')
     }
     if (is(object = new.data, class2 = 'matrix')) {
@@ -253,9 +262,12 @@ SetMotifData.Assay <- function(object, slot, new.data, ...) {
 #' @importFrom Seurat DefaultAssay
 #' @export
 #' @method SetMotifData Seurat
-SetMotifData.Seurat <- function(object, data, assay = NULL, ...) {
+#' @examples 
+#' motif.matrix <- GetMotifData(object = atac_small)
+#' SetMotifData(object = atac_small, assay = 'peaks', slot = 'data', new.data = motif.matrix)
+SetMotifData.Seurat <- function(object, assay = NULL, ...) {
   assay <- assay %||% DefaultAssay(object = object)
-  object[[assay]] <- SetMotifData(object = object[[assay]], data = data, ...)
+  object[[assay]] <- SetMotifData(object = object[[assay]], ...)
   return(object)
 }
 
@@ -275,9 +287,9 @@ SetMotifData.Seurat <- function(object, data, assay = NULL, ...) {
 #' @export
 #'
 subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
-  features <- features %||% colnames(x = x)
-  motifs <- motifs %||% rownames(x = x)
-  new.data <- GetMotifData(object = x, slot = 'data')[motifs, features]
+  features <- features %||% rownames(x = x)
+  motifs <- motifs %||% colnames(x = x)
+  new.data <- GetMotifData(object = x, slot = 'data')[features, motifs]
   new.pwm <- GetMotifData(object = x, slot = 'pwm')[motifs]
   new.meta <- GetMotifData(object = x, slot = 'meta.data')[motifs, ]
   new.motif <- new(
@@ -296,7 +308,9 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
 #' @rdname subset.Motif
 #' @export
 #' @method [ Motif
-#'
+#' @examples 
+#' motif.obj <- GetMotifObject(atac_small)
+#' motif.obj[1:10,1:10]
 "[.Motif" <- function(x, i, j, ...) {
   if (missing(x = i) && missing(x = j)) {
     return(x)
@@ -324,7 +338,7 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
   if (is.numeric(x = j)) {
     j <- colnames(x = x)[j]
   }
-  return(subset.Motif(x = x, features = j, motifs = i, ...))
+  return(subset.Motif(x = x, features = i, motifs = j, ...))
 }
 
 ## S4 methods

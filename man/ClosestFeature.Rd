@@ -20,3 +20,13 @@ and the distance to the feature.
 \description{
 Find the closest feature to a given set of genomic regions
 }
+\examples{
+\dontrun{
+library(EnsDb.Hsapiens.v75)
+ClosestFeature(
+  regions = head(rownames(atac_small)), 
+  annotation = EnsDb.Hsapiens.v75,
+  sep = c(":", "-")
+)
+}
+}

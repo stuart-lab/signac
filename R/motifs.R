@@ -10,6 +10,8 @@ NULL
 #' @importFrom Matrix crossprod colSums
 #' @importFrom Seurat FindNeighbors FindClusters
 #' @export
+#' @examples
+#' ClusterMotifs(atac_small)
 ClusterMotifs.Motif <- function(
   object,
   assay = NULL,
@@ -98,7 +100,11 @@ ClusterMotifs.Seurat <- function(
 #' @return Returns a \code{\link[Seurat]{Seurat}} object with a new assay
 #'
 #' @export
-#'
+#' @examples 
+#' \dontrun{
+#' library(BSgenome.Hsapiens.UCSC.hg19)
+#' RunChromVAR(object = atac_small, genome = BSgenome.Hsapiens.UCSC.hg19)
+#' }
 RunChromVAR <- function(
   object,
   genome,
@@ -181,6 +187,14 @@ RunChromVAR <- function(
 #' @importFrom methods is
 #'
 #' @export
+#' @examples 
+#' de.motif <- head(rownames(atac_small))
+#' bg.peaks <- tail(rownames(atac_small))
+#' FindMotifs(
+#' object = atac_small,
+#' features = de.motif,
+#' background = bg.peaks
+#' )
 FindMotifs <- function(
   object,
   features,

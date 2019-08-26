@@ -29,3 +29,7 @@ Returns a Seurat object
 \description{
 AddMotifObject
 }
+\examples{
+obj <- GetMotifObject(object = atac_small)
+atac_small <- AddMotifObject(object = atac_small, motif.object = obj)
+}

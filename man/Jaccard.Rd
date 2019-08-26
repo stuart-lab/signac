@@ -22,3 +22,7 @@ and any rows with zero total counts will result in an NaN entry that could cause
 This will calculate the raw Jaccard index, without normalizing for the expected similarity
 between cells due to differences in sequencing depth.
 }
+\examples{
+x <- matrix(data = sample(c(0, 1), size = 25, replace = TRUE), ncol = 5)
+Jaccard(x = x, y = x)
+}

@@ -13,3 +13,6 @@ ExtractCell(x)
 Extract cell barcode from list of tab delimited character
 vectors (output of \code{\link{scanTabix}})
 }
+\examples{
+ExtractCell(x = "chr1\\t1\\t10\\tatcg\\t1")
+}

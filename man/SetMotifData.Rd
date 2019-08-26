@@ -13,7 +13,7 @@ SetMotifData(object, ...)
 
 \method{SetMotifData}{Assay}(object, slot, new.data, ...)
 
-\method{SetMotifData}{Seurat}(object, data, assay = NULL, ...)
+\method{SetMotifData}{Seurat}(object, assay = NULL, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -22,9 +22,7 @@ SetMotifData(object, ...)
 
 \item{slot}{Name of slot to use}
 
-\item{new.data}{New data to add}
-
-\item{data}{motif matrix to add. Should be matrix or sparse matrix class}
+\item{new.data}{motif matrix to add. Should be matrix or sparse matrix class}
 
 \item{assay}{Name of assay whose data should be set}
 }
@@ -33,4 +31,8 @@ Returns a Seurat object
 }
 \description{
 Set motif matrix for given assay
+}
+\examples{
+motif.matrix <- GetMotifData(object = atac_small)
+SetMotifData(object = atac_small, assay = 'peaks', slot = 'data', new.data = motif.matrix)
 }

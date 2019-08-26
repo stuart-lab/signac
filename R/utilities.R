@@ -33,6 +33,8 @@ globalVariables(names = c('group', 'readcount'), package = 'Signac')
 #' @importFrom Matrix colSums
 #' @importFrom dplyr group_by summarize
 #' @export
+#' @examples 
+#' AverageCounts(atac_small)
 AverageCounts <- function(
   object,
   assay = NULL,
@@ -71,6 +73,8 @@ AverageCounts <- function(
 #' @return Returns a vector
 #' @importFrom Seurat Idents
 #' @export
+#' @examples 
+#' CellsPerGroup(atac_small)
 CellsPerGroup <- function(
   object,
   group.by = NULL
@@ -105,6 +109,15 @@ CellsPerGroup <- function(
 #' and the distance to the feature.
 #'
 #' @export
+#' @examples 
+#' \dontrun{
+#' library(EnsDb.Hsapiens.v75)
+#' ClosestFeature(
+#'   regions = head(rownames(atac_small)), 
+#'   annotation = EnsDb.Hsapiens.v75,
+#'   sep = c(":", "-")
+#' )
+#' }
 ClosestFeature <- function(
   regions,
   annotation,
@@ -390,6 +403,8 @@ WeightAccessibility <- function(bases_away, internal, rate = 2, inflection = 20)
 #'
 #' @return Returns a list of GRanges objects
 #' @export
+#' @examples 
+#' ChunkGRanges(blacklist_hg19, n = 10)
 ChunkGRanges <- function(granges, nchunk) {
   chunksize <- as.integer(x = (length(granges) / nchunk))
   range.list <- sapply(X = 1:nchunk, FUN = function(x) {
@@ -419,6 +434,8 @@ ChunkGRanges <- function(granges, nchunk) {
 #' @importFrom GenomicRanges strand start end trim
 #' @importFrom IRanges ranges IRanges "ranges<-"
 #' @export
+#' @examples 
+#' Extend(x = blacklist_hg19, upstream = 100, downstream = 100)
 Extend <- function(x, upstream = 0, downstream = 0) {
   if (any(strand(x = x) == "*")) {
     warning("'*' ranges were treated as '+'")
@@ -577,6 +594,12 @@ GetFragments <- function(
 #' @importFrom Matrix colSums
 #'
 #' @export
+#' @examples 
+#' CountsInRegion(
+#'   object = atac_small, 
+#'   assay = 'bins', 
+#'   regions = blacklist_hg19
+#' )
 CountsInRegion <- function(
   object,
   assay,
@@ -599,6 +622,8 @@ CountsInRegion <- function(
 #'
 #' @param x List of character vectors
 #' @export
+#' @examples 
+#' ExtractCell(x = "chr1\t1\t10\tatcg\t1")
 ExtractCell <- function(x) {
   if (length(x = x) == 0) {
     return(NULL)
@@ -621,6 +646,12 @@ ExtractCell <- function(x) {
 #' @importFrom Seurat GetAssayData
 #'
 #' @export
+#' @examples 
+#' FractionCountsInRegion(
+#'   object = atac_small, 
+#'   assay = 'bins', 
+#'   regions = blacklist_hg19
+#' )
 FractionCountsInRegion <- function(
   object,
   assay,
@@ -658,12 +689,17 @@ FractionCountsInRegion <- function(
 #' @importFrom S4Vectors queryHits
 #'
 #' @export
-#'
+#' @examples 
+#' \dontrun{
+#' library(Seurat)
+#' counts <- GetAssayData(object = atac_small, assay = 'bins', slot = 'counts')
+#' IntersectMatrix(matrix = counts, regions = blacklist_hg19)
+#' }
 IntersectMatrix <- function(
   matrix,
   regions,
   invert = FALSE,
-  sep = c(":", "-"),
+  sep = c("-", "-"),
   verbose = TRUE,
   ...
 ) {

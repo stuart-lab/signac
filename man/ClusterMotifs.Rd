@@ -36,3 +36,6 @@ Computes the Jaccard similarity between motifs based on the proportion of
 regions that they co-occur in. This is normalized for the overall frequency of the motifs.
 Motifs are then clustered, and cluster identities stored in the Motif object meta data.
 }
+\examples{
+ClusterMotifs(atac_small)
+}

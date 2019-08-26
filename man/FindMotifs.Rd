@@ -33,3 +33,12 @@ Find motifs overrepresented in a given set of genomic features. Computes the num
 containing the motif (observed) and compares this to the total number of features containing the
 motif (background) using the hypergeometric test.
 }
+\examples{
+de.motif <- head(rownames(atac_small))
+bg.peaks <- tail(rownames(atac_small))
+FindMotifs(
+object = atac_small,
+features = de.motif,
+background = bg.peaks
+)
+}

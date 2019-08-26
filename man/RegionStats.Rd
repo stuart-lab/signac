@@ -38,3 +38,13 @@ end coordinates.}
 Compute the GC content, region lengths, and dinucleotide base frequencies
 for regions in the assay and add to the feature metadata.
 }
+\examples{
+\dontrun{
+library(BSgenome.Hsapiens.UCSC.hg19)
+RegionStats(
+  object = atac_small, 
+  assay = 'bins', 
+  genome = BSgenome.Hsapiens.UCSC.hg19
+)
+}
+}

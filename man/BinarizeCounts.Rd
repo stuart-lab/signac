@@ -34,3 +34,7 @@ Returns a Seurat object
 \description{
 Set counts >1 to 1 in a count matrix
 }
+\examples{
+x <- matrix(data = sample(0:3, size = 25, replace = TRUE), ncol = 5)
+BinarizeCounts(x)
+}

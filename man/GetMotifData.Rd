@@ -30,3 +30,6 @@ Returns a Seurat object
 \description{
 Get motif matrix for given assay
 }
+\examples{
+GetMotifData(object = atac_small)
+}

@@ -17,3 +17,6 @@ Returns a list of GRanges objects
 \description{
 Split a genomic ranges object into evenly sized chunks
 }
+\examples{
+ChunkGRanges(blacklist_hg19, n = 10)
+}

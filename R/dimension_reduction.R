@@ -17,6 +17,9 @@ NULL
 #' @return Returns a matrix
 #'
 #' @export
+#' @examples 
+#' x <- matrix(data = sample(c(0, 1), size = 25, replace = TRUE), ncol = 5)
+#' Jaccard(x = x, y = x)
 Jaccard <- function(x, y) {
   if (any(x > 1) | any(y > 1)) {
     warning("Matrices contain values greater than 1. Please binarize matrices before running Jaccard")
@@ -174,6 +177,9 @@ RunMotifUMAP.Seurat <- function(
 #'
 #' @rdname RunSVD
 #' @export
+#' @examples 
+#' x <- matrix(data = rnorm(100), ncol = 10)
+#' RunSVD(x)
 RunSVD.default <- function(
   object,
   assay = NULL,

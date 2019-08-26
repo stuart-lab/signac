@@ -47,3 +47,7 @@ Returns a Seurat object
 \description{
 Run singular value decomposition
 }
+\examples{
+x <- matrix(data = rnorm(100), ncol = 10)
+RunSVD(x)
+}

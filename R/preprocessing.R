@@ -7,6 +7,9 @@ NULL
 #' @rdname BinarizeCounts
 #' @importFrom methods is slot "slot<-"
 #' @export
+#' @examples 
+#' x <- matrix(data = sample(0:3, size = 25, replace = TRUE), ncol = 5)
+#' BinarizeCounts(x)
 BinarizeCounts.default <- function(
   object,
   assay = NULL,
@@ -87,6 +90,20 @@ BinarizeCounts.Seurat <- function(
 #' @return Returns a sparse matrix
 #' @importFrom motifmatchr matchMotifs motifCounts motifMatches
 #' @export
+#' @examples 
+#' \dontrun{
+#' library(JASPAR2018)
+#' pwm <- getMatrixSet(
+#'   x = JASPAR2018,
+#'   opts = list(species = 9606, all_versions = FALSE)
+#' )
+#' motif.matrix <- CreateMotifMatrix(
+#'   features = StringToGRanges(rownames(atac_small), sep = c(":", "-")),
+#'   pwm = pwm,
+#'   genome = 'hg19',
+#'   sep = c(":", "-")
+#' )
+#' }
 CreateMotifMatrix <- function(
   features,
   pwm,
@@ -365,6 +382,8 @@ FindTopFeatures.Assay <- function(
 #' @importFrom Seurat DefaultAssay GetAssay
 #' @export
 #' @method FindTopFeatures Seurat
+#' @examples
+#' FindTopFeatures(atac_small)
 FindTopFeatures.Seurat <- function(
   object,
   assay = NULL,
@@ -601,6 +620,15 @@ RegionStats.Assay <- function(
 #' @rdname RegionStats
 #' @method RegionStats Seurat
 #' @export
+#' @examples
+#' \dontrun{
+#' library(BSgenome.Hsapiens.UCSC.hg19)
+#' RegionStats(
+#'   object = atac_small, 
+#'   assay = 'bins', 
+#'   genome = BSgenome.Hsapiens.UCSC.hg19
+#' )
+#' }
 RegionStats.Seurat <- function(
   object,
   genome,
@@ -640,8 +668,7 @@ RegionStats.Seurat <- function(
 #'
 #' @examples
 #' mat <- matrix(data = rbinom(n = 25, size = 5, prob = 0.2), nrow = 5)
-#' mat_norm <- RunTFIDF(object = mat)
-#'
+#' RunTFIDF(object = mat)
 RunTFIDF.default <- function(
   object,
   assay = NULL,

@@ -17,3 +17,6 @@ Extend(x, upstream = 0, downstream = 0)
 Resize GenomicRanges upstream and or downstream.
 From \url{https://support.bioconductor.org/p/78652/}
 }
+\examples{
+Extend(x = blacklist_hg19, upstream = 100, downstream = 100)
+}

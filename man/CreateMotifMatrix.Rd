@@ -29,3 +29,18 @@ Returns a sparse matrix
 Create a motif x feature matrix from a set of genomic ranges,
 the genome, and a set of position weight matrices
 }
+\examples{
+\dontrun{
+library(JASPAR2018)
+pwm <- getMatrixSet(
+  x = JASPAR2018,
+  opts = list(species = 9606, all_versions = FALSE)
+)
+motif.matrix <- CreateMotifMatrix(
+  features = StringToGRanges(rownames(atac_small), sep = c(":", "-")),
+  pwm = pwm,
+  genome = 'hg19',
+  sep = c(":", "-")
+)
+}
+}

@@ -22,3 +22,7 @@ Can be of class PFMatrixList}
 \description{
 Create an object of class \code{Motif}
 }
+\examples{
+motif.matrix <- matrix(data = sample(c(0,1), size = 100, replace = TRUE), ncol = 5)
+motif <- CreateMotifObject(data = motif.matrix)
+}
