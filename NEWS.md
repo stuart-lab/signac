@@ -1,3 +1,8 @@
+# Signac 0.1.5
+
+* New options in CoveragePlot for scaling tracks  
+* Improved documentation (added examples)
+
 # Signac 0.1.4
 
 * Updates to `CoveragePlot`: now plots a Tn5 integration score per base, rather than the whole fragment.
