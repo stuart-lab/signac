@@ -22,8 +22,8 @@ Find the fraction of counts per cell that overlap a given set of genomic ranges
 }
 \examples{
 FractionCountsInRegion(
-  object = atac_small, 
-  assay = 'bins', 
+  object = atac_small,
+  assay = 'bins',
   regions = blacklist_hg19
 )
 }

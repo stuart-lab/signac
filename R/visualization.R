@@ -33,6 +33,8 @@ SingleCoveragePlot <- function(
   height.tracks = 2,
   extend.upstream = 0,
   extend.downstream = 0,
+  ymax = NULL,
+  scale.factor = NULL,
   cells = NULL,
   idents = NULL,
   sep = c("-", "-")
@@ -73,6 +75,7 @@ SingleCoveragePlot <- function(
     reads = reads,
     cells.per.group = cells.per.group,
     reads.per.group = reads.per.group,
+    scale.factor = scale.factor,
     window = window,
     verbose = FALSE
   ))
@@ -88,7 +91,9 @@ SingleCoveragePlot <- function(
   steps <- ceiling(x = (total_range / stepsize))
   retain_positions <- seq(from = start.pos, to = end.pos, by = stepsize)
   downsampled_coverage <- coverages[coverages$position %in% retain_positions, ]
-  ymax <- signif(x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
+  if (is.null(x = ymax)) {
+    ymax <- signif(x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
+  }
   ymin <- 0
   downsampled_coverage <- downsampled_coverage[!is.na(x = downsampled_coverage$coverage), ]
   p <- ggplot(data = downsampled_coverage, mapping = aes(x = position, y = coverage, fill = group)) +
@@ -158,6 +163,9 @@ SingleCoveragePlot <- function(
 #' Default is 2 (twice as high as annotation track).
 #' @param extend.upstream Number of bases to extend the region upstream (Default 0)
 #' @param extend.downstream Number of bases to extend the region downstream (Default 0)
+#' @param ymax Maximum value for Y axis. If NULL (default) set to the highest value among all the tracks.
+#' @param scale.factor Scaling factor for track height. If NULL (default), use the median group scaling factor
+#' determined by total number of fragments sequences in each group.
 #' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
 #' @param sep Separators to use for strings encoding genomic coordinates. First element is used to separate the
 #' chromosome from the coordinates, second element is used to separate the start from end coordinate.
@@ -178,6 +186,8 @@ CoveragePlot <- function(
   height.tracks = 2,
   extend.upstream = 0,
   extend.downstream = 0,
+  scale.factor = NULL,
+  ymax = NULL,
   cells = NULL,
   idents = NULL,
   sep = c("-", "-"),
@@ -194,6 +204,8 @@ CoveragePlot <- function(
       group.by = group.by,
       window = window,
       downsample = downsample,
+      ymax = ymax,
+      scale.factor = scale.factor,
       extend.upstream = extend.upstream,
       extend.downstream = extend.downstream,
       cells = cells,
@@ -214,6 +226,8 @@ CoveragePlot <- function(
       height.tracks = height.tracks,
       extend.upstream = extend.upstream,
       extend.downstream = extend.downstream,
+      ymax = ymax,
+      scale.factor = scale.factor,
       cells = cells,
       idents = idents,
       sep = sep

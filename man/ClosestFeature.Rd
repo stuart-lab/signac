@@ -24,7 +24,7 @@ Find the closest feature to a given set of genomic regions
 \dontrun{
 library(EnsDb.Hsapiens.v75)
 ClosestFeature(
-  regions = head(rownames(atac_small)), 
+  regions = head(rownames(atac_small)),
   annotation = EnsDb.Hsapiens.v75,
   sep = c(":", "-")
 )

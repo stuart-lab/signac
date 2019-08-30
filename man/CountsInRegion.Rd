@@ -22,8 +22,8 @@ Count reads per cell overlapping a given set of regions
 }
 \examples{
 CountsInRegion(
-  object = atac_small, 
-  assay = 'bins', 
+  object = atac_small,
+  assay = 'bins',
   regions = blacklist_hg19
 )
 }
