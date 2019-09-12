@@ -79,7 +79,8 @@ BinarizeCounts.Seurat <- function(
 #' the genome, and a set of position weight matrices
 #'
 #' @param features A GRanges object containing a set of genomic features
-#' @param pwm A PFMatrixList object containing position weight matrices to use
+#' @param pwm A \code{\link[TFBSTools]{PFMatrixList}} or \code{\link[TFBSTools]{PWMatrixList}}
+#' object containing position weight/frequency matrices to use
 #' @param genome Any object compatible with the \code{genome} argument
 #' in \code{\link[motifmatchr]{matchMotifs}}
 #' @param use.counts Record motif counts per region. If FALSE (default), record presence/absence of motif.
