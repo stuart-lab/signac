@@ -7,7 +7,7 @@ NULL
 #' @rdname BinarizeCounts
 #' @importFrom methods is slot "slot<-"
 #' @export
-#' @examples 
+#' @examples
 #' x <- matrix(data = sample(0:3, size = 25, replace = TRUE), ncol = 5)
 #' BinarizeCounts(x)
 BinarizeCounts.default <- function(
@@ -90,7 +90,7 @@ BinarizeCounts.Seurat <- function(
 #' @return Returns a sparse matrix
 #' @importFrom motifmatchr matchMotifs motifCounts motifMatches
 #' @export
-#' @examples 
+#' @examples
 #' \dontrun{
 #' library(JASPAR2018)
 #' pwm <- getMatrixSet(
@@ -492,7 +492,7 @@ globalVariables(names = 'cell', package = 'Signac')
 #' NucleosomeSignal
 #'
 #' Calculate the strength of the nucleosome signal per cell.
-#' Computes the ratio of fragments < 147 bp to fragments between 147 bp and 294 bp.
+#' Computes the ratio of fragments between 147 bp and 294 bp (mononucleosome) to fragments < 147 bp (nucleosome-free)
 #'
 #' @param object A Seurat object
 #' @param assay Name of assay to use. Only required if a fragment path is not provided. If NULL, use the active assay.
@@ -531,7 +531,7 @@ NucleosomeSignal <- function(
     ...
   )
   mn_ratio <- function(x) {
-    mononucleosome = sum(x[x > min.threshold & x < max.threshold])
+    mononucleosome <- sum(x[x > min.threshold & x < max.threshold])
     nucleosome_free <- sum(x[x <= min.threshold])
     return(mononucleosome / nucleosome_free)
   }
@@ -624,8 +624,8 @@ RegionStats.Assay <- function(
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
-#'   object = atac_small, 
-#'   assay = 'bins', 
+#'   object = atac_small,
+#'   assay = 'bins',
 #'   genome = BSgenome.Hsapiens.UCSC.hg19
 #' )
 #' }
