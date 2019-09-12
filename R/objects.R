@@ -1,13 +1,13 @@
 #' @include generics.R
 #' @importFrom methods setClass setClassUnion setMethod is slot slot<- new as slotNames
 #' @importClassesFrom Matrix dgCMatrix
-#' @importClassesFrom TFBSTools PFMatrixList
+#' @importClassesFrom TFBSTools PWMatrixList PFMatrixList
 #'
 NULL
 
 ## Class definitions
 
-setClassUnion(name = 'AnyPWM', c("list", "PFMatrixList"))
+setClassUnion(name = 'AnyPWM', c("list", "PWMatrixList", "PFMatrixList"))
 
 #' The Motif class
 #'
@@ -72,7 +72,7 @@ AddMotifObject.Assay <- function(
 #' @importFrom Seurat DefaultAssay
 #' @method AddMotifObject Seurat
 #' @export
-#' @examples 
+#' @examples
 #' obj <- GetMotifObject(object = atac_small)
 #' atac_small <- AddMotifObject(object = atac_small, motif.object = obj)
 AddMotifObject.Seurat <- function(
@@ -95,14 +95,14 @@ AddMotifObject.Seurat <- function(
 #' Create an object of class \code{Motif}
 #'
 #' @param data A motif x region matrix
-#' @param pwm A list of position weight matrices matching the motif names in \code{data}.
+#' @param pwm A list of position weight matrices or position frequency matrices matching the motif names in \code{data}.
 #' Can be of class PFMatrixList
 #' @param neighbors Neighbor data
 #' @param reductions Dimension reduction data
 #' @param meta.data A data.frame containing metadata
 #'
 #' @export
-#' @examples 
+#' @examples
 #' motif.matrix <- matrix(data = sample(c(0,1), size = 100, replace = TRUE), ncol = 5)
 #' motif <- CreateMotifObject(data = motif.matrix)
 CreateMotifObject <- function(
@@ -262,7 +262,7 @@ SetMotifData.Assay <- function(object, slot, new.data, ...) {
 #' @importFrom Seurat DefaultAssay
 #' @export
 #' @method SetMotifData Seurat
-#' @examples 
+#' @examples
 #' motif.matrix <- GetMotifData(object = atac_small)
 #' SetMotifData(object = atac_small, assay = 'peaks', slot = 'data', new.data = motif.matrix)
 SetMotifData.Seurat <- function(object, assay = NULL, ...) {
@@ -308,7 +308,7 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
 #' @rdname subset.Motif
 #' @export
 #' @method [ Motif
-#' @examples 
+#' @examples
 #' motif.obj <- GetMotifObject(atac_small)
 #' motif.obj[1:10,1:10]
 "[.Motif" <- function(x, i, j, ...) {
