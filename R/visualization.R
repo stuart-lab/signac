@@ -17,7 +17,12 @@ globalVariables(names = c('position', 'coverage', 'group'), package = 'Signac')
 #' @importFrom IRanges IRanges
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom BiocGenerics start end
-#' @importFrom Seurat WhichCells
+#' @importFrom Seurat WhichCells Idents
+#' @importFrom Matrix colSums
+#' @importFrom methods is
+#' @importFrom stats median
+#' @importFrom dplyr mutate group_by ungroup
+#' @importFrom zoo rollapply
 #'
 #' @export
 #'
@@ -51,37 +56,62 @@ SingleCoveragePlot <- function(
     x = region,
     upstream = extend.upstream,
     downstream = extend.downstream
-    )
   )
-  reads <- GetReadsInRegion(
-    object = object,
-    assay = assay,
-    region = region,
-    cells = cells,
-    group.by = group.by,
-    fragment.path = fragment.path,
-    verbose = FALSE
-  )
-  cells.per.group <- CellsPerGroup(
-    object = object,
-    group.by = group.by
   )
   reads.per.group <- AverageCounts(
     object = object,
     group.by = group.by,
     verbose = FALSE
   )
-  coverages <- suppressWarnings(CalculateCoverages(
-    reads = reads,
-    cells.per.group = cells.per.group,
-    reads.per.group = reads.per.group,
-    scale.factor = scale.factor,
-    window = window,
+  cells.per.group <- CellsPerGroup(
+    object = object,
+    group.by = group.by
+  )
+  cutmat <- CutMatrix(
+    object = object,
+    region = region,
+    cells = cells,
     verbose = FALSE
-  ))
-  if (downsample > 1) {
-    warning('Requested downsampling <0%, retaining all positions')
-    downsample <- 1
+  )
+  read_scale <- reads.per.group * cells.per.group
+  if (is.null(x = group.by)) {
+    obj.groups <- Idents(object = object)
+  } else {
+    obj.md <- object[[group.by]]
+    obj.groups <- obj.md[, 1]
+    names(obj.groups) <- rownames(obj.md)
+  }
+  groups <- idents %||% unique(x = obj.groups)
+  results <- list()
+  for (i in seq_along(along.with = groups)) {
+    pos.cells <- names(x = obj.groups)[obj.groups == groups[[i]]]
+    if (length(x = pos.cells) > 1) {
+      totals <- colSums(x = cutmat[pos.cells, ])
+    } else {
+      totals <- cutmat[pos.cells, ]
+    }
+    results[[i]] <- data.frame(
+      group = groups[[i]],
+      count = totals,
+      position = as.numeric(colnames(x = cutmat)),
+      stringsAsFactors = FALSE
+    )
+  }
+  coverages <- as.data.frame(x = do.call(what = rbind, args = results), stringsAsFactors = FALSE)
+  scale.factor <- scale.factor %||% median(x = read_scale)
+  coverages$norm.value <- coverages$count / read_scale[coverages$group] * scale.factor
+  if (!is.na(x = window)) {
+    coverages <- group_by(.data = coverages, group)
+    coverages <- mutate(.data = coverages, coverage = rollapply(
+      data = norm.value,
+      width = window,
+      FUN = mean,
+      align = 'center',
+      fill = NA
+    ))
+    coverages <- ungroup(x = coverages)
+  } else {
+    coverages$coverage <- coverages$norm.value
   }
   chromosome <- as.character(x = seqnames(x = region))
   start.pos <- start(x = region)
@@ -91,11 +121,10 @@ SingleCoveragePlot <- function(
   steps <- ceiling(x = (total_range / stepsize))
   retain_positions <- seq(from = start.pos, to = end.pos, by = stepsize)
   downsampled_coverage <- coverages[coverages$position %in% retain_positions, ]
-  if (is.null(x = ymax)) {
-    ymax <- signif(x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
-  }
+  ymax <- ymax %||% signif(x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
   ymin <- 0
   downsampled_coverage <- downsampled_coverage[!is.na(x = downsampled_coverage$coverage), ]
+
   p <- ggplot(data = downsampled_coverage, mapping = aes(x = position, y = coverage, fill = group)) +
     geom_area(stat = 'identity') +
     geom_hline(yintercept = 0, size = 0.1) +
@@ -109,7 +138,6 @@ SingleCoveragePlot <- function(
       legend.position = 'none',
       strip.text.y = element_text(angle = 0)
     )
-
   if (!is.null(x = annotation)) {
     gr <- GRanges(
       seqnames = gsub(pattern = 'chr', replacement = '', x = chromosome),
@@ -127,7 +155,7 @@ SingleCoveragePlot <- function(
         axis.text.x = element_blank(),
         axis.line.x.bottom = element_blank(),
         axis.ticks.x.bottom = element_blank()
-        )
+      )
       p <- suppressWarnings(plot_grid(
         p, gene.plot,
         ncol = 1,
