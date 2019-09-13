@@ -10,7 +10,7 @@ CreateMotifObject(data = NULL, pwm = NULL, neighbors = NULL,
 \arguments{
 \item{data}{A motif x region matrix}
 
-\item{pwm}{A list of position weight matrices matching the motif names in \code{data}.
+\item{pwm}{A list of position weight matrices or position frequency matrices matching the motif names in \code{data}.
 Can be of class PFMatrixList}
 
 \item{neighbors}{Neighbor data}

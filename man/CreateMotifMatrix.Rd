@@ -10,7 +10,8 @@ CreateMotifMatrix(features, pwm, genome, use.counts = FALSE,
 \arguments{
 \item{features}{A GRanges object containing a set of genomic features}
 
-\item{pwm}{A PFMatrixList object containing position weight matrices to use}
+\item{pwm}{A \code{\link[TFBSTools]{PFMatrixList}} or \code{\link[TFBSTools]{PWMatrixList}}
+object containing position weight/frequency matrices to use}
 
 \item{genome}{Any object compatible with the \code{genome} argument
 in \code{\link[motifmatchr]{matchMotifs}}}

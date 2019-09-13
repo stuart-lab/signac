@@ -31,5 +31,5 @@ per cell, and the percentile rank of each ratio.
 }
 \description{
 Calculate the strength of the nucleosome signal per cell.
-Computes the ratio of fragments < 147 bp to fragments between 147 bp and 294 bp.
+Computes the ratio of fragments between 147 bp and 294 bp (mononucleosome) to fragments < 147 bp (nucleosome-free)
 }

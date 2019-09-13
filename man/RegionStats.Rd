@@ -42,8 +42,8 @@ for regions in the assay and add to the feature metadata.
 \dontrun{
 library(BSgenome.Hsapiens.UCSC.hg19)
 RegionStats(
-  object = atac_small, 
-  assay = 'bins', 
+  object = atac_small,
+  assay = 'bins',
   genome = BSgenome.Hsapiens.UCSC.hg19
 )
 }
