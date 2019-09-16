@@ -388,13 +388,24 @@ CutMatrix <- function(
 #' @export
 #' @examples
 #' Extend(x = blacklist_hg19, upstream = 100, downstream = 100)
-Extend <- function(x, upstream = 0, downstream = 0) {
+Extend <- function(
+  x,
+  upstream = 0,
+  downstream = 0,
+  from.midpoint = FALSE
+) {
   if (any(strand(x = x) == "*")) {
     warning("'*' ranges were treated as '+'")
   }
   on_plus <- strand(x = x) == "+" | strand(x = x) == "*"
-  new_start <- start(x = x) - ifelse(test = on_plus, yes = upstream, no = downstream)
-  new_end <- end(x = x) + ifelse(test = on_plus, yes = downstream, no = upstream)
+  if (from.midpoint) {
+    midpoints <- start(x = x) + (width(x = x)/2)
+    new_start <- midpoints - ifelse(test = on_plus, yes = upstream, no = downstream)
+    new_end <- midpoints + ifelse(test = on_plus, yes = downstream, no = upstream)
+  } else {
+    new_start <- start(x = x) - ifelse(test = on_plus, yes = upstream, no = downstream)
+    new_end <- end(x = x) + ifelse(test = on_plus, yes = downstream, no = upstream)
+  }
   ranges(x = x) <- IRanges(start = new_start, end = new_end)
   x <- trim(x = x)
   return(x)
@@ -842,6 +853,91 @@ MergeWithRegions <- function(
     version = packageVersion(pkg = 'Seurat')
   )
   return(merged.object)
+}
+
+#' Generate cut matrix for many regions
+#'
+#' Run CutMatrix on multiple regions and add them together.
+#' Assumes regions are pre-aligned.
+#'
+#' @param object A Seurat object
+#' @param regions A set of GRanges
+#' @param assay Name of the assay to use
+#' @param cells Vector of cells to include
+#' @param verbose Display messages
+MultiRegionCutMatrix <- function(
+  object,
+  regions,
+  assay = NULL,
+  cells = NULL,
+  verbose = FALSE
+) {
+  cm <- CutMatrix(
+    object = object,
+    assay = assay,
+    region = regions[1, ],
+    verbose = verbose
+  )
+  colnames(cm) <- 1:ncol(x = cm)
+  for (i in 2:length(x = regions)) {
+    cm <- cm + CutMatrix(
+      object = object,
+      assay = assay,
+      region = regions[i, ],
+      verbose = verbose
+    )
+  }
+  return(cm)
+}
+
+#' Sum integration sites per base per group
+#'
+#' Perform colSums on a cut matrix with cells in the rows
+#' and position in the columns, for each group of cells
+#' separately.
+#'
+#' @param mat A cut matrix. See \code{\link{CutMatrix}}
+#' @param groups A vector of group identities, with the name
+#' of each element in the vector set to the cell name.
+#' @param group.scale.factors Scaling factor for each group. Should
+#' be computed using the number of cells in the group and the average number of counts
+#' in the group.
+#' @param normalize Perform sequencing depth and cell count normalization (default is TRUE)
+#' @param scale.factor Scaling factor to use. If NULL (default), will use the median normalization
+#' factor for all the groups.
+#'
+#' @importFrom Matrix colSums
+SumMatrixByGroup <- function(
+  mat,
+  groups,
+  group.scale.factors,
+  normalize = TRUE,
+  scale.factor = NULL
+) {
+  results <- list()
+  all.groups <- unique(x = groups)
+  for (i in seq_along(along.with = all.groups)) {
+    pos.cells <- names(x = groups)[groups == all.groups[[i]]]
+    if (length(x = pos.cells) > 1) {
+      totals <- colSums(x = mat[pos.cells, ])
+    } else {
+      totals <- mat[pos.cells, ]
+    }
+    results[[i]] <- data.frame(
+      group = all.groups[[i]],
+      count = totals,
+      position = as.numeric(colnames(x = mat)),
+      stringsAsFactors = FALSE
+    )
+  }
+  coverages <- as.data.frame(x = do.call(what = rbind, args = results), stringsAsFactors = FALSE)
+  if (normalize) {
+    scale.factor <- scale.factor %||% median(x = group.scale.factors)
+    coverages$norm.value <- coverages$count / group.scale.factors[coverages$group] * scale.factor
+  } else {
+    coverages$norm.value <- coverages$count
+  }
+  return(coverages)
 }
 
 #' TabixOutputToDataFrame
