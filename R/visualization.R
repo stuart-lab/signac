@@ -73,7 +73,8 @@ SingleCoveragePlot <- function(
     cells = cells,
     verbose = FALSE
   )
-  read_scale <- reads.per.group * cells.per.group
+  group.scale.factors <- reads.per.group * cells.per.group
+
   if (is.null(x = group.by)) {
     obj.groups <- Idents(object = object)
   } else {
@@ -81,25 +82,16 @@ SingleCoveragePlot <- function(
     obj.groups <- obj.md[, 1]
     names(obj.groups) <- rownames(obj.md)
   }
-  groups <- idents %||% unique(x = obj.groups)
-  results <- list()
-  for (i in seq_along(along.with = groups)) {
-    pos.cells <- names(x = obj.groups)[obj.groups == groups[[i]]]
-    if (length(x = pos.cells) > 1) {
-      totals <- colSums(x = cutmat[pos.cells, ])
-    } else {
-      totals <- cutmat[pos.cells, ]
-    }
-    results[[i]] <- data.frame(
-      group = groups[[i]],
-      count = totals,
-      position = as.numeric(colnames(x = cutmat)),
-      stringsAsFactors = FALSE
-    )
+  if (!is.null(idents)) {
+    obj.groups <- obj.groups[obj.groups %in% idents]
   }
-  coverages <- as.data.frame(x = do.call(what = rbind, args = results), stringsAsFactors = FALSE)
-  scale.factor <- scale.factor %||% median(x = read_scale)
-  coverages$norm.value <- coverages$count / read_scale[coverages$group] * scale.factor
+  coverages <- SumMatrixByGroup(
+    mat = cutmat,
+    groups = obj.groups,
+    group.scale.factors = group.scale.factors,
+    scale.factor = scale.factor,
+    normalize = TRUE
+  )
   if (!is.na(x = window)) {
     coverages <- group_by(.data = coverages, group)
     coverages <- mutate(.data = coverages, coverage = rollapply(
@@ -397,3 +389,136 @@ PeriodPlot <- function(
   }
   return(p)
 }
+
+
+#' Plot pileup of Tn5 integration sites
+#'
+#' Plots a pileup of integration sites centered on a set of genomic positions.
+#' Each genomic region will be aligned on the region midpoint, and extended upstream
+#' and downstream from the midpoint.
+#'
+#' @param object A Seurat object
+#' @param assay Name of the assay to use
+#' @param regions A set of GRanges to use
+#' @param upstream Number of bases to extend upstream of the region midpoint
+#' @param downstream Number of bases to extend downstream of the region midpoint
+#' @param group.by A set of identities to group the cells by. Can by anything in the metadata.
+#' Default is to use the active identities.
+#' @param min.cells Minimum number of cells in the group for the pileup to be displayed for that group.
+#' @param ymax Maximum value for the y-axis. If NULL (default), will be set automatically.
+#' @param idents Which identities to include in the plot. If NULL (default), include everything with more than
+#' \code{min.cells} cells.
+#' @param verbose Display messages
+#'
+#' @importFrom BiocGenerics strand
+#' @importFrom Seurat Idents
+#' @importFrom ggplot2 ggplot aes geom_line facet_wrap ylim xlab ylab theme_classic theme element_blank element_text
+#' @export
+#' @return Returns a \code{\link[ggplot2]{ggplot2}} object
+#' @examples
+#' \dontrun{
+#'
+#' }
+RegionPileup <- function(
+  object,
+  regions,
+  assay = NULL,
+  upstream = 200,
+  downstream = 200,
+  group.by = NULL,
+  min.cells = 100,
+  ymax = NULL,
+  idents = NULL,
+  verbose = TRUE
+) {
+  # extend from midpoint of each region
+  regions <- Extend(
+    x = regions,
+    upstream = upstream,
+    downstream = downstream,
+    from.midpoint = TRUE
+  )
+
+  # split into strands
+  on_plus <- strand(x = regions) == "+" | strand(x = regions) == "*"
+  plus.strand <- regions[on_plus, ]
+  minus.strand <- regions[!on_plus, ]
+
+  # get cut matrices for each strand
+  if (verbose) {
+    message("Finding + strand cut sites")
+  }
+  cut.matrix.plus <- MultiRegionCutMatrix(
+    regions = plus.strand,
+    object = object,
+    assay = assay,
+    cells = cells,
+    verbose = FALSE
+  )
+  if (verbose) {
+    message("Finding - strand cut sites")
+  }
+  cut.matrix.minus <- MultiRegionCutMatrix(
+    regions = minus.strand,
+    object = object,
+    assay = assay,
+    cells = cells,
+    verbose = FALSE
+  )
+
+  # reverse minus strand and add together
+  full.matrix <- cut.matrix.plus + cut.matrix.minus[, rev(x = colnames(x = cut.matrix.minus))]
+  colnames(full.matrix) <- -upstream:downstream
+
+  # split by group and do colsums
+  reads.per.group <- AverageCounts(
+    object = object,
+    group.by = group.by,
+    verbose = FALSE
+  )
+  cells.per.group <- CellsPerGroup(
+    object = object,
+    group.by = group.by
+  )
+  group.scale.factors <- reads.per.group * cells.per.group
+  if (is.null(x = group.by)) {
+    obj.groups <- Idents(object = object)
+  } else {
+    obj.md <- object[[group.by]]
+    obj.groups <- obj.md[, 1]
+    names(obj.groups) <- rownames(obj.md)
+  }
+  if (!is.null(idents)) {
+    obj.groups <- obj.groups[obj.groups %in% idents]
+  }
+  cellcounts <- table(obj.groups)
+  obj.groups <- obj.groups[obj.groups %in% names(x = cellcounts[cellcounts > min.cells])]
+  if (verbose) {
+    message("Computing pileup for each cell group")
+  }
+  coverages <- SumMatrixByGroup(
+    mat = full.matrix,
+    groups = obj.groups,
+    group.scale.factors = group.scale.factors,
+    scale.factor = scale.factor,
+    normalize = normalize
+  )
+
+  # create plot
+  ymin <- 0
+  ymax <- ymax %||% signif(x = max(coverages$norm.value, na.rm = TRUE), digits = 2)
+  p <- ggplot(data = coverages, mapping = aes(x = position, y = norm.value, color = group)) +
+    geom_line(stat = 'identity', size = 0.2) +
+    facet_wrap(facets = ~group) +
+    xlab(label = paste0('Distance from region midpoint (bp)')) +
+    ylab(label = paste0('Normalized integration counts\n(0 - ', ymax, ')')) +
+    ylim(c(ymin, ymax)) +
+    theme_classic() +
+    theme(
+      axis.text.y = element_blank(),
+      legend.position = 'none',
+      strip.text.y = element_text(angle = 0)
+    )
+  return(p)
+}
+
