@@ -354,21 +354,30 @@ CutMatrix <- function(
     fragment.path = fragment.path,
     verbose = verbose
   )
-  cut.df <- data.frame(
-    position = c(fragments$start, fragments$end) - start(x = region) + 1,
-    cell = c(fragments$cell, fragments$cell),
-    stringsAsFactors = FALSE
-  )
-  cut.df <- cut.df[cut.df$position > 0 & cut.df$position <= width(x = region), ]
-  cell.vector <- seq_along(along.with = all.cells)
-  names(x = cell.vector) <- all.cells
-  cell.matrix.info <- cell.vector[cut.df$cell]
-  cut.matrix <- sparseMatrix(
-    i = cell.matrix.info,
-    j = cut.df$position,
-    x = 1,
-    dims = c(length(x = all.cells), width(x = region))
-  )
+  # if there are no reads in the region, create an empty matrix of the correct dimension
+  if (nrow(x = fragments) == 0) {
+    cut.matrix <- sparseMatrix(
+      i = NULL,
+      j = NULL,
+      dims = c(length(x = all.cells), width(x = region))
+    )
+  } else {
+    cut.df <- data.frame(
+      position = c(fragments$start, fragments$end) - start(x = region) + 1,
+      cell = c(fragments$cell, fragments$cell),
+      stringsAsFactors = FALSE
+    )
+    cut.df <- cut.df[cut.df$position > 0 & cut.df$position <= width(x = region), ]
+    cell.vector <- seq_along(along.with = all.cells)
+    names(x = cell.vector) <- all.cells
+    cell.matrix.info <- cell.vector[cut.df$cell]
+    cut.matrix <- sparseMatrix(
+      i = cell.matrix.info,
+      j = cut.df$position,
+      x = 1,
+      dims = c(length(x = all.cells), width(x = region))
+    )
+  }
   rownames(x = cut.matrix) <- all.cells
   colnames(x = cut.matrix) <- start(region):end(region)
   return(cut.matrix)
@@ -500,7 +509,8 @@ GetReadsInRegion <- function(
     reads <- reads[reads$cell %in% cells, ]
   }
   if (nrow(reads) == 0) {
-    stop('No cells present in the requested region')
+    warning('No cells present in the requested region')
+    return(reads)
   }
   reads$length <- reads$end - reads$start
   reads$group <- group.by[reads$cell]
@@ -888,6 +898,56 @@ MultiRegionCutMatrix <- function(
     )
   }
   return(cm)
+}
+
+#' Create cut site pileup matrix
+#'
+#' For a set of aligned genomic ranges, find the total number of
+#' integration sites per cell per base.
+#'
+#' @param object A Seurat object
+#' @param regions A GRanges object
+#' @param assay Name of the assay to use
+#' @param cells Which cells to include. If NULL, use all cells
+#' @param verbose Display messages
+#' @importFrom BiocGenerics strand
+CreateRegionPileupMatrix <- function(
+  object,
+  regions,
+  assay = NULL,
+  cells = NULL,
+  verbose = TRUE
+) {
+  # split into strands
+  on_plus <- strand(x = regions) == "+" | strand(x = regions) == "*"
+  plus.strand <- regions[on_plus, ]
+  minus.strand <- regions[!on_plus, ]
+
+  # get cut matrices for each strand
+  if (verbose) {
+    message("Finding + strand cut sites")
+  }
+  cut.matrix.plus <- MultiRegionCutMatrix(
+    regions = plus.strand,
+    object = object,
+    assay = assay,
+    cells = cells,
+    verbose = FALSE
+  )
+  if (verbose) {
+    message("Finding - strand cut sites")
+  }
+  cut.matrix.minus <- MultiRegionCutMatrix(
+    regions = minus.strand,
+    object = object,
+    assay = assay,
+    cells = cells,
+    verbose = FALSE
+  )
+
+  # reverse minus strand and add together
+  full.matrix <- cut.matrix.plus + cut.matrix.minus[, rev(x = colnames(x = cut.matrix.minus))]
+  return(full.matrix)
 }
 
 #' Sum integration sites per base per group
