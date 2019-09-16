@@ -4,7 +4,7 @@
 \alias{Extend}
 \title{Extend}
 \usage{
-Extend(x, upstream = 0, downstream = 0)
+Extend(x, upstream = 0, downstream = 0, from.midpoint = FALSE)
 }
 \arguments{
 \item{x}{A range}
