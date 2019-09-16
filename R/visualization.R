@@ -438,36 +438,13 @@ RegionPileup <- function(
     downstream = downstream,
     from.midpoint = TRUE
   )
-
-  # split into strands
-  on_plus <- strand(x = regions) == "+" | strand(x = regions) == "*"
-  plus.strand <- regions[on_plus, ]
-  minus.strand <- regions[!on_plus, ]
-
-  # get cut matrices for each strand
-  if (verbose) {
-    message("Finding + strand cut sites")
-  }
-  cut.matrix.plus <- MultiRegionCutMatrix(
-    regions = plus.strand,
+  full.matrix <- CreateRegionPileupMatrix(
     object = object,
+    regions = regions,
     assay = assay,
     cells = cells,
-    verbose = FALSE
+    verbose = verbose
   )
-  if (verbose) {
-    message("Finding - strand cut sites")
-  }
-  cut.matrix.minus <- MultiRegionCutMatrix(
-    regions = minus.strand,
-    object = object,
-    assay = assay,
-    cells = cells,
-    verbose = FALSE
-  )
-
-  # reverse minus strand and add together
-  full.matrix <- cut.matrix.plus + cut.matrix.minus[, rev(x = colnames(x = cut.matrix.minus))]
   colnames(full.matrix) <- -upstream:downstream
 
   # split by group and do colsums
