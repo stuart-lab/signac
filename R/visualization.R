@@ -74,19 +74,14 @@ SingleCoveragePlot <- function(
     verbose = FALSE
   )
   group.scale.factors <- reads.per.group * cells.per.group
-
-  if (is.null(x = group.by)) {
-    obj.groups <- Idents(object = object)
-  } else {
-    obj.md <- object[[group.by]]
-    obj.groups <- obj.md[, 1]
-    names(obj.groups) <- rownames(obj.md)
-  }
-  if (!is.null(idents)) {
-    obj.groups <- obj.groups[obj.groups %in% idents]
-  }
-  coverages <- SumMatrixByGroup(
+  obj.groups <- GetGroups(
+    object = object,
+    group.by = group.by,
+    idents = idents
+  )
+  coverages <- ApplyMatrixByGroup(
     mat = cutmat,
+    fun = colSums,
     groups = obj.groups,
     group.scale.factors = group.scale.factors,
     scale.factor = scale.factor,
@@ -412,6 +407,7 @@ PeriodPlot <- function(
 #'
 #' @importFrom BiocGenerics strand
 #' @importFrom Seurat Idents
+#' @importFrom Matrix colSums
 #' @importFrom ggplot2 ggplot aes geom_line facet_wrap ylim xlab ylab theme_classic theme element_blank element_text
 #' @export
 #' @return Returns a \code{\link[ggplot2]{ggplot2}} object
@@ -431,23 +427,15 @@ RegionPileup <- function(
   idents = NULL,
   verbose = TRUE
 ) {
-  # extend from midpoint of each region
-  regions <- Extend(
-    x = regions,
-    upstream = upstream,
-    downstream = downstream,
-    from.midpoint = TRUE
-  )
   full.matrix <- CreateRegionPileupMatrix(
     object = object,
     regions = regions,
+    upstream = upstream,
+    downstream = downstream,
     assay = assay,
     cells = cells,
     verbose = verbose
   )
-  colnames(full.matrix) <- -upstream:downstream
-
-  # split by group and do colsums
   reads.per.group <- AverageCounts(
     object = object,
     group.by = group.by,
@@ -458,30 +446,24 @@ RegionPileup <- function(
     group.by = group.by
   )
   group.scale.factors <- reads.per.group * cells.per.group
-  if (is.null(x = group.by)) {
-    obj.groups <- Idents(object = object)
-  } else {
-    obj.md <- object[[group.by]]
-    obj.groups <- obj.md[, 1]
-    names(obj.groups) <- rownames(obj.md)
-  }
-  if (!is.null(idents)) {
-    obj.groups <- obj.groups[obj.groups %in% idents]
-  }
+  obj.groups <- GetGroups(
+    object = object,
+    group.by = group.by,
+    idents = idents
+  )
   cellcounts <- table(obj.groups)
   obj.groups <- obj.groups[obj.groups %in% names(x = cellcounts[cellcounts > min.cells])]
   if (verbose) {
     message("Computing pileup for each cell group")
   }
-  coverages <- SumMatrixByGroup(
+  coverages <- ApplyMatrixByGroup(
     mat = full.matrix,
     groups = obj.groups,
+    fun = colSums,
     group.scale.factors = group.scale.factors,
     scale.factor = scale.factor,
     normalize = normalize
   )
-
-  # create plot
   ymin <- 0
   ymax <- ymax %||% signif(x = max(coverages$norm.value, na.rm = TRUE), digits = 2)
   p <- ggplot(data = coverages, mapping = aes(x = position, y = norm.value, color = group)) +
@@ -496,6 +478,62 @@ RegionPileup <- function(
       legend.position = 'none',
       strip.text.y = element_text(angle = 0)
     )
+  return(p)
+}
+
+#' Plot the enrichment around TSS
+#'
+#' Plot the normalized TSS enrichment score at each position relative to the TSS.
+#' Requires that \code{\link{TSSEnrichment}} has already been run on the assay.
+#'
+#' @param object A Seurat object
+#' @param assay Name of the assay to use. Should have the TSS enrichment information for each cell
+#' already computed by running \code{\link{TSSEnrichment}}
+#' @param group.by Set of identities to group cells by
+#' @param idents Set of identities to include in the plot
+#' @importFrom Seurat GetAssayData
+#' @importFrom Matrix colMeans
+#'
+#' @return Returns a \code{\link[ggplot2]{ggplot2}} object
+#' @export
+TSSPlot <- function(
+  object,
+  assay,
+  group.by = NULL,
+  idents = NULL
+) {
+  # get the normalized TSS enrichment matrix
+  misc.slot <- GetAssayData(object = object, assay = assay, slot = 'misc')
+  if (!(inherits(x = misc.slot, what = 'list'))) {
+    stop("Misc slot does not contain a list")
+  }
+  if (!("TSS.enrichment.matrix" %in% names(x = misc.slot))) {
+    stop("TSS enrichment matrix not present in assay. Run TSSEnrichment.")
+  }
+  tss.matrix <- misc.slot$TSS.enrichment.matrix
+
+  # average the TSS score per group per base
+  obj.groups <- GetGroups(
+    object = object,
+    group.by = group.by,
+    idents = idents
+  )
+  groupmeans <- ApplyMatrixByGroup(
+    mat = tss.matrix,
+    groups = obj.groups,
+    fun = colMeans,
+    normalize = FALSE
+  )
+
+  p <- ggplot(
+    data = groupmeans,
+    mapping = aes(x = position, y = norm.value, color = group)
+  ) +
+    geom_line(stat = 'identity', size = 0.2) +
+    facet_wrap(facets = ~group) +
+    xlab("Distance from TSS (bp)") +
+    ylab(label = 'Mean TSS enrichment score') +
+    theme_minimal()
   return(p)
 }
 
