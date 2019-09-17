@@ -643,6 +643,30 @@ FractionCountsInRegion <- function(
   return(reads.in.region / total.reads)
 }
 
+#' Get vector of cell names and associated identity
+#' @param object A Seurat object
+#' @param group.by Identity class to group cells by
+#' @param idents which identities to include
+#' @return Returns a named vector
+#' @importFrom Seurat Idents
+GetGroups <- function(
+  object,
+  group.by,
+  idents
+) {
+  if (is.null(x = group.by)) {
+    obj.groups <- Idents(object = object)
+  } else {
+    obj.md <- object[[group.by]]
+    obj.groups <- obj.md[, 1]
+    names(obj.groups) <- rownames(x = obj.md)
+  }
+  if (!is.null(idents)) {
+    obj.groups <- obj.groups[obj.groups %in% idents]
+  }
+  return(obj.groups)
+}
+
 #' Intersect genomic coordinates with matrix rows
 #'
 #' Remove or retain matrix rows that intersect given genomic regions
@@ -914,10 +938,19 @@ MultiRegionCutMatrix <- function(
 CreateRegionPileupMatrix <- function(
   object,
   regions,
+  upstream = 1000,
+  downstream = 1000,
   assay = NULL,
   cells = NULL,
   verbose = TRUE
 ) {
+  # extend upstream and downstream from midpoint
+  regions <- Extend(
+    x = regions,
+    upstream = upstream,
+    downstream = downstream,
+    from.midpoint = TRUE
+  )
   # split into strands
   on_plus <- strand(x = regions) == "+" | strand(x = regions) == "*"
   plus.strand <- regions[on_plus, ]
@@ -947,10 +980,11 @@ CreateRegionPileupMatrix <- function(
 
   # reverse minus strand and add together
   full.matrix <- cut.matrix.plus + cut.matrix.minus[, rev(x = colnames(x = cut.matrix.minus))]
+  colnames(full.matrix) <- -upstream:downstream
   return(full.matrix)
 }
 
-#' Sum integration sites per base per group
+#' Apply function to integration sites per base per group
 #'
 #' Perform colSums on a cut matrix with cells in the rows
 #' and position in the columns, for each group of cells
@@ -959,6 +993,8 @@ CreateRegionPileupMatrix <- function(
 #' @param mat A cut matrix. See \code{\link{CutMatrix}}
 #' @param groups A vector of group identities, with the name
 #' of each element in the vector set to the cell name.
+#' @param fun Function to apply to each group of cells.
+#' For example, colSums or colMeans.
 #' @param group.scale.factors Scaling factor for each group. Should
 #' be computed using the number of cells in the group and the average number of counts
 #' in the group.
@@ -966,10 +1002,10 @@ CreateRegionPileupMatrix <- function(
 #' @param scale.factor Scaling factor to use. If NULL (default), will use the median normalization
 #' factor for all the groups.
 #'
-#' @importFrom Matrix colSums
-SumMatrixByGroup <- function(
+ApplyMatrixByGroup <- function(
   mat,
   groups,
+  fun,
   group.scale.factors,
   normalize = TRUE,
   scale.factor = NULL
@@ -979,7 +1015,7 @@ SumMatrixByGroup <- function(
   for (i in seq_along(along.with = all.groups)) {
     pos.cells <- names(x = groups)[groups == all.groups[[i]]]
     if (length(x = pos.cells) > 1) {
-      totals <- colSums(x = mat[pos.cells, ])
+      totals <- fun(x = mat[pos.cells, ])
     } else {
       totals <- mat[pos.cells, ]
     }
