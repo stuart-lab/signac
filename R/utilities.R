@@ -322,9 +322,11 @@ ChunkGRanges <- function(granges, nchunk) {
 #' @param assay Name of the assay to use
 #' @param cells Which cells to include in the matrix. If NULL (default), use all
 #' cells in the object
+#' @param tabix.file A TabixFile object. If NULL, the file specified in \code{fragment.path}
+#' will be opened and closed after the function completes. If iterating over many regions, providing an
+#' open TabixFile is much faster as it avoids opening and closing the connection each time.
 #' @param verbose Display messages
 #' @importFrom BiocGenerics width start end
-#' @importFrom methods is
 #' @return Returns a sparse matrix
 #' @export
 #' @examples
@@ -337,21 +339,24 @@ ChunkGRanges <- function(granges, nchunk) {
 CutMatrix <- function(
   object,
   region,
+  tabix.file = NULL,
   assay = NULL,
   cells = NULL,
   verbose = TRUE
 ) {
-  if (!is(object = region, class2 = 'GRanges')) {
+  if (!inherits(x = region, what = 'GRanges')) {
     stop("Region is not a GRanges object.")
   }
   all.cells <- cells %||% colnames(x = object)
-  fragment.path <- GetFragments(object = object, assay = assay)
+  if (is.null(x = tabix.file)) {
+    fragment.path <- GetFragments(object = object, assay = assay)
+  }
   fragments <- GetReadsInRegion(
     object = object,
     assay = assay,
     region = region,
     cells = cells,
-    fragment.path = fragment.path,
+    tabix.file = tabix.file,
     verbose = verbose
   )
   # if there are no reads in the region, create an empty matrix of the correct dimension
@@ -465,7 +470,9 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 #' @param region A genomic region, specified as a string in the format
 #' 'chr:start-end'. Can be a vector of regions.
 #' @param assay Name of assay to use
-#' @param fragment.path Path to indexed fragment file
+#' @param tabix.file A TabixFile object. If NULL, the file specified in \code{fragment.path}
+#' will be opened and closed after the function completes. If iterating over many regions, providing an
+#' open TabixFile is much faster as it avoids opening and closing the connection each time.
 #' @param group.by Cell grouping information to add
 #' @param cells Cells to include. Default is all cells present in the object.
 #' @param verbose Display messages
@@ -480,7 +487,7 @@ GetReadsInRegion <- function(
   object,
   region,
   assay = NULL,
-  fragment.path = NULL,
+  tabix.file = NULL,
   group.by = NULL,
   cells = NULL,
   verbose = TRUE,
@@ -494,15 +501,24 @@ GetReadsInRegion <- function(
     group.by <- meta.data[[group.by]]
     names(x = group.by) <- rownames(x = meta.data)
   }
-  fragment.path <- fragment.path %||% GetFragments(object = object, assay = assay)
   if (verbose) {
     message('Extracting reads in requested region')
   }
   if (!is(object = region, class2 = 'GRanges')) {
     region <- StringToGRanges(regions = region, ...)
   }
-  tbx <- TabixFile(file = fragment.path)
-  reads <- scanTabix(file = tbx, param = region)
+  if (is.null(x = tabix.file)) {
+    fragment.path <- fragment.path %||% GetFragments(object = object, assay = assay)
+    tabix.file <- TabixFile(file = fragment.path)
+    tbx <- open(con = tabix.file)
+    close.file <- TRUE
+  } else {
+    close.file <- FALSE
+  }
+  reads <- scanTabix(file = tabix.file, param = region)
+  if (close.file) {
+    close(con = tabix.file)
+  }
   reads <- TabixOutputToDataFrame(reads = reads)
   reads <- reads[reads$cell %in% names(group.by), ]
   if (!is.null(x = cells)) {
@@ -899,6 +915,7 @@ MergeWithRegions <- function(
 #' @param assay Name of the assay to use
 #' @param cells Vector of cells to include
 #' @param verbose Display messages
+#' @importFrom Rsamtools TabixFile
 MultiRegionCutMatrix <- function(
   object,
   regions,
@@ -906,21 +923,23 @@ MultiRegionCutMatrix <- function(
   cells = NULL,
   verbose = FALSE
 ) {
-  cm <- CutMatrix(
-    object = object,
-    assay = assay,
-    region = regions[1, ],
-    verbose = verbose
+  fragment.path <- GetFragments(object = object, assay = assay)
+  tabix.file <- TabixFile(file = fragment.path)
+  open(con = tabix.file)
+  cm.list <- lapply(
+    X = 1:length(x = regions),
+    FUN = function(x) {
+      CutMatrix(
+        object = object,
+        assay = assay,
+        tabix.file = tabix.file,
+        region = regions[x, ],
+        verbose = verbose
+      )
+    }
   )
-  colnames(cm) <- 1:ncol(x = cm)
-  for (i in 2:length(x = regions)) {
-    cm <- cm + CutMatrix(
-      object = object,
-      assay = assay,
-      region = regions[i, ],
-      verbose = verbose
-    )
-  }
+  cm <- Reduce(f = `+`, x = cm.list)
+  close(con = tabix.file)
   return(cm)
 }
 
