@@ -4,7 +4,7 @@
 \alias{GetReadsInRegion}
 \title{GetReadsInRegion}
 \usage{
-GetReadsInRegion(object, region, assay = NULL, fragment.path = NULL,
+GetReadsInRegion(object, region, assay = NULL, tabix.file = NULL,
   group.by = NULL, cells = NULL, verbose = TRUE, ...)
 }
 \arguments{
@@ -15,7 +15,9 @@ GetReadsInRegion(object, region, assay = NULL, fragment.path = NULL,
 
 \item{assay}{Name of assay to use}
 
-\item{fragment.path}{Path to indexed fragment file}
+\item{tabix.file}{A TabixFile object. If NULL, the file specified in \code{fragment.path}
+will be opened and closed after the function completes. If iterating over many regions, providing an
+open TabixFile is much faster as it avoids opening and closing the connection each time.}
 
 \item{group.by}{Cell grouping information to add}
 

@@ -4,7 +4,7 @@
 \alias{TSSPlot}
 \title{Plot the enrichment around TSS}
 \usage{
-TSSPlot(object, assay, group.by = NULL, idents = NULL)
+TSSPlot(object, assay = NULL, group.by = NULL, idents = NULL)
 }
 \arguments{
 \item{object}{A Seurat object}
