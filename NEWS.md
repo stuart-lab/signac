@@ -1,6 +1,8 @@
 # Signac 0.1.5
 
-* New options in CoveragePlot for scaling tracks  
+* New TSSEnrichment and TSSPlot functions for TSS enrichment scoring
+* New options in CoveragePlot for scaling tracks 
+* Major speed improvements for CoveragePlot 
 * Improved documentation (added examples)
 
 # Signac 0.1.4
