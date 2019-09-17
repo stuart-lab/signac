@@ -761,3 +761,71 @@ RunTFIDF.Seurat <- function(
   object[[assay]] <- assay.data
   return(object)
 }
+
+#' Compute TSS enrichment score per cell
+#'
+#' Compute the transcription start site (TSS) enrichment score for each cell, as defined by ENCODE:
+#' \url{https://www.encodeproject.org/data-standards/terms/}.
+#'
+#' The computed score will be added to the object metadata as "TSS.enrichment".
+#'
+#' @param object A Seurat object
+#' @param assay Name of assay to use
+#' @param tss.positions A GRanges object containing the TSS positions
+#' @param cells A vector of cells to include. If NULL (default), use all cells
+#' in the object
+#' @param verbose Display messages
+#' @importFrom Matrix rowMeans
+#' @importFrom Seurat GetAssayData DefaultAssay
+#' @importFrom methods slot
+#'
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
+#' @export
+TSSEnrichment <- function(
+  object,
+  tss.positions,
+  assay = NULL,
+  cells = NULL,
+  verbose = TRUE
+) {
+  assay <- assay %||% DefaultAssay(object = object)
+  cutmatrix <- CreateRegionPileupMatrix(
+    object = object,
+    regions = tss.positions,
+    upstream = 1000,
+    downstream = 1000,
+    assay = assay,
+    cells = cells,
+    verbose = verbose
+  )
+
+  # compute mean read counts in 100 bp at eack flank for each cell (200 bp total averaged)
+  if (verbose) {
+    message("Computing mean insertion frequency in flanking regions")
+  }
+  flanking.mean <- rowMeans(x = cutmatrix[, c(1:100, 1901:2001)])
+
+  # if the flanking mean is 0 for any cells, the enrichment score will be zero.
+  # instead replace with the mean from the whole population
+  flanking.mean[flanking.mean == 0] <- mean(flanking.mean)
+
+  # compute fold change at each position relative to flanking mean (flanks should start at 1)
+  if (verbose) {
+    message("Normalizing TSS score")
+  }
+  norm.matrix <- cutmatrix / flanking.mean
+
+  # Take signal value at center of distribution after normalization as TSS enrichment score
+  # average the 1000 bases at the center
+  object$TSS.enrichment <- rowMeans(x = norm.matrix[, 501:1500])
+
+  # store the normalized TSS matrix. For now put it in misc
+  misc.slot <- GetAssayData(object = object, assay = assay, slot = 'misc') %||% list()
+  if (!(is(object = misc.slot, class2 = 'list'))) {
+    warning("Misc slot already occupied, not storing TSS matrix")
+  } else {
+    misc.slot$TSS.enrichment.matrix <- norm.matrix
+    slot(object = object[[assay]], name = 'misc') <- misc.slot
+  }
+  return(object)
+}
