@@ -493,6 +493,7 @@ RegionPileup <- function(
 #' @param idents Set of identities to include in the plot
 #' @importFrom Seurat GetAssayData
 #' @importFrom Matrix colMeans
+#' @importFrom ggplot2 ggplot aes geom_line xlab ylab theme_minimal
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot2}} object
 #' @export
