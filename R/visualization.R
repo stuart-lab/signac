@@ -498,7 +498,7 @@ RegionPileup <- function(
 #' @export
 TSSPlot <- function(
   object,
-  assay,
+  assay = NULL,
   group.by = NULL,
   idents = NULL
 ) {
