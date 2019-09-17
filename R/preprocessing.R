@@ -776,7 +776,7 @@ RunTFIDF.Seurat <- function(
 #' in the object
 #' @param verbose Display messages
 #' @importFrom Matrix rowMeans
-#' @importFrom Seurat GetAssayData DefaultAssay
+#' @importFrom Seurat DefaultAssay Misc<-
 #' @importFrom methods slot
 #'
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
@@ -820,12 +820,7 @@ TSSEnrichment <- function(
   object$TSS.enrichment <- rowMeans(x = norm.matrix[, 501:1500])
 
   # store the normalized TSS matrix. For now put it in misc
-  misc.slot <- GetAssayData(object = object, assay = assay, slot = 'misc') %||% list()
-  if (!(is(object = misc.slot, class2 = 'list'))) {
-    warning("Misc slot already occupied, not storing TSS matrix")
-  } else {
-    misc.slot$TSS.enrichment.matrix <- norm.matrix
-    slot(object = object[[assay]], name = 'misc') <- misc.slot
-  }
+  Misc(object = object[[assay]], slot = 'TSS.enrichment.matrix') <- norm.matrix
+
   return(object)
 }
