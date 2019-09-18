@@ -4,16 +4,13 @@
 \alias{NucleosomeSignal}
 \title{NucleosomeSignal}
 \usage{
-NucleosomeSignal(object, assay = NULL, fragment.path = NULL,
-  region = "chr1-1-249250621", min.threshold = 147,
-  max.threshold = 294, verbose = TRUE, ...)
+NucleosomeSignal(object, assay = NULL, region = "chr1-1-249250621",
+  min.threshold = 147, max.threshold = 294, verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
 
 \item{assay}{Name of assay to use. Only required if a fragment path is not provided. If NULL, use the active assay.}
-
-\item{fragment.path}{Path to an indexed fragments file containing fragment information for cells in the Seurat object.}
 
 \item{region}{Which region to use. Can be a GRanges region, a string, or a vector of strings. Default is human chromosome 1.}
 
