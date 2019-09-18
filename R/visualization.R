@@ -333,8 +333,6 @@ globalVariables(names = 'group', package = 'Signac')
 #'
 #' @param object A Seurat object
 #' @param assay Which assay to use. Default is the active assay.
-#' @param fragment.path Path to an index fragment file. If NULL, will look for a path stored for the
-#' requested assay using the \code{SetFragments} function
 #' @param region Genomic range to use. Default is fist two megabases of chromosome 1. Can be a GRanges object, a string, or a vector
 #' of strings.
 #' @param cells Which cells to plot. Default all cells
@@ -350,7 +348,6 @@ globalVariables(names = 'group', package = 'Signac')
 PeriodPlot <- function(
   object,
   assay = NULL,
-  fragment.path = NULL,
   region = 'chr1-1-2000000',
   group.by = NULL,
   cells = NULL,
@@ -363,7 +360,6 @@ PeriodPlot <- function(
     region = region,
     cells = cells,
     group.by = group.by,
-    fragment.path = fragment.path,
     verbose = FALSE,
     ...
   )
