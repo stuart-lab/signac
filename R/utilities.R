@@ -525,7 +525,6 @@ GetReadsInRegion <- function(
     reads <- reads[reads$cell %in% cells, ]
   }
   if (nrow(reads) == 0) {
-    warning('No cells present in the requested region')
     return(reads)
   }
   reads$length <- reads$end - reads$start
