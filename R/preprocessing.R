@@ -497,7 +497,6 @@ globalVariables(names = 'cell', package = 'Signac')
 #'
 #' @param object A Seurat object
 #' @param assay Name of assay to use. Only required if a fragment path is not provided. If NULL, use the active assay.
-#' @param fragment.path Path to an indexed fragments file containing fragment information for cells in the Seurat object.
 #' @param region Which region to use. Can be a GRanges region, a string, or a vector of strings. Default is human chromosome 1.
 #' @param min.threshold Lower bound for the mononucleosome size. Default is 147
 #' @param max.threshold Upper bound for the mononucleosome size. Default is 294
@@ -513,7 +512,6 @@ globalVariables(names = 'cell', package = 'Signac')
 NucleosomeSignal <- function(
   object,
   assay = NULL,
-  fragment.path = NULL,
   region = 'chr1-1-249250621',
   min.threshold = 147,
   max.threshold = 294,
@@ -521,12 +519,10 @@ NucleosomeSignal <- function(
   ...
 ) {
   assay <- assay %||% DefaultAssay(object = object)
-  fragment.path <- fragment.path %||% GetFragments(object = object, assay = assay)
   fragments.use <- GetReadsInRegion(
     object = object,
     region = region,
     assay = assay,
-    fragment.path = fragment.path,
     cells = colnames(x = object),
     verbose = verbose,
     ...
@@ -776,7 +772,7 @@ RunTFIDF.Seurat <- function(
 #' in the object
 #' @param verbose Display messages
 #' @importFrom Matrix rowMeans
-#' @importFrom Seurat DefaultAssay Misc<-
+#' @importFrom Seurat DefaultAssay Misc
 #' @importFrom methods slot
 #'
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
@@ -820,7 +816,12 @@ TSSEnrichment <- function(
   object$TSS.enrichment <- rowMeans(x = norm.matrix[, 501:1500])
 
   # store the normalized TSS matrix. For now put it in misc
-  Misc(object = object[[assay]], slot = 'TSS.enrichment.matrix') <- norm.matrix
-
+  misc.slot <- Misc(object = object[[assay]]) %||% list()
+  if (!inherits(x = misc.slot, what = 'list')) {
+    warning("Misc slot already occupied, not storing TSS enrichment matrix")
+  } else{
+    misc.slot$TSS.enrichment.matrix <- norm.matrix
+    object[[assay]]@misc <- misc.slot
+  }
   return(object)
 }
