@@ -20,6 +20,24 @@ NULL
   }
 }
 
+#' @importFrom Seurat DefaultAssay Misc
+AddToMisc <- function(
+  object,
+  new.data,
+  save.as,
+  assay = NULL
+) {
+  assay <- assay %||% DefaultAssay(object = object)
+  misc.slot <- Misc(object = object[[assay]]) %||% list()
+  if (!inherits(x = misc.slot, what = 'list')) {
+    warning("Misc slot already occupied")
+  } else{
+    misc.slot[[save.as]] <- new.data
+    object[[assay]]@misc <- misc.slot
+  }
+  return(object)
+}
+
 globalVariables(names = c('group', 'readcount'), package = 'Signac')
 #' AverageCounts
 #'
@@ -138,6 +156,66 @@ ClosestFeature <- function(
   df$region <- GRangesToString(grange = feature_hits)
   df$distance <- mcols(x = nearest_feature)$distance
   return(df)
+}
+
+#' Compute Tn5 insertion bias
+#'
+#' Counts the Tn5 insertion frequency for each DNA hexamer.
+#'
+#' @param object A Seurat object
+#' @param genome A BSgenome object
+#' @param assay Name of assay to use. If NULL, use the default assay.
+#' @param region Region to use when assessing bias. Default is human chromosome 1.
+#' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
+#'
+#' @importFrom GenomicRanges GRanges
+#' @importFrom IRanges IRanges
+#' @importFrom Biostrings oligonucleotideFrequency
+#' @export
+#'
+#' @return Returns a Seurat object
+ComputeInsertionBias <- function(
+  object,
+  genome,
+  assay = NULL,
+  region = 'chr1-1-249250621',
+  verbose = TRUE,
+  ...
+) {
+  reads <- GetReadsInRegion(
+    object = object,
+    region = region,
+    assay = assay,
+    verbose = verbose,
+    ...
+  )
+  insertions <- GRanges(
+    seqnames = c(reads$chr, reads$chr),
+    ranges = IRanges(
+      start = c(reads$start, reads$end),
+      width = 1
+    ),
+    strand = '+'
+  )
+  insertions <- Extend(x = insertions, upstream = 3, downstream = 2)
+  sequences <- getSeq(x = genome, insertions)
+  insertion_hex_freq <- as.matrix(x = table(sequences))
+  genome_freq <- oligonucleotideFrequency(
+    x = getSeq(x = genome, names = 'chr1'),
+    width = 6
+  )
+  insertion_hex_freq <- insertion_hex_freq[names(x = genome_freq), ]
+  bias <- insertion_hex_freq/genome_freq
+
+  # TODO: add slot to chromatin assay for Tn5 insertion bias vector
+  object <- AddToMisc(
+    object = object,
+    assay = assay,
+    new.data = bias,
+    save.as = 'Tn5.bias'
+  )
+  return(object)
 }
 
 #' Find interesecting regions between two objects
@@ -508,7 +586,7 @@ GetReadsInRegion <- function(
     region <- StringToGRanges(regions = region, ...)
   }
   if (is.null(x = tabix.file)) {
-    fragment.path <- fragment.path %||% GetFragments(object = object, assay = assay)
+    fragment.path <- GetFragments(object = object, assay = assay)
     tabix.file <- TabixFile(file = fragment.path)
     tbx <- open(con = tabix.file)
     close.file <- TRUE
@@ -1024,10 +1102,15 @@ ApplyMatrixByGroup <- function(
   mat,
   groups,
   fun,
-  group.scale.factors,
   normalize = TRUE,
+  group.scale.factors = NULL,
   scale.factor = NULL
 ) {
+  if (normalize) {
+    if (is.null(x = group.scale.factors) | is.null(x = scale.factor)) {
+      stop("If normalizing counts, supply group scale factors")
+    }
+  }
   results <- list()
   all.groups <- unique(x = groups)
   for (i in seq_along(along.with = all.groups)) {
