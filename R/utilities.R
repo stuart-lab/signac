@@ -175,7 +175,7 @@ ClosestFeature <- function(
 #' @export
 #'
 #' @return Returns a Seurat object
-ComputeInsertionBias <- function(
+InsertionBias <- function(
   object,
   genome,
   assay = NULL,
@@ -200,7 +200,7 @@ ComputeInsertionBias <- function(
   )
   insertions <- Extend(x = insertions, upstream = 3, downstream = 2)
   sequences <- getSeq(x = genome, insertions)
-  insertion_hex_freq <- as.matrix(x = table(sequences))
+  insertion_hex_freq <- as.matrix(x = table(as.vector(x = sequences)))
   genome_freq <- oligonucleotideFrequency(
     x = getSeq(x = genome, names = 'chr1'),
     width = 6
