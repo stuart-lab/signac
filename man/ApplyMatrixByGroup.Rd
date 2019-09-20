@@ -4,8 +4,8 @@
 \alias{ApplyMatrixByGroup}
 \title{Apply function to integration sites per base per group}
 \usage{
-ApplyMatrixByGroup(mat, groups, fun, group.scale.factors,
-  normalize = TRUE, scale.factor = NULL)
+ApplyMatrixByGroup(mat, groups, fun, normalize = TRUE,
+  group.scale.factors = NULL, scale.factor = NULL)
 }
 \arguments{
 \item{mat}{A cut matrix. See \code{\link{CutMatrix}}}
@@ -16,11 +16,11 @@ of each element in the vector set to the cell name.}
 \item{fun}{Function to apply to each group of cells.
 For example, colSums or colMeans.}
 
+\item{normalize}{Perform sequencing depth and cell count normalization (default is TRUE)}
+
 \item{group.scale.factors}{Scaling factor for each group. Should
 be computed using the number of cells in the group and the average number of counts
 in the group.}
-
-\item{normalize}{Perform sequencing depth and cell count normalization (default is TRUE)}
 
 \item{scale.factor}{Scaling factor to use. If NULL (default), will use the median normalization
 factor for all the groups.}
