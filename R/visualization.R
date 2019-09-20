@@ -403,7 +403,7 @@ PeriodPlot <- function(
 #'
 #' @importFrom BiocGenerics strand
 #' @importFrom Seurat Idents
-#' @importFrom Matrix colSums
+#' @importFrom Matrix colSums colMeans
 #' @importFrom ggplot2 ggplot aes geom_line facet_wrap ylim xlab ylab theme_classic theme element_blank element_text
 #' @export
 #' @return Returns a \code{\link[ggplot2]{ggplot2}} object
@@ -432,16 +432,16 @@ RegionPileup <- function(
     cells = cells,
     verbose = verbose
   )
-  reads.per.group <- AverageCounts(
-    object = object,
-    group.by = group.by,
-    verbose = FALSE
-  )
-  cells.per.group <- CellsPerGroup(
-    object = object,
-    group.by = group.by
-  )
-  group.scale.factors <- reads.per.group * cells.per.group
+  # reads.per.group <- AverageCounts(
+  #   object = object,
+  #   group.by = group.by,
+  #   verbose = FALSE
+  # )
+  # cells.per.group <- CellsPerGroup(
+  #   object = object,
+  #   group.by = group.by
+  # )
+  # group.scale.factors <- reads.per.group * cells.per.group
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
@@ -455,10 +455,10 @@ RegionPileup <- function(
   coverages <- ApplyMatrixByGroup(
     mat = full.matrix,
     groups = obj.groups,
-    fun = colSums,
-    group.scale.factors = group.scale.factors,
-    scale.factor = scale.factor,
-    normalize = normalize
+    fun = colMeans,
+    # group.scale.factors = group.scale.factors,
+    # scale.factor = scale.factor,
+    normalize = FALSE
   )
   ymin <- 0
   ymax <- ymax %||% signif(x = max(coverages$norm.value, na.rm = TRUE), digits = 2)
@@ -466,7 +466,7 @@ RegionPileup <- function(
     geom_line(stat = 'identity', size = 0.2) +
     facet_wrap(facets = ~group) +
     xlab(label = paste0('Distance from region midpoint (bp)')) +
-    ylab(label = paste0('Normalized integration counts\n(0 - ', ymax, ')')) +
+    ylab(label = paste0('Mean integration counts\n(0 - ', ymax, ')')) +
     ylim(c(ymin, ymax)) +
     theme_classic() +
     theme(
