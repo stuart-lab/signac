@@ -9,6 +9,8 @@ navbar:
       href: news/index.html
     - text: "Get started"
       href: articles/pbmc_vignette.html
+    - text: "FAQ"
+      href: articles/faq.html
     - text: "Vignettes"
       menu:
         - text: "Human PBMCs"
