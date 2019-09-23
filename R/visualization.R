@@ -74,6 +74,7 @@ SingleCoveragePlot <- function(
     verbose = FALSE
   )
   group.scale.factors <- reads.per.group * cells.per.group
+  scale.factor <- scale.factor %||% median(x = group.scale.factors)
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
