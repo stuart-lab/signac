@@ -34,6 +34,9 @@ end coordinates.}
 
 \item{assay}{Name of assay to use}
 }
+\value{
+Returns a Seurat object
+}
 \description{
 Compute the GC content, region lengths, and dinucleotide base frequencies
 for regions in the assay and add to the feature metadata.

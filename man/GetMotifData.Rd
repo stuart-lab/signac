@@ -3,7 +3,7 @@
 \name{GetMotifData}
 \alias{GetMotifData}
 \alias{GetMotifData.Motif}
-\alias{GetMotifData.Assay}
+\alias{GetMotifData.ChromatinAssay}
 \alias{GetMotifData.Seurat}
 \title{GetMotifData}
 \usage{
@@ -11,7 +11,7 @@ GetMotifData(object, ...)
 
 \method{GetMotifData}{Motif}(object, slot = "data", ...)
 
-\method{GetMotifData}{Assay}(object, slot = "data", ...)
+\method{GetMotifData}{ChromatinAssay}(object, slot = "data", ...)
 
 \method{GetMotifData}{Seurat}(object, assay = NULL, slot = "data", ...)
 }
@@ -25,7 +25,7 @@ GetMotifData(object, ...)
 \item{assay}{Which assay to use. Default is the current active assay}
 }
 \value{
-Returns a Seurat object
+Returns a sparse matrix
 }
 \description{
 Get motif matrix for given assay
