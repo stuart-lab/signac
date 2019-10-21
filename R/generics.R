@@ -9,11 +9,11 @@ as.ChromatinAssay <- function(x, ...) {
 
 #' Annotation
 #'
-#' Get annotation name from ChromatinAssay
+#' Get the annotation from a ChromatinAssay
 #'
-#' @param object A ChromatinAssay object
 #' @param ... Arguments passed to other methods
-#' @return Returns a Seurat object
+#' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
+#' if the annotation data is present, otherwise returns NULL
 #' @rdname Annotation
 #' @export Annotation
 Annotation <- function(object, ...) {
@@ -73,6 +73,17 @@ FindTopFeatures <- function(object, ...) {
 #' @export GetMotifData
 GetMotifData <- function(object, ...) {
   UseMethod(generic = 'GetMotifData', object = object)
+}
+
+#' Motifs
+#'
+#' Get the Motif object
+#'
+#' @param ... Arguments passed to other methods
+#' @rdname Motifs
+#' @export Motifs
+Motifs <- function(object, ...) {
+  UseMethod(generic = 'Motifs', object = object)
 }
 
 #' Compute base composition information for genomic ranges

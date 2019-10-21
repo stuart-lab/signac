@@ -90,7 +90,8 @@ as.ChromatinAssay.Assay <- function(
   annotation = NULL,
   motifs = NULL,
   fragments = NULL,
-  sep = c("-", "-")
+  sep = c("-", "-"),
+  ...
 ) {
   new.assay <- as(object = x, Class = 'ChromatinAssay')
   ranges <- ranges %||% StringToGRanges(regions = rownames(x = x), sep = sep)
@@ -153,6 +154,8 @@ setAs(
 #' an object containing a \code{\link{ChromatinAssay}} rather than a
 #' standard Seurat \code{\link[Seurat]{Assay}}.
 #'
+#' @param counts Unnormalized data (raw counts). Should be a sparse matrix.
+#' @param assay Name of the assay corresponding to the initial input data. Default is "ATAC".
 #' @param genome Name of genome used
 #' @param ranges A \code{\link[GenomicRanges]{GRanges}} object containing the genomic
 #' position of each row of the counts matrix
@@ -328,6 +331,7 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
     if (!is(object = new.data, class2 = 'character')) {
       stop("Genome must be a character class object")
     }
+    # TODO check that genome matches the genome for granges and annotation
     slot(object = object, name = slot) <- new.data
   } else if (slot == 'fragments') {
     index.file <- paste0(new.data, ".tbi")
@@ -484,6 +488,13 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
   return(new.motif)
 }
 
+# TODO define subset.ChromatinAssay
+# needs to subet the genomic ranges and motif object
+
+# TODO define merge.ChromatinAssay
+# should be coordinate-aware and genome-aware
+# genome must match in order to merge
+
 #' @inheritParams subset.Motif
 #' @param i Which columns to retain
 #' @param j Which rows to retain
@@ -594,12 +605,38 @@ setMethod(
   }
 )
 
-#' @param object A ChromatinAssay object
 #' @rdname Annotation
 #' @method Annotation ChromatinAssay
 #' @export
-Annotation.ChromatinAssay <- function(object) {
-  slot(object = object, name = 'annotation')
+Annotation.ChromatinAssay <- function(object, ...) {
+  return(slot(object = object, name = 'annotation'))
+}
+
+#' @param object A Seurat object or ChromatinAssay object
+#' @importFrom Seurat DefaultAssay
+#' @rdname Annotation
+#' @method Annotation Seurat
+#' @export
+Annotation.Seurat <- function(object, ...) {
+  assay <- DefaultAssay(object = object)
+  return(Annotation(object = object[[assay]]))
+}
+
+#' @rdname Motifs
+#' @method Motifs ChromatinAssay
+#' @export
+Motifs.ChromatinAssay <- function(object, ...) {
+  return(slot(object = object, name = 'motifs'))
+}
+
+#' @param object A Seurat object
+#' @rdname Motifs
+#' @importFrom Seurat DefaultAssay
+#' @method Motifs Seurat
+#' @export
+Motifs.Seurat <- function(object, ...) {
+  assay <- DefaultAssay(object = object)
+  return(Motifs(object = object[[assay]]))
 }
 
 #' @method dimnames Motif
