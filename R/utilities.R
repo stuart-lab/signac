@@ -172,6 +172,7 @@ ClosestFeature <- function(
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 #' @importFrom Biostrings oligonucleotideFrequency
+#' @importFrom Seurat SetAssayData
 #' @export
 #'
 #' @return Returns a Seurat object
@@ -206,15 +207,8 @@ InsertionBias <- function(
     width = 6
   )
   insertion_hex_freq <- insertion_hex_freq[names(x = genome_freq), ]
-  bias <- insertion_hex_freq/genome_freq
-
-  # TODO: update for chromatinassay
-  object <- AddToMisc(
-    object = object,
-    assay = assay,
-    new.data = bias,
-    save.as = 'Tn5.bias'
-  )
+  bias <- insertion_hex_freq / genome_freq
+  object <- SetAssayData(object = object, assay = assay, slot = 'bias', new.data = bias)
   return(object)
 }
 
@@ -253,14 +247,13 @@ GetIntersectingFeatures <- function(
   assay.1 = NULL,
   assay.2 = NULL,
   distance = 0,
-  sep.1 = c("-", "-"),
-  sep.2 = c("-", "-"),
   verbose = TRUE
 ) {
-  assay.1 <- assay.1 %||% DefaultAssay(object = object.1)
-  assay.2 <- assay.2 %||% DefaultAssay(object = object.2)
-  regions.1 <- StringToGRanges(regions = rownames(x = object.1[[assay.1]]), sep = sep.1)
-  regions.2 <- StringToGRanges(regions = rownames(x = object.2[[assay.2]]), sep = sep.2)
+  # TODO I changed the output of this function from a list
+  # of matrix rownames to a list contatining intersecting granges
+  # need to update any functions that depend on this one accordingly
+  regions.1 <- GetAssayData(object = object.1, assay = assay.1, slot = 'ranges')
+  regions.2 <- GetAssayData(object = object.2, assay = assay.2, slot = 'ranges')
   if (verbose) {
     message("Intersecting regions across objects")
   }
@@ -269,9 +262,7 @@ GetIntersectingFeatures <- function(
   region.intersections <- region.intersections[keep.intersections, ]
   intersect.object1 <- regions.1[queryHits(x = region.intersections)]
   intersect.object2 <- regions.2[subjectHits(x = region.intersections)]
-  regions.obj1 <- GRangesToString(grange = intersect.object1, sep = sep.1)
-  regions.obj2 <- GRangesToString(grange = intersect.object2, sep = sep.2)
-  return(list(regions.obj1, regions.obj2))
+  return(list(intersect.object1, intersect.object2))
 }
 
 #' StringToGRanges
@@ -389,9 +380,6 @@ CutMatrix <- function(
     stop("Region is not a GRanges object.")
   }
   all.cells <- cells %||% colnames(x = object)
-  if (is.null(x = tabix.file)) {
-    fragment.path <- GetAssayData(object = object, assay = assay, slot = 'fragments')
-  }
   fragments <- GetReadsInRegion(
     object = object,
     assay = assay,
@@ -437,6 +425,8 @@ CutMatrix <- function(
 #' @param x A range
 #' @param upstream Length to extend upstream
 #' @param downstream Length to extend downstream
+#' @param from.midpoint Extend from the midpoint of the region, rather than the
+#' start and end coordinates (default FALSE).
 #'
 #' @importFrom GenomicRanges strand start end trim
 #' @importFrom IRanges ranges IRanges "ranges<-"
@@ -955,6 +945,8 @@ MultiRegionCutMatrix <- function(
 #'
 #' @param object A Seurat object
 #' @param regions A GRanges object
+#' @param upstream Number of bases to extend regions upstream
+#' @param downstream Number of bases to extend regions downstream
 #' @param assay Name of the assay to use
 #' @param cells Which cells to include. If NULL, use all cells
 #' @param verbose Display messages
