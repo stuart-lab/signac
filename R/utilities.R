@@ -208,7 +208,7 @@ InsertionBias <- function(
   insertion_hex_freq <- insertion_hex_freq[names(x = genome_freq), ]
   bias <- insertion_hex_freq/genome_freq
 
-  # TODO: add slot to chromatin assay for Tn5 insertion bias vector
+  # TODO: update for chromatinassay
   object <- AddToMisc(
     object = object,
     assay = assay,
@@ -272,43 +272,6 @@ GetIntersectingFeatures <- function(
   regions.obj1 <- GRangesToString(grange = intersect.object1, sep = sep.1)
   regions.obj2 <- GRangesToString(grange = intersect.object2, sep = sep.2)
   return(list(regions.obj1, regions.obj2))
-}
-
-#' Set the fragments file path for creating plots
-#'
-#' Give path of indexed fragments file that goes with data in the object.
-#' Checks for a valid path and an index file with the same name (.tbi) at the same path.
-#' Stores the path under the tools slot for access by visualization functions.
-#' One fragments file can be stored for each assay.
-#'
-#' @param object A Seurat object
-#' @param file Path to indexed fragment file.
-#' See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
-#' @param assay Assay used to generate the fragments. If NULL, use the active assay.
-#'
-#' @importFrom methods "slot<-" slot is
-#'
-#' @export
-#'
-SetFragments <- function(
-  object,
-  file,
-  assay = NULL
-) {
-  assay <- assay %||% DefaultAssay(object = object)
-  if (!(assay %in% names(x = slot(object = object, name = 'assays')))) {
-    stop('Requested assay not present in object')
-  }
-  index.file <- paste0(file, '.tbi')
-  if (all(file.exists(file, index.file))) {
-    file <- normalizePath(path = file)
-    current.tools <- slot(object = object, name = 'tools')
-    current.tools$fragments[[assay]] <- file
-    slot(object = object, name = 'tools') <- current.tools
-    return(object)
-  } else {
-    stop('Requested file does not exist or is not indexed')
-  }
 }
 
 #' StringToGRanges
@@ -427,7 +390,7 @@ CutMatrix <- function(
   }
   all.cells <- cells %||% colnames(x = object)
   if (is.null(x = tabix.file)) {
-    fragment.path <- GetFragments(object = object, assay = assay)
+    fragment.path <- GetAssayData(object = object, assay = assay, slot = 'fragments')
   }
   fragments <- GetReadsInRegion(
     object = object,
@@ -521,7 +484,7 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
     region <- StringToGRanges(regions = region)
   }
   bin.reads <- scanTabix(file = tabix, param = region)
-  reads <- sapply(X = bin.reads, FUN = ExtractCell)
+  reads <- sapply(X = bin.reads, FUN = ExtractCell, simplify = FALSE)
   if (!is.null(x = cells)) {
     reads <- sapply(X = reads, FUN = function(x) {
       x <- x[x %in% cells]
@@ -586,7 +549,7 @@ GetReadsInRegion <- function(
     region <- StringToGRanges(regions = region, ...)
   }
   if (is.null(x = tabix.file)) {
-    fragment.path <- GetFragments(object = object, assay = assay)
+    fragment.path <- GetAssayData(object = object, assay = assay, slot = 'fragments')
     tabix.file <- TabixFile(file = fragment.path)
     tbx <- open(con = tabix.file)
     close.file <- TRUE
@@ -610,54 +573,19 @@ GetReadsInRegion <- function(
   return(reads)
 }
 
-#' GetFragments
-#'
-#' Retrieve path to fragments file from assay object, and checks that the file exists and
-#' is indexed before returning the file path.
-#'
-#' @param object A Seurat object
-#' @param assay Name of the assay use to store the fragments file path
-#'
-#' @importFrom methods slot
-#' @importFrom Seurat DefaultAssay
-#'
-#' @return Returns the path to a fragments file stored in the Assay if present
-#' @export
-GetFragments <- function(
-  object,
-  assay = NULL
-) {
-  assay <- assay %||% DefaultAssay(object = object)
-  tools <- slot(object = object, name = 'tools')
-  if ('fragments' %in% names(x = tools)) {
-    if (assay %in% names(x = tools$fragments)) {
-      fragment.path <- tools$fragments[[assay]]
-    } else {
-      stop('Fragment file not supplied for the requested assay')
-    }
-  } else {
-    stop('Fragment file not set. Run SetFragments to set the fragment file path.')
-  }
-  if (!(all(file.exists(fragment.path, paste0(fragment.path, '.tbi'))))) {
-    stop('Requested file does not exist or is not indexed')
-  } else {
-    return(fragment.path)
-  }
-}
-
 #' CountsInRegion
 #'
 #' Count reads per cell overlapping a given set of regions
 #'
 #' @param object A Seurat object
-#' @param assay Name of assay in the object to use
+#' @param assay Name of a chromatin assay in the object to use
 #' @param regions A GRanges object
-#' @param sep Separator to use when extracting genomic coordinates from the Seurat object
 #' @param ... Additional arguments passed to \code{\link[IRanges]{findOverlaps}}
 #'
 #' @importFrom IRanges findOverlaps
 #' @importFrom S4Vectors queryHits
 #' @importFrom Matrix colSums
+#' @importFrom Seurat GetAssayData
 #'
 #' @export
 #' @examples
@@ -670,11 +598,12 @@ CountsInRegion <- function(
   object,
   assay,
   regions,
-  sep = c("-", '-'),
   ...
 ) {
-  obj.regions <- rownames(x = object[[assay]])
-  obj.granges <- StringToGRanges(regions = obj.regions, sep = sep)
+  if (!is(object = object[[assay]], class2 = 'ChromatinAssay')) {
+    stop("Must supply a ChromatinAssay")
+  }
+  obj.granges <- GetAssayData(object = object, assay = assay, slot = 'ranges')
   overlaps <- findOverlaps(query = obj.granges, subject = regions, ...)
   hit.regions <- GRangesToString(grange = obj.granges[queryHits(x = overlaps)], sep = sep)
   data.matrix <- GetAssayData(object = object, assay = assay, slot = 'counts')[hit.regions, ]
@@ -706,7 +635,6 @@ ExtractCell <- function(x) {
 #' @param object A Seurat object
 #' @param assay Name of assay to use
 #' @param regions A GRanges object containing a set of genomic regions
-#' @param sep The separator used to separate genomic coordinate information in the assay feature names
 #' @param ... Additional arguments passed to \code{\link{CountsInRegion}}
 #' @importFrom Matrix colSums
 #' @importFrom Seurat GetAssayData
@@ -722,14 +650,12 @@ FractionCountsInRegion <- function(
   object,
   assay,
   regions,
-  sep = c("-", "-"),
   ...
 ) {
   reads.in.region <- CountsInRegion(
     object = object,
     regions = regions,
     assay = assay,
-    sep = sep,
     ...
   )
   total.reads <- colSums(x = GetAssayData(object = object, assay = assay, slot = 'counts'))
@@ -920,6 +846,7 @@ MergeWithRegions <- function(
   verbose = TRUE,
   ...
 ) {
+  # TODO update to use ChromatinAssay
   assay.1 <- assay.1 %||% DefaultAssay(object = object.1)
   assay.2 <- assay.2 %||% DefaultAssay(object = object.2)
   intersecting.regions <- GetIntersectingFeatures(
@@ -993,6 +920,7 @@ MergeWithRegions <- function(
 #' @param cells Vector of cells to include
 #' @param verbose Display messages
 #' @importFrom Rsamtools TabixFile
+#' @importFrom Seurat GetAssayData
 MultiRegionCutMatrix <- function(
   object,
   regions,
@@ -1000,7 +928,7 @@ MultiRegionCutMatrix <- function(
   cells = NULL,
   verbose = FALSE
 ) {
-  fragment.path <- GetFragments(object = object, assay = assay)
+  fragment.path <- GetAssayData(object = object, assay = assay, slot = 'fragments')
   tabix.file <- TabixFile(file = fragment.path)
   open(con = tabix.file)
   cm.list <- lapply(

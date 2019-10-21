@@ -1,12 +1,23 @@
+#' Convert objects to a ChromatinAssay
+#' @param x An object to convert to class \code{\link{ChromatinAssay}}
+#' @param ... Arguments passed to other methods
+#' @rdname as.ChromatinAssay
+#' @export as.ChromatinAssay
+as.ChromatinAssay <- function(x, ...) {
+  UseMethod(generic = 'as.ChromatinAssay', object = x)
+}
 
-#' AddMotifObject
+#' Annotation
 #'
-#' @param object A Seurat object
-#' @rdname AddMotifObject
+#' Get annotation name from ChromatinAssay
+#'
+#' @param object A ChromatinAssay object
+#' @param ... Arguments passed to other methods
 #' @return Returns a Seurat object
-#' @export
-AddMotifObject <- function(object, ...) {
-  UseMethod(generic = 'AddMotifObject', object = object)
+#' @rdname Annotation
+#' @export Annotation
+Annotation <- function(object, ...) {
+  UseMethod(generic = 'Annotation', object = object)
 }
 
 #' BinarizeCounts
@@ -57,24 +68,11 @@ FindTopFeatures <- function(object, ...) {
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
-#' @return Returns a Seurat object
+#' @return Returns a sparse matrix
 #' @rdname GetMotifData
 #' @export GetMotifData
 GetMotifData <- function(object, ...) {
   UseMethod(generic = 'GetMotifData', object = object)
-}
-
-#' GetMotifObject
-#'
-#' Get motif object from given assay
-#'
-#' @param object A Seurat object
-#' @param ... Arguments passed to other methods
-#' @return Returns a Motif object
-#' @rdname GetMotifObject
-#' @export GetMotifObject
-GetMotifObject <- function(object, ...) {
-  UseMethod(generic = 'GetMotifObject', object = object)
 }
 
 #' Compute base composition information for genomic ranges
@@ -84,6 +82,7 @@ GetMotifObject <- function(object, ...) {
 #'
 #' @param object A Seurat object, Assay object, or set of genomic ranges
 #' @param ... Arguments passed to other methods
+#' @return Returns a Seurat object
 #' @rdname RegionStats
 #' @export RegionStats
 RegionStats <- function(object, ...) {
