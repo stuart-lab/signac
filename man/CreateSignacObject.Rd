@@ -31,6 +31,9 @@ accumulate reads in all cells. A percentage cutoff can also be set using
 features detected in 90 percent of cells.
 If NULL (default), do not apply any maximum value.}
 
+\item{meta.data}{Additional cell-level metadata to add to the Seurat object.
+Should be a data frame where the rows are cell names and the columns are additional metadata fields.}
+
 \item{names.delim}{For the initial identity class for each cell, choose this delimiter from the
 cell's column name. E.g. If your cells are named as BARCODE-CLUSTER-CELLTYPE, set this to "-"
 to separate the cell name into its component parts for picking the relevant field.}

@@ -4,9 +4,9 @@
 \alias{RegionPileup}
 \title{Plot pileup of Tn5 integration sites}
 \usage{
-RegionPileup(object, regions, assay = NULL, upstream = 200,
-  downstream = 200, group.by = NULL, min.cells = 100, ymax = NULL,
-  idents = NULL, verbose = TRUE)
+RegionPileup(object, regions, assay = NULL, cells = NULL,
+  upstream = 200, downstream = 200, group.by = NULL,
+  min.cells = 100, ymax = NULL, idents = NULL, verbose = TRUE)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -14,6 +14,8 @@ RegionPileup(object, regions, assay = NULL, upstream = 200,
 \item{regions}{A set of GRanges to use}
 
 \item{assay}{Name of the assay to use}
+
+\item{cells}{Which cells to include. If NULL, use all cells}
 
 \item{upstream}{Number of bases to extend upstream of the region midpoint}
 

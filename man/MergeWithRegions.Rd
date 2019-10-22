@@ -5,8 +5,7 @@
 \title{Region-aware object merging}
 \usage{
 MergeWithRegions(object.1, object.2, assay.1 = NULL, assay.2 = NULL,
-  sep.1 = c("-", "-"), sep.2 = c("-", "-"), regions.use = 1,
-  distance = 0, new.assay.name = "peaks", project = "SeuratProject",
+  regions.use = 1, distance = 0, new.assay.name = "ATAC",
   verbose = TRUE, ...)
 }
 \arguments{
@@ -20,10 +19,6 @@ the default assay}
 \item{assay.2}{Name of the assay to use in the second object. If NULL, use
 the default assay}
 
-\item{sep.1}{Genomic coordinate separators to use for the first object}
-
-\item{sep.2}{Genomic coordinate separators to use for the second object}
-
 \item{regions.use}{Which regions to use when naming regions in the merged object.
 Options are:
 \itemize{
@@ -36,11 +31,9 @@ be recorded. Default is 0.}
 
 \item{new.assay.name}{Name for the merged assay. Default is 'peaks'}
 
-\item{project}{Project name for the new object}
-
 \item{verbose}{Display messages}
 
-\item{...}{Additional arguments passed to \code{\link[Seurat]{CreateAssayObject}}}
+\item{...}{Additional arguments passed to \code{\link{CreateChromatinAssayObject}}}
 }
 \value{
 Returns a Seurat object

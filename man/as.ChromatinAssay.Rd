@@ -26,6 +26,8 @@ as.ChromatinAssay(x, ...)
 
 \item{fragments}{Path to fragments file}
 
+\item{bias}{Tn5 integration bias matrix}
+
 \item{sep}{Charaters used to separate the chromosome, start, and end coordinates
 in the row names of the data matrix}
 }
