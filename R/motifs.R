@@ -106,6 +106,7 @@ RunChromVAR <- function(
 #' @importFrom Matrix colSums
 #' @importFrom stats phyper
 #' @importFrom methods is
+#' @importFrom TFBSTools name
 #'
 #' @export
 #' @examples
