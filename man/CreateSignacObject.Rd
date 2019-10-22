@@ -5,8 +5,10 @@
 \title{Create Seurat object with a chromatin assay}
 \usage{
 CreateSignacObject(counts, assay = "ATAC", project = "SignacProject",
+  min.cells = 0, min.features = 0, max.cells = NULL,
+  meta.data = NULL, names.delim = "_", names.field = 1,
   ranges = NULL, fragments = NULL, annotation = NULL,
-  genome = NULL, motifs = NULL, sep = c("-", "-"), ...)
+  genome = NULL, motifs = NULL, sep = c("-", "-"))
 }
 \arguments{
 \item{counts}{Unnormalized data (raw counts). Should be a sparse matrix.}
@@ -14,6 +16,28 @@ CreateSignacObject(counts, assay = "ATAC", project = "SignacProject",
 \item{assay}{Name of the assay corresponding to the initial input data. Default is "ATAC".}
 
 \item{project}{Sets the project name for the object}
+
+\item{min.cells}{Include features detected in at least this many cells.
+Will subset the counts matrix as well. To reintroduce excluded features, create a new object with a lower cutoff.}
+
+\item{min.features}{Include cells where at least this many features are detected.}
+
+\item{max.cells}{Include features detected in less than this many cells.
+Will subset the counts matrix as well.
+To reintroduce excluded features, create a new object with a higher cutoff.
+This can be useful for chromatin assays where certain artefactual loci
+accumulate reads in all cells. A percentage cutoff can also be set using
+'q' followed by the percentage of cells, for example 'q90' will discard
+features detected in 90 percent of cells.
+If NULL (default), do not apply any maximum value.}
+
+\item{names.delim}{For the initial identity class for each cell, choose this delimiter from the
+cell's column name. E.g. If your cells are named as BARCODE-CLUSTER-CELLTYPE, set this to "-"
+to separate the cell name into its component parts for picking the relevant field.}
+
+\item{names.field}{For the initial identity class for each cell, choose this field from the cell's name.
+E.g. If your cells are named as BARCODE_CLUSTER_CELLTYPE in the input matrix,
+set names.field to 3 to set the initial identities to CELLTYPE.}
 
 \item{ranges}{A \code{\link[GenomicRanges]{GRanges}} object containing the genomic
 position of each row of the counts matrix}
@@ -30,8 +54,6 @@ genomic annotations for the genome used}
 
 \item{sep}{Charaters used to separate the chromosome, start, and end coordinates
 in the row names of the data matrix}
-
-\item{...}{Parameters passed to \code{\link[Seurat]{CreateSeuratObject}}}
 }
 \description{
 This is a wrapper for \code{\link[Seurat]{CreateSeuratObject}} to create
