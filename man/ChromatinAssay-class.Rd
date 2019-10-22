@@ -18,7 +18,7 @@ genomic location of features in the object}
 \item{\code{motifs}}{A \code{\link{Motif}} object}
 
 \item{\code{fragments}}{A character vector containing the path/s to tabix-indexed fragment file/s
-for the cells in the assay}
+for the cells in the assay. See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}}
 
 \item{\code{genome}}{Name of the genome used}
 

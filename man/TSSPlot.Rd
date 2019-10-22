@@ -23,3 +23,6 @@ Returns a \code{\link[ggplot2]{ggplot2}} object
 Plot the normalized TSS enrichment score at each position relative to the TSS.
 Requires that \code{\link{TSSEnrichment}} has already been run on the assay.
 }
+\details{
+Wrapper for the \code{\link{EnrichmentPlot}} function
+}

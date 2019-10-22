@@ -39,8 +39,3 @@ Plots a pileup of integration sites centered on a set of genomic positions.
 Each genomic region will be aligned on the region midpoint, and extended upstream
 and downstream from the midpoint.
 }
-\examples{
-\dontrun{
-
-}
-}

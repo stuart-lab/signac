@@ -12,6 +12,10 @@ CreateRegionPileupMatrix(object, regions, upstream = 1000,
 
 \item{regions}{A GRanges object}
 
+\item{upstream}{Number of bases to extend regions upstream}
+
+\item{downstream}{Number of bases to extend regions downstream}
+
 \item{assay}{Name of the assay to use}
 
 \item{cells}{Which cells to include. If NULL, use all cells}

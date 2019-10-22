@@ -27,8 +27,8 @@ coordinates to plot.}
 
 \item{assay}{Name of the  assay to plot}
 
-\item{fragment.path}{Path to an index fragment file. If NULL, will look for a path stored for the
-requested assay using the \code{\link{SetFragments}} function}
+\item{fragment.path}{Path to an index fragment file. If NULL, will look for a path stored in the
+fragments slot of the ChromatinAssay object}
 
 \item{group.by}{Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities}
 

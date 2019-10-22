@@ -9,6 +9,10 @@ CreateSignacObject(counts, assay = "ATAC", project = "SignacProject",
   genome = NULL, motifs = NULL, sep = c("-", "-"), ...)
 }
 \arguments{
+\item{counts}{Unnormalized data (raw counts). Should be a sparse matrix.}
+
+\item{assay}{Name of the assay corresponding to the initial input data. Default is "ATAC".}
+
 \item{project}{Sets the project name for the object}
 
 \item{ranges}{A \code{\link[GenomicRanges]{GRanges}} object containing the genomic

@@ -5,8 +5,7 @@
 \title{Find interesecting regions between two objects}
 \usage{
 GetIntersectingFeatures(object.1, object.2, assay.1 = NULL,
-  assay.2 = NULL, distance = 0, sep.1 = c("-", "-"), sep.2 = c("-",
-  "-"), verbose = TRUE)
+  assay.2 = NULL, distance = 0, verbose = TRUE)
 }
 \arguments{
 \item{object.1}{The first Seurat object}
@@ -22,11 +21,11 @@ the default assay}
 \item{distance}{Maximum distance between regions allowed for an intersection to
 be recorded. Default is 0.}
 
+\item{verbose}{Display messages}
+
 \item{sep.1}{Genomic coordinate separators to use for the first object}
 
 \item{sep.2}{Genomic coordinate separators to use for the second object}
-
-\item{verbose}{Display messages}
 }
 \value{
 Returns a list of two character vectors containing the row names

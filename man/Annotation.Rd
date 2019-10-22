@@ -3,22 +3,24 @@
 \name{Annotation}
 \alias{Annotation}
 \alias{Annotation.ChromatinAssay}
+\alias{Annotation.Seurat}
 \title{Annotation}
 \usage{
 Annotation(object, ...)
 
-\method{Annotation}{ChromatinAssay}(object)
+\method{Annotation}{ChromatinAssay}(object, ...)
+
+\method{Annotation}{Seurat}(object, ...)
 }
 \arguments{
-\item{object}{A ChromatinAssay object}
+\item{object}{A Seurat object or ChromatinAssay object}
 
 \item{...}{Arguments passed to other methods}
-
-\item{object}{A ChromatinAssay object}
 }
 \value{
-Returns a Seurat object
+Returns a \code{\link[GenomicRanges]{GRanges}} object
+if the annotation data is present, otherwise returns NULL
 }
 \description{
-Get annotation name from ChromatinAssay
+Get the annotation from a ChromatinAssay
 }

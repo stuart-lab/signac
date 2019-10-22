@@ -4,7 +4,7 @@
 \alias{FractionCountsInRegion}
 \title{FractionCountsInRegion}
 \usage{
-FractionCountsInRegion(object, assay, regions, sep = c("-", "-"), ...)
+FractionCountsInRegion(object, assay, regions, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -12,8 +12,6 @@ FractionCountsInRegion(object, assay, regions, sep = c("-", "-"), ...)
 \item{assay}{Name of assay to use}
 
 \item{regions}{A GRanges object containing a set of genomic regions}
-
-\item{sep}{The separator used to separate genomic coordinate information in the assay feature names}
 
 \item{...}{Additional arguments passed to \code{\link{CountsInRegion}}}
 }
