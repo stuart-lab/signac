@@ -268,8 +268,6 @@ InsertionBias <- function(
 #' the default assay
 #' @param assay.2 Name of the assay to use in the second object. If NULL, use
 #' the default assay
-#' @param sep.1 Genomic coordinate separators to use for the first object
-#' @param sep.2 Genomic coordinate separators to use for the second object
 #' @param distance Maximum distance between regions allowed for an intersection to
 #' be recorded. Default is 0.
 #' @param verbose Display messages
@@ -635,7 +633,9 @@ CountsInRegion <- function(
   }
   obj.granges <- GetAssayData(object = object, assay = assay, slot = 'ranges')
   overlaps <- findOverlaps(query = obj.granges, subject = regions, ...)
-  hit.regions <- GRangesToString(grange = obj.granges[queryHits(x = overlaps)], sep = sep)
+  hit.regions <- queryHits(x = overlaps)
+  # TODO define a function to return matrix rows corresponding to granges
+  # Might not even need it if granges are same order as rows
   data.matrix <- GetAssayData(object = object, assay = assay, slot = 'counts')[hit.regions, ]
   return(colSums(data.matrix))
 }
@@ -858,8 +858,6 @@ MatchRegionStats <- function(
 #' the default assay
 #' @param assay.2 Name of the assay to use in the second object. If NULL, use
 #' the default assay
-#' @param sep.1 Genomic coordinate separators to use for the first object
-#' @param sep.2 Genomic coordinate separators to use for the second object
 #' @param regions.use Which regions to use when naming regions in the merged object.
 #' Options are:
 #' \itemize{
@@ -869,9 +867,8 @@ MatchRegionStats <- function(
 #' @param distance Maximum distance between regions allowed for an intersection to
 #' be recorded. Default is 0.
 #' @param new.assay.name Name for the merged assay. Default is 'peaks'
-#' @param project Project name for the new object
 #' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{\link[Seurat]{CreateAssayObject}}
+#' @param ... Additional arguments passed to \code{\link{CreateChromatinAssayObject}}
 #'
 #' @importFrom Seurat DefaultAssay CreateAssayObject GetAssayData
 #' @importFrom utils packageVersion
@@ -884,25 +881,23 @@ MergeWithRegions <- function(
   object.2,
   assay.1 = NULL,
   assay.2 = NULL,
-  sep.1 = c("-", "-"),
-  sep.2 = c("-", "-"),
   regions.use = 1,
   distance = 0,
-  new.assay.name = 'peaks',
-  project = 'SeuratProject',
+  new.assay.name = 'ATAC',
   verbose = TRUE,
   ...
 ) {
+  # TODO write as a method merge.ChromatinAssay
   # TODO update to use ChromatinAssay
   assay.1 <- assay.1 %||% DefaultAssay(object = object.1)
   assay.2 <- assay.2 %||% DefaultAssay(object = object.2)
+
+  # TODO check what the output here is
   intersecting.regions <- GetIntersectingFeatures(
     object.1 = object.1,
     object.2 = object.2,
     assay.1 = assay.1,
     assay.2 = assay.2,
-    sep.1 = sep.1,
-    sep.2 = sep.2,
     distance = distance,
     verbose = verbose
   )
@@ -942,8 +937,9 @@ MergeWithRegions <- function(
   rownames(counts.2) <- region.names
   allcounts <- cbind(counts.1, counts.2)
   assays <- list()
-  new.assay <- CreateAssayObject(counts = allcounts, ...)
+  new.assay <- CreateChromatinAssayObject(counts = allcounts, ...)
   assays[[new.assay.name]] <- new.assay
+  # TODO change to CreateSignacObject
   merged.object <- new(
     Class = 'Seurat',
     assays = assays,

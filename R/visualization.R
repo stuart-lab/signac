@@ -308,7 +308,7 @@ PeriodPlot <- function(
   return(p)
 }
 
-
+globalVariables(names = 'norm.value', package = 'Signac')
 #' Plot pileup of Tn5 integration sites
 #'
 #' Plots a pileup of integration sites centered on a set of genomic positions.
@@ -317,6 +317,7 @@ PeriodPlot <- function(
 #'
 #' @param object A Seurat object
 #' @param assay Name of the assay to use
+#' @param cells Which cells to include. If NULL, use all cells
 #' @param regions A set of GRanges to use
 #' @param upstream Number of bases to extend upstream of the region midpoint
 #' @param downstream Number of bases to extend downstream of the region midpoint
@@ -338,6 +339,7 @@ RegionPileup <- function(
   object,
   regions,
   assay = NULL,
+  cells = NULL,
   upstream = 200,
   downstream = 200,
   group.by = NULL,
@@ -400,6 +402,7 @@ RegionPileup <- function(
   return(p)
 }
 
+globalVariables(names = 'norm.value', package = 'Signac')
 #' Plot the enrichment of Tn5 integration sites
 #'
 #' Plot the enrichment of Tn5 integration sites centered on a set of genomic regions.

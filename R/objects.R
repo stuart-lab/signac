@@ -180,6 +180,7 @@ CreateChromatinAssayObject <- function(
 #' @param annotation Genomic annotation
 #' @param motifs A Motif object
 #' @param fragments Path to fragments file
+#' @param bias Tn5 integration bias matrix
 #' @param sep Charaters used to separate the chromosome, start, and end coordinates
 #' in the row names of the data matrix
 #'
@@ -289,6 +290,8 @@ setAs(
 #' @param names.field For the initial identity class for each cell, choose this field from the cell's name.
 #' E.g. If your cells are named as BARCODE_CLUSTER_CELLTYPE in the input matrix,
 #' set names.field to 3 to set the initial identities to CELLTYPE.
+#' @param meta.data Additional cell-level metadata to add to the Seurat object.
+#' Should be a data frame where the rows are cell names and the columns are additional metadata fields.
 #' @param fragments A character vector containing path/s to tabix-indexed fragment file/s
 #' for cells in the object
 #' @param annotation A \code{\link[GenomicRanges]{GRanges}} object containing
@@ -297,7 +300,7 @@ setAs(
 #' @param sep Charaters used to separate the chromosome, start, and end coordinates
 #' in the row names of the data matrix
 #'
-#' @importFrom Seurat Key
+#' @importFrom Seurat Key<-
 #' @export
 CreateSignacObject <- function(
   counts,
