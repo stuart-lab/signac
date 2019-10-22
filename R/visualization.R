@@ -127,13 +127,17 @@ SingleCoveragePlot <- function(
       strip.text.y = element_text(angle = 0)
     )
   if (!is.null(x = annotation)) {
+    # TODO update this to pull from annotation slot
+    chromosome <- gsub(pattern = 'hg19_', replacement = '', chromosome)
+    chromosome <- gsub(pattern = 'mm10_', replacement = '', chromosome)
+
     gr <- GRanges(
       seqnames = gsub(pattern = 'chr', replacement = '', x = chromosome),
       IRanges(start = start.pos, end = end.pos)
     )
     filters <- AnnotationFilterList(GRangesFilter(value = gr), GeneBiotypeFilter(value = 'protein_coding'))
     if (suppressMessages(expr = nrow(x = select(x = annotation, filters)) > 0)) {
-      genes <- suppressMessages(expr = autoplot(object = annotation, filters, names.expr = 'gene_name'))
+      genes <- suppressMessages(expr = autoplot(object = annotation, filters, names.expr = 'gene_name', stat = 'reduce'))
       gene.plot <- genes@ggplot +
         xlim(start.pos, end.pos) +
         xlab(label = paste0(chromosome, ' position (bp)')) +
@@ -169,8 +173,8 @@ SingleCoveragePlot <- function(
 #' coordinates to plot.
 #' @param annotation An Ensembl based annotation package
 #' @param assay Name of the  assay to plot
-#' @param fragment.path Path to an index fragment file. If NULL, will look for a path stored for the
-#' requested assay using the \code{\link{SetFragments}} function
+#' @param fragment.path Path to an index fragment file. If NULL, will look for a path stored in the
+#' fragments slot of the ChromatinAssay object
 #' @param cells Which cells to plot. Default all cells
 #' @param idents Which identities to include in the plot. Default is all identities.
 #' @param window Smoothing window size
@@ -249,84 +253,6 @@ CoveragePlot <- function(
       sep = sep
     ))
   }
-}
-
-globalVariables(names = c('dim1', 'dim2', 'ident'), package = 'Signac')
-#' MotifDimPlot
-#'
-#' Plot motifs in reduced dimesions.
-#'
-#' @param object A Seurat object
-#' @param assay Which assay to use. Default is the active assay.
-#' @param group.by A set of identities to group by (present in the Motif object metadata).
-#' @param reduction Which dimension reduction to use. Default is tSNE.
-#'
-#' @importFrom Seurat Embeddings
-#' @importFrom ggplot2 ggplot aes geom_point xlab ylab theme_bw
-#'
-#' @return Returns a \code{\link[ggplot2]{ggplot}} object
-#' @export
-MotifDimPlot <- function(
-  object,
-  assay = NULL,
-  group.by = NULL,
-  reduction = 'tSNE'
-) {
-  coords.use <- GetMotifData(object = object, assay = assay, slot = 'reductions')
-  if (!(reduction %in% names(x = coords.use))) {
-    stop("Requested dimension reduction is not present")
-  }
-  coords.use <- as.data.frame(x = Embeddings(object = coords.use[[reduction]]))
-  if (!is.null(x = group.by)) {
-    meta.data <- GetMotifData(object = object, slot = 'meta.data')
-    if (!(group.by %in% colnames(x = meta.data))) {
-      stop("Requested grouping variable not present in Motif metadata")
-    }
-    coords.use[['ident']] <- meta.data[[group.by]]
-  } else {
-    coords.use[['ident']] <- 'Motif'
-  }
-  colnames(x = coords.use) <- c('dim1', 'dim2', 'ident')
-  p <- ggplot(data = coords.use, mapping = aes(x = dim1, y = dim2, color = ident)) +
-    geom_point() +
-    xlab(label = paste0(reduction, '_1')) +
-    ylab(label = paste0(reduction, '_2')) +
-    theme_bw()
-  return(p)
-}
-
-#' MotifPlot
-#'
-#' Plot motifs
-#'
-#' @param object A Seurat object
-#' @param motifs A list of motifs to plot
-#' @param assay Name of the assay to use
-#' @param ... Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}
-#'
-#' @importFrom ggseqlogo ggseqlogo
-#' @importFrom TFBSTools name
-#'
-#' @export
-MotifPlot <- function(
-  object,
-  motifs,
-  assay = NULL,
-  ...
-) {
-  data.use <- GetMotifData(object = object, assay = assay, slot = 'pwm')
-  if (length(x = data.use) == 0) {
-    stop('Position weight matrix list for the requested assay is empty')
-  }
-  data.use <- data.use[motifs]
-  if (is(object = data.use, class2 = "PFMatrixList")) {
-    pwm <- TFBSTools::Matrix(x = data.use)
-    names(x = pwm) <- name(x = data.use)
-  } else {
-    pwm <- data.use
-  }
-  p <- ggseqlogo(data = pwm, ...)
-  return(p)
 }
 
 globalVariables(names = 'group', package = 'Signac')
@@ -408,10 +334,6 @@ PeriodPlot <- function(
 #' @importFrom ggplot2 ggplot aes geom_line facet_wrap ylim xlab ylab theme_classic theme element_blank element_text
 #' @export
 #' @return Returns a \code{\link[ggplot2]{ggplot2}} object
-#' @examples
-#' \dontrun{
-#'
-#' }
 RegionPileup <- function(
   object,
   regions,
@@ -478,37 +400,38 @@ RegionPileup <- function(
   return(p)
 }
 
-#' Plot the enrichment around TSS
+#' Plot the enrichment of Tn5 integration sites
 #'
-#' Plot the normalized TSS enrichment score at each position relative to the TSS.
-#' Requires that \code{\link{TSSEnrichment}} has already been run on the assay.
+#' Plot the enrichment of Tn5 integration sites centered on a set of genomic regions.
 #'
 #' @param object A Seurat object
-#' @param assay Name of the assay to use. Should have the TSS enrichment information for each cell
-#' already computed by running \code{\link{TSSEnrichment}}
+#' @param enrichment.key Name of a position enrichment matrix stored in the \code{positionEnrichment} slot
+#' of a \code{\link{ChromatinAssay}}.
+#' @param assay Name of the assay to use. Must be a \code{\link{ChromatinAssay}}
+#' and have the enrichment information for each cell stored in the \code{positionEnrichment}
+#' slot.
 #' @param group.by Set of identities to group cells by
 #' @param idents Set of identities to include in the plot
+#'
 #' @importFrom Seurat GetAssayData
 #' @importFrom Matrix colMeans
-#' @importFrom ggplot2 ggplot aes geom_line xlab ylab theme_minimal
+#' @importFrom ggplot2 ggplot aes geom_line
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot2}} object
 #' @export
-TSSPlot <- function(
+EnrichmentPlot <- function(
   object,
+  enrichment.key,
   assay = NULL,
   group.by = NULL,
   idents = NULL
 ) {
   # get the normalized TSS enrichment matrix
-  misc.slot <- GetAssayData(object = object, assay = assay, slot = 'misc')
-  if (!(inherits(x = misc.slot, what = 'list'))) {
-    stop("Misc slot does not contain a list")
+  positionEnrichment <- GetAssayData(object = object, assay = assay, slot = 'positionEnrichment')
+  if (!(enrichment.key %in% names(x = positionEnrichment))) {
+    stop("Position enrichment matrix not present in assay")
   }
-  if (!("TSS.enrichment.matrix" %in% names(x = misc.slot))) {
-    stop("TSS enrichment matrix not present in assay. Run TSSEnrichment.")
-  }
-  tss.matrix <- misc.slot$TSS.enrichment.matrix
+  enrichment.matrix <- positionEnrichment[[enrichment.key]]
 
   # average the TSS score per group per base
   obj.groups <- GetGroups(
@@ -517,7 +440,7 @@ TSSPlot <- function(
     idents = idents
   )
   groupmeans <- ApplyMatrixByGroup(
-    mat = tss.matrix,
+    mat = enrichment.matrix,
     groups = obj.groups,
     fun = colMeans,
     normalize = FALSE
@@ -528,10 +451,43 @@ TSSPlot <- function(
     mapping = aes(x = position, y = norm.value, color = group)
   ) +
     geom_line(stat = 'identity', size = 0.2) +
-    facet_wrap(facets = ~group) +
-    xlab("Distance from TSS (bp)") +
-    ylab(label = 'Mean TSS enrichment score') +
-    theme_minimal()
+    facet_wrap(facets = ~group)
   return(p)
 }
 
+#' Plot the enrichment around TSS
+#'
+#' Plot the normalized TSS enrichment score at each position relative to the TSS.
+#' Requires that \code{\link{TSSEnrichment}} has already been run on the assay.
+#'
+#' Wrapper for the \code{\link{EnrichmentPlot}} function
+#'
+#' @param object A Seurat object
+#' @param assay Name of the assay to use. Should have the TSS enrichment information for each cell
+#' already computed by running \code{\link{TSSEnrichment}}
+#' @param group.by Set of identities to group cells by
+#' @param idents Set of identities to include in the plot
+#'
+#' @importFrom ggplot2 xlab ylab theme_minimal
+#'
+#' @return Returns a \code{\link[ggplot2]{ggplot2}} object
+#' @export
+TSSPlot <- function(
+  object,
+  assay = NULL,
+  group.by = NULL,
+  idents = NULL
+) {
+  p <- EnrichmentPlot(
+    object = object,
+    assay = assay,
+    group.by = group.by,
+    idents = idents,
+    enrichment.key = 'TSS'
+  )
+  p <- p +
+    xlab("Distance from TSS (bp)") +
+    ylab(label = 'Mean TSS enrichment score') +
+    theme_minimal()
+  return()
+}
