@@ -814,12 +814,13 @@ TSSEnrichment <- function(
   # average the 1000 bases at the center
   object$TSS.enrichment <- rowMeans(x = norm.matrix[, 501:1500])
 
-  # store the normalized TSS matrix. For now put it in misc
-  object <- AddToMisc(
+  # store the normalized TSS matrix
+  object <- SetAssayData(
     object = object,
     assay = assay,
+    slot = 'positionEnrichment',
     new.data = norm.matrix,
-    save.as = 'TSS.enrichment.matrix'
+    key = 'TSS'
   )
   return(object)
 }
