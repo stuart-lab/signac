@@ -158,6 +158,46 @@ ClosestFeature <- function(
   return(df)
 }
 
+# Calculate nCount and nFeature
+#
+# From Seurat
+#
+# @param object An Assay object
+#
+# @return A named list with nCount and nFeature
+#
+#' @importFrom Matrix colSums
+#
+CalcN <- function(object) {
+  if (IsMatrixEmpty(x = GetAssayData(object = object, slot = "counts"))) {
+    return(NULL)
+  }
+  return(list(
+    nCount = colSums(x = object, slot = 'counts'),
+    nFeature = colSums(x = GetAssayData(object = object, slot = 'counts') > 0)
+  ))
+}
+
+# Extract delimiter information from a string.
+#
+# From Seurat
+#
+# Parses a string (usually a cell name) and extracts fields based on a delimiter
+#
+# @param string String to parse.
+# @param field Integer(s) indicating which field(s) to extract. Can be a vector multiple numbers.
+# @param delim Delimiter to use, set to underscore by default.
+#
+# @return A new string, that parses out the requested fields, and (if multiple), rejoins them with the same delimiter
+#
+ExtractField <- function(string, field = 1, delim = "_") {
+  fields <- as.numeric(x = unlist(x = strsplit(x = as.character(x = field), split = ",")))
+  if (length(x = fields) == 1) {
+    return(strsplit(x = string, split = delim)[[1]][field])
+  }
+  return(paste(strsplit(x = string, split = delim)[[1]][fields], collapse = delim))
+}
+
 #' Compute Tn5 insertion bias
 #'
 #' Counts the Tn5 insertion frequency for each DNA hexamer.
@@ -674,6 +714,23 @@ GetGroups <- function(
     obj.groups <- obj.groups[obj.groups %in% idents]
   }
   return(obj.groups)
+}
+
+
+# Check if a matrix is empty
+#
+# From Seurat
+#
+# Takes a matrix and asks if it's empty (either 0x0 or 1x1 with a value of NA)
+#
+# @param x A matrix
+#
+# @return Whether or not \code{x} is empty
+#
+IsMatrixEmpty <- function(x) {
+  matrix.dims <- dim(x = x)
+  matrix.na <- all(matrix.dims == 1) && all(is.na(x = x))
+  return(all(matrix.dims == 0) || matrix.na)
 }
 
 #' Intersect genomic coordinates with matrix rows
