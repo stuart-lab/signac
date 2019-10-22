@@ -71,6 +71,108 @@ ChromatinAssay <- setClass(
   )
 )
 
+#' Create ChromatinAssay object
+#'
+#' Create a \code{\link{ChromatinAssay}} object from a count matrix or normalized data matrix.
+#' The expected format of the input matrix is features x cells. A set of genomic ranges must
+#' be supplied along with the matrix, with the length of the ranges equal to the number of rows
+#' in the matrix. If a set of genomic ranges are not supplied, they will be extracted from the
+#' row names of the matrix.
+#'
+#' @param counts Unnormalized data (raw counts)
+#' @param data Normalized data; if provided, do not pass counts
+#' @param min.cells Include features detected in at least this many cells.
+#' Will subset the counts matrix as well.
+#' To reintroduce excluded features, create a new object with a lower cutoff.
+#' @param max.cells Include features detected in less than this many cells.
+#' Will subset the counts matrix as well.
+#' To reintroduce excluded features, create a new object with a higher cutoff.
+#' This can be useful for chromatin assays where certain artefactual loci
+#' accumulate reads in all cells. A percentage cutoff can also be set using
+#' 'q' followed by the percentage of cells, for example 'q90' will discard
+#' features detected in 90 percent of cells.
+#' If NULL (default), do not apply any maximum value.
+#' @param min.features Include cells where at least this many features are detected.
+#' @param ranges A set of \code{\link[GenomicRanges]{GRanges}} corresponding to the
+#' rows of the input matrix
+#' @param motifs A Motif object (not required)
+#' @param fragments Path to a tabix-indexed fragments file for the data contained
+#' in the input matrix (not required)
+#' @param genome Name of the genome used
+#' @param annotation A set of \code{\link[GenomicRanges]{GRanges}} containing
+#' annotations for the genome used
+#' @param bias A Tn5 integration bias matrix
+#' @param sep Separators to use for strings encoding genomic coordinates.
+#' First element is used to separate the chromosome from the coordinates,
+#' second element is used to separate the start from end coordinate. Only
+#' used if \code{ranges} is NULL.
+#'
+#' @importFrom Seurat CreateAssayObject
+#' @importFrom Matrix rowSums
+#'
+#' @export
+CreateChromatinAssayObject <- function(
+  counts,
+  data,
+  min.cells = 0,
+  min.features = 0,
+  max.cells = NULL,
+  ranges = NULL,
+  motifs = NULL,
+  fragments = NULL,
+  genome = NULL,
+  annotation = NULL,
+  bias = NULL,
+  sep = c("-", "-")
+) {
+  if (missing(x = counts) && missing(x = data)) {
+    stop("Must provide either 'counts' or 'data'")
+  } else if (!missing(x = counts) && !missing(x = data)) {
+    stop("Either 'counts' or 'data' must be missing; both cannot be provided")
+  } else if (!missing(x = counts)){
+    data.use <- counts
+  } else {
+    data.use <- data
+  }
+  if (!is.null(x = ranges)) {
+    if (length(x = ranges) != nrow(x = data.use)) {
+      stop("Length of supplied genomic ranges does not match number of rows in matrix")
+    }
+  } else {
+    ranges <- StringToGRanges(regions = rownames(x = data.use), sep = sep)
+  }
+  if (!is.null(x = max.cells)) {
+    ncell.feature <- rowSums(data.use > 0)
+    if (is(object = max.cells, class2 = 'character')) {
+      percent.cutoff <- as.numeric(x = gsub(pattern = 'q', replacement = '', x = max.cells))
+      max.cells <- (percent.cutoff/100) * nrow(x = data.use)
+    }
+    features.keep <- ncell.feature < max.cells
+    if (!missing(x = counts)) {
+      counts <- counts[features.keep, ]
+    } else {
+      data <- data[features.keep, ]
+    }
+    ranges <- ranges[features.keep, ]
+  }
+  seurat.assay <- CreateAssayObject(
+    counts = counts,
+    data = data,
+    min.cells = min.cells,
+    min.features = min.features
+  )
+  chrom.assay <- as.ChromatinAssay(
+    x = seurat.assay,
+    ranges = ranges,
+    genome = genome,
+    motifs = motifs,
+    fragments = fragments,
+    annotation = annotation,
+    bias = bias
+  )
+  return(chrom.assay)
+}
+
 #' @param ranges A GRanges object
 #' @param genome Name of genome used
 #' @param annotation Genomic annotation
@@ -90,6 +192,7 @@ as.ChromatinAssay.Assay <- function(
   annotation = NULL,
   motifs = NULL,
   fragments = NULL,
+  bias = NULL,
   sep = c("-", "-"),
   ...
 ) {
@@ -122,6 +225,13 @@ as.ChromatinAssay.Assay <- function(
       object = new.assay,
       slot = 'motifs',
       new.data = motifs
+    )
+  }
+  if (!is.null(x = bias)) {
+    new.assay <- SetAssayData(
+      object = new.assay,
+      slot = 'bias',
+      new.data = bias
     )
   }
   return(new.assay)
