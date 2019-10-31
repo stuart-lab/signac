@@ -1,0 +1,161 @@
+#' @include generics.R
+#'
+NULL
+
+#' Link peaks to genes
+#'
+#' Find peaks that are predictive of gene expression. Fits a regression model with elastic net regularization between peak
+#' accessibility and gene expression, for all peaks within a given distance threshold (default 200 kb).
+#' Returns a peak x gene sparse matrix, with each entry being the correlation coefficient between the
+#' accessibility of the peak and expression of the gene.
+#'
+#' @param object A Seurat object
+#' @param peak.assay Name of assay containing peak information
+#' @param expression.assay Name of assay containing gene expression information
+#' @param gene.coords GRanges object containing coordinates of genes in the expression assay
+#' @param sep Separators to use to extract peak coordinates from peak assay row names
+#' @param binary Binarize the peak counts (default TRUE)
+#' @param alpha Alpha parameter for elastic net regularization. Controls balance between LASSO (alpha=1) and ridge (alpha=0) regression.
+#' @param distance Distance threshold for peaks to include in regression model
+#' @param verbose Display messages
+#'
+#' @importFrom Seurat GetAssayData
+#' @importFrom glmnet cv.glmnet
+#' @importFrom stats coef
+#' @importFrom Matrix sparseMatrix
+#' @importFrom utils txtProgressBar setTxtProgressBar
+#'
+#' @return Returns a sparse matrix
+#' @export
+LinkPeaks <- function(
+  object,
+  peak.assay,
+  expression.assay,
+  gene.coords,
+  sep = c("-", "-"),
+  binary = TRUE,
+  alpha = 0.95,
+  distance = 200000,
+  verbose = TRUE
+) {
+  peak.data <- GetAssayData(object = object, assay = peak.assay, slot = 'counts')
+  expression.data <- GetAssayData(object = object, assay = expression.assay, slot = 'data')
+  if (binary) {
+    peak.data <- BinarizeCounts(object = peak.data)
+  }
+  genes <- rownames(expression.data)
+  gene.coords.use <- gene.coords[gene.coords$symbol %in% genes,]
+  peaks <- StringToGRanges(regions = rownames(peak.data), sep = sep)
+  peak_distance_matrix <- DistanceToGene(peaks = peaks, genes = gene.coords.use, distance = distance, sep = sep)
+  genes.use <- colnames(x = peak_distance_matrix)
+  coef.vec <- c()
+  gene.vec <- c()
+  pb <- txtProgressBar(
+    min = 1,
+    max = length(x = genes.use),
+    style = 3,
+    file = stderr()
+  )
+  for (i in seq_along(along.with = genes.use)) {
+    peak.use <- as.logical(x = peak_distance_matrix[, genes.use[[i]]])
+    gene.expression <- expression.data[genes.use[[i]], ]
+    if ((sum(peak.use) < 2) | (sum(gene.expression > 0) < 10)) {
+      setTxtProgressBar(pb = pb, value = i)
+      next
+    } else {
+      peak.access <- t(peak.data[peak.use, ])
+      if (sum(peak.access) == 0) {
+        setTxtProgressBar(pb = pb, value = i)
+        next
+      }
+      # message(genes.use[[i]])
+      # gene.expression.weight<- ((gene.expression-min(gene.expression))/(max(gene.expression)-min(gene.expression))) # weight term; proportional to gene expression (scaling from 0 to 1)
+      cvfit <- cv.glmnet(x = peak.access, y = gene.expression, alpha = alpha, family = 'gaussian')
+      lambda <- cvfit$lambda.1se
+      coef.results <- coef(cvfit, s = lambda)
+      coef.results <- coef.results[2:nrow(x = coef.results), ]
+      coef.results.filtered <- coef.results[coef.results != 0]
+      if (length(x = coef.results.filtered) == 0) {
+        setTxtProgressBar(pb = pb, value = i)
+        next
+      } else {
+        gene.vec <- c(gene.vec, rep(i, length(x = coef.results.filtered)))
+        coef.vec <- c(coef.vec, coef.results.filtered)
+        setTxtProgressBar(pb = pb, value = i)
+      }
+    }
+  }
+  peak.key <- seq_along(along.with = unique(x = names(x = coef.vec)))
+  names(x = peak.key) <- unique(x = names(x = coef.vec))
+  coef.matrix <- sparseMatrix(
+    i = gene.vec,
+    j = peak.key[names(x = coef.vec)],
+    x = coef.vec,
+    dims = c(length(x = genes.use), max(peak.key))
+  )
+  rownames(x = coef.matrix) <- genes.use
+  colnames(x = coef.matrix) <- names(x = peak.key)
+  return(coef.matrix)
+}
+
+#' Find peaks near genes
+#'
+#' Find peaks that are within a given distance threshold to each gene
+#'
+#' @param peaks A GRanges object containing peak coordinates
+#' @param genes A GRanges object containing gene coordinates
+#' @param distance Distance threshold. Peaks within this distance from the gene will be recorded.
+#' @param sep Separator for peak names when creating results matrix
+#'
+#' @importFrom GenomicRanges findOverlaps
+#' @importFrom S4Vectors queryHits subjectHits
+#' @importFrom Matrix sparseMatrix
+#'
+#' @return Returns a sparse matrix
+#'
+DistanceToGene <- function(peaks, genes, distance = 200000, sep = c("-", "-")) {
+  genes.extended <- suppressWarnings(expr = Extend(x = genes, upstream = distance, downstream = distance))
+  overlaps <- findOverlaps(
+    query = peaks,
+    subject = genes.extended,
+    type = 'any',
+    select = 'all'
+  )
+  hit_matrix <- sparseMatrix(
+    i = queryHits(x = overlaps),
+    j = subjectHits(x = overlaps),
+    x = 1,
+    dims = c(length(x = peaks), length(x = genes.extended))
+  )
+  rownames(hit_matrix) <- GRangesToString(grange = peaks, sep = sep)
+  colnames(hit_matrix) <- genes.extended$symbol
+  return(hit_matrix)
+}
+
+
+#' Plot peak-gene links
+#'
+#' Plot the connections between peaks and genes
+#'
+#' @param links A dataframe containing the peak and gene coordinates, and the link score
+#' @importFrom ggplot2 ggplot geom_hline geom_segment geom_curve theme_classic ylim theme element_blank
+#' @export
+#' @return Returns a ggplot2 object
+PlotLinks <- function(links) {
+  gene.coords <- links[links$class == 'gene', ]
+  links$linkstart <- ifelse(links$coef > 0, links$linkstart, NA)
+  links$linkend <- ifelse(links$coef > 0, links$linkend, NA)
+  links$linkend <- ifelse(links$linkstart > gene.coords$start, links$linkstart, links$linkend)
+  links$linkstart <- ifelse(links$linkstart > gene.coords$start, gene.coords$start, links$linkstart)
+  p <- ggplot(links) +
+    geom_hline(yintercept = 0, color = 'grey') +
+    geom_segment(aes(x = start, y = 0, xend = end, yend = 0, size = class, color = class)) +
+    geom_curve(aes(x = linkstart, y = 0, xend = linkend, yend = 0, alpha = coef), curvature = 1/2) +
+    theme_classic() +
+    ylim(c(-1, 0)) +
+    theme(axis.line.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.text.y = element_blank(),
+          axis.title.y = element_blank())
+  return(p)
+}
