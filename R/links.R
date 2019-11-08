@@ -138,10 +138,12 @@ DistanceToGene <- function(peaks, genes, distance = 200000, sep = c("-", "-")) {
 #' Plot the connections between peaks and genes
 #'
 #' @param links A dataframe containing the peak and gene coordinates, and the link score
+#' @param xmin Minimum value for x axis
+#' @param xmax Maximum value for x axis
 #' @importFrom ggplot2 ggplot geom_hline geom_segment geom_curve theme_classic ylim theme element_blank
 #' @export
 #' @return Returns a ggplot2 object
-PlotLinks <- function(links) {
+PlotLinks <- function(links, xmin = NULL, xmax = NULL) {
   gene.coords <- links[links$class == 'gene', ]
   links$linkstart <- ifelse(links$coef > 0, links$linkstart, NA)
   links$linkend <- ifelse(links$coef > 0, links$linkend, NA)
@@ -157,5 +159,8 @@ PlotLinks <- function(links) {
           axis.ticks.y = element_blank(),
           axis.text.y = element_blank(),
           axis.title.y = element_blank())
+  if (!is.null(xmin)) {
+    p <- p + xlim(c(xmin, xmax))
+  }
   return(p)
 }
