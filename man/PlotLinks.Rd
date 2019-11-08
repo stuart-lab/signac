@@ -4,10 +4,14 @@
 \alias{PlotLinks}
 \title{Plot peak-gene links}
 \usage{
-PlotLinks(links)
+PlotLinks(links, xmin = NULL, xmax = NULL)
 }
 \arguments{
 \item{links}{A dataframe containing the peak and gene coordinates, and the link score}
+
+\item{xmin}{Minimum value for x axis}
+
+\item{xmax}{Maximum value for x axis}
 }
 \value{
 Returns a ggplot2 object
