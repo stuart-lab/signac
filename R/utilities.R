@@ -521,7 +521,7 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
     region <- StringToGRanges(regions = region)
   }
   bin.reads <- scanTabix(file = tabix, param = region)
-  reads <- sapply(X = bin.reads, FUN = ExtractCell)
+  reads <- sapply(X = bin.reads, FUN = ExtractCell, simplify = FALSE)
   if (!is.null(x = cells)) {
     reads <- sapply(X = reads, FUN = function(x) {
       x <- x[x %in% cells]
