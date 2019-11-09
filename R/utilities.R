@@ -287,9 +287,6 @@ GetIntersectingFeatures <- function(
   distance = 0,
   verbose = TRUE
 ) {
-  # TODO I changed the output of this function from a list
-  # of matrix rownames to a list contatining intersecting granges
-  # need to update any functions that depend on this one accordingly
   regions.1 <- GetAssayData(object = object.1, assay = assay.1, slot = 'ranges')
   regions.2 <- GetAssayData(object = object.2, assay = assay.2, slot = 'ranges')
   if (verbose) {
@@ -298,8 +295,8 @@ GetIntersectingFeatures <- function(
   region.intersections <- distanceToNearest(x = regions.1, subject = regions.2)
   keep.intersections <- mcols(x = region.intersections)$distance <= distance
   region.intersections <- region.intersections[keep.intersections, ]
-  intersect.object1 <- regions.1[queryHits(x = region.intersections)]
-  intersect.object2 <- regions.2[subjectHits(x = region.intersections)]
+  intersect.object1 <- queryHits(x = region.intersections)
+  intersect.object2 <- subjectHits(x = region.intersections)
   return(list(intersect.object1, intersect.object2))
 }
 
@@ -872,9 +869,10 @@ MatchRegionStats <- function(
 #'
 #' @importFrom Seurat DefaultAssay CreateAssayObject GetAssayData
 #' @importFrom utils packageVersion
+#' @importFrom GenomicRanges granges
 #'
 #' @export
-#' @return Returns a Seurat object
+#' @return Returns a Seurat object Project
 #'
 MergeWithRegions <- function(
   object.1,
@@ -888,11 +886,8 @@ MergeWithRegions <- function(
   ...
 ) {
   # TODO write as a method merge.ChromatinAssay
-  # TODO update to use ChromatinAssay
   assay.1 <- assay.1 %||% DefaultAssay(object = object.1)
   assay.2 <- assay.2 %||% DefaultAssay(object = object.2)
-
-  # TODO check what the output here is
   intersecting.regions <- GetIntersectingFeatures(
     object.1 = object.1,
     object.2 = object.2,
@@ -905,9 +900,13 @@ MergeWithRegions <- function(
   regions.obj2 <- intersecting.regions[[2]]
   # TODO add option to keep non-overlapping regions
   if (regions.use == 1) {
-    region.names <- regions.obj1
+    region.names <- rownames(x = object.1)[regions.obj1]
+    project <- Project(object = object.1)
+    regions <- granges(object.1[[assay.1]])[regions.obj1]
   } else if (regions.use == 2) {
-    region.names <-regions.obj2
+    region.names <-rownames(x = object.2)[regions.obj2]
+    project <- Project(object = object.2)
+    regions <- granges(object.2[[assay.2]])[regions.obj2]
   } else {
     # TODO add option to rename regions as coordinate merge
     # TODO add option to rename regions as coordinate intersect
@@ -937,9 +936,8 @@ MergeWithRegions <- function(
   rownames(counts.2) <- region.names
   allcounts <- cbind(counts.1, counts.2)
   assays <- list()
-  new.assay <- CreateChromatinAssayObject(counts = allcounts, ...)
+  new.assay <- CreateChromatinAssayObject(counts = allcounts, ranges = regions, ...)
   assays[[new.assay.name]] <- new.assay
-  # TODO change to CreateSignacObject
   merged.object <- new(
     Class = 'Seurat',
     assays = assays,
