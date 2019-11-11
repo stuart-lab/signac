@@ -1,0 +1,23 @@
+# Inspired by Jim Hester's Azure Pipelines tests
+# https://github.com/jimhester/azuretest
+
+trigger:
+- master
+- develop
+
+pr:
+- master
+- develop
+
+jobs:
+  - job: 'Linux'
+    timeoutInMinutes: 4320
+    pool: Default
+    variables:
+      R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
+    container: satijalab/online-workflows:latest
+    steps:
+      - script: |
+          R CMD build .
+          R CMD check --as-cran -no-manual Signac_*
+        displayName: 'R CMD Check'
