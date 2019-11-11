@@ -872,7 +872,7 @@ MatchRegionStats <- function(
 #' @importFrom GenomicRanges granges
 #'
 #' @export
-#' @return Returns a Seurat object Project
+#' @return Returns a Seurat object
 #'
 MergeWithRegions <- function(
   object.1,
