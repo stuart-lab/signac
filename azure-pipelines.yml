@@ -19,7 +19,7 @@ jobs:
     container: satijalab/online-workflows:latest
     steps:
       - script: |
-          apt-get install libgsl0ldbl
+          sudo apt-get install libgsl0ldbl
         displayName: 'Install GSL'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
@@ -42,7 +42,7 @@ jobs:
     container: satijalab/online-workflows:latest
     steps:
       - script: |
-          apt-get install libgsl0ldbl
+          sudo apt-get install libgsl0ldbl
         displayName: 'Install GSL'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
