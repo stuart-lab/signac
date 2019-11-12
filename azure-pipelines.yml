@@ -19,6 +19,12 @@ jobs:
     container: satijalab/online-workflows:latest
     steps:
       - script: |
-          R CMD build .
-          R CMD check --as-cran -no-manual Signac_*
-        displayName: 'R CMD Check'
+          echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          mkdir -vp ${R_LIBS_USER}
+        displayName: 'Setup R Library'
+      - script: |
+          Rscript -e "install.packages('BiocManager'); setRepositories(ind=1:2)"
+        displayName: 'Install BioC'
+      - script: |
+          Rscript -e "devtools::install(dependencies = TRUE)"
+        displayName: 'Install Signac'
