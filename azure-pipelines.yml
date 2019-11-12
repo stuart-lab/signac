@@ -10,7 +10,7 @@ pr:
 - develop
 
 jobs:
-  - job: 'Linux'
+  - job: 'Ubuntu 16.04'
     timeoutInMinutes: 4320
     pool:
       vmImage: 'ubuntu-16.04'
@@ -23,7 +23,83 @@ jobs:
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
-          Rscript -e "install.packages('BiocManager'); setRepositories(ind=1:2)"
+          Rscript -e "install.packages('BiocManager'); BiocManager::install(); setRepositories(ind=1:2)"
+        displayName: 'Install BioC'
+      - script: |
+          Rscript -e "devtools::install(dependencies = TRUE)"
+        displayName: 'Install Signac'
+
+  - job: 'Ubuntu 18.04'
+    timeoutInMinutes: 4320
+    pool:
+      vmImage: 'ubuntu-18.04'
+    variables:
+      R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
+    container: satijalab/online-workflows:latest
+    steps:
+      - script: |
+          echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          mkdir -vp ${R_LIBS_USER}
+        displayName: 'Setup R Library'
+      - script: |
+          Rscript -e "install.packages('BiocManager'); BiocManager::install(); setRepositories(ind=1:2)"
+        displayName: 'Install BioC'
+      - script: |
+          Rscript -e "devtools::install(dependencies = TRUE)"
+        displayName: 'Install Signac'
+
+  - job: 'Windows'
+    timeoutInMinutes: 4320
+    pool:
+      vmImage: 'windows-latest'
+    variables:
+      R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
+    container: satijalab/online-workflows:latest
+    steps:
+      - script: |
+          echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          mkdir -vp ${R_LIBS_USER}
+        displayName: 'Setup R Library'
+      - script: |
+          Rscript -e "install.packages('BiocManager'); BiocManager::install(); setRepositories(ind=1:2)"
+        displayName: 'Install BioC'
+      - script: |
+          Rscript -e "devtools::install(dependencies = TRUE)"
+        displayName: 'Install Signac'
+
+  - job: 'macOS Mojave'
+    timeoutInMinutes: 4320
+    pool:
+      vmImage: 'macOS-10.14'
+    variables:
+      R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
+    container: satijalab/online-workflows:latest
+    steps:
+      - script: |
+          echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          mkdir -vp ${R_LIBS_USER}
+        displayName: 'Setup R Library'
+      - script: |
+          Rscript -e "install.packages('BiocManager'); BiocManager::install(); setRepositories(ind=1:2)"
+        displayName: 'Install BioC'
+      - script: |
+          Rscript -e "devtools::install(dependencies = TRUE)"
+        displayName: 'Install Signac'
+
+  - job: 'macOS High Sierra'
+    timeoutInMinutes: 4320
+    pool:
+      vmImage: 'macOS-10.13'
+    variables:
+      R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
+    container: satijalab/online-workflows:latest
+    steps:
+      - script: |
+          echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          mkdir -vp ${R_LIBS_USER}
+        displayName: 'Setup R Library'
+      - script: |
+          Rscript -e "install.packages('BiocManager'); BiocManager::install(); setRepositories(ind=1:2)"
         displayName: 'Install BioC'
       - script: |
           Rscript -e "devtools::install(dependencies = TRUE)"
