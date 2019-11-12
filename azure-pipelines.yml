@@ -19,6 +19,9 @@ jobs:
     container: satijalab/online-workflows:latest
     steps:
       - script: |
+          apt-get install libgsl0ldbl
+        displayName: 'Install GSL'
+      - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
@@ -38,6 +41,9 @@ jobs:
       R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
     container: satijalab/online-workflows:latest
     steps:
+      - script: |
+          apt-get install libgsl0ldbl
+        displayName: 'Install GSL'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
           mkdir -vp ${R_LIBS_USER}
