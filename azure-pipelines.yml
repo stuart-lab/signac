@@ -10,7 +10,7 @@ pr:
 - develop
 
 jobs:
-  - job: 'Ubuntu_16.04'
+  - job: 'Ubuntu_1604'
     timeoutInMinutes: 4320
     pool:
       vmImage: 'ubuntu-16.04'
@@ -29,7 +29,7 @@ jobs:
           Rscript -e "devtools::install(dependencies = TRUE)"
         displayName: 'Install Signac'
 
-  - job: 'Ubuntu_18.04'
+  - job: 'Ubuntu_1804'
     timeoutInMinutes: 4320
     pool:
       vmImage: 'ubuntu-18.04'
