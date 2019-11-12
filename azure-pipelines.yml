@@ -65,7 +65,7 @@ jobs:
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
-          Rscript -e "install.packages('BiocManager')"
+          Rscript -e "install.packages(c('BiocManager', 'devtools'))"
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library'); BiocManager::install(c('GenomeInfoDbData', 'GO.db'), lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install BioC'
       - script: |
@@ -87,7 +87,7 @@ jobs:
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
-          Rscript -e "install.packages('BiocManager')"
+          Rscript -e "install.packages(c('BiocManager', 'devtools'))"
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library'); BiocManager::install(c('GenomeInfoDbData', 'GO.db'), lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install BioC'
       - script: |
