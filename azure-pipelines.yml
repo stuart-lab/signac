@@ -19,7 +19,7 @@ jobs:
     container: satijalab/online-workflows:latest
     steps:
       - script: |
-          sudo apt-get install libgsl-dev
+          sudo apt-get install libgsl2 libgsl-dev
         displayName: 'Install GSL'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
@@ -42,7 +42,7 @@ jobs:
     container: satijalab/online-workflows:latest
     steps:
       - script: |
-          sudo apt-get install libgsl-dev
+          sudo apt-get install libgsl2 libgsl-dev
         displayName: 'Install GSL'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
@@ -67,7 +67,7 @@ jobs:
          brew install r
         displayName: 'Install R'
       - script: |
-          sudo apt-get install libgsl-dev
+         brew install gsl
         displayName: 'Install GSL'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
@@ -92,7 +92,7 @@ jobs:
          brew install r
         displayName: 'Install R'
       - script: |
-          sudo apt-get install libgsl-dev
+         brew install gsl
         displayName: 'Install GSL'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
