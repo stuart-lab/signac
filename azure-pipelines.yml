@@ -23,10 +23,11 @@ jobs:
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
-          Rscript -e "install.packages('BiocManager'); BiocManager::install(); setRepositories(ind=1:2)"
+          Rscript -e "install.packages('BiocManager')"
+          Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install BioC'
       - script: |
-          Rscript -e "devtools::install(dependencies = TRUE)"
+          Rscript -e "setRepositories(ind=1:2); devtools::install(dependencies = TRUE)"
         displayName: 'Install Signac'
 
   - job: 'Ubuntu_1804'
@@ -42,10 +43,11 @@ jobs:
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
-          Rscript -e "install.packages('BiocManager'); BiocManager::install(); setRepositories(ind=1:2)"
+          Rscript -e "install.packages('BiocManager')"
+          Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install BioC'
       - script: |
-          Rscript -e "devtools::install(dependencies = TRUE)"
+          Rscript -e "setRepositories(ind=1:2); devtools::install(dependencies = TRUE)"
         displayName: 'Install Signac'
 
   - job: 'Windows'
@@ -54,17 +56,17 @@ jobs:
       vmImage: 'windows-latest'
     variables:
       R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
-    container: satijalab/online-workflows:latest
     steps:
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
-          Rscript -e "install.packages('BiocManager'); BiocManager::install(); setRepositories(ind=1:2)"
+          Rscript -e "install.packages('BiocManager')"
+          Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install BioC'
       - script: |
-          Rscript -e "devtools::install(dependencies = TRUE)"
+          Rscript -e "setRepositories(ind=1:2); devtools::install(dependencies = TRUE)"
         displayName: 'Install Signac'
 
   - job: 'macOS_Mojave'
@@ -73,17 +75,17 @@ jobs:
       vmImage: 'macOS-10.14'
     variables:
       R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
-    container: satijalab/online-workflows:latest
     steps:
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
-          Rscript -e "install.packages('BiocManager'); BiocManager::install(); setRepositories(ind=1:2)"
+          Rscript -e "install.packages('BiocManager')"
+          Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install BioC'
       - script: |
-          Rscript -e "devtools::install(dependencies = TRUE)"
+          Rscript -e "setRepositories(ind=1:2); devtools::install(dependencies = TRUE)"
         displayName: 'Install Signac'
 
   - job: 'macOS_High_Sierra'
@@ -92,15 +94,15 @@ jobs:
       vmImage: 'macOS-10.13'
     variables:
       R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
-    container: satijalab/online-workflows:latest
     steps:
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
-          Rscript -e "install.packages('BiocManager'); BiocManager::install(); setRepositories(ind=1:2)"
+          Rscript -e "install.packages('BiocManager')"
+          Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install BioC'
       - script: |
-          Rscript -e "devtools::install(dependencies = TRUE)"
+          Rscript -e "setRepositories(ind=1:2); devtools::install(dependencies = TRUE)"
         displayName: 'Install Signac'
