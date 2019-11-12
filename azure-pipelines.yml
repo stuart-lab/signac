@@ -58,8 +58,8 @@ jobs:
       R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
     steps:
       - script: |
-         brew install R
-       displayName: 'Install R'
+         brew install r
+        displayName: 'Install R'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
           mkdir -vp ${R_LIBS_USER}
@@ -80,8 +80,8 @@ jobs:
       R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
     steps:
       - script: |
-         brew install R
-       displayName: 'Install R'
+         brew install r
+        displayName: 'Install R'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
           mkdir -vp ${R_LIBS_USER}
