@@ -1,7 +1,7 @@
-[![Build Status](https://travis-ci.com/timoast/signac.svg?branch=master)](https://travis-ci.com/timoast/signac)
+[![Build Status](https://dev.azure.com/timstuart/timstuart/_apis/build/status/timoast.signac?branchName=master)](https://dev.azure.com/timstuart/timstuart/_build/latest?definitionId=1&branchName=master)
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/timoast/signac?svg=true)](https://ci.appveyor.com/project/timoast/signac)
 
-# Signac v0.1.5
+# Signac v0.1.6
 
 Signac is an extension of [Seurat](https://satijalab.org/seurat) for the analysis of single-cell chromatin data.
 

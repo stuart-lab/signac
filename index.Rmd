@@ -1,6 +1,8 @@
 ---
-title: "Signac v0.1.5"
-output: html_document
+title: "Signac v0.1.6"
+output:
+  html_document:
+    keep_md: true
 ---
 
 ```{r setup, include=FALSE}

@@ -1,0 +1,119 @@
+# Inspired by Jim Hester's Azure Pipelines tests
+# https://github.com/jimhester/azuretest
+
+trigger:
+- master
+- develop
+
+pr:
+- master
+- develop
+
+jobs:
+  - job: 'Ubuntu_1604'
+    timeoutInMinutes: 4320
+    pool:
+      vmImage: 'ubuntu-16.04'
+    variables:
+      R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
+    container: satijalab/online-workflows:latest
+    steps:
+      - script: |
+          sudo apt-get install libgsl2 libgsl-dev
+        displayName: 'Install GSL'
+      - script: |
+          echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          mkdir -vp ${R_LIBS_USER}
+        displayName: 'Setup R Library'
+      - script: |
+          Rscript -e "install.packages('BiocManager')"
+          Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library'); BiocManager::install(c('GenomeInfoDbData', 'GO.db'), lib = '$(Agent.BuildDirectory)/R/library')"
+        displayName: 'Install BioC'
+      - script: |
+          Rscript -e "setRepositories(ind=1:2); devtools::install(dependencies = TRUE, lib = '$(Agent.BuildDirectory)/R/library')"
+        displayName: 'Install Signac'
+
+  - job: 'Ubuntu_1804'
+    timeoutInMinutes: 4320
+    pool:
+      vmImage: 'ubuntu-18.04'
+    variables:
+      R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
+    container: satijalab/online-workflows:latest
+    steps:
+      - script: |
+          sudo apt-get install libgsl2 libgsl-dev
+        displayName: 'Install GSL'
+      - script: |
+          echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          mkdir -vp ${R_LIBS_USER}
+        displayName: 'Setup R Library'
+      - script: |
+          Rscript -e "install.packages('BiocManager')"
+          Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library'); BiocManager::install(c('GenomeInfoDbData', 'GO.db'), lib = '$(Agent.BuildDirectory)/R/library')"
+        displayName: 'Install BioC'
+      - script: |
+          Rscript -e "setRepositories(ind=1:2); devtools::install(dependencies = TRUE, lib = '$(Agent.BuildDirectory)/R/library')"
+        displayName: 'Install Signac'
+
+  - job: 'macOS_Mojave'
+    timeoutInMinutes: 4320
+    pool:
+      vmImage: 'macOS-10.14'
+    variables:
+      R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
+    steps:
+      - script: |
+         brew install r
+        displayName: 'Install R'
+      - script: |
+         brew install gsl
+        displayName: 'Install GSL'
+      - script: |
+          echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          mkdir -vp ${R_LIBS_USER}
+        displayName: 'Setup R Library'
+      - script: |
+          Rscript -e "install.packages(c('BiocManager', 'devtools'))"
+          Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
+        displayName: 'Install BioC'
+      - script: |
+          Rscript -e "setRepositories(ind=1:2); install.packages(c('data.table', 'dplyr', 'future', 'future.apply', 'ggplot2', 'irlba', 'pbapply', 'tidyr', 'zoo', 'cowplot',
+                                          'AnnotationFilter', 'BiocGenerics', 'GenomeInfoDb', 'GenomeInfoDbData', 'GO.db', 'GenomicFeatures',
+                                          'GenomicRanges', 'IRanges', 'Rsamtools', 'S4Vectors', 'TFBSTools', 'ggbio', 'motifmatchr', 'AnnotationDbi'),
+                                          lib = '$(Agent.BuildDirectory)/R/library')"
+        displayName: 'Install dependencies'
+      - script: |
+          Rscript -e "setRepositories(ind=1:2); devtools::install(dependencies = TRUE, lib = '$(Agent.BuildDirectory)/R/library')"
+        displayName: 'Install Signac'
+
+  - job: 'macOS_High_Sierra'
+    timeoutInMinutes: 4320
+    pool:
+      vmImage: 'macOS-10.13'
+    variables:
+      R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
+    steps:
+      - script: |
+         brew install r
+        displayName: 'Install R'
+      - script: |
+         brew install gsl
+        displayName: 'Install GSL'
+      - script: |
+          echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          mkdir -vp ${R_LIBS_USER}
+        displayName: 'Setup R Library'
+      - script: |
+          Rscript -e "install.packages(c('BiocManager', 'devtools'))"
+          Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
+        displayName: 'Install BioC'
+      - script: |
+          Rscript -e "setRepositories(ind=1:2); install.packages(c('data.table', 'dplyr', 'future', 'future.apply', 'ggplot2', 'irlba', 'pbapply', 'tidyr', 'zoo', 'cowplot',
+                                          'AnnotationFilter', 'BiocGenerics', 'GenomeInfoDb', 'GenomeInfoDbData', 'GO.db', 'GenomicFeatures',
+                                          'GenomicRanges', 'IRanges', 'Rsamtools', 'S4Vectors', 'TFBSTools', 'ggbio', 'motifmatchr', 'AnnotationDbi'),
+                                          lib = '$(Agent.BuildDirectory)/R/library')"
+        displayName: 'Install dependencies'
+      - script: |
+          Rscript -e "setRepositories(ind=1:2); devtools::install(dependencies = TRUE, lib = '$(Agent.BuildDirectory)/R/library')"
+        displayName: 'Install Signac'
