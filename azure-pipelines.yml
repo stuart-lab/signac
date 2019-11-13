@@ -78,7 +78,7 @@ jobs:
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install BioC'
       - script: |
-          Rscript -e "install.packages(c('data.table', 'dplyr', 'future', 'future.apply', 'ggplot2', 'irlba', 'pbapply', 'tidyr', 'zoo', 'cowplot',
+          Rscript -e "setRepositories(ind=1:2); install.packages(c('data.table', 'dplyr', 'future', 'future.apply', 'ggplot2', 'irlba', 'pbapply', 'tidyr', 'zoo', 'cowplot',
                                           'AnnotationFilter', 'BiocGenerics', 'GenomeInfoDb', 'GenomeInfoDbData', 'GO.db', 'GenomicFeatures',
                                           'GenomicRanges', 'IRanges', 'Rsamtools', 'S4Vectors', 'TFBSTools', 'ggbio', 'motifmatchr', 'AnnotationDbi'),
                                           lib = '$(Agent.BuildDirectory)/R/library')"
@@ -109,7 +109,7 @@ jobs:
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install BioC'
       - script: |
-          Rscript -e "install.packages(c('data.table', 'dplyr', 'future', 'future.apply', 'ggplot2', 'irlba', 'pbapply', 'tidyr', 'zoo', 'cowplot',
+          Rscript -e "setRepositories(ind=1:2); install.packages(c('data.table', 'dplyr', 'future', 'future.apply', 'ggplot2', 'irlba', 'pbapply', 'tidyr', 'zoo', 'cowplot',
                                           'AnnotationFilter', 'BiocGenerics', 'GenomeInfoDb', 'GenomeInfoDbData', 'GO.db', 'GenomicFeatures',
                                           'GenomicRanges', 'IRanges', 'Rsamtools', 'S4Vectors', 'TFBSTools', 'ggbio', 'motifmatchr', 'AnnotationDbi'),
                                           lib = '$(Agent.BuildDirectory)/R/library')"
