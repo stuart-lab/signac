@@ -23,6 +23,7 @@ jobs:
         displayName: 'Install GSL'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          echo '.libPaths(c(.libPaths(), ${R_LIBS_USER}))' > ~/.Rprofile
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
@@ -46,6 +47,7 @@ jobs:
         displayName: 'Install GSL'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          echo '.libPaths(c(.libPaths(), ${R_LIBS_USER}))' > ~/.Rprofile
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
@@ -71,6 +73,7 @@ jobs:
         displayName: 'Install GSL'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          echo '.libPaths(c(.libPaths(), ${R_LIBS_USER}))' > ~/.Rprofile
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
@@ -103,6 +106,7 @@ jobs:
         displayName: 'Install GSL'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          echo '.libPaths(c(.libPaths(), ${R_LIBS_USER}))' > ~/.Rprofile
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
