@@ -493,9 +493,7 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
   if (!(slot %in% slotNames(x = object))) {
     stop('slot must be one of ', paste(slotNames(x = object), collapse = ', '), call. = FALSE)
   }
-  if (slot == 'counts') {
-    stop("Modifying counts slot is not enabled")
-  } else if (slot == 'data') {
+  if (slot %in% c('counts', 'data')) {
     if (!(is(object = new.data, class2 = 'AnyMatrix'))) {
       stop("Data must be a matrix or sparseMatrix")
     }
