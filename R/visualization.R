@@ -137,7 +137,7 @@ SingleCoveragePlot <- function(
     )
     filters <- AnnotationFilterList(GRangesFilter(value = gr), GeneBiotypeFilter(value = 'protein_coding'))
     if (suppressMessages(expr = nrow(x = select(x = annotation, filters)) > 0)) {
-      genes <- suppressMessages(expr = autoplot(object = annotation, filters, names.expr = 'gene_name', stat = 'reduce'))
+      genes <- suppressMessages(expr = autoplot(object = annotation, filters, names.expr = 'gene_name'))
       gene.plot <- genes@ggplot +
         xlim(start.pos, end.pos) +
         xlab(label = paste0(chromosome, ' position (bp)')) +
@@ -253,6 +253,40 @@ CoveragePlot <- function(
       sep = sep
     ))
   }
+}
+
+#' MotifPlot
+#'
+#' Plot motifs
+#'
+#' @param object A Seurat object
+#' @param motifs A list of motifs to plot
+#' @param assay Name of the assay to use
+#' @param ... Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}
+#'
+#' @importFrom ggseqlogo ggseqlogo
+#' @importFrom TFBSTools name
+#'
+#' @export
+MotifPlot <- function(
+  object,
+  motifs,
+  assay = NULL,
+  ...
+) {
+  data.use <- GetMotifData(object = object, assay = assay, slot = 'pwm')
+  if (length(x = data.use) == 0) {
+    stop('Position weight matrix list for the requested assay is empty')
+  }
+  data.use <- data.use[motifs]
+  if (is(object = data.use, class2 = "PFMatrixList")) {
+    pwm <- TFBSTools::Matrix(x = data.use)
+    names(x = pwm) <- name(x = data.use)
+  } else {
+    pwm <- data.use
+  }
+  p <- ggseqlogo(data = pwm, ...)
+  return(p)
 }
 
 globalVariables(names = 'group', package = 'Signac')
@@ -492,5 +526,5 @@ TSSPlot <- function(
     xlab("Distance from TSS (bp)") +
     ylab(label = 'Mean TSS enrichment score') +
     theme_minimal()
-  return()
+  return(p)
 }
