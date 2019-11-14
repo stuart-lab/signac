@@ -344,7 +344,7 @@ CreateSignacObject <- function(
     max.cells = max.cells,
     ranges = ranges,
     fragments = fragments,
-    annotation = fragments,
+    annotation = annotation,
     genome = genome,
     motifs = motifs
   )
