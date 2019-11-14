@@ -42,8 +42,7 @@ Imports:
     AnnotationDbi,
     cowplot,
     Biostrings,
-    BSgenome,
-    glmnet
+    BSgenome
 Collate: 
     'data.R'
     'generics.R'
