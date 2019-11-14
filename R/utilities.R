@@ -867,7 +867,7 @@ MatchRegionStats <- function(
 #' @param verbose Display messages
 #' @param ... Additional arguments passed to \code{\link{CreateChromatinAssayObject}}
 #'
-#' @importFrom Seurat DefaultAssay CreateAssayObject GetAssayData
+#' @importFrom Seurat DefaultAssay CreateAssayObject GetAssayData Project
 #' @importFrom utils packageVersion
 #' @importFrom GenomicRanges granges
 #'
