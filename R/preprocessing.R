@@ -146,7 +146,6 @@ DownsampleFeatures <- function(
   verbose = TRUE
 ) {
   assay <- assay %||% DefaultAssay(object = object)
-  counts <- GetAssayData(object = object, assay = assay, slot = 'counts')
   if (n > nrow(object[[assay]])) {
     stop("Requested more features than present in the assay")
   }
