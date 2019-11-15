@@ -38,10 +38,9 @@ pwm <- getMatrixSet(
   opts = list(species = 9606, all_versions = FALSE)
 )
 motif.matrix <- CreateMotifMatrix(
-  features = StringToGRanges(rownames(atac_small), sep = c(":", "-")),
+  features = granges(atac_small),
   pwm = pwm,
-  genome = 'hg19',
-  sep = c(":", "-")
+  genome = 'hg19'
 )
 }
 }
