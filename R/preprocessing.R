@@ -99,10 +99,9 @@ BinarizeCounts.Seurat <- function(
 #'   opts = list(species = 9606, all_versions = FALSE)
 #' )
 #' motif.matrix <- CreateMotifMatrix(
-#'   features = StringToGRanges(rownames(atac_small), sep = c(":", "-")),
+#'   features = granges(atac_small),
 #'   pwm = pwm,
-#'   genome = 'hg19',
-#'   sep = c(":", "-")
+#'   genome = 'hg19'
 #' )
 #' }
 CreateMotifMatrix <- function(
@@ -137,6 +136,8 @@ CreateMotifMatrix <- function(
 #' @importFrom Seurat DefaultAssay GetAssayData "VariableFeatures<-"
 #'
 #' @return Returns a Seurat object with VariableFeatures set to the randomly sampled features.
+#' @examples
+#' DownsampleFeatures(atac_small, n = 10)
 #'
 #' @export
 DownsampleFeatures <- function(
