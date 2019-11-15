@@ -42,6 +42,7 @@ Jaccard <- function(x, y) {
 #' @param assay Which assay to use. If NULL, use the default assay
 #' @param n Number of singular values to compute
 #' @param reduction.key Key for dimension reduction object
+#' @param standardize.embeddings Scale and center cell embeddings
 #' @param scale.max Clipping value for cell embeddings. Default (NULL) is no clipping.
 #' @param seed.use Set a random seed. By default, no seed is set.
 #' @param verbose Print messages
@@ -60,6 +61,7 @@ RunSVD.default <- function(
   assay = NULL,
   n = 50,
   reduction.key = 'SVD_',
+  standardize.embeddings = TRUE,
   scale.max = NULL,
   seed.use = NULL,
   verbose = TRUE,
@@ -76,22 +78,24 @@ RunSVD.default <- function(
   feature.loadings <- components$v
   sdev <- components$d / sqrt(x = max(1, nrow(x = object) - 1))
   cell.embeddings <- components$u
-  if (verbose) {
-    message('Scaling cell embeddings')
+  if (standardize.embeddings) {
+    if (verbose) {
+      message('Scaling cell embeddings')
+    }
+    embed.mean <- apply(X = cell.embeddings, MARGIN = 1, FUN = mean)
+    embed.sd <- apply(X = cell.embeddings, MARGIN = 1, FUN = sd)
+    cell.embeddings <- (cell.embeddings - embed.mean) / embed.sd
   }
-  embed.mean <- apply(X = cell.embeddings, MARGIN = 1, FUN = mean)
-  embed.sd <- apply(X = cell.embeddings, MARGIN = 1, FUN = sd)
-  norm.embeddings <- (cell.embeddings - embed.mean) / embed.sd
   if (!is.null(x = scale.max)) {
-    norm.embeddings[norm.embeddings > scale.max] <- scale.max
-    norm.embeddings[norm.embeddings < -scale.max] <- -scale.max
+    cell.embeddings[cell.embeddings > scale.max] <- scale.max
+    cell.embeddings[cell.embeddings < -scale.max] <- -scale.max
   }
   rownames(x = feature.loadings) <- rownames(x = object)
   colnames(x = feature.loadings) <- paste0(reduction.key, 1:n)
   rownames(x = norm.embeddings) <- colnames(x = object)
   colnames(x = norm.embeddings) <- paste0(reduction.key, 1:n)
   reduction.data <- CreateDimReducObject(
-    embeddings = norm.embeddings,
+    embeddings = cell.embeddings,
     loadings = feature.loadings,
     assay = assay,
     stdev = sdev,
