@@ -557,10 +557,6 @@ NucleosomeSignal <- function(
 
 #' @param genome A BSgenome object
 #' @param verbose Display messages
-#' @param sep A length-2 character vector containing the separators to be used when constructing
-#' genomic coordinates from the regions. The first element is used to separate the chromosome
-#' from the genomic coordinates, and the second element used to separate the start and
-#' end coordinates.
 #'
 #' @importFrom Biostrings letterFrequency dinucleotideFrequency
 #' @importFrom IRanges width
@@ -570,43 +566,37 @@ NucleosomeSignal <- function(
 RegionStats.default <- function(
   object,
   genome,
-  sep = c('-', '-'),
   verbose = TRUE,
   ...
 ) {
-  if (is(object = object, class2 = 'character')) {
-    object <- StringToGRanges(regions = object, sep = sep)
-  }
   sequence.length <- width(x = object)
   sequences <- getSeq(x = genome, names = object)
   gc <- letterFrequency(x = sequences, letters = 'CG') / sequence.length * 100
   colnames(gc) <- 'GC.percent'
   dinuc <- dinucleotideFrequency(sequences)
   sequence.stats <- cbind(dinuc, gc, sequence.length)
-  rownames(sequence.stats) <- GRangesToString(grange = object, sep = sep)
   return(sequence.stats)
 }
 
 #' @rdname RegionStats
-#' @method RegionStats Assay
+#' @method RegionStats ChromatinAssay
 #' @importFrom methods slot
 #' @importFrom Seurat GetAssayData
 #' @export
-RegionStats.Assay <- function(
+RegionStats.ChromatinAssay <- function(
   object,
   genome,
-  sep = c('-', '-'),
   verbose = TRUE,
   ...
 ) {
-  regions <- rownames(x = object)
+  regions <- granges(x = object)
   feature.metadata <- RegionStats(
     object = regions,
     genome = genome,
-    sep = sep,
     verbose = verbose,
     ...
   )
+  rownames(x = feature.metadata) <- rownames(x = object)
   meta.data <- GetAssayData(object = object, slot = 'meta.features')
   meta.data <- cbind(meta.data, feature.metadata)
   slot(object = object, name = 'meta.features') <- meta.data
@@ -630,7 +620,6 @@ RegionStats.Seurat <- function(
   object,
   genome,
   assay = NULL,
-  sep = c('-', '-'),
   verbose = TRUE,
   ...
 ) {
@@ -639,7 +628,6 @@ RegionStats.Seurat <- function(
   assay.data <- RegionStats(
     object = assay.data,
     genome = genome,
-    sep = sep,
     verbose = verbose,
     ...
   )
