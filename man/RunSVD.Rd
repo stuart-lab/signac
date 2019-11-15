@@ -10,8 +10,8 @@
 RunSVD(object, ...)
 
 \method{RunSVD}{default}(object, assay = NULL, n = 50,
-  reduction.key = "SVD_", scale.max = NULL, seed.use = NULL,
-  verbose = TRUE, ...)
+  reduction.key = "SVD_", standardize.embeddings = TRUE,
+  scale.max = NULL, seed.use = NULL, verbose = TRUE, ...)
 
 \method{RunSVD}{Assay}(object, assay = NULL, features = NULL, n = 50,
   reduction.key = "SVD_", scale.max = NULL, verbose = TRUE, ...)
@@ -30,6 +30,8 @@ RunSVD(object, ...)
 \item{n}{Number of singular values to compute}
 
 \item{reduction.key}{Key for dimension reduction object}
+
+\item{standardize.embeddings}{Scale and center cell embeddings}
 
 \item{scale.max}{Clipping value for cell embeddings. Default (NULL) is no clipping.}
 
