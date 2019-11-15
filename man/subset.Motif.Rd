@@ -30,7 +30,7 @@ Returns a subsetted Motif object
 Return a subset of a Motif object
 }
 \examples{
-motif.obj <- GetMotifObject(atac_small)
+motif.obj <- Seurat::GetAssayData(object = atac_small, assay = 'peaks', slot = 'motifs')
 motif.obj[1:10,1:10]
 }
 \seealso{
