@@ -1,9 +1,14 @@
+# Signac 0.1.6
+
+* Bug fix for `GetCellsInRegion`
+* Improve documentation
+
 # Signac 0.1.5
 
-* New TSSEnrichment and TSSPlot functions for TSS enrichment scoring
-* New InsertionBias function
-* New options in CoveragePlot for scaling tracks 
-* Major speed improvements for CoveragePlot 
+* New `TSSEnrichment` and `TSSPlot` functions for TSS enrichment scoring
+* New `InsertionBias` function
+* New options in `CoveragePlot` for scaling tracks 
+* Major speed improvements for `CoveragePlot` 
 * Improved documentation (added examples)
 
 # Signac 0.1.4
