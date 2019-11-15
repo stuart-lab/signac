@@ -92,8 +92,8 @@ RunSVD.default <- function(
   }
   rownames(x = feature.loadings) <- rownames(x = object)
   colnames(x = feature.loadings) <- paste0(reduction.key, 1:n)
-  rownames(x = norm.embeddings) <- colnames(x = object)
-  colnames(x = norm.embeddings) <- paste0(reduction.key, 1:n)
+  rownames(x = cell.embeddings) <- colnames(x = object)
+  colnames(x = cell.embeddings) <- paste0(reduction.key, 1:n)
   reduction.data <- CreateDimReducObject(
     embeddings = cell.embeddings,
     loadings = feature.loadings,
