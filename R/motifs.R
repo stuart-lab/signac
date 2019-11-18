@@ -46,6 +46,9 @@ RunChromVAR <- function(
   assay <- assay %||% DefaultAssay(object = object)
   motif.matrix <- motif.matrix %||% GetMotifData(object = object, assay = assay, slot = 'data')
   peak.matrix <- GetAssayData(object = object, assay = assay, slot = 'counts')
+  if (!(all(peak.matrix@x == floor(peak.matrix@x)))) {
+    warning("Count matrix contains non-integer values. ChromVAR should only be run on integer counts.")
+  }
   peak.matrix <- peak.matrix[rowSums(x = peak.matrix) > 0, ]
   motif.matrix <- motif.matrix[rownames(x = peak.matrix), ]
   peak.ranges <- GetAssayData(object = object, assay = assay, slot = 'ranges')
