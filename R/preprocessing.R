@@ -235,8 +235,18 @@ FeatureMatrix <- function(
   rownames(x = featmat) <- names(x = feature.lookup)
   colnames(x = featmat) <- names(x = cell.lookup)
   if (!is.null(x = cells)) {
-    cells.accept <- intersect(x = cells, y = colnames(x = featmat))
-    return(featmat[, cells.accept])
+    missing.cells <- setdiff(x = cells, y = colnames(x = featmat))
+    if (!(length(x = missing.cells) == 0)) {
+      null.mat <- sparseMatrix(
+        i = c(),
+        j = c(),
+        dims = c(nrow(x = featmat), length(missing.cells))
+      )
+      rownames(x = null.mat) <- rownames(x = featmat)
+      colnames(x = null.mat) <- missing.cells
+      featmat <- cbind(featmat, null.mat)
+    }
+    return(featmat[, cells])
   } else {
     return(featmat)
   }
