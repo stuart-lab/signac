@@ -668,9 +668,63 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
 # TODO define subset.ChromatinAssay
 # needs to subet the genomic ranges and motif object
 
-# TODO define merge.ChromatinAssay
-# should be coordinate-aware and genome-aware
-# genome must match in order to merge
+#' @rdname merge.ChromatinAssay
+#' @export
+#' @method merge ChromatinAssay
+#' @importFrom GenomicRanges union
+merge.ChromatinAssay <- function(
+  x = NULL,
+  y = NULL,
+  add.cell.ids = NULL,
+  merge.data = TRUE,
+  ...
+) {
+  # check that genome is the same if both not NULL
+  genome.1 <- genome(x = x)
+  genome.2 <- genome(x = y)
+  if ((!is.null(x = genome.1) & !is.null(x = genome.2)) & !(identical(x = genome.1, y = genome.2))) {
+    warning("Genomes do not match, not merging ChromatinAssays")
+    return(NULL)
+  } else {
+    genome.use <- genome.1 %||% genome.2
+  }
+  # check the annotations slot
+  annot.1 <- Annotation(object = x)
+  annot.2 <- Annotation(object = y)
+  if ((!is.null(x = annot.1) & !is.null(x = annot.2)) & !(identical(x = annot.1, y = annot.2))) {
+    warning("Annotations do not match, keeping annotation from the first object")
+    annot <- annot.1
+  } else {
+    annot <- annot.1 %||% annot.2
+  }
+  # check fragments
+  frag.1 <- GetAssayData(object = x, slot = 'fragments')
+  frag.2 <- GetAssayData(object = y, slot = 'fragments')
+  merged.frag <- c(frag.1, frag.2)
+  # gets checked at CreateChromatinAssayObject
+  # if any fragment file is not present or not indexed, will cause a stop
+  # do the check here instead and remove files from the list that are invalid and issue warning so that merge can proceed
+  index.file <- paste0(new.data, ".tbi") # TODO
+  if (all(file.exists(new.data, index.file))) {
+    file <- normalizePath(path = new.data)
+    slot(object = object, name = slot) <- new.data
+  }
+
+  # take union of granges
+  grange.union <- union(x = granges(x = x), y = granges(x = y))
+  # check that there is good overlap, if not issue warning (genome might be wrong)
+
+  # rename matrix rows with granges union
+
+  # merge data matrices
+
+  # create new ChromatinAssay object
+  # bias, motifs, positionEnrichment, metafeatures, scaledata not kept
+  new.assay <- CreateChromatinAssayObject()
+
+  return(new.assay)
+}
+
 
 #' @inheritParams subset.Motif
 #' @param i Which columns to retain
