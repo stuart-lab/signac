@@ -17,12 +17,16 @@ NULL
 #' @param binary Binarize the peak counts (default TRUE)
 #' @param alpha Alpha parameter for elastic net regularization. Controls balance between LASSO (alpha=1) and ridge (alpha=0) regression.
 #' @param distance Distance threshold for peaks to include in regression model
+#' @param min.cells Minimum number of cells positive for the peak and gene needed to include in the results.
+#' @param expression.threshold Minimum value for a gene to be classified as expressed. Only used for filtering genes from regression.
+#' @param keep.all Retain all peaks in the output. Useful for knowing what peaks had 0 coefficient and what were not tested due to
+#' expression or accessibility thresholds.
 #' @param verbose Display messages
 #'
 #' @importFrom Seurat GetAssayData
 #' @importFrom glmnet cv.glmnet
 #' @importFrom stats coef
-#' @importFrom Matrix sparseMatrix
+#' @importFrom Matrix sparseMatrix rowSums
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #'
 #' @return Returns a sparse matrix
@@ -35,11 +39,21 @@ LinkPeaks <- function(
   sep = c("-", "-"),
   binary = TRUE,
   alpha = 0.95,
-  distance = 200000,
+  distance = 5e+05,
+  min.cells = 10,
+  expression.threshold = 0.1,
+  keep.all = FALSE,
   verbose = TRUE
 ) {
   peak.data <- GetAssayData(object = object, assay = peak.assay, slot = 'counts')
   expression.data <- GetAssayData(object = object, assay = expression.assay, slot = 'data')
+  peakcounts <- rowSums(peak.data > 0)
+  genecounts <- rowSums(expression.data > expression.threshold)
+  peaks.keep <- peakcounts > min.cells
+  genes.keep <- genecounts > min.cells
+
+  peak.data <- peak.data[peaks.keep, ]
+  expression.data <- expression.data[genes.keep, ]
   if (binary) {
     peak.data <- BinarizeCounts(object = peak.data)
   }
@@ -59,22 +73,22 @@ LinkPeaks <- function(
   for (i in seq_along(along.with = genes.use)) {
     peak.use <- as.logical(x = peak_distance_matrix[, genes.use[[i]]])
     gene.expression <- expression.data[genes.use[[i]], ]
-    if ((sum(peak.use) < 2) | (sum(gene.expression > 0) < 10)) {
+    if (sum(peak.use) < 1) {
+      # no peaks close to gene
       setTxtProgressBar(pb = pb, value = i)
       next
     } else {
       peak.access <- t(peak.data[peak.use, ])
-      if (sum(peak.access) == 0) {
-        setTxtProgressBar(pb = pb, value = i)
-        next
-      }
-      # message(genes.use[[i]])
-      # gene.expression.weight<- ((gene.expression-min(gene.expression))/(max(gene.expression)-min(gene.expression))) # weight term; proportional to gene expression (scaling from 0 to 1)
       cvfit <- cv.glmnet(x = peak.access, y = gene.expression, alpha = alpha, family = 'gaussian')
       lambda <- cvfit$lambda.1se
       coef.results <- coef(cvfit, s = lambda)
       coef.results <- coef.results[2:nrow(x = coef.results), ]
-      coef.results.filtered <- coef.results[coef.results != 0]
+      if (keep.all) {
+        # keep all genes so we know what was tested
+        coef.results.filtered <- coef.results
+      } else {
+        coef.results.filtered <- coef.results[coef.results != 0]
+      }
       if (length(x = coef.results.filtered) == 0) {
         setTxtProgressBar(pb = pb, value = i)
         next
@@ -84,6 +98,10 @@ LinkPeaks <- function(
         setTxtProgressBar(pb = pb, value = i)
       }
     }
+  }
+  if (length(x = coef.vec) == 0) {
+    message("No significant links found")
+    return(NULL)
   }
   peak.key <- seq_along(along.with = unique(x = names(x = coef.vec)))
   names(x = peak.key) <- unique(x = names(x = coef.vec))
