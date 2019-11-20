@@ -51,7 +51,9 @@ LinkPeaks <- function(
   genecounts <- rowSums(expression.data > expression.threshold)
   peaks.keep <- peakcounts > min.cells
   genes.keep <- genecounts > min.cells
-
+  if (verbose) {
+    message("Testing ", sum(genes.keep), " genes and ", sum(peaks.keep), " peaks")
+  }
   peak.data <- peak.data[peaks.keep, ]
   expression.data <- expression.data[genes.keep, ]
   if (binary) {
@@ -64,18 +66,20 @@ LinkPeaks <- function(
   genes.use <- colnames(x = peak_distance_matrix)
   coef.vec <- c()
   gene.vec <- c()
-  pb <- txtProgressBar(
-    min = 1,
-    max = length(x = genes.use),
-    style = 3,
-    file = stderr()
-  )
+  if (verbose) {
+    pb <- txtProgressBar(
+      min = 1,
+      max = length(x = genes.use),
+      style = 3,
+      file = stderr()
+    )
+  }
   for (i in seq_along(along.with = genes.use)) {
     peak.use <- as.logical(x = peak_distance_matrix[, genes.use[[i]]])
     gene.expression <- expression.data[genes.use[[i]], ]
     if (sum(peak.use) < 1) {
       # no peaks close to gene
-      setTxtProgressBar(pb = pb, value = i)
+      if (verbose) setTxtProgressBar(pb = pb, value = i)
       next
     } else {
       peak.access <- t(peak.data[peak.use, ])
@@ -90,17 +94,19 @@ LinkPeaks <- function(
         coef.results.filtered <- coef.results[coef.results != 0]
       }
       if (length(x = coef.results.filtered) == 0) {
-        setTxtProgressBar(pb = pb, value = i)
+        if (verbose) setTxtProgressBar(pb = pb, value = i)
         next
       } else {
         gene.vec <- c(gene.vec, rep(i, length(x = coef.results.filtered)))
         coef.vec <- c(coef.vec, coef.results.filtered)
-        setTxtProgressBar(pb = pb, value = i)
+        if (verbose) setTxtProgressBar(pb = pb, value = i)
       }
     }
   }
   if (length(x = coef.vec) == 0) {
-    message("No significant links found")
+    if (verbose) {
+      message("No significant links found")
+    }
     return(NULL)
   }
   peak.key <- seq_along(along.with = unique(x = names(x = coef.vec)))
