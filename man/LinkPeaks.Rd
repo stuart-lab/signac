@@ -5,7 +5,8 @@
 \title{Link peaks to genes}
 \usage{
 LinkPeaks(object, peak.assay, expression.assay, gene.coords, sep = c("-",
-  "-"), binary = TRUE, alpha = 0.95, distance = 2e+05,
+  "-"), binary = TRUE, alpha = 0.95, distance = 5e+05,
+  min.cells = 10, expression.threshold = 0.1, keep.all = FALSE,
   verbose = TRUE)
 }
 \arguments{
@@ -24,6 +25,13 @@ LinkPeaks(object, peak.assay, expression.assay, gene.coords, sep = c("-",
 \item{alpha}{Alpha parameter for elastic net regularization. Controls balance between LASSO (alpha=1) and ridge (alpha=0) regression.}
 
 \item{distance}{Distance threshold for peaks to include in regression model}
+
+\item{min.cells}{Minimum number of cells positive for the peak and gene needed to include in the results.}
+
+\item{expression.threshold}{Minimum value for a gene to be classified as expressed. Only used for filtering genes from regression.}
+
+\item{keep.all}{Retain all peaks in the output. Useful for knowing what peaks had 0 coefficient and what were not tested due to
+expression or accessibility thresholds.}
 
 \item{verbose}{Display messages}
 }
