@@ -1138,3 +1138,121 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
   })
   return(rbindlist(l = df.list))
 }
+
+####################
+### Not exported ###
+####################
+
+# Merge multiple rows within a matrix that intersect with a single region in another matrix
+# First finds the intersecting ranges, then finds rows in each matrix that intersect the same region in the other matrix
+# then merges the groups of matrix rows that intersect the same region of the other matrix. The merged row is re-named with
+# the row name of the first row that was merged. Rows are returned to their original order (missing the merged rows).
+# Most of the work done by MergeInternalRows function.
+#
+# @param mat.a First matrix
+# @param mat.b Second matrix
+# @param ranges.a Ranges associated with the rows of the first matrix
+# @param ranges.b Ranges associated with the rows of the second matrix
+# @param verbose Display messages
+# @return Returns a list of two sparse matrices, A and B, with rows that intersect multiple regions in the other matrix merged.
+#' @importFrom GenomicRanges findOverlaps queryHits subjectHits
+#' @importFrom Biobase isUnique
+MergeIntersectingRows <- function(
+  mat.a,
+  mat.b,
+  ranges.a,
+  ranges.b,
+  verbose = TRUE
+) {
+  if (verbose) {
+    message("Finding overlapping ranges")
+  }
+  overlaps <- findOverlaps(query = ranges.b, subject = ranges.a)
+  b.hits <- queryHits(x = overlaps)
+  a.hits <- subjectHits(x = overlaps)
+
+  queryhits.multi.a <-  queryHits(x = overlaps[which(!isUnique(x = a.hits))])
+  subjecthits.multi.a <- subjectHits(x = overlaps[which(!isUnique(x = a.hits))])
+
+  queryhits.multi.b <- queryHits(x = overlaps[which(!isUnique(x = b.hits))])
+  subjecthits.multi.b <- subjectHits(x = overlaps[which(!isUnique(x = b.hits))])
+
+  multihit.a <- rle(x = queryhits.multi.b)
+  multihit.b <- rle(x = subjecthits.multi.a)
+
+  if (verbose) {
+    message("Merging multiple rows of matrix B that intersect single row in matrix A")
+  }
+  mat.b.mod <- MergeInternalRows(
+    mat = mat.b,
+    multihit = multihit.b,
+    queryhits = queryhits.multi.a,
+    verbose = verbose
+  )
+  if (verbose) {
+    message("Merging multiple rows of matrix A that intersect single row in matrix B")
+  }
+  mat.a.mod <- MergeInternalRows(
+    mat = mat.a,
+    multihit = multihit.a,
+    queryhits = subjecthits.multi.b,
+    verbose = verbose
+  )
+  return(list(mat.a.mod, mat.b.mod))
+}
+
+# Merge rows of matrix based on intersection with a second matrix.
+# TODO this can be slow if there are a lot of rows to merge because we repeatedly extract and sum rows of a sparse matrix.
+#      could try to make parallel, or think about other ways of doing it.
+# @param mat A sparse matrix
+# @param multihit a run-length encoded list describing the number of rows to be merged in each merge step
+# @param queryhits Row indices to be merged
+# @param return Returns a sparse matrix, with target rows merged in-place (order same but condensed rows).
+# @param verbose Display progress
+#' @importFrom utils txtProgressBar setTxtProgressBar
+#' @importFrom Matrix colSums
+MergeInternalRows <- function(
+  mat,
+  multihit,
+  queryhits,
+  verbose = TRUE
+) {
+  mat.rows <- rownames(x = mat)
+  i <- 1
+  newmat <- list()
+  todelete <- c()
+
+  if (verbose) {
+    pb <- txtProgressBar(
+      min = 1,
+      max = length(x = multihit$lengths),
+      style = 3,
+      file = stderr()
+    )
+  }
+  while (i < length(x = multihit$lengths)) {
+    rowrun <- multihit$lengths[[i]]
+    # find the matrix rows to merge
+    rowindex <- mat.rows[queryhits[i:(i+rowrun-1)]]
+    # merge rows and add to list, name will become the name of the row
+    newmat[[rowindex[[1]]]] <- colSums(mat[rowindex, ])
+    # record which rows need to be removed
+    todelete <- c(todelete, rowindex)
+    i <- i + rowrun
+    if (verbose) setTxtProgressBar(pb = pb, value = i)
+  }
+  # contruct matrix
+  merged.mat <- Reduce(f = rbind, x = newmat)
+  rownames(merged.mat) <- names(newmat)
+  merged.mat <- as(object = merged.mat, Class = 'dgCMatrix')
+  # remove rows from A that were merged
+  tokeep <- setdiff(mat.rows, todelete)
+  mat.mod <- mat[tokeep, ]
+  # add new merged rows to A
+  mat.mod <- rbind(mat.mod, merged.mat)
+  # put back in original order
+  rows.order <- mat.rows[mat.rows %in% rownames(x = mat.mod)]
+  mat.mod <- mat.mod[rows.order, ]
+  return(mat.mod)
+}
+
