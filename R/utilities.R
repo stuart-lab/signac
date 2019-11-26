@@ -1256,3 +1256,14 @@ MergeInternalRows <- function(
   return(mat.mod)
 }
 
+# Check if fragment file exists and is indexed
+# @param f A fragment file path
+# @retrun Returns TRUE is present and indexed, otherwise FALSE
+ValidFragments <- function(f) {
+  index.file <- paste0(f, ".tbi")
+  if (all(file.exists(f, index.file))) {
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+}
