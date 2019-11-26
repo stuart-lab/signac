@@ -701,30 +701,65 @@ merge.ChromatinAssay <- function(
   frag.1 <- GetAssayData(object = x, slot = 'fragments')
   frag.2 <- GetAssayData(object = y, slot = 'fragments')
   merged.frag <- c(frag.1, frag.2)
-  # gets checked at CreateChromatinAssayObject
-  # if any fragment file is not present or not indexed, will cause a stop
-  # do the check here instead and remove files from the list that are invalid and issue warning so that merge can proceed
-  index.file <- paste0(new.data, ".tbi") # TODO
-  if (all(file.exists(new.data, index.file))) {
-    file <- normalizePath(path = new.data)
-    slot(object = object, name = slot) <- new.data
+  valid.frags <- sapply(X = merged.frag, FUN = ValidFragments)
+  if (!all(valid.frags)) {
+    warning("Some fragment files are not valid or not indexed. Removing invalid files from merged ChromatinAssay")
+    merged.frag <- merged.frag[valid.frags]
   }
 
-  # take union of granges
+  # Assemble new granges for the object (union)
   grange.union <- union(x = granges(x = x), y = granges(x = y))
+
   # check that there is good overlap, if not issue warning (genome might be wrong)
+  if (poor.overlap) { # TODO
+    warning("Few overlapping ranges between the assays to be merged.")
+  }
 
-  # rename matrix rows with granges union
+  # condense matrices
+  condensed.matrices <- MergeIntersectingRows(
+    mat.a = GetAssayData(object = x, slot = 'counts'),
+    mat.b = GetAssayData(object = y, slot = 'counts'),
+    ranges.a = granges(x = x),
+    ranges.b = granges(x = y)
+  )
+  # should now have 1-1 intersection of ranges
+  # need to update the granges so that they still match the matrix rows
+  # just remove the ranges corresponding to the removed rows
+  # need an index of removed rows (from the overlap information)
+  # can write another function for this
+  condensed.granges <- CondenseOverlappingGRanges()
+  # intersect ranges and rename rows of B with the intersecting row in A
+  # need to rename row names
 
-  # merge data matrices
+  # merge matrices
+  # TODO
+  merged.counts <- Seurat:::RowMergeMatrices( # not exported from Seurat
+    mat1 = condensed.matrices[[1]],
+    mat2 = condensed.matrices[[2]],
+    mat1_rownames = rownames(x = condensed.matrices[[1]]),
+    mat2_rownames = rownames(x = condensed.matrices[[2]]),
+    all_rownames = unique(x = c(rownames(x = condensed.matrices[[1]]),
+                                rownames(x = condensed.matrices[[2]])))
+  )
 
   # create new ChromatinAssay object
-  # bias, motifs, positionEnrichment, metafeatures, scaledata not kept
-  new.assay <- CreateChromatinAssayObject()
+  # bias, motifs, positionEnrichment, metafeatures, scaledata and data not kept
+  new.assay <- CreateChromatinAssayObject(
+    counts = merged.counts,
+    data = NULL,
+    min.cells = 0,
+    min.features = 0,
+    max.cells = NULL,
+    ranges = grange.union,
+    motifs = NULL,
+    fragments = merged.frag,
+    genome = genome.use,
+    annotation = annot,
+    bias = NULL
+  )
 
   return(new.assay)
 }
-
 
 #' @inheritParams subset.Motif
 #' @param i Which columns to retain
