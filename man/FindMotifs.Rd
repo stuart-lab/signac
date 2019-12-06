@@ -4,8 +4,14 @@
 \alias{FindMotifs}
 \title{FindMotifs}
 \usage{
-FindMotifs(object, features, background = 40000, assay = NULL,
-  verbose = TRUE, ...)
+FindMotifs(
+  object,
+  features,
+  background = 40000,
+  assay = NULL,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{A Seurat object}

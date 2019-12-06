@@ -4,8 +4,14 @@
 \alias{InsertionBias}
 \title{Compute Tn5 insertion bias}
 \usage{
-InsertionBias(object, genome, assay = NULL,
-  region = "chr1-1-249250621", verbose = TRUE, ...)
+InsertionBias(
+  object,
+  genome,
+  assay = NULL,
+  region = "chr1-1-249250621",
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{A Seurat object}

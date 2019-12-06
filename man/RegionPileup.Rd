@@ -4,9 +4,18 @@
 \alias{RegionPileup}
 \title{Plot pileup of Tn5 integration sites}
 \usage{
-RegionPileup(object, regions, assay = NULL, upstream = 200,
-  downstream = 200, group.by = NULL, min.cells = 100, ymax = NULL,
-  idents = NULL, verbose = TRUE)
+RegionPileup(
+  object,
+  regions,
+  assay = NULL,
+  upstream = 200,
+  downstream = 200,
+  group.by = NULL,
+  min.cells = 100,
+  ymax = NULL,
+  idents = NULL,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{object}{A Seurat object}

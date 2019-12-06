@@ -4,8 +4,14 @@
 \alias{ApplyMatrixByGroup}
 \title{Apply function to integration sites per base per group}
 \usage{
-ApplyMatrixByGroup(mat, groups, fun, normalize = TRUE,
-  group.scale.factors = NULL, scale.factor = NULL)
+ApplyMatrixByGroup(
+  mat,
+  groups,
+  fun,
+  normalize = TRUE,
+  group.scale.factors = NULL,
+  scale.factor = NULL
+)
 }
 \arguments{
 \item{mat}{A cut matrix. See \code{\link{CutMatrix}}}

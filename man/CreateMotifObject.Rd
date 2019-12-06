@@ -4,8 +4,13 @@
 \alias{CreateMotifObject}
 \title{CreateMotifObject}
 \usage{
-CreateMotifObject(data = NULL, pwm = NULL, neighbors = NULL,
-  reductions = NULL, meta.data = NULL)
+CreateMotifObject(
+  data = NULL,
+  pwm = NULL,
+  neighbors = NULL,
+  reductions = NULL,
+  meta.data = NULL
+)
 }
 \arguments{
 \item{data}{A motif x region matrix}

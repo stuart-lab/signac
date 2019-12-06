@@ -4,8 +4,14 @@
 \alias{MatchRegionStats}
 \title{Match DNA sequence characteristics}
 \usage{
-MatchRegionStats(meta.feature, regions, features.match = c("GC.percent"),
-  n = 10000, verbose = TRUE, ...)
+MatchRegionStats(
+  meta.feature,
+  regions,
+  features.match = c("GC.percent"),
+  n = 10000,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{meta.feature}{A dataframe containing DNA sequence information}

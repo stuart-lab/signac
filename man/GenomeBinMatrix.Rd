@@ -4,8 +4,15 @@
 \alias{GenomeBinMatrix}
 \title{GenomeBinMatrix}
 \usage{
-GenomeBinMatrix(fragments, genome, cells = NULL, binsize = 5000,
-  chunk = 50, sep = c("-", "-"), verbose = TRUE)
+GenomeBinMatrix(
+  fragments,
+  genome,
+  cells = NULL,
+  binsize = 5000,
+  chunk = 50,
+  sep = c("-", "-"),
+  verbose = TRUE
+)
 }
 \arguments{
 \item{fragments}{Path to tabix-indexed fragments file}

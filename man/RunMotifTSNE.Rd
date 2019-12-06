@@ -9,13 +9,11 @@
 \usage{
 RunMotifTSNE(object, ...)
 
-\method{RunMotifTSNE}{Motif}(object, verbose = TRUE, graph.name = "nn",
-  ...)
+\method{RunMotifTSNE}{Motif}(object, verbose = TRUE, graph.name = "nn", ...)
 
 \method{RunMotifTSNE}{Assay}(object, verbose = TRUE, ...)
 
-\method{RunMotifTSNE}{Seurat}(object, assay = NULL, verbose = TRUE,
-  ...)
+\method{RunMotifTSNE}{Seurat}(object, assay = NULL, verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{A Seurat object}

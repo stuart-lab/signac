@@ -9,14 +9,11 @@
 \usage{
 BinarizeCounts(object, ...)
 
-\method{BinarizeCounts}{default}(object, assay = NULL, verbose = TRUE,
-  ...)
+\method{BinarizeCounts}{default}(object, assay = NULL, verbose = TRUE, ...)
 
-\method{BinarizeCounts}{Assay}(object, assay = NULL, verbose = TRUE,
-  ...)
+\method{BinarizeCounts}{Assay}(object, assay = NULL, verbose = TRUE, ...)
 
-\method{BinarizeCounts}{Seurat}(object, assay = NULL, verbose = TRUE,
-  ...)
+\method{BinarizeCounts}{Seurat}(object, assay = NULL, verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{A Seurat object}

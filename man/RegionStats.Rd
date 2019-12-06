@@ -9,14 +9,18 @@
 \usage{
 RegionStats(object, ...)
 
-\method{RegionStats}{default}(object, genome, sep = c("-", "-"),
-  verbose = TRUE, ...)
+\method{RegionStats}{default}(object, genome, sep = c("-", "-"), verbose = TRUE, ...)
 
-\method{RegionStats}{Assay}(object, genome, sep = c("-", "-"),
-  verbose = TRUE, ...)
+\method{RegionStats}{Assay}(object, genome, sep = c("-", "-"), verbose = TRUE, ...)
 
-\method{RegionStats}{Seurat}(object, genome, assay = NULL, sep = c("-",
-  "-"), verbose = TRUE, ...)
+\method{RegionStats}{Seurat}(
+  object,
+  genome,
+  assay = NULL,
+  sep = c("-", "-"),
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{A Seurat object, Assay object, or set of genomic ranges}

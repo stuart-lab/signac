@@ -4,8 +4,16 @@
 \alias{GetReadsInRegion}
 \title{GetReadsInRegion}
 \usage{
-GetReadsInRegion(object, region, assay = NULL, tabix.file = NULL,
-  group.by = NULL, cells = NULL, verbose = TRUE, ...)
+GetReadsInRegion(
+  object,
+  region,
+  assay = NULL,
+  tabix.file = NULL,
+  group.by = NULL,
+  cells = NULL,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{A Seurat object}

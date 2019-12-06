@@ -9,13 +9,11 @@
 \usage{
 ClusterMotifs(object, ...)
 
-\method{ClusterMotifs}{Motif}(object, assay = NULL, verbose = TRUE,
-  ...)
+\method{ClusterMotifs}{Motif}(object, assay = NULL, verbose = TRUE, ...)
 
 \method{ClusterMotifs}{Assay}(object, verbose = TRUE, ...)
 
-\method{ClusterMotifs}{Seurat}(object, assay = NULL, verbose = TRUE,
-  ...)
+\method{ClusterMotifs}{Seurat}(object, assay = NULL, verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
