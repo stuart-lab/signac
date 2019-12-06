@@ -5,17 +5,44 @@
 \alias{CoveragePlot}
 \title{CoveragePlot}
 \usage{
-SingleCoveragePlot(object, region, annotation = NULL, assay = NULL,
-  fragment.path = NULL, group.by = NULL, window = 100,
-  downsample = 0.1, height.tracks = 2, extend.upstream = 0,
-  extend.downstream = 0, ymax = NULL, scale.factor = NULL,
-  cells = NULL, idents = NULL, sep = c("-", "-"))
+SingleCoveragePlot(
+  object,
+  region,
+  annotation = NULL,
+  assay = NULL,
+  fragment.path = NULL,
+  group.by = NULL,
+  window = 100,
+  downsample = 0.1,
+  height.tracks = 2,
+  extend.upstream = 0,
+  extend.downstream = 0,
+  ymax = NULL,
+  scale.factor = NULL,
+  cells = NULL,
+  idents = NULL,
+  sep = c("-", "-")
+)
 
-CoveragePlot(object, region, annotation = NULL, assay = NULL,
-  fragment.path = NULL, group.by = NULL, window = 100,
-  downsample = 0.1, height.tracks = 2, extend.upstream = 0,
-  extend.downstream = 0, scale.factor = NULL, ymax = NULL,
-  cells = NULL, idents = NULL, sep = c("-", "-"), ...)
+CoveragePlot(
+  object,
+  region,
+  annotation = NULL,
+  assay = NULL,
+  fragment.path = NULL,
+  group.by = NULL,
+  window = 100,
+  downsample = 0.1,
+  height.tracks = 2,
+  extend.upstream = 0,
+  extend.downstream = 0,
+  scale.factor = NULL,
+  ymax = NULL,
+  cells = NULL,
+  idents = NULL,
+  sep = c("-", "-"),
+  ...
+)
 }
 \arguments{
 \item{object}{A Seurat object}

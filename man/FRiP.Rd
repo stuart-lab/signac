@@ -4,8 +4,7 @@
 \alias{FRiP}
 \title{Calculate fraction of reads in peaks per cell}
 \usage{
-FRiP(object, peak.assay, bin.assay, chromosome = "chr1",
-  verbose = TRUE)
+FRiP(object, peak.assay, bin.assay, chromosome = "chr1", verbose = TRUE)
 }
 \arguments{
 \item{object}{A Seurat object}

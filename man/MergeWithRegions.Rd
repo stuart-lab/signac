@@ -4,10 +4,20 @@
 \alias{MergeWithRegions}
 \title{Region-aware object merging}
 \usage{
-MergeWithRegions(object.1, object.2, assay.1 = NULL, assay.2 = NULL,
-  sep.1 = c("-", "-"), sep.2 = c("-", "-"), regions.use = 1,
-  distance = 0, new.assay.name = "peaks", project = "SeuratProject",
-  verbose = TRUE, ...)
+MergeWithRegions(
+  object.1,
+  object.2,
+  assay.1 = NULL,
+  assay.2 = NULL,
+  sep.1 = c("-", "-"),
+  sep.2 = c("-", "-"),
+  regions.use = 1,
+  distance = 0,
+  new.assay.name = "peaks",
+  project = "SeuratProject",
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object.1}{The first Seurat object}

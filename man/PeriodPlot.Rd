@@ -4,8 +4,15 @@
 \alias{PeriodPlot}
 \title{Plot fragment length periodicity}
 \usage{
-PeriodPlot(object, assay = NULL, region = "chr1-1-2000000",
-  group.by = NULL, cells = NULL, log.scale = FALSE, ...)
+PeriodPlot(
+  object,
+  assay = NULL,
+  region = "chr1-1-2000000",
+  group.by = NULL,
+  cells = NULL,
+  log.scale = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{A Seurat object}

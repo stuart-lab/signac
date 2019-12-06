@@ -4,9 +4,16 @@
 \alias{GetIntersectingFeatures}
 \title{Find interesecting regions between two objects}
 \usage{
-GetIntersectingFeatures(object.1, object.2, assay.1 = NULL,
-  assay.2 = NULL, distance = 0, sep.1 = c("-", "-"), sep.2 = c("-",
-  "-"), verbose = TRUE)
+GetIntersectingFeatures(
+  object.1,
+  object.2,
+  assay.1 = NULL,
+  assay.2 = NULL,
+  distance = 0,
+  sep.1 = c("-", "-"),
+  sep.2 = c("-", "-"),
+  verbose = TRUE
+)
 }
 \arguments{
 \item{object.1}{The first Seurat object}

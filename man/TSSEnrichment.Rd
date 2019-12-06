@@ -4,8 +4,13 @@
 \alias{TSSEnrichment}
 \title{Compute TSS enrichment score per cell}
 \usage{
-TSSEnrichment(object, tss.positions, assay = NULL, cells = NULL,
-  verbose = TRUE)
+TSSEnrichment(
+  object,
+  tss.positions,
+  assay = NULL,
+  cells = NULL,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{object}{A Seurat object}

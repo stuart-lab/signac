@@ -4,8 +4,15 @@
 \alias{CreateRegionPileupMatrix}
 \title{Create cut site pileup matrix}
 \usage{
-CreateRegionPileupMatrix(object, regions, upstream = 1000,
-  downstream = 1000, assay = NULL, cells = NULL, verbose = TRUE)
+CreateRegionPileupMatrix(
+  object,
+  regions,
+  upstream = 1000,
+  downstream = 1000,
+  assay = NULL,
+  cells = NULL,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{object}{A Seurat object}

@@ -9,14 +9,11 @@
 \usage{
 FindTopFeatures(object, ...)
 
-\method{FindTopFeatures}{default}(object, assay = NULL,
-  min.cutoff = "q5", verbose = TRUE, ...)
+\method{FindTopFeatures}{default}(object, assay = NULL, min.cutoff = "q5", verbose = TRUE, ...)
 
-\method{FindTopFeatures}{Assay}(object, assay = NULL,
-  min.cutoff = "q5", verbose = TRUE, ...)
+\method{FindTopFeatures}{Assay}(object, assay = NULL, min.cutoff = "q5", verbose = TRUE, ...)
 
-\method{FindTopFeatures}{Seurat}(object, assay = NULL,
-  min.cutoff = "q5", verbose = TRUE, ...)
+\method{FindTopFeatures}{Seurat}(object, assay = NULL, min.cutoff = "q5", verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{A Seurat object}

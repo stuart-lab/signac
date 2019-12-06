@@ -4,10 +4,20 @@
 \alias{LinkPeaks}
 \title{Link peaks to genes}
 \usage{
-LinkPeaks(object, peak.assay, expression.assay, gene.coords, sep = c("-",
-  "-"), binary = TRUE, alpha = 0.95, distance = 5e+05,
-  min.cells = 10, expression.threshold = 0.1, keep.all = FALSE,
-  verbose = TRUE)
+LinkPeaks(
+  object,
+  peak.assay,
+  expression.assay,
+  gene.coords,
+  sep = c("-", "-"),
+  binary = TRUE,
+  alpha = 0.95,
+  distance = 5e+05,
+  min.cells = 10,
+  expression.threshold = 0.1,
+  keep.all = FALSE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{object}{A Seurat object}

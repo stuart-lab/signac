@@ -4,8 +4,14 @@
 \alias{CreateMotifMatrix}
 \title{CreateMotifMatrix}
 \usage{
-CreateMotifMatrix(features, pwm, genome, use.counts = FALSE,
-  sep = c("-", "-"), ...)
+CreateMotifMatrix(
+  features,
+  pwm,
+  genome,
+  use.counts = FALSE,
+  sep = c("-", "-"),
+  ...
+)
 }
 \arguments{
 \item{features}{A GRanges object containing a set of genomic features}

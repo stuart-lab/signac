@@ -4,8 +4,14 @@
 \alias{CutMatrix}
 \title{Generate matrix of integration sites}
 \usage{
-CutMatrix(object, region, tabix.file = NULL, assay = NULL,
-  cells = NULL, verbose = TRUE)
+CutMatrix(
+  object,
+  region,
+  tabix.file = NULL,
+  assay = NULL,
+  cells = NULL,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{object}{A Seurat object}

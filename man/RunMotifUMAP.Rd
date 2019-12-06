@@ -9,13 +9,11 @@
 \usage{
 RunMotifUMAP(object, ...)
 
-\method{RunMotifUMAP}{Motif}(object, verbose = TRUE, graph.name = "nn",
-  ...)
+\method{RunMotifUMAP}{Motif}(object, verbose = TRUE, graph.name = "nn", ...)
 
 \method{RunMotifUMAP}{Assay}(object, verbose = TRUE, ...)
 
-\method{RunMotifUMAP}{Seurat}(object, assay = NULL, verbose = TRUE,
-  ...)
+\method{RunMotifUMAP}{Seurat}(object, assay = NULL, verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{A Seurat object}

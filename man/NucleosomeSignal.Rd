@@ -4,8 +4,15 @@
 \alias{NucleosomeSignal}
 \title{NucleosomeSignal}
 \usage{
-NucleosomeSignal(object, assay = NULL, region = "chr1-1-249250621",
-  min.threshold = 147, max.threshold = 294, verbose = TRUE, ...)
+NucleosomeSignal(
+  object,
+  assay = NULL,
+  region = "chr1-1-249250621",
+  min.threshold = 147,
+  max.threshold = 294,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{A Seurat object}

@@ -4,8 +4,13 @@
 \alias{MultiRegionCutMatrix}
 \title{Generate cut matrix for many regions}
 \usage{
-MultiRegionCutMatrix(object, regions, assay = NULL, cells = NULL,
-  verbose = FALSE)
+MultiRegionCutMatrix(
+  object,
+  regions,
+  assay = NULL,
+  cells = NULL,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{object}{A Seurat object}

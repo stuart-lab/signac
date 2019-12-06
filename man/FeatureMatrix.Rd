@@ -4,8 +4,14 @@
 \alias{FeatureMatrix}
 \title{FeatureMatrix}
 \usage{
-FeatureMatrix(fragments, features, cells = NULL, chunk = 50,
-  sep = c("-", "-"), verbose = TRUE)
+FeatureMatrix(
+  fragments,
+  features,
+  cells = NULL,
+  chunk = 50,
+  sep = c("-", "-"),
+  verbose = TRUE
+)
 }
 \arguments{
 \item{fragments}{Path to tabix-indexed fragments file}
