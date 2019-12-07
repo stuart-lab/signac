@@ -1155,7 +1155,8 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
 # @param ranges.b Ranges associated with the rows of the second matrix
 # @param verbose Display messages
 # @return Returns a list of two sparse matrices, A and B, with rows that intersect multiple regions in the other matrix merged.
-#' @importFrom GenomicRanges findOverlaps queryHits subjectHits
+#' @importFrom S4Vectors queryHits subjectHits
+#' @importFrom GenomicRanges findOverlaps
 #' @importFrom Biobase isUnique
 MergeIntersectingRows <- function(
   mat.a,
