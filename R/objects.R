@@ -672,6 +672,7 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
 #' @export
 #' @method merge ChromatinAssay
 #' @importFrom GenomicRanges union
+#' @importFrom Seurat RowMergeSparseMatrices
 merge.ChromatinAssay <- function(
   x = NULL,
   y = NULL,
@@ -733,13 +734,10 @@ merge.ChromatinAssay <- function(
 
   # merge matrices
   # TODO
-  merged.counts <- Seurat:::RowMergeMatrices( # not exported from Seurat
+  # RowMergeSparseMatrices only in latest Seurat release
+  merged.counts <- RowMergeSparseMatrices(
     mat1 = condensed.matrices[[1]],
-    mat2 = condensed.matrices[[2]],
-    mat1_rownames = rownames(x = condensed.matrices[[1]]),
-    mat2_rownames = rownames(x = condensed.matrices[[2]]),
-    all_rownames = unique(x = c(rownames(x = condensed.matrices[[1]]),
-                                rownames(x = condensed.matrices[[2]])))
+    mat2 = condensed.matrices[[2]]
   )
 
   # create new ChromatinAssay object
