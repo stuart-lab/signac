@@ -671,8 +671,9 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
 #' @rdname merge.ChromatinAssay
 #' @export
 #' @method merge ChromatinAssay
-#' @importFrom GenomicRanges union
+#' @importFrom GenomicRanges union findOverlaps
 #' @importFrom Seurat RowMergeSparseMatrices
+#' @importFrom S4Vectors subjectHits queryHits
 merge.ChromatinAssay <- function(
   x = NULL,
   y = NULL,
@@ -708,37 +709,46 @@ merge.ChromatinAssay <- function(
     merged.frag <- merged.frag[valid.frags]
   }
 
-  # Assemble new granges for the object (union)
-  grange.union <- union(x = granges(x = x), y = granges(x = y))
-
-  # check that there is good overlap, if not issue warning (genome might be wrong)
-  if (poor.overlap) { # TODO
-    warning("Few overlapping ranges between the assays to be merged.")
+  # find fraction overlap in granges in each direction
+  overlaps <- findOverlaps(query = granges(x = x), subject = granges(x = y))
+  percent.overlap.x <- length(x = unique(x = queryHits(x = overlaps))) / length(granges(x = x)) * 100
+  percent.overlap.y <- length(x = unique(x = subjectHits(x = overlaps))) / length(granges(x = y)) * 100
+  if (max(percent.overlap.x, percent.overlap.y) < 30) {
+    warning("Few overlapping ranges between the assays to be merged:\n",
+            "\t", round(x = percent.overlap.x, digits = 1), "% for x\n",
+            "\t", round(x = percent.overlap.y, digits = 1), "% for y")
   }
 
-  # condense matrices
-  condensed.matrices <- MergeIntersectingRows(
+  # merge matrix rows that intersect the same range
+  condensed <- MergeIntersectingRows(
     mat.a = GetAssayData(object = x, slot = 'counts'),
     mat.b = GetAssayData(object = y, slot = 'counts'),
     ranges.a = granges(x = x),
-    ranges.b = granges(x = y)
+    ranges.b = granges(x = y),
+    verbose = TRUE
   )
-  # should now have 1-1 intersection of ranges
-  # need to update the granges so that they still match the matrix rows
-  # just remove the ranges corresponding to the removed rows
-  # need an index of removed rows (from the overlap information)
-  # can write another function for this
-  condensed.granges <- CondenseOverlappingGRanges()
-  # intersect ranges and rename rows of B with the intersecting row in A
-  # need to rename row names
+  # returns list: matrix A, ranges A, matrix B, ranges B
+
+  # rename matrix rows in B that intersect A
+  condensed[[3]] <- RenameIntersectingRows(
+    mat.a = condensed[[1]],
+    mat.b = condensed[[3]],
+    ranges.a = condensed[[2]],
+    ranges.b = condensed[[4]],
+    verbose = TRUE
+  )
+  # should now have 1-1 intersection of ranges and matching row names
 
   # merge matrices
-  # TODO
-  # RowMergeSparseMatrices only in latest Seurat release
+  # RowMergeSparseMatrices only exported in Seurat release Dec-2019 (3.2)
   merged.counts <- RowMergeSparseMatrices(
     mat1 = condensed.matrices[[1]],
     mat2 = condensed.matrices[[2]]
   )
+
+  # perform same operation to ranges
+  # TODO check this works
+  grange.union <- union(x = condensed[[2]], y = condensed[[4]])
 
   # create new ChromatinAssay object
   # bias, motifs, positionEnrichment, metafeatures, scaledata and data not kept
@@ -755,7 +765,6 @@ merge.ChromatinAssay <- function(
     annotation = annot,
     bias = NULL
   )
-
   return(new.assay)
 }
 
