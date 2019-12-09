@@ -950,6 +950,10 @@ MergeWithRegions <- function(
   return(merged.object)
 }
 
+####################
+### Not exported ###
+####################
+
 #' Generate cut matrix for many regions
 #'
 #' Run CutMatrix on multiple regions and add them together.
@@ -1068,7 +1072,6 @@ CreateRegionPileupMatrix <- function(
 #' @param normalize Perform sequencing depth and cell count normalization (default is TRUE)
 #' @param scale.factor Scaling factor to use. If NULL (default), will use the median normalization
 #' factor for all the groups.
-#'
 ApplyMatrixByGroup <- function(
   mat,
   groups,
@@ -1117,7 +1120,6 @@ ApplyMatrixByGroup <- function(
 #' @importFrom data.table rbindlist
 #' @importFrom utils read.table
 #' @return Returns a data.frame
-#' @export
 TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
   # TODO rewrite this without rbindlist
   df.list <- lapply(X = 1:length(reads), FUN = function(x) {
@@ -1139,14 +1141,15 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
   return(rbindlist(l = df.list))
 }
 
-####################
-### Not exported ###
-####################
-
-# Merge multiple rows within a matrix that intersect with a single region in another matrix
-# First finds the intersecting ranges, then finds rows in each matrix that intersect the same region in the other matrix
-# then merges the groups of matrix rows that intersect the same region of the other matrix. The merged row is re-named with
-# the row name of the first row that was merged. Rows are returned to their original order (missing the merged rows).
+# Merge multiple rows within a matrix that intersect
+# with a single region in another matrix
+# First finds the intersecting ranges, then finds rows
+# in each matrix that intersect the same region in the
+# other matrix then merges the groups of matrix rows
+# that intersect the same region of the other matrix.
+# The merged row is re-named with the row name of the
+# first row that was merged. Rows are returned to their
+# original order (missing the merged rows).
 # Most of the work done by MergeInternalRows function.
 #
 # @param mat.a First matrix
@@ -1154,7 +1157,9 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
 # @param ranges.a Ranges associated with the rows of the first matrix
 # @param ranges.b Ranges associated with the rows of the second matrix
 # @param verbose Display messages
-# @return Returns a list of two sparse matrices, A and B, with rows that intersect multiple regions in the other matrix merged.
+# @return Returns a list of two sparse matrices, A and B,
+# with rows that intersect multiple regions in the other matrix merged,
+# and two granges objects
 #' @importFrom S4Vectors queryHits subjectHits
 #' @importFrom GenomicRanges findOverlaps
 #' @importFrom Biobase isUnique
@@ -1184,45 +1189,114 @@ MergeIntersectingRows <- function(
   if (verbose) {
     message("Merging multiple rows of matrix B that intersect single row in matrix A")
   }
-  mat.b.mod <- MergeInternalRows(
+  b.mod <- MergeInternalRows(
     mat = mat.b,
     multihit = multihit.b,
     queryhits = queryhits.multi.a,
+    rowranges = ranges.b,
     verbose = verbose
   )
   if (verbose) {
     message("Merging multiple rows of matrix A that intersect single row in matrix B")
   }
-  mat.a.mod <- MergeInternalRows(
+  a.mod <- MergeInternalRows(
     mat = mat.a,
     multihit = multihit.a,
     queryhits = subjecthits.multi.b,
+    rowranges = ranges.a,
     verbose = verbose
   )
-  return(list(mat.a.mod, mat.b.mod))
+  return(c(a.mod, b.mod))
+}
+
+# Set intersecting matrix rows to a common name
+#
+# ranges.a should correspond to the rows of mat.a
+# ranges.b should correspond to the rows of mat.b
+# Finds intersecting genomic ranges and renames rows
+# mat.b with the name of row in mat.a that it intersects
+#
+# @param mat.a The first matrix
+# @param mat.b The second matrix
+# @param ranges.a Genomic ranges corresponding to the rows of mat.a
+# @param ranges.b Genomic ranges corresponding to the rows of mat.b
+# @param verbose Display messages
+# @return Returns mat.b with altered row names
+RenameIntersectingRows <- function(
+  mat.a,
+  mat.b,
+  ranges.a,
+  ranges.b,
+  verbose = TRUE
+) {
+  # TODO
+  return(mat.b)
+}
+
+# Condense overlapping GenomicRanges
+#
+# Take the union of two sets of genomic ranges,
+# then split back into the ranges that were present
+# in each original set.
+#
+# @param ranges.a First set of GenomicRanges
+# @param ranges.b Second set of GenomicRanges
+# @return Returns a list of two GenomicRanges objects
+#' @importFrom GenomicRanges union findOverlaps
+#' @importFrom S4Vectors queryHits
+CondenseOverlappingGRanges <- function(
+  ranges.a,
+  ranges.b
+) {
+  grange.union <- union(x = granges(x = ranges.a), y = granges(x = ranges.b))
+  a.overlap.union <- findOverlaps(
+    query = grange.union,
+    subject = ranges.a,
+    ignore.strand = TRUE,
+    select = 'first' # select = 'first' is essential to have match matrix rows
+  )
+  a.overlap.union <- a.overlap.union[!is.na(x = a.overlap.union)]
+  b.overlap.union <- findOverlaps(
+    query = grange.union,
+    subject = ranges.b,
+    ignore.strand = TRUE,
+    select = 'first'
+  )
+  b.overlap.union <- b.overlap.union[!is.na(x = b.overlap.union)]
+  a.subset <- ranges.a[a.overlap.union]
+  b.subset <- ranges.b[b.overlap.union]
+  # TODO still doesn't match results from matrix row merge
+  return(list(a.subset, b.subset))
 }
 
 # Merge rows of matrix based on intersection with a second matrix.
-# TODO this can be slow if there are a lot of rows to merge because we repeatedly extract and sum rows of a sparse matrix.
+
+# TODO this can be slow if there are a lot of rows to merge
+#      because we repeatedly extract and sum rows of a sparse matrix.
 #      could try to make parallel, or think about other ways of doing it.
+
 # @param mat A sparse matrix
 # @param multihit a run-length encoded list describing the number of rows to be merged in each merge step
 # @param queryhits Row indices to be merged
-# @param return Returns a sparse matrix, with target rows merged in-place (order same but condensed rows).
+# @param rowranges GenomicRanges associated with matrix rows
 # @param verbose Display progress
+# @return Returns a list containing a sparse matrix,
+# with target rows merged in-place (order same but condensed rows),
+# and a set of GenomicRanges
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom Matrix colSums
 MergeInternalRows <- function(
   mat,
   multihit,
   queryhits,
+  rowranges,
   verbose = TRUE
 ) {
   mat.rows <- rownames(x = mat)
   i <- 1
   newmat <- list()
   todelete <- c()
-
+  todelete.range <- c()
   if (verbose) {
     pb <- txtProgressBar(
       min = 1,
@@ -1235,26 +1309,32 @@ MergeInternalRows <- function(
     rowrun <- multihit$lengths[[i]]
     # find the matrix rows to merge
     rowindex <- mat.rows[queryhits[i:(i+rowrun-1)]]
+    rangeindex <- queryhits[(i+1):(i+rowrun-1)]
     # merge rows and add to list, name will become the name of the row
     newmat[[rowindex[[1]]]] <- colSums(mat[rowindex, ])
     # record which rows need to be removed
     todelete <- c(todelete, rowindex)
+    todelete.range <- c(todelete.range, rangeindex)
     i <- i + rowrun
     if (verbose) setTxtProgressBar(pb = pb, value = i)
   }
   # contruct matrix
+  if (verbose) {
+    message("\nBinding matrix rows")
+  }
   merged.mat <- Reduce(f = rbind, x = newmat)
   rownames(merged.mat) <- names(newmat)
   merged.mat <- as(object = merged.mat, Class = 'dgCMatrix')
   # remove rows from A that were merged
   tokeep <- setdiff(mat.rows, todelete)
   mat.mod <- mat[tokeep, ]
+  rowranges[todelete.range] <- NULL
   # add new merged rows to A
   mat.mod <- rbind(mat.mod, merged.mat)
   # put back in original order
   rows.order <- mat.rows[mat.rows %in% rownames(x = mat.mod)]
   mat.mod <- mat.mod[rows.order, ]
-  return(mat.mod)
+  return(list(mat.mod, rowranges))
 }
 
 # Check if fragment file exists and is indexed
