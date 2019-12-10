@@ -1359,7 +1359,7 @@ MergeInternalRows <- function(
     if (length(x = rowindex) > 1) {
       newmat[[rowindex[[1]]]] <- colSums(mat[rowindex, ])
     } else {
-      newmat[[rowindex[[1]]]] <- mat[rowindex, ]
+      newmat <- NULL
     }
     # record which rows need to be removed
     todelete <- c(todelete, rowindex)
