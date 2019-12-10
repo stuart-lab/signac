@@ -1153,60 +1153,98 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
 # Most of the work done by MergeInternalRows function.
 #
 # @param mat.a First matrix
-# @param mat.b Second matrix
 # @param ranges.a Ranges associated with the rows of the first matrix
-# @param ranges.b Ranges associated with the rows of the second matrix
+# @param mat.b Second matrix. If NULL, use the first matrix (self-comparison).
+# @param ranges.b Ranges associated with the rows of the second matrix.
 # @param verbose Display messages
 # @return Returns a list of two sparse matrices, A and B,
 # with rows that intersect multiple regions in the other matrix merged,
-# and two granges objects
+# and two granges objects. If no mat.b is passed, just returns the first
+# two elements (matrix and granges).
 #' @importFrom S4Vectors queryHits subjectHits
 #' @importFrom GenomicRanges findOverlaps
-#' @importFrom Biobase isUnique
 MergeIntersectingRows <- function(
   mat.a,
-  mat.b,
   ranges.a,
-  ranges.b,
+  mat.b = NULL,
+  ranges.b = NULL,
   verbose = TRUE
 ) {
   if (verbose) {
     message("Finding overlapping ranges")
   }
+  if (is.null(x = mat.b)) {
+    self = TRUE
+  } else {
+    self = FALSE
+  }
+  mat.b <- mat.b %||% mat.a
+  ranges.b <- ranges.b %||% ranges.a
   overlaps <- findOverlaps(query = ranges.b, subject = ranges.a)
   b.hits <- queryHits(x = overlaps)
   a.hits <- subjectHits(x = overlaps)
-
   queryhits.multi.a <-  queryHits(x = overlaps[which(!isUnique(x = a.hits))])
   subjecthits.multi.a <- subjectHits(x = overlaps[which(!isUnique(x = a.hits))])
-
   queryhits.multi.b <- queryHits(x = overlaps[which(!isUnique(x = b.hits))])
   subjecthits.multi.b <- subjectHits(x = overlaps[which(!isUnique(x = b.hits))])
-
-  multihit.a <- rle(x = queryhits.multi.b)
-  multihit.b <- rle(x = subjecthits.multi.a)
-
+  a.hits <- ResolveBridge(query = subjecthits.multi.a, subject = queryhits.multi.a)
+  b.hits <- ResolveBridge(query = queryhits.multi.b, subject = subjecthits.multi.b)
+  multihit.a <- rle(x = b.hits$query)
+  multihit.b <- rle(x = a.hits$query)
   if (verbose) {
     message("Merging multiple rows of matrix B that intersect single row in matrix A")
   }
-  b.mod <- MergeInternalRows(
-    mat = mat.b,
-    multihit = multihit.b,
-    queryhits = queryhits.multi.a,
-    rowranges = ranges.b,
-    verbose = verbose
-  )
-  if (verbose) {
-    message("Merging multiple rows of matrix A that intersect single row in matrix B")
+  if (length(x = multihit.b$lengths) != 0) {
+    b.mod <- MergeInternalRows(
+      mat = mat.b,
+      multihit = multihit.b,
+      queryhits = a.hits$subject,
+      rowranges = ranges.b,
+      verbose = verbose
+    )
+  } else {
+    b.mod <- list(mat.b, ranges.b)
   }
-  a.mod <- MergeInternalRows(
-    mat = mat.a,
-    multihit = multihit.a,
-    queryhits = subjecthits.multi.b,
-    rowranges = ranges.a,
-    verbose = verbose
-  )
-  return(c(a.mod, b.mod))
+  if (self) {
+    return(b.mod)
+  } else {
+    if (verbose) {
+      message("Merging multiple rows of matrix A that intersect single row in matrix B")
+    }
+    if (length(x = multihit.a$lengths) != 0) {
+      a.mod <- MergeInternalRows(
+        mat = mat.a,
+        multihit = multihit.a,
+        queryhits = b.hits$subject,
+        rowranges = ranges.a,
+        verbose = verbose
+      )
+    } else {
+      a.mod <- list(mat.a, ranges.a)
+    }
+    return(c(a.mod, b.mod))
+  }
+}
+
+# Resolve cases where a row overlaps two
+# ranges that each have multiple overlapping
+# rows. This would cause the middle row,
+# that overlaps multiple, to become duplicated
+# @param query output of queryHits(findOverlaps)
+# @param subject output of subjectHits(findOverlaps)
+# @return Returns a named list with the modified
+# query and subject
+ResolveBridge <- function(query, subject) {
+  rle.hits <- rle(subject)
+  nonunique.hits <- which(rle.hits$lengths > 1)
+  runlengths <- rle.hits$lengths[nonunique.hits]
+  for (i in seq_along(along.with = nonunique.hits)) {
+    q <- nonunique.hits[[i]]
+    rl <- runlengths[[i]]
+    subject[q+rl-1] <- subject[q+rl]
+    query[q+rl-1] <- query[q-1]
+  }
+  return(list('query' = query, 'subject' = subject))
 }
 
 # Set intersecting matrix rows to a common name
@@ -1222,6 +1260,8 @@ MergeIntersectingRows <- function(
 # @param ranges.b Genomic ranges corresponding to the rows of mat.b
 # @param verbose Display messages
 # @return Returns mat.b with altered row names
+#' @importFrom S4Vectors queryHits subjectHits
+#' @importFrom GenomicRanges findOverlaps
 RenameIntersectingRows <- function(
   mat.a,
   mat.b,
@@ -1229,7 +1269,10 @@ RenameIntersectingRows <- function(
   ranges.b,
   verbose = TRUE
 ) {
-  # TODO
+  overlaps <- findOverlaps(query = ranges.a, subject = ranges.b)
+  a.hits <- queryHits(x = overlaps)
+  b.hits <- subjectHits(x = overlaps)
+  rownames(mat.b)[b.hits] <- rownames(mat.a)[a.hits]
   return(mat.b)
 }
 
@@ -1309,9 +1352,15 @@ MergeInternalRows <- function(
     rowrun <- multihit$lengths[[i]]
     # find the matrix rows to merge
     rowindex <- mat.rows[queryhits[i:(i+rowrun-1)]]
-    rangeindex <- queryhits[(i+1):(i+rowrun-1)]
+    if (rowrun > 1) {
+      rangeindex <- queryhits[(i+1):(i+rowrun-1)]
+    }
     # merge rows and add to list, name will become the name of the row
-    newmat[[rowindex[[1]]]] <- colSums(mat[rowindex, ])
+    if (length(x = rowindex) > 1) {
+      newmat[[rowindex[[1]]]] <- colSums(mat[rowindex, ])
+    } else {
+      newmat[[rowindex[[1]]]] <- mat[rowindex, ]
+    }
     # record which rows need to be removed
     todelete <- c(todelete, rowindex)
     todelete.range <- c(todelete.range, rangeindex)
@@ -1339,7 +1388,7 @@ MergeInternalRows <- function(
 
 # Check if fragment file exists and is indexed
 # @param f A fragment file path
-# @retrun Returns TRUE is present and indexed, otherwise FALSE
+# @return Returns TRUE is present and indexed, otherwise FALSE
 ValidFragments <- function(f) {
   index.file <- paste0(f, ".tbi")
   if (all(file.exists(f, index.file))) {
