@@ -175,6 +175,14 @@ CreateChromatinAssayObject <- function(
   return(chrom.assay)
 }
 
+#' @rdname as.Assay
+#' @method as.Assay ChromatinAssay
+as.Assay.ChromatinAssay <- function(x) {
+  # TODO
+  # remove the ChromatinAssay-specific slots and recreate as a standard Assay
+  return(x)
+}
+
 #' @param ranges A GRanges object
 #' @param genome Name of genome used
 #' @param annotation Genomic annotation
@@ -665,8 +673,41 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
   return(new.motif)
 }
 
-# TODO define subset.ChromatinAssay
-# needs to subet the genomic ranges and motif object
+#' @export
+#' @method subset ChromatinAssay
+subset.ChromatinAssay <- function(
+  x,
+  features = NULL,
+  cells = NULL,
+  ...
+) {
+  # TODO
+  # need to coerce to standard Assay class, then subset the other parts
+  # and re-build the ChromatinAssay
+  standardassay <- as.Assay(x = x) # TODO internal conversion function
+
+  # subet genomic ranges
+  ranges.keep <- granges(x = x)
+  if (!is.null(x = features)) {
+    idx.keep <- which(colnames(x = object) == features)
+    ranges.keep <- ranges.keep[idx.keep]
+  }
+  # need to subsect matrix first, otherwise will give errors
+  # when dimension doesn't match the matrix dimension
+  object <- SetAssayData(
+    object = object,
+    slot = 'ranges',
+    new.data = ranges.keep
+  )
+  # subset motifs
+  motifs <- Motif(object = x)
+  object <- SetAssayData(
+    object = object,
+    slot = 'motifs',
+    new.data = subset(x = motifs, features = features)
+  )
+  return(x)
+}
 
 #' @rdname merge.ChromatinAssay
 #' @export
@@ -677,7 +718,7 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
 merge.ChromatinAssay <- function(
   x = NULL,
   y = NULL,
-  add.cell.ids = NULL,
+  add.cell.ids = NULL, # TODO add cell IDs, esp for fragment file paths
   merge.data = TRUE,
   ...
 ) {
@@ -720,11 +761,23 @@ merge.ChromatinAssay <- function(
   }
 
   # merge matrix rows that intersect the same range
-  condensed <- MergeIntersectingRows(
+  # condense individual matrices first
+  # should not typically have overlapping features in a single object
+  condensed.a <- MergeIntersectingRows(
     mat.a = GetAssayData(object = x, slot = 'counts'),
-    mat.b = GetAssayData(object = y, slot = 'counts'),
     ranges.a = granges(x = x),
-    ranges.b = granges(x = y),
+    verbose = FALSE
+  )
+  condensed.b <- MergeIntersectingRows(
+    mat.a = GetAssayData(object = y, slot = 'counts'),
+    ranges.a = granges(x = y),
+    verbose = FALSE
+  )
+  condensed <- MergeIntersectingRows( # TODO this can be sped up significantly
+    mat.a = condensed.a[[1]],
+    mat.b = condensed.b[[1]],
+    ranges.a = condensed.a[[2]],
+    ranges.b = condensed.b[[2]],
     verbose = TRUE
   )
   # returns list: matrix A, ranges A, matrix B, ranges B
@@ -740,7 +793,7 @@ merge.ChromatinAssay <- function(
   # should now have 1-1 intersection of ranges and matching row names
 
   # merge matrices
-  # RowMergeSparseMatrices only exported in Seurat release Dec-2019 (3.2)
+  # RowMergeSparseMatrices only exported in Seurat release Dec-2019 (3.1.2)
   merged.counts <- RowMergeSparseMatrices(
     mat1 = condensed.matrices[[1]],
     mat2 = condensed.matrices[[2]]
