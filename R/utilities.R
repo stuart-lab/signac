@@ -1187,10 +1187,10 @@ MergeIntersectingRows <- function(
   subjecthits.multi.a <- subjectHits(x = overlaps[which(!isUnique(x = a.hits))])
   queryhits.multi.b <- queryHits(x = overlaps[which(!isUnique(x = b.hits))])
   subjecthits.multi.b <- subjectHits(x = overlaps[which(!isUnique(x = b.hits))])
-  a.hits <- ResolveBridge(query = subjecthits.multi.a, subject = queryhits.multi.a)
-  b.hits <- ResolveBridge(query = queryhits.multi.b, subject = subjecthits.multi.b)
-  multihit.a <- rle(x = b.hits$query)
-  multihit.b <- rle(x = a.hits$query)
+  a.hits <- ResolveBridge(multihit = subjecthits.multi.a, corresponding = queryhits.multi.a)
+  b.hits <- ResolveBridge(multihit = queryhits.multi.b, corresponding = subjecthits.multi.b)
+  multihit.a <- rle(x = b.hits$multihit)
+  multihit.b <- rle(x = a.hits$multihit)
   if (verbose) {
     message("Merging multiple rows of matrix B that intersect single row in matrix A")
   }
@@ -1198,7 +1198,7 @@ MergeIntersectingRows <- function(
     b.mod <- MergeInternalRows(
       mat = mat.b,
       multihit = multihit.b,
-      queryhits = a.hits$subject,
+      queryhits = a.hits$corresponding,
       rowranges = ranges.b,
       verbose = verbose
     )
@@ -1215,7 +1215,7 @@ MergeIntersectingRows <- function(
       a.mod <- MergeInternalRows(
         mat = mat.a,
         multihit = multihit.a,
-        queryhits = b.hits$subject,
+        queryhits = b.hits$corresponding,
         rowranges = ranges.a,
         verbose = verbose
       )
@@ -1230,21 +1230,30 @@ MergeIntersectingRows <- function(
 # ranges that each have multiple overlapping
 # rows. This would cause the middle row,
 # that overlaps multiple, to become duplicated
-# @param query output of queryHits(findOverlaps)
-# @param subject output of subjectHits(findOverlaps)
+# @param multihit vector of indexes that overlap multiple
+# features in the opposite dataset
+# @param corresponding vector of indexes that are
+# overlapped by multiple features of the opposite dataset
 # @return Returns a named list with the modified
 # query and subject
-ResolveBridge <- function(query, subject) {
-  rle.hits <- rle(subject)
+ResolveBridge <- function(multihit, corresponding) {
+  rle.hits <- rle(corresponding)
   nonunique.hits <- which(rle.hits$lengths > 1)
   runlengths <- rle.hits$lengths[nonunique.hits]
+  remove.multihit <- c()
+  remove.corresponding <- c()
   for (i in seq_along(along.with = nonunique.hits)) {
     q <- nonunique.hits[[i]]
     rl <- runlengths[[i]]
-    subject[q+rl-1] <- subject[q+rl]
-    query[q+rl-1] <- query[q-1]
+    multihit[q+rl-1] <- multihit[q]
+    remove.multihit <- c(remove.multihit, (q+rl))
+    remove.corresponding <- c(remove.corresponding, (q+rl-1))
   }
-  return(list('query' = query, 'subject' = subject))
+  keep.multihit <- setdiff(x = seq_along(along.with = multihit), y = remove.multihit)
+  keep.corresponding <- setdiff(x = seq_along(along.with = corresponding), y = remove.corresponding)
+  multihit <- multihit[keep.multihit]
+  corresponding <- corresponding[keep.corresponding]
+  return(list('multihit' = multihit, 'corresponding' = corresponding))
 }
 
 # Set intersecting matrix rows to a common name
