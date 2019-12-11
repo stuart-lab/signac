@@ -361,17 +361,16 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
   return(regions)
 }
 
-#' ChunkGRanges
-#'
-#' Split a genomic ranges object into evenly sized chunks
-#'
-#' @param granges A GRanges object
-#' @param nchunk Number of chunks to split into
-#'
-#' @return Returns a list of GRanges objects
-#' @export
-#' @examples
-#' ChunkGRanges(blacklist_hg19, n = 10)
+# ChunkGRanges
+#
+# Split a genomic ranges object into evenly sized chunks
+#
+# @param granges A GRanges object
+# @param nchunk Number of chunks to split into
+#
+# @return Returns a list of GRanges objects
+# @examples
+# ChunkGRanges(blacklist_hg19, n = 10)
 ChunkGRanges <- function(granges, nchunk) {
   chunksize <- as.integer(x = (length(granges) / nchunk))
   range.list <- sapply(X = 1:nchunk, FUN = function(x) {
@@ -474,6 +473,9 @@ CutMatrix <- function(
 #' @param x A range
 #' @param upstream Length to extend upstream
 #' @param downstream Length to extend downstream
+#' @param from.midpoint Count bases from region midpoint,
+#' rather than the 5' or 3' end for upstream and downstream
+#' respectively.
 #'
 #' @importFrom GenomicRanges strand start end trim
 #' @importFrom IRanges ranges IRanges "ranges<-"
@@ -736,11 +738,11 @@ FractionCountsInRegion <- function(
   return(reads.in.region / total.reads)
 }
 
-#' Get vector of cell names and associated identity
-#' @param object A Seurat object
-#' @param group.by Identity class to group cells by
-#' @param idents which identities to include
-#' @return Returns a named vector
+# Get vector of cell names and associated identity
+# @param object A Seurat object
+# @param group.by Identity class to group cells by
+# @param idents which identities to include
+# @return Returns a named vector
 #' @importFrom Seurat Idents
 GetGroups <- function(
   object,
@@ -982,16 +984,16 @@ MergeWithRegions <- function(
   return(merged.object)
 }
 
-#' Generate cut matrix for many regions
-#'
-#' Run CutMatrix on multiple regions and add them together.
-#' Assumes regions are pre-aligned.
-#'
-#' @param object A Seurat object
-#' @param regions A set of GRanges
-#' @param assay Name of the assay to use
-#' @param cells Vector of cells to include
-#' @param verbose Display messages
+# Generate cut matrix for many regions
+#
+# Run CutMatrix on multiple regions and add them together.
+# Assumes regions are pre-aligned.
+#
+# @param object A Seurat object
+# @param regions A set of GRanges
+# @param assay Name of the assay to use
+# @param cells Vector of cells to include
+# @param verbose Display messages
 #' @importFrom Rsamtools TabixFile
 MultiRegionCutMatrix <- function(
   object,
@@ -1020,16 +1022,18 @@ MultiRegionCutMatrix <- function(
   return(cm)
 }
 
-#' Create cut site pileup matrix
-#'
-#' For a set of aligned genomic ranges, find the total number of
-#' integration sites per cell per base.
-#'
-#' @param object A Seurat object
-#' @param regions A GRanges object
-#' @param assay Name of the assay to use
-#' @param cells Which cells to include. If NULL, use all cells
-#' @param verbose Display messages
+# Create cut site pileup matrix
+#
+# For a set of aligned genomic ranges, find the total number of
+# integration sites per cell per base.
+#
+# @param object A Seurat object
+# @param regions A GRanges object
+# @param upstream Number of bases to extend upstream
+# @param downstream Number of bases to extend downstream
+# @param assay Name of the assay to use
+# @param cells Which cells to include. If NULL, use all cells
+# @param verbose Display messages
 #' @importFrom BiocGenerics strand
 CreateRegionPileupMatrix <- function(
   object,
@@ -1080,24 +1084,23 @@ CreateRegionPileupMatrix <- function(
   return(full.matrix)
 }
 
-#' Apply function to integration sites per base per group
-#'
-#' Perform colSums on a cut matrix with cells in the rows
-#' and position in the columns, for each group of cells
-#' separately.
-#'
-#' @param mat A cut matrix. See \code{\link{CutMatrix}}
-#' @param groups A vector of group identities, with the name
-#' of each element in the vector set to the cell name.
-#' @param fun Function to apply to each group of cells.
-#' For example, colSums or colMeans.
-#' @param group.scale.factors Scaling factor for each group. Should
-#' be computed using the number of cells in the group and the average number of counts
-#' in the group.
-#' @param normalize Perform sequencing depth and cell count normalization (default is TRUE)
-#' @param scale.factor Scaling factor to use. If NULL (default), will use the median normalization
-#' factor for all the groups.
-#'
+# Apply function to integration sites per base per group
+#
+# Perform colSums on a cut matrix with cells in the rows
+# and position in the columns, for each group of cells
+# separately.
+#
+# @param mat A cut matrix. See \code{\link{CutMatrix}}
+# @param groups A vector of group identities, with the name
+# of each element in the vector set to the cell name.
+# @param fun Function to apply to each group of cells.
+# For example, colSums or colMeans.
+# @param group.scale.factors Scaling factor for each group. Should
+# be computed using the number of cells in the group and the average number of counts
+# in the group.
+# @param normalize Perform sequencing depth and cell count normalization (default is TRUE)
+# @param scale.factor Scaling factor to use. If NULL (default), will use the median normalization
+# factor for all the groups.
 ApplyMatrixByGroup <- function(
   mat,
   groups,
@@ -1137,16 +1140,15 @@ ApplyMatrixByGroup <- function(
   return(coverages)
 }
 
-#' TabixOutputToDataFrame
-#'
-#' Create a single dataframe from list of character vectors
-#'
-#' @param reads List of character vectors (the output of \code{\link{scanTabix}})
-#' @param record.ident Add a column recording which region the reads overlapped with (default TRUE)
+# TabixOutputToDataFrame
+#
+# Create a single dataframe from list of character vectors
+#
+# @param reads List of character vectors (the output of \code{\link{scanTabix}})
+# @param record.ident Add a column recording which region the reads overlapped with (default TRUE)
 #' @importFrom data.table rbindlist
 #' @importFrom utils read.table
-#' @return Returns a data.frame
-#' @export
+# @return Returns a data.frame
 TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
   # TODO rewrite this without rbindlist
   df.list <- lapply(X = 1:length(reads), FUN = function(x) {
