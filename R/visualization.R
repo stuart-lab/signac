@@ -278,7 +278,7 @@ MotifPlot <- function(
   if (use.names) {
     names(x = data.use) <- GetMotifData(object = object, assay = assay, slot = 'motif.names')
   }
-  p <- ggseqlogo(data = pwm, ...)
+  p <- ggseqlogo(data = data.use, ...)
   return(p)
 }
 
@@ -361,10 +361,6 @@ FragmentPlot <- function(
 #' @importFrom ggplot2 ggplot aes geom_line facet_wrap ylim xlab ylab theme_classic theme element_blank element_text
 #' @export
 #' @return Returns a \code{\link[ggplot2]{ggplot2}} object
-#' @examples
-#' \dontrun{
-#'
-#' }
 RegionPileup <- function(
   object,
   regions,
@@ -431,6 +427,7 @@ RegionPileup <- function(
   return(p)
 }
 
+globalVariables(names = 'norm.value', package = 'Signac')
 #' Plot the enrichment around TSS
 #'
 #' Plot the normalized TSS enrichment score at each position relative to the TSS.
