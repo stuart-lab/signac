@@ -299,7 +299,7 @@ globalVariables(names = 'group', package = 'Signac')
 #' @return Returns a ggplot2 object
 #' @export
 #'
-FragmentPlot <- function(
+FragmentHistogram <- function(
   object,
   assay = NULL,
   region = 'chr1-1-2000000',
@@ -335,35 +335,36 @@ FragmentPlot <- function(
   return(p)
 }
 
-
-#' Plot pileup of Tn5 integration sites
-#'
-#' Plots a pileup of integration sites centered on a set of genomic positions.
-#' Each genomic region will be aligned on the region midpoint, and extended upstream
-#' and downstream from the midpoint.
-#'
-#' @param object A Seurat object
-#' @param assay Name of the assay to use
-#' @param regions A set of GRanges to use
-#' @param upstream Number of bases to extend upstream of the region midpoint
-#' @param downstream Number of bases to extend downstream of the region midpoint
-#' @param group.by A set of identities to group the cells by. Can by anything in the metadata.
-#' Default is to use the active identities.
-#' @param min.cells Minimum number of cells in the group for the pileup to be displayed for that group.
-#' @param ymax Maximum value for the y-axis. If NULL (default), will be set automatically.
-#' @param idents Which identities to include in the plot. If NULL (default), include everything with more than
-#' \code{min.cells} cells.
-#' @param verbose Display messages
-#'
-#' @importFrom BiocGenerics strand
-#' @importFrom Seurat Idents
-#' @importFrom Matrix colSums colMeans
-#' @importFrom ggplot2 ggplot aes geom_line facet_wrap ylim xlab ylab theme_classic theme element_blank element_text
-#' @export
-#' @return Returns a \code{\link[ggplot2]{ggplot2}} object
+# Plot pileup of Tn5 integration sites
+#
+# Plots a pileup of integration sites centered on a set of genomic positions.
+# Each genomic region will be aligned on the region midpoint, and extended upstream
+# and downstream from the midpoint.
+#
+# @param object A Seurat object
+# @param assay Name of the assay to use
+# @param regions A set of GRanges to use
+# @param cells Vector of cells to include. If NULL (default), use all cells.
+# @param upstream Number of bases to extend upstream of the region midpoint
+# @param downstream Number of bases to extend downstream of the region midpoint
+# @param group.by A set of identities to group the cells by. Can by anything in the metadata.
+# Default is to use the active identities.
+# @param min.cells Minimum number of cells in the group for the pileup to be displayed for that group.
+# @param ymax Maximum value for the y-axis. If NULL (default), will be set automatically.
+# @param idents Which identities to include in the plot. If NULL (default), include everything with more than
+# \code{min.cells} cells.
+# @param verbose Display messages
+#
+# @importFrom BiocGenerics strand
+# @importFrom Seurat Idents
+# @importFrom Matrix colSums colMeans
+# @importFrom ggplot2 ggplot aes geom_line facet_wrap ylim xlab ylab theme_classic theme element_blank element_text
+# @export
+# @return Returns a \code{\link[ggplot2]{ggplot2}} object
 RegionPileup <- function(
   object,
   regions,
+  cells = NULL,
   assay = NULL,
   upstream = 200,
   downstream = 200,
@@ -373,6 +374,8 @@ RegionPileup <- function(
   idents = NULL,
   verbose = TRUE
 ) {
+  # TODO WIP
+  cells <- cells %||% colnames(x = object)
   full.matrix <- CreateRegionPileupMatrix(
     object = object,
     regions = regions,
