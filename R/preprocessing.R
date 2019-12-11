@@ -76,7 +76,9 @@ BinarizeCounts.Seurat <- function(
 #' CreateMotifMatrix
 #'
 #' Create a motif x feature matrix from a set of genomic ranges,
-#' the genome, and a set of position weight matrices
+#' the genome, and a set of position weight matrices.
+#'
+#' Requires that motifmatchr is installed (https://www.bioconductor.org/packages/motifmatchr/).
 #'
 #' @param features A GRanges object containing a set of genomic features
 #' @param pwm A \code{\link[TFBSTools]{PFMatrixList}} or \code{\link[TFBSTools]{PWMatrixList}}
@@ -89,7 +91,6 @@ BinarizeCounts.Seurat <- function(
 #' @param ... Additional arguments passed to \code{\link[motifmatchr]{matchMotifs}}
 #'
 #' @return Returns a sparse matrix
-#' @importFrom motifmatchr matchMotifs motifCounts motifMatches
 #' @export
 #' @examples
 #' \dontrun{
@@ -113,11 +114,20 @@ CreateMotifMatrix <- function(
   sep = c("-", "-"),
   ...
 ) {
-  motif_ix <- matchMotifs(pwms = pwm, subject = features, genome = genome, out = "scores", ...)
+  if (!requireNamespace('motifmatchr', quietly = TRUE)) {
+    stop("Please install motifmatchr. https://www.bioconductor.org/packages/motifmatchr/")
+  }
+  motif_ix <- motifmatchr::matchMotifs(
+    pwms = pwm,
+    subject = features,
+    genome = genome,
+    out = "scores",
+    ...
+  )
   if (use.counts) {
-    motif.matrix <- motifCounts(object = motif_ix)
+    motif.matrix <- motifmatchr::motifCounts(object = motif_ix)
   } else {
-    motif.matrix <- motifMatches(object = motif_ix)
+    motif.matrix <- motifmatchr::motifMatches(object = motif_ix)
     motif.matrix <- as(Class = 'dgCMatrix', object = motif.matrix)
   }
   rownames(motif.matrix) <- GRangesToString(grange = features, sep = sep)
