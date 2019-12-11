@@ -16,7 +16,9 @@ correspond to motif IDs, rows correspond to genomic features
 (peaks or bins). Entries in the matrix should be 1 if the
 genomic feature contains the motif, and 0 otherwise.}
 
-\item{\code{pwm}}{A list of position weight matrices for each motif}
+\item{\code{pwm}}{A named list of position weight matrices}
+
+\item{\code{motif.names}}{A list containing the name of each motif}
 
 \item{\code{meta.data}}{A dataframe for storage of additional
 information related to each motif. This could include the
