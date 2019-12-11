@@ -1,3 +1,14 @@
+# Signac 0.2.0
+
+* First CRAN release
+* Removed dependency on TFBSTools and motifmatchr
+* Renamed `PeriodPlot` to `FragmentPlot`
+* Removed motif dimension reduction functions
+* Removed motif clustering functions
+* Removed `neighbors` and `reductions` slots from `motif` class
+* Added `motif.names` slot to `motif` class
+* Change DESCRIPTION file so that Bioconductor dependencies are automatically installed
+
 # Signac 0.1.6
 
 * Bug fix for `GetCellsInRegion`
