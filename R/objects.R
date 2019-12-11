@@ -1,24 +1,23 @@
 #' @include generics.R
 #' @importFrom methods setClass setClassUnion setMethod is slot slot<- new as slotNames
 #' @importClassesFrom Matrix dgCMatrix
-#' @importClassesFrom TFBSTools PWMatrixList PFMatrixList
 #'
 NULL
 
 ## Class definitions
 
-setClassUnion(name = 'AnyPWM', c("list", "PWMatrixList", "PFMatrixList"))
-
 #' The Motif class
 #'
 #' The Motif class stores DNA motif information
 #'
-#' @slot data A sparse, binary, feature x motif matrix. Columns correspond to motif IDs, rows correspond to genomic features (peaks or bins).
-#' Entries in the matrix should be 1 if the genomic feature contains the motif, and 0 otherwise.
+#' @slot data A sparse, binary, feature x motif matrix. Columns
+#' correspond to motif IDs, rows correspond to genomic features
+#' (peaks or bins). Entries in the matrix should be 1 if the
+#' genomic feature contains the motif, and 0 otherwise.
 #' @slot pwm A list of position weight matrices for each motif
-#' @slot neighbors A list of nearest neighbors graphs
-#' @slot reductions A list of \code{\link[Seurat]{DimReduc}} objects
-#' @slot meta.data A dataframe for storage of additional information related to each motif. This could include the names of proteins that bind the motif.
+#' @slot meta.data A dataframe for storage of additional
+#' information related to each motif. This could include the
+#' names of proteins that bind the motif.
 #'
 #' @name Motif-class
 #' @rdname Motif-class
@@ -28,9 +27,7 @@ Motif <- setClass(
   Class = 'Motif',
   slots = list(
     data = 'dgCMatrix',
-    pwm = 'AnyPWM',
-    neighbors = 'list',
-    reductions = 'list',
+    pwm = 'list',
     meta.data = 'data.frame'
   )
 )
@@ -95,12 +92,15 @@ AddMotifObject.Seurat <- function(
 #' Create an object of class \code{Motif}
 #'
 #' @param data A motif x region matrix
-#' @param pwm A list of position weight matrices or position frequency matrices matching the motif names in \code{data}.
-#' Can be of class PFMatrixList
-#' @param neighbors Neighbor data
-#' @param reductions Dimension reduction data
+#' @param pwm A named list of position weight matrices or position frequency
+#' matrices matching the motif names in \code{data}.
+#' Can be of class PFMatrixList.
+#' @param motif.names A named list of motif names. List element names
+#' must match the names given in \code{pwm}. If NULL, use the names from the list
+#' of position weight or position frequency matrices. This can be used to set
+#' a alternative common name for the motif. If a PFMatrixList is passed to
+#' \code{pwm}, it will pull the motif name from the PFMatrixList.
 #' @param meta.data A data.frame containing metadata
-#'
 #' @export
 #' @examples
 #' motif.matrix <- matrix(data = sample(c(0,1), size = 100, replace = TRUE), ncol = 5)
@@ -108,19 +108,16 @@ AddMotifObject.Seurat <- function(
 CreateMotifObject <- function(
   data = NULL,
   pwm = NULL,
-  neighbors = NULL,
-  reductions = NULL,
+  motif.names = NULL,
   meta.data = NULL
 ) {
   data <- data %||% new(Class = 'dgCMatrix')
   pwm <- pwm %||% list()
-  neighbors <- neighbors %||% list()
-  reductions <- reductions %||% list()
   meta.data <- meta.data %||% data.frame()
   if (!(class(x = data) %in% c('matrix', 'dgCMatrix'))) {
     stop('Data must be matrix or sparse matrix class. Supplied ', class(x = data))
   }
-  if (is(object = data, class2 = 'matrix')) {
+  if (inherits(x = data, what = 'matrix')) {
     data <- as(Class = 'dgCMatrix', object = data)
   }
   if ((nrow(x = data) > 0) & (length(x = pwm) > 0)) {
@@ -133,12 +130,30 @@ CreateMotifObject <- function(
       stop('Motif names in data matrix and metadata are inconsistent')
     }
   }
+  if (inherits(x = pwm, what = 'list')) {
+    if (is.null(names(x = pwm))) {
+      stop("PWM must be a named list")
+    }
+  }
+  if (!is.null(x = motif.names)) {
+    if (length(x = motif.names) != length(x = pwm)) {
+      stop("Number of motif names supplied does not match the number of motifs")
+    }
+  }
+  if (inherits(x = pwm, what = "PFMatrixList") | inherits(x = pwm, what = "PWMatrixList")) {
+    pwm.converted <- lapply(X = as.list(x = pwm), FUN = PFMatrixToList)
+    motif.names <- lapply(X = pwm.converted, FUN = "[[", 1)
+    pwm <- lapply(X = pwm.converted, FUN = "[[", 2)
+  }
+  if (is.null(x = motif.names)) {
+    motif.names <- as.list(x = names(x = pwm))
+    names(motif.names) <- names(x = pwm)
+  }
   motif.obj <- new(
     Class = 'Motif',
     data = data,
     pwm = pwm,
-    neighbors = neighbors,
-    reductions = reductions,
+    motif.names = motif.names,
     meta.data = meta.data
   )
   return(motif.obj)
@@ -301,7 +316,6 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
   return(new.motif)
 }
 
-#' @inheritParams subset.Motif
 #' @param i Which columns to retain
 #' @param j Which rows to retain
 #'
