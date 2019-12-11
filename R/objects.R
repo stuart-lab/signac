@@ -14,7 +14,8 @@ NULL
 #' correspond to motif IDs, rows correspond to genomic features
 #' (peaks or bins). Entries in the matrix should be 1 if the
 #' genomic feature contains the motif, and 0 otherwise.
-#' @slot pwm A list of position weight matrices for each motif
+#' @slot pwm A named list of position weight matrices
+#' @slot motif.names A list containing the name of each motif
 #' @slot meta.data A dataframe for storage of additional
 #' information related to each motif. This could include the
 #' names of proteins that bind the motif.
@@ -28,6 +29,7 @@ Motif <- setClass(
   slots = list(
     data = 'dgCMatrix',
     pwm = 'list',
+    motif.names = 'list',
     meta.data = 'data.frame'
   )
 )
