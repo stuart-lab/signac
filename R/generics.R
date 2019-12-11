@@ -22,21 +22,6 @@ BinarizeCounts <- function(object, ...) {
   UseMethod(generic = 'BinarizeCounts', object = object)
 }
 
-#' ClusterMotifs
-#'
-#' Cluster motifs by co-occurrence in genomic regions.
-#' Computes the Jaccard similarity between motifs based on the proportion of
-#' regions that they co-occur in. This is normalized for the overall frequency of the motifs.
-#' Motifs are then clustered, and cluster identities stored in the Motif object meta data.
-#'
-#' @param object A Seurat object
-#' @return Returns a Seurat object
-#' @rdname ClusterMotifs
-#' @export ClusterMotifs
-ClusterMotifs <- function(object, ...) {
-  UseMethod(generic = 'ClusterMotifs', object = object)
-}
-
 #' FindTopFeatures
 #'
 #' Find top binary features for a given assay based on total number of cells containing feature.
@@ -114,34 +99,6 @@ RunSVD <- function(object, ...) {
 #' @export RunTFIDF
 RunTFIDF <- function(object, ...) {
   UseMethod(generic = 'RunTFIDF', object = object)
-}
-
-#' RunMotifTSNE
-#'
-#' Run tSNE on a Mofif object. This will project the motifs into two tSNE dimensions based on
-#' a neighbor graph stored in the Motif object (commonly computed from the Jaccard similarity between motifs).
-#'
-#' @param object A Seurat object
-#' @param ... Arguments passed to other methods
-#' @return Returns a Seurat object
-#' @rdname RunMotifTSNE
-#' @export RunMotifTSNE
-RunMotifTSNE <- function(object, ...) {
-  UseMethod(generic = 'RunMotifTSNE', object = object)
-}
-
-#' RunMotifUMAP
-#'
-#' Run UMAP on a Mofif object. This will project the motifs into two UMAP dimensions based on
-#' a neighbor graph stored in the Motif object (commonly computed from the Jaccard similarity between motifs).
-#'
-#' @param object A Seurat object
-#' @param ... Arguments passed to other methods
-#' @return Returns a Seurat object
-#' @rdname RunMotifUMAP
-#' @export RunMotifUMAP
-RunMotifUMAP <- function(object, ...) {
-  UseMethod(generic = 'RunMotifUMAP', object = object)
 }
 
 #' SetMotifData
