@@ -34,7 +34,10 @@ Returns a sparse matrix
 }
 \description{
 Create a motif x feature matrix from a set of genomic ranges,
-the genome, and a set of position weight matrices
+the genome, and a set of position weight matrices.
+}
+\details{
+Requires that motifmatchr is installed (https://www.bioconductor.org/packages/motifmatchr/).
 }
 \examples{
 \dontrun{
