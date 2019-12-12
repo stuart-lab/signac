@@ -1,4 +1,3 @@
-[![Build Status](https://dev.azure.com/timstuart/timstuart/_apis/build/status/timoast.signac?branchName=master&jobName=Ubuntu_1804)](https://dev.azure.com/timstuart/timstuart/_build/latest?definitionId=1&branchName=master)
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/timoast/signac?svg=true)](https://ci.appveyor.com/project/timoast/signac)
 # Signac v0.2.0
 
