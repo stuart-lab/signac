@@ -2,7 +2,7 @@
 
 * First CRAN release
 * Removed dependency on TFBSTools and motifmatchr
-* Renamed `PeriodPlot` to `FragmentPlot`
+* Renamed `PeriodPlot` to `FragmentHistogram`
 * Removed motif dimension reduction functions
 * Removed motif clustering functions
 * Removed `neighbors` and `reductions` slots from `motif` class
