@@ -16,7 +16,7 @@ BinarizeCounts.default <- function(
   verbose = TRUE,
   ...
 ) {
-  if (is(object = object, class2 = 'dgCMatrix')) {
+  if (inherits(x = object, what = 'dgCMatrix')) {
     slot(object = object, name = 'x') <- rep.int(
       x = 1,
       times = length(
@@ -630,7 +630,7 @@ RegionStats.default <- function(
   verbose = TRUE,
   ...
 ) {
-  if (is(object = object, class2 = 'character')) {
+  if (inherits(x = object, what = 'character')) {
     object <- StringToGRanges(regions = object, sep = sep)
   }
   sequence.length <- width(x = object)
@@ -735,10 +735,10 @@ RunTFIDF.default <- function(
   verbose = TRUE,
   ...
 ) {
-  if (is(object = object, class2 = "data.frame")) {
+  if (inherits(x = object, what = "data.frame")) {
     object <- as.matrix(x = object)
   }
-  if (!is(object = object, class2 = "dgCMatrix")) {
+  if (!inherits(x = object, what = "dgCMatrix")) {
     object <- as(object = object, Class = "dgCMatrix")
   }
   if (verbose) {

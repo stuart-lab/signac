@@ -118,7 +118,7 @@ CreateMotifObject <- function(
 ) {
   data <- data %||% new(Class = 'dgCMatrix')
   meta.data <- meta.data %||% data.frame()
-  if (!(class(x = data) %in% c('matrix', 'dgCMatrix'))) {
+  if (!(inherits(x = data, what = 'matrix') | inherits(x = data, what = 'dgCMatrix'))) {
     stop('Data must be matrix or sparse matrix class. Supplied ', class(x = data))
   }
   if (inherits(x = data, what = 'matrix')) {
@@ -245,7 +245,7 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
     stop('slot must be one of ', paste(slotNames(x = object), collapse = ', '), call. = FALSE)
   }
   if (slot == 'data') {
-    if (is(object = new.data, class2 = 'matrix')) {
+    if (inherits(x = new.data, what = 'matrix')) {
       new.data <- as(Class = 'dgCMatrix', object = new.data)
     }
   }
@@ -265,18 +265,18 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
 #' SetMotifData(object = atac_small[['peaks']], slot = 'data', new.data = matrix())
 SetMotifData.Assay <- function(object, slot, new.data, ...) {
   if (slot == 'data') {
-    if (!(class(x = new.data) %in% c('matrix', 'dgCMatrix'))) {
+    if (!(inherits(x = new.data, what = 'matrix') | inherits(x = new.data, what = 'dgCMatrix'))) {
       stop('Data must be matrix or sparse matrix class. Supplied ', class(x = new.data))
     }
     if (!all(rownames(x = object) == rownames(x = new.data))) {
       stop('Features do not match existing assay data. Column names in motif matrix should match row names in assay data')
     }
-    if (is(object = new.data, class2 = 'matrix')) {
+    if (inherits(x = new.data, what = 'matrix')) {
       new.data <- as(Class = 'dgCMatrix', object = new.data)
     }
   }
   misc.data <- slot(object = object, name = 'misc') %||% list()
-  if (!is(object = misc.data, class2 = 'list')) {
+  if (!inherits(x = misc.data, what = 'list')) {
     stop('misc slot already occupied and would be overwritten.
          This can be avoided by converting the data in misc to a list,
          so that additional data can be added')
