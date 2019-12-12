@@ -91,3 +91,8 @@ Plot coverage within given regions for groups of cells
 Thanks to Andrew Hill for providing an early version of this function
  \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
 }
+\examples{
+\dontrun{
+CoveragePlot(object = atac_small, region = c("chr1-10-10000", "chr2-20-50000"))
+}
+}

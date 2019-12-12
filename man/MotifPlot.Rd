@@ -20,3 +20,6 @@ MotifPlot(object, motifs, assay = NULL, use.names = TRUE, ...)
 \description{
 Plot motifs
 }
+\examples{
+
+}

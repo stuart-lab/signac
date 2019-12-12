@@ -73,4 +73,6 @@ Run singular value decomposition
 \examples{
 x <- matrix(data = rnorm(100), ncol = 10)
 RunSVD(x)
+RunSVD(atac_small[['peaks']])
+RunSVD(atac_small)
 }

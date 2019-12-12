@@ -20,3 +20,8 @@ Checks for a valid path and an index file with the same name (.tbi) at the same 
 Stores the path under the tools slot for access by visualization functions.
 One fragments file can be stored for each assay.
 }
+\examples{
+\dontrun{
+SetFragments(object = atac_small, file = "./fragments.tsv.bgz")
+}
+}
