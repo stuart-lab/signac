@@ -33,6 +33,8 @@ BinarizeCounts.default <- function(
 #' @method BinarizeCounts Assay
 #' @importFrom Seurat GetAssayData SetAssayData
 #' @export
+#' @examples
+#' BinarizeCounts(atac_small[['peaks']])
 BinarizeCounts.Assay <- function(
   object,
   assay = NULL,
@@ -54,6 +56,8 @@ BinarizeCounts.Assay <- function(
 #' @method BinarizeCounts Seurat
 #' @importFrom Seurat GetAssay DefaultAssay
 #' @export
+#' @examples
+#' BinarizeCounts(atac_small)
 BinarizeCounts.Seurat <- function(
   object,
   assay = NULL,
@@ -143,12 +147,11 @@ CreateMotifMatrix <- function(
 #' @param assay Name of assay to use. Default is the active assay.
 #' @param n Number of features to retain (default 20000).
 #' @param verbose Display messages
-#'
 #' @importFrom Seurat DefaultAssay GetAssayData "VariableFeatures<-"
-#'
 #' @return Returns a Seurat object with VariableFeatures set to the randomly sampled features.
-#'
 #' @export
+#' @examples
+#' DownsampleFeatures(atac_small, n = 10)
 DownsampleFeatures <- function(
   object,
   assay = NULL,
@@ -188,8 +191,14 @@ DownsampleFeatures <- function(
 #' @importFrom pbapply pblapply
 #' @importFrom Matrix sparseMatrix
 #' @importFrom Rsamtools TabixFile seqnamesTabix
-#'
 #' @export
+#' @examples
+#' \dontrun{
+#' FeatureMatrix(
+#'   fragments = GetFragments(atac_small),
+#'   features = StringToGranges(rownames(atac_small), sep = c(":", "-"))
+#' )
+#' }
 FeatureMatrix <- function(
   fragments,
   features,
@@ -280,8 +289,15 @@ FeatureMatrix <- function(
 #'
 #' @importFrom data.table fread fwrite
 #' @importFrom Rsamtools indexTabix bgzip
-#'
 #' @export
+#' @examples
+#' \dontrun{
+#' FilterFragments(
+#'   fragment.path = GetFragments(atac_small),
+#'   cells = colnames(atac_small),
+#'   output.path = "./filtered.tsv"
+#' )
+#' }
 FilterFragments <- function(
   fragment.path,
   cells,
@@ -350,6 +366,8 @@ FilterFragments <- function(
 #' @importFrom stats ecdf
 #' @rdname FindTopFeatures
 #' @export
+#' @examples
+#' FindTopFeatures(object = GetAssayData(atac_small[['peaks']]))
 FindTopFeatures.default <- function(
   object,
   assay = NULL,
@@ -372,6 +390,8 @@ FindTopFeatures.default <- function(
 #' @importFrom Seurat GetAssayData VariableFeatures
 #' @export
 #' @method FindTopFeatures Assay
+#' @examples
+#' FindTopFeatures(object = atac_small[['peaks']])
 FindTopFeatures.Assay <- function(
   object,
   assay = NULL,
@@ -437,7 +457,8 @@ FindTopFeatures.Seurat <- function(
 #' @importFrom Seurat GetAssayData AddMetaData
 #'
 #' @export
-#'
+#' @examples
+#' FRiP(object = atac_small, peak.assay = 'peaks', bin.assay = 'bins')
 FRiP <- function(
   object,
   peak.assay,
@@ -482,8 +503,14 @@ FRiP <- function(
 #' @param verbose Display messages
 #'
 #' @importFrom GenomicRanges tileGenome
-#'
 #' @export
+#' @examples
+#' \dontrun{
+#' GenomeBinMatrix(
+#'   fragments = GetFragments(atac_small),
+#'   genome = 'hg19'
+#' )
+#' }
 GenomeBinMatrix <- function(
   fragments,
   genome,
@@ -529,6 +556,10 @@ globalVariables(names = 'cell', package = 'Signac')
 #' @return Returns a Seurat object with added metadata for the ratio of mononucleosomal to nucleosome-free fragments
 #' per cell, and the percentile rank of each ratio.
 #' @export
+#' @examples
+#' \dontrun{
+#' NucleosomeSignal(object = atac_small)
+#' }
 NucleosomeSignal <- function(
   object,
   assay = NULL,
@@ -587,6 +618,11 @@ NucleosomeSignal <- function(
 #' @importFrom BSgenome getSeq
 #' @rdname RegionStats
 #' @export
+#' @examples
+#' \dontrun{
+#' library(BSgenome.Hsapiens.UCSC.hg19)
+#' RegionStats(object = rownames(atac_small), genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-"))
+#' }
 RegionStats.default <- function(
   object,
   genome,
@@ -612,6 +648,11 @@ RegionStats.default <- function(
 #' @importFrom methods slot
 #' @importFrom Seurat GetAssayData
 #' @export
+#' @examples
+#' \dontrun{
+#' library(BSgenome.Hsapiens.UCSC.hg19)
+#' RegionStats(object = atac_small[['peaks']], genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-"))
+#' }
 RegionStats.Assay <- function(
   object,
   genome,
@@ -728,6 +769,8 @@ RunTFIDF.default <- function(
 #' @rdname RunTFIDF
 #' @method RunTFIDF Assay
 #' @export
+#' @examples
+#' RunTFIDF(atac_small[['peaks']])
 RunTFIDF.Assay <- function(
   object,
   assay = NULL,
@@ -756,6 +799,8 @@ RunTFIDF.Assay <- function(
 #' @rdname RunTFIDF
 #' @method RunTFIDF Seurat
 #' @export
+#' @examples
+#' RunTFIDF(object = atac_small)
 RunTFIDF.Seurat <- function(
   object,
   assay = NULL,
@@ -796,6 +841,20 @@ RunTFIDF.Seurat <- function(
 #'
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @export
+#' @examples
+#' \dontrun{
+#' library(EnsDb.Hsapiens.v75)
+#' gene.ranges <- genes(EnsDb.Hsapiens.v75)
+#' gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
+#' tss.ranges <- GRanges(
+#'   seqnames = seqnames(gene.ranges),
+#'   ranges = IRanges(start = start(gene.ranges), width = 2),
+#'   strand = strand(gene.ranges)
+#' )
+#' seqlevelsStyle(tss.ranges) <- 'UCSC'
+#' tss.ranges <- keepStandardChromosomes(tss.ranges, pruning.mode = 'coarse')
+#' TSSEnrichment(object = atac_small, tss.positions = tss.ranges[1:2000])
+#' }
 TSSEnrichment <- function(
   object,
   tss.positions,

@@ -42,6 +42,9 @@ Motif <- setClass(
 #' @rdname AddMotifObject
 #' @method AddMotifObject Assay
 #' @export
+#' @examples
+#' obj <- GetMotifObject(atac_small[['peaks]])
+#' atac_small[['peaks']] <- AddMotifObject(object = atac_small[['peaks]], motif.object = obj)
 AddMotifObject.Assay <- function(
   object,
   motif.object,
@@ -73,7 +76,7 @@ AddMotifObject.Assay <- function(
 #' @export
 #' @examples
 #' obj <- GetMotifObject(object = atac_small)
-#' atac_small <- AddMotifObject(object = atac_small, motif.object = obj)
+#' atac_small[['peaks']] <- AddMotifObject(object = atac_small, motif.object = obj)
 AddMotifObject.Seurat <- function(
   object,
   motif.object,
@@ -114,7 +117,6 @@ CreateMotifObject <- function(
   meta.data = NULL
 ) {
   data <- data %||% new(Class = 'dgCMatrix')
-  pwm <- pwm %||% list()
   meta.data <- meta.data %||% data.frame()
   if (!(class(x = data) %in% c('matrix', 'dgCMatrix'))) {
     stop('Data must be matrix or sparse matrix class. Supplied ', class(x = data))
@@ -144,9 +146,10 @@ CreateMotifObject <- function(
   }
   if (inherits(x = pwm, what = "PFMatrixList") | inherits(x = pwm, what = "PWMatrixList")) {
     pwm.converted <- lapply(X = as.list(x = pwm), FUN = PFMatrixToList)
-    motif.names <- lapply(X = pwm.converted, FUN = "[[", 1)
-    pwm <- lapply(X = pwm.converted, FUN = "[[", 2)
+    pwm <- lapply(X = pwm.converted, FUN = "[[", 1)
+    motif.names <- lapply(X = pwm.converted, FUN = "[[", 2)
   }
+  pwm <- pwm %||% list()
   if (is.null(x = motif.names)) {
     motif.names <- as.list(x = names(x = pwm))
     names(motif.names) <- names(x = pwm)
@@ -164,6 +167,8 @@ CreateMotifObject <- function(
 #' @rdname GetMotifObject
 #' @method GetMotifObject Assay
 #' @export
+#' @examples
+#' GetMotifObject(object = atac_small[['peaks']])
 GetMotifObject.Assay <- function(object, ...) {
   misc.data <- slot(object = object, name = 'misc')
   if ('motif' %in% names(x = misc.data)) {
@@ -192,6 +197,9 @@ GetMotifObject.Seurat <- function(object, assay = NULL, ...) {
 #' @rdname GetMotifData
 #' @method GetMotifData Motif
 #' @export
+#' @examples
+#' motif.obj <- GetMotifObject(object = atac_small[['peaks']])
+#' GetMotifData(object = motif.obj)
 GetMotifData.Motif <- function(object, slot = 'data', ...) {
   return(slot(object = object, name = slot))
 }
@@ -199,6 +207,8 @@ GetMotifData.Motif <- function(object, slot = 'data', ...) {
 #' @rdname GetMotifData
 #' @method GetMotifData Assay
 #' @export
+#' @examples
+#' GetMotifData(object = atac_small[['peaks']])
 GetMotifData.Assay <- function(object, slot = 'data', ...) {
   misc.data <- slot(object = object, name = 'misc')
   if ('motif' %in% names(x = misc.data)) {
@@ -227,6 +237,9 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
 #' @rdname SetMotifData
 #' @method SetMotifData Motif
 #' @export
+#' @examples
+#' motif.obj <- GetMotifObject(object = atac_small)
+#' SetMotifData(object = motif.obj, slot = 'data', new.data = matrix())
 SetMotifData.Motif <- function(object, slot, new.data, ...) {
   if (!(slot %in% slotNames(x = object))) {
     stop('slot must be one of ', paste(slotNames(x = object), collapse = ', '), call. = FALSE)
@@ -248,6 +261,8 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
 #' @export
 #' @method SetMotifData Assay
 #' @import Matrix
+#' @examples
+#' SetMotifData(object = atac_small[['peaks']], slot = 'data', new.data = matrix())
 SetMotifData.Assay <- function(object, slot, new.data, ...) {
   if (slot == 'data') {
     if (!(class(x = new.data) %in% c('matrix', 'dgCMatrix'))) {
@@ -302,17 +317,21 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
 #' @seealso \code{\link[base]{subset}}
 #' @return Returns a subsetted Motif object
 #' @export
-#'
+#' @examples
+#' motif.obj <- GetMotifObject(object = atac_small)
+#' subset(x = motif.obj, features = head(rownames(motif.obj)))
 subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
   features <- features %||% rownames(x = x)
   motifs <- motifs %||% colnames(x = x)
   new.data <- GetMotifData(object = x, slot = 'data')[features, motifs]
   new.pwm <- GetMotifData(object = x, slot = 'pwm')[motifs]
+  new.names <- GetMotifData(object = x, slot = 'motif.names')[motifs]
   new.meta <- GetMotifData(object = x, slot = 'meta.data')[motifs, ]
   new.motif <- new(
     Class = 'Motif',
     data = new.data,
     pwm = new.pwm,
+    motif.names = new.names,
     meta.data = new.meta
   )
   return(new.motif)

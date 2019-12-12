@@ -25,7 +25,7 @@ globalVariables(names = c('position', 'coverage', 'group'), package = 'Signac')
 #' @importFrom zoo rollapply
 #'
 #' @export
-#'
+#' @examples
 SingleCoveragePlot <- function(
   object,
   region,
@@ -189,7 +189,10 @@ SingleCoveragePlot <- function(
 #'
 #' @importFrom cowplot plot_grid
 #' @export
-#'
+#' @examples
+#' \dontrun{
+#' CoveragePlot(object = atac_small, region = c("chr1-10-10000", "chr2-20-50000"))
+#' }
 CoveragePlot <- function(
   object,
   region,
@@ -263,6 +266,9 @@ CoveragePlot <- function(
 #'
 #' @importFrom ggseqlogo ggseqlogo
 #' @export
+#' @examples
+#' motif.obj <- GetMotifObject(atac_small)
+#' MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
 MotifPlot <- function(
   object,
   motifs,
@@ -276,7 +282,7 @@ MotifPlot <- function(
   }
   data.use <- data.use[motifs]
   if (use.names) {
-    names(x = data.use) <- GetMotifData(object = object, assay = assay, slot = 'motif.names')
+    names(x = data.use) <- GetMotifData(object = object, assay = assay, slot = 'motif.names')[motifs]
   }
   p <- ggseqlogo(data = data.use, ...)
   return(p)
@@ -298,7 +304,10 @@ globalVariables(names = 'group', package = 'Signac')
 #'
 #' @return Returns a ggplot2 object
 #' @export
-#'
+#' @examples
+#' \dontrun{
+#' FragmentHistogram(object = atac_small)
+#' }
 FragmentHistogram <- function(
   object,
   assay = NULL,
@@ -447,6 +456,10 @@ globalVariables(names = 'norm.value', package = 'Signac')
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot2}} object
 #' @export
+#' @examples
+#' \dontrun{
+#' TSSPlot(atac_small)
+#' }
 TSSPlot <- function(
   object,
   assay = NULL,

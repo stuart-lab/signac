@@ -173,7 +173,21 @@ ClosestFeature <- function(
 #' @importFrom IRanges IRanges
 #' @importFrom Biostrings oligonucleotideFrequency
 #' @export
+#' @examples
+#' \dontrun{
+#' library(BSgenome.Mmusculus.UCSC.mm10)
 #'
+#' region.use <- GRanges(
+#'   seqnames = c('chr1', 'chr2'),
+#'   IRanges(start = c(1,1), end = c(195471971, 182113224))
+#' )
+#'
+#' InsertionBias(
+#'  object = object,
+#'  genome = BSgenome.Mmusculus.UCSC.mm10,
+#'  region = region.use
+#' )
+#' }
 #' @return Returns a Seurat object
 InsertionBias <- function(
   object,
@@ -208,7 +222,6 @@ InsertionBias <- function(
   insertion_hex_freq <- insertion_hex_freq[names(x = genome_freq), ]
   bias <- insertion_hex_freq/genome_freq
 
-  # TODO: add slot to chromatin assay for Tn5 insertion bias vector
   object <- AddToMisc(
     object = object,
     assay = assay,
@@ -246,7 +259,15 @@ InsertionBias <- function(
 #' @export
 #' @return Returns a list of two character vectors containing the row names
 #' in each object that overlap each other.
-#'
+#' @examples
+#' GetIntersectingFeatures(
+#'   object.1 = atac_small,
+#'   object.2 = atac_small,
+#'   assay.1 = 'peaks',
+#'   assay.2 = 'bins',
+#'   sep.1 = c(":", "-"),
+#'   sep.2 = c("-", "-")
+#' )
 GetIntersectingFeatures <- function(
   object.1,
   object.2,
@@ -287,9 +308,11 @@ GetIntersectingFeatures <- function(
 #' @param assay Assay used to generate the fragments. If NULL, use the active assay.
 #'
 #' @importFrom methods "slot<-" slot is
-#'
 #' @export
-#'
+#' @examples
+#' \dontrun{
+#' SetFragments(object = atac_small, file = "./fragments.tsv.bgz")
+#' }
 SetFragments <- function(
   object,
   file,
@@ -518,6 +541,10 @@ Extend <- function(
 #' @importFrom Rsamtools TabixFile scanTabix
 #' @importFrom methods is
 #' @export
+#' @examples
+#' \dontrun{
+#' GetCellsInRegion(tabix = "fragments.tsv.bgz", region = "chr1-565107-565550")
+#' }
 GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
   if (!is(object = region, class2 = 'GRanges')) {
     region <- StringToGRanges(regions = region)
@@ -563,6 +590,11 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 #'
 #' @return Returns a data frame
 #' @export
+#' @examples
+#' \dontrun{
+#' region <- StringToGRanges(regions = "chr1-565107-565550")
+#' GetReadsInRegion(object = atac_small, region = region)
+#' }
 GetReadsInRegion <- function(
   object,
   region,
@@ -625,6 +657,10 @@ GetReadsInRegion <- function(
 #'
 #' @return Returns the path to a fragments file stored in the Assay if present
 #' @export
+#' @examples
+#' \dontrun{
+#' GetFragments(object = atac_small)
+#' }
 GetFragments <- function(
   object,
   assay = NULL
@@ -821,7 +857,7 @@ IntersectMatrix <- function(
 #' for any given set of characteristics, specified in the input \code{meta.feature} dataframe.
 #'
 #' @param meta.feature A dataframe containing DNA sequence information
-#' @param regions Set of query regions. Must be present in rown
+#' @param regions Set of query regions. Must be present in rownames.
 #' @param n Number of regions to select, with characteristics matching the query
 #' @param features.match Which features of the query to match when selecting a set of
 #' regions. A vector of column names present in the feature metadata can be supplied to
@@ -832,6 +868,14 @@ IntersectMatrix <- function(
 #'
 #' @importFrom stats density approx
 #' @export
+#' @examples
+#' metafeatures <- GetAssayData(object = atac_small[['peaks']], slot = 'meta.features')
+#' MatchRegionStats(
+#'   meta.feature = metafeatures,
+#'   regions = head(rownames(metafeatures), 100),
+#'   features.match = "percentile",
+#'   n = 100
+#' )
 MatchRegionStats <- function(
   meta.feature,
   regions,
@@ -907,7 +951,15 @@ MatchRegionStats <- function(
 #'
 #' @export
 #' @return Returns a Seurat object
-#'
+#' @examples
+#' MergeWithRegions(
+#'   object.1 = atac_small,
+#'   object.2 = atac_small,
+#'   assay.1 = 'peaks',
+#'   assay.2 = 'bins',
+#'   sep.1 = c(":","-"),
+#'   sep.2 = c("-","-")
+#' )
 MergeWithRegions <- function(
   object.1,
   object.2,
