@@ -169,7 +169,7 @@ FindMotifs <- function(
     percent.background = percent.background,
     fold.enrichment = fold.enrichment,
     pvalue = p.list,
-    motif.name <- as.vector(x = unlist(x = motif.names[names(x = query.counts)])),
+    motif.name = as.vector(x = unlist(x = motif.names[names(x = query.counts)])),
     stringsAsFactors = FALSE
   )
   return(results[with(data = results, expr = order(pvalue, -fold.enrichment)), ])
