@@ -30,8 +30,8 @@ Returns a Seurat object
 AddMotifObject
 }
 \examples{
-obj <- GetMotifObject(atac_small[['peaks]])
-atac_small[['peaks']] <- AddMotifObject(object = atac_small[['peaks]], motif.object = obj)
+obj <- GetMotifObject(atac_small[['peaks']])
+atac_small[['peaks']] <- AddMotifObject(object = atac_small[['peaks']], motif.object = obj)
 obj <- GetMotifObject(object = atac_small)
 atac_small[['peaks']] <- AddMotifObject(object = atac_small, motif.object = obj)
 }

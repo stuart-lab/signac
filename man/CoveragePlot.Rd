@@ -93,6 +93,9 @@ Thanks to Andrew Hill for providing an early version of this function
 }
 \examples{
 \dontrun{
+CoveragePlot(object = atac_small, region = "chr1-10-10000")
+}
+\dontrun{
 CoveragePlot(object = atac_small, region = c("chr1-10-10000", "chr2-20-50000"))
 }
 }

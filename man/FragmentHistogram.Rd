@@ -36,3 +36,8 @@ Returns a ggplot2 object
 \description{
 Plot fragment length histogram
 }
+\examples{
+\dontrun{
+FragmentHistogram(object = atac_small)
+}
+}

@@ -21,5 +21,6 @@ MotifPlot(object, motifs, assay = NULL, use.names = TRUE, ...)
 Plot motifs
 }
 \examples{
-
+motif.obj <- GetMotifObject(atac_small)
+MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
 }

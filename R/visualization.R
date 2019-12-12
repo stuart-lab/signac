@@ -26,6 +26,9 @@ globalVariables(names = c('position', 'coverage', 'group'), package = 'Signac')
 #'
 #' @export
 #' @examples
+#' \dontrun{
+#' CoveragePlot(object = atac_small, region = "chr1-10-10000")
+#' }
 SingleCoveragePlot <- function(
   object,
   region,

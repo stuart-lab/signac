@@ -43,8 +43,8 @@ Motif <- setClass(
 #' @method AddMotifObject Assay
 #' @export
 #' @examples
-#' obj <- GetMotifObject(atac_small[['peaks]])
-#' atac_small[['peaks']] <- AddMotifObject(object = atac_small[['peaks]], motif.object = obj)
+#' obj <- GetMotifObject(atac_small[['peaks']])
+#' atac_small[['peaks']] <- AddMotifObject(object = atac_small[['peaks']], motif.object = obj)
 AddMotifObject.Assay <- function(
   object,
   motif.object,
