@@ -4,8 +4,15 @@
 \alias{NucleosomeSignal}
 \title{NucleosomeSignal}
 \usage{
-NucleosomeSignal(object, assay = NULL, region = "chr1-1-249250621",
-  min.threshold = 147, max.threshold = 294, verbose = TRUE, ...)
+NucleosomeSignal(
+  object,
+  assay = NULL,
+  region = "chr1-1-249250621",
+  min.threshold = 147,
+  max.threshold = 294,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -29,4 +36,9 @@ per cell, and the percentile rank of each ratio.
 \description{
 Calculate the strength of the nucleosome signal per cell.
 Computes the ratio of fragments between 147 bp and 294 bp (mononucleosome) to fragments < 147 bp (nucleosome-free)
+}
+\examples{
+\dontrun{
+NucleosomeSignal(object = atac_small)
+}
 }

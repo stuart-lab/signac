@@ -26,5 +26,6 @@ Returns a Motif object
 Get motif object from given assay
 }
 \examples{
+GetMotifObject(object = atac_small[['peaks']])
 GetMotifObject(object = atac_small)
 }

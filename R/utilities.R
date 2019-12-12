@@ -173,7 +173,21 @@ ClosestFeature <- function(
 #' @importFrom IRanges IRanges
 #' @importFrom Biostrings oligonucleotideFrequency
 #' @export
+#' @examples
+#' \dontrun{
+#' library(BSgenome.Mmusculus.UCSC.mm10)
 #'
+#' region.use <- GRanges(
+#'   seqnames = c('chr1', 'chr2'),
+#'   IRanges(start = c(1,1), end = c(195471971, 182113224))
+#' )
+#'
+#' InsertionBias(
+#'  object = object,
+#'  genome = BSgenome.Mmusculus.UCSC.mm10,
+#'  region = region.use
+#' )
+#' }
 #' @return Returns a Seurat object
 InsertionBias <- function(
   object,
@@ -208,7 +222,6 @@ InsertionBias <- function(
   insertion_hex_freq <- insertion_hex_freq[names(x = genome_freq), ]
   bias <- insertion_hex_freq/genome_freq
 
-  # TODO: add slot to chromatin assay for Tn5 insertion bias vector
   object <- AddToMisc(
     object = object,
     assay = assay,
@@ -246,7 +259,15 @@ InsertionBias <- function(
 #' @export
 #' @return Returns a list of two character vectors containing the row names
 #' in each object that overlap each other.
-#'
+#' @examples
+#' GetIntersectingFeatures(
+#'   object.1 = atac_small,
+#'   object.2 = atac_small,
+#'   assay.1 = 'peaks',
+#'   assay.2 = 'bins',
+#'   sep.1 = c(":", "-"),
+#'   sep.2 = c("-", "-")
+#' )
 GetIntersectingFeatures <- function(
   object.1,
   object.2,
@@ -287,9 +308,11 @@ GetIntersectingFeatures <- function(
 #' @param assay Assay used to generate the fragments. If NULL, use the active assay.
 #'
 #' @importFrom methods "slot<-" slot is
-#'
 #' @export
-#'
+#' @examples
+#' \dontrun{
+#' SetFragments(object = atac_small, file = "./fragments.tsv.bgz")
+#' }
 SetFragments <- function(
   object,
   file,
@@ -361,17 +384,16 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
   return(regions)
 }
 
-#' ChunkGRanges
-#'
-#' Split a genomic ranges object into evenly sized chunks
-#'
-#' @param granges A GRanges object
-#' @param nchunk Number of chunks to split into
-#'
-#' @return Returns a list of GRanges objects
-#' @export
-#' @examples
-#' ChunkGRanges(blacklist_hg19, n = 10)
+# ChunkGRanges
+#
+# Split a genomic ranges object into evenly sized chunks
+#
+# @param granges A GRanges object
+# @param nchunk Number of chunks to split into
+#
+# @return Returns a list of GRanges objects
+# @examples
+# ChunkGRanges(blacklist_hg19, n = 10)
 ChunkGRanges <- function(granges, nchunk) {
   chunksize <- as.integer(x = (length(granges) / nchunk))
   range.list <- sapply(X = 1:nchunk, FUN = function(x) {
@@ -474,6 +496,9 @@ CutMatrix <- function(
 #' @param x A range
 #' @param upstream Length to extend upstream
 #' @param downstream Length to extend downstream
+#' @param from.midpoint Count bases from region midpoint,
+#' rather than the 5' or 3' end for upstream and downstream
+#' respectively.
 #'
 #' @importFrom GenomicRanges strand start end trim
 #' @importFrom IRanges ranges IRanges "ranges<-"
@@ -516,6 +541,10 @@ Extend <- function(
 #' @importFrom Rsamtools TabixFile scanTabix
 #' @importFrom methods is
 #' @export
+#' @examples
+#' \dontrun{
+#' GetCellsInRegion(tabix = "fragments.tsv.bgz", region = "chr1-565107-565550")
+#' }
 GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
   if (!is(object = region, class2 = 'GRanges')) {
     region <- StringToGRanges(regions = region)
@@ -561,6 +590,11 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 #'
 #' @return Returns a data frame
 #' @export
+#' @examples
+#' \dontrun{
+#' region <- StringToGRanges(regions = "chr1-565107-565550")
+#' GetReadsInRegion(object = atac_small, region = region)
+#' }
 GetReadsInRegion <- function(
   object,
   region,
@@ -623,6 +657,10 @@ GetReadsInRegion <- function(
 #'
 #' @return Returns the path to a fragments file stored in the Assay if present
 #' @export
+#' @examples
+#' \dontrun{
+#' GetFragments(object = atac_small)
+#' }
 GetFragments <- function(
   object,
   assay = NULL
@@ -736,11 +774,11 @@ FractionCountsInRegion <- function(
   return(reads.in.region / total.reads)
 }
 
-#' Get vector of cell names and associated identity
-#' @param object A Seurat object
-#' @param group.by Identity class to group cells by
-#' @param idents which identities to include
-#' @return Returns a named vector
+# Get vector of cell names and associated identity
+# @param object A Seurat object
+# @param group.by Identity class to group cells by
+# @param idents which identities to include
+# @return Returns a named vector
 #' @importFrom Seurat Idents
 GetGroups <- function(
   object,
@@ -819,7 +857,7 @@ IntersectMatrix <- function(
 #' for any given set of characteristics, specified in the input \code{meta.feature} dataframe.
 #'
 #' @param meta.feature A dataframe containing DNA sequence information
-#' @param regions Set of query regions. Must be present in rown
+#' @param regions Set of query regions. Must be present in rownames.
 #' @param n Number of regions to select, with characteristics matching the query
 #' @param features.match Which features of the query to match when selecting a set of
 #' regions. A vector of column names present in the feature metadata can be supplied to
@@ -830,6 +868,17 @@ IntersectMatrix <- function(
 #'
 #' @importFrom stats density approx
 #' @export
+#' @examples
+#' \dontrun{
+#' library(Seurat)
+#' metafeatures <- GetAssayData(object = atac_small[['peaks']], slot = 'meta.features')
+#' MatchRegionStats(
+#'   meta.feature = metafeatures,
+#'   regions = head(rownames(metafeatures), 100),
+#'   features.match = "percentile",
+#'   n = 100
+#' )
+#' }
 MatchRegionStats <- function(
   meta.feature,
   regions,
@@ -905,7 +954,15 @@ MatchRegionStats <- function(
 #'
 #' @export
 #' @return Returns a Seurat object
-#'
+#' @examples
+#' MergeWithRegions(
+#'   object.1 = atac_small,
+#'   object.2 = atac_small,
+#'   assay.1 = 'peaks',
+#'   assay.2 = 'bins',
+#'   sep.1 = c(":","-"),
+#'   sep.2 = c("-","-")
+#' )
 MergeWithRegions <- function(
   object.1,
   object.2,
@@ -982,16 +1039,16 @@ MergeWithRegions <- function(
   return(merged.object)
 }
 
-#' Generate cut matrix for many regions
-#'
-#' Run CutMatrix on multiple regions and add them together.
-#' Assumes regions are pre-aligned.
-#'
-#' @param object A Seurat object
-#' @param regions A set of GRanges
-#' @param assay Name of the assay to use
-#' @param cells Vector of cells to include
-#' @param verbose Display messages
+# Generate cut matrix for many regions
+#
+# Run CutMatrix on multiple regions and add them together.
+# Assumes regions are pre-aligned.
+#
+# @param object A Seurat object
+# @param regions A set of GRanges
+# @param assay Name of the assay to use
+# @param cells Vector of cells to include
+# @param verbose Display messages
 #' @importFrom Rsamtools TabixFile
 MultiRegionCutMatrix <- function(
   object,
@@ -1020,16 +1077,18 @@ MultiRegionCutMatrix <- function(
   return(cm)
 }
 
-#' Create cut site pileup matrix
-#'
-#' For a set of aligned genomic ranges, find the total number of
-#' integration sites per cell per base.
-#'
-#' @param object A Seurat object
-#' @param regions A GRanges object
-#' @param assay Name of the assay to use
-#' @param cells Which cells to include. If NULL, use all cells
-#' @param verbose Display messages
+# Create cut site pileup matrix
+#
+# For a set of aligned genomic ranges, find the total number of
+# integration sites per cell per base.
+#
+# @param object A Seurat object
+# @param regions A GRanges object
+# @param upstream Number of bases to extend upstream
+# @param downstream Number of bases to extend downstream
+# @param assay Name of the assay to use
+# @param cells Which cells to include. If NULL, use all cells
+# @param verbose Display messages
 #' @importFrom BiocGenerics strand
 CreateRegionPileupMatrix <- function(
   object,
@@ -1080,24 +1139,23 @@ CreateRegionPileupMatrix <- function(
   return(full.matrix)
 }
 
-#' Apply function to integration sites per base per group
-#'
-#' Perform colSums on a cut matrix with cells in the rows
-#' and position in the columns, for each group of cells
-#' separately.
-#'
-#' @param mat A cut matrix. See \code{\link{CutMatrix}}
-#' @param groups A vector of group identities, with the name
-#' of each element in the vector set to the cell name.
-#' @param fun Function to apply to each group of cells.
-#' For example, colSums or colMeans.
-#' @param group.scale.factors Scaling factor for each group. Should
-#' be computed using the number of cells in the group and the average number of counts
-#' in the group.
-#' @param normalize Perform sequencing depth and cell count normalization (default is TRUE)
-#' @param scale.factor Scaling factor to use. If NULL (default), will use the median normalization
-#' factor for all the groups.
-#'
+# Apply function to integration sites per base per group
+#
+# Perform colSums on a cut matrix with cells in the rows
+# and position in the columns, for each group of cells
+# separately.
+#
+# @param mat A cut matrix. See \code{\link{CutMatrix}}
+# @param groups A vector of group identities, with the name
+# of each element in the vector set to the cell name.
+# @param fun Function to apply to each group of cells.
+# For example, colSums or colMeans.
+# @param group.scale.factors Scaling factor for each group. Should
+# be computed using the number of cells in the group and the average number of counts
+# in the group.
+# @param normalize Perform sequencing depth and cell count normalization (default is TRUE)
+# @param scale.factor Scaling factor to use. If NULL (default), will use the median normalization
+# factor for all the groups.
 ApplyMatrixByGroup <- function(
   mat,
   groups,
@@ -1137,16 +1195,15 @@ ApplyMatrixByGroup <- function(
   return(coverages)
 }
 
-#' TabixOutputToDataFrame
-#'
-#' Create a single dataframe from list of character vectors
-#'
-#' @param reads List of character vectors (the output of \code{\link{scanTabix}})
-#' @param record.ident Add a column recording which region the reads overlapped with (default TRUE)
+# TabixOutputToDataFrame
+#
+# Create a single dataframe from list of character vectors
+#
+# @param reads List of character vectors (the output of \code{\link{scanTabix}})
+# @param record.ident Add a column recording which region the reads overlapped with (default TRUE)
 #' @importFrom data.table rbindlist
 #' @importFrom utils read.table
-#' @return Returns a data.frame
-#' @export
+# @return Returns a data.frame
 TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
   # TODO rewrite this without rbindlist
   df.list <- lapply(X = 1:length(reads), FUN = function(x) {
@@ -1166,4 +1223,15 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
     return(df)
   })
   return(rbindlist(l = df.list))
+}
+
+# Convert PFMMatrix to
+# @param x A PFMatrix
+PFMatrixToList <- function(x) {
+  if (!requireNamespace('TFBSTools', quietly = TRUE)) {
+    stop("Please install TFBSTools. https://www.bioconductor.org/packages/TFBSTools/")
+  }
+  position.matrix <- TFBSTools::Matrix(x = x)
+  name.use <- TFBSTools::name(x = x)
+  return(list("matrix" = position.matrix, "name" = name.use))
 }

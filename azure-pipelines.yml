@@ -23,6 +23,7 @@ jobs:
         displayName: 'Install GSL'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          echo '.libPaths(c(.libPaths(), "'${R_LIBS_USER}'"))' >> ~/.Rprofile
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
@@ -46,6 +47,7 @@ jobs:
         displayName: 'Install GSL'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          echo '.libPaths(c(.libPaths(), "'${R_LIBS_USER}'"))' >> ~/.Rprofile
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
@@ -71,21 +73,18 @@ jobs:
         displayName: 'Install GSL'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          echo '.libPaths(c(.libPaths(), "'${R_LIBS_USER}'"))' >> ~/.Rprofile
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
-          Rscript -e "install.packages(c('BiocManager', 'devtools'))"
+          Rscript -e "install.packages(c('BiocManager', 'devtools', 'data.table', 'dplyr', 'future', 'future.apply', 'ggplot2', 'irlba', 'pbapply', 'tidyr', 'zoo', 'cowplot'),
+                                       lib = '$(Agent.BuildDirectory)/R/library')"
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
-        displayName: 'Install BioC'
-      - script: |
-          Rscript -e "setRepositories(ind=1:2); install.packages(c('data.table', 'dplyr', 'future', 'future.apply', 'ggplot2', 'irlba', 'pbapply', 'tidyr', 'zoo', 'cowplot',
-                                          'AnnotationFilter', 'BiocGenerics', 'GenomeInfoDb', 'GenomeInfoDbData', 'GO.db', 'GenomicFeatures',
-                                          'GenomicRanges', 'IRanges', 'Rsamtools', 'S4Vectors', 'TFBSTools', 'ggbio', 'motifmatchr', 'AnnotationDbi'),
+          Rscript -e "BiocManager::install(c('AnnotationFilter', 'BiocGenerics', 'GenomeInfoDb', 'GenomeInfoDbData', 'GO.db', 'GenomicFeatures',
+                                             'GenomicRanges', 'IRanges', 'Rsamtools', 'S4Vectors', 'TFBSTools', 'ggbio', 'motifmatchr', 'AnnotationDbi'),
                                           lib = '$(Agent.BuildDirectory)/R/library')"
-        displayName: 'Install dependencies'
-      - script: |
           Rscript -e "setRepositories(ind=1:2); devtools::install(dependencies = TRUE, lib = '$(Agent.BuildDirectory)/R/library')"
-        displayName: 'Install Signac'
+        displayName: 'Install'
 
   - job: 'macOS_High_Sierra'
     timeoutInMinutes: 4320
@@ -102,18 +101,15 @@ jobs:
         displayName: 'Install GSL'
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
+          echo '.libPaths(c(.libPaths(), "'${R_LIBS_USER}'"))' >> ~/.Rprofile
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
-          Rscript -e "install.packages(c('BiocManager', 'devtools'))"
+          Rscript -e "install.packages(c('BiocManager', 'devtools', 'data.table', 'dplyr', 'future', 'future.apply', 'ggplot2', 'irlba', 'pbapply', 'tidyr', 'zoo', 'cowplot'),
+                                       lib = '$(Agent.BuildDirectory)/R/library')"
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
-        displayName: 'Install BioC'
-      - script: |
-          Rscript -e "setRepositories(ind=1:2); install.packages(c('data.table', 'dplyr', 'future', 'future.apply', 'ggplot2', 'irlba', 'pbapply', 'tidyr', 'zoo', 'cowplot',
-                                          'AnnotationFilter', 'BiocGenerics', 'GenomeInfoDb', 'GenomeInfoDbData', 'GO.db', 'GenomicFeatures',
-                                          'GenomicRanges', 'IRanges', 'Rsamtools', 'S4Vectors', 'TFBSTools', 'ggbio', 'motifmatchr', 'AnnotationDbi'),
+          Rscript -e "BiocManager::install(c('AnnotationFilter', 'BiocGenerics', 'GenomeInfoDb', 'GenomeInfoDbData', 'GO.db', 'GenomicFeatures',
+                                             'GenomicRanges', 'IRanges', 'Rsamtools', 'S4Vectors', 'TFBSTools', 'ggbio', 'motifmatchr', 'AnnotationDbi'),
                                           lib = '$(Agent.BuildDirectory)/R/library')"
-        displayName: 'Install dependencies'
-      - script: |
           Rscript -e "setRepositories(ind=1:2); devtools::install(dependencies = TRUE, lib = '$(Agent.BuildDirectory)/R/library')"
-        displayName: 'Install Signac'
+        displayName: 'Install'

@@ -4,18 +4,25 @@
 \alias{CreateMotifObject}
 \title{CreateMotifObject}
 \usage{
-CreateMotifObject(data = NULL, pwm = NULL, neighbors = NULL,
-  reductions = NULL, meta.data = NULL)
+CreateMotifObject(
+  data = NULL,
+  pwm = NULL,
+  motif.names = NULL,
+  meta.data = NULL
+)
 }
 \arguments{
 \item{data}{A motif x region matrix}
 
-\item{pwm}{A list of position weight matrices or position frequency matrices matching the motif names in \code{data}.
-Can be of class PFMatrixList}
+\item{pwm}{A named list of position weight matrices or position frequency
+matrices matching the motif names in \code{data}.
+Can be of class PFMatrixList.}
 
-\item{neighbors}{Neighbor data}
-
-\item{reductions}{Dimension reduction data}
+\item{motif.names}{A named list of motif names. List element names
+must match the names given in \code{pwm}. If NULL, use the names from the list
+of position weight or position frequency matrices. This can be used to set
+a alternative common name for the motif. If a PFMatrixList is passed to
+\code{pwm}, it will pull the motif name from the PFMatrixList.}
 
 \item{meta.data}{A data.frame containing metadata}
 }

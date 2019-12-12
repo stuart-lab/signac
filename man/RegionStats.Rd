@@ -9,14 +9,18 @@
 \usage{
 RegionStats(object, ...)
 
-\method{RegionStats}{default}(object, genome, sep = c("-", "-"),
-  verbose = TRUE, ...)
+\method{RegionStats}{default}(object, genome, sep = c("-", "-"), verbose = TRUE, ...)
 
-\method{RegionStats}{Assay}(object, genome, sep = c("-", "-"),
-  verbose = TRUE, ...)
+\method{RegionStats}{Assay}(object, genome, sep = c("-", "-"), verbose = TRUE, ...)
 
-\method{RegionStats}{Seurat}(object, genome, assay = NULL, sep = c("-",
-  "-"), verbose = TRUE, ...)
+\method{RegionStats}{Seurat}(
+  object,
+  genome,
+  assay = NULL,
+  sep = c("-", "-"),
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{A Seurat object, Assay object, or set of genomic ranges}
@@ -39,6 +43,14 @@ Compute the GC content, region lengths, and dinucleotide base frequencies
 for regions in the assay and add to the feature metadata.
 }
 \examples{
+\dontrun{
+library(BSgenome.Hsapiens.UCSC.hg19)
+RegionStats(object = rownames(atac_small), genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-"))
+}
+\dontrun{
+library(BSgenome.Hsapiens.UCSC.hg19)
+RegionStats(object = atac_small[['peaks']], genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-"))
+}
 \dontrun{
 library(BSgenome.Hsapiens.UCSC.hg19)
 RegionStats(

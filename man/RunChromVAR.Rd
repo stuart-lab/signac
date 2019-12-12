@@ -4,9 +4,16 @@
 \alias{RunChromVAR}
 \title{Run chromVAR}
 \usage{
-RunChromVAR(object, genome, new.assay.name = "chromvar",
-  motif.matrix = NULL, assay = NULL, sep = c(":", "-"),
-  verbose = TRUE, ...)
+RunChromVAR(
+  object,
+  genome,
+  new.assay.name = "chromvar",
+  motif.matrix = NULL,
+  assay = NULL,
+  sep = c(":", "-"),
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{A Seurat object}
