@@ -12,3 +12,4 @@ docs/
 azure-pipelines.yml
 cran-comments.md
 index.*
+*.tar.gz
