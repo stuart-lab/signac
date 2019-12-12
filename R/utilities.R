@@ -869,6 +869,8 @@ IntersectMatrix <- function(
 #' @importFrom stats density approx
 #' @export
 #' @examples
+#' \dontrun{
+#' library(Seurat)
 #' metafeatures <- GetAssayData(object = atac_small[['peaks']], slot = 'meta.features')
 #' MatchRegionStats(
 #'   meta.feature = metafeatures,
@@ -876,6 +878,7 @@ IntersectMatrix <- function(
 #'   features.match = "percentile",
 #'   n = 100
 #' )
+#' }
 MatchRegionStats <- function(
   meta.feature,
   regions,

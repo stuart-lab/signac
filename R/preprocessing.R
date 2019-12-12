@@ -367,7 +367,7 @@ FilterFragments <- function(
 #' @rdname FindTopFeatures
 #' @export
 #' @examples
-#' FindTopFeatures(object = GetAssayData(atac_small[['peaks']]))
+#' FindTopFeatures(object = atac_small[['peaks']][])
 FindTopFeatures.default <- function(
   object,
   assay = NULL,
