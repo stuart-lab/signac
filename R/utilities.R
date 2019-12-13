@@ -153,7 +153,8 @@ ClosestFeature <- function(
   nearest_feature <- distanceToNearest(x = regions, subject = annotation)
   feature_hits <- annotation[subjectHits(x = nearest_feature)]
   df <- as.data.frame(x = mcols(x = feature_hits))
-  df$region <- GRangesToString(grange = feature_hits)
+  df$closest_region <- GRangesToString(grange = feature_hits, ...)
+  df$query_region <- GRangesToString(grange = regions, ...)
   df$distance <- mcols(x = nearest_feature)$distance
   return(df)
 }
