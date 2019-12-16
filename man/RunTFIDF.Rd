@@ -66,4 +66,6 @@ Run term frequency inverse document frequency normalization
 \examples{
 mat <- matrix(data = rbinom(n = 25, size = 5, prob = 0.2), nrow = 5)
 RunTFIDF(object = mat)
+RunTFIDF(atac_small[['peaks']])
+RunTFIDF(object = atac_small)
 }

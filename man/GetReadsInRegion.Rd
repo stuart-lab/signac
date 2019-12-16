@@ -41,3 +41,9 @@ Returns a data frame
 \description{
 Extract reads for each cell within a given genomic region or set of regions
 }
+\examples{
+\dontrun{
+region <- StringToGRanges(regions = "chr1-565107-565550")
+GetReadsInRegion(object = atac_small, region = region)
+}
+}

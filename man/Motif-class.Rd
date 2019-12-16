@@ -11,15 +11,17 @@ The Motif class stores DNA motif information
 \section{Slots}{
 
 \describe{
-\item{\code{data}}{A sparse, binary, feature x motif matrix. Columns correspond to motif IDs, rows correspond to genomic features (peaks or bins).
-Entries in the matrix should be 1 if the genomic feature contains the motif, and 0 otherwise.}
+\item{\code{data}}{A sparse, binary, feature x motif matrix. Columns
+correspond to motif IDs, rows correspond to genomic features
+(peaks or bins). Entries in the matrix should be 1 if the
+genomic feature contains the motif, and 0 otherwise.}
 
-\item{\code{pwm}}{A list of position weight matrices for each motif}
+\item{\code{pwm}}{A named list of position weight matrices}
 
-\item{\code{neighbors}}{A list of nearest neighbors graphs}
+\item{\code{motif.names}}{A list containing the name of each motif}
 
-\item{\code{reductions}}{A list of \code{\link[Seurat]{DimReduc}} objects}
-
-\item{\code{meta.data}}{A dataframe for storage of additional information related to each motif. This could include the names of proteins that bind the motif.}
+\item{\code{meta.data}}{A dataframe for storage of additional
+information related to each motif. This could include the
+names of proteins that bind the motif.}
 }}
 

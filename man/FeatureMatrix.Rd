@@ -33,3 +33,11 @@ and coordinates, second separator is used to separate start and end coordinates.
 \description{
 Construct a feature x cell matrix from a genomic fragments file
 }
+\examples{
+\dontrun{
+FeatureMatrix(
+  fragments = GetFragments(atac_small),
+  features = StringToGranges(rownames(atac_small), sep = c(":", "-"))
+)
+}
+}

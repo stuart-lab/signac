@@ -63,3 +63,13 @@ overlapping features with the region coordinates of the first object
 \details{
 This allows a merged object to be constructed with common feature names.
 }
+\examples{
+MergeWithRegions(
+  object.1 = atac_small,
+  object.2 = atac_small,
+  assay.1 = 'peaks',
+  assay.2 = 'bins',
+  sep.1 = c(":","-"),
+  sep.2 = c("-","-")
+)
+}

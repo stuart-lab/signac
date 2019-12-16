@@ -20,3 +20,6 @@ FRiP(object, peak.assay, bin.assay, chromosome = "chr1", verbose = TRUE)
 \description{
 Calculate fraction of reads in peaks per cell
 }
+\examples{
+FRiP(object = atac_small, peak.assay = 'peaks', bin.assay = 'bins')
+}

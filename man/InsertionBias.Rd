@@ -32,3 +32,19 @@ Returns a Seurat object
 \description{
 Counts the Tn5 insertion frequency for each DNA hexamer.
 }
+\examples{
+\dontrun{
+library(BSgenome.Mmusculus.UCSC.mm10)
+
+region.use <- GRanges(
+  seqnames = c('chr1', 'chr2'),
+  IRanges(start = c(1,1), end = c(195471971, 182113224))
+)
+
+InsertionBias(
+ object = object,
+ genome = BSgenome.Mmusculus.UCSC.mm10,
+ region = region.use
+)
+}
+}

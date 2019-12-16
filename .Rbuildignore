@@ -7,3 +7,8 @@ vignettes/
 vignette_data/
 _pkgdown.yml
 index.Rmd
+bldignore/
+docs/
+azure-pipelines.yml
+cran-comments.md
+index.*

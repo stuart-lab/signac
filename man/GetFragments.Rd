@@ -18,3 +18,8 @@ Returns the path to a fragments file stored in the Assay if present
 Retrieve path to fragments file from assay object, and checks that the file exists and
 is indexed before returning the file path.
 }
+\examples{
+\dontrun{
+GetFragments(object = atac_small)
+}
+}

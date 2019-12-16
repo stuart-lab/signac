@@ -48,3 +48,13 @@ will intersect the nth feature in the second vector. A distance
 parameter can be given, in which case features within the given
 distance will be called as intersecting.
 }
+\examples{
+GetIntersectingFeatures(
+  object.1 = atac_small,
+  object.2 = atac_small,
+  assay.1 = 'peaks',
+  assay.2 = 'bins',
+  sep.1 = c(":", "-"),
+  sep.2 = c("-", "-")
+)
+}

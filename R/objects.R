@@ -1,24 +1,24 @@
 #' @include generics.R
 #' @importFrom methods setClass setClassUnion setMethod is slot slot<- new as slotNames
 #' @importClassesFrom Matrix dgCMatrix
-#' @importClassesFrom TFBSTools PWMatrixList PFMatrixList
 #'
 NULL
 
 ## Class definitions
 
-setClassUnion(name = 'AnyPWM', c("list", "PWMatrixList", "PFMatrixList"))
-
 #' The Motif class
 #'
 #' The Motif class stores DNA motif information
 #'
-#' @slot data A sparse, binary, feature x motif matrix. Columns correspond to motif IDs, rows correspond to genomic features (peaks or bins).
-#' Entries in the matrix should be 1 if the genomic feature contains the motif, and 0 otherwise.
-#' @slot pwm A list of position weight matrices for each motif
-#' @slot neighbors A list of nearest neighbors graphs
-#' @slot reductions A list of \code{\link[Seurat]{DimReduc}} objects
-#' @slot meta.data A dataframe for storage of additional information related to each motif. This could include the names of proteins that bind the motif.
+#' @slot data A sparse, binary, feature x motif matrix. Columns
+#' correspond to motif IDs, rows correspond to genomic features
+#' (peaks or bins). Entries in the matrix should be 1 if the
+#' genomic feature contains the motif, and 0 otherwise.
+#' @slot pwm A named list of position weight matrices
+#' @slot motif.names A list containing the name of each motif
+#' @slot meta.data A dataframe for storage of additional
+#' information related to each motif. This could include the
+#' names of proteins that bind the motif.
 #'
 #' @name Motif-class
 #' @rdname Motif-class
@@ -28,9 +28,8 @@ Motif <- setClass(
   Class = 'Motif',
   slots = list(
     data = 'dgCMatrix',
-    pwm = 'AnyPWM',
-    neighbors = 'list',
-    reductions = 'list',
+    pwm = 'list',
+    motif.names = 'list',
     meta.data = 'data.frame'
   )
 )
@@ -43,6 +42,9 @@ Motif <- setClass(
 #' @rdname AddMotifObject
 #' @method AddMotifObject Assay
 #' @export
+#' @examples
+#' obj <- GetMotifObject(atac_small[['peaks']])
+#' atac_small[['peaks']] <- AddMotifObject(object = atac_small[['peaks']], motif.object = obj)
 AddMotifObject.Assay <- function(
   object,
   motif.object,
@@ -74,7 +76,7 @@ AddMotifObject.Assay <- function(
 #' @export
 #' @examples
 #' obj <- GetMotifObject(object = atac_small)
-#' atac_small <- AddMotifObject(object = atac_small, motif.object = obj)
+#' atac_small[['peaks']] <- AddMotifObject(object = atac_small, motif.object = obj)
 AddMotifObject.Seurat <- function(
   object,
   motif.object,
@@ -95,12 +97,15 @@ AddMotifObject.Seurat <- function(
 #' Create an object of class \code{Motif}
 #'
 #' @param data A motif x region matrix
-#' @param pwm A list of position weight matrices or position frequency matrices matching the motif names in \code{data}.
-#' Can be of class PFMatrixList
-#' @param neighbors Neighbor data
-#' @param reductions Dimension reduction data
+#' @param pwm A named list of position weight matrices or position frequency
+#' matrices matching the motif names in \code{data}.
+#' Can be of class PFMatrixList.
+#' @param motif.names A named list of motif names. List element names
+#' must match the names given in \code{pwm}. If NULL, use the names from the list
+#' of position weight or position frequency matrices. This can be used to set
+#' a alternative common name for the motif. If a PFMatrixList is passed to
+#' \code{pwm}, it will pull the motif name from the PFMatrixList.
 #' @param meta.data A data.frame containing metadata
-#'
 #' @export
 #' @examples
 #' motif.matrix <- matrix(data = sample(c(0,1), size = 100, replace = TRUE), ncol = 5)
@@ -108,19 +113,15 @@ AddMotifObject.Seurat <- function(
 CreateMotifObject <- function(
   data = NULL,
   pwm = NULL,
-  neighbors = NULL,
-  reductions = NULL,
+  motif.names = NULL,
   meta.data = NULL
 ) {
   data <- data %||% new(Class = 'dgCMatrix')
-  pwm <- pwm %||% list()
-  neighbors <- neighbors %||% list()
-  reductions <- reductions %||% list()
   meta.data <- meta.data %||% data.frame()
-  if (!(class(x = data) %in% c('matrix', 'dgCMatrix'))) {
+  if (!(inherits(x = data, what = 'matrix') | inherits(x = data, what = 'dgCMatrix'))) {
     stop('Data must be matrix or sparse matrix class. Supplied ', class(x = data))
   }
-  if (is(object = data, class2 = 'matrix')) {
+  if (inherits(x = data, what = 'matrix')) {
     data <- as(Class = 'dgCMatrix', object = data)
   }
   if ((nrow(x = data) > 0) & (length(x = pwm) > 0)) {
@@ -133,12 +134,31 @@ CreateMotifObject <- function(
       stop('Motif names in data matrix and metadata are inconsistent')
     }
   }
+  if (inherits(x = pwm, what = 'list')) {
+    if (is.null(names(x = pwm))) {
+      stop("PWM must be a named list")
+    }
+  }
+  if (!is.null(x = motif.names)) {
+    if (length(x = motif.names) != length(x = pwm)) {
+      stop("Number of motif names supplied does not match the number of motifs")
+    }
+  }
+  if (inherits(x = pwm, what = "PFMatrixList") | inherits(x = pwm, what = "PWMatrixList")) {
+    pwm.converted <- lapply(X = as.list(x = pwm), FUN = PFMatrixToList)
+    pwm <- lapply(X = pwm.converted, FUN = "[[", 1)
+    motif.names <- lapply(X = pwm.converted, FUN = "[[", 2)
+  }
+  pwm <- pwm %||% list()
+  if (is.null(x = motif.names)) {
+    motif.names <- as.list(x = names(x = pwm))
+    names(motif.names) <- names(x = pwm)
+  }
   motif.obj <- new(
     Class = 'Motif',
     data = data,
     pwm = pwm,
-    neighbors = neighbors,
-    reductions = reductions,
+    motif.names = motif.names,
     meta.data = meta.data
   )
   return(motif.obj)
@@ -147,6 +167,8 @@ CreateMotifObject <- function(
 #' @rdname GetMotifObject
 #' @method GetMotifObject Assay
 #' @export
+#' @examples
+#' GetMotifObject(object = atac_small[['peaks']])
 GetMotifObject.Assay <- function(object, ...) {
   misc.data <- slot(object = object, name = 'misc')
   if ('motif' %in% names(x = misc.data)) {
@@ -175,6 +197,9 @@ GetMotifObject.Seurat <- function(object, assay = NULL, ...) {
 #' @rdname GetMotifData
 #' @method GetMotifData Motif
 #' @export
+#' @examples
+#' motif.obj <- GetMotifObject(object = atac_small[['peaks']])
+#' GetMotifData(object = motif.obj)
 GetMotifData.Motif <- function(object, slot = 'data', ...) {
   return(slot(object = object, name = slot))
 }
@@ -182,6 +207,8 @@ GetMotifData.Motif <- function(object, slot = 'data', ...) {
 #' @rdname GetMotifData
 #' @method GetMotifData Assay
 #' @export
+#' @examples
+#' GetMotifData(object = atac_small[['peaks']])
 GetMotifData.Assay <- function(object, slot = 'data', ...) {
   misc.data <- slot(object = object, name = 'misc')
   if ('motif' %in% names(x = misc.data)) {
@@ -210,12 +237,15 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
 #' @rdname SetMotifData
 #' @method SetMotifData Motif
 #' @export
+#' @examples
+#' motif.obj <- GetMotifObject(object = atac_small)
+#' SetMotifData(object = motif.obj, slot = 'data', new.data = matrix())
 SetMotifData.Motif <- function(object, slot, new.data, ...) {
   if (!(slot %in% slotNames(x = object))) {
     stop('slot must be one of ', paste(slotNames(x = object), collapse = ', '), call. = FALSE)
   }
   if (slot == 'data') {
-    if (is(object = new.data, class2 = 'matrix')) {
+    if (inherits(x = new.data, what = 'matrix')) {
       new.data <- as(Class = 'dgCMatrix', object = new.data)
     }
   }
@@ -231,20 +261,22 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
 #' @export
 #' @method SetMotifData Assay
 #' @import Matrix
+#' @examples
+#' SetMotifData(object = atac_small[['peaks']], slot = 'data', new.data = matrix())
 SetMotifData.Assay <- function(object, slot, new.data, ...) {
   if (slot == 'data') {
-    if (!(class(x = new.data) %in% c('matrix', 'dgCMatrix'))) {
+    if (!(inherits(x = new.data, what = 'matrix') | inherits(x = new.data, what = 'dgCMatrix'))) {
       stop('Data must be matrix or sparse matrix class. Supplied ', class(x = new.data))
     }
     if (!all(rownames(x = object) == rownames(x = new.data))) {
       stop('Features do not match existing assay data. Column names in motif matrix should match row names in assay data')
     }
-    if (is(object = new.data, class2 = 'matrix')) {
+    if (inherits(x = new.data, what = 'matrix')) {
       new.data <- as(Class = 'dgCMatrix', object = new.data)
     }
   }
   misc.data <- slot(object = object, name = 'misc') %||% list()
-  if (!is(object = misc.data, class2 = 'list')) {
+  if (!inherits(x = misc.data, what = 'list')) {
     stop('misc slot already occupied and would be overwritten.
          This can be avoided by converting the data in misc to a list,
          so that additional data can be added')
@@ -285,23 +317,26 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
 #' @seealso \code{\link[base]{subset}}
 #' @return Returns a subsetted Motif object
 #' @export
-#'
+#' @examples
+#' motif.obj <- GetMotifObject(object = atac_small)
+#' subset(x = motif.obj, features = head(rownames(motif.obj)))
 subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
   features <- features %||% rownames(x = x)
   motifs <- motifs %||% colnames(x = x)
   new.data <- GetMotifData(object = x, slot = 'data')[features, motifs]
   new.pwm <- GetMotifData(object = x, slot = 'pwm')[motifs]
+  new.names <- GetMotifData(object = x, slot = 'motif.names')[motifs]
   new.meta <- GetMotifData(object = x, slot = 'meta.data')[motifs, ]
   new.motif <- new(
     Class = 'Motif',
     data = new.data,
     pwm = new.pwm,
+    motif.names = new.names,
     meta.data = new.meta
   )
   return(new.motif)
 }
 
-#' @inheritParams subset.Motif
 #' @param i Which columns to retain
 #' @param j Which rows to retain
 #'

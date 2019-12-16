@@ -41,3 +41,11 @@ Construct a bin x cell matrix from a fragments file.
 This function bins the genome and calls \code{\link{FeatureMatrix}} to
 construct a bin x cell matrix.
 }
+\examples{
+\dontrun{
+GenomeBinMatrix(
+  fragments = GetFragments(atac_small),
+  genome = 'hg19'
+)
+}
+}

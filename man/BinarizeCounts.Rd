@@ -34,4 +34,6 @@ Set counts >1 to 1 in a count matrix
 \examples{
 x <- matrix(data = sample(0:3, size = 25, replace = TRUE), ncol = 5)
 BinarizeCounts(x)
+BinarizeCounts(atac_small[['peaks']])
+BinarizeCounts(atac_small)
 }
