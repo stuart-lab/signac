@@ -4,8 +4,14 @@
 \alias{FeatureMatrix}
 \title{FeatureMatrix}
 \usage{
-FeatureMatrix(fragments, features, cells = NULL, chunk = 50,
-  sep = c("-", "-"), verbose = TRUE)
+FeatureMatrix(
+  fragments,
+  features,
+  cells = NULL,
+  chunk = 50,
+  sep = c("-", "-"),
+  verbose = TRUE
+)
 }
 \arguments{
 \item{fragments}{Path to tabix-indexed fragments file}
@@ -26,4 +32,12 @@ and coordinates, second separator is used to separate start and end coordinates.
 }
 \description{
 Construct a feature x cell matrix from a genomic fragments file
+}
+\examples{
+\dontrun{
+FeatureMatrix(
+  fragments = GetFragments(atac_small),
+  features = StringToGranges(rownames(atac_small), sep = c(":", "-"))
+)
+}
 }

@@ -4,8 +4,15 @@
 \alias{GenomeBinMatrix}
 \title{GenomeBinMatrix}
 \usage{
-GenomeBinMatrix(fragments, genome, cells = NULL, binsize = 5000,
-  chunk = 50, sep = c("-", "-"), verbose = TRUE)
+GenomeBinMatrix(
+  fragments,
+  genome,
+  cells = NULL,
+  binsize = 5000,
+  chunk = 50,
+  sep = c("-", "-"),
+  verbose = TRUE
+)
 }
 \arguments{
 \item{fragments}{Path to tabix-indexed fragments file}
@@ -33,4 +40,12 @@ Construct a bin x cell matrix from a fragments file.
 \details{
 This function bins the genome and calls \code{\link{FeatureMatrix}} to
 construct a bin x cell matrix.
+}
+\examples{
+\dontrun{
+GenomeBinMatrix(
+  fragments = GetFragments(atac_small),
+  genome = 'hg19'
+)
+}
 }

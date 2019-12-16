@@ -9,3 +9,5 @@ src/*.so
 *.Rproj
 testcode/*
 vignettes/*
+*.old
+*.tar.gz

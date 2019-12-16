@@ -22,3 +22,6 @@ Returns a Seurat object with VariableFeatures set to the randomly sampled featur
 Randomly downsample features and assign to VariableFeatures for the object. This will
 select n features at random.
 }
+\examples{
+DownsampleFeatures(atac_small, n = 10)
+}

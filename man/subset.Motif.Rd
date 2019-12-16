@@ -30,6 +30,8 @@ Returns a subsetted Motif object
 Return a subset of a Motif object
 }
 \examples{
+motif.obj <- GetMotifObject(object = atac_small)
+subset(x = motif.obj, features = head(rownames(motif.obj)))
 motif.obj <- GetMotifObject(atac_small)
 motif.obj[1:10,1:10]
 }

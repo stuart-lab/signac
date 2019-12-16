@@ -25,7 +25,10 @@ globalVariables(names = c('position', 'coverage', 'group'), package = 'Signac')
 #' @importFrom zoo rollapply
 #'
 #' @export
-#'
+#' @examples
+#' \dontrun{
+#' CoveragePlot(object = atac_small, region = "chr1-10-10000")
+#' }
 SingleCoveragePlot <- function(
   object,
   region,
@@ -189,7 +192,10 @@ SingleCoveragePlot <- function(
 #'
 #' @importFrom cowplot plot_grid
 #' @export
-#'
+#' @examples
+#' \dontrun{
+#' CoveragePlot(object = atac_small, region = c("chr1-10-10000", "chr2-20-50000"))
+#' }
 CoveragePlot <- function(
   object,
   region,
@@ -251,50 +257,6 @@ CoveragePlot <- function(
   }
 }
 
-globalVariables(names = c('dim1', 'dim2', 'ident'), package = 'Signac')
-#' MotifDimPlot
-#'
-#' Plot motifs in reduced dimesions.
-#'
-#' @param object A Seurat object
-#' @param assay Which assay to use. Default is the active assay.
-#' @param group.by A set of identities to group by (present in the Motif object metadata).
-#' @param reduction Which dimension reduction to use. Default is tSNE.
-#'
-#' @importFrom Seurat Embeddings
-#' @importFrom ggplot2 ggplot aes geom_point xlab ylab theme_bw
-#'
-#' @return Returns a \code{\link[ggplot2]{ggplot}} object
-#' @export
-MotifDimPlot <- function(
-  object,
-  assay = NULL,
-  group.by = NULL,
-  reduction = 'tSNE'
-) {
-  coords.use <- GetMotifData(object = object, assay = assay, slot = 'reductions')
-  if (!(reduction %in% names(x = coords.use))) {
-    stop("Requested dimension reduction is not present")
-  }
-  coords.use <- as.data.frame(x = Embeddings(object = coords.use[[reduction]]))
-  if (!is.null(x = group.by)) {
-    meta.data <- GetMotifData(object = object, slot = 'meta.data')
-    if (!(group.by %in% colnames(x = meta.data))) {
-      stop("Requested grouping variable not present in Motif metadata")
-    }
-    coords.use[['ident']] <- meta.data[[group.by]]
-  } else {
-    coords.use[['ident']] <- 'Motif'
-  }
-  colnames(x = coords.use) <- c('dim1', 'dim2', 'ident')
-  p <- ggplot(data = coords.use, mapping = aes(x = dim1, y = dim2, color = ident)) +
-    geom_point() +
-    xlab(label = paste0(reduction, '_1')) +
-    ylab(label = paste0(reduction, '_2')) +
-    theme_bw()
-  return(p)
-}
-
 #' MotifPlot
 #'
 #' Plot motifs
@@ -302,16 +264,19 @@ MotifDimPlot <- function(
 #' @param object A Seurat object
 #' @param motifs A list of motifs to plot
 #' @param assay Name of the assay to use
+#' @param use.names Use motif names stored in the motif object
 #' @param ... Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}
 #'
 #' @importFrom ggseqlogo ggseqlogo
-#' @importFrom TFBSTools name
-#'
 #' @export
+#' @examples
+#' motif.obj <- GetMotifObject(atac_small)
+#' MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
 MotifPlot <- function(
   object,
   motifs,
   assay = NULL,
+  use.names = TRUE,
   ...
 ) {
   data.use <- GetMotifData(object = object, assay = assay, slot = 'pwm')
@@ -319,18 +284,15 @@ MotifPlot <- function(
     stop('Position weight matrix list for the requested assay is empty')
   }
   data.use <- data.use[motifs]
-  if (is(object = data.use, class2 = "PFMatrixList")) {
-    pwm <- TFBSTools::Matrix(x = data.use)
-    names(x = pwm) <- name(x = data.use)
-  } else {
-    pwm <- data.use
+  if (use.names) {
+    names(x = data.use) <- GetMotifData(object = object, assay = assay, slot = 'motif.names')[motifs]
   }
-  p <- ggseqlogo(data = pwm, ...)
+  p <- ggseqlogo(data = data.use, ...)
   return(p)
 }
 
 globalVariables(names = 'group', package = 'Signac')
-#' Plot fragment length periodicity
+#' Plot fragment length histogram
 #'
 #' @param object A Seurat object
 #' @param assay Which assay to use. Default is the active assay.
@@ -345,8 +307,11 @@ globalVariables(names = 'group', package = 'Signac')
 #'
 #' @return Returns a ggplot2 object
 #' @export
-#'
-PeriodPlot <- function(
+#' @examples
+#' \dontrun{
+#' FragmentHistogram(object = atac_small)
+#' }
+FragmentHistogram <- function(
   object,
   assay = NULL,
   region = 'chr1-1-2000000',
@@ -382,39 +347,36 @@ PeriodPlot <- function(
   return(p)
 }
 
-
-#' Plot pileup of Tn5 integration sites
-#'
-#' Plots a pileup of integration sites centered on a set of genomic positions.
-#' Each genomic region will be aligned on the region midpoint, and extended upstream
-#' and downstream from the midpoint.
-#'
-#' @param object A Seurat object
-#' @param assay Name of the assay to use
-#' @param regions A set of GRanges to use
-#' @param upstream Number of bases to extend upstream of the region midpoint
-#' @param downstream Number of bases to extend downstream of the region midpoint
-#' @param group.by A set of identities to group the cells by. Can by anything in the metadata.
-#' Default is to use the active identities.
-#' @param min.cells Minimum number of cells in the group for the pileup to be displayed for that group.
-#' @param ymax Maximum value for the y-axis. If NULL (default), will be set automatically.
-#' @param idents Which identities to include in the plot. If NULL (default), include everything with more than
-#' \code{min.cells} cells.
-#' @param verbose Display messages
-#'
-#' @importFrom BiocGenerics strand
-#' @importFrom Seurat Idents
-#' @importFrom Matrix colSums colMeans
-#' @importFrom ggplot2 ggplot aes geom_line facet_wrap ylim xlab ylab theme_classic theme element_blank element_text
-#' @export
-#' @return Returns a \code{\link[ggplot2]{ggplot2}} object
-#' @examples
-#' \dontrun{
-#'
-#' }
+# Plot pileup of Tn5 integration sites
+#
+# Plots a pileup of integration sites centered on a set of genomic positions.
+# Each genomic region will be aligned on the region midpoint, and extended upstream
+# and downstream from the midpoint.
+#
+# @param object A Seurat object
+# @param assay Name of the assay to use
+# @param regions A set of GRanges to use
+# @param cells Vector of cells to include. If NULL (default), use all cells.
+# @param upstream Number of bases to extend upstream of the region midpoint
+# @param downstream Number of bases to extend downstream of the region midpoint
+# @param group.by A set of identities to group the cells by. Can by anything in the metadata.
+# Default is to use the active identities.
+# @param min.cells Minimum number of cells in the group for the pileup to be displayed for that group.
+# @param ymax Maximum value for the y-axis. If NULL (default), will be set automatically.
+# @param idents Which identities to include in the plot. If NULL (default), include everything with more than
+# \code{min.cells} cells.
+# @param verbose Display messages
+#
+# @importFrom BiocGenerics strand
+# @importFrom Seurat Idents
+# @importFrom Matrix colSums colMeans
+# @importFrom ggplot2 ggplot aes geom_line facet_wrap ylim xlab ylab theme_classic theme element_blank element_text
+# @export
+# @return Returns a \code{\link[ggplot2]{ggplot2}} object
 RegionPileup <- function(
   object,
   regions,
+  cells = NULL,
   assay = NULL,
   upstream = 200,
   downstream = 200,
@@ -424,6 +386,8 @@ RegionPileup <- function(
   idents = NULL,
   verbose = TRUE
 ) {
+  # TODO WIP
+  cells <- cells %||% colnames(x = object)
   full.matrix <- CreateRegionPileupMatrix(
     object = object,
     regions = regions,
@@ -478,6 +442,7 @@ RegionPileup <- function(
   return(p)
 }
 
+globalVariables(names = 'norm.value', package = 'Signac')
 #' Plot the enrichment around TSS
 #'
 #' Plot the normalized TSS enrichment score at each position relative to the TSS.
@@ -494,6 +459,10 @@ RegionPileup <- function(
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot2}} object
 #' @export
+#' @examples
+#' \dontrun{
+#' TSSPlot(atac_small)
+#' }
 TSSPlot <- function(
   object,
   assay = NULL,

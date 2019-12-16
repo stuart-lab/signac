@@ -4,8 +4,14 @@
 \alias{CreateMotifMatrix}
 \title{CreateMotifMatrix}
 \usage{
-CreateMotifMatrix(features, pwm, genome, use.counts = FALSE,
-  sep = c("-", "-"), ...)
+CreateMotifMatrix(
+  features,
+  pwm,
+  genome,
+  use.counts = FALSE,
+  sep = c("-", "-"),
+  ...
+)
 }
 \arguments{
 \item{features}{A GRanges object containing a set of genomic features}
@@ -28,7 +34,10 @@ Returns a sparse matrix
 }
 \description{
 Create a motif x feature matrix from a set of genomic ranges,
-the genome, and a set of position weight matrices
+the genome, and a set of position weight matrices.
+}
+\details{
+Requires that motifmatchr is installed (https://www.bioconductor.org/packages/motifmatchr/).
 }
 \examples{
 \dontrun{

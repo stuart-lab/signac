@@ -17,7 +17,7 @@ NULL
 #' @return Returns a matrix
 #'
 #' @export
-#' @examples 
+#' @examples
 #' x <- matrix(data = sample(c(0, 1), size = 25, replace = TRUE), ncol = 5)
 #' Jaccard(x = x, y = x)
 Jaccard <- function(x, y) {
@@ -39,131 +39,6 @@ Jaccard <- function(x, y) {
   return(jaccard.matrix)
 }
 
-#' @param verbose Display messages
-#' @param graph.name Name of the neighbor graph to use ('nn' or 'snn')
-#' @rdname RunMotifTSNE
-#' @method RunMotifTSNE Motif
-#' @importFrom Seurat RunTSNE
-#' @export
-RunMotifTSNE.Motif <- function(
-  object,
-  verbose = TRUE,
-  graph.name = 'nn',
-  ...
-) {
-  neighbor.graph <- GetMotifData(object = object, slot = 'neighbors')
-  if (!(graph.name %in% names(x = neighbor.graph))) {
-    stop("Requested neighbor graph is not present")
-  }
-  tsne.obj <- RunTSNE(
-    object = as.matrix(x = neighbor.graph[[graph.name]]),
-    is_distance = TRUE,
-    assay = 'Motif',
-    ...
-  )
-  reductions <- GetMotifData(object = object, slot = 'reductions')
-  reductions$tSNE <- tsne.obj
-  object <- SetMotifData(object = object, slot = 'reductions', new.data = reductions)
-  return(object)
-}
-
-#' @rdname RunMotifTSNE
-#' @method RunMotifTSNE Assay
-#' @export
-RunMotifTSNE.Assay <- function(
-  object,
-  verbose = TRUE,
-  ...
-) {
-  motif.obj <- GetMotifObject(object = object)
-  motif.obj <- RunMotifTSNE(object = motif.obj, verbose = verbose, ...)
-  object <- AddMotifObject(object = object, motif.object = motif.obj, verbose = FALSE)
-  return(object)
-}
-
-#' @param assay Name of assay to use
-#' @rdname RunMotifTSNE
-#' @method RunMotifTSNE Seurat
-#' @export
-RunMotifTSNE.Seurat <- function(
-  object,
-  assay = NULL,
-  verbose = TRUE,
-  ...
-) {
-  assay <- assay %||% DefaultAssay(object = object)
-  assay.data <- GetAssay(object = object, assay = assay)
-  assay.data <- RunMotifTSNE(
-    object = assay.data,
-    verbose = verbose,
-    ...
-  )
-  object[[assay]] <- assay.data
-  return(object)
-}
-
-#' @param verbose Display messages
-#' @param graph.name Name of the neighbor graph to use ('nn' or 'snn')
-#' @importFrom Seurat RunUMAP
-#' @rdname RunMotifUMAP
-#' @method RunMotifUMAP Motif
-#' @export
-RunMotifUMAP.Motif <- function(
-  object,
-  verbose = TRUE,
-  graph.name = 'nn',
-  ...
-) {
-  neighbor.graph <- GetMotifData(object = object, slot = 'neighbors')
-  if (!(graph.name %in% names(x = neighbor.graph))) {
-    stop("Requested neighbor graph is not present")
-  }
-  umap.obj <- RunUMAP(
-    object = as.matrix(x = neighbor.graph[[graph.name]]),
-    assay = 'Motif',
-    ...
-  )
-  reductions <- GetMotifData(object = object, slot = 'reductions')
-  reductions$UMAP <- umap.obj
-  object <- SetMotifData(object = object, slot = 'reductions', new.data = reductions)
-  return(object)
-}
-
-#' @rdname RunMotifUMAP
-#' @method RunMotifUMAP Assay
-#' @export
-RunMotifUMAP.Assay <- function(
-  object,
-  verbose = TRUE,
-  ...
-) {
-  motif.obj <- GetMotifObject(object = object)
-  motif.obj <- RunMotifUMAP(object = motif.obj, verbose = verbose, ...)
-  object <- AddMotifObject(object = object, motif.object = motif.obj, verbose = FALSE)
-  return(object)
-}
-
-#' @param assay Name of assay to use
-#' @rdname RunMotifUMAP
-#' @method RunMotifUMAP Seurat
-#' @export
-RunMotifUMAP.Seurat <- function(
-  object,
-  assay = NULL,
-  verbose = TRUE,
-  ...
-) {
-  assay <- assay %||% DefaultAssay(object = object)
-  assay.data <- GetAssay(object = object, assay = assay)
-  assay.data <- RunMotifUMAP(
-    object = assay.data,
-    verbose = verbose,
-    ...
-  )
-  object[[assay]] <- assay.data
-  return(object)
-}
-
 #' @param assay Which assay to use. If NULL, use the default assay
 #' @param n Number of singular values to compute
 #' @param reduction.key Key for dimension reduction object
@@ -177,7 +52,7 @@ RunMotifUMAP.Seurat <- function(
 #'
 #' @rdname RunSVD
 #' @export
-#' @examples 
+#' @examples
 #' x <- matrix(data = rnorm(100), ncol = 10)
 #' RunSVD(x)
 RunSVD.default <- function(
@@ -231,6 +106,8 @@ RunSVD.default <- function(
 #' @importFrom Seurat VariableFeatures GetAssayData
 #' @export
 #' @method RunSVD Assay
+#' @examples
+#' RunSVD(atac_small[['peaks']])
 RunSVD.Assay <- function(
   object,
   assay = NULL,
@@ -260,10 +137,10 @@ RunSVD.Assay <- function(
 }
 
 #' @param reduction.name Name for stored dimension reduction object. Default 'lsi'
-#'
 #' @rdname RunSVD
-#'
 #' @export
+#' @examples
+#' RunSVD(atac_small)
 #' @method RunSVD Seurat
 RunSVD.Seurat <- function(
   object,

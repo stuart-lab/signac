@@ -9,16 +9,39 @@
 \usage{
 RunSVD(object, ...)
 
-\method{RunSVD}{default}(object, assay = NULL, n = 50,
-  reduction.key = "SVD_", scale.max = NULL, seed.use = NULL,
-  verbose = TRUE, ...)
+\method{RunSVD}{default}(
+  object,
+  assay = NULL,
+  n = 50,
+  reduction.key = "SVD_",
+  scale.max = NULL,
+  seed.use = NULL,
+  verbose = TRUE,
+  ...
+)
 
-\method{RunSVD}{Assay}(object, assay = NULL, features = NULL, n = 50,
-  reduction.key = "SVD_", scale.max = NULL, verbose = TRUE, ...)
+\method{RunSVD}{Assay}(
+  object,
+  assay = NULL,
+  features = NULL,
+  n = 50,
+  reduction.key = "SVD_",
+  scale.max = NULL,
+  verbose = TRUE,
+  ...
+)
 
-\method{RunSVD}{Seurat}(object, assay = NULL, features = NULL,
-  n = 50, reduction.key = "SVD_", reduction.name = "svd",
-  scale.max = NULL, verbose = TRUE, ...)
+\method{RunSVD}{Seurat}(
+  object,
+  assay = NULL,
+  features = NULL,
+  n = 50,
+  reduction.key = "SVD_",
+  reduction.name = "svd",
+  scale.max = NULL,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -50,4 +73,6 @@ Run singular value decomposition
 \examples{
 x <- matrix(data = rnorm(100), ncol = 10)
 RunSVD(x)
+RunSVD(atac_small[['peaks']])
+RunSVD(atac_small)
 }

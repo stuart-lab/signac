@@ -9,14 +9,11 @@
 \usage{
 FindTopFeatures(object, ...)
 
-\method{FindTopFeatures}{default}(object, assay = NULL,
-  min.cutoff = "q5", verbose = TRUE, ...)
+\method{FindTopFeatures}{default}(object, assay = NULL, min.cutoff = "q5", verbose = TRUE, ...)
 
-\method{FindTopFeatures}{Assay}(object, assay = NULL,
-  min.cutoff = "q5", verbose = TRUE, ...)
+\method{FindTopFeatures}{Assay}(object, assay = NULL, min.cutoff = "q5", verbose = TRUE, ...)
 
-\method{FindTopFeatures}{Seurat}(object, assay = NULL,
-  min.cutoff = "q5", verbose = TRUE, ...)
+\method{FindTopFeatures}{Seurat}(object, assay = NULL, min.cutoff = "q5", verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -42,5 +39,7 @@ Find top binary features for a given assay based on total number of cells contai
 Can specify a minumum cell count, or a lower percentile bound.
 }
 \examples{
+FindTopFeatures(object = atac_small[['peaks']][])
+FindTopFeatures(object = atac_small[['peaks']])
 FindTopFeatures(atac_small)
 }

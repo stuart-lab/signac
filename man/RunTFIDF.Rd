@@ -9,14 +9,32 @@
 \usage{
 RunTFIDF(object, ...)
 
-\method{RunTFIDF}{default}(object, assay = NULL, method = 1,
-  scale.factor = 10000, verbose = TRUE, ...)
+\method{RunTFIDF}{default}(
+  object,
+  assay = NULL,
+  method = 1,
+  scale.factor = 10000,
+  verbose = TRUE,
+  ...
+)
 
-\method{RunTFIDF}{Assay}(object, assay = NULL, method = 1,
-  scale.factor = 10000, verbose = TRUE, ...)
+\method{RunTFIDF}{Assay}(
+  object,
+  assay = NULL,
+  method = 1,
+  scale.factor = 10000,
+  verbose = TRUE,
+  ...
+)
 
-\method{RunTFIDF}{Seurat}(object, assay = NULL, method = 1,
-  scale.factor = 10000, verbose = TRUE, ...)
+\method{RunTFIDF}{Seurat}(
+  object,
+  assay = NULL,
+  method = 1,
+  scale.factor = 10000,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -48,4 +66,6 @@ Run term frequency inverse document frequency normalization
 \examples{
 mat <- matrix(data = rbinom(n = 25, size = 5, prob = 0.2), nrow = 5)
 RunTFIDF(object = mat)
+RunTFIDF(atac_small[['peaks']])
+RunTFIDF(object = atac_small)
 }

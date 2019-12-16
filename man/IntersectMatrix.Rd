@@ -4,8 +4,14 @@
 \alias{IntersectMatrix}
 \title{Intersect genomic coordinates with matrix rows}
 \usage{
-IntersectMatrix(matrix, regions, invert = FALSE, sep = c("-", "-"),
-  verbose = TRUE, ...)
+IntersectMatrix(
+  matrix,
+  regions,
+  invert = FALSE,
+  sep = c("-", "-"),
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{matrix}{A matrix with genomic regions in the rows}

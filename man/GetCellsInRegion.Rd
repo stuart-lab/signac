@@ -19,3 +19,8 @@ and coordinates, second separator is used to separate start and end coordinates.
 \description{
 Extract cell names containing reads mapped within a given genomic region
 }
+\examples{
+\dontrun{
+GetCellsInRegion(tabix = "fragments.tsv.bgz", region = "chr1-565107-565550")
+}
+}
