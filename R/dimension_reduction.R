@@ -110,6 +110,8 @@ RunSVD.default <- function(
 #' @importFrom Seurat VariableFeatures GetAssayData
 #' @export
 #' @method RunSVD Assay
+#' @examples
+#' RunSVD(atac_small[['peaks']])
 RunSVD.Assay <- function(
   object,
   assay = NULL,
@@ -139,10 +141,10 @@ RunSVD.Assay <- function(
 }
 
 #' @param reduction.name Name for stored dimension reduction object. Default 'lsi'
-#'
 #' @rdname RunSVD
-#'
 #' @export
+#' @examples
+#' RunSVD(atac_small)
 #' @method RunSVD Seurat
 RunSVD.Seurat <- function(
   object,

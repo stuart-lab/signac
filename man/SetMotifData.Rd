@@ -33,6 +33,8 @@ Returns a Seurat object
 Set motif matrix for given assay
 }
 \examples{
+motif.obj <- GetMotifObject(object = atac_small)
+SetMotifData(object = motif.obj, slot = 'data', new.data = matrix())
 motif.matrix <- GetMotifData(object = atac_small)
 SetMotifData(object = atac_small, assay = 'peaks', slot = 'data', new.data = motif.matrix)
 }

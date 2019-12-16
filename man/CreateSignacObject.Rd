@@ -4,11 +4,23 @@
 \alias{CreateSignacObject}
 \title{Create Seurat object with a chromatin assay}
 \usage{
-CreateSignacObject(counts, assay = "ATAC", project = "SignacProject",
-  min.cells = 0, min.features = 0, max.cells = NULL,
-  meta.data = NULL, names.delim = "_", names.field = 1,
-  ranges = NULL, fragments = NULL, annotation = NULL,
-  genome = NULL, motifs = NULL, sep = c("-", "-"))
+CreateSignacObject(
+  counts,
+  assay = "ATAC",
+  project = "SignacProject",
+  min.cells = 0,
+  min.features = 0,
+  max.cells = NULL,
+  meta.data = NULL,
+  names.delim = "_",
+  names.field = 1,
+  ranges = NULL,
+  fragments = NULL,
+  annotation = NULL,
+  genome = NULL,
+  motifs = NULL,
+  sep = c("-", "-")
+)
 }
 \arguments{
 \item{counts}{Unnormalized data (raw counts). Should be a sparse matrix.}

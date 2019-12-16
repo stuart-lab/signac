@@ -4,8 +4,14 @@
 \alias{GetIntersectingFeatures}
 \title{Find interesecting regions between two objects}
 \usage{
-GetIntersectingFeatures(object.1, object.2, assay.1 = NULL,
-  assay.2 = NULL, distance = 0, verbose = TRUE)
+GetIntersectingFeatures(
+  object.1,
+  object.2,
+  assay.1 = NULL,
+  assay.2 = NULL,
+  distance = 0,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{object.1}{The first Seurat object}
@@ -35,4 +41,14 @@ to the intersecting regions, ie the nth feature of the first vector
 will intersect the nth feature in the second vector. A distance
 parameter can be given, in which case features within the given
 distance will be called as intersecting.
+}
+\examples{
+GetIntersectingFeatures(
+  object.1 = atac_small,
+  object.2 = atac_small,
+  assay.1 = 'peaks',
+  assay.2 = 'bins',
+  sep.1 = c(":", "-"),
+  sep.2 = c("-", "-")
+)
 }

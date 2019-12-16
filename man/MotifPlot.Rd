@@ -4,7 +4,7 @@
 \alias{MotifPlot}
 \title{MotifPlot}
 \usage{
-MotifPlot(object, motifs, assay = NULL, ...)
+MotifPlot(object, motifs, assay = NULL, use.names = TRUE, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -13,8 +13,14 @@ MotifPlot(object, motifs, assay = NULL, ...)
 
 \item{assay}{Name of the assay to use}
 
+\item{use.names}{Use motif names stored in the motif object}
+
 \item{...}{Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}}
 }
 \description{
 Plot motifs
+}
+\examples{
+motif.obj <- GetMotifObject(atac_small)
+MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
 }

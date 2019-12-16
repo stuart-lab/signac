@@ -4,8 +4,15 @@
 \alias{FilterFragments}
 \title{FilterFragments}
 \usage{
-FilterFragments(fragment.path, cells, output.path, assume.sorted = FALSE,
-  compress = TRUE, index = TRUE, verbose = TRUE)
+FilterFragments(
+  fragment.path,
+  cells,
+  output.path,
+  assume.sorted = FALSE,
+  compress = TRUE,
+  index = TRUE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{fragment.path}{Path to a tabix-indexed fragments file}
@@ -28,4 +35,13 @@ fail if assumption is wrong.}
 Remove cells from a fragments file that are not present in a given list of cells.
 Note that this reads the whole fragments file into memory, so may require a lot of memory
 depending on the size of the fragments file.
+}
+\examples{
+\dontrun{
+FilterFragments(
+  fragment.path = GetFragments(atac_small),
+  cells = colnames(atac_small),
+  output.path = "./filtered.tsv"
+)
+}
 }

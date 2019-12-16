@@ -2,10 +2,15 @@
 % Please edit documentation in R/visualization.R
 \name{EnrichmentPlot}
 \alias{EnrichmentPlot}
-\title{Plot the enrichment of Tn5 integration sites}
+\title{Plot the enrichment of Tn5 integration sites centered on a set of genomic regions.}
 \usage{
-EnrichmentPlot(object, enrichment.key, assay = NULL, group.by = NULL,
-  idents = NULL)
+EnrichmentPlot(
+  object,
+  enrichment.key,
+  assay = NULL,
+  group.by = NULL,
+  idents = NULL
+)
 }
 \arguments{
 \item{object}{A Seurat object}

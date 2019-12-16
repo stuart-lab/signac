@@ -13,8 +13,9 @@ Extend(x, upstream = 0, downstream = 0, from.midpoint = FALSE)
 
 \item{downstream}{Length to extend downstream}
 
-\item{from.midpoint}{Extend from the midpoint of the region, rather than the
-start and end coordinates (default FALSE).}
+\item{from.midpoint}{Count bases from region midpoint,
+rather than the 5' or 3' end for upstream and downstream
+respectively.}
 }
 \description{
 Resize GenomicRanges upstream and or downstream.

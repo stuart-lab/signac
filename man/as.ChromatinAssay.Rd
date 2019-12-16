@@ -7,9 +7,17 @@
 \usage{
 as.ChromatinAssay(x, ...)
 
-\method{as.ChromatinAssay}{Assay}(x, ranges = NULL, genome = NULL,
-  annotation = NULL, motifs = NULL, fragments = NULL, bias = NULL,
-  sep = c("-", "-"), ...)
+\method{as.ChromatinAssay}{Assay}(
+  x,
+  ranges = NULL,
+  genome = NULL,
+  annotation = NULL,
+  motifs = NULL,
+  fragments = NULL,
+  bias = NULL,
+  sep = c("-", "-"),
+  ...
+)
 }
 \arguments{
 \item{x}{An object to convert to class \code{\link{ChromatinAssay}}}

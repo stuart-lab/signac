@@ -109,7 +109,6 @@ RunChromVAR <- function(
 #' @importFrom Matrix colSums
 #' @importFrom stats phyper
 #' @importFrom methods is
-#' @importFrom TFBSTools name
 #'
 #' @export
 #' @examples
@@ -146,12 +145,7 @@ FindMotifs <- function(
     message('Testing motif enrichment in ', length(x = features), ' regions')
   }
   motif.all <- GetMotifData(object = object, assay = assay, slot = 'data')
-  pwm <- GetMotifData(object = object, assay = assay, slot = 'pwm')
-  if (is(object = pwm, class2 = 'PFMatrixList')) {
-    motif.names <- name(x = pwm)
-  } else {
-    motif.names <- NULL
-  }
+  motif.names <- GetMotifData(object = object, assay = assay, slot = 'motif.names')
   query.motifs <- motif.all[features, ]
   background.motifs <- motif.all[background, ]
   query.counts <- colSums(x = query.motifs)
@@ -177,10 +171,8 @@ FindMotifs <- function(
     percent.background = percent.background,
     fold.enrichment = fold.enrichment,
     pvalue = p.list,
+    motif.name = as.vector(x = unlist(x = motif.names[names(x = query.counts)])),
     stringsAsFactors = FALSE
   )
-  if (!is.null(x = motif.names)) {
-    results$motif.name <- motif.names
-  }
   return(results[with(data = results, expr = order(pvalue, -fold.enrichment)), ])
 }

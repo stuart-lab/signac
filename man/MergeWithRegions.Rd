@@ -4,9 +4,17 @@
 \alias{MergeWithRegions}
 \title{Region-aware object merging}
 \usage{
-MergeWithRegions(object.1, object.2, assay.1 = NULL, assay.2 = NULL,
-  regions.use = 1, distance = 0, new.assay.name = "ATAC",
-  verbose = TRUE, ...)
+MergeWithRegions(
+  object.1,
+  object.2,
+  assay.1 = NULL,
+  assay.2 = NULL,
+  regions.use = 1,
+  distance = 0,
+  new.assay.name = "ATAC",
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object.1}{The first Seurat object}
@@ -45,4 +53,14 @@ overlapping features with the region coordinates of the first object
 }
 \details{
 This allows a merged object to be constructed with common feature names.
+}
+\examples{
+MergeWithRegions(
+  object.1 = atac_small,
+  object.2 = atac_small,
+  assay.1 = 'peaks',
+  assay.2 = 'bins',
+  sep.1 = c(":","-"),
+  sep.2 = c("-","-")
+)
 }

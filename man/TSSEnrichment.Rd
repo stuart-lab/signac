@@ -4,8 +4,13 @@
 \alias{TSSEnrichment}
 \title{Compute TSS enrichment score per cell}
 \usage{
-TSSEnrichment(object, tss.positions, assay = NULL, cells = NULL,
-  verbose = TRUE)
+TSSEnrichment(
+  object,
+  tss.positions,
+  assay = NULL,
+  cells = NULL,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -28,4 +33,19 @@ Compute the transcription start site (TSS) enrichment score for each cell, as de
 }
 \details{
 The computed score will be added to the object metadata as "TSS.enrichment".
+}
+\examples{
+\dontrun{
+library(EnsDb.Hsapiens.v75)
+gene.ranges <- genes(EnsDb.Hsapiens.v75)
+gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
+tss.ranges <- GRanges(
+  seqnames = seqnames(gene.ranges),
+  ranges = IRanges(start = start(gene.ranges), width = 2),
+  strand = strand(gene.ranges)
+)
+seqlevelsStyle(tss.ranges) <- 'UCSC'
+tss.ranges <- keepStandardChromosomes(tss.ranges, pruning.mode = 'coarse')
+TSSEnrichment(object = atac_small, tss.positions = tss.ranges[1:2000])
+}
 }

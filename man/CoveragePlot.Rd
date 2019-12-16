@@ -5,17 +5,44 @@
 \alias{CoveragePlot}
 \title{CoveragePlot}
 \usage{
-SingleCoveragePlot(object, region, annotation = NULL, assay = NULL,
-  fragment.path = NULL, group.by = NULL, window = 100,
-  downsample = 0.1, height.tracks = 2, extend.upstream = 0,
-  extend.downstream = 0, ymax = NULL, scale.factor = NULL,
-  cells = NULL, idents = NULL, sep = c("-", "-"))
+SingleCoveragePlot(
+  object,
+  region,
+  annotation = NULL,
+  assay = NULL,
+  fragment.path = NULL,
+  group.by = NULL,
+  window = 100,
+  downsample = 0.1,
+  height.tracks = 2,
+  extend.upstream = 0,
+  extend.downstream = 0,
+  ymax = NULL,
+  scale.factor = NULL,
+  cells = NULL,
+  idents = NULL,
+  sep = c("-", "-")
+)
 
-CoveragePlot(object, region, annotation = NULL, assay = NULL,
-  fragment.path = NULL, group.by = NULL, window = 100,
-  downsample = 0.1, height.tracks = 2, extend.upstream = 0,
-  extend.downstream = 0, scale.factor = NULL, ymax = NULL,
-  cells = NULL, idents = NULL, sep = c("-", "-"), ...)
+CoveragePlot(
+  object,
+  region,
+  annotation = NULL,
+  assay = NULL,
+  fragment.path = NULL,
+  group.by = NULL,
+  window = 100,
+  downsample = 0.1,
+  height.tracks = 2,
+  extend.upstream = 0,
+  extend.downstream = 0,
+  scale.factor = NULL,
+  ymax = NULL,
+  cells = NULL,
+  idents = NULL,
+  sep = c("-", "-"),
+  ...
+)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -63,4 +90,12 @@ Plot coverage within given regions for groups of cells
 \details{
 Thanks to Andrew Hill for providing an early version of this function
  \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
+}
+\examples{
+\dontrun{
+CoveragePlot(object = atac_small, region = "chr1-10-10000")
+}
+\dontrun{
+CoveragePlot(object = atac_small, region = c("chr1-10-10000", "chr2-20-50000"))
+}
 }

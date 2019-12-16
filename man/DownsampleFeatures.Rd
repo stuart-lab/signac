@@ -24,5 +24,4 @@ select n features at random.
 }
 \examples{
 DownsampleFeatures(atac_small, n = 10)
-
 }

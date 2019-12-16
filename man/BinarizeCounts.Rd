@@ -9,14 +9,11 @@
 \usage{
 BinarizeCounts(object, ...)
 
-\method{BinarizeCounts}{default}(object, assay = NULL, verbose = TRUE,
-  ...)
+\method{BinarizeCounts}{default}(object, assay = NULL, verbose = TRUE, ...)
 
-\method{BinarizeCounts}{Assay}(object, assay = NULL, verbose = TRUE,
-  ...)
+\method{BinarizeCounts}{Assay}(object, assay = NULL, verbose = TRUE, ...)
 
-\method{BinarizeCounts}{Seurat}(object, assay = NULL, verbose = TRUE,
-  ...)
+\method{BinarizeCounts}{Seurat}(object, assay = NULL, verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -37,4 +34,6 @@ Set counts >1 to 1 in a count matrix
 \examples{
 x <- matrix(data = sample(0:3, size = 25, replace = TRUE), ncol = 5)
 BinarizeCounts(x)
+BinarizeCounts(atac_small[['peaks']])
+BinarizeCounts(atac_small)
 }

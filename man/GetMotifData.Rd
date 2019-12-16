@@ -31,5 +31,7 @@ Returns a sparse matrix
 Get motif matrix for given assay
 }
 \examples{
+motif.obj <- GetMotifObject(object = atac_small[['peaks']])
+GetMotifData(object = motif.obj)
 GetMotifData(object = atac_small)
 }

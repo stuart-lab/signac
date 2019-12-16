@@ -4,10 +4,20 @@
 \alias{CreateChromatinAssayObject}
 \title{Create ChromatinAssay object}
 \usage{
-CreateChromatinAssayObject(counts, data, min.cells = 0,
-  min.features = 0, max.cells = NULL, ranges = NULL, motifs = NULL,
-  fragments = NULL, genome = NULL, annotation = NULL, bias = NULL,
-  sep = c("-", "-"))
+CreateChromatinAssayObject(
+  counts,
+  data,
+  min.cells = 0,
+  min.features = 0,
+  max.cells = NULL,
+  ranges = NULL,
+  motifs = NULL,
+  fragments = NULL,
+  genome = NULL,
+  annotation = NULL,
+  bias = NULL,
+  sep = c("-", "-")
+)
 }
 \arguments{
 \item{counts}{Unnormalized data (raw counts)}
