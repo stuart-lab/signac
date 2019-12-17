@@ -695,11 +695,13 @@ GetFragments <- function(
 #' @export
 #' @return Returns a numeric vector
 #' @examples
+#' \dontrun{
 #' CountsInRegion(
 #'   object = atac_small,
 #'   assay = 'bins',
 #'   regions = blacklist_hg19
 #' )
+#' }
 CountsInRegion <- function(
   object,
   assay,
