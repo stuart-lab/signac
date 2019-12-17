@@ -51,6 +51,7 @@ Jaccard <- function(x, y) {
 #' @importFrom Seurat CreateDimReducObject
 #'
 #' @rdname RunSVD
+#' @return Returns a \code{\link[Seurat]{DimReduc}} object
 #' @export
 #' @examples
 #' x <- matrix(data = rnorm(100), ncol = 10)
@@ -105,6 +106,7 @@ RunSVD.default <- function(
 #' @rdname RunSVD
 #' @importFrom Seurat VariableFeatures GetAssayData
 #' @export
+#' @return Returns an \code{\link[Seurat]{Assay}} object
 #' @method RunSVD Assay
 #' @examples
 #' RunSVD(atac_small[['peaks']])
@@ -118,7 +120,7 @@ RunSVD.Assay <- function(
   verbose = TRUE,
   ...
 ) {
-  features <- features %||% VariableFeatures(object = object)
+  features <- SetIfNull(x = features, y = VariableFeatures(object = object))
   data.use <- GetAssayData(
     object = object,
     slot = 'data'
@@ -139,6 +141,7 @@ RunSVD.Assay <- function(
 #' @param reduction.name Name for stored dimension reduction object. Default 'lsi'
 #' @rdname RunSVD
 #' @export
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
 #' RunSVD(atac_small)
 #' @method RunSVD Seurat
@@ -153,7 +156,7 @@ RunSVD.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   assay.data <- GetAssay(object = object, assay = assay)
   reduction.data <- RunSVD(
     object = assay.data,

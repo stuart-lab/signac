@@ -20,7 +20,11 @@ GetMotifObject(object, ...)
 \item{assay}{Which assay to use. Default is the current active assay}
 }
 \value{
-Returns a Motif object
+Returns a \code{\link{Motif}} object
+
+Returns a \code{\link{Motif}} object
+
+Returns a \code{\link{Motif}} object
 }
 \description{
 Get motif object from given assay

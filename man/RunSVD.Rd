@@ -65,7 +65,13 @@ RunSVD(object, ...)
 \item{reduction.name}{Name for stored dimension reduction object. Default 'lsi'}
 }
 \value{
-Returns a Seurat object
+Returns a \code{\link[Seurat]{Seurat}} object
+
+Returns a \code{\link[Seurat]{DimReduc}} object
+
+Returns an \code{\link[Seurat]{Assay}} object
+
+Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
 Run singular value decomposition

@@ -17,6 +17,9 @@ FRiP(object, peak.assay, bin.assay, chromosome = "chr1", verbose = TRUE)
 
 \item{verbose}{Display messages}
 }
+\value{
+Returns a \code{\link[Seurat]{Seurat}} object
+}
 \description{
 Calculate fraction of reads in peaks per cell
 }

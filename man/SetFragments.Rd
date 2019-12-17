@@ -14,6 +14,9 @@ See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/lat
 
 \item{assay}{Assay used to generate the fragments. If NULL, use the active assay.}
 }
+\value{
+Returns a Seurat object
+}
 \description{
 Give path of indexed fragments file that goes with data in the object.
 Checks for a valid path and an index file with the same name (.tbi) at the same path.

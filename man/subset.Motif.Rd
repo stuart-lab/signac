@@ -24,7 +24,7 @@
 \item{j}{Which rows to retain}
 }
 \value{
-Returns a subsetted Motif object
+Returns a subsetted \code{\link{Motif}} object
 }
 \description{
 Return a subset of a Motif object

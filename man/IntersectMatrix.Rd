@@ -30,6 +30,9 @@ coordinates.}
 
 \item{...}{Additional arguments passed to \code{\link[IRanges]{findOverlaps}}}
 }
+\value{
+Returns a sparse matrix
+}
 \description{
 Remove or retain matrix rows that intersect given genomic regions
 }

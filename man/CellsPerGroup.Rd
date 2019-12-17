@@ -13,6 +13,8 @@ CellsPerGroup(object, group.by = NULL)
 }
 \value{
 Returns a vector
+
+Returns a vector
 }
 \description{
 Count the number of cells in each group

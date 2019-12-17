@@ -84,6 +84,9 @@ chromosome from the coordinates, second element is used to separate the start fr
 
 \item{...}{Additional arguments passed to \code{\link[cowplot]{plot_grid}}}
 }
+\value{
+Returns a \code{\link[ggplot2]{ggplot}} object
+}
 \description{
 Plot coverage within given regions for groups of cells
 }

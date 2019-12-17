@@ -42,6 +42,7 @@ Motif <- setClass(
 #' @rdname AddMotifObject
 #' @method AddMotifObject Assay
 #' @export
+#' @return Returns an \code{\link[Seurat]{Assay}} object
 #' @examples
 #' obj <- GetMotifObject(atac_small[['peaks']])
 #' atac_small[['peaks']] <- AddMotifObject(object = atac_small[['peaks']], motif.object = obj)
@@ -51,7 +52,7 @@ AddMotifObject.Assay <- function(
   verbose = TRUE,
   ...
 ) {
-  misc.data <- slot(object = object, name = 'misc') %||% list()
+  misc.data <- SetIfNull(x = slot(object = object, name = 'misc'), y = list())
   if ('motif' %in% names(x = misc.data) & verbose) {
     warning('Overwriting existing motif object in assay')
   }
@@ -74,6 +75,7 @@ AddMotifObject.Assay <- function(
 #' @importFrom Seurat DefaultAssay
 #' @method AddMotifObject Seurat
 #' @export
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
 #' obj <- GetMotifObject(object = atac_small)
 #' atac_small[['peaks']] <- AddMotifObject(object = atac_small, motif.object = obj)
@@ -83,7 +85,7 @@ AddMotifObject.Seurat <- function(
   assay = NULL,
   ...
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   object[[assay]] <- AddMotifObject(
     object = GetAssay(
       object = object,
@@ -107,6 +109,7 @@ AddMotifObject.Seurat <- function(
 #' \code{pwm}, it will pull the motif name from the PFMatrixList.
 #' @param meta.data A data.frame containing metadata
 #' @export
+#' @return Returns a \code{\link{Motif}} object
 #' @examples
 #' motif.matrix <- matrix(data = sample(c(0,1), size = 100, replace = TRUE), ncol = 5)
 #' motif <- CreateMotifObject(data = motif.matrix)
@@ -116,8 +119,8 @@ CreateMotifObject <- function(
   motif.names = NULL,
   meta.data = NULL
 ) {
-  data <- data %||% new(Class = 'dgCMatrix')
-  meta.data <- meta.data %||% data.frame()
+  data <- SetIfNull(x = data, y = new(Class = 'dgCMatrix'))
+  meta.data <- SetIfNull(x = meta.data, y = data.frame())
   if (!(inherits(x = data, what = 'matrix') | inherits(x = data, what = 'dgCMatrix'))) {
     stop('Data must be matrix or sparse matrix class. Supplied ', class(x = data))
   }
@@ -149,7 +152,7 @@ CreateMotifObject <- function(
     pwm <- lapply(X = pwm.converted, FUN = "[[", 1)
     motif.names <- lapply(X = pwm.converted, FUN = "[[", 2)
   }
-  pwm <- pwm %||% list()
+  pwm <- SetIfNull(x = pwm, y = list())
   if (is.null(x = motif.names)) {
     motif.names <- as.list(x = names(x = pwm))
     names(motif.names) <- names(x = pwm)
@@ -167,6 +170,7 @@ CreateMotifObject <- function(
 #' @rdname GetMotifObject
 #' @method GetMotifObject Assay
 #' @export
+#' @return Returns a \code{\link{Motif}} object
 #' @examples
 #' GetMotifObject(object = atac_small[['peaks']])
 GetMotifObject.Assay <- function(object, ...) {
@@ -183,10 +187,11 @@ GetMotifObject.Assay <- function(object, ...) {
 #' @importFrom Seurat DefaultAssay GetAssay
 #' @method GetMotifObject Seurat
 #' @export
+#' @return Returns a \code{\link{Motif}} object
 #' @examples
 #' GetMotifObject(object = atac_small)
 GetMotifObject.Seurat <- function(object, assay = NULL, ...) {
-  assay <- assay %||% DefaultAssay(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   return(GetMotifObject(
     object = GetAssay(object = object, assay = assay),
     ...
@@ -197,6 +202,7 @@ GetMotifObject.Seurat <- function(object, assay = NULL, ...) {
 #' @rdname GetMotifData
 #' @method GetMotifData Motif
 #' @export
+#' @return Returns a sparse matrix
 #' @examples
 #' motif.obj <- GetMotifObject(object = atac_small[['peaks']])
 #' GetMotifData(object = motif.obj)
@@ -207,6 +213,7 @@ GetMotifData.Motif <- function(object, slot = 'data', ...) {
 #' @rdname GetMotifData
 #' @method GetMotifData Assay
 #' @export
+#' @return Returns a sparse matrix
 #' @examples
 #' GetMotifData(object = atac_small[['peaks']])
 GetMotifData.Assay <- function(object, slot = 'data', ...) {
@@ -223,10 +230,11 @@ GetMotifData.Assay <- function(object, slot = 'data', ...) {
 #' @method GetMotifData Seurat
 #' @importFrom Seurat DefaultAssay GetAssay
 #' @export
+#' @return Returns a sparse matrix
 #' @examples
 #' GetMotifData(object = atac_small)
 GetMotifData.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
-  assay <- assay %||% DefaultAssay(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   return(GetMotifData(
     object = GetAssay(object = object, assay = assay),
     slot = slot,
@@ -237,6 +245,7 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
 #' @rdname SetMotifData
 #' @method SetMotifData Motif
 #' @export
+#' @return Returns a \code{\link{Motif}} object
 #' @examples
 #' motif.obj <- GetMotifObject(object = atac_small)
 #' SetMotifData(object = motif.obj, slot = 'data', new.data = matrix())
@@ -260,7 +269,7 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
 #' @rdname SetMotifData
 #' @export
 #' @method SetMotifData Assay
-#' @import Matrix
+#' @return Returns an \code{\link[Seurat]{Assay}} object
 #' @examples
 #' SetMotifData(object = atac_small[['peaks']], slot = 'data', new.data = matrix())
 SetMotifData.Assay <- function(object, slot, new.data, ...) {
@@ -275,7 +284,7 @@ SetMotifData.Assay <- function(object, slot, new.data, ...) {
       new.data <- as(Class = 'dgCMatrix', object = new.data)
     }
   }
-  misc.data <- slot(object = object, name = 'misc') %||% list()
+  misc.data <- SetIfNull(x = slot(object = object, name = 'misc'), y = list())
   if (!inherits(x = misc.data, what = 'list')) {
     stop('misc slot already occupied and would be overwritten.
          This can be avoided by converting the data in misc to a list,
@@ -293,12 +302,13 @@ SetMotifData.Assay <- function(object, slot, new.data, ...) {
 #' @rdname SetMotifData
 #' @importFrom Seurat DefaultAssay
 #' @export
+#' @return Returns an \code{\link[Seurat]{Seurat}} object
 #' @method SetMotifData Seurat
 #' @examples
 #' motif.matrix <- GetMotifData(object = atac_small)
 #' SetMotifData(object = atac_small, assay = 'peaks', slot = 'data', new.data = motif.matrix)
 SetMotifData.Seurat <- function(object, assay = NULL, ...) {
-  assay <- assay %||% DefaultAssay(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   object[[assay]] <- SetMotifData(object = object[[assay]], ...)
   return(object)
 }
@@ -315,14 +325,14 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
 #' @method subset Motif
 #'
 #' @seealso \code{\link[base]{subset}}
-#' @return Returns a subsetted Motif object
+#' @return Returns a subsetted \code{\link{Motif}} object
 #' @export
 #' @examples
 #' motif.obj <- GetMotifObject(object = atac_small)
 #' subset(x = motif.obj, features = head(rownames(motif.obj)))
 subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
-  features <- features %||% rownames(x = x)
-  motifs <- motifs %||% colnames(x = x)
+  features <- SetIfNull(x = features, y = rownames(x = x))
+  motifs <- SetIfNull(x = motifs, y = colnames(x = x))
   new.data <- GetMotifData(object = x, slot = 'data')[features, motifs]
   new.pwm <- GetMotifData(object = x, slot = 'pwm')[motifs]
   new.names <- GetMotifData(object = x, slot = 'motif.names')[motifs]

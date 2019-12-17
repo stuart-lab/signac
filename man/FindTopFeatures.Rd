@@ -32,7 +32,13 @@ set of VariableFeatures. If NULL, include all features in VariableFeatures.}
 \item{verbose}{Display messages}
 }
 \value{
-Returns a Seurat object
+Returns a \code{\link[Seurat]{Seurat}} object
+
+Returns a dataframe
+
+Returns an \code{\link[Seurat]{Assay}} object
+
+Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
 Find top binary features for a given assay based on total number of cells containing feature.

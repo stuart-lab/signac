@@ -13,6 +13,8 @@ GetFragments(object, assay = NULL)
 }
 \value{
 Returns the path to a fragments file stored in the Assay if present
+
+Returns a string
 }
 \description{
 Retrieve path to fragments file from assay object, and checks that the file exists and

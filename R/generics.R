@@ -3,7 +3,7 @@
 #'
 #' @param object A Seurat object
 #' @rdname AddMotifObject
-#' @return Returns a Seurat object
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @export
 AddMotifObject <- function(object, ...) {
   UseMethod(generic = 'AddMotifObject', object = object)
@@ -15,7 +15,7 @@ AddMotifObject <- function(object, ...) {
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
-#' @return Returns a Seurat object
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @rdname BinarizeCounts
 #' @export BinarizeCounts
 BinarizeCounts <- function(object, ...) {
@@ -29,7 +29,7 @@ BinarizeCounts <- function(object, ...) {
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
-#' @return Returns a Seurat object
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @rdname FindTopFeatures
 #' @export FindTopFeatures
 FindTopFeatures <- function(object, ...) {
@@ -42,7 +42,7 @@ FindTopFeatures <- function(object, ...) {
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
-#' @return Returns a Seurat object
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @rdname GetMotifData
 #' @export GetMotifData
 GetMotifData <- function(object, ...) {
@@ -55,7 +55,7 @@ GetMotifData <- function(object, ...) {
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
-#' @return Returns a Motif object
+#' @return Returns a \code{\link{Motif}} object
 #' @rdname GetMotifObject
 #' @export GetMotifObject
 GetMotifObject <- function(object, ...) {
@@ -69,6 +69,7 @@ GetMotifObject <- function(object, ...) {
 #'
 #' @param object A Seurat object, Assay object, or set of genomic ranges
 #' @param ... Arguments passed to other methods
+#' @return Returns a dataframe
 #' @rdname RegionStats
 #' @export RegionStats
 RegionStats <- function(object, ...) {
@@ -81,7 +82,7 @@ RegionStats <- function(object, ...) {
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
-#' @return Returns a Seurat object
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @rdname RunSVD
 #' @export RunSVD
 RunSVD <- function(object, ...) {
@@ -94,7 +95,7 @@ RunSVD <- function(object, ...) {
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
-#' @return Returns a Seurat object
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @rdname RunTFIDF
 #' @export RunTFIDF
 RunTFIDF <- function(object, ...) {
@@ -107,7 +108,7 @@ RunTFIDF <- function(object, ...) {
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
-#' @return Returns a Seurat object
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @rdname SetMotifData
 #' @export SetMotifData
 SetMotifData <- function(object, ...) {

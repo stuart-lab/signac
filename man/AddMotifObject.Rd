@@ -24,7 +24,11 @@ AddMotifObject(object, ...)
 \item{assay}{Name of assay to store motif object in}
 }
 \value{
-Returns a Seurat object
+Returns a \code{\link[Seurat]{Seurat}} object
+
+Returns an \code{\link[Seurat]{Assay}} object
+
+Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
 AddMotifObject

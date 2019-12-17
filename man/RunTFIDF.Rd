@@ -56,9 +56,13 @@ RunTFIDF(object, ...)
 \item{verbose}{Print progress}
 }
 \value{
-Returns a Seurat object
+Returns a \code{\link[Seurat]{Seurat}} object
 
 Returns a sparse matrix
+
+Returns an \code{\link[Seurat]{Assay}} object
+
+Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
 Run term frequency inverse document frequency normalization

@@ -16,6 +16,9 @@ and coordinates, second separator is used to separate start and end coordinates.
 
 \item{cells}{Vector of cells to include in output. If NULL, include all cells}
 }
+\value{
+Returns a list
+}
 \description{
 Extract cell names containing reads mapped within a given genomic region
 }

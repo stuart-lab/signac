@@ -7,6 +7,7 @@ NULL
 #' @rdname BinarizeCounts
 #' @importFrom methods is slot "slot<-"
 #' @export
+#' @return Returns a matrix
 #' @examples
 #' x <- matrix(data = sample(0:3, size = 25, replace = TRUE), ncol = 5)
 #' BinarizeCounts(x)
@@ -33,6 +34,7 @@ BinarizeCounts.default <- function(
 #' @method BinarizeCounts Assay
 #' @importFrom Seurat GetAssayData SetAssayData
 #' @export
+#' @return Returns an \code{\link[Seurat]{Assay}} object
 #' @examples
 #' BinarizeCounts(atac_small[['peaks']])
 BinarizeCounts.Assay <- function(
@@ -56,6 +58,7 @@ BinarizeCounts.Assay <- function(
 #' @method BinarizeCounts Seurat
 #' @importFrom Seurat GetAssay DefaultAssay
 #' @export
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
 #' BinarizeCounts(atac_small)
 BinarizeCounts.Seurat <- function(
@@ -64,7 +67,7 @@ BinarizeCounts.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   for (i in seq_along(along.with = assay)) {
     assay.data <- GetAssay(object = object, assay = assay[[i]])
     assay.data <- BinarizeCounts(
@@ -148,7 +151,8 @@ CreateMotifMatrix <- function(
 #' @param n Number of features to retain (default 20000).
 #' @param verbose Display messages
 #' @importFrom Seurat DefaultAssay GetAssayData "VariableFeatures<-"
-#' @return Returns a Seurat object with VariableFeatures set to the randomly sampled features.
+#' @return Returns a \code{\link[Seurat]{Seurat}} object with
+#' \code{\link[Seurat]{VariableFeatures}} set to the randomly sampled features.
 #' @export
 #' @examples
 #' DownsampleFeatures(atac_small, n = 10)
@@ -158,7 +162,7 @@ DownsampleFeatures <- function(
   n = 20000,
   verbose = TRUE
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   counts <- GetAssayData(object = object, assay = assay, slot = 'counts')
   if (n > nrow(object[[assay]])) {
     stop("Requested more features than present in the assay")
@@ -192,6 +196,7 @@ DownsampleFeatures <- function(
 #' @importFrom Matrix sparseMatrix
 #' @importFrom Rsamtools TabixFile seqnamesTabix
 #' @export
+#' @return Returns a sparse matrix
 #' @examples
 #' \dontrun{
 #' FeatureMatrix(
@@ -290,6 +295,7 @@ FeatureMatrix <- function(
 #' @importFrom data.table fread fwrite
 #' @importFrom Rsamtools indexTabix bgzip
 #' @export
+#' @return None
 #' @examples
 #' \dontrun{
 #' FilterFragments(
@@ -366,6 +372,7 @@ FilterFragments <- function(
 #' @importFrom stats ecdf
 #' @rdname FindTopFeatures
 #' @export
+#' @return Returns a dataframe
 #' @examples
 #' FindTopFeatures(object = atac_small[['peaks']][])
 FindTopFeatures.default <- function(
@@ -390,6 +397,7 @@ FindTopFeatures.default <- function(
 #' @importFrom Seurat GetAssayData VariableFeatures
 #' @export
 #' @method FindTopFeatures Assay
+#' @return Returns an \code{\link[Seurat]{Assay}} object
 #' @examples
 #' FindTopFeatures(object = atac_small[['peaks']])
 FindTopFeatures.Assay <- function(
@@ -423,6 +431,7 @@ FindTopFeatures.Assay <- function(
 #' @importFrom Seurat DefaultAssay GetAssay
 #' @export
 #' @method FindTopFeatures Seurat
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
 #' FindTopFeatures(atac_small)
 FindTopFeatures.Seurat <- function(
@@ -432,7 +441,7 @@ FindTopFeatures.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- assay %||% DefaultAssay(object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object))
   assay.data <- GetAssay(object = object, assay = assay)
   assay.data <- FindTopFeatures(
     object = assay.data,
@@ -457,6 +466,7 @@ FindTopFeatures.Seurat <- function(
 #' @importFrom Seurat GetAssayData AddMetaData
 #'
 #' @export
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
 #' FRiP(object = atac_small, peak.assay = 'peaks', bin.assay = 'bins')
 FRiP <- function(
@@ -504,6 +514,7 @@ FRiP <- function(
 #'
 #' @importFrom GenomicRanges tileGenome
 #' @export
+#' @return Returns a sparse matrix
 #' @examples
 #' \dontrun{
 #' GenomeBinMatrix(
@@ -553,7 +564,8 @@ globalVariables(names = 'cell', package = 'Signac')
 #' @importFrom dplyr group_by summarize
 #' @importFrom stats ecdf
 #'
-#' @return Returns a Seurat object with added metadata for the ratio of mononucleosomal to nucleosome-free fragments
+#' @return Returns a \code{\link[Seurat]{Seurat}} object with
+#' added metadata for the ratio of mononucleosomal to nucleosome-free fragments
 #' per cell, and the percentile rank of each ratio.
 #' @export
 #' @examples
@@ -569,7 +581,7 @@ NucleosomeSignal <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   fragments.use <- GetReadsInRegion(
     object = object,
     region = region,
@@ -618,6 +630,7 @@ NucleosomeSignal <- function(
 #' @importFrom BSgenome getSeq
 #' @rdname RegionStats
 #' @export
+#' @return Returns a dataframe
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
@@ -648,6 +661,7 @@ RegionStats.default <- function(
 #' @importFrom methods slot
 #' @importFrom Seurat GetAssayData
 #' @export
+#' @return Returns an \code{\link[Seurat]{Assay}} object
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
@@ -678,6 +692,7 @@ RegionStats.Assay <- function(
 #' @rdname RegionStats
 #' @method RegionStats Seurat
 #' @export
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
@@ -695,7 +710,7 @@ RegionStats.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   assay.data <- GetAssay(object = object, assay = assay)
   assay.data <- RegionStats(
     object = assay.data,
@@ -769,6 +784,7 @@ RunTFIDF.default <- function(
 #' @rdname RunTFIDF
 #' @method RunTFIDF Assay
 #' @export
+#' @return Returns an \code{\link[Seurat]{Assay}} object
 #' @examples
 #' RunTFIDF(atac_small[['peaks']])
 RunTFIDF.Assay <- function(
@@ -799,6 +815,7 @@ RunTFIDF.Assay <- function(
 #' @rdname RunTFIDF
 #' @method RunTFIDF Seurat
 #' @export
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
 #' RunTFIDF(object = atac_small)
 RunTFIDF.Seurat <- function(
@@ -809,7 +826,7 @@ RunTFIDF.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- assay %||% DefaultAssay(object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object))
   assay.data <- GetAssay(object = object, assay = assay)
   assay.data <- RunTFIDF(
     object = assay.data,
@@ -862,7 +879,7 @@ TSSEnrichment <- function(
   cells = NULL,
   verbose = TRUE
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   cutmatrix <- CreateRegionPileupMatrix(
     object = object,
     regions = tss.positions,

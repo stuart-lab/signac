@@ -31,6 +31,9 @@ fail if assumption is wrong.}
 
 \item{verbose}{Display messages}
 }
+\value{
+None
+}
 \description{
 Remove cells from a fragments file that are not present in a given list of cells.
 Note that this reads the whole fragments file into memory, so may require a lot of memory
