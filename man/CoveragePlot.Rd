@@ -3,7 +3,7 @@
 \name{SingleCoveragePlot}
 \alias{SingleCoveragePlot}
 \alias{CoveragePlot}
-\title{CoveragePlot}
+\title{Plot Tn5 insertion sites over a region}
 \usage{
 SingleCoveragePlot(
   object,
@@ -88,7 +88,7 @@ chromosome from the coordinates, second element is used to separate the start fr
 Returns a \code{\link[ggplot2]{ggplot}} object
 }
 \description{
-Plot coverage within given regions for groups of cells
+Plot fragment coverage (frequence of Tn5 insertion) within given regions for groups of cells.
 }
 \details{
 Thanks to Andrew Hill for providing an early version of this function

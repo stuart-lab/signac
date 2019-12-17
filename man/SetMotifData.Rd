@@ -5,7 +5,7 @@
 \alias{SetMotifData.Motif}
 \alias{SetMotifData.Assay}
 \alias{SetMotifData.Seurat}
-\title{SetMotifData}
+\title{Set motif data}
 \usage{
 SetMotifData(object, ...)
 

@@ -5,7 +5,7 @@
 \alias{RunSVD.default}
 \alias{RunSVD.Assay}
 \alias{RunSVD.Seurat}
-\title{RunSVD}
+\title{Run singular value decomposition}
 \usage{
 RunSVD(object, ...)
 
@@ -68,7 +68,7 @@ RunSVD(object, ...)
 Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
-Run singular value decomposition
+Run partial singular value decomposition using \code{\link[irlba]{irlba}}
 }
 \examples{
 x <- matrix(data = rnorm(100), ncol = 10)

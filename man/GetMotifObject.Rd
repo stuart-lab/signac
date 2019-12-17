@@ -4,7 +4,7 @@
 \alias{GetMotifObject}
 \alias{GetMotifObject.Assay}
 \alias{GetMotifObject.Seurat}
-\title{GetMotifObject}
+\title{Retrieve a Motif object}
 \usage{
 GetMotifObject(object, ...)
 

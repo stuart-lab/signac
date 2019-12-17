@@ -4,7 +4,7 @@
 \alias{AddMotifObject}
 \alias{AddMotifObject.Assay}
 \alias{AddMotifObject.Seurat}
-\title{AddMotifObject}
+\title{Add a Motif object to a Seurat object}
 \usage{
 AddMotifObject(object, ...)
 
@@ -27,7 +27,7 @@ AddMotifObject(object, ...)
 Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
-AddMotifObject
+Add a Motif object to a Seurat object
 }
 \examples{
 obj <- GetMotifObject(atac_small[['peaks']])

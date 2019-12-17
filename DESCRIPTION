@@ -42,10 +42,10 @@ Imports:
     pbapply,
     tidyr,
     zoo,
-    AnnotationDbi,
     cowplot,
     Biostrings,
-    BSgenome
+    BSgenome,
+    AnnotationDbi
 Collate: 
     'data.R'
     'generics.R'

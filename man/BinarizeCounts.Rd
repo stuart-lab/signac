@@ -5,7 +5,7 @@
 \alias{BinarizeCounts.default}
 \alias{BinarizeCounts.Assay}
 \alias{BinarizeCounts.Seurat}
-\title{BinarizeCounts}
+\title{Binarize counts}
 \usage{
 BinarizeCounts(object, ...)
 

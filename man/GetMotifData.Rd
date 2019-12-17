@@ -5,7 +5,7 @@
 \alias{GetMotifData.Motif}
 \alias{GetMotifData.Assay}
 \alias{GetMotifData.Seurat}
-\title{GetMotifData}
+\title{Retrieve a motif matrix}
 \usage{
 GetMotifData(object, ...)
 

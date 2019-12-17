@@ -4,10 +4,7 @@
 NULL
 
 globalVariables(names = c('position', 'coverage', 'group'), package = 'Signac')
-#' CoveragePlot
-#'
 #' @rdname CoveragePlot
-#'
 #' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic aes ylim theme element_blank element_text
 #' @importFrom ggbio autoplot
 #' @importFrom cowplot plot_grid
@@ -160,9 +157,9 @@ SingleCoveragePlot <- function(
   return(p)
 }
 
-#' CoveragePlot
+#' Plot Tn5 insertion sites over a region
 #'
-#' Plot coverage within given regions for groups of cells
+#' Plot fragment coverage (frequence of Tn5 insertion) within given regions for groups of cells.
 #'
 #' Thanks to Andrew Hill for providing an early version of this function
 #'  \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}

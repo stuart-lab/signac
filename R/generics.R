@@ -1,5 +1,5 @@
 
-#' AddMotifObject
+#' Add a Motif object to a Seurat object
 #'
 #' @param object A Seurat object
 #' @rdname AddMotifObject
@@ -9,7 +9,7 @@ AddMotifObject <- function(object, ...) {
   UseMethod(generic = 'AddMotifObject', object = object)
 }
 
-#' BinarizeCounts
+#' Binarize counts
 #'
 #' Set counts >1 to 1 in a count matrix
 #'
@@ -22,7 +22,7 @@ BinarizeCounts <- function(object, ...) {
   UseMethod(generic = 'BinarizeCounts', object = object)
 }
 
-#' FindTopFeatures
+#' Find most frequently observed features
 #'
 #' Find top binary features for a given assay based on total number of cells containing feature.
 #' Can specify a minumum cell count, or a lower percentile bound.
@@ -36,7 +36,7 @@ FindTopFeatures <- function(object, ...) {
   UseMethod(generic = 'FindTopFeatures', object = object)
 }
 
-#' GetMotifData
+#' Retrieve a motif matrix
 #'
 #' Get motif matrix for given assay
 #'
@@ -49,7 +49,7 @@ GetMotifData <- function(object, ...) {
   UseMethod(generic = 'GetMotifData', object = object)
 }
 
-#' GetMotifObject
+#' Retrieve a Motif object
 #'
 #' Get motif object from given assay
 #'
@@ -76,9 +76,9 @@ RegionStats <- function(object, ...) {
   UseMethod(generic = 'RegionStats', object = object)
 }
 
-#' RunSVD
-#'
 #' Run singular value decomposition
+#'
+#' Run partial singular value decomposition using \code{\link[irlba]{irlba}}
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
@@ -89,9 +89,9 @@ RunSVD <- function(object, ...) {
   UseMethod(generic = 'RunSVD', object = object)
 }
 
-#' RunTFIDF
+#' Compute the term-frequency inverse-document-frequency
 #'
-#' Run term frequency inverse document frequency normalization
+#' Run term frequency inverse document frequency (TF-IDF) normalization
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
@@ -102,7 +102,7 @@ RunTFIDF <- function(object, ...) {
   UseMethod(generic = 'RunTFIDF', object = object)
 }
 
-#' SetMotifData
+#' Set motif data
 #'
 #' Set motif matrix for given assay
 #'

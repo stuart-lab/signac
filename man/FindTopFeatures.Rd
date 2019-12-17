@@ -5,7 +5,7 @@
 \alias{FindTopFeatures.default}
 \alias{FindTopFeatures.Assay}
 \alias{FindTopFeatures.Seurat}
-\title{FindTopFeatures}
+\title{Find most frequently observed features}
 \usage{
 FindTopFeatures(object, ...)
 
