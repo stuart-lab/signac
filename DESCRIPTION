@@ -6,8 +6,8 @@ Authors@R: c(
   person(given = 'Paul', family = 'Hoffman', email = 'phoffman@nygenome.org', role = 'ctb', comment = c(ORCID = '0000-0002-7693-8957')),
   person(given = 'Rahul', family = 'Satija', email = 'rsatija@nygenome.org', role = 'ctb', comment = c(ORCID = '0000-0001-9448-8833'))
   )
-Description: Signac is framework for the analysis and exploration of single-cell chromatin data.
-    This package contains functions for quantifying single-cell chromatin data,
+Description: This package is for the analysis and exploration of single-cell chromatin data.
+    The package contains functions for quantifying single-cell chromatin data,
     computing per-cell quality control metrics, dimension reduction
     and normalization, visualization, and DNA sequence motif analysis.
 Depends:
