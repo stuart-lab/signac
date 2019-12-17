@@ -84,7 +84,6 @@ AverageCounts <- function(
 #'
 #' @param object A Seurat object
 #' @param group.by A grouping variable. Default is the active identities
-#' @return Returns a vector
 #' @importFrom Seurat Idents
 #' @export
 #' @return Returns a vector
@@ -119,12 +118,9 @@ CellsPerGroup <- function(
 #' @importFrom GenomicFeatures genes
 #' @importFrom GenomeInfoDb seqlevelsStyle "seqlevelsStyle<-"
 #' @importFrom methods is
-#'
 #' @return Returns a dataframe with the name of each region, the closest feature in the annotation,
 #' and the distance to the feature.
-#'
 #' @export
-#' @return Returns a dataframe
 #' @examples
 #' \dontrun{
 #' library(EnsDb.Hsapiens.v75)
@@ -652,13 +648,10 @@ GetReadsInRegion <- function(
 #'
 #' @param object A Seurat object
 #' @param assay Name of the assay use to store the fragments file path
-#'
 #' @importFrom methods slot
 #' @importFrom Seurat DefaultAssay
-#'
 #' @return Returns the path to a fragments file stored in the Assay if present
 #' @export
-#' @return Returns a string
 #' @examples
 #' \dontrun{
 #' GetFragments(object = atac_small)

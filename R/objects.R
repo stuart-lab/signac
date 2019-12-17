@@ -42,7 +42,6 @@ Motif <- setClass(
 #' @rdname AddMotifObject
 #' @method AddMotifObject Assay
 #' @export
-#' @return Returns an \code{\link[Seurat]{Assay}} object
 #' @examples
 #' obj <- GetMotifObject(atac_small[['peaks']])
 #' atac_small[['peaks']] <- AddMotifObject(object = atac_small[['peaks']], motif.object = obj)
@@ -75,7 +74,6 @@ AddMotifObject.Assay <- function(
 #' @importFrom Seurat DefaultAssay
 #' @method AddMotifObject Seurat
 #' @export
-#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
 #' obj <- GetMotifObject(object = atac_small)
 #' atac_small[['peaks']] <- AddMotifObject(object = atac_small, motif.object = obj)
@@ -170,7 +168,6 @@ CreateMotifObject <- function(
 #' @rdname GetMotifObject
 #' @method GetMotifObject Assay
 #' @export
-#' @return Returns a \code{\link{Motif}} object
 #' @examples
 #' GetMotifObject(object = atac_small[['peaks']])
 GetMotifObject.Assay <- function(object, ...) {
@@ -187,7 +184,6 @@ GetMotifObject.Assay <- function(object, ...) {
 #' @importFrom Seurat DefaultAssay GetAssay
 #' @method GetMotifObject Seurat
 #' @export
-#' @return Returns a \code{\link{Motif}} object
 #' @examples
 #' GetMotifObject(object = atac_small)
 GetMotifObject.Seurat <- function(object, assay = NULL, ...) {
@@ -202,7 +198,6 @@ GetMotifObject.Seurat <- function(object, assay = NULL, ...) {
 #' @rdname GetMotifData
 #' @method GetMotifData Motif
 #' @export
-#' @return Returns a sparse matrix
 #' @examples
 #' motif.obj <- GetMotifObject(object = atac_small[['peaks']])
 #' GetMotifData(object = motif.obj)
@@ -213,7 +208,6 @@ GetMotifData.Motif <- function(object, slot = 'data', ...) {
 #' @rdname GetMotifData
 #' @method GetMotifData Assay
 #' @export
-#' @return Returns a sparse matrix
 #' @examples
 #' GetMotifData(object = atac_small[['peaks']])
 GetMotifData.Assay <- function(object, slot = 'data', ...) {
@@ -230,7 +224,6 @@ GetMotifData.Assay <- function(object, slot = 'data', ...) {
 #' @method GetMotifData Seurat
 #' @importFrom Seurat DefaultAssay GetAssay
 #' @export
-#' @return Returns a sparse matrix
 #' @examples
 #' GetMotifData(object = atac_small)
 GetMotifData.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
@@ -245,7 +238,6 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = 'data', ...) {
 #' @rdname SetMotifData
 #' @method SetMotifData Motif
 #' @export
-#' @return Returns a \code{\link{Motif}} object
 #' @examples
 #' motif.obj <- GetMotifObject(object = atac_small)
 #' SetMotifData(object = motif.obj, slot = 'data', new.data = matrix())
@@ -269,7 +261,6 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
 #' @rdname SetMotifData
 #' @export
 #' @method SetMotifData Assay
-#' @return Returns an \code{\link[Seurat]{Assay}} object
 #' @examples
 #' SetMotifData(object = atac_small[['peaks']], slot = 'data', new.data = matrix())
 SetMotifData.Assay <- function(object, slot, new.data, ...) {
@@ -302,7 +293,6 @@ SetMotifData.Assay <- function(object, slot, new.data, ...) {
 #' @rdname SetMotifData
 #' @importFrom Seurat DefaultAssay
 #' @export
-#' @return Returns an \code{\link[Seurat]{Seurat}} object
 #' @method SetMotifData Seurat
 #' @examples
 #' motif.matrix <- GetMotifData(object = atac_small)

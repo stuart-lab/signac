@@ -26,12 +26,6 @@ GetMotifData(object, ...)
 }
 \value{
 Returns a \code{\link[Seurat]{Seurat}} object
-
-Returns a sparse matrix
-
-Returns a sparse matrix
-
-Returns a sparse matrix
 }
 \description{
 Get motif matrix for given assay

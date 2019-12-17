@@ -21,10 +21,6 @@ GetMotifObject(object, ...)
 }
 \value{
 Returns a \code{\link{Motif}} object
-
-Returns a \code{\link{Motif}} object
-
-Returns a \code{\link{Motif}} object
 }
 \description{
 Get motif object from given assay

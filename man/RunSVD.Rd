@@ -66,12 +66,6 @@ RunSVD(object, ...)
 }
 \value{
 Returns a \code{\link[Seurat]{Seurat}} object
-
-Returns a \code{\link[Seurat]{DimReduc}} object
-
-Returns an \code{\link[Seurat]{Assay}} object
-
-Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
 Run singular value decomposition

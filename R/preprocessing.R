@@ -7,7 +7,6 @@ NULL
 #' @rdname BinarizeCounts
 #' @importFrom methods is slot "slot<-"
 #' @export
-#' @return Returns a matrix
 #' @examples
 #' x <- matrix(data = sample(0:3, size = 25, replace = TRUE), ncol = 5)
 #' BinarizeCounts(x)
@@ -34,7 +33,6 @@ BinarizeCounts.default <- function(
 #' @method BinarizeCounts Assay
 #' @importFrom Seurat GetAssayData SetAssayData
 #' @export
-#' @return Returns an \code{\link[Seurat]{Assay}} object
 #' @examples
 #' BinarizeCounts(atac_small[['peaks']])
 BinarizeCounts.Assay <- function(
@@ -58,7 +56,6 @@ BinarizeCounts.Assay <- function(
 #' @method BinarizeCounts Seurat
 #' @importFrom Seurat GetAssay DefaultAssay
 #' @export
-#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
 #' BinarizeCounts(atac_small)
 BinarizeCounts.Seurat <- function(
@@ -372,7 +369,6 @@ FilterFragments <- function(
 #' @importFrom stats ecdf
 #' @rdname FindTopFeatures
 #' @export
-#' @return Returns a dataframe
 #' @examples
 #' FindTopFeatures(object = atac_small[['peaks']][])
 FindTopFeatures.default <- function(
@@ -397,7 +393,6 @@ FindTopFeatures.default <- function(
 #' @importFrom Seurat GetAssayData VariableFeatures
 #' @export
 #' @method FindTopFeatures Assay
-#' @return Returns an \code{\link[Seurat]{Assay}} object
 #' @examples
 #' FindTopFeatures(object = atac_small[['peaks']])
 FindTopFeatures.Assay <- function(
@@ -431,7 +426,6 @@ FindTopFeatures.Assay <- function(
 #' @importFrom Seurat DefaultAssay GetAssay
 #' @export
 #' @method FindTopFeatures Seurat
-#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
 #' FindTopFeatures(atac_small)
 FindTopFeatures.Seurat <- function(
@@ -630,7 +624,6 @@ NucleosomeSignal <- function(
 #' @importFrom BSgenome getSeq
 #' @rdname RegionStats
 #' @export
-#' @return Returns a dataframe
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
@@ -661,7 +654,6 @@ RegionStats.default <- function(
 #' @importFrom methods slot
 #' @importFrom Seurat GetAssayData
 #' @export
-#' @return Returns an \code{\link[Seurat]{Assay}} object
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
@@ -692,7 +684,6 @@ RegionStats.Assay <- function(
 #' @rdname RegionStats
 #' @method RegionStats Seurat
 #' @export
-#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
@@ -735,10 +726,7 @@ RegionStats.Seurat <- function(
 #' @rdname RunTFIDF
 #' @importFrom Matrix colSums rowSums t Diagonal
 #' @importFrom methods is "slot<-" slot
-#'
 #' @export
-#' @return Returns a sparse matrix
-#'
 #' @examples
 #' mat <- matrix(data = rbinom(n = 25, size = 5, prob = 0.2), nrow = 5)
 #' RunTFIDF(object = mat)
@@ -784,7 +772,6 @@ RunTFIDF.default <- function(
 #' @rdname RunTFIDF
 #' @method RunTFIDF Assay
 #' @export
-#' @return Returns an \code{\link[Seurat]{Assay}} object
 #' @examples
 #' RunTFIDF(atac_small[['peaks']])
 RunTFIDF.Assay <- function(
@@ -815,7 +802,6 @@ RunTFIDF.Assay <- function(
 #' @rdname RunTFIDF
 #' @method RunTFIDF Seurat
 #' @export
-#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
 #' RunTFIDF(object = atac_small)
 RunTFIDF.Seurat <- function(

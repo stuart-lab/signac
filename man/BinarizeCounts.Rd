@@ -27,12 +27,6 @@ and binarization will be applied to each.}
 }
 \value{
 Returns a \code{\link[Seurat]{Seurat}} object
-
-Returns a matrix
-
-Returns an \code{\link[Seurat]{Assay}} object
-
-Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
 Set counts >1 to 1 in a count matrix

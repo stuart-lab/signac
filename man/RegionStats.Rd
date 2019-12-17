@@ -40,12 +40,6 @@ end coordinates.}
 }
 \value{
 Returns a dataframe
-
-Returns a dataframe
-
-Returns an \code{\link[Seurat]{Assay}} object
-
-Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
 Compute the GC content, region lengths, and dinucleotide base frequencies
