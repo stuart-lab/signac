@@ -4,10 +4,7 @@
 NULL
 
 globalVariables(names = c('position', 'coverage', 'group'), package = 'Signac')
-#' CoveragePlot
-#'
 #' @rdname CoveragePlot
-#'
 #' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic aes ylim theme element_blank element_text
 #' @importFrom ggbio autoplot
 #' @importFrom cowplot plot_grid
@@ -47,7 +44,7 @@ SingleCoveragePlot <- function(
   idents = NULL,
   sep = c("-", "-")
 ) {
-  cells <- cells %||% colnames(x = object)
+  cells <- SetIfNull(x = cells, y = colnames(x = object))
   if (!is.null(x = idents)) {
     ident.cells <- WhichCells(object = object, idents = idents)
     cells <- intersect(x = cells, y = ident.cells)
@@ -77,7 +74,7 @@ SingleCoveragePlot <- function(
     verbose = FALSE
   )
   group.scale.factors <- reads.per.group * cells.per.group
-  scale.factor <- scale.factor %||% median(x = group.scale.factors)
+  scale.factor <- SetIfNull(x = scale.factor, y = median(x = group.scale.factors))
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
@@ -112,7 +109,7 @@ SingleCoveragePlot <- function(
   steps <- ceiling(x = (total_range / stepsize))
   retain_positions <- seq(from = start.pos, to = end.pos, by = stepsize)
   downsampled_coverage <- coverages[coverages$position %in% retain_positions, ]
-  ymax <- ymax %||% signif(x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
+  ymax <- SetIfNull(x = ymax, y = signif(x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2))
   ymin <- 0
   downsampled_coverage <- downsampled_coverage[!is.na(x = downsampled_coverage$coverage), ]
 
@@ -164,9 +161,9 @@ SingleCoveragePlot <- function(
   return(p)
 }
 
-#' CoveragePlot
+#' Plot Tn5 insertion sites over a region
 #'
-#' Plot coverage within given regions for groups of cells
+#' Plot fragment coverage (frequence of Tn5 insertion) within given regions for groups of cells.
 #'
 #' Thanks to Andrew Hill for providing an early version of this function
 #'  \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
@@ -196,6 +193,7 @@ SingleCoveragePlot <- function(
 #'
 #' @importFrom cowplot plot_grid
 #' @export
+#' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
 #' \dontrun{
 #' CoveragePlot(object = atac_small, region = c("chr1-10-10000", "chr2-20-50000"))
@@ -273,9 +271,12 @@ CoveragePlot <- function(
 #'
 #' @importFrom ggseqlogo ggseqlogo
 #' @export
+#' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
+#' \dontrun{
 #' motif.obj <- GetMotifObject(atac_small)
 #' MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
+#' }
 MotifPlot <- function(
   object,
   motifs,
@@ -309,8 +310,8 @@ globalVariables(names = 'group', package = 'Signac')
 #'
 #' @importFrom ggplot2 ggplot geom_histogram theme_bw aes facet_wrap xlim scale_y_log10
 #'
-#' @return Returns a ggplot2 object
 #' @export
+#' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
 #' \dontrun{
 #' FragmentHistogram(object = atac_small)
@@ -391,7 +392,7 @@ RegionPileup <- function(
   verbose = TRUE
 ) {
   # TODO WIP
-  cells <- cells %||% colnames(x = object)
+  cells <- SetIfNull(x = cells, y = colnames(x = object))
   full.matrix <- CreateRegionPileupMatrix(
     object = object,
     regions = regions,
@@ -430,7 +431,7 @@ RegionPileup <- function(
     normalize = FALSE
   )
   ymin <- 0
-  ymax <- ymax %||% signif(x = max(coverages$norm.value, na.rm = TRUE), digits = 2)
+  ymax <- SetIfNull(x = ymax, y = signif(x = max(coverages$norm.value, na.rm = TRUE), digits = 2))
   p <- ggplot(data = coverages, mapping = aes(x = position, y = norm.value, color = group)) +
     geom_line(stat = 'identity', size = 0.2) +
     facet_wrap(facets = ~group) +

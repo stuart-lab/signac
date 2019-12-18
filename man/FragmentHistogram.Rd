@@ -31,7 +31,7 @@ of strings.}
 \item{...}{Additional arguments passed to \code{\link{GetReadsInRegion}}}
 }
 \value{
-Returns a ggplot2 object
+Returns a \code{\link[ggplot2]{ggplot}} object
 }
 \description{
 Plot fragment length histogram

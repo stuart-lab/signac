@@ -43,8 +43,8 @@ RunChromVAR <- function(
   if (!requireNamespace('SummarizedExperiment', quietly = TRUE)) {
     stop("Please install SummarizedExperiment")
   }
-  assay <- assay %||% DefaultAssay(object = object)
-  motif.matrix <- motif.matrix %||% GetMotifData(object = object, assay = assay, slot = 'data')
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  motif.matrix <- SetIfNull(x = motif.matrix, y = GetMotifData(object = object, assay = assay, slot = 'data'))
   peak.matrix <- GetAssayData(object = object, assay = assay, slot = 'counts')
   if (!(all(peak.matrix@x == floor(peak.matrix@x)))) {
     warning("Count matrix contains non-integer values. ChromVAR should only be run on integer counts.")
@@ -127,8 +127,8 @@ FindMotifs <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
-  background <- background %||% rownames(x = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  background <- SetIfNull(x = background, y = rownames(x = object))
   if (is(object = background, class2 = 'numeric')) {
     if (verbose) {
       message("Selecting background regions to match input sequence characteristics")

@@ -4,7 +4,8 @@
 \alias{Motifs}
 \alias{Motifs.ChromatinAssay}
 \alias{Motifs.Seurat}
-\title{Motifs}
+\title{Motifs
+Retrieve a Motif object}
 \usage{
 Motifs(object, ...)
 

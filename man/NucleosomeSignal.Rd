@@ -30,7 +30,8 @@ NucleosomeSignal(
 \item{...}{Additional arguments passed to \code{\link{GetReadsInRegion}}}
 }
 \value{
-Returns a Seurat object with added metadata for the ratio of mononucleosomal to nucleosome-free fragments
+Returns a \code{\link[Seurat]{Seurat}} object with
+added metadata for the ratio of mononucleosomal to nucleosome-free fragments
 per cell, and the percentile rank of each ratio.
 }
 \description{

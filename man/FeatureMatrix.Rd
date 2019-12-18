@@ -30,6 +30,9 @@ and coordinates, second separator is used to separate start and end coordinates.
 
 \item{verbose}{Display messages}
 }
+\value{
+Returns a sparse matrix
+}
 \description{
 Construct a feature x cell matrix from a genomic fragments file
 }

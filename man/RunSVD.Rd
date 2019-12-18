@@ -5,7 +5,7 @@
 \alias{RunSVD.default}
 \alias{RunSVD.Assay}
 \alias{RunSVD.Seurat}
-\title{RunSVD}
+\title{Run singular value decomposition}
 \usage{
 RunSVD(object, ...)
 
@@ -68,14 +68,20 @@ RunSVD(object, ...)
 \item{reduction.name}{Name for stored dimension reduction object. Default 'lsi'}
 }
 \value{
-Returns a Seurat object
+Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
-Run singular value decomposition
+Run partial singular value decomposition using \code{\link[irlba]{irlba}}
 }
 \examples{
+\dontrun{
 x <- matrix(data = rnorm(100), ncol = 10)
 RunSVD(x)
+}
+\dontrun{
 RunSVD(atac_small[['peaks']])
+}
+\dontrun{
 RunSVD(atac_small)
+}
 }

@@ -15,6 +15,9 @@ FractionCountsInRegion(object, assay, regions, ...)
 
 \item{...}{Additional arguments passed to \code{\link{CountsInRegion}}}
 }
+\value{
+Returns a numeric vector
+}
 \description{
 Find the fraction of counts per cell that overlap a given set of genomic ranges
 }

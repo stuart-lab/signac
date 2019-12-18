@@ -27,7 +27,7 @@ RegionStats(object, ...)
 \item{assay}{Name of assay to use}
 }
 \value{
-Returns a Seurat object
+Returns a dataframe
 }
 \description{
 Compute the GC content, region lengths, and dinucleotide base frequencies
