@@ -17,13 +17,18 @@ CountsInRegion(object, assay, regions, sep = c("-", "-"), ...)
 
 \item{...}{Additional arguments passed to \code{\link[IRanges]{findOverlaps}}}
 }
+\value{
+Returns a numeric vector
+}
 \description{
 Count reads per cell overlapping a given set of regions
 }
 \examples{
+\dontrun{
 CountsInRegion(
   object = atac_small,
   assay = 'bins',
   regions = blacklist_hg19
 )
+}
 }

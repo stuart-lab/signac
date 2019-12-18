@@ -5,7 +5,7 @@
 \alias{GetMotifData.Motif}
 \alias{GetMotifData.Assay}
 \alias{GetMotifData.Seurat}
-\title{GetMotifData}
+\title{Retrieve a motif matrix}
 \usage{
 GetMotifData(object, ...)
 
@@ -25,7 +25,7 @@ GetMotifData(object, ...)
 \item{assay}{Which assay to use. Default is the current active assay}
 }
 \value{
-Returns a Seurat object
+Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
 Get motif matrix for given assay
