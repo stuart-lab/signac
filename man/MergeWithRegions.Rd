@@ -53,7 +53,7 @@ be recorded. Default is 0.}
 \item{...}{Additional arguments passed to \code{\link[Seurat]{CreateAssayObject}}}
 }
 \value{
-Returns a Seurat object
+Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
 This will find intersecting regions in both objects and rename the

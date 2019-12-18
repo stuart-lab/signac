@@ -53,8 +53,10 @@ Jaccard <- function(x, y) {
 #' @rdname RunSVD
 #' @export
 #' @examples
+#' \dontrun{
 #' x <- matrix(data = rnorm(100), ncol = 10)
 #' RunSVD(x)
+#' }
 RunSVD.default <- function(
   object,
   assay = NULL,
@@ -107,7 +109,9 @@ RunSVD.default <- function(
 #' @export
 #' @method RunSVD Assay
 #' @examples
+#' \dontrun{
 #' RunSVD(atac_small[['peaks']])
+#' }
 RunSVD.Assay <- function(
   object,
   assay = NULL,
@@ -118,7 +122,7 @@ RunSVD.Assay <- function(
   verbose = TRUE,
   ...
 ) {
-  features <- features %||% VariableFeatures(object = object)
+  features <- SetIfNull(x = features, y = VariableFeatures(object = object))
   data.use <- GetAssayData(
     object = object,
     slot = 'data'
@@ -140,7 +144,9 @@ RunSVD.Assay <- function(
 #' @rdname RunSVD
 #' @export
 #' @examples
+#' \dontrun{
 #' RunSVD(atac_small)
+#' }
 #' @method RunSVD Seurat
 RunSVD.Seurat <- function(
   object,
@@ -153,7 +159,7 @@ RunSVD.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   assay.data <- GetAssay(object = object, assay = assay)
   reduction.data <- RunSVD(
     object = assay.data,

@@ -5,7 +5,7 @@
 \alias{RunTFIDF.default}
 \alias{RunTFIDF.Assay}
 \alias{RunTFIDF.Seurat}
-\title{RunTFIDF}
+\title{Compute the term-frequency inverse-document-frequency}
 \usage{
 RunTFIDF(object, ...)
 
@@ -56,12 +56,10 @@ RunTFIDF(object, ...)
 \item{verbose}{Print progress}
 }
 \value{
-Returns a Seurat object
-
-Returns a sparse matrix
+Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
-Run term frequency inverse document frequency normalization
+Run term frequency inverse document frequency (TF-IDF) normalization
 }
 \examples{
 mat <- matrix(data = rbinom(n = 25, size = 5, prob = 0.2), nrow = 5)

@@ -15,6 +15,9 @@ AverageCounts(object, assay = NULL, group.by = NULL, verbose = TRUE)
 
 \item{verbose}{Display messages}
 }
+\value{
+Returns a dataframe
+}
 \description{
 Compute the mean counts per group of cells for a given assay
 }
