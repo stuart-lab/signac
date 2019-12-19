@@ -77,7 +77,7 @@ LinkPeaks <- function(
   for (i in seq_along(along.with = genes.use)) {
     peak.use <- as.logical(x = peak_distance_matrix[, genes.use[[i]]])
     gene.expression <- expression.data[genes.use[[i]], ]
-    if (sum(peak.use) < 1) {
+    if (sum(peak.use) < 2) {
       # no peaks close to gene
       if (verbose) setTxtProgressBar(pb = pb, value = i)
       next
