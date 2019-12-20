@@ -21,6 +21,7 @@ NULL
 #' @param expression.threshold Minimum value for a gene to be classified as expressed. Only used for filtering genes from regression.
 #' @param keep.all Retain all peaks in the output. Useful for knowing what peaks had 0 coefficient and what were not tested due to
 #' expression or accessibility thresholds.
+#' @param genes.use Genes to test. If NULL, determine from expression assay.
 #' @param verbose Display messages
 #'
 #' @importFrom Seurat GetAssayData
@@ -42,6 +43,7 @@ LinkPeaks <- function(
   distance = 5e+05,
   min.cells = 10,
   expression.threshold = 0.1,
+  genes.use = NULL,
   keep.all = FALSE,
   verbose = TRUE
 ) {
@@ -51,11 +53,16 @@ LinkPeaks <- function(
   genecounts <- rowSums(expression.data > expression.threshold)
   peaks.keep <- peakcounts > min.cells
   genes.keep <- genecounts > min.cells
-  if (verbose) {
-    message("Testing ", sum(genes.keep), " genes and ", sum(peaks.keep), " peaks")
-  }
   peak.data <- peak.data[peaks.keep, ]
-  expression.data <- expression.data[genes.keep, ]
+  if (is.null(x = genes.use)) {
+    expression.data <- expression.data[genes.keep, ]
+  } else {
+    genes.keep <- intersect(names(genes.keep[genes.keep]), genes.use)
+    expression.data <- expression.data[genes.keep, ]
+  }
+  if (verbose) {
+    message("Testing ", nrow(expression.data), " genes and ", sum(peaks.keep), " peaks")
+  }
   if (binary) {
     peak.data <- BinarizeCounts(object = peak.data)
   }

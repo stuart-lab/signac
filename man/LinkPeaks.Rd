@@ -15,6 +15,7 @@ LinkPeaks(
   distance = 5e+05,
   min.cells = 10,
   expression.threshold = 0.1,
+  genes.use = NULL,
   keep.all = FALSE,
   verbose = TRUE
 )
@@ -39,6 +40,8 @@ LinkPeaks(
 \item{min.cells}{Minimum number of cells positive for the peak and gene needed to include in the results.}
 
 \item{expression.threshold}{Minimum value for a gene to be classified as expressed. Only used for filtering genes from regression.}
+
+\item{genes.use}{Genes to test. If NULL, determine from expression assay.}
 
 \item{keep.all}{Retain all peaks in the output. Useful for knowing what peaks had 0 coefficient and what were not tested due to
 expression or accessibility thresholds.}
