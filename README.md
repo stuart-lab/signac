@@ -18,5 +18,5 @@ install.packages("Signac")
 
 # To install the development version of Signac from GitHub
 install.packages("devtools")
-devtools::install_github("timoast/signac")
+devtools::install_github("timoast/signac", ref = "develop")
 ```
