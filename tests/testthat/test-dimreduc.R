@@ -34,19 +34,19 @@ test_that("LSI works", {
 
   expect_equal(
     object = as.vector(embeddings[1,]),
-    expected = c(-1.1359375,-0.54487602,0.8306875,0.85012602),
+    expected = c(-1.1359375,-0.5448760,0.8306875,0.8501260),
     tolerance = 1/1000
   )
   expect_equal(
     object = as.vector(loadings[1,]),
-    expected = c(-0.4024075,-0.42924685,-0.64636436,0.1740785),
+    expected = c(-0.4024075,-0.4292469,-0.6463644,0.1740785),
     tolerance = 1/1000
   )
 })
 
 test_that("Jaccard works", {
-  set.seed(seed = 1)
+  set.seed(1)
   mat <- matrix(data = sample(x = c(0,1), size = 25, replace = TRUE), nrow = 5)
   jm <- Jaccard(x = mat, y = mat)
-  expect_equal(object = jm[1,], expected = c(1, 1/3, 4/10, 1/3, 0))
+  expect_equal(object = jm[1,], expected = c(1, 1/3, 2/5, 1/3, 0))
 })
