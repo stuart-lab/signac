@@ -24,7 +24,7 @@ Returns a \code{\link[ggplot2]{ggplot}} object
 Plot motifs
 }
 \examples{
-\dontrun{
+\donttest{
 motif.obj <- GetMotifObject(atac_small)
 MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
 }

@@ -41,10 +41,11 @@ depending on the size of the fragments file.
 }
 \examples{
 \dontrun{
+output.path = file.path(tempdir(), "filtered.tsv")
 FilterFragments(
   fragment.path = GetFragments(atac_small),
   cells = colnames(atac_small),
-  output.path = "./filtered.tsv"
+  output.path = output.path
 )
 }
 }

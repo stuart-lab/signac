@@ -71,14 +71,14 @@ Returns a \code{\link[Seurat]{Seurat}} object
 Run partial singular value decomposition using \code{\link[irlba]{irlba}}
 }
 \examples{
-\dontrun{
+\donttest{
 x <- matrix(data = rnorm(100), ncol = 10)
 RunSVD(x)
 }
-\dontrun{
+\donttest{
 RunSVD(atac_small[['peaks']])
 }
-\dontrun{
+\donttest{
 RunSVD(atac_small)
 }
 }
