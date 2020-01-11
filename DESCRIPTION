@@ -22,7 +22,6 @@ RoxygenNote: 7.0.2
 URL: https://github.com/timoast/signac, https://satijalab.org/signac
 BugReports: https://github.com/timoast/signac/issues
 Imports: 
-    AnnotationFilter,
     BiocGenerics,
     GenomeInfoDb,
     GenomicFeatures,
@@ -36,7 +35,6 @@ Imports:
     dplyr,
     future,
     future.apply,
-    ggbio,
     ggplot2,
     ggseqlogo,
     irlba,
@@ -46,7 +44,8 @@ Imports:
     patchwork,
     Biostrings,
     BSgenome,
-    AnnotationDbi
+    AnnotationDbi,
+    gggenes
 Collate: 
     'data.R'
     'generics.R'
