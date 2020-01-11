@@ -9,6 +9,7 @@ SingleCoveragePlot(
   object,
   region,
   annotation = NULL,
+  peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
   group.by = NULL,
@@ -17,6 +18,7 @@ SingleCoveragePlot(
   height.tracks = 2,
   extend.upstream = 0,
   extend.downstream = 0,
+  ranges = NULL,
   ymax = NULL,
   scale.factor = NULL,
   cells = NULL,
@@ -28,6 +30,7 @@ CoveragePlot(
   object,
   region,
   annotation = NULL,
+  peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
   group.by = NULL,
@@ -51,6 +54,8 @@ CoveragePlot(
 coordinates to plot.}
 
 \item{annotation}{An Ensembl based annotation package}
+
+\item{peaks}{A GRanges object containing peak coordinates}
 
 \item{assay}{Name of the  assay to plot}
 
@@ -82,7 +87,7 @@ determined by total number of fragments sequences in each group.}
 \item{sep}{Separators to use for strings encoding genomic coordinates. First element is used to separate the
 chromosome from the coordinates, second element is used to separate the start from end coordinate.}
 
-\item{...}{Additional arguments passed to \code{\link[cowplot]{plot_grid}}}
+\item{...}{Additional arguments passed to \code{\link[patchwork]{wrap_plots}}}
 }
 \value{
 Returns a \code{\link[ggplot2]{ggplot}} object

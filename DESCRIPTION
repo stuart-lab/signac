@@ -43,7 +43,7 @@ Imports:
     pbapply,
     tidyr,
     zoo,
-    cowplot,
+    patchwork,
     Biostrings,
     BSgenome,
     AnnotationDbi
