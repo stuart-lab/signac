@@ -10,6 +10,8 @@
 * Added ability to plot peak ranges in `CoveragePlot`
 * Added ability to plot gene annotations from `GRanges` object
 * Changed gene plot style in `CoveragePlot`
+* Allow passing additional arguments to `FilterFragments`
+* Add inst/extdata 
 * Change DESCRIPTION file so that Bioconductor dependencies are automatically installed
 
 # Signac 0.1.6
