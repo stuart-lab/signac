@@ -19,7 +19,7 @@ Retrieve path to fragments file from assay object, and checks that the file exis
 is indexed before returning the file path.
 }
 \examples{
-\dontrun{
+fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+atac_small <- SetFragments(object = atac_small, file = fpath)
 GetFragments(object = atac_small)
-}
 }

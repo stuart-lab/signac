@@ -11,7 +11,8 @@ FilterFragments(
   assume.sorted = FALSE,
   compress = TRUE,
   index = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ fail if assumption is wrong.}
 \item{index}{Index the filtered tabix file (default TRUE)}
 
 \item{verbose}{Display messages}
+
+\item{...}{Additional arguments passed to \code{\link[data.table]{fread}}}
 }
 \value{
 None
