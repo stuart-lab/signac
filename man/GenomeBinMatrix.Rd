@@ -34,6 +34,9 @@ and coordinates, second separator is used to separate start and end coordinates.
 
 \item{verbose}{Display messages}
 }
+\value{
+Returns a sparse matrix
+}
 \description{
 Construct a bin x cell matrix from a fragments file.
 }

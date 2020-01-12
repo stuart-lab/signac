@@ -17,10 +17,15 @@ MotifPlot(object, motifs, assay = NULL, use.names = TRUE, ...)
 
 \item{...}{Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}}
 }
+\value{
+Returns a \code{\link[ggplot2]{ggplot}} object
+}
 \description{
 Plot motifs
 }
 \examples{
+\donttest{
 motif.obj <- GetMotifObject(atac_small)
 MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
+}
 }

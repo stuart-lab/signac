@@ -4,19 +4,14 @@ NULL
 
 # Set a default value if an object is null
 #
-# @param lhs An object to set if it's null
-# @param rhs The value to provide if x is null
-#
-# @return rhs if lhs is null, else lhs
-#
-# @author Hadley Wickham
-# @references https://adv-r.hadley.nz/functions.html#missing-arguments
-#
-`%||%` <- function(lhs, rhs) {
-  if (!is.null(x = lhs)) {
-    return(lhs)
+# @param x An object to set if it's null
+# @param y The value to provide if x is null
+# @return Returns y if x is null, otherwise returns x.
+SetIfNull <- function(x, y) {
+  if (is.null(x = x)) {
+    return(y)
   } else {
-    return(rhs)
+    return(x)
   }
 }
 
@@ -27,8 +22,8 @@ AddToMisc <- function(
   save.as,
   assay = NULL
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
-  misc.slot <- Misc(object = object[[assay]]) %||% list()
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  misc.slot <- SetIfNull(x = Misc(object = object[[assay]]), y = list())
   if (!inherits(x = misc.slot, what = 'list')) {
     warning("Misc slot already occupied")
   } else{
@@ -51,6 +46,7 @@ globalVariables(names = c('group', 'readcount'), package = 'Signac')
 #' @importFrom Matrix colSums
 #' @importFrom dplyr group_by summarize
 #' @export
+#' @return Returns a dataframe
 #' @examples
 #' AverageCounts(atac_small)
 AverageCounts <- function(
@@ -59,7 +55,7 @@ AverageCounts <- function(
   group.by = NULL,
   verbose = TRUE
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (is.null(x = group.by)) {
     group.by <- Idents(object = object)
   } else {
@@ -88,9 +84,9 @@ AverageCounts <- function(
 #'
 #' @param object A Seurat object
 #' @param group.by A grouping variable. Default is the active identities
-#' @return Returns a vector
 #' @importFrom Seurat Idents
 #' @export
+#' @return Returns a vector
 #' @examples
 #' CellsPerGroup(atac_small)
 CellsPerGroup <- function(
@@ -122,10 +118,8 @@ CellsPerGroup <- function(
 #' @importFrom GenomicFeatures genes
 #' @importFrom GenomeInfoDb seqlevelsStyle "seqlevelsStyle<-"
 #' @importFrom methods is
-#'
 #' @return Returns a dataframe with the name of each region, the closest feature in the annotation,
 #' and the distance to the feature.
-#'
 #' @export
 #' @examples
 #' \dontrun{
@@ -153,7 +147,8 @@ ClosestFeature <- function(
   nearest_feature <- distanceToNearest(x = regions, subject = annotation)
   feature_hits <- annotation[subjectHits(x = nearest_feature)]
   df <- as.data.frame(x = mcols(x = feature_hits))
-  df$region <- GRangesToString(grange = feature_hits)
+  df$closest_region <- GRangesToString(grange = feature_hits, ...)
+  df$query_region <- GRangesToString(grange = regions, ...)
   df$distance <- mcols(x = nearest_feature)$distance
   return(df)
 }
@@ -278,8 +273,8 @@ GetIntersectingFeatures <- function(
   sep.2 = c("-", "-"),
   verbose = TRUE
 ) {
-  assay.1 <- assay.1 %||% DefaultAssay(object = object.1)
-  assay.2 <- assay.2 %||% DefaultAssay(object = object.2)
+  assay.1 <- SetIfNull(x = assay.1, y = DefaultAssay(object = object.1))
+  assay.2 <- SetIfNull(x = assay.2, y = DefaultAssay(object = object.2))
   regions.1 <- StringToGRanges(regions = rownames(x = object.1[[assay.1]]), sep = sep.1)
   regions.2 <- StringToGRanges(regions = rownames(x = object.2[[assay.2]]), sep = sep.2)
   if (verbose) {
@@ -309,16 +304,16 @@ GetIntersectingFeatures <- function(
 #'
 #' @importFrom methods "slot<-" slot is
 #' @export
+#' @return Returns a Seurat object
 #' @examples
-#' \dontrun{
-#' SetFragments(object = atac_small, file = "./fragments.tsv.bgz")
-#' }
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' SetFragments(object = atac_small, file = fpath)
 SetFragments <- function(
   object,
   file,
   assay = NULL
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!(assay %in% names(x = slot(object = object, name = 'assays')))) {
     stop('Requested assay not present in object')
   }
@@ -347,7 +342,6 @@ SetFragments <- function(
 #' @examples
 #' regions <- c('chr1-1-10', 'chr2-12-3121')
 #' StringToGRanges(regions = regions)
-#'
 #' @export
 StringToGRanges <- function(regions, sep = c("-", "-")) {
   ranges.df <- data.frame(ranges = regions)
@@ -371,7 +365,7 @@ StringToGRanges <- function(regions, sep = c("-", "-")) {
 #' @importFrom GenomicRanges seqnames start end
 #' @examples
 #' GRangesToString(grange = blacklist_hg19)
-#'
+#' @return Returns a character vector
 #' @export
 GRangesToString <- function(grange, sep = c("-", "-")) {
   regions <- paste0(
@@ -430,12 +424,12 @@ ChunkGRanges <- function(granges, nchunk) {
 #' @return Returns a sparse matrix
 #' @export
 #' @examples
-#' \dontrun{
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' atac_small <- SetFragments(atac_small, file = fpath)
 #' CutMatrix(
 #'  object = atac_small,
-#'  region = StringToGRanges("chr15-102404831-102407364")
+#'  region = StringToGRanges("chr1-10245-762629")
 #' )
-#' }
 CutMatrix <- function(
   object,
   region,
@@ -447,7 +441,7 @@ CutMatrix <- function(
   if (!inherits(x = region, what = 'GRanges')) {
     stop("Region is not a GRanges object.")
   }
-  all.cells <- cells %||% colnames(x = object)
+  all.cells <- SetIfNull(x = cells, y = colnames(x = object))
   if (is.null(x = tabix.file)) {
     fragment.path <- GetFragments(object = object, assay = assay)
   }
@@ -503,6 +497,7 @@ CutMatrix <- function(
 #' @importFrom GenomicRanges strand start end trim
 #' @importFrom IRanges ranges IRanges "ranges<-"
 #' @export
+#' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
 #' @examples
 #' Extend(x = blacklist_hg19, upstream = 100, downstream = 100)
 Extend <- function(
@@ -541,10 +536,10 @@ Extend <- function(
 #' @importFrom Rsamtools TabixFile scanTabix
 #' @importFrom methods is
 #' @export
+#' @return Returns a list
 #' @examples
-#' \dontrun{
-#' GetCellsInRegion(tabix = "fragments.tsv.bgz", region = "chr1-565107-565550")
-#' }
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' GetCellsInRegion(tabix = fpath, region = "chr1-10245-762629")
 GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
   if (!is(object = region, class2 = 'GRanges')) {
     region <- StringToGRanges(regions = region)
@@ -591,10 +586,10 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 #' @return Returns a data frame
 #' @export
 #' @examples
-#' \dontrun{
-#' region <- StringToGRanges(regions = "chr1-565107-565550")
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' atac_small <- SetFragments(object = atac_small, file = fpath)
+#' region <- StringToGRanges(regions = "chr1-10245-762629")
 #' GetReadsInRegion(object = atac_small, region = region)
-#' }
 GetReadsInRegion <- function(
   object,
   region,
@@ -605,7 +600,7 @@ GetReadsInRegion <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (is.null(x = group.by)) {
     group.by <- Idents(object = object)
   } else {
@@ -651,21 +646,19 @@ GetReadsInRegion <- function(
 #'
 #' @param object A Seurat object
 #' @param assay Name of the assay use to store the fragments file path
-#'
 #' @importFrom methods slot
 #' @importFrom Seurat DefaultAssay
-#'
 #' @return Returns the path to a fragments file stored in the Assay if present
 #' @export
 #' @examples
-#' \dontrun{
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' atac_small <- SetFragments(object = atac_small, file = fpath)
 #' GetFragments(object = atac_small)
-#' }
 GetFragments <- function(
   object,
   assay = NULL
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   tools <- slot(object = object, name = 'tools')
   if ('fragments' %in% names(x = tools)) {
     if (assay %in% names(x = tools$fragments)) {
@@ -698,6 +691,7 @@ GetFragments <- function(
 #' @importFrom Matrix colSums
 #'
 #' @export
+#' @return Returns a numeric vector
 #' @examples
 #' CountsInRegion(
 #'   object = atac_small,
@@ -726,6 +720,7 @@ CountsInRegion <- function(
 #'
 #' @param x List of character vectors
 #' @export
+#' @return Returns a string
 #' @examples
 #' ExtractCell(x = "chr1\t1\t10\tatcg\t1")
 ExtractCell <- function(x) {
@@ -750,6 +745,7 @@ ExtractCell <- function(x) {
 #' @importFrom Seurat GetAssayData
 #'
 #' @export
+#' @return Returns a numeric vector
 #' @examples
 #' FractionCountsInRegion(
 #'   object = atac_small,
@@ -817,6 +813,7 @@ GetGroups <- function(
 #' @importFrom S4Vectors queryHits
 #'
 #' @export
+#' @return Returns a sparse matrix
 #' @examples
 #' \dontrun{
 #' library(Seurat)
@@ -953,7 +950,7 @@ MatchRegionStats <- function(
 #' @importFrom utils packageVersion
 #'
 #' @export
-#' @return Returns a Seurat object
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
 #' MergeWithRegions(
 #'   object.1 = atac_small,
@@ -977,8 +974,8 @@ MergeWithRegions <- function(
   verbose = TRUE,
   ...
 ) {
-  assay.1 <- assay.1 %||% DefaultAssay(object = object.1)
-  assay.2 <- assay.2 %||% DefaultAssay(object = object.2)
+  assay.1 <- SetIfNull(x = assay.1, y = DefaultAssay(object = object.1))
+  assay.2 <- SetIfNull(x = assay.2, y = DefaultAssay(object = object.2))
   intersecting.regions <- GetIntersectingFeatures(
     object.1 = object.1,
     object.2 = object.2,
@@ -1187,7 +1184,7 @@ ApplyMatrixByGroup <- function(
   }
   coverages <- as.data.frame(x = do.call(what = rbind, args = results), stringsAsFactors = FALSE)
   if (normalize) {
-    scale.factor <- scale.factor %||% median(x = group.scale.factors)
+    scale.factor <- SetIfNull(x = scale.factor, y = median(x = group.scale.factors))
     coverages$norm.value <- coverages$count / group.scale.factors[coverages$group] * scale.factor
   } else {
     coverages$norm.value <- coverages$count

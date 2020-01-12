@@ -3,18 +3,11 @@
 #'
 NULL
 
-globalVariables(names = c('position', 'coverage', 'group'), package = 'Signac')
-#' CoveragePlot
-#'
+globalVariables(names = c('position', 'coverage', 'group', 'gene_name'), package = 'Signac')
 #' @rdname CoveragePlot
-#'
-#' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic aes ylim theme element_blank element_text
-#' @importFrom ggbio autoplot
-#' @importFrom cowplot plot_grid
-#' @importFrom AnnotationFilter GRangesFilter AnnotationFilterList GeneBiotypeFilter
-#' @importFrom AnnotationDbi select
+#' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic aes ylim theme element_blank element_text geom_segment
 #' @importFrom GenomicRanges GRanges
-#' @importFrom IRanges IRanges
+#' @importFrom IRanges IRanges subsetByOverlaps
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom BiocGenerics start end
 #' @importFrom Seurat WhichCells Idents
@@ -23,7 +16,8 @@ globalVariables(names = c('position', 'coverage', 'group'), package = 'Signac')
 #' @importFrom stats median
 #' @importFrom dplyr mutate group_by ungroup
 #' @importFrom zoo rollapply
-#'
+#' @importFrom gggenes geom_gene_arrow geom_gene_label
+#' @import patchwork
 #' @export
 #' @examples
 #' \dontrun{
@@ -33,6 +27,8 @@ SingleCoveragePlot <- function(
   object,
   region,
   annotation = NULL,
+  ucsc = TRUE,
+  peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
   group.by = NULL,
@@ -47,7 +43,7 @@ SingleCoveragePlot <- function(
   idents = NULL,
   sep = c("-", "-")
 ) {
-  cells <- cells %||% colnames(x = object)
+  cells <- SetIfNull(x = cells, y = colnames(x = object))
   if (!is.null(x = idents)) {
     ident.cells <- WhichCells(object = object, idents = idents)
     cells <- intersect(x = cells, y = ident.cells)
@@ -77,7 +73,7 @@ SingleCoveragePlot <- function(
     verbose = FALSE
   )
   group.scale.factors <- reads.per.group * cells.per.group
-  scale.factor <- scale.factor %||% median(x = group.scale.factors)
+  scale.factor <- SetIfNull(x = scale.factor, y = median(x = group.scale.factors))
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
@@ -112,9 +108,14 @@ SingleCoveragePlot <- function(
   steps <- ceiling(x = (total_range / stepsize))
   retain_positions <- seq(from = start.pos, to = end.pos, by = stepsize)
   downsampled_coverage <- coverages[coverages$position %in% retain_positions, ]
-  ymax <- ymax %||% signif(x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
+  ymax <- SetIfNull(x = ymax, y = signif(x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2))
   ymin <- 0
   downsampled_coverage <- downsampled_coverage[!is.na(x = downsampled_coverage$coverage), ]
+
+  gr <- GRanges(
+    seqnames = chromosome,
+    IRanges(start = start.pos, end = end.pos)
+  )
 
   p <- ggplot(data = downsampled_coverage, mapping = aes(x = position, y = coverage, fill = group)) +
     geom_area(stat = 'identity') +
@@ -129,40 +130,84 @@ SingleCoveragePlot <- function(
       legend.position = 'none',
       strip.text.y = element_text(angle = 0)
     )
-  if (!is.null(x = annotation)) {
-    gr <- GRanges(
-      seqnames = gsub(pattern = 'chr', replacement = '', x = chromosome),
-      IRanges(start = start.pos, end = end.pos)
+  if (!is.null(x = peaks)) {
+    # subset to covered range
+    peak.intersect <- subsetByOverlaps(x = peaks, ranges = gr)
+    peak.df <- as.data.frame(x = peak.intersect)
+    peak.plot <- ggplot(peak.df) +
+      geom_segment(aes(x = start, y = 0, xend = end, yend = 0, size = 2), data = peak.df) +
+      theme_classic() +
+      ylab("Peaks") +
+      theme(axis.ticks.y = element_blank(),
+            axis.text.y = element_blank(),
+            axis.ticks.x = element_blank(),
+            legend.position = 'none') +
+      xlab(label = paste0(chromosome, ' position (bp)')) +
+      xlim(c(start.pos, end.pos))
+    # remove axis from coverage plot
+    p <- p + theme(
+      axis.title.x = element_blank(),
+      axis.text.x = element_blank(),
+      axis.line.x.bottom = element_blank(),
+      axis.ticks.x.bottom = element_blank()
     )
-    filters <- AnnotationFilterList(GRangesFilter(value = gr), GeneBiotypeFilter(value = 'protein_coding'))
-    if (suppressMessages(expr = nrow(x = select(x = annotation, filters)) > 0)) {
-      genes <- suppressMessages(expr = autoplot(object = annotation, filters, names.expr = 'gene_name'))
-      gene.plot <- genes@ggplot +
-        xlim(start.pos, end.pos) +
-        xlab(label = paste0(chromosome, ' position (bp)')) +
-        theme_classic()
+  } else {
+    peak.plot <- NULL
+  }
+  if (!is.null(x = annotation)) {
+    if (inherits(x = annotation, what = 'EnsDb')) {
+      annotation.use <- genes(x = annotation)
+    } else if(!inherits(x = annotation, what = 'GRanges')) {
+      stop("Annotation must be a GRanges object or EnsDb object. Skipping annotation plot.")
+    } else {
+      annotation.use <- annotation
+    }
+    if (ucsc) {
+      seqlevelsStyle(x = annotation.use) <- 'UCSC'
+    }
+    annotation.subset <- subsetByOverlaps(x = annotation.use, ranges = gr)
+    annotation.df <- as.data.frame(x = annotation.subset)
+
+    gene.plot <- ggplot(annotation.df, aes(xmin = start, xmax = end, y = seqnames, fill = gene_name, label = gene_name)) +
+      geom_gene_arrow() +
+      geom_gene_label() +
+      xlim(start.pos, end.pos) +
+      xlab(label = paste0(chromosome, ' position (bp)')) +
+      ylab("Genes") +
+      theme_classic() +
+      theme(legend.position = 'none',
+            axis.ticks.y = element_blank(),
+            axis.text.y = element_blank())
+
+      # remove axis from coverage plot
       p <- p + theme(
         axis.title.x = element_blank(),
         axis.text.x = element_blank(),
         axis.line.x.bottom = element_blank(),
         axis.ticks.x.bottom = element_blank()
       )
-      p <- suppressWarnings(plot_grid(
-        p, gene.plot,
-        ncol = 1,
-        axis = 'btlr',
-        rel_heights = c(height.tracks, 1),
-        align = 'v',
-        greedy = FALSE
-      ))
+      if (!is.null(x = peak.plot)) {
+        peak.plot <- peak.plot + theme(
+          axis.title.x = element_blank(),
+          axis.text.x = element_blank(),
+          axis.line.x.bottom = element_blank(),
+          axis.ticks.x.bottom = element_blank()
+        )
+        p <- p + peak.plot + gene.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1, 1))
+      } else {
+        p <- p + gene.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1))
+      }
+    } else {
+    if (!is.null(peak.plot)) {
+      p <- p + peak.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1))
     }
   }
   return(p)
 }
 
-#' CoveragePlot
+#' Plot Tn5 insertion sites over a region
 #'
-#' Plot coverage within given regions for groups of cells
+#' Plot fragment coverage (frequence of Tn5 insertion) within given regions for groups of cells.
 #'
 #' Thanks to Andrew Hill for providing an early version of this function
 #'  \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
@@ -171,6 +216,8 @@ SingleCoveragePlot <- function(
 #' @param region A set of genomic coordinates to show. Can be a GRanges object, a string, or a vector of strings describing the genomic
 #' coordinates to plot.
 #' @param annotation An Ensembl based annotation package
+#' @param ucsc Set annotation seqlevels style to UCSC
+#' @param peaks A GRanges object containing peak coordinates
 #' @param assay Name of the  assay to plot
 #' @param fragment.path Path to an index fragment file. If NULL, will look for a path stored for the
 #' requested assay using the \code{\link{SetFragments}} function
@@ -188,10 +235,11 @@ SingleCoveragePlot <- function(
 #' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
 #' @param sep Separators to use for strings encoding genomic coordinates. First element is used to separate the
 #' chromosome from the coordinates, second element is used to separate the start from end coordinate.
-#' @param ... Additional arguments passed to \code{\link[cowplot]{plot_grid}}
+#' @param ... Additional arguments passed to \code{\link[patchwork]{wrap_plots}}
 #'
-#' @importFrom cowplot plot_grid
+#' @importFrom patchwork wrap_plots
 #' @export
+#' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
 #' \dontrun{
 #' CoveragePlot(object = atac_small, region = c("chr1-10-10000", "chr2-20-50000"))
@@ -200,6 +248,8 @@ CoveragePlot <- function(
   object,
   region,
   annotation = NULL,
+  ucsc = TRUE,
+  peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
   group.by = NULL,
@@ -221,6 +271,8 @@ CoveragePlot <- function(
       FUN = SingleCoveragePlot,
       object = object,
       annotation = annotation,
+      ucsc = ucsc,
+      peaks = peaks,
       assay = assay,
       fragment.path = fragment.path,
       group.by = group.by,
@@ -234,12 +286,14 @@ CoveragePlot <- function(
       idents = idents,
       sep = sep
     )
-    return(plot_grid(plotlist = plot.list, ...))
+    return(wrap_plots(plot.list, ...))
   } else {
     return(SingleCoveragePlot(
       object = object,
       region = region,
       annotation = annotation,
+      ucsc = ucsc,
+      peaks = peaks,
       assay = assay,
       fragment.path = fragment.path,
       group.by = group.by,
@@ -269,9 +323,12 @@ CoveragePlot <- function(
 #'
 #' @importFrom ggseqlogo ggseqlogo
 #' @export
+#' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
+#' \donttest{
 #' motif.obj <- GetMotifObject(atac_small)
 #' MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
+#' }
 MotifPlot <- function(
   object,
   motifs,
@@ -305,8 +362,8 @@ globalVariables(names = 'group', package = 'Signac')
 #'
 #' @importFrom ggplot2 ggplot geom_histogram theme_bw aes facet_wrap xlim scale_y_log10
 #'
-#' @return Returns a ggplot2 object
 #' @export
+#' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
 #' \dontrun{
 #' FragmentHistogram(object = atac_small)
@@ -387,7 +444,7 @@ RegionPileup <- function(
   verbose = TRUE
 ) {
   # TODO WIP
-  cells <- cells %||% colnames(x = object)
+  cells <- SetIfNull(x = cells, y = colnames(x = object))
   full.matrix <- CreateRegionPileupMatrix(
     object = object,
     regions = regions,
@@ -426,7 +483,7 @@ RegionPileup <- function(
     normalize = FALSE
   )
   ymin <- 0
-  ymax <- ymax %||% signif(x = max(coverages$norm.value, na.rm = TRUE), digits = 2)
+  ymax <- SetIfNull(x = ymax, y = signif(x = max(coverages$norm.value, na.rm = TRUE), digits = 2))
   p <- ggplot(data = coverages, mapping = aes(x = position, y = norm.value, color = group)) +
     geom_line(stat = 'identity', size = 0.2) +
     facet_wrap(facets = ~group) +

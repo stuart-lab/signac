@@ -4,7 +4,7 @@
 \alias{GetMotifObject}
 \alias{GetMotifObject.Assay}
 \alias{GetMotifObject.Seurat}
-\title{GetMotifObject}
+\title{Retrieve a Motif object}
 \usage{
 GetMotifObject(object, ...)
 
@@ -20,7 +20,7 @@ GetMotifObject(object, ...)
 \item{assay}{Which assay to use. Default is the current active assay}
 }
 \value{
-Returns a Motif object
+Returns a \code{\link{Motif}} object
 }
 \description{
 Get motif object from given assay

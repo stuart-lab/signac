@@ -12,10 +12,12 @@ GRangesToString(grange, sep = c("-", "-"))
 \item{sep}{Vector of separators to use for genomic string. First element is used to separate chromosome
 and coordinates, second separator is used to separate start and end coordinates.}
 }
+\value{
+Returns a character vector
+}
 \description{
 Convert GRanges object to a vector of strings
 }
 \examples{
 GRangesToString(grange = blacklist_hg19)
-
 }

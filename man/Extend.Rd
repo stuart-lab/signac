@@ -17,6 +17,9 @@ Extend(x, upstream = 0, downstream = 0, from.midpoint = FALSE)
 rather than the 5' or 3' end for upstream and downstream
 respectively.}
 }
+\value{
+Returns a \code{\link[GenomicRanges]{GRanges}} object
+}
 \description{
 Resize GenomicRanges upstream and or downstream.
 From \url{https://support.bioconductor.org/p/78652/}

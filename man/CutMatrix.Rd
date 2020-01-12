@@ -38,10 +38,10 @@ centered on a given region (usually a DNA sequence motif). This
 matrix can be used for downstream footprinting analysis.
 }
 \examples{
-\dontrun{
+fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+atac_small <- SetFragments(atac_small, file = fpath)
 CutMatrix(
  object = atac_small,
- region = StringToGRanges("chr15-102404831-102407364")
+ region = StringToGRanges("chr1-10245-762629")
 )
-}
 }

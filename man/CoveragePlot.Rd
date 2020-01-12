@@ -3,12 +3,14 @@
 \name{SingleCoveragePlot}
 \alias{SingleCoveragePlot}
 \alias{CoveragePlot}
-\title{CoveragePlot}
+\title{Plot Tn5 insertion sites over a region}
 \usage{
 SingleCoveragePlot(
   object,
   region,
   annotation = NULL,
+  ucsc = TRUE,
+  peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
   group.by = NULL,
@@ -28,6 +30,8 @@ CoveragePlot(
   object,
   region,
   annotation = NULL,
+  ucsc = TRUE,
+  peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
   group.by = NULL,
@@ -51,6 +55,10 @@ CoveragePlot(
 coordinates to plot.}
 
 \item{annotation}{An Ensembl based annotation package}
+
+\item{ucsc}{Set annotation seqlevels style to UCSC}
+
+\item{peaks}{A GRanges object containing peak coordinates}
 
 \item{assay}{Name of the  assay to plot}
 
@@ -82,10 +90,13 @@ determined by total number of fragments sequences in each group.}
 \item{sep}{Separators to use for strings encoding genomic coordinates. First element is used to separate the
 chromosome from the coordinates, second element is used to separate the start from end coordinate.}
 
-\item{...}{Additional arguments passed to \code{\link[cowplot]{plot_grid}}}
+\item{...}{Additional arguments passed to \code{\link[patchwork]{wrap_plots}}}
+}
+\value{
+Returns a \code{\link[ggplot2]{ggplot}} object
 }
 \description{
-Plot coverage within given regions for groups of cells
+Plot fragment coverage (frequence of Tn5 insertion) within given regions for groups of cells.
 }
 \details{
 Thanks to Andrew Hill for providing an early version of this function

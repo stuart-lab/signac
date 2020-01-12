@@ -16,11 +16,13 @@ and coordinates, second separator is used to separate start and end coordinates.
 
 \item{cells}{Vector of cells to include in output. If NULL, include all cells}
 }
+\value{
+Returns a list
+}
 \description{
 Extract cell names containing reads mapped within a given genomic region
 }
 \examples{
-\dontrun{
-GetCellsInRegion(tabix = "fragments.tsv.bgz", region = "chr1-565107-565550")
-}
+fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+GetCellsInRegion(tabix = fpath, region = "chr1-10245-762629")
 }

@@ -1,5 +1,5 @@
 ---
-title: "Signac v0.1.6"
+title: "Signac v0.2.0"
 output:
   html_document:
     keep_md: true
@@ -9,7 +9,7 @@ output:
 knitr::opts_chunk$set(eval = FALSE)
 ```
 
-[![Build Status](https://dev.azure.com/timstuart/timstuart/_apis/build/status/timoast.signac?branchName=master&jobName=macOS_Mojave)](https://dev.azure.com/timstuart/timstuart/_build/latest?definitionId=1&branchName=master)
+
 [![Build Status](https://dev.azure.com/timstuart/timstuart/_apis/build/status/timoast.signac?branchName=master&jobName=Ubuntu_1804)](https://dev.azure.com/timstuart/timstuart/_build/latest?definitionId=1&branchName=master)
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/timoast/signac?svg=true)](https://ci.appveyor.com/project/timoast/signac)
 
@@ -19,7 +19,7 @@ Signac is an extension of [Seurat](https://github.com/satijalab/seurat) for the 
 
 ## Features
 
-Signac is currently focused on the analysis of single-cell ATAC-seq data, but new features will be added as experimental methods for measuring other chromatin-based modalities at single-cell resolution become more widespread. Signac is under active development, and the software supports the following features:
+Signac is currently focused on the analysis of single-cell ATAC-seq data, but new features will be added as experimental methods for measuring other chromatin-based modalities at single-cell resolution become more widespread. Signac supports the following features:
 
 * Calculating single-cell QC metrics
 * Dimensional reduction, visualization, and clustering
@@ -29,41 +29,45 @@ Signac is currently focused on the analysis of single-cell ATAC-seq data, but ne
 * Integration with single-cell RNA-seq datasets
 * Motif enrichment analysis
 
-Please see the Signac vignettes page for examples.
+Please see the Signac [vignettes](https://satijalab.org/signac/articles/) page for examples.
 
 ## Installation
 
 To use Signac first make sure Bioconductor is installed:
 
-```{r}
+
+```{r, eval=FALSE}
 # Install bioconductor
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install()
-
-# Tell R to also check bioconductor when installing dependencies
-setRepositories(ind=1:2)
 ```
 
-Next install Signac using `devtools`:
+### Current release
 
-```{r}
+```{r, eval=FALSE}
+install.packages("Signac")
+```
+
+### Development version
+
+```{r, eval=FALSE}
 install.packages("devtools")
-devtools::install_github("timoast/signac")
+devtools::install_github("timoast/signac", ref = "develop")
 ```
 
 For information about installing Seurat, see the Seurat [website](https://satijalab.org/seurat/install.html)
 
-It can also be useful (but not essential) to install species-specific packages from bioconductor:
+It can also be useful (but not essential) to install species-specific packages from Bioconductor:
 
 #### Human 
 
-```{r}
+```{r, eval=FALSE}
 BiocManager::install(c('BSgenome.Hsapiens.UCSC.hg19', 'EnsDb.Hsapiens.v75'))
 ```
 
 #### Mouse
 
-```{r}
+```{r, eval=FALSE}
 BiocManager::install(c('BSgenome.Mmusculus.UCSC.mm10', 'EnsDb.Mmusculus.v79'))
 ```

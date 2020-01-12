@@ -26,6 +26,9 @@ a alternative common name for the motif. If a PFMatrixList is passed to
 
 \item{meta.data}{A data.frame containing metadata}
 }
+\value{
+Returns a \code{\link{Motif}} object
+}
 \description{
 Create an object of class \code{Motif}
 }

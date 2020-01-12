@@ -9,6 +9,9 @@ ExtractCell(x)
 \arguments{
 \item{x}{List of character vectors}
 }
+\value{
+Returns a string
+}
 \description{
 Extract cell barcode from list of tab delimited character
 vectors (output of \code{\link{scanTabix}})

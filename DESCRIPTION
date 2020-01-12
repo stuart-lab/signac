@@ -6,7 +6,11 @@ Authors@R: c(
   person(given = 'Paul', family = 'Hoffman', email = 'phoffman@nygenome.org', role = 'ctb', comment = c(ORCID = '0000-0002-7693-8957')),
   person(given = 'Rahul', family = 'Satija', email = 'rsatija@nygenome.org', role = 'ctb', comment = c(ORCID = '0000-0001-9448-8833'))
   )
-Description: A toolkit for the analysis, quality control, visualization, and exploration of single-cell chromatin data. 
+Description: A framework for the analysis and exploration of single-cell chromatin data.
+    The 'Signac' package contains functions for quantifying single-cell chromatin data,
+    computing per-cell quality control metrics, dimension reduction
+    and normalization, visualization, and DNA sequence motif analysis.
+    Reference: Stuart and Butler et al. (2019) <doi: 10.1016/j.cell.2019.05.031>.
 Depends:
     R (>= 3.4.0),
     methods
@@ -18,7 +22,6 @@ RoxygenNote: 7.0.2
 URL: https://github.com/timoast/signac, https://satijalab.org/signac
 BugReports: https://github.com/timoast/signac/issues
 Imports: 
-    AnnotationFilter,
     BiocGenerics,
     GenomeInfoDb,
     GenomicFeatures,
@@ -32,17 +35,16 @@ Imports:
     dplyr,
     future,
     future.apply,
-    ggbio,
     ggplot2,
     ggseqlogo,
     irlba,
     pbapply,
     tidyr,
     zoo,
-    AnnotationDbi,
-    cowplot,
+    patchwork,
     Biostrings,
-    BSgenome
+    BSgenome,
+    gggenes
 Collate: 
     'data.R'
     'generics.R'
