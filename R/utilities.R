@@ -3,7 +3,7 @@
 NULL
 
 # Set a default value if an object is null
-# 
+#
 # @param x An object to set if it's null
 # @param y The value to provide if x is null
 # @return Returns y if x is null, otherwise returns x.
@@ -306,9 +306,8 @@ GetIntersectingFeatures <- function(
 #' @export
 #' @return Returns a Seurat object
 #' @examples
-#' \dontrun{
-#' SetFragments(object = atac_small, file = "./fragments.tsv.bgz")
-#' }
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' SetFragments(object = atac_small, file = fpath)
 SetFragments <- function(
   object,
   file,
@@ -425,12 +424,12 @@ ChunkGRanges <- function(granges, nchunk) {
 #' @return Returns a sparse matrix
 #' @export
 #' @examples
-#' \dontrun{
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' atac_small <- SetFragments(atac_small, file = fpath)
 #' CutMatrix(
 #'  object = atac_small,
-#'  region = StringToGRanges("chr15-102404831-102407364")
+#'  region = StringToGRanges("chr1-10245-762629")
 #' )
-#' }
 CutMatrix <- function(
   object,
   region,
@@ -539,9 +538,8 @@ Extend <- function(
 #' @export
 #' @return Returns a list
 #' @examples
-#' \dontrun{
-#' GetCellsInRegion(tabix = "fragments.tsv.bgz", region = "chr1-565107-565550")
-#' }
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' GetCellsInRegion(tabix = fpath, region = "chr1-10245-762629")
 GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
   if (!is(object = region, class2 = 'GRanges')) {
     region <- StringToGRanges(regions = region)
@@ -588,10 +586,10 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 #' @return Returns a data frame
 #' @export
 #' @examples
-#' \dontrun{
-#' region <- StringToGRanges(regions = "chr1-565107-565550")
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' atac_small <- SetFragments(object = atac_small, file = fpath)
+#' region <- StringToGRanges(regions = "chr1-10245-762629")
 #' GetReadsInRegion(object = atac_small, region = region)
-#' }
 GetReadsInRegion <- function(
   object,
   region,
@@ -653,9 +651,9 @@ GetReadsInRegion <- function(
 #' @return Returns the path to a fragments file stored in the Assay if present
 #' @export
 #' @examples
-#' \dontrun{
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' atac_small <- SetFragments(object = atac_small, file = fpath)
 #' GetFragments(object = atac_small)
-#' }
 GetFragments <- function(
   object,
   assay = NULL
@@ -695,13 +693,11 @@ GetFragments <- function(
 #' @export
 #' @return Returns a numeric vector
 #' @examples
-#' \dontrun{
 #' CountsInRegion(
 #'   object = atac_small,
 #'   assay = 'bins',
 #'   regions = blacklist_hg19
 #' )
-#' }
 CountsInRegion <- function(
   object,
   assay,

@@ -288,6 +288,7 @@ FeatureMatrix <- function(
 #' @param compress Compress filtered fragments using bgzip (default TRUE)
 #' @param index Index the filtered tabix file (default TRUE)
 #' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{\link[data.table]{fread}}
 #'
 #' @importFrom data.table fread fwrite
 #' @importFrom Rsamtools indexTabix bgzip
@@ -309,7 +310,8 @@ FilterFragments <- function(
   assume.sorted = FALSE,
   compress = TRUE,
   index = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
   if (verbose) {
     message("Retaining ", length(x = cells), " cells")
@@ -318,7 +320,8 @@ FilterFragments <- function(
   reads <- fread(
     file = fragment.path,
     col.names = c('chr', 'start', 'end', 'cell', 'count'),
-    showProgress = verbose
+    showProgress = verbose,
+    ...
   )
   reads <- reads[reads$cell %in% cells, ]
   if (!assume.sorted) {
