@@ -34,7 +34,7 @@ SingleCoveragePlot <- function(
   group.by = NULL,
   window = 100,
   downsample = 0.1,
-  height.tracks = 2,
+  height.tracks = 4,
   extend.upstream = 0,
   extend.downstream = 0,
   ymax = NULL,
@@ -167,36 +167,37 @@ SingleCoveragePlot <- function(
     }
     annotation.subset <- subsetByOverlaps(x = annotation.use, ranges = gr)
     annotation.df <- as.data.frame(x = annotation.subset)
+    if (nrow(x = annotation.df) > 0) {
+      gene.plot <- ggplot(annotation.df, aes(xmin = start, xmax = end, y = seqnames, fill = gene_name, label = gene_name)) +
+        geom_gene_arrow() +
+        geom_gene_label() +
+        xlim(start.pos, end.pos) +
+        xlab(label = paste0(chromosome, ' position (bp)')) +
+        ylab("Genes") +
+        theme_classic() +
+        theme(legend.position = 'none',
+              axis.ticks.y = element_blank(),
+              axis.text.y = element_blank())
 
-    gene.plot <- ggplot(annotation.df, aes(xmin = start, xmax = end, y = seqnames, fill = gene_name, label = gene_name)) +
-      geom_gene_arrow() +
-      geom_gene_label() +
-      xlim(start.pos, end.pos) +
-      xlab(label = paste0(chromosome, ' position (bp)')) +
-      ylab("Genes") +
-      theme_classic() +
-      theme(legend.position = 'none',
-            axis.ticks.y = element_blank(),
-            axis.text.y = element_blank())
-
-      # remove axis from coverage plot
-      p <- p + theme(
-        axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.line.x.bottom = element_blank(),
-        axis.ticks.x.bottom = element_blank()
-      )
-      if (!is.null(x = peak.plot)) {
-        peak.plot <- peak.plot + theme(
+        # remove axis from coverage plot
+        p <- p + theme(
           axis.title.x = element_blank(),
           axis.text.x = element_blank(),
           axis.line.x.bottom = element_blank(),
           axis.ticks.x.bottom = element_blank()
         )
-        p <- p + peak.plot + gene.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1, 1))
-      } else {
-        p <- p + gene.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1))
-      }
+        if (!is.null(x = peak.plot)) {
+          peak.plot <- peak.plot + theme(
+            axis.title.x = element_blank(),
+            axis.text.x = element_blank(),
+            axis.line.x.bottom = element_blank(),
+            axis.ticks.x.bottom = element_blank()
+          )
+          p <- p + peak.plot + gene.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1, 1))
+        } else {
+          p <- p + gene.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1))
+        }
+    }
     } else {
     if (!is.null(peak.plot)) {
       p <- p + peak.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1))
@@ -255,7 +256,7 @@ CoveragePlot <- function(
   group.by = NULL,
   window = 100,
   downsample = 0.1,
-  height.tracks = 2,
+  height.tracks = 4,
   extend.upstream = 0,
   extend.downstream = 0,
   scale.factor = NULL,
