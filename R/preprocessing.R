@@ -89,7 +89,9 @@ BinarizeCounts.Seurat <- function(
 #' object containing position weight/frequency matrices to use
 #' @param genome Any object compatible with the \code{genome} argument
 #' in \code{\link[motifmatchr]{matchMotifs}}
+#' @param score Record the motif match score, rather than presence/absence (default FALSE)
 #' @param use.counts Record motif counts per region. If FALSE (default), record presence/absence of motif.
+#' Only applicable if \code{score=FALSE}.
 #' @param sep A length-2 character vector containing the separators to be used when constructing
 #' matrix rownames from the GRanges
 #' @param ... Additional arguments passed to \code{\link[motifmatchr]{matchMotifs}}
@@ -114,6 +116,7 @@ CreateMotifMatrix <- function(
   features,
   pwm,
   genome,
+  score = FALSE,
   use.counts = FALSE,
   sep = c("-", "-"),
   ...
@@ -128,11 +131,15 @@ CreateMotifMatrix <- function(
     out = "scores",
     ...
   )
-  if (use.counts) {
-    motif.matrix <- motifmatchr::motifCounts(object = motif_ix)
+  if (score) {
+    motif.matrix <- motifmatchr::motifScores(object = motif_ix)
   } else {
-    motif.matrix <- motifmatchr::motifMatches(object = motif_ix)
-    motif.matrix <- as(Class = 'dgCMatrix', object = motif.matrix)
+    if (use.counts) {
+      motif.matrix <- motifmatchr::motifCounts(object = motif_ix)
+    } else {
+      motif.matrix <- motifmatchr::motifMatches(object = motif_ix)
+      motif.matrix <- as(Class = 'dgCMatrix', object = motif.matrix)
+    }
   }
   rownames(motif.matrix) <- GRangesToString(grange = features, sep = sep)
   return(motif.matrix)
