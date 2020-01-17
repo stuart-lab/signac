@@ -46,13 +46,13 @@ BiocManager::install()
 ### Current release
 
 ```{r, eval=FALSE}
-install.packages("Signac")
+install.packages("devtools")
+devtools::install_github("timoast/signac")
 ```
 
 ### Development version
 
 ```{r, eval=FALSE}
-install.packages("devtools")
 devtools::install_github("timoast/signac", ref = "develop")
 ```
 
