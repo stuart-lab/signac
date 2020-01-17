@@ -13,10 +13,10 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install()
 
-# To install Signac through CRAN
-install.packages("Signac")
-
-# To install the development version of Signac from GitHub
+# To install Signac from GitHub
 install.packages("devtools")
+devtools::install_github("timoast/signac")
+
+# To install the development version
 devtools::install_github("timoast/signac", ref = "develop")
 ```
