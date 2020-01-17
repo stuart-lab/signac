@@ -44,7 +44,8 @@ Imports:
     patchwork,
     Biostrings,
     BSgenome,
-    gggenes
+    gggenes,
+    grid
 Collate: 
     'data.R'
     'generics.R'
