@@ -1,6 +1,5 @@
 # Signac 0.2.0
 
-* First CRAN release
 * Removed dependency on TFBSTools, motifmatchr, AnnotationDbi, ggbio, AnnotationFilter
 * Renamed `PeriodPlot` to `FragmentHistogram`
 * Removed motif dimension reduction functions
