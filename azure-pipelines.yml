@@ -68,7 +68,7 @@ jobs:
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
-          Rscript -e "install.packages(c('BiocManager' 'devtools'), lib = '$(Agent.BuildDirectory)/R/library')"
+          Rscript -e "install.packages(c('BiocManager', 'devtools'), lib = '$(Agent.BuildDirectory)/R/library')"
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
           Rscript -e "devtools::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install'
