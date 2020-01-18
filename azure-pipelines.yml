@@ -28,7 +28,7 @@ jobs:
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install BioC'
       - script: |
-          Rscript -e "devtools::install(dependencies = TRUE, lib = '$(Agent.BuildDirectory)/R/library')"
+          Rscript -e "devtools::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install Signac'
 
   - job: 'Ubuntu_1804'
@@ -49,7 +49,6 @@ jobs:
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install BioC'
       - script: |
-          Rscript -e "devtools::install(dependencies = TRUE, lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install Signac'
 
   - job: 'macOS_Mojave'
@@ -70,7 +69,7 @@ jobs:
       - script: |
           Rscript -e "install.packages('BiocManager', lib = '$(Agent.BuildDirectory)/R/library')"
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
-          Rscript -e "devtools::install(dependencies = TRUE, lib = '$(Agent.BuildDirectory)/R/library')"
+          Rscript -e "devtools::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install'
 
   - job: 'macOS_High_Sierra'
@@ -91,5 +90,5 @@ jobs:
       - script: |
           Rscript -e "install.packages('BiocManager', lib = '$(Agent.BuildDirectory)/R/library')"
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
-          Rscript -e "devtools::install(dependencies = TRUE, lib = '$(Agent.BuildDirectory)/R/library')"
+          Rscript -e "devtools::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install'
