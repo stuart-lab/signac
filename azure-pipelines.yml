@@ -49,7 +49,7 @@ jobs:
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install BioC'
       - script: |
-        Rscript -e "devtools::install(lib = '$(Agent.BuildDirectory)/R/library')"
+          Rscript -e "devtools::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install Signac'
 
   - job: 'macOS_Mojave'
