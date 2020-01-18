@@ -24,7 +24,7 @@ jobs:
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
-          Rscript -e "install.packages('BiocManager', lib = '$(Agent.BuildDirectory)/R/library')"
+          Rscript -e "install.packages(c('BiocManager', 'devtools'), lib = '$(Agent.BuildDirectory)/R/library')"
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install BioC'
       - script: |
@@ -45,10 +45,11 @@ jobs:
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
-          Rscript -e "install.packages('BiocManager', lib = '$(Agent.BuildDirectory)/R/library')"
+          Rscript -e "install.packages(c('BiocManager', 'devtools'), lib = '$(Agent.BuildDirectory)/R/library')"
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install BioC'
       - script: |
+        Rscript -e "devtools::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install Signac'
 
   - job: 'macOS_Mojave'
@@ -67,7 +68,7 @@ jobs:
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
-          Rscript -e "install.packages('BiocManager', lib = '$(Agent.BuildDirectory)/R/library')"
+          Rscript -e "install.packages(c('BiocManager' 'devtools'), lib = '$(Agent.BuildDirectory)/R/library')"
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
           Rscript -e "devtools::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install'
@@ -88,7 +89,7 @@ jobs:
           mkdir -vp ${R_LIBS_USER}
         displayName: 'Setup R Library'
       - script: |
-          Rscript -e "install.packages('BiocManager', lib = '$(Agent.BuildDirectory)/R/library')"
+          Rscript -e "install.packages(c('BiocManager', 'devtools'), lib = '$(Agent.BuildDirectory)/R/library')"
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
           Rscript -e "devtools::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install'

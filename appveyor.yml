@@ -22,6 +22,18 @@ environment:
 build_script:
   - travis-tool.sh install_deps
   - travis-tool.sh r_binary_install curl
+  - travis-tool.sh bioc_install AnnotationFilter
+  - travis-tool.sh bioc_install BiocGenerics
+  - travis-tool.sh bioc_install GenomeInfoDb
+  - travis-tool.sh bioc_install GenomicFeatures
+  - travis-tool.sh bioc_install GenomicRanges
+  - travis-tool.sh bioc_install IRanges
+  - travis-tool.sh bioc_install Rsamtools
+  - travis-tool.sh bioc_install S4Vectors
+  - travis-tool.sh bioc_install TFBSTools
+  - travis-tool.sh bioc_install ggbio
+  - travis-tool.sh bioc_install motifmatchr
+  - travis-tool.sh bioc_install AnnotationDbi
 
 test_script:
   - travis-tool.sh run_tests
