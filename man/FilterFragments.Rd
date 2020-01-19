@@ -11,7 +11,8 @@ FilterFragments(
   assume.sorted = FALSE,
   compress = TRUE,
   index = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ fail if assumption is wrong.}
 \item{index}{Index the filtered tabix file (default TRUE)}
 
 \item{verbose}{Display messages}
+
+\item{...}{Additional arguments passed to \code{\link[data.table]{fread}}}
 }
 \value{
 None
@@ -41,10 +44,11 @@ depending on the size of the fragments file.
 }
 \examples{
 \dontrun{
+output.path = file.path(tempdir(), "filtered.tsv")
 FilterFragments(
   fragment.path = GetFragments(atac_small),
   cells = colnames(atac_small),
-  output.path = "./filtered.tsv"
+  output.path = output.path
 )
 }
 }
