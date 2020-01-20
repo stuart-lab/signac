@@ -3,7 +3,7 @@
 #'
 NULL
 
-globalVariables(names = c('position', 'coverage', 'group', 'gene_name'), package = 'Signac')
+globalVariables(names = c('position', 'coverage', 'group', 'gene_name', 'direction'), package = 'Signac')
 #' @rdname CoveragePlot
 #' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic aes ylim theme element_blank element_text geom_segment scale_color_identity
 #' @importFrom GenomicRanges GRanges
@@ -171,10 +171,11 @@ SingleCoveragePlot <- function(
     # adjust coordinates so within the plot
     annotation.df$start[annotation.df$start < start.pos] <- start.pos
     annotation.df$end[annotation.df$end > end.pos] <- end.pos
+    annotation.df$direction <- ifelse(test = annotation.df$strand == "-", yes = -1, no = 1)
     if (nrow(x = annotation.df) > 0) {
       gene.plot <- ggplot(
         data = annotation.df,
-        mapping = aes(xmin = start, xmax = end, y = seqnames, fill = strand, label = gene_name)) +
+        mapping = aes(xmin = start, xmax = end, y = strand, fill = strand, label = gene_name, forward = direction)) +
         geom_gene_arrow(
           arrow_body_height = unit(x = 4, units = "mm"),
           arrowhead_height = unit(x = 4, units = "mm"),
