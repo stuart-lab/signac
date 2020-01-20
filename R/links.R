@@ -90,7 +90,7 @@ LinkPeaks <- function(
       next
     } else {
       peak.access <- t(peak.data[peak.use, ])
-      cvfit <- cv.glmnet(x = peak.access, y = gene.expression, alpha = alpha, family = 'gaussian')
+      cvfit <- cv.glmnet(x = peak.access, y = gene.expression, alpha = alpha, family = 'poisson')
       lambda <- cvfit$lambda.1se
       coef.results <- coef(cvfit, s = lambda)
       coef.results <- coef.results[2:nrow(x = coef.results), ]
