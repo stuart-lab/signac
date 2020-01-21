@@ -140,7 +140,6 @@ SingleCoveragePlot <- function(
       ylab(label = "Peaks") +
       theme(axis.ticks.y = element_blank(),
             axis.text.y = element_blank(),
-            axis.ticks.x = element_blank(),
             legend.position = 'none') +
       xlab(label = paste0(chromosome, ' position (bp)')) +
       xlim(c(start.pos, end.pos)) +
@@ -207,11 +206,12 @@ SingleCoveragePlot <- function(
         } else {
           p <- p + gene.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1))
         }
-    } else {
+    }
+  }
+  else {
     if (!is.null(peak.plot)) {
       p <- p + peak.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1))
     }
-   }
   }
   return(p)
 }
