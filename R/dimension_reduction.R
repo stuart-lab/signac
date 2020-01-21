@@ -97,7 +97,8 @@ RunSVD.default <- function(
     loadings = feature.loadings,
     assay = assay,
     stdev = sdev,
-    key = reduction.key
+    key = reduction.key,
+    misc = components
   )
   return(reduction.data)
 }
