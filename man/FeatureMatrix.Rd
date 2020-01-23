@@ -37,10 +37,9 @@ Returns a sparse matrix
 Construct a feature x cell matrix from a genomic fragments file
 }
 \examples{
-\dontrun{
+fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 FeatureMatrix(
-  fragments = GetFragments(atac_small),
-  features = StringToGranges(rownames(atac_small), sep = c(":", "-"))
+  fragments = fpath,
+  features = StringToGRanges(rownames(atac_small), sep = c(":", "-"))
 )
-}
 }

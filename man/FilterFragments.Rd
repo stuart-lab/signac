@@ -43,7 +43,7 @@ Note that this reads the whole fragments file into memory, so may require a lot 
 depending on the size of the fragments file.
 }
 \examples{
-\dontrun{
+\donttest{
 output.path = file.path(tempdir(), "filtered.tsv")
 FilterFragments(
   fragment.path = GetFragments(atac_small),

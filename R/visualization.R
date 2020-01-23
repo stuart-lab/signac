@@ -19,11 +19,6 @@ globalVariables(names = c('position', 'coverage', 'group', 'gene_name', 'directi
 #' @importFrom grid unit
 #' @importFrom gggenes geom_gene_arrow geom_gene_label
 #' @import patchwork
-#' @export
-#' @examples
-#' \dontrun{
-#' CoveragePlot(object = atac_small, region = "chr1-10-10000")
-#' }
 SingleCoveragePlot <- function(
   object,
   region,
@@ -252,9 +247,9 @@ SingleCoveragePlot <- function(
 #' @export
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
-#' \dontrun{
-#' CoveragePlot(object = atac_small, region = c("chr1-10-10000", "chr2-20-50000"))
-#' }
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' atac_small <- SetFragments(atac_small, file = fpath)
+#' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"))
 CoveragePlot <- function(
   object,
   region,
@@ -376,9 +371,9 @@ globalVariables(names = 'group', package = 'Signac')
 #' @export
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
-#' \dontrun{
-#' FragmentHistogram(object = atac_small)
-#' }
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' atac_small <- SetFragments(atac_small, file = fpath)
+#' FragmentHistogram(object = atac_small, region = "chr1-10245-780007")
 FragmentHistogram <- function(
   object,
   assay = NULL,
@@ -529,6 +524,20 @@ globalVariables(names = 'norm.value', package = 'Signac')
 #' @export
 #' @examples
 #' \dontrun{
+#' # create granges object with TSS positions
+#' library(EnsDb.Hsapiens.v75)
+#' gene.ranges <- genes(EnsDb.Hsapiens.v75)
+#' gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
+#' tss.ranges <- GRanges(
+#'   seqnames = seqnames(gene.ranges),
+#'   ranges = IRanges(start = start(gene.ranges), width = 2),
+#'   strand = strand(gene.ranges)
+#' )
+#' seqlevelsStyle(tss.ranges) <- 'UCSC'
+#' tss.ranges <- keepStandardChromosomes(tss.ranges, pruning.mode = 'coarse')
+#'
+#' # to save time use the first 2000 TSSs
+#' atac_small <- TSSEnrichment(object = atac_small, tss.positions = tss.ranges[1:2000])
 #' TSSPlot(atac_small)
 #' }
 TSSPlot <- function(
