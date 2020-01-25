@@ -201,9 +201,12 @@ SingleCoveragePlot <- function(
         } else {
           p <- p + gene.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1))
         }
+    } else {
+      if (!is.null(peak.plot)) {
+        p <- p + peak.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1))
+      }
     }
-  }
-  else {
+  } else {
     if (!is.null(peak.plot)) {
       p <- p + peak.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1))
     }
