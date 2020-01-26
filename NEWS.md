@@ -1,3 +1,11 @@
+# Signac 0.2.1
+
+* Removed `SingleCoveragePlot` from exported functions
+* Added executable examples for all functions
+* Store raw SVD output in DimReduc misc slot in `RunSVD`
+* Fixed strand orientation for gene plot in `CoveragePlot`
+* Fix missing x-axis when plotting peaks but not genes in `CoveragePlot`
+
 # Signac 0.2.0
 
 * Removed dependency on TFBSTools, motifmatchr, AnnotationDbi, ggbio, AnnotationFilter

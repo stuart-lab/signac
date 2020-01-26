@@ -39,7 +39,7 @@ Calculate the strength of the nucleosome signal per cell.
 Computes the ratio of fragments between 147 bp and 294 bp (mononucleosome) to fragments < 147 bp (nucleosome-free)
 }
 \examples{
-\dontrun{
+fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+atac_small <- SetFragments(object = atac_small, file = fpath)
 NucleosomeSignal(object = atac_small)
-}
 }
