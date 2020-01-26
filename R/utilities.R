@@ -3,7 +3,7 @@
 NULL
 
 # Set a default value if an object is null
-# 
+#
 # @param x An object to set if it's null
 # @param y The value to provide if x is null
 # @return Returns y if x is null, otherwise returns x.
@@ -122,14 +122,11 @@ CellsPerGroup <- function(
 #' and the distance to the feature.
 #' @export
 #' @examples
-#' \dontrun{
-#' library(EnsDb.Hsapiens.v75)
 #' ClosestFeature(
 #'   regions = head(rownames(atac_small)),
-#'   annotation = EnsDb.Hsapiens.v75,
+#'   annotation = StringToGRanges(head(rownames(atac_small)), sep = c(':', '-')),
 #'   sep = c(":", "-")
 #' )
-#' }
 ClosestFeature <- function(
   regions,
   annotation,
@@ -412,12 +409,12 @@ ChunkGRanges <- function(granges, nchunk) {
 #' @return Returns a sparse matrix
 #' @export
 #' @examples
-#' \dontrun{
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' atac_small <- SetFragments(atac_small, file = fpath)
 #' CutMatrix(
 #'  object = atac_small,
-#'  region = StringToGRanges("chr15-102404831-102407364")
+#'  region = StringToGRanges("chr1-10245-762629")
 #' )
-#' }
 CutMatrix <- function(
   object,
   region,
@@ -523,9 +520,8 @@ Extend <- function(
 #' @export
 #' @return Returns a list
 #' @examples
-#' \dontrun{
-#' GetCellsInRegion(tabix = "fragments.tsv.bgz", region = "chr1-565107-565550")
-#' }
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' GetCellsInRegion(tabix = fpath, region = "chr1-10245-762629")
 GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
   if (!is(object = region, class2 = 'GRanges')) {
     region <- StringToGRanges(regions = region)
@@ -572,10 +568,10 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 #' @return Returns a data frame
 #' @export
 #' @examples
-#' \dontrun{
-#' region <- StringToGRanges(regions = "chr1-565107-565550")
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' atac_small <- SetFragments(object = atac_small, file = fpath)
+#' region <- StringToGRanges(regions = "chr1-10245-762629")
 #' GetReadsInRegion(object = atac_small, region = region)
-#' }
 GetReadsInRegion <- function(
   object,
   region,
@@ -642,13 +638,11 @@ GetReadsInRegion <- function(
 #' @export
 #' @return Returns a numeric vector
 #' @examples
-#' \dontrun{
 #' CountsInRegion(
 #'   object = atac_small,
 #'   assay = 'bins',
 #'   regions = blacklist_hg19
 #' )
-#' }
 CountsInRegion <- function(
   object,
   assay,
@@ -783,11 +777,11 @@ IsMatrixEmpty <- function(x) {
 #' @export
 #' @return Returns a sparse matrix
 #' @examples
-#' \dontrun{
-#' library(Seurat)
-#' counts <- GetAssayData(object = atac_small, assay = 'bins', slot = 'counts')
+#' counts <- matrix(data = rep(0, 12), ncol = 2)
+#' rownames(counts) <- c("chr1-565107-565550","chr1-569174-569639",
+#' "chr1-713460-714823","chr1-752422-753038",
+#' "chr1-762106-763359","chr1-779589-780271")
 #' IntersectMatrix(matrix = counts, regions = blacklist_hg19)
-#' }
 IntersectMatrix <- function(
   matrix,
   regions,
@@ -834,16 +828,13 @@ IntersectMatrix <- function(
 #' @importFrom stats density approx
 #' @export
 #' @examples
-#' \dontrun{
-#' library(Seurat)
-#' metafeatures <- GetAssayData(object = atac_small[['peaks']], slot = 'meta.features')
+#' metafeatures <- Seurat::GetAssayData(object = atac_small[['peaks']], slot = 'meta.features')
 #' MatchRegionStats(
 #'   meta.feature = metafeatures,
-#'   regions = head(rownames(metafeatures), 100),
+#'   regions = head(rownames(metafeatures), 10),
 #'   features.match = "percentile",
-#'   n = 100
+#'   n = 10
 #' )
-#' }
 MatchRegionStats <- function(
   meta.feature,
   regions,

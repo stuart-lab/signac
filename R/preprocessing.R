@@ -89,7 +89,9 @@ BinarizeCounts.Seurat <- function(
 #' object containing position weight/frequency matrices to use
 #' @param genome Any object compatible with the \code{genome} argument
 #' in \code{\link[motifmatchr]{matchMotifs}}
+#' @param score Record the motif match score, rather than presence/absence (default FALSE)
 #' @param use.counts Record motif counts per region. If FALSE (default), record presence/absence of motif.
+#' Only applicable if \code{score=FALSE}.
 #' @param sep A length-2 character vector containing the separators to be used when constructing
 #' matrix rownames from the GRanges
 #' @param ... Additional arguments passed to \code{\link[motifmatchr]{matchMotifs}}
@@ -113,6 +115,7 @@ CreateMotifMatrix <- function(
   features,
   pwm,
   genome,
+  score = FALSE,
   use.counts = FALSE,
   sep = c("-", "-"),
   ...
@@ -127,11 +130,15 @@ CreateMotifMatrix <- function(
     out = "scores",
     ...
   )
-  if (use.counts) {
-    motif.matrix <- motifmatchr::motifCounts(object = motif_ix)
+  if (score) {
+    motif.matrix <- motifmatchr::motifScores(object = motif_ix)
   } else {
-    motif.matrix <- motifmatchr::motifMatches(object = motif_ix)
-    motif.matrix <- as(Class = 'dgCMatrix', object = motif.matrix)
+    if (use.counts) {
+      motif.matrix <- motifmatchr::motifCounts(object = motif_ix)
+    } else {
+      motif.matrix <- motifmatchr::motifMatches(object = motif_ix)
+      motif.matrix <- as(Class = 'dgCMatrix', object = motif.matrix)
+    }
   }
   rownames(motif.matrix) <- GRangesToString(grange = features, sep = sep)
   return(motif.matrix)
@@ -193,12 +200,11 @@ DownsampleFeatures <- function(
 #' @export
 #' @return Returns a sparse matrix
 #' @examples
-#' \dontrun{
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' FeatureMatrix(
-#'   fragments = GetFragments(atac_small),
-#'   features = StringToGranges(rownames(atac_small), sep = c(":", "-"))
+#'   fragments = fpath,
+#'   features = StringToGRanges(rownames(atac_small), sep = c(":", "-"))
 #' )
-#' }
 FeatureMatrix <- function(
   fragments,
   features,
@@ -286,19 +292,21 @@ FeatureMatrix <- function(
 #' @param compress Compress filtered fragments using bgzip (default TRUE)
 #' @param index Index the filtered tabix file (default TRUE)
 #' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{\link[data.table]{fread}}
 #'
 #' @importFrom data.table fread fwrite
 #' @importFrom Rsamtools indexTabix bgzip
 #' @export
 #' @return None
 #' @examples
-#' \dontrun{
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' output.path = file.path(tempdir(), "filtered.tsv")
+#'
 #' FilterFragments(
-#'   fragment.path = GetFragments(atac_small),
+#'   fragment.path = fpath,
 #'   cells = colnames(atac_small),
-#'   output.path = "./filtered.tsv"
+#'   output.path = output.path
 #' )
-#' }
 FilterFragments <- function(
   fragment.path,
   cells,
@@ -306,7 +314,8 @@ FilterFragments <- function(
   assume.sorted = FALSE,
   compress = TRUE,
   index = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
   if (verbose) {
     message("Retaining ", length(x = cells), " cells")
@@ -315,7 +324,8 @@ FilterFragments <- function(
   reads <- fread(
     file = fragment.path,
     col.names = c('chr', 'start', 'end', 'cell', 'count'),
-    showProgress = verbose
+    showProgress = verbose,
+    ...
   )
   reads <- reads[reads$cell %in% cells, ]
   if (!assume.sorted) {
@@ -508,12 +518,15 @@ FRiP <- function(
 #' @export
 #' @return Returns a sparse matrix
 #' @examples
-#' \dontrun{
+#' gn <- 780007
+#' names(gn) <- 'chr1'
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' GenomeBinMatrix(
-#'   fragments = GetFragments(atac_small),
-#'   genome = 'hg19'
+#'   fragments = fpath,
+#'   genome = gn,
+#'   binsize = 1000,
+#'   chunk = 1
 #' )
-#' }
 GenomeBinMatrix <- function(
   fragments,
   genome,
@@ -561,9 +574,9 @@ globalVariables(names = 'cell', package = 'Signac')
 #' per cell, and the percentile rank of each ratio.
 #' @export
 #' @examples
-#' \dontrun{
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' atac_small <- SetFragments(object = atac_small, file = fpath)
 #' NucleosomeSignal(object = atac_small)
-#' }
 NucleosomeSignal <- function(
   object,
   assay = NULL,

@@ -29,8 +29,12 @@ test_that("FindTopFeatures works", {
   atac_small <- FindTopFeatures(object = atac_small)
   expect_equal(
     object = head(VariableFeatures(object = atac_small)),
-    expected = c("chr1:2157847-2188813","chr1:6843960-6846894","chr1:2471903-2481288",
-                 "chr1:3815928-3820356","chr1:2515241-2519350","chr1:6051145-6055407")
+    expected = c("chr1:1549446-1552535",
+                 "chr1:1051006-1053102",
+                 "chr1:1240091-1245762",
+                 "chr1:1333514-1336003",
+                 "chr1:1309645-1311492",
+                 "chr1:928630-937949")
   )
 })
 

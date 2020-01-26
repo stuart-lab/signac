@@ -21,12 +21,9 @@ and the distance to the feature.
 Find the closest feature to a given set of genomic regions
 }
 \examples{
-\dontrun{
-library(EnsDb.Hsapiens.v75)
 ClosestFeature(
   regions = head(rownames(atac_small)),
-  annotation = EnsDb.Hsapiens.v75,
+  annotation = StringToGRanges(head(rownames(atac_small)), sep = c(':', '-')),
   sep = c(":", "-")
 )
-}
 }

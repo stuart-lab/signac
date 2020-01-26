@@ -37,9 +37,9 @@ Returns a sparse matrix
 Remove or retain matrix rows that intersect given genomic regions
 }
 \examples{
-\dontrun{
-library(Seurat)
-counts <- GetAssayData(object = atac_small, assay = 'bins', slot = 'counts')
+counts <- matrix(data = rep(0, 12), ncol = 2)
+rownames(counts) <- c("chr1-565107-565550","chr1-569174-569639",
+"chr1-713460-714823","chr1-752422-753038",
+"chr1-762106-763359","chr1-779589-780271")
 IntersectMatrix(matrix = counts, regions = blacklist_hg19)
-}
 }

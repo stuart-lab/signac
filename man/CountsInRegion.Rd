@@ -22,11 +22,9 @@ Returns a numeric vector
 Count reads per cell overlapping a given set of regions
 }
 \examples{
-\dontrun{
 CountsInRegion(
   object = atac_small,
   assay = 'bins',
   regions = blacklist_hg19
 )
-}
 }

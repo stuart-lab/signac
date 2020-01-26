@@ -683,7 +683,7 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
 #' @export
 #' @examples
 #' motif.obj <- GetMotifObject(object = atac_small)
-#' subset(x = motif.obj, features = head(rownames(motif.obj)))
+#' subset(x = motif.obj, features = head(rownames(motif.obj), 10))
 subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
   features <- SetIfNull(x = features, y = rownames(x = x))
   motifs <- SetIfNull(x = motifs, y = colnames(x = x))

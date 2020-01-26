@@ -46,14 +46,14 @@ BiocManager::install()
 ### Current release
 
 ```{r, eval=FALSE}
-install.packages("Signac")
+install.packages("devtools")
+devtools::install_github("timoast/signac")
 ```
 
 ### Development version
 
 ```{r, eval=FALSE}
-install.packages("devtools")
-devtools::install_github("timoast/signac")
+devtools::install_github("timoast/signac", ref = "develop")
 ```
 
 For information about installing Seurat, see the Seurat [website](https://satijalab.org/seurat/install.html)

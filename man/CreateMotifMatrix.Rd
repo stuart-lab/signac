@@ -8,6 +8,7 @@ CreateMotifMatrix(
   features,
   pwm,
   genome,
+  score = FALSE,
   use.counts = FALSE,
   sep = c("-", "-"),
   ...
@@ -22,7 +23,10 @@ object containing position weight/frequency matrices to use}
 \item{genome}{Any object compatible with the \code{genome} argument
 in \code{\link[motifmatchr]{matchMotifs}}}
 
-\item{use.counts}{Record motif counts per region. If FALSE (default), record presence/absence of motif.}
+\item{score}{Record the motif match score, rather than presence/absence (default FALSE)}
+
+\item{use.counts}{Record motif counts per region. If FALSE (default), record presence/absence of motif.
+Only applicable if \code{score=FALSE}.}
 
 \item{sep}{A length-2 character vector containing the separators to be used when constructing
 matrix rownames from the GRanges}

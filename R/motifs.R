@@ -79,6 +79,7 @@ RunChromVAR <- function(
     background_peaks = bg
   )
   chromvar.z <- SummarizedExperiment::assays(dev)[[2]]
+  rownames(x = chromvar.z) <- colnames(x = motif.matrix)
   if (verbose) {
     message("Constructing chromVAR assay")
   }

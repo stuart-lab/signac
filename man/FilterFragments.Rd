@@ -11,7 +11,8 @@ FilterFragments(
   assume.sorted = FALSE,
   compress = TRUE,
   index = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ fail if assumption is wrong.}
 \item{index}{Index the filtered tabix file (default TRUE)}
 
 \item{verbose}{Display messages}
+
+\item{...}{Additional arguments passed to \code{\link[data.table]{fread}}}
 }
 \value{
 None
@@ -40,11 +43,12 @@ Note that this reads the whole fragments file into memory, so may require a lot 
 depending on the size of the fragments file.
 }
 \examples{
-\dontrun{
+fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+output.path = file.path(tempdir(), "filtered.tsv")
+
 FilterFragments(
-  fragment.path = GetFragments(atac_small),
+  fragment.path = fpath,
   cells = colnames(atac_small),
-  output.path = "./filtered.tsv"
+  output.path = output.path
 )
-}
 }
