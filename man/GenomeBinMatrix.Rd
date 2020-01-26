@@ -45,10 +45,13 @@ This function bins the genome and calls \code{\link{FeatureMatrix}} to
 construct a bin x cell matrix.
 }
 \examples{
-\dontrun{
+gn <- 780007
+names(gn) <- 'chr1'
+fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 GenomeBinMatrix(
-  fragments = GetFragments(atac_small),
-  genome = 'hg19'
+  fragments = fpath,
+  genome = gn,
+  binsize = 1000,
+  chunk = 1
 )
-}
 }

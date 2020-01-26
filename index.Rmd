@@ -1,5 +1,5 @@
 ---
-title: "Signac v0.2.0"
+title: "Signac v0.2.1"
 output:
   html_document:
     keep_md: true
