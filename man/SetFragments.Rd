@@ -24,7 +24,6 @@ Stores the path under the tools slot for access by visualization functions.
 One fragments file can be stored for each assay.
 }
 \examples{
-\dontrun{
-SetFragments(object = atac_small, file = "./fragments.tsv.bgz")
-}
+fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+SetFragments(object = atac_small, file = fpath)
 }

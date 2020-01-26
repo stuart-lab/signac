@@ -37,7 +37,7 @@ Returns a \code{\link[ggplot2]{ggplot}} object
 Plot fragment length histogram
 }
 \examples{
-\dontrun{
-FragmentHistogram(object = atac_small)
-}
+fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+atac_small <- SetFragments(atac_small, file = fpath)
+FragmentHistogram(object = atac_small, region = "chr1-10245-780007")
 }

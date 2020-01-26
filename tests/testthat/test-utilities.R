@@ -3,7 +3,7 @@ library(GenomicRanges)
 test_that("AverageCounts works", {
   expect_equal(
     object = as.vector(x = AverageCounts(object = atac_small)),
-    expected = c(46.01818,40.91111),
+    expected = c(11.25455,10.71111),
     tolerance = 1/1000
   )
 })

@@ -1,12 +1,24 @@
+# Signac 0.2.1
+
+* Removed `SingleCoveragePlot` from exported functions
+* Added executable examples for all functions
+* Store raw SVD output in DimReduc misc slot in `RunSVD`
+* Fixed strand orientation for gene plot in `CoveragePlot`
+* Fix missing x-axis when plotting peaks but not genes in `CoveragePlot`
+
 # Signac 0.2.0
 
-* First CRAN release
-* Removed dependency on TFBSTools and motifmatchr
+* Removed dependency on TFBSTools, motifmatchr, AnnotationDbi, ggbio, AnnotationFilter
 * Renamed `PeriodPlot` to `FragmentHistogram`
 * Removed motif dimension reduction functions
 * Removed motif clustering functions
 * Removed `neighbors` and `reductions` slots from `motif` class
 * Added `motif.names` slot to `motif` class
+* Added ability to plot peak ranges in `CoveragePlot`
+* Added ability to plot gene annotations from `GRanges` object
+* Changed gene plot style in `CoveragePlot`
+* Allow passing additional arguments to `FilterFragments`
+* Add inst/extdata 
 * Change DESCRIPTION file so that Bioconductor dependencies are automatically installed
 
 # Signac 0.1.6

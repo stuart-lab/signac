@@ -19,9 +19,11 @@ test_that("DownsampleFeatures works", {
   atac_ds <- DownsampleFeatures(object = atac_small, n = 5, verbose = FALSE)
   expect_equal(
     object = VariableFeatures(object = atac_ds),
-    expected = c("chr1:1812400-1813494","chr1:2236104-2237259",
-                 "chr1:6074646-6075340","chr1:8933459-8934461",
-                 "chr1:1553343-1553743")
+    expected = c("chr1:948133-951142",
+                 "chr1:1002063-1006231",
+                 "chr1:1173312-1173499",
+                 "chr1:1475360-1476487",
+                 "chr1:911152-912038")
   )
 })
 
@@ -30,8 +32,12 @@ test_that("FindTopFeatures works", {
   atac_small <- FindTopFeatures(object = atac_small)
   expect_equal(
     object = head(VariableFeatures(object = atac_small)),
-    expected = c("chr1:2157847-2188813","chr1:6843960-6846894","chr1:2471903-2481288",
-                 "chr1:3815928-3820356","chr1:2515241-2519350","chr1:6051145-6055407")
+    expected = c("chr1:1549446-1552535",
+                 "chr1:1051006-1053102",
+                 "chr1:1240091-1245762",
+                 "chr1:1333514-1336003",
+                 "chr1:1309645-1311492",
+                 "chr1:928630-937949")
   )
 })
 
@@ -39,7 +45,7 @@ test_that("FRiP works", {
   atac_small <- FRiP(object = atac_small, bin.assay = 'bins', peak.assay = 'peaks', chromosome = NULL)
   expect_equal(
     object = as.vector(x = head(atac_small$FRiP)),
-    expected = c(1.4090909,1.4814815,1.1666667,0.9759615,1.0384615,0.2666667),
+    expected = c(1.5000000,2.3333333,1.6923077,0.9807692,1.1666667,Inf),
     tolerance = 1/100000
   )
 })

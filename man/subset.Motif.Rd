@@ -31,9 +31,9 @@ Return a subset of a Motif object
 }
 \examples{
 motif.obj <- GetMotifObject(object = atac_small)
-subset(x = motif.obj, features = head(rownames(motif.obj)))
+subset(x = motif.obj, features = head(rownames(motif.obj), 10))
 motif.obj <- GetMotifObject(atac_small)
-motif.obj[1:10,1:10]
+motif.obj[1:10,1:5]
 }
 \seealso{
 \code{\link[base]{subset}}

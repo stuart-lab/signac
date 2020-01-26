@@ -36,14 +36,11 @@ Return a vector if genomic regions that match the distribution of a set of query
 for any given set of characteristics, specified in the input \code{meta.feature} dataframe.
 }
 \examples{
-\dontrun{
-library(Seurat)
-metafeatures <- GetAssayData(object = atac_small[['peaks']], slot = 'meta.features')
+metafeatures <- Seurat::GetAssayData(object = atac_small[['peaks']], slot = 'meta.features')
 MatchRegionStats(
   meta.feature = metafeatures,
-  regions = head(rownames(metafeatures), 100),
+  regions = head(rownames(metafeatures), 10),
   features.match = "percentile",
-  n = 100
+  n = 10
 )
-}
 }
