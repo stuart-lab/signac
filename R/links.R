@@ -73,6 +73,7 @@ LinkPeaks <- function(
   genes.use <- colnames(x = peak_distance_matrix)
   coef.vec <- c()
   gene.vec <- c()
+  permuted.vec <- c()
   if (verbose) {
     pb <- txtProgressBar(
       min = 1,
@@ -106,6 +107,9 @@ LinkPeaks <- function(
       } else {
         gene.vec <- c(gene.vec, rep(i, length(x = coef.results.filtered)))
         coef.vec <- c(coef.vec, coef.results.filtered)
+        perm.coef <- coef.results.filtered
+        names(perm.coef) <- sample(names(coef.results), size = length(x = perm.coef), replace = FALSE)
+        permuted.vec <- c(permuted.vec, perm.coef)
         if (verbose) setTxtProgressBar(pb = pb, value = i)
       }
     }
@@ -117,16 +121,27 @@ LinkPeaks <- function(
     return(NULL)
   }
   peak.key <- seq_along(along.with = unique(x = names(x = coef.vec)))
+  peak.key.permuted <- seq_along(along.with = unique(x = names(x = permuted.vec)))
   names(x = peak.key) <- unique(x = names(x = coef.vec))
+  names(x = peak.key.permuted) <- unique(x = names(x = permuted.vec))
+
   coef.matrix <- sparseMatrix(
     i = gene.vec,
     j = peak.key[names(x = coef.vec)],
     x = coef.vec,
     dims = c(length(x = genes.use), max(peak.key))
   )
+  coef.matrix.permuted <- sparseMatrix(
+    i = gene.vec,
+    j = peak.key.permuted[names(x = permuted.vec)],
+    x = permuted.vec,
+    dims = c(length(x = genes.use), max(peak.key.permuted))
+  )
   rownames(x = coef.matrix) <- genes.use
   colnames(x = coef.matrix) <- names(x = peak.key)
-  return(coef.matrix)
+  rownames(x = coef.matrix.permuted) <- genes.use
+  colnames(x = coef.matrix.permuted) <- names(x = peak.key.permuted)
+  return(list(coef.matrix, coef.matrix.permuted))
 }
 
 #' Find peaks near genes
