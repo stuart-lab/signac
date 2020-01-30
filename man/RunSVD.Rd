@@ -56,7 +56,7 @@ RunSVD(object, ...)
 
 \item{scale.embeddings}{Scale cell embeddings within each component to mean 0 and SD 1 (default TRUE).}
 
-\item{reduction.key}{Name for stored dimension reduction key. Default 'SVD_'}
+\item{reduction.key}{Key for dimension reduction object}
 
 \item{scale.max}{Clipping value for cell embeddings. Default (NULL) is no clipping.}
 

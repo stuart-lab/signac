@@ -147,7 +147,6 @@ RunSVD.Assay <- function(
 }
 
 #' @param reduction.name Name for stored dimension reduction object. Default 'svd'
-#' @param reduction.key Name for stored dimension reduction key. Default 'SVD_'
 #' @rdname RunSVD
 #' @export
 #' @examples
