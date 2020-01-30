@@ -18,6 +18,7 @@ RunSVD(object, ...)
   scale.max = NULL,
   seed.use = NULL,
   verbose = TRUE,
+  irlba.work = n + 50,
   ...
 )
 
@@ -55,7 +56,7 @@ RunSVD(object, ...)
 
 \item{scale.embeddings}{Scale cell embeddings within each component to mean 0 and SD 1 (default TRUE).}
 
-\item{reduction.key}{Key for dimension reduction object}
+\item{reduction.key}{Name for stored dimension reduction key. Default 'SVD_'}
 
 \item{scale.max}{Clipping value for cell embeddings. Default (NULL) is no clipping.}
 
@@ -63,9 +64,12 @@ RunSVD(object, ...)
 
 \item{verbose}{Print messages}
 
+\item{irlba.work}{work parameter for \code{\link[irlba]{irlba}}.
+Working subspace dimension, larger values can speed convergence at the cost of more memory use.}
+
 \item{features}{Which features to use. If NULL, use variable features}
 
-\item{reduction.name}{Name for stored dimension reduction object. Default 'lsi'}
+\item{reduction.name}{Name for stored dimension reduction object. Default 'svd'}
 }
 \value{
 Returns a \code{\link[Seurat]{Seurat}} object

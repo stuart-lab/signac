@@ -45,6 +45,8 @@ Jaccard <- function(x, y) {
 #' @param scale.max Clipping value for cell embeddings. Default (NULL) is no clipping.
 #' @param seed.use Set a random seed. By default, no seed is set.
 #' @param scale.embeddings Scale cell embeddings within each component to mean 0 and SD 1 (default TRUE).
+#' @param irlba.work work parameter for \code{\link[irlba]{irlba}}.
+#' Working subspace dimension, larger values can speed convergence at the cost of more memory use.
 #' @param verbose Print messages
 #'
 #' @importFrom irlba irlba
@@ -65,6 +67,7 @@ RunSVD.default <- function(
   scale.max = NULL,
   seed.use = NULL,
   verbose = TRUE,
+  irlba.work = n + 50,
   ...
 ) {
   if (!is.null(x = seed.use)) {
@@ -74,7 +77,7 @@ RunSVD.default <- function(
   if (verbose) {
     message("Running SVD")
   }
-  components <- irlba(A = t(object), nv = n)
+  components <- irlba(A = t(object), nv = n, work = irlba.work)
   feature.loadings <- components$v
   sdev <- components$d / sqrt(x = max(1, nrow(x = object) - 1))
   cell.embeddings <- components$u
@@ -143,7 +146,8 @@ RunSVD.Assay <- function(
   return(reduction.data)
 }
 
-#' @param reduction.name Name for stored dimension reduction object. Default 'lsi'
+#' @param reduction.name Name for stored dimension reduction object. Default 'svd'
+#' @param reduction.key Name for stored dimension reduction key. Default 'SVD_'
 #' @rdname RunSVD
 #' @export
 #' @examples
