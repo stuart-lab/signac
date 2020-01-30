@@ -4,6 +4,7 @@
 Now, mean centering and SD scaling are applied to the cell embeddings within a component.
 * Added `scale.embeddings` option to `RunSVD` to control whether embeddings are scaled
 and centered.
+* Added `irlba.work` parameter to `RunSVD`.
 
 # Signac 0.2.1
 
