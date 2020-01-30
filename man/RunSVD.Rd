@@ -13,6 +13,7 @@ RunSVD(object, ...)
   object,
   assay = NULL,
   n = 50,
+  scale.embeddings = TRUE,
   reduction.key = "SVD_",
   scale.max = NULL,
   seed.use = NULL,
@@ -51,6 +52,8 @@ RunSVD(object, ...)
 \item{assay}{Which assay to use. If NULL, use the default assay}
 
 \item{n}{Number of singular values to compute}
+
+\item{scale.embeddings}{Scale cell embeddings within each component to mean 0 and SD 1 (default TRUE).}
 
 \item{reduction.key}{Key for dimension reduction object}
 
