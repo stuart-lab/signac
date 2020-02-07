@@ -44,6 +44,9 @@ Jaccard <- function(x, y) {
 #' @param reduction.key Key for dimension reduction object
 #' @param scale.max Clipping value for cell embeddings. Default (NULL) is no clipping.
 #' @param seed.use Set a random seed. By default, no seed is set.
+#' @param scale.embeddings Scale cell embeddings within each component to mean 0 and SD 1 (default TRUE).
+#' @param irlba.work work parameter for \code{\link[irlba]{irlba}}.
+#' Working subspace dimension, larger values can speed convergence at the cost of more memory use.
 #' @param verbose Print messages
 #'
 #' @importFrom irlba irlba
@@ -59,10 +62,12 @@ RunSVD.default <- function(
   object,
   assay = NULL,
   n = 50,
+  scale.embeddings = TRUE,
   reduction.key = 'SVD_',
   scale.max = NULL,
   seed.use = NULL,
   verbose = TRUE,
+  irlba.work = n + 50,
   ...
 ) {
   if (!is.null(x = seed.use)) {
@@ -72,19 +77,23 @@ RunSVD.default <- function(
   if (verbose) {
     message("Running SVD")
   }
-  components <- irlba(A = t(object), nv = n)
+  components <- irlba(A = t(object), nv = n, work = irlba.work)
   feature.loadings <- components$v
   sdev <- components$d / sqrt(x = max(1, nrow(x = object) - 1))
   cell.embeddings <- components$u
-  if (verbose) {
-    message('Scaling cell embeddings')
-  }
-  embed.mean <- apply(X = cell.embeddings, MARGIN = 1, FUN = mean)
-  embed.sd <- apply(X = cell.embeddings, MARGIN = 1, FUN = sd)
-  norm.embeddings <- (cell.embeddings - embed.mean) / embed.sd
-  if (!is.null(x = scale.max)) {
-    norm.embeddings[norm.embeddings > scale.max] <- scale.max
-    norm.embeddings[norm.embeddings < -scale.max] <- -scale.max
+  if (scale.embeddings) {
+    if (verbose) {
+      message('Scaling cell embeddings')
+    }
+    embed.mean <- apply(X = cell.embeddings, MARGIN = 2, FUN = mean)
+    embed.sd <- apply(X = cell.embeddings, MARGIN = 2, FUN = sd)
+    norm.embeddings <- t((t(cell.embeddings) - embed.mean) / embed.sd)
+    if (!is.null(x = scale.max)) {
+      norm.embeddings[norm.embeddings > scale.max] <- scale.max
+      norm.embeddings[norm.embeddings < -scale.max] <- -scale.max
+    }
+  } else {
+    norm.embeddings <- cell.embeddings
   }
   rownames(x = feature.loadings) <- rownames(x = object)
   colnames(x = feature.loadings) <- paste0(reduction.key, 1:n)
@@ -137,7 +146,7 @@ RunSVD.Assay <- function(
   return(reduction.data)
 }
 
-#' @param reduction.name Name for stored dimension reduction object. Default 'lsi'
+#' @param reduction.name Name for stored dimension reduction object. Default 'svd'
 #' @rdname RunSVD
 #' @export
 #' @examples
