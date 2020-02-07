@@ -1205,7 +1205,8 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
       file = textConnection(object = reads[[x]]),
       header = FALSE,
       sep = "\t",
-      stringsAsFactors = FALSE
+      stringsAsFactors = FALSE,
+      comment.char = ""
     )
     colnames(x = df) <- c('chr', 'start', 'end', 'cell', 'count')
     if (record.ident) {

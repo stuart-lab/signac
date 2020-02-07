@@ -43,6 +43,7 @@ Note that this reads the whole fragments file into memory, so may require a lot 
 depending on the size of the fragments file.
 }
 \examples{
+\donttest{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 output.path = file.path(tempdir(), "filtered.tsv")
 
@@ -51,4 +52,5 @@ FilterFragments(
   cells = colnames(atac_small),
   output.path = output.path
 )
+}
 }
