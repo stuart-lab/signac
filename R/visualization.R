@@ -372,9 +372,11 @@ globalVariables(names = 'group', package = 'Signac')
 #' @export
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
+#' \donttest{
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' atac_small <- SetFragments(atac_small, file = fpath)
 #' FragmentHistogram(object = atac_small, region = "chr1-10245-780007")
+#' }
 FragmentHistogram <- function(
   object,
   assay = NULL,
