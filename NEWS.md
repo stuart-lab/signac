@@ -1,3 +1,12 @@
+# Signac 0.2.2
+
+* Bug fix for `RunSVD`: previously, scaling was applied to each cell rather than each component.
+Now, mean centering and SD scaling are applied to the cell embeddings within a component.
+* Added `scale.embeddings` option to `RunSVD` to control whether embeddings are scaled
+and centered.
+* Added `irlba.work` parameter to `RunSVD`.
+* Update to allow comment characters in fragment file cell names
+
 # Signac 0.2.1
 
 * Removed `SingleCoveragePlot` from exported functions

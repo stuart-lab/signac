@@ -301,6 +301,7 @@ FeatureMatrix <- function(
 #' @export
 #' @return None
 #' @examples
+#' \donttest{
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' output.path = file.path(tempdir(), "filtered.tsv")
 #'
@@ -309,6 +310,7 @@ FeatureMatrix <- function(
 #'   cells = colnames(atac_small),
 #'   output.path = output.path
 #' )
+#' }
 FilterFragments <- function(
   fragment.path,
   cells,
