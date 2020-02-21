@@ -99,8 +99,11 @@ BinarizeCounts.Seurat <- function(
 #' @return Returns a sparse matrix
 #' @export
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(JASPAR2018)
+#' library(TFBSTools)
+#' library(BSgenome.Hsapiens.UCSC.hg19)
+#'
 #' pwm <- getMatrixSet(
 #'   x = JASPAR2018,
 #'   opts = list(species = 9606, all_versions = FALSE)
@@ -108,7 +111,7 @@ BinarizeCounts.Seurat <- function(
 #' motif.matrix <- CreateMotifMatrix(
 #'   features = StringToGRanges(rownames(atac_small), sep = c(":", "-")),
 #'   pwm = pwm,
-#'   genome = 'hg19',
+#'   genome = BSgenome.Hsapiens.UCSC.hg19,
 #'   sep = c(":", "-")
 #' )
 #' }
@@ -640,7 +643,7 @@ NucleosomeSignal <- function(
 #' @rdname RegionStats
 #' @export
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(object = rownames(atac_small), genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-"))
 #' }
@@ -670,7 +673,7 @@ RegionStats.default <- function(
 #' @importFrom Seurat GetAssayData
 #' @export
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(object = atac_small[['peaks']], genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-"))
 #' }
@@ -700,7 +703,7 @@ RegionStats.Assay <- function(
 #' @method RegionStats Seurat
 #' @export
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
 #'   object = atac_small,
@@ -860,7 +863,7 @@ RunTFIDF.Seurat <- function(
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @export
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' library(EnsDb.Hsapiens.v75)
 #' gene.ranges <- genes(EnsDb.Hsapiens.v75)
 #' gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
@@ -871,7 +874,10 @@ RunTFIDF.Seurat <- function(
 #' )
 #' seqlevelsStyle(tss.ranges) <- 'UCSC'
 #' tss.ranges <- keepStandardChromosomes(tss.ranges, pruning.mode = 'coarse')
-#' TSSEnrichment(object = atac_small, tss.positions = tss.ranges[1:2000])
+#'
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' atac_small <- SetFragments(object = atac_small, file = fpath)
+#' TSSEnrichment(object = atac_small, tss.positions = tss.ranges[1:100])
 #' }
 TSSEnrichment <- function(
   object,
