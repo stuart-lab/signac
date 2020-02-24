@@ -24,9 +24,11 @@ Returns a numeric vector
 Count reads per cell overlapping a given set of regions
 }
 \examples{
+\donttest{
 CountsInRegion(
   object = atac_small,
   assay = 'bins',
   regions = blacklist_hg19
 )
+}
 }
