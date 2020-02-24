@@ -50,6 +50,7 @@ Collate:
     'data.R'
     'generics.R'
     'dimension_reduction.R'
+    'mito.R'
     'motifs.R'
     'objects.R'
     'preprocessing.R'
