@@ -40,7 +40,7 @@ Wrapper to run \code{\link[chromVAR]{chromVAR}} on an assay with a motif object 
 Will return a new Seurat assay with the motif activities stored.
 }
 \examples{
-\dontrun{
+\donttest{
 library(BSgenome.Hsapiens.UCSC.hg19)
 RunChromVAR(object = atac_small, genome = BSgenome.Hsapiens.UCSC.hg19)
 }

@@ -5,6 +5,7 @@ Now, mean centering and SD scaling are applied to the cell embeddings within a c
 * Added `scale.embeddings` option to `RunSVD` to control whether embeddings are scaled
 and centered.
 * Added `irlba.work` parameter to `RunSVD`.
+* Update to allow comment characters in fragment file cell names
 
 # Signac 0.2.1
 
