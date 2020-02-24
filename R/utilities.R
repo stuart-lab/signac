@@ -122,11 +122,13 @@ CellsPerGroup <- function(
 #' and the distance to the feature.
 #' @export
 #' @examples
+#' \donttest{
 #' ClosestFeature(
 #'   regions = head(rownames(atac_small)),
 #'   annotation = StringToGRanges(head(rownames(atac_small)), sep = c(':', '-')),
 #'   sep = c(":", "-")
 #' )
+#' }
 ClosestFeature <- function(
   regions,
   annotation,
@@ -617,11 +619,13 @@ GetFragments <- function(
 #' @export
 #' @return Returns a numeric vector
 #' @examples
+#' \donttest{
 #' CountsInRegion(
 #'   object = atac_small,
 #'   assay = 'bins',
 #'   regions = blacklist_hg19
 #' )
+#' }
 CountsInRegion <- function(
   object,
   assay,

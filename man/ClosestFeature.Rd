@@ -21,9 +21,11 @@ and the distance to the feature.
 Find the closest feature to a given set of genomic regions
 }
 \examples{
+\donttest{
 ClosestFeature(
   regions = head(rownames(atac_small)),
   annotation = StringToGRanges(head(rownames(atac_small)), sep = c(':', '-')),
   sep = c(":", "-")
 )
+}
 }
