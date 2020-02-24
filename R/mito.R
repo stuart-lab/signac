@@ -1,18 +1,22 @@
 #' Read MGATK output
 #'
-#' Read output files from MGATK (\url{https://github.com/caleblareau/mgatk}) and create an
-#' Assay object.
+#' Read output files from MGATK (\url{https://github.com/caleblareau/mgatk}).
 #'
 #' @param dir Path to directory containing MGATK output files
 #' @param verbose Display messages
 #'
-#' @importFrom Matrix sparseMatrix
-#'
-#' @return Returns a list containing a sparse matrix and a dataframe.
+#' @return Returns a list containing a sparse matrix (counts) and two dataframes (depth and refallele).
 #' The sparse matrix contains read counts for each base at each position
-#' and strand, and the dataframe contains the total depth for each cell.
+#' and strand.
+#' The depth dataframe contains the total depth for each cell.
+#' The refallele dataframe contains the reference genome allele at each position.
 #'
 #' @export
+#' @examples
+#' \dontrun{
+#' data.dir <- "path/to/data/directory"
+#' mgatk <- ReadMGATK(dir = data.dir)
+#' }
 ReadMGATK <- function(dir, verbose = TRUE){
   if (!dir.exists(paths = dir)) {
     stop("Directory not found")
@@ -54,7 +58,7 @@ ReadMGATK <- function(dir, verbose = TRUE){
   counts <- rbind(a.mat[[1]], c.mat[[1]], t.mat[[1]], g.mat[[1]],
                   a.mat[[2]], c.mat[[2]], t.mat[[2]], g.mat[[2]])
 
-  return(list("counts" = counts, "depth" = depth))
+  return(list("counts" = counts, "depth" = depth, "refallele" = refallele))
 }
 
 # Create sparse matrix from base counts
@@ -65,6 +69,7 @@ ReadMGATK <- function(dir, verbose = TRUE){
 #
 # @param basecounts A dataframe containing read counts at each position for each cell
 # @param cells A lookup table giving the cell barcode numeric ID
+#' @importFrom Matrix sparseMatrix
 #
 # @return Returns a list of two sparse matrices
 SparseMatrixFromBaseCounts <- function(basecounts, cells, dna.base) {
@@ -74,14 +79,14 @@ SparseMatrixFromBaseCounts <- function(basecounts, cells, dna.base) {
     x = basecounts$plus
   )
   colnames(x = fwd.mat) <- names(x = cells)
-  rownames(x = fwd.mat) <- paste(dna.base, 1:nrow(fwd.mat), "fwd", sep = "_")
+  rownames(x = fwd.mat) <- paste(dna.base, 1:nrow(fwd.mat), "fwd", sep = "-")
   rev.mat <- sparseMatrix(
     i = basecounts$pos,
     j = cells[basecounts$cellbarcode],
     x = basecounts$minus
   )
   colnames(x = rev.mat) <- names(x = cells)
-  rownames(x = rev.mat) <- paste(dna.base, 1:nrow(rev.mat), "rev", sep = "_")
+  rownames(x = rev.mat) <- paste(dna.base, 1:nrow(rev.mat), "rev", sep = "-")
   return(list(fwd.mat, rev.mat))
 }
 
