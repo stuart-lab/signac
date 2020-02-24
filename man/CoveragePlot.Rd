@@ -103,7 +103,9 @@ Thanks to Andrew Hill for providing an early version of this function
  \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
 }
 \examples{
+\donttest{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 atac_small <- SetFragments(atac_small, file = fpath)
 CoveragePlot(object = atac_small, region = c("chr1-713500-714500"))
+}
 }

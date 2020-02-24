@@ -250,9 +250,11 @@ SingleCoveragePlot <- function(
 #' @export
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
+#' \donttest{
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' atac_small <- SetFragments(atac_small, file = fpath)
 #' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"))
+#' }
 CoveragePlot <- function(
   object,
   region,
@@ -334,8 +336,10 @@ CoveragePlot <- function(
 #' @export
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
+#' \donttest{
 #' motif.obj <- GetMotifObject(atac_small)
 #' MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
+#' }
 MotifPlot <- function(
   object,
   motifs,

@@ -16,7 +16,7 @@ jobs:
       vmImage: 'ubuntu-16.04'
     variables:
       R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
-    container: satijalab/online-workflows:latest
+    container: satijalab/seurat:latest
     steps:
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
@@ -37,7 +37,7 @@ jobs:
       vmImage: 'ubuntu-18.04'
     variables:
       R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
-    container: satijalab/online-workflows:latest
+    container: satijalab/seurat:latest
     steps:
       - script: |
           echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile

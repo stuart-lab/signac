@@ -44,8 +44,11 @@ the genome, and a set of position weight matrices.
 Requires that motifmatchr is installed (https://www.bioconductor.org/packages/motifmatchr/).
 }
 \examples{
-\dontrun{
+\donttest{
 library(JASPAR2018)
+library(TFBSTools)
+library(BSgenome.Hsapiens.UCSC.hg19)
+
 pwm <- getMatrixSet(
   x = JASPAR2018,
   opts = list(species = 9606, all_versions = FALSE)
@@ -53,7 +56,8 @@ pwm <- getMatrixSet(
 motif.matrix <- CreateMotifMatrix(
   features = granges(atac_small),
   pwm = pwm,
-  genome = 'hg19'
+  genome = BSgenome.Hsapiens.UCSC.hg19,
+  sep = c(":", "-")
 )
 }
 }

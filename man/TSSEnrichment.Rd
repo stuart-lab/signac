@@ -35,7 +35,7 @@ Compute the transcription start site (TSS) enrichment score for each cell, as de
 The computed score will be added to the object metadata as "TSS.enrichment".
 }
 \examples{
-\dontrun{
+\donttest{
 library(EnsDb.Hsapiens.v75)
 gene.ranges <- genes(EnsDb.Hsapiens.v75)
 gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
@@ -46,6 +46,9 @@ tss.ranges <- GRanges(
 )
 seqlevelsStyle(tss.ranges) <- 'UCSC'
 tss.ranges <- keepStandardChromosomes(tss.ranges, pruning.mode = 'coarse')
-TSSEnrichment(object = atac_small, tss.positions = tss.ranges[1:2000])
+
+fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+atac_small <- SetFragments(object = atac_small, file = fpath)
+TSSEnrichment(object = atac_small, tss.positions = tss.ranges[1:100])
 }
 }

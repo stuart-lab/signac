@@ -122,11 +122,13 @@ CellsPerGroup <- function(
 #' and the distance to the feature.
 #' @export
 #' @examples
+#' \donttest{
 #' ClosestFeature(
 #'   regions = head(rownames(atac_small)),
 #'   annotation = StringToGRanges(head(rownames(atac_small)), sep = c(':', '-')),
 #'   sep = c(":", "-")
 #' )
+#' }
 ClosestFeature <- function(
   regions,
   annotation,
@@ -188,74 +190,6 @@ ExtractField <- function(string, field = 1, delim = "_") {
     return(strsplit(x = string, split = delim)[[1]][field])
   }
   return(paste(strsplit(x = string, split = delim)[[1]][fields], collapse = delim))
-}
-
-#' Compute Tn5 insertion bias
-#'
-#' Counts the Tn5 insertion frequency for each DNA hexamer.
-#'
-#' @param object A Seurat object
-#' @param genome A BSgenome object
-#' @param assay Name of assay to use. If NULL, use the default assay.
-#' @param region Region to use when assessing bias. Default is human chromosome 1.
-#' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
-#'
-#' @importFrom GenomicRanges GRanges
-#' @importFrom IRanges IRanges
-#' @importFrom Biostrings oligonucleotideFrequency
-#' @importFrom Seurat SetAssayData
-#' @export
-#' @examples
-#' \dontrun{
-#' library(BSgenome.Mmusculus.UCSC.mm10)
-#'
-#' region.use <- GRanges(
-#'   seqnames = c('chr1', 'chr2'),
-#'   IRanges(start = c(1,1), end = c(195471971, 182113224))
-#' )
-#'
-#' InsertionBias(
-#'  object = object,
-#'  genome = BSgenome.Mmusculus.UCSC.mm10,
-#'  region = region.use
-#' )
-#' }
-#' @return Returns a Seurat object
-InsertionBias <- function(
-  object,
-  genome,
-  assay = NULL,
-  region = 'chr1-1-249250621',
-  verbose = TRUE,
-  ...
-) {
-  reads <- GetReadsInRegion(
-    object = object,
-    region = region,
-    assay = assay,
-    verbose = verbose,
-    ...
-  )
-  insertions <- GRanges(
-    seqnames = c(reads$chr, reads$chr),
-    ranges = IRanges(
-      start = c(reads$start, reads$end),
-      width = 1
-    ),
-    strand = '+'
-  )
-  insertions <- Extend(x = insertions, upstream = 3, downstream = 2)
-  sequences <- getSeq(x = genome, insertions)
-  insertion_hex_freq <- as.matrix(x = table(as.vector(x = sequences)))
-  genome_freq <- oligonucleotideFrequency(
-    x = getSeq(x = genome, names = 'chr1'),
-    width = 6
-  )
-  insertion_hex_freq <- insertion_hex_freq[names(x = genome_freq), ]
-  bias <- insertion_hex_freq / genome_freq
-  object <- SetAssayData(object = object, assay = assay, slot = 'bias', new.data = bias)
-  return(object)
 }
 
 #' Find interesecting regions between two objects
@@ -638,11 +572,13 @@ GetReadsInRegion <- function(
 #' @export
 #' @return Returns a numeric vector
 #' @examples
+#' \donttest{
 #' CountsInRegion(
 #'   object = atac_small,
 #'   assay = 'bins',
 #'   regions = blacklist_hg19
 #' )
+#' }
 CountsInRegion <- function(
   object,
   assay,
