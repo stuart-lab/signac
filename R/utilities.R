@@ -1158,3 +1158,43 @@ PFMatrixToList <- function(x) {
   name.use <- TFBSTools::name(x = x)
   return(list("matrix" = position.matrix, "name" = name.use))
 }
+
+#' Unify genomic ranges
+#'
+#' Create a unified set of non-overlapping genomic ranges
+#' from multiple Seurat objects containing single-cell
+#' chromatin data.
+#'
+#' @param object.list A list of Seurat objects
+#' @param mode Function to use when combining genomic ranges. Can be "reduce" (default)
+#' or "disjoin". See \code{\link[GenomicRanges]{reduce}} and \code{\link[GenomicRanges]{disjoin}}
+#' for more information on these functions.
+#' @param sep Separators to use to extract genomic ranges from object row names. To specify different
+#' separators for different objects, pass a list of length equal to the length of \code{object.list}.
+#'
+#' @importFrom GenomicRanges reduce disjoin
+#' @export
+#' @return Returns a GRanges object
+#' @example
+#' UnifyPeaks(object.list = list(atac_small, atac_small))
+UnifyPeaks <- function(object.list, mode = 'reduce', sep = c(":", "-")) {
+  if (inherits(x = sep, what = "list")) {
+    if (length(x = sep) != length(x = object.list)) {
+      stop("Must specify separators for each object in the input list")
+    }
+  } else {
+    sep <- rep(x = list(sep), length(x = object.list))
+  }
+  peak.ranges <- list()
+  for (i in seq_along(along.with = object.list)) {
+    peak.ranges[[i]] <- StringToGRanges(regions = rownames(object.list[[i]]), sep = sep[[i]])
+  }
+  peak.ranges <- Reduce(f = c, x = peak.ranges)
+  if (mode == 'reduce') {
+    return(reduce(x = peak.ranges))
+  } else if (mode == 'disjoin') {
+    return(disjoin(x = peak.ranges))
+  } else {
+    stop("Unknown mode requested")
+  }
+}
