@@ -21,6 +21,8 @@ navbar:
           href: articles/motif_vignette.html
         - text: "scATAC-seq integration"
           href: articles/integration.html
+        - text: "Merging objects"
+          href: articles/merging.html
   right:
     - icon: fa-github
       href: https://github.com/timoast/signac
