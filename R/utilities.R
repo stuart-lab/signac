@@ -1175,7 +1175,7 @@ PFMatrixToList <- function(x) {
 #' @importFrom GenomicRanges reduce disjoin
 #' @export
 #' @return Returns a GRanges object
-#' @example
+#' @examples
 #' UnifyPeaks(object.list = list(atac_small, atac_small))
 UnifyPeaks <- function(object.list, mode = 'reduce', sep = c(":", "-")) {
   if (inherits(x = sep, what = "list")) {
