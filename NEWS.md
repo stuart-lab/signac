@@ -1,3 +1,7 @@
+# Signac 0.2.3
+
+* New `UnifyPeaks` function to create a merged set of peaks from multiple samples.
+
 # Signac 0.2.2
 
 * Bug fix for `RunSVD`: previously, scaling was applied to each cell rather than each component.
