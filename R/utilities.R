@@ -122,11 +122,13 @@ CellsPerGroup <- function(
 #' and the distance to the feature.
 #' @export
 #' @examples
+#' \donttest{
 #' ClosestFeature(
 #'   regions = head(rownames(atac_small)),
 #'   annotation = StringToGRanges(head(rownames(atac_small)), sep = c(':', '-')),
 #'   sep = c(":", "-")
 #' )
+#' }
 ClosestFeature <- function(
   regions,
   annotation,
@@ -148,79 +150,6 @@ ClosestFeature <- function(
   df$query_region <- GRangesToString(grange = regions, ...)
   df$distance <- mcols(x = nearest_feature)$distance
   return(df)
-}
-
-#' Compute Tn5 insertion bias
-#'
-#' Counts the Tn5 insertion frequency for each DNA hexamer.
-#'
-#' @param object A Seurat object
-#' @param genome A BSgenome object
-#' @param assay Name of assay to use. If NULL, use the default assay.
-#' @param region Region to use when assessing bias. Default is human chromosome 1.
-#' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
-#'
-#' @importFrom GenomicRanges GRanges
-#' @importFrom IRanges IRanges
-#' @importFrom Biostrings oligonucleotideFrequency
-#' @export
-#' @examples
-#' \dontrun{
-#' library(BSgenome.Mmusculus.UCSC.mm10)
-#'
-#' region.use <- GRanges(
-#'   seqnames = c('chr1', 'chr2'),
-#'   IRanges(start = c(1,1), end = c(195471971, 182113224))
-#' )
-#'
-#' InsertionBias(
-#'  object = object,
-#'  genome = BSgenome.Mmusculus.UCSC.mm10,
-#'  region = region.use
-#' )
-#' }
-#' @return Returns a Seurat object
-InsertionBias <- function(
-  object,
-  genome,
-  assay = NULL,
-  region = 'chr1-1-249250621',
-  verbose = TRUE,
-  ...
-) {
-  reads <- GetReadsInRegion(
-    object = object,
-    region = region,
-    assay = assay,
-    verbose = verbose,
-    ...
-  )
-  insertions <- GRanges(
-    seqnames = c(reads$chr, reads$chr),
-    ranges = IRanges(
-      start = c(reads$start, reads$end),
-      width = 1
-    ),
-    strand = '+'
-  )
-  insertions <- Extend(x = insertions, upstream = 3, downstream = 2)
-  sequences <- getSeq(x = genome, insertions)
-  insertion_hex_freq <- as.matrix(x = table(as.vector(x = sequences)))
-  genome_freq <- oligonucleotideFrequency(
-    x = getSeq(x = genome, names = 'chr1'),
-    width = 6
-  )
-  insertion_hex_freq <- insertion_hex_freq[names(x = genome_freq), ]
-  bias <- insertion_hex_freq/genome_freq
-
-  object <- AddToMisc(
-    object = object,
-    assay = assay,
-    new.data = bias,
-    save.as = 'Tn5.bias'
-  )
-  return(object)
 }
 
 #' Find interesecting regions between two objects
@@ -690,11 +619,13 @@ GetFragments <- function(
 #' @export
 #' @return Returns a numeric vector
 #' @examples
+#' \donttest{
 #' CountsInRegion(
 #'   object = atac_small,
 #'   assay = 'bins',
 #'   regions = blacklist_hg19
 #' )
+#' }
 CountsInRegion <- function(
   object,
   assay,
@@ -1226,4 +1157,44 @@ PFMatrixToList <- function(x) {
   position.matrix <- TFBSTools::Matrix(x = x)
   name.use <- TFBSTools::name(x = x)
   return(list("matrix" = position.matrix, "name" = name.use))
+}
+
+#' Unify genomic ranges
+#'
+#' Create a unified set of non-overlapping genomic ranges
+#' from multiple Seurat objects containing single-cell
+#' chromatin data.
+#'
+#' @param object.list A list of Seurat objects
+#' @param mode Function to use when combining genomic ranges. Can be "reduce" (default)
+#' or "disjoin". See \code{\link[GenomicRanges]{reduce}} and \code{\link[GenomicRanges]{disjoin}}
+#' for more information on these functions.
+#' @param sep Separators to use to extract genomic ranges from object row names. To specify different
+#' separators for different objects, pass a list of length equal to the length of \code{object.list}.
+#'
+#' @importFrom GenomicRanges reduce disjoin
+#' @export
+#' @return Returns a GRanges object
+#' @examples
+#' UnifyPeaks(object.list = list(atac_small, atac_small))
+UnifyPeaks <- function(object.list, mode = 'reduce', sep = c(":", "-")) {
+  if (inherits(x = sep, what = "list")) {
+    if (length(x = sep) != length(x = object.list)) {
+      stop("Must specify separators for each object in the input list")
+    }
+  } else {
+    sep <- rep(x = list(sep), length(x = object.list))
+  }
+  peak.ranges <- list()
+  for (i in seq_along(along.with = object.list)) {
+    peak.ranges[[i]] <- StringToGRanges(regions = rownames(object.list[[i]]), sep = sep[[i]])
+  }
+  peak.ranges <- Reduce(f = c, x = peak.ranges)
+  if (mode == 'reduce') {
+    return(reduce(x = peak.ranges))
+  } else if (mode == 'disjoin') {
+    return(disjoin(x = peak.ranges))
+  } else {
+    stop("Unknown mode requested")
+  }
 }
