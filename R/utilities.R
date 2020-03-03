@@ -34,7 +34,7 @@ AddToMisc <- function(
 }
 
 globalVariables(names = c('group', 'readcount'), package = 'Signac')
-#' AverageCounts
+#' Average Counts
 #'
 #' Compute the mean counts per group of cells for a given assay
 #'
@@ -78,7 +78,7 @@ AverageCounts <- function(
   return(results)
 }
 
-#' CellsPerGroup
+#' Cells per group
 #'
 #' Count the number of cells in each group
 #'
@@ -105,12 +105,16 @@ CellsPerGroup <- function(
   return(lut)
 }
 
-#' ClosestFeature
+#' Closest Feature
 #'
 #' Find the closest feature to a given set of genomic regions
 #'
 #' @param regions A set of genomic regions to query
-#' @param annotation Annotation information. Can be a GRanges object or an EnsDb object
+#' @param annotation Annotation information. Can be a GRanges object or an EnsDb object.
+#' If an EnsDb object is provided, protein-coding genes will be extracted from the
+#' object and only the closest protein coding genes are reported. If a GRanges
+#' object is provided, no filtering is performed and the closest genomic range
+#' is reported.
 #' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #'
 #' @importFrom GenomicRanges distanceToNearest
@@ -255,7 +259,7 @@ SetFragments <- function(
   }
 }
 
-#' StringToGRanges
+#' String to GRanges
 #'
 #' Convert a genomic coordinate string to a GRanges object
 #'
@@ -281,7 +285,7 @@ StringToGRanges <- function(regions, sep = c("-", "-")) {
   return(granges)
 }
 
-#' GRangesToString
+#' GRanges to String
 #'
 #' Convert GRanges object to a vector of strings
 #'
@@ -304,7 +308,7 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
   return(regions)
 }
 
-# ChunkGRanges
+# Chunk GRanges
 #
 # Split a genomic ranges object into evenly sized chunks
 #
