@@ -1202,3 +1202,27 @@ UnifyPeaks <- function(object.list, mode = 'reduce', sep = c(":", "-")) {
     stop("Unknown mode requested")
   }
 }
+
+#' Subset matrix rows and columns
+#'
+#' Subset the rows and columns of a matrix by removing
+#' rows and columns with less than the specified number of
+#' non-zero elements.
+#'
+#' @param mat A matrix
+#' @param min.rows Minimum number of non-zero elements for
+#' the row to be retained
+#' @param min.cols Minimum number of non-zero elements for
+#' the column to be retained
+#' @return Returns a matrix
+#' @export
+#' @importFrom Matrix colSums rowSums
+#' @examples
+#' SubsetMatrix(mat = volcano)
+SubsetMatrix <- function(mat, min.rows = 1, min.cols = 1) {
+  rowcount <- rowSums(mat > 0)
+  colcount <- colSums(mat > 0)
+  keeprows <- rowcount > min.rows
+  keepcols <- colcount > min.cols
+  return(mat[keeprows, keepcols])
+}

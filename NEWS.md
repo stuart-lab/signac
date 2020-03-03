@@ -1,3 +1,8 @@
+# Signac 0.2.4
+
+* New `SubsetMatrix` function to subset a matrix based on number of non-zero elements 
+in the rows or columns.
+
 # Signac 0.2.3
 
 * New `UnifyPeaks` function to create a merged set of peaks from multiple samples.
