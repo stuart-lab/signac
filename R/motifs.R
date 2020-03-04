@@ -173,5 +173,9 @@ FindMotifs <- function(
     motif.name = as.vector(x = unlist(x = motif.names[names(x = query.counts)])),
     stringsAsFactors = FALSE
   )
-  return(results[with(data = results, expr = order(pvalue, -fold.enrichment)), ])
+  if (nrow(x = results) == 0) {
+    return(results)
+  } else {
+    return(results[with(data = results, expr = order(pvalue, -fold.enrichment)), ])
+  }
 }
