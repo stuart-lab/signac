@@ -320,7 +320,7 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
 # ChunkGRanges(blacklist_hg19, n = 10)
 ChunkGRanges <- function(granges, nchunk) {
   chunksize <- as.integer(x = (length(granges) / nchunk))
-  range.list <- sapply(X = 1:nchunk, FUN = function(x) {
+  range.list <- sapply(X = seq_len(length.out = nchunk), FUN = function(x) {
     chunkupper <- (x * chunksize)
     if (x == 1) {
       chunklower <- 1
@@ -660,7 +660,7 @@ ExtractCell <- function(x) {
     return(NULL)
   } else {
     tmp <- strsplit(x = x, split = "\t")
-    return(unlist(x = tmp)[5*(1:length(x = tmp))-1])
+    return(unlist(x = tmp)[5*(seq_along(along.with = tmp))-1])
   }
 }
 
@@ -987,7 +987,7 @@ MultiRegionCutMatrix <- function(
   tabix.file <- TabixFile(file = fragment.path)
   open(con = tabix.file)
   cm.list <- lapply(
-    X = 1:length(x = regions),
+    X = seq_along(along.with = regions),
     FUN = function(x) {
       CutMatrix(
         object = object,
@@ -1132,7 +1132,7 @@ ApplyMatrixByGroup <- function(
 # @return Returns a data.frame
 TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
   # TODO rewrite this without rbindlist
-  df.list <- lapply(X = 1:length(reads), FUN = function(x) {
+  df.list <- lapply(X = seq_along(along.with = reads), FUN = function(x) {
     if (length(x = reads[[x]]) == 0) {
       return(NULL)
     }
