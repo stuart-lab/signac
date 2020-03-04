@@ -46,7 +46,9 @@ Imports:
     Biostrings,
     BSgenome,
     gggenes,
-    grid
+    grid,
+    stats,
+    utils
 Collate: 
     'data.R'
     'generics.R'
