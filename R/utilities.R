@@ -1214,15 +1214,34 @@ UnifyPeaks <- function(object.list, mode = 'reduce', sep = c(":", "-")) {
 #' the row to be retained
 #' @param min.cols Minimum number of non-zero elements for
 #' the column to be retained
+#' @param max.row.val Maximum allowed value in a row for the
+#' row to be retained. If NULL, don't set any limit.
+#' @param max.col.val Maximum allowed value in a column for
+#' the column to be retained. If NULL, don't set any limit.
+#'
 #' @return Returns a matrix
 #' @export
 #' @importFrom Matrix colSums rowSums
 #' @examples
 #' SubsetMatrix(mat = volcano)
-SubsetMatrix <- function(mat, min.rows = 1, min.cols = 1) {
+SubsetMatrix <- function(
+  mat,
+  min.rows = 1,
+  min.cols = 1,
+  max.row.val = 10,
+  max.col.val = NULL
+) {
   rowcount <- rowSums(mat > 0)
   colcount <- colSums(mat > 0)
   keeprows <- rowcount > min.rows
   keepcols <- colcount > min.cols
+  if (!is.null(x = max.row.val)) {
+    rowmax <- apply(X = mat, MARGIN = 1, FUN = max)
+    keeprows <- keeprows & (rowmax < max.row.val)
+  }
+  if (!is.null(x = max.col.val)) {
+    colmax <- apply(X = mat, MARGIN = 2, FUN = max)
+    keepcols <- keepcols & (colmax < max.col.val)
+  }
   return(mat[keeprows, keepcols])
 }

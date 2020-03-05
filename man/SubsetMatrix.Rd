@@ -4,7 +4,13 @@
 \alias{SubsetMatrix}
 \title{Subset matrix rows and columns}
 \usage{
-SubsetMatrix(mat, min.rows = 1, min.cols = 1)
+SubsetMatrix(
+  mat,
+  min.rows = 1,
+  min.cols = 1,
+  max.row.val = 10,
+  max.col.val = NULL
+)
 }
 \arguments{
 \item{mat}{A matrix}
@@ -14,6 +20,12 @@ the row to be retained}
 
 \item{min.cols}{Minimum number of non-zero elements for
 the column to be retained}
+
+\item{max.row.val}{Maximum allowed value in a row for the
+row to be retained. If NULL, don't set any limit.}
+
+\item{max.col.val}{Maximum allowed value in a column for
+the column to be retained. If NULL, don't set any limit.}
 }
 \value{
 Returns a matrix
