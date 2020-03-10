@@ -808,6 +808,7 @@ RunTFIDF.Assay <- function(
     verbose = verbose,
     ...
   )
+  new.data <- as(object = new.data, Class = 'dgCMatrix')
   object <- SetAssayData(
     object = object,
     slot = 'data',
