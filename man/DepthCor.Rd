@@ -7,19 +7,19 @@
 DepthCor(object, reduction = "lsi", assay = "peaks", n = 10, ...)
 }
 \arguments{
-\item{object}{A Seurat object}
+\item{object}{A \code{\link[Seurat]{Seurat}} object}
 
 \item{reduction}{Name of a dimension reduction stored in the
 input object}
 
 \item{assay}{Name of assay to use for sequencing depth}
 
-\item{n}{Number of components to use. If NULL, use all components.}
+\item{n}{Number of components to use. If \code{NULL}, use all components.}
 
-\item{...}{Additional arguments passed to \code{\link[base]{cor}}}
+\item{...}{Additional arguments passed to \code{\link[stats]{cor}}}
 }
 \value{
-Returns a ggplot object
+Returns a \code{\link[ggplot2]{ggplot}} object
 }
 \description{
 Compute the correlation between total counts and each reduced
