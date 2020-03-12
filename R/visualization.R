@@ -17,7 +17,7 @@ NULL
 #' @return Returns a ggplot object
 #' @export
 #' @importFrom Seurat Embeddings
-#' @importFrom ggplot2 ggplot geom_point scale_x_continuous ylab ylim theme_light
+#' @importFrom ggplot2 ggplot geom_point scale_x_continuous ylab ylim theme_light ggtitle
 #' @examples
 #' DepthCor(object = atac_small)
 DepthCor <- function(object, reduction = 'lsi', assay = 'peaks', n = 10, ...) {
