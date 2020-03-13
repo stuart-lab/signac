@@ -5,7 +5,12 @@ NULL
 #' Run chromVAR
 #'
 #' Wrapper to run \code{\link[chromVAR]{chromVAR}} on an assay with a motif object present.
-#' Will return a new Seurat assay with the motif activities stored.
+#' Will return a new Seurat assay with the motif activities (the deviations in chromatin accessibility
+#' across the set of regions) as a new assay.
+#'
+#' See the chromVAR documentation for more information: \url{https://greenleaflab.github.io/chromVAR/index.html}
+#'
+#' See the chromVAR paper: \url{https://www.nature.com/articles/nmeth.4401}
 #'
 #' @param object A Seurat object
 #' @param genome A BSgenome object
@@ -175,5 +180,9 @@ FindMotifs <- function(
     motif.name = as.vector(x = unlist(x = motif.names[names(x = query.counts)])),
     stringsAsFactors = FALSE
   )
-  return(results[with(data = results, expr = order(pvalue, -fold.enrichment)), ])
+  if (nrow(x = results) == 0) {
+    return(results)
+  } else {
+    return(results[with(data = results, expr = order(pvalue, -fold.enrichment)), ])
+  }
 }

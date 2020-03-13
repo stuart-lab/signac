@@ -34,7 +34,7 @@ AddToMisc <- function(
 }
 
 globalVariables(names = c('group', 'readcount'), package = 'Signac')
-#' AverageCounts
+#' Average Counts
 #'
 #' Compute the mean counts per group of cells for a given assay
 #'
@@ -78,7 +78,7 @@ AverageCounts <- function(
   return(results)
 }
 
-#' CellsPerGroup
+#' Cells per group
 #'
 #' Count the number of cells in each group
 #'
@@ -105,12 +105,16 @@ CellsPerGroup <- function(
   return(lut)
 }
 
-#' ClosestFeature
+#' Closest Feature
 #'
 #' Find the closest feature to a given set of genomic regions
 #'
 #' @param regions A set of genomic regions to query
-#' @param annotation Annotation information. Can be a GRanges object or an EnsDb object
+#' @param annotation Annotation information. Can be a GRanges object or an EnsDb object.
+#' If an EnsDb object is provided, protein-coding genes will be extracted from the
+#' object and only the closest protein coding genes are reported. If a GRanges
+#' object is provided, no filtering is performed and the closest genomic range
+#' is reported.
 #' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #'
 #' @importFrom GenomicRanges distanceToNearest
@@ -248,7 +252,7 @@ GetIntersectingFeatures <- function(
   return(list(intersect.object1, intersect.object2))
 }
 
-#' StringToGRanges
+#' String to GRanges
 #'
 #' Convert a genomic coordinate string to a GRanges object
 #'
@@ -274,7 +278,7 @@ StringToGRanges <- function(regions, sep = c("-", "-")) {
   return(granges)
 }
 
-#' GRangesToString
+#' GRanges to String
 #'
 #' Convert GRanges object to a vector of strings
 #'
@@ -297,7 +301,7 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
   return(regions)
 }
 
-# ChunkGRanges
+# Chunk GRanges
 #
 # Split a genomic ranges object into evenly sized chunks
 #
@@ -309,7 +313,7 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
 # ChunkGRanges(blacklist_hg19, n = 10)
 ChunkGRanges <- function(granges, nchunk) {
   chunksize <- as.integer(x = (length(granges) / nchunk))
-  range.list <- sapply(X = 1:nchunk, FUN = function(x) {
+  range.list <- sapply(X = seq_len(length.out = nchunk), FUN = function(x) {
     chunkupper <- (x * chunksize)
     if (x == 1) {
       chunklower <- 1
@@ -612,7 +616,7 @@ ExtractCell <- function(x) {
     return(NULL)
   } else {
     tmp <- strsplit(x = x, split = "\t")
-    return(unlist(x = tmp)[5*(1:length(x = tmp))-1])
+    return(unlist(x = tmp)[5*(seq_along(along.with = tmp))-1])
   }
 }
 
@@ -951,7 +955,7 @@ MultiRegionCutMatrix <- function(
   tabix.file <- TabixFile(file = fragment.path)
   open(con = tabix.file)
   cm.list <- lapply(
-    X = 1:length(x = regions),
+    X = seq_along(along.with = regions),
     FUN = function(x) {
       CutMatrix(
         object = object,
@@ -1096,7 +1100,7 @@ ApplyMatrixByGroup <- function(
 # @return Returns a data.frame
 TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
   # TODO rewrite this without rbindlist
-  df.list <- lapply(X = 1:length(reads), FUN = function(x) {
+  df.list <- lapply(X = seq_along(along.with = reads), FUN = function(x) {
     if (length(x = reads[[x]]) == 0) {
       return(NULL)
     }
@@ -1391,4 +1395,87 @@ PFMatrixToList <- function(x) {
   position.matrix <- TFBSTools::Matrix(x = x)
   name.use <- TFBSTools::name(x = x)
   return(list("matrix" = position.matrix, "name" = name.use))
+}
+
+#' Unify genomic ranges
+#'
+#' Create a unified set of non-overlapping genomic ranges
+#' from multiple Seurat objects containing single-cell
+#' chromatin data.
+#'
+#' @param object.list A list of Seurat objects
+#' @param mode Function to use when combining genomic ranges. Can be "reduce" (default)
+#' or "disjoin". See \code{\link[GenomicRanges]{reduce}} and \code{\link[GenomicRanges]{disjoin}}
+#' for more information on these functions.
+#' @param sep Separators to use to extract genomic ranges from object row names. To specify different
+#' separators for different objects, pass a list of length equal to the length of \code{object.list}.
+#'
+#' @importFrom GenomicRanges reduce disjoin
+#' @export
+#' @return Returns a GRanges object
+#' @examples
+#' UnifyPeaks(object.list = list(atac_small, atac_small))
+UnifyPeaks <- function(object.list, mode = 'reduce', sep = c(":", "-")) {
+  if (inherits(x = sep, what = "list")) {
+    if (length(x = sep) != length(x = object.list)) {
+      stop("Must specify separators for each object in the input list")
+    }
+  } else {
+    sep <- rep(x = list(sep), length(x = object.list))
+  }
+  peak.ranges <- list()
+  for (i in seq_along(along.with = object.list)) {
+    peak.ranges[[i]] <- StringToGRanges(regions = rownames(object.list[[i]]), sep = sep[[i]])
+  }
+  peak.ranges <- Reduce(f = c, x = peak.ranges)
+  if (mode == 'reduce') {
+    return(reduce(x = peak.ranges))
+  } else if (mode == 'disjoin') {
+    return(disjoin(x = peak.ranges))
+  } else {
+    stop("Unknown mode requested")
+  }
+}
+
+#' Subset matrix rows and columns
+#'
+#' Subset the rows and columns of a matrix by removing
+#' rows and columns with less than the specified number of
+#' non-zero elements.
+#'
+#' @param mat A matrix
+#' @param min.rows Minimum number of non-zero elements for
+#' the row to be retained
+#' @param min.cols Minimum number of non-zero elements for
+#' the column to be retained
+#' @param max.row.val Maximum allowed value in a row for the
+#' row to be retained. If NULL, don't set any limit.
+#' @param max.col.val Maximum allowed value in a column for
+#' the column to be retained. If NULL, don't set any limit.
+#'
+#' @return Returns a matrix
+#' @export
+#' @importFrom Matrix colSums rowSums
+#' @examples
+#' SubsetMatrix(mat = volcano)
+SubsetMatrix <- function(
+  mat,
+  min.rows = 1,
+  min.cols = 1,
+  max.row.val = 10,
+  max.col.val = NULL
+) {
+  rowcount <- rowSums(mat > 0)
+  colcount <- colSums(mat > 0)
+  keeprows <- rowcount > min.rows
+  keepcols <- colcount > min.cols
+  if (!is.null(x = max.row.val)) {
+    rowmax <- apply(X = mat, MARGIN = 1, FUN = max)
+    keeprows <- keeprows & (rowmax < max.row.val)
+  }
+  if (!is.null(x = max.col.val)) {
+    colmax <- apply(X = mat, MARGIN = 2, FUN = max)
+    keepcols <- keepcols & (colmax < max.col.val)
+  }
+  return(mat[keeprows, keepcols])
 }

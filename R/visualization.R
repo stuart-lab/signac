@@ -3,6 +3,46 @@
 #'
 NULL
 
+globalVariables(names = c('Component', 'counts'), package = 'Signac')
+#' Sequencing depth correlation
+#'
+#' Compute the correlation between total counts and each reduced
+#' dimension component.
+#'
+#' @param object A \code{\link[Seurat]{Seurat}} object
+#' @param reduction Name of a dimension reduction stored in the
+#' input object
+#' @param assay Name of assay to use for sequencing depth
+#' @param n Number of components to use. If \code{NULL}, use all components.
+#' @param ... Additional arguments passed to \code{\link[stats]{cor}}
+#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @export
+#' @importFrom Seurat Embeddings
+#' @importFrom ggplot2 ggplot geom_point scale_x_continuous ylab ylim theme_light ggtitle aes
+#' @importFrom stats cor
+#' @examples
+#' DepthCor(object = atac_small)
+DepthCor <- function(object, reduction = 'lsi', assay = 'peaks', n = 10, ...) {
+  dr <- object[[reduction]]
+  embed <- Embeddings(object = dr)
+  counts <- object[[paste0('nCount_', assay)]]
+  embed <- embed[rownames(x = counts), ]
+  n <- SetIfNull(x = n, y = ncol(x = embed))
+  embed <- embed[, seq_len(length.out = n)]
+  depth.cor <- as.data.frame(cor(x = embed, y = counts, ...))
+  depth.cor$counts <- depth.cor[, 1]
+  depth.cor$Component <- seq_len(length.out = nrow(x = depth.cor))
+  p <- ggplot(depth.cor, aes(Component, counts)) +
+    geom_point() +
+    scale_x_continuous(n.breaks = n, limits = c(1, n)) +
+    ylab("Correlation") +
+    ylim(c(-1, 1)) +
+    theme_light() +
+    ggtitle("Correlation between depth and reduced dimension components",
+            subtitle = paste0("Assay: ", assay, '\t', "Reduction: ", reduction))
+  return(p)
+}
+
 globalVariables(names = c('position', 'coverage', 'group', 'gene_name', 'direction'), package = 'Signac')
 #' @rdname CoveragePlot
 #' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic aes ylim theme element_blank element_text geom_segment scale_color_identity

@@ -1,3 +1,19 @@
+# Signac 0.2.5
+
+* New `DepthCor` function to compute the correlation between sequencing depth and
+reduced dimension components. 
+
+# Signac 0.2.4
+
+* First CRAN release.
+* New `SubsetMatrix` function to subset a matrix based on number of non-zero elements 
+in the rows or columns.
+* Removed `seed.use` parameter from `RunSVD`.
+
+# Signac 0.2.3
+
+* New `UnifyPeaks` function to create a merged set of peaks from multiple samples.
+
 # Signac 0.2.2
 
 * Bug fix for `RunSVD`: previously, scaling was applied to each cell rather than each component.

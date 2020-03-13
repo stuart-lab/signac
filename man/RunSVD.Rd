@@ -17,7 +17,6 @@ RunSVD(object, ...)
   reduction.key = "SVD_",
   standardize.embeddings = TRUE,
   scale.max = NULL,
-  seed.use = NULL,
   verbose = TRUE,
   irlba.work = n + 50,
   ...
@@ -62,8 +61,6 @@ RunSVD(object, ...)
 \item{standardize.embeddings}{Scale and center cell embeddings}
 
 \item{scale.max}{Clipping value for cell embeddings. Default (NULL) is no clipping.}
-
-\item{seed.use}{Set a random seed. By default, no seed is set.}
 
 \item{verbose}{Print messages}
 
