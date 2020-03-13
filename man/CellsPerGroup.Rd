@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{CellsPerGroup}
 \alias{CellsPerGroup}
-\title{CellsPerGroup}
+\title{Cells per group}
 \usage{
 CellsPerGroup(object, group.by = NULL)
 }

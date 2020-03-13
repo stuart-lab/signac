@@ -72,24 +72,3 @@ jobs:
           Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
           Rscript -e "devtools::install(lib = '$(Agent.BuildDirectory)/R/library')"
         displayName: 'Install'
-
-  - job: 'macOS_High_Sierra'
-    timeoutInMinutes: 4320
-    pool:
-      vmImage: 'macOS-10.13'
-    variables:
-      R_LIBS_USER: '$(Agent.BuildDirectory)/R/library'
-    steps:
-      - script: |
-         brew install r
-        displayName: 'Install R'
-      - script: |
-          echo 'options(repos = "https://cloud.r-project.org")' > ~/.Rprofile
-          echo '.libPaths(c(.libPaths(), "'${R_LIBS_USER}'"))' >> ~/.Rprofile
-          mkdir -vp ${R_LIBS_USER}
-        displayName: 'Setup R Library'
-      - script: |
-          Rscript -e "install.packages(c('BiocManager', 'devtools'), lib = '$(Agent.BuildDirectory)/R/library')"
-          Rscript -e "BiocManager::install(lib = '$(Agent.BuildDirectory)/R/library')"
-          Rscript -e "devtools::install(lib = '$(Agent.BuildDirectory)/R/library')"
-        displayName: 'Install'

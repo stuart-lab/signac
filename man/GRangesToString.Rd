@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{GRangesToString}
 \alias{GRangesToString}
-\title{GRangesToString}
+\title{GRanges to String}
 \usage{
 GRangesToString(grange, sep = c("-", "-"))
 }

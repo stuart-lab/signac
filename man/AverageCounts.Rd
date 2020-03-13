@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{AverageCounts}
 \alias{AverageCounts}
-\title{AverageCounts}
+\title{Average Counts}
 \usage{
 AverageCounts(object, assay = NULL, group.by = NULL, verbose = TRUE)
 }

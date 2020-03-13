@@ -4,7 +4,9 @@
 \name{blacklist_ce10}
 \alias{blacklist_ce10}
 \title{Genomic blacklist regions for C. elegans ce10}
-\format{A GRanges object}
+\format{
+A GRanges object
+}
 \source{
 \url{https://github.com/Boyle-Lab/Blacklist}
 

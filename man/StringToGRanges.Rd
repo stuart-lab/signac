@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{StringToGRanges}
 \alias{StringToGRanges}
-\title{StringToGRanges}
+\title{String to GRanges}
 \usage{
 StringToGRanges(regions, sep = c("-", "-"))
 }

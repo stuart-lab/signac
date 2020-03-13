@@ -37,7 +37,13 @@ Returns a \code{\link[Seurat]{Seurat}} object with a new assay
 }
 \description{
 Wrapper to run \code{\link[chromVAR]{chromVAR}} on an assay with a motif object present.
-Will return a new Seurat assay with the motif activities stored.
+Will return a new Seurat assay with the motif activities (the deviations in chromatin accessibility
+across the set of regions) as a new assay.
+}
+\details{
+See the chromVAR documentation for more information: \url{https://greenleaflab.github.io/chromVAR/index.html}
+
+See the chromVAR paper: \url{https://www.nature.com/articles/nmeth.4401}
 }
 \examples{
 \donttest{
