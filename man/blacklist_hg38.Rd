@@ -4,7 +4,9 @@
 \name{blacklist_hg38}
 \alias{blacklist_hg38}
 \title{Genomic blacklist regions for Human GRCh38}
-\format{A GRanges object}
+\format{
+A GRanges object
+}
 \source{
 \url{https://github.com/Boyle-Lab/Blacklist}
 
