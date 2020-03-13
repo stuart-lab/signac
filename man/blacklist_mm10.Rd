@@ -4,7 +4,9 @@
 \name{blacklist_mm10}
 \alias{blacklist_mm10}
 \title{Genomic blacklist regions for Mouse mm10}
-\format{A GRanges object}
+\format{
+A GRanges object
+}
 \source{
 \url{https://github.com/Boyle-Lab/Blacklist}
 

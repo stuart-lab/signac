@@ -2,14 +2,18 @@
 % Please edit documentation in R/utilities.R
 \name{ClosestFeature}
 \alias{ClosestFeature}
-\title{ClosestFeature}
+\title{Closest Feature}
 \usage{
 ClosestFeature(regions, annotation, ...)
 }
 \arguments{
 \item{regions}{A set of genomic regions to query}
 
-\item{annotation}{Annotation information. Can be a GRanges object or an EnsDb object}
+\item{annotation}{Annotation information. Can be a GRanges object or an EnsDb object.
+If an EnsDb object is provided, protein-coding genes will be extracted from the
+object and only the closest protein coding genes are reported. If a GRanges
+object is provided, no filtering is performed and the closest genomic range
+is reported.}
 
 \item{...}{Additional arguments passed to \code{\link{StringToGRanges}}}
 }

@@ -43,7 +43,6 @@ Jaccard <- function(x, y) {
 #' @param n Number of singular values to compute
 #' @param reduction.key Key for dimension reduction object
 #' @param scale.max Clipping value for cell embeddings. Default (NULL) is no clipping.
-#' @param seed.use Set a random seed. By default, no seed is set.
 #' @param scale.embeddings Scale cell embeddings within each component to mean 0 and SD 1 (default TRUE).
 #' @param irlba.work work parameter for \code{\link[irlba]{irlba}}.
 #' Working subspace dimension, larger values can speed convergence at the cost of more memory use.
@@ -65,14 +64,10 @@ RunSVD.default <- function(
   scale.embeddings = TRUE,
   reduction.key = 'SVD_',
   scale.max = NULL,
-  seed.use = NULL,
   verbose = TRUE,
   irlba.work = n + 50,
   ...
 ) {
-  if (!is.null(x = seed.use)) {
-    set.seed(seed = seed.use)
-  }
   n <- min(n, (ncol(x = object) - 1))
   if (verbose) {
     message("Running SVD")
@@ -96,9 +91,9 @@ RunSVD.default <- function(
     norm.embeddings <- cell.embeddings
   }
   rownames(x = feature.loadings) <- rownames(x = object)
-  colnames(x = feature.loadings) <- paste0(reduction.key, 1:n)
+  colnames(x = feature.loadings) <- paste0(reduction.key, seq_len(length.out = n))
   rownames(x = norm.embeddings) <- colnames(x = object)
-  colnames(x = norm.embeddings) <- paste0(reduction.key, 1:n)
+  colnames(x = norm.embeddings) <- paste0(reduction.key, seq_len(length.out = n))
   reduction.data <- CreateDimReducObject(
     embeddings = norm.embeddings,
     loadings = feature.loadings,

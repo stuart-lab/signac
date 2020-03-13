@@ -4,7 +4,9 @@
 \name{blacklist_dm6}
 \alias{blacklist_dm6}
 \title{Genomic blacklist regions for Drosophila dm6}
-\format{A GRanges object}
+\format{
+A GRanges object
+}
 \source{
 \url{https://github.com/Boyle-Lab/Blacklist}
 

@@ -1,5 +1,8 @@
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/timoast/signac?svg=true)](https://ci.appveyor.com/project/timoast/signac)
-# Signac v0.2.2
+[![CRAN Version](https://www.r-pkg.org/badges/version/Signac)](https://cran.r-project.org/package=Signac)
+[![CRAN Downloads](https://cranlogs.r-pkg.org/badges/Signac)](https://cran.r-project.org/package=Signac)
+
+# Signac v0.2.5
 
 Signac is an extension of [Seurat](https://satijalab.org/seurat) for the analysis of single-cell chromatin data.
 
@@ -13,10 +16,9 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install()
 
-# To install Signac from GitHub
-install.packages("devtools")
-devtools::install_github("timoast/signac")
+install.packages("Signac")
 
 # To install the development version
+install.packages("devtools")
 devtools::install_github("timoast/signac", ref = "develop")
 ```
