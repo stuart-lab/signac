@@ -42,7 +42,7 @@ ReadMGATK <- function(dir, verbose = TRUE){
     message("Reading metadata")
   }
   refallele <- read.table(file = refallele.path, header = FALSE, stringsAsFactors = FALSE, col.names = c("pos", "ref"))
-  depth <- read.table(file = depthfile.path, header = FALSE, stringsAsFactors = FALSE, col.names = c("cellbarcode", "depth"))
+  depth <- read.table(file = depthfile.path, header = FALSE, stringsAsFactors = FALSE, col.names = c("cellbarcode", "mito.depth"), row.names = 1)
   cellbarcodes <- unique(x = readLines(con = cellbarcode.path))
   cb.lookup <- seq_along(along.with = cellbarcodes)
   names(cb.lookup) <- cellbarcodes
