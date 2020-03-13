@@ -1,5 +1,5 @@
 ---
-title: "Signac v0.2.3"
+title: "Signac v0.2.5"
 output:
   html_document:
     keep_md: true
@@ -12,6 +12,8 @@ knitr::opts_chunk$set(eval = FALSE)
 
 [![Build Status](https://dev.azure.com/timstuart/timstuart/_apis/build/status/timoast.signac?branchName=master&jobName=Ubuntu_1804)](https://dev.azure.com/timstuart/timstuart/_build/latest?definitionId=1&branchName=master)
 [![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/timoast/signac?svg=true)](https://ci.appveyor.com/project/timoast/signac)
+[![CRAN Version](https://www.r-pkg.org/badges/version/Signac)](https://cran.r-project.org/package=Signac)
+[![CRAN Downloads](https://cranlogs.r-pkg.org/badges/Signac)](https://cran.r-project.org/package=Signac)
 
 # Signac
 
@@ -46,13 +48,13 @@ BiocManager::install()
 ### Current release
 
 ```{r, eval=FALSE}
-install.packages("devtools")
-devtools::install_github("timoast/signac")
+install.packages("Signac")
 ```
 
 ### Development version
 
 ```{r, eval=FALSE}
+install.packages("devtools")
 devtools::install_github("timoast/signac", ref = "develop")
 ```
 
