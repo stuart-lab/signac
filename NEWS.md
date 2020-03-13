@@ -1,9 +1,13 @@
-# Signac 0.2.4
+# Signac 0.2.5
 
-* New `SubsetMatrix` function to subset a matrix based on number of non-zero elements 
-in the rows or columns.
 * New `DepthCor` function to compute the correlation between sequencing depth and
 reduced dimension components. 
+
+# Signac 0.2.4
+
+* First CRAN release.
+* New `SubsetMatrix` function to subset a matrix based on number of non-zero elements 
+in the rows or columns.
 * Removed `seed.use` parameter from `RunSVD`.
 
 # Signac 0.2.3
