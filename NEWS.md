@@ -1,5 +1,6 @@
 # Signac 0.2.4
 
+* First CRAN release. 
 * New `SubsetMatrix` function to subset a matrix based on number of non-zero elements 
 in the rows or columns.
 * Removed `seed.use` parameter from `RunSVD`.
