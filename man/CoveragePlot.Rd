@@ -71,8 +71,7 @@ requested assay using the \code{\link{SetFragments}} function}
 
 \item{downsample}{Fraction of positions to retain in the plot. Default is 0.1 (retain 10 percent, ie every 10th position)}
 
-\item{height.tracks}{Height of the accessibility tracks relative to the height of the gene annotation track.
-Default is 2 (twice as high as annotation track).}
+\item{height.tracks}{Height of the accessibility tracks relative to the height of the gene annotation track.}
 
 \item{extend.upstream}{Number of bases to extend the region upstream (Default 0)}
 

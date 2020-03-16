@@ -275,7 +275,6 @@ SingleCoveragePlot <- function(
 #' @param window Smoothing window size
 #' @param downsample Fraction of positions to retain in the plot. Default is 0.1 (retain 10 percent, ie every 10th position)
 #' @param height.tracks Height of the accessibility tracks relative to the height of the gene annotation track.
-#' Default is 2 (twice as high as annotation track).
 #' @param extend.upstream Number of bases to extend the region upstream (Default 0)
 #' @param extend.downstream Number of bases to extend the region downstream (Default 0)
 #' @param ymax Maximum value for Y axis. If NULL (default) set to the highest value among all the tracks.
