@@ -1,12 +1,11 @@
 ---
-name: ❓Analysis question
+name: "❓Analysis question"
 about: Ask a question about the analysis of single-cell data
 title: ''
 labels: question
 assignees: ''
 
 ---
-
 
 <!-- Please search the previous issues for similar questions before opening a new issue. If there are similar previous issues, please reference them in your issue (https://help.github.com/en/github/writing-on-github/autolinked-references-and-urls) -->
 
