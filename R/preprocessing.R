@@ -170,7 +170,6 @@ DownsampleFeatures <- function(
   verbose = TRUE
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  counts <- GetAssayData(object = object, assay = assay, slot = 'counts')
   if (n > nrow(object[[assay]])) {
     stop("Requested more features than present in the assay")
   }
@@ -282,6 +281,7 @@ FeatureMatrix <- function(
   }
 }
 
+globalVariables(names = c('chr', 'start'), package = 'Signac')
 #' FilterFragments
 #'
 #' Remove cells from a fragments file that are not present in a given list of cells.

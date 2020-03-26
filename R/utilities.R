@@ -372,8 +372,12 @@ CutMatrix <- function(
     stop("Region is not a GRanges object.")
   }
   all.cells <- SetIfNull(x = cells, y = colnames(x = object))
+  closefile <- FALSE
   if (is.null(x = tabix.file)) {
     fragment.path <- GetFragments(object = object, assay = assay)
+    tabix.file <- TabixFile(file = fragment.path)
+    open(con = tabix.file)
+    closefile = TRUE
   }
   fragments <- GetReadsInRegion(
     object = object,
@@ -383,6 +387,9 @@ CutMatrix <- function(
     tabix.file = tabix.file,
     verbose = verbose
   )
+  if (closefile) {
+    close(con = tabix.file)
+  }
   # if there are no reads in the region, create an empty matrix of the correct dimension
   if (nrow(x = fragments) == 0) {
     cut.matrix <- sparseMatrix(
@@ -547,7 +554,7 @@ GetReadsInRegion <- function(
   if (is.null(x = tabix.file)) {
     fragment.path <- GetFragments(object = object, assay = assay)
     tabix.file <- TabixFile(file = fragment.path)
-    tbx <- open(con = tabix.file)
+    open(con = tabix.file)
     close.file <- TRUE
   } else {
     close.file <- FALSE

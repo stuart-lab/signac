@@ -141,7 +141,6 @@ SingleCoveragePlot <- function(
   end.pos <- end(x = region)
   stepsize <- 1 / downsample
   total_range <- end.pos - start.pos
-  steps <- ceiling(x = (total_range / stepsize))
   retain_positions <- seq(from = start.pos, to = end.pos, by = stepsize)
   downsampled_coverage <- coverages[coverages$position %in% retain_positions, ]
   ymax <- SetIfNull(x = ymax, y = signif(x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2))

@@ -90,6 +90,7 @@ RunChromVAR <- function(
   return(object)
 }
 
+globalVariables(names = 'pvalue', package = 'Signac')
 #' FindMotifs
 #'
 #' Find motifs overrepresented in a given set of genomic features. Computes the number of features
