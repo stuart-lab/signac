@@ -10,7 +10,8 @@
 #'   \item{RNA}{A gene x cell dataset}
 #' }
 #'
-#' @source \url{https://support.10xgenomics.com/single-cell-atac/datasets/1.1.0/atac_v1_pbmc_10k}
+#' @source \url{https://support.10xgenomics.com/single-cell-atac/
+#' datasets/1.1.0/atac_v1_pbmc_10k}
 "atac_small"
 
 #' Genomic blacklist regions for Human GRCh38

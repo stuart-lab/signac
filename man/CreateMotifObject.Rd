@@ -19,9 +19,9 @@ matrices matching the motif names in \code{data}.
 Can be of class PFMatrixList.}
 
 \item{motif.names}{A named list of motif names. List element names
-must match the names given in \code{pwm}. If NULL, use the names from the list
-of position weight or position frequency matrices. This can be used to set
-a alternative common name for the motif. If a PFMatrixList is passed to
+must match the names given in \code{pwm}. If NULL, use the names from the
+list of position weight or position frequency matrices. This can be used to
+set a alternative common name for the motif. If a PFMatrixList is passed to
 \code{pwm}, it will pull the motif name from the PFMatrixList.}
 
 \item{meta.data}{A data.frame containing metadata}
@@ -33,6 +33,11 @@ Returns a \code{\link{Motif}} object
 Create an object of class \code{Motif}
 }
 \examples{
-motif.matrix <- matrix(data = sample(c(0,1), size = 100, replace = TRUE), ncol = 5)
+motif.matrix <- matrix(
+  data = sample(c(0,1),
+    size = 100,
+    replace = TRUE),
+  ncol = 5
+)
 motif <- CreateMotifObject(data = motif.matrix)
 }

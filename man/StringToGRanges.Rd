@@ -9,8 +9,9 @@ StringToGRanges(regions, sep = c("-", "-"))
 \arguments{
 \item{regions}{Vector of genomic region strings}
 
-\item{sep}{Vector of separators to use for genomic string. First element is used to separate chromosome
-and coordinates, second separator is used to separate start and end coordinates.}
+\item{sep}{Vector of separators to use for genomic string. First element is
+used to separate chromosome and coordinates, second separator is used to
+separate start and end coordinates.}
 }
 \value{
 Returns a GRanges object
