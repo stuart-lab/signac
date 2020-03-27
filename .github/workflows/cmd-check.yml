@@ -57,7 +57,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          remotes::install_cran(c("BiocManager", "rcmdcheck")
+          remotes::install_cran(c("BiocManager", "rcmdcheck"))
           BiocManager::install()
           remotes::install_deps(dependencies = TRUE)
         shell: Rscript {0}
