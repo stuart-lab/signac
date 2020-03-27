@@ -4,17 +4,22 @@ name: R-CMD-check
 
 jobs:
   R-CMD-check:
-    runs-on: ${{ matrix.config.os }}
     
+    if: "!contains(github.event.head_commit.message, 'ci-skip')"
+
+    runs-on: ${{ matrix.config.os }}
+
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
 
     strategy:
       fail-fast: false
       matrix:
         config:
+          - {os: windows-latest, r: '3.6'}
           - {os: macOS-latest, r: '3.6', bioc: '3.10'}
           - {os: macOS-latest, r: 'devel', bioc: 'devel'}
           - {os: ubuntu-16.04, r: '3.6', bioc: '3.10', rspm: "https://demo.rstudiopm.com/all/__linux__/xenial/latest"}
+          - {os: ubuntu-18.04, r: '3.6', bioc: '3.10', rspm: "https://demo.rstudiopm.com/all/__linux__/xenial/latest"}
     
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
