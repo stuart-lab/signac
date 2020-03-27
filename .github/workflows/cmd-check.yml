@@ -12,9 +12,9 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: macOS-latest, r: '3.6'}
-          - {os: macOS-latest, r: 'devel'}
-          - {os: ubuntu-16.04, r: '3.6', rspm: "https://demo.rstudiopm.com/all/__linux__/xenial/latest"}
+          - {os: macOS-latest, r: '3.6', bioc: '3.10'}
+          - {os: macOS-latest, r: 'devel', bioc: 'devel'}
+          - {os: ubuntu-16.04, r: '3.6', bioc: '3.10', rspm: "https://demo.rstudiopm.com/all/__linux__/xenial/latest"}
     
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
@@ -29,8 +29,8 @@ jobs:
 
       - name: Query dependencies
         run: |
-          install.packages("remotes")
-          saveRDS(remotes::dev_package_deps(dependencies = TRUE), "depends.Rds", version = 2)
+          install.packages(c("remotes", "BiocManager"))
+          saveRDS(remotes::dev_package_deps(dependencies = TRUE, repos = c(getOption('repos'), BiocManager::repositories())), "depends.Rds", version = 2)
         shell: Rscript {0}
 
       - name: Cache R packages
@@ -53,10 +53,10 @@ jobs:
 
       - name: Install dependencies
         run: |
-          remotes::install_cran(c("BiocManager", "rcmdcheck"))
           install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
-          BiocManager::install()
+          BiocManager::install(version = '${{ matrix.config.bioc }}')
           remotes::install_deps(dependencies = TRUE)
+          remotes::install_cran("rcmdcheck")
         shell: Rscript {0}
 
       - name: Check
