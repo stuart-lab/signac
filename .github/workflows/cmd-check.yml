@@ -29,8 +29,9 @@ jobs:
 
       - name: Query dependencies
         run: |
-          install.packages(c("remotes", "BiocManager"))
-          saveRDS(remotes::dev_package_deps(dependencies = TRUE, repos = c(getOption('repos'), BiocManager::repositories())), "depends.Rds", version = 2)
+          install.packages("remotes")
+          setRepositories(ind=1:2)
+          saveRDS(remotes::dev_package_deps(dependencies = TRUE, repos = getOption('repos')), "depends.Rds", version = 2)
         shell: Rscript {0}
 
       - name: Cache R packages
@@ -54,6 +55,7 @@ jobs:
       - name: Install dependencies
         run: |
           install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
+          install.packages("BiocManager")
           BiocManager::install(version = '${{ matrix.config.bioc }}')
           remotes::install_deps(dependencies = TRUE)
           remotes::install_cran("rcmdcheck")
