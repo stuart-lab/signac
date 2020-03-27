@@ -57,6 +57,7 @@ jobs:
           install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
           install.packages("BiocManager")
           BiocManager::install(version = '${{ matrix.config.bioc }}')
+          BiocManager::install("GenomeInfoDbData")
           remotes::install_deps(dependencies = TRUE)
           remotes::install_cran("rcmdcheck")
         shell: Rscript {0}
