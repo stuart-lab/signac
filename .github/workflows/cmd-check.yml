@@ -54,10 +54,12 @@ jobs:
           Rscript -e "remotes::install_github('r-hub/sysreqs')"
           sysreqs=$(Rscript -e "cat(sysreqs::sysreq_commands('DESCRIPTION'))")
           sudo -s eval "$sysreqs"
+          sudo apt-get install libgsl2 libgsl-dev
 
       - name: Install dependencies
         run: |
           remotes::install_cran(c("BiocManager", "rcmdcheck"))
+          install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
           BiocManager::install()
           remotes::install_deps(dependencies = TRUE)
         shell: Rscript {0}
