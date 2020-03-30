@@ -9,12 +9,15 @@ UnifyPeaks(object.list, mode = "reduce", sep = c(":", "-"))
 \arguments{
 \item{object.list}{A list of Seurat objects}
 
-\item{mode}{Function to use when combining genomic ranges. Can be "reduce" (default)
-or "disjoin". See \code{\link[GenomicRanges]{reduce}} and \code{\link[GenomicRanges]{disjoin}}
+\item{mode}{Function to use when combining genomic ranges. Can be "reduce"
+(default) or "disjoin".
+See \code{\link[GenomicRanges]{reduce}}
+and \code{\link[GenomicRanges]{disjoin}}
 for more information on these functions.}
 
-\item{sep}{Separators to use to extract genomic ranges from object row names. To specify different
-separators for different objects, pass a list of length equal to the length of \code{object.list}.}
+\item{sep}{Separators to use to extract genomic ranges from object row names.
+To specify different separators for different objects, pass a list of length
+equal to the length of \code{object.list}.}
 }
 \value{
 Returns a GRanges object

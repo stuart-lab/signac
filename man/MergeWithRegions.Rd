@@ -27,21 +27,22 @@ the default assay}
 \item{assay.2}{Name of the assay to use in the second object. If NULL, use
 the default assay}
 
-\item{regions.use}{Which regions to use when naming regions in the merged object.
-Options are:
+\item{regions.use}{Which regions to use when naming regions in the merged
+object. Options are:
 \itemize{
  \item{1}: Use the region coordinates from the first object
  \item{2}: Use the region coordinates from the second object
 }}
 
-\item{distance}{Maximum distance between regions allowed for an intersection to
-be recorded. Default is 0.}
+\item{distance}{Maximum distance between regions allowed for an intersection
+to be recorded. Default is 0.}
 
 \item{new.assay.name}{Name for the merged assay. Default is 'peaks'}
 
 \item{verbose}{Display messages}
 
-\item{...}{Additional arguments passed to \code{\link{CreateChromatinAssayObject}}}
+\item{...}{Additional arguments passed to
+\code{\link[Seurat]{CreateChromatinAssayObject}}}
 }
 \value{
 Returns a \code{\link[Seurat]{Seurat}} object

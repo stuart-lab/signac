@@ -36,7 +36,10 @@ for regions in the assay and add to the feature metadata.
 \examples{
 \donttest{
 library(BSgenome.Hsapiens.UCSC.hg19)
-RegionStats(object = rownames(atac_small), genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-"))
+RegionStats(
+object = rownames(atac_small),
+genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
+)
 }
 \donttest{
 library(BSgenome.Hsapiens.UCSC.hg19)

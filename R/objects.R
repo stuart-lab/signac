@@ -1,5 +1,6 @@
 #' @include generics.R
-#' @importFrom methods setClass setClassUnion setMethod is slot slot<- new as slotNames
+#' @importFrom methods setClass setClassUnion setMethod is slot slot<- new as
+#' slotNames
 #' @importClassesFrom Matrix dgCMatrix
 #'
 NULL
@@ -401,15 +402,20 @@ CreateSignacObject <- function(
 #' matrices matching the motif names in \code{data}.
 #' Can be of class PFMatrixList.
 #' @param motif.names A named list of motif names. List element names
-#' must match the names given in \code{pwm}. If NULL, use the names from the list
-#' of position weight or position frequency matrices. This can be used to set
-#' a alternative common name for the motif. If a PFMatrixList is passed to
+#' must match the names given in \code{pwm}. If NULL, use the names from the
+#' list of position weight or position frequency matrices. This can be used to
+#' set a alternative common name for the motif. If a PFMatrixList is passed to
 #' \code{pwm}, it will pull the motif name from the PFMatrixList.
 #' @param meta.data A data.frame containing metadata
 #' @export
 #' @return Returns a \code{\link{Motif}} object
 #' @examples
-#' motif.matrix <- matrix(data = sample(c(0,1), size = 100, replace = TRUE), ncol = 5)
+#' motif.matrix <- matrix(
+#'   data = sample(c(0,1),
+#'     size = 100,
+#'     replace = TRUE),
+#'   ncol = 5
+#' )
 #' motif <- CreateMotifObject(data = motif.matrix)
 CreateMotifObject <- function(
   data = NULL,
@@ -419,8 +425,12 @@ CreateMotifObject <- function(
 ) {
   data <- SetIfNull(x = data, y = new(Class = 'dgCMatrix'))
   meta.data <- SetIfNull(x = meta.data, y = data.frame())
-  if (!(inherits(x = data, what = 'matrix') | inherits(x = data, what = 'dgCMatrix'))) {
-    stop('Data must be matrix or sparse matrix class. Supplied ', class(x = data))
+  if (
+    !(inherits(x = data, what = 'matrix') |
+      inherits(x = data, what = 'dgCMatrix'))
+    ) {
+    stop('Data must be matrix or sparse matrix class. Supplied ',
+         class(x = data))
   }
   if (inherits(x = data, what = 'matrix')) {
     data <- as(Class = 'dgCMatrix', object = data)
@@ -445,7 +455,10 @@ CreateMotifObject <- function(
       stop("Number of motif names supplied does not match the number of motifs")
     }
   }
-  if (inherits(x = pwm, what = "PFMatrixList") | inherits(x = pwm, what = "PWMatrixList")) {
+  if (
+    inherits(x = pwm, what = "PFMatrixList") |
+    inherits(x = pwm, what = "PWMatrixList")
+    ) {
     pwm.converted <- lapply(X = as.list(x = pwm), FUN = PFMatrixToList)
     pwm <- lapply(X = pwm.converted, FUN = "[[", 1)
     motif.names <- lapply(X = pwm.converted, FUN = "[[", 2)
@@ -612,7 +625,9 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
 #' SetMotifData(object = motif.obj, slot = 'data', new.data = matrix())
 SetMotifData.Motif <- function(object, slot, new.data, ...) {
   if (!(slot %in% slotNames(x = object))) {
-    stop('slot must be one of ', paste(slotNames(x = object), collapse = ', '), call. = FALSE)
+    stop('slot must be one of ',
+         paste(slotNames(x = object), collapse = ', '),
+         call. = FALSE)
   }
   if (slot == 'data') {
     if (inherits(x = new.data, what = 'matrix')) {
@@ -620,7 +635,8 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
     }
   }
   # TODO check that new data is compatible with existing slots
-  # rownames of data must match rownames of meta.data and names of pwm, if not empty
+  # rownames of data must match rownames of meta.data and names of pwm, if not
+  # empty
   slot(object = object, name = slot) <- new.data
   return(object)
 }
@@ -630,14 +646,23 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
 #' @importFrom Seurat GetAssayData SetAssayData
 #' @rdname SetMotifData
 #' @export
+#' @examples
+#' SetMotifData(
+#' object = atac_small[['peaks']], slot = 'data', new.data = matrix()
+#' )
 #' @method SetMotifData ChromatinAssay
 SetMotifData.ChromatinAssay <- function(object, slot, new.data, ...) {
   if (slot == 'data') {
-    if (!(inherits(x = new.data, what = 'matrix') | inherits(x = new.data, what = 'dgCMatrix'))) {
-      stop('Data must be matrix or sparse matrix class. Supplied ', class(x = new.data))
+    if (
+      !(inherits(x = new.data, what = 'matrix') |
+        inherits(x = new.data, what = 'dgCMatrix'))
+      ) {
+      stop('Data must be matrix or sparse matrix class. Supplied ',
+           class(x = new.data))
     }
     if (!all(rownames(x = object) == rownames(x = new.data))) {
-      stop('Features do not match existing assay data. Column names in motif matrix should match row names in assay data')
+      stop('Features do not match existing assay data.
+           Column names in motif matrix should match row names in assay data')
     }
     if (inherits(x = new.data, what = 'matrix')) {
       new.data <- as(Class = 'dgCMatrix', object = new.data)
@@ -660,7 +685,9 @@ SetMotifData.ChromatinAssay <- function(object, slot, new.data, ...) {
 #' @method SetMotifData Seurat
 #' @examples
 #' motif.matrix <- GetMotifData(object = atac_small)
-#' SetMotifData(object = atac_small, assay = 'peaks', slot = 'data', new.data = motif.matrix)
+#' SetMotifData(
+#' object = atac_small, assay = 'peaks', slot = 'data', new.data = motif.matrix
+#' )
 SetMotifData.Seurat <- function(object, assay = NULL, ...) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   object[[assay]] <- SetMotifData(object = object[[assay]], ...)
@@ -894,8 +921,13 @@ setMethod(
   f = 'show',
   signature = 'Motif',
   definition = function(object) {
-    cat('A Motif object containing', ncol(x = slot(object = object, name = "data")),
-        "motifs in", nrow(x = slot(object = object, name = "data")), "regions\n")
+    cat(
+      'A Motif object containing',
+      ncol(x = slot(object = object, name = "data")),
+      "motifs in",
+      nrow(x = slot(object = object, name = "data")),
+      "regions\n"
+    )
   }
 )
 

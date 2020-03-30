@@ -17,9 +17,11 @@ NucleosomeSignal(
 \arguments{
 \item{object}{A Seurat object}
 
-\item{assay}{Name of assay to use. Only required if a fragment path is not provided. If NULL, use the active assay.}
+\item{assay}{Name of assay to use. Only required if a fragment path is not
+provided. If NULL, use the active assay.}
 
-\item{region}{Which region to use. Can be a GRanges region, a string, or a vector of strings. Default is human chromosome 1.}
+\item{region}{Which region to use. Can be a GRanges region, a string, or a
+vector of strings. Default is human chromosome 1.}
 
 \item{min.threshold}{Lower bound for the mononucleosome size. Default is 147}
 
@@ -36,7 +38,8 @@ per cell, and the percentile rank of each ratio.
 }
 \description{
 Calculate the strength of the nucleosome signal per cell.
-Computes the ratio of fragments between 147 bp and 294 bp (mononucleosome) to fragments < 147 bp (nucleosome-free)
+Computes the ratio of fragments between 147 bp and 294 bp (mononucleosome) to
+fragments < 147 bp (nucleosome-free)
 }
 \examples{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")

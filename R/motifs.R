@@ -4,22 +4,28 @@ NULL
 
 #' Run chromVAR
 #'
-#' Wrapper to run \code{\link[chromVAR]{chromVAR}} on an assay with a motif object present.
-#' Will return a new Seurat assay with the motif activities (the deviations in chromatin accessibility
-#' across the set of regions) as a new assay.
+#' Wrapper to run \code{\link[chromVAR]{chromVAR}} on an assay with a motif
+#' object present. Will return a new Seurat assay with the motif activities
+#' (the deviations in chromatin accessibility across the set of regions) as
+#' a new assay.
 #'
-#' See the chromVAR documentation for more information: \url{https://greenleaflab.github.io/chromVAR/index.html}
+#' See the chromVAR documentation for more information:
+#' \url{https://greenleaflab.github.io/chromVAR/index.html}
 #'
 #' See the chromVAR paper: \url{https://www.nature.com/articles/nmeth.4401}
 #'
 #' @param object A Seurat object
 #' @param genome A BSgenome object
 #' @param assay Name of assay to use
-#' @param new.assay.name Name of new assay used to store the chromVAR results. Default is "chromvar".
-#' @param motif.matrix A peak x motif matrix. If NULL, pull the peak x motif matrix from a Motif object stored in the assay.
-#' @param sep A length-2 character vector containing the separators passed to \code{\link{StringToGRanges}}.
+#' @param new.assay.name Name of new assay used to store the chromVAR results.
+#' Default is "chromvar".
+#' @param motif.matrix A peak x motif matrix. If NULL, pull the peak x motif
+#' matrix from a Motif object stored in the assay.
+#' @param sep A length-2 character vector containing the separators passed to
+#' \code{\link{StringToGRanges}}.
 #' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{\link[chromVAR]{getBackgroundPeaks}}
+#' @param ... Additional arguments passed to
+#' \code{\link[chromVAR]{getBackgroundPeaks}}
 #'
 #' @importFrom Seurat GetAssayData DefaultAssay CreateAssayObject
 #' @importFrom Matrix rowSums
@@ -49,7 +55,10 @@ RunChromVAR <- function(
     stop("Please install SummarizedExperiment")
   }
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  motif.matrix <- SetIfNull(x = motif.matrix, y = GetMotifData(object = object, assay = assay, slot = 'data'))
+  motif.matrix <- SetIfNull(
+    x = motif.matrix,
+    y = GetMotifData(object = object, assay = assay, slot = 'data')
+  )
   peak.matrix <- GetAssayData(object = object, assay = assay, slot = 'counts')
   if (!(all(peak.matrix@x == floor(peak.matrix@x)))) {
     warning("Count matrix contains non-integer values. ChromVAR should only be run on integer counts.")
@@ -92,20 +101,23 @@ RunChromVAR <- function(
   return(object)
 }
 
+globalVariables(names = 'pvalue', package = 'Signac')
 #' FindMotifs
 #'
-#' Find motifs overrepresented in a given set of genomic features. Computes the number of features
-#' containing the motif (observed) and compares this to the total number of features containing the
+#' Find motifs overrepresented in a given set of genomic features.
+#' Computes the number of features containing the motif (observed) and
+#' compares this to the total number of features containing the
 #' motif (background) using the hypergeometric test.
 #'
 #' @param object A Seurat object
 #' @param features A vector of features to test for enrichments over background
 #' @param assay Which assay to use. Default is the active assay
 #' @param background Either a vector of features to use as the background set,
-#' or a number specify the number of features to randomly select as a background set.
-#' If a number is provided, regions will be selected to match the sequence characteristics
-#' of the query features. To match the sequence characteristics, these characteristics
-#' must be stored in the feature metadata for the assay. This can be added using the
+#' or a number specify the number of features to randomly select as a background
+#' set. If a number is provided, regions will be selected to match the sequence
+#' characteristics of the query features. To match the sequence characteristics,
+#' these characteristics must be stored in the feature metadata for the assay.
+#' This can be added using the
 #'  \code{\link{RegionStats}} function. If NULL, use all features in the assay.
 #' @param verbose Display messages
 #' @param ... Arguments passed to \code{\link{MatchRegionStats}}.
@@ -137,10 +149,15 @@ FindMotifs <- function(
   background <- SetIfNull(x = background, y = rownames(x = object))
   if (is(object = background, class2 = 'numeric')) {
     if (verbose) {
-      message("Selecting background regions to match input sequence characteristics")
+      message("Selecting background regions to match input
+              sequence characteristics")
     }
     background <- MatchRegionStats(
-      meta.feature = GetAssayData(object = object, assay = assay, slot = 'meta.features'),
+      meta.feature = GetAssayData(
+        object = object,
+        assay = assay,
+        slot = 'meta.features'
+      ),
       regions = features,
       n = background,
       verbose = verbose,
@@ -150,8 +167,12 @@ FindMotifs <- function(
   if (verbose) {
     message('Testing motif enrichment in ', length(x = features), ' regions')
   }
-  motif.all <- GetMotifData(object = object, assay = assay, slot = 'data')
-  motif.names <- GetMotifData(object = object, assay = assay, slot = 'motif.names')
+  motif.all <- GetMotifData(
+    object = object, assay = assay, slot = 'data'
+  )
+  motif.names <- GetMotifData(
+    object = object, assay = assay, slot = 'motif.names'
+  )
   query.motifs <- motif.all[features, ]
   background.motifs <- motif.all[background, ]
   query.counts <- colSums(x = query.motifs)
@@ -162,7 +183,7 @@ FindMotifs <- function(
   p.list <- c()
   for (i in seq_along(along.with = query.counts)) {
     p.list[[i]] <- phyper(
-      q = query.counts[[i]]-1,
+      q = query.counts[[i]] - 1,
       m = background.counts[[i]],
       n = nrow(x = background.motifs) - background.counts[[i]],
       k = length(x = features),
@@ -177,12 +198,16 @@ FindMotifs <- function(
     percent.background = percent.background,
     fold.enrichment = fold.enrichment,
     pvalue = p.list,
-    motif.name = as.vector(x = unlist(x = motif.names[names(x = query.counts)])),
+    motif.name = as.vector(
+      x = unlist(x = motif.names[names(x = query.counts)])
+    ),
     stringsAsFactors = FALSE
   )
   if (nrow(x = results) == 0) {
     return(results)
   } else {
-    return(results[with(data = results, expr = order(pvalue, -fold.enrichment)), ])
+    return(results[with(
+      data = results, expr = order(pvalue, -fold.enrichment)
+      ), ])
   }
 }

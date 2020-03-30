@@ -13,7 +13,8 @@ FRiP(object, peak.assay, bin.assay, chromosome = "chr1", verbose = TRUE)
 
 \item{bin.assay}{Name of the assay containing a bin x cell matrix}
 
-\item{chromosome}{Which chromosome to use. Default is chromosome 1 ('chr1'). If NULL, use the whole genome.}
+\item{chromosome}{Which chromosome to use. Default is chromosome 1 ('chr1').
+If NULL, use the whole genome.}
 
 \item{verbose}{Display messages}
 }
