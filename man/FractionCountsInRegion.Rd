@@ -13,7 +13,8 @@ FractionCountsInRegion(object, assay, regions, sep = c("-", "-"), ...)
 
 \item{regions}{A GRanges object containing a set of genomic regions}
 
-\item{sep}{The separator used to separate genomic coordinate information in the assay feature names}
+\item{sep}{The separator used to separate genomic coordinate information in
+the assay feature names}
 
 \item{...}{Additional arguments passed to \code{\link{CountsInRegion}}}
 }
@@ -21,7 +22,8 @@ FractionCountsInRegion(object, assay, regions, sep = c("-", "-"), ...)
 Returns a numeric vector
 }
 \description{
-Find the fraction of counts per cell that overlap a given set of genomic ranges
+Find the fraction of counts per cell that overlap a given set of genomic
+ranges
 }
 \examples{
 FractionCountsInRegion(

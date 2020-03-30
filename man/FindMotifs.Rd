@@ -19,10 +19,11 @@ FindMotifs(
 \item{features}{A vector of features to test for enrichments over background}
 
 \item{background}{Either a vector of features to use as the background set,
-or a number specify the number of features to randomly select as a background set.
-If a number is provided, regions will be selected to match the sequence characteristics
-of the query features. To match the sequence characteristics, these characteristics
-must be stored in the feature metadata for the assay. This can be added using the
+or a number specify the number of features to randomly select as a background
+set. If a number is provided, regions will be selected to match the sequence
+characteristics of the query features. To match the sequence characteristics,
+these characteristics must be stored in the feature metadata for the assay.
+This can be added using the
  \code{\link{RegionStats}} function. If NULL, use all features in the assay.}
 
 \item{assay}{Which assay to use. Default is the active assay}
@@ -35,8 +36,9 @@ must be stored in the feature metadata for the assay. This can be added using th
 Returns a data frame
 }
 \description{
-Find motifs overrepresented in a given set of genomic features. Computes the number of features
-containing the motif (observed) and compares this to the total number of features containing the
+Find motifs overrepresented in a given set of genomic features.
+Computes the number of features containing the motif (observed) and
+compares this to the total number of features containing the
 motif (background) using the hypergeometric test.
 }
 \examples{

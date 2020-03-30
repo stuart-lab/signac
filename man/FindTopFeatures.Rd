@@ -22,12 +22,14 @@ FindTopFeatures(object, ...)
 
 \item{assay}{Name of assay to use}
 
-\item{min.cutoff}{Cutoff for feature to be included in the VariableFeatures for the object.
-This can be a percentile specified as 'q' followed by the minimum percentile, for example 'q5' to set
-the top 95\% most common features as the VariableFeatures for the object. Alternatively, this can be
-an integer specifying the minumum number of cells containing the feature for the feature to be included
-in the set of VariableFeatures. For example, setting to 10 will include features in >10 cells in the
-set of VariableFeatures. If NULL, include all features in VariableFeatures.}
+\item{min.cutoff}{Cutoff for feature to be included in the VariableFeatures
+for the object. This can be a percentile specified as 'q' followed by the
+minimum percentile, for example 'q5' to set the top 95\% most common features
+as the VariableFeatures for the object. Alternatively, this can be an integer
+specifying the minumum number of cells containing the feature for the feature
+to be included in the set of VariableFeatures. For example, setting to 10
+will include features in >10 cells in the set of VariableFeatures. If NULL,
+include all features in VariableFeatures.}
 
 \item{verbose}{Display messages}
 }
@@ -35,8 +37,9 @@ set of VariableFeatures. If NULL, include all features in VariableFeatures.}
 Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
-Find top binary features for a given assay based on total number of cells containing feature.
-Can specify a minumum cell count, or a lower percentile bound.
+Find top binary features for a given assay based on total number of cells
+containing feature. Can specify a minumum cell count, or a lower percentile
+bound.
 }
 \examples{
 FindTopFeatures(object = atac_small[['peaks']][])

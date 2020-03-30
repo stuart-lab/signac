@@ -13,7 +13,8 @@ CountsInRegion(object, assay, regions, sep = c("-", "-"), ...)
 
 \item{regions}{A GRanges object}
 
-\item{sep}{Separator to use when extracting genomic coordinates from the Seurat object}
+\item{sep}{Separator to use when extracting genomic coordinates from the
+Seurat object}
 
 \item{...}{Additional arguments passed to \code{\link[IRanges]{findOverlaps}}}
 }
