@@ -24,8 +24,9 @@ BinarizeCounts <- function(object, ...) {
 
 #' Find most frequently observed features
 #'
-#' Find top binary features for a given assay based on total number of cells containing feature.
-#' Can specify a minumum cell count, or a lower percentile bound.
+#' Find top binary features for a given assay based on total number of cells
+#' containing feature. Can specify a minumum cell count, or a lower percentile
+#' bound.
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods

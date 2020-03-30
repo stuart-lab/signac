@@ -20,11 +20,11 @@ FilterFragments(
 
 \item{cells}{A vector of cells to retain}
 
-\item{output.path}{Name and path for output tabix file. A tabix index file will also be created in the same location, with
-the .tbi file extension.}
+\item{output.path}{Name and path for output tabix file. A tabix index file
+will also be created in the same location, with the .tbi file extension.}
 
-\item{assume.sorted}{Assume sorted input and don't sort the filtered file. Can save a lot of time, but indexing will
-fail if assumption is wrong.}
+\item{assume.sorted}{Assume sorted input and don't sort the filtered file.
+Can save a lot of time, but indexing will fail if assumption is wrong.}
 
 \item{compress}{Compress filtered fragments using bgzip (default TRUE)}
 
@@ -38,9 +38,9 @@ fail if assumption is wrong.}
 None
 }
 \description{
-Remove cells from a fragments file that are not present in a given list of cells.
-Note that this reads the whole fragments file into memory, so may require a lot of memory
-depending on the size of the fragments file.
+Remove cells from a fragments file that are not present in a given list of
+cells. Note that this reads the whole fragments file into memory, so may
+require a lot of memory depending on the size of the fragments file.
 }
 \examples{
 \donttest{
