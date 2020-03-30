@@ -20,8 +20,8 @@ Returns a \code{\link[Seurat]{Seurat}} object with
 \code{\link[Seurat]{VariableFeatures}} set to the randomly sampled features.
 }
 \description{
-Randomly downsample features and assign to VariableFeatures for the object. This will
-select n features at random.
+Randomly downsample features and assign to VariableFeatures for the object.
+This will select n features at random.
 }
 \examples{
 DownsampleFeatures(atac_small, n = 10)

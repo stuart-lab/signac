@@ -26,8 +26,8 @@ the default assay}
 \item{assay.2}{Name of the assay to use in the second object. If NULL, use
 the default assay}
 
-\item{distance}{Maximum distance between regions allowed for an intersection to
-be recorded. Default is 0.}
+\item{distance}{Maximum distance between regions allowed for an intersection
+to be recorded.}
 
 \item{sep.1}{Genomic coordinate separators to use for the first object}
 

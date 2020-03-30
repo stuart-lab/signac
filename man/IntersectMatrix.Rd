@@ -16,15 +16,17 @@ IntersectMatrix(
 \arguments{
 \item{matrix}{A matrix with genomic regions in the rows}
 
-\item{regions}{A set of genomic regions to intersect with regions in the matrix.
-Either a vector of strings encoding the genomic coordinates, or a GRanges object.}
+\item{regions}{A set of genomic regions to intersect with regions in the
+matrix. Either a vector of strings encoding the genomic coordinates, or a
+GRanges object.}
 
-\item{invert}{Discard rows intersecting the genomic regions supplied, rather than retain. Default FALSE.}
+\item{invert}{Discard rows intersecting the genomic regions supplied, rather
+than retain.}
 
-\item{sep}{A length-2 character vector containing the separators to be used for
-extracting genomic coordinates from a string. The first element will be used to separate the
-chromosome name from coordinates, and the second element used to separate start and end
-coordinates.}
+\item{sep}{A length-2 character vector containing the separators to be used
+for extracting genomic coordinates from a string. The first element will be
+used to separate the chromosome name from coordinates, and the second element
+used to separate start and end coordinates.}
 
 \item{verbose}{Display messages}
 

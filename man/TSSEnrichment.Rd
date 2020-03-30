@@ -28,7 +28,8 @@ in the object}
 Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
-Compute the transcription start site (TSS) enrichment score for each cell, as defined by ENCODE:
+Compute the transcription start site (TSS) enrichment score for each cell,
+as defined by ENCODE:
 \url{https://www.encodeproject.org/data-standards/terms/}.
 }
 \details{

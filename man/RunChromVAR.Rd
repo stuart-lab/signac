@@ -20,28 +20,34 @@ RunChromVAR(
 
 \item{genome}{A BSgenome object}
 
-\item{new.assay.name}{Name of new assay used to store the chromVAR results. Default is "chromvar".}
+\item{new.assay.name}{Name of new assay used to store the chromVAR results.
+Default is "chromvar".}
 
-\item{motif.matrix}{A peak x motif matrix. If NULL, pull the peak x motif matrix from a Motif object stored in the assay.}
+\item{motif.matrix}{A peak x motif matrix. If NULL, pull the peak x motif
+matrix from a Motif object stored in the assay.}
 
 \item{assay}{Name of assay to use}
 
-\item{sep}{A length-2 character vector containing the separators passed to \code{\link{StringToGRanges}}.}
+\item{sep}{A length-2 character vector containing the separators passed to
+\code{\link{StringToGRanges}}.}
 
 \item{verbose}{Display messages}
 
-\item{...}{Additional arguments passed to \code{\link[chromVAR]{getBackgroundPeaks}}}
+\item{...}{Additional arguments passed to
+\code{\link[chromVAR]{getBackgroundPeaks}}}
 }
 \value{
 Returns a \code{\link[Seurat]{Seurat}} object with a new assay
 }
 \description{
-Wrapper to run \code{\link[chromVAR]{chromVAR}} on an assay with a motif object present.
-Will return a new Seurat assay with the motif activities (the deviations in chromatin accessibility
-across the set of regions) as a new assay.
+Wrapper to run \code{\link[chromVAR]{chromVAR}} on an assay with a motif
+object present. Will return a new Seurat assay with the motif activities
+(the deviations in chromatin accessibility across the set of regions) as
+a new assay.
 }
 \details{
-See the chromVAR documentation for more information: \url{https://greenleaflab.github.io/chromVAR/index.html}
+See the chromVAR documentation for more information:
+\url{https://greenleaflab.github.io/chromVAR/index.html}
 
 See the chromVAR paper: \url{https://www.nature.com/articles/nmeth.4401}
 }
