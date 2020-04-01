@@ -5,11 +5,15 @@
 #' @param dir Path to directory containing MGATK output files
 #' @param verbose Display messages
 #'
-#' @return Returns a list containing a sparse matrix (counts) and two dataframes (depth and refallele).
+#' @return Returns a list containing a sparse matrix (counts) and two dataframes
+#' (depth and refallele).
+#'
 #' The sparse matrix contains read counts for each base at each position
 #' and strand.
+#'
 #' The depth dataframe contains the total depth for each cell.
-#' The refallele dataframe contains the reference genome allele at each position.
+#' The refallele dataframe contains the reference genome allele at each
+#' position.
 #'
 #' @export
 #' @examples
@@ -17,7 +21,7 @@
 #' data.dir <- "path/to/data/directory"
 #' mgatk <- ReadMGATK(dir = data.dir)
 #' }
-ReadMGATK <- function(dir, verbose = TRUE){
+ReadMGATK <- function(dir, verbose = TRUE) {
   if (!dir.exists(paths = dir)) {
     stop("Directory not found")
   }
@@ -25,24 +29,71 @@ ReadMGATK <- function(dir, verbose = TRUE){
   c.path <- list.files(path = dir, pattern = "*.C.txt.gz", full.names = TRUE)
   t.path <- list.files(path = dir, pattern = "*.T.txt.gz", full.names = TRUE)
   g.path <- list.files(path = dir, pattern = "*.G.txt.gz", full.names = TRUE)
-  refallele.path <- list.files(path = dir, pattern = "chrM_refAllele.txt", full.names = TRUE)
-  depthfile.path <- list.files(path = dir, pattern = "*.depthTable.txt", full.names = TRUE)
-  cellbarcode.path <- list.files(path = dir, pattern = "barcodes.tsv", full.names = TRUE)
+  refallele.path <- list.files(
+    path = dir,
+    pattern = "chrM_refAllele.txt",
+    full.names = TRUE
+  )
+  depthfile.path <- list.files(
+    path = dir,
+    pattern = "*.depthTable.txt",
+    full.names = TRUE
+  )
+  cellbarcode.path <- list.files(
+    path = dir,
+    pattern = "barcodes.tsv",
+    full.names = TRUE
+  )
 
   if (verbose) {
     message("Reading allele counts")
   }
   column.names <- c("pos", "cellbarcode", "plus", "minus")
-  a.counts <- read.table(file = a.path, sep = ',', header = FALSE, stringsAsFactors = FALSE, col.names = column.names)
-  c.counts <- read.table(file = c.path, sep = ',', header = FALSE, stringsAsFactors = FALSE, col.names = column.names)
-  t.counts <- read.table(file = t.path, sep = ',', header = FALSE, stringsAsFactors = FALSE, col.names = column.names)
-  g.counts <- read.table(file = g.path, sep = ',', header = FALSE, stringsAsFactors = FALSE, col.names = column.names)
+  a.counts <- read.table(
+    file = a.path,
+    sep = ",",
+    header = FALSE,
+    stringsAsFactors = FALSE,
+    col.names = column.names
+  )
+  c.counts <- read.table(
+    file = c.path,
+    sep = ",",
+    header = FALSE,
+    stringsAsFactors = FALSE,
+    col.names = column.names
+  )
+  t.counts <- read.table(
+    file = t.path,
+    sep = ",",
+    header = FALSE,
+    stringsAsFactors = FALSE,
+    col.names = column.names
+  )
+  g.counts <- read.table(
+    file = g.path,
+    sep = ",",
+    header = FALSE,
+    stringsAsFactors = FALSE,
+    col.names = column.names
+  )
 
   if (verbose) {
     message("Reading metadata")
   }
-  refallele <- read.table(file = refallele.path, header = FALSE, stringsAsFactors = FALSE, col.names = c("pos", "ref"))
-  depth <- read.table(file = depthfile.path, header = FALSE, stringsAsFactors = FALSE, col.names = c("cellbarcode", "mito.depth"), row.names = 1)
+  refallele <- read.table(
+    file = refallele.path,
+    header = FALSE,
+    stringsAsFactors = FALSE,
+    col.names = c("pos", "ref")
+  )
+  depth <- read.table(
+    file = depthfile.path,
+    header = FALSE,
+    stringsAsFactors = FALSE,
+    col.names = c("cellbarcode", "mito.depth"),
+    row.names = 1
+  )
   cellbarcodes <- unique(x = readLines(con = cellbarcode.path))
   cb.lookup <- seq_along(along.with = cellbarcodes)
   names(cb.lookup) <- cellbarcodes
@@ -50,10 +101,18 @@ ReadMGATK <- function(dir, verbose = TRUE){
   if (verbose) {
     message("Building matrices")
   }
-  a.mat <- SparseMatrixFromBaseCounts(basecounts = a.counts, cells = cb.lookup, dna.base = "A")
-  c.mat <- SparseMatrixFromBaseCounts(basecounts = c.counts, cells = cb.lookup, dna.base = "C")
-  t.mat <- SparseMatrixFromBaseCounts(basecounts = t.counts, cells = cb.lookup, dna.base = "T")
-  g.mat <- SparseMatrixFromBaseCounts(basecounts = g.counts, cells = cb.lookup, dna.base = "G")
+  a.mat <- SparseMatrixFromBaseCounts(
+    basecounts = a.counts, cells = cb.lookup, dna.base = "A"
+  )
+  c.mat <- SparseMatrixFromBaseCounts(
+    basecounts = c.counts, cells = cb.lookup, dna.base = "C"
+  )
+  t.mat <- SparseMatrixFromBaseCounts(
+    basecounts = t.counts, cells = cb.lookup, dna.base = "T"
+  )
+  g.mat <- SparseMatrixFromBaseCounts(
+    basecounts = g.counts, cells = cb.lookup, dna.base = "G"
+  )
 
   counts <- rbind(a.mat[[1]], c.mat[[1]], t.mat[[1]], g.mat[[1]],
                   a.mat[[2]], c.mat[[2]], t.mat[[2]], g.mat[[2]])
@@ -67,7 +126,8 @@ ReadMGATK <- function(dir, verbose = TRUE){
 # containing read counts for each base in each
 # cell, for + and - strands.
 #
-# @param basecounts A dataframe containing read counts at each position for each cell
+# @param basecounts A dataframe containing read counts at each position for each
+# cell
 # @param cells A lookup table giving the cell barcode numeric ID
 #' @importFrom Matrix sparseMatrix
 #
@@ -79,14 +139,24 @@ SparseMatrixFromBaseCounts <- function(basecounts, cells, dna.base) {
     x = basecounts$plus
   )
   colnames(x = fwd.mat) <- names(x = cells)
-  rownames(x = fwd.mat) <- paste(dna.base, 1:nrow(fwd.mat), "fwd", sep = "-")
+  rownames(x = fwd.mat) <- paste(
+    dna.base,
+    seq_len(length.out = nrow(fwd.mat)),
+    "fwd",
+    sep = "-"
+  )
   rev.mat <- sparseMatrix(
     i = basecounts$pos,
     j = cells[basecounts$cellbarcode],
     x = basecounts$minus
   )
   colnames(x = rev.mat) <- names(x = cells)
-  rownames(x = rev.mat) <- paste(dna.base, 1:nrow(rev.mat), "rev", sep = "-")
+  rownames(x = rev.mat) <- paste(
+    dna.base,
+    seq_len(length.out = nrow(rev.mat)),
+    "rev",
+    sep = "-"
+  )
   return(list(fwd.mat, rev.mat))
 }
 
@@ -143,7 +213,7 @@ ComputeTotalCoverage <- function(object, verbose = TRUE) {
   rowstep <- nrow(x = object) / 8
   mat.list <- list()
   for (i in seq_len(length.out = 8)) {
-    mat.list[[i]] <- object[(rowstep * (i-1) + 1):(rowstep*i), ]
+    mat.list[[i]] <- object[(rowstep * (i - 1) + 1):(rowstep * i), ]
   }
   coverage <- Reduce(f = `+`, x = mat.list)
   coverage <- as.matrix(x = coverage)
@@ -171,7 +241,11 @@ ProcessLetter <- function(letter, verbose = TRUE) {
 # @param strand Which strand to use (fwd, rev)
 # @return Returns a sparse matrix
 GetMutationMatrix <- function(object, letter, strand) {
-  keep.rows <- paste(letter, seq_len(length.out = nrow(x = object) / 8), strand, sep = '-')
+  keep.rows <- paste(
+    letter,
+    seq_len(length.out = nrow(x = object) / 8),
+    strand,
+    sep = "-"
+  )
   return(object[keep.rows, ])
 }
-
