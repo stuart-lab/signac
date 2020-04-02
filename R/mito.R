@@ -121,47 +121,7 @@ ReadMGATK <- function(dir, verbose = TRUE) {
   return(list("counts" = counts, "depth" = depth, "refallele" = refallele))
 }
 
-# Create sparse matrix from base counts
-#
-# Create a sparse position x cell matrix for
-# containing read counts for each base in each
-# cell, for + and - strands.
-#
-# @param basecounts A dataframe containing read counts at each position for each
-# cell
-# @param cells A lookup table giving the cell barcode numeric ID
-#' @importFrom Matrix sparseMatrix
-#
-# @return Returns a list of two sparse matrices
-SparseMatrixFromBaseCounts <- function(basecounts, cells, dna.base) {
-  fwd.mat <- sparseMatrix(
-    i = basecounts$pos,
-    j = cells[basecounts$cellbarcode],
-    x = basecounts$plus
-  )
-  colnames(x = fwd.mat) <- names(x = cells)
-  rownames(x = fwd.mat) <- paste(
-    dna.base,
-    seq_len(length.out = nrow(fwd.mat)),
-    "fwd",
-    sep = "-"
-  )
-  rev.mat <- sparseMatrix(
-    i = basecounts$pos,
-    j = cells[basecounts$cellbarcode],
-    x = basecounts$minus
-  )
-  colnames(x = rev.mat) <- names(x = cells)
-  rownames(x = rev.mat) <- paste(
-    dna.base,
-    seq_len(length.out = nrow(rev.mat)),
-    "rev",
-    sep = "-"
-  )
-  return(list(fwd.mat, rev.mat))
-}
-
-#' Call mitochondrial variants
+#' Identify mitochondrial variants
 #'
 #' Identify mitochondrial variants present in single cells.
 #'
@@ -174,7 +134,16 @@ SparseMatrixFromBaseCounts <- function(basecounts, cells, dna.base) {
 #'
 #' @return Returns a dataframe
 #' @export
-CallVariants <- function(
+#' @examples
+#' \dontrun{
+#' data.dir <- "path/to/data/directory"
+#' mgatk <- ReadMGATK(dir = data.dir)
+#' variant.df <- CallVariants(
+#'   object = mgatk$counts,
+#'   refallele = mgatk$refallele
+#' )
+#' }
+IdentifyVariants <- function(
   object,
   refallele,
   stabilize_variance = TRUE,
@@ -223,6 +192,46 @@ CallVariants <- function(
 }
 
 ####### Not exported
+
+# Create sparse matrix from base counts
+#
+# Create a sparse position x cell matrix for
+# containing read counts for each base in each
+# cell, for + and - strands.
+#
+# @param basecounts A dataframe containing read counts at each position for each
+# cell
+# @param cells A lookup table giving the cell barcode numeric ID
+#' @importFrom Matrix sparseMatrix
+#
+# @return Returns a list of two sparse matrices
+SparseMatrixFromBaseCounts <- function(basecounts, cells, dna.base) {
+  fwd.mat <- sparseMatrix(
+    i = basecounts$pos,
+    j = cells[basecounts$cellbarcode],
+    x = basecounts$plus
+  )
+  colnames(x = fwd.mat) <- names(x = cells)
+  rownames(x = fwd.mat) <- paste(
+    dna.base,
+    seq_len(length.out = nrow(fwd.mat)),
+    "fwd",
+    sep = "-"
+  )
+  rev.mat <- sparseMatrix(
+    i = basecounts$pos,
+    j = cells[basecounts$cellbarcode],
+    x = basecounts$minus
+  )
+  colnames(x = rev.mat) <- names(x = cells)
+  rownames(x = rev.mat) <- paste(
+    dna.base,
+    seq_len(length.out = nrow(rev.mat)),
+    "rev",
+    sep = "-"
+  )
+  return(list(fwd.mat, rev.mat))
+}
 
 # Compute total mitochondrial coverage
 #
