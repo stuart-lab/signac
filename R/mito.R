@@ -87,6 +87,7 @@ ReadMGATK <- function(dir, verbose = TRUE) {
     stringsAsFactors = FALSE,
     col.names = c("pos", "ref")
   )
+  refallele$ref <- toupper(x = refallele$ref)
   depth <- read.table(
     file = depthfile.path,
     header = FALSE,
@@ -176,18 +177,50 @@ SparseMatrixFromBaseCounts <- function(basecounts, cells, dna.base) {
 CallVariants <- function(
   object,
   refallele,
-  stabilize.variance = TRUE,
-  low.coverage.threshold = 10,
+  stabilize_variance = TRUE,
+  low_coverage_threshold = 10,
   verbose = TRUE
 ) {
   # determine key coverage statistics
   coverages <- ComputeTotalCoverage(object = object, verbose = verbose)
-  ref_allele <- toupper(x = refallele$ref)
-
-  # TODO
-  return()
+  a.df <- ProcessLetter(
+    object = object,
+    letter = "A",
+    coverage = coverages,
+    ref_alleles = refallele,
+    stabilize_variance = stabilize_variance,
+    low_coverage_threshold = low_coverage_threshold,
+    verbose = verbose
+  )
+  t.df <- ProcessLetter(
+    object = object,
+    letter = "T",
+    coverage = coverages,
+    ref_alleles = refallele,
+    stabilize_variance = stabilize_variance,
+    low_coverage_threshold = low_coverage_threshold,
+    verbose = verbose
+  )
+  c.df <- ProcessLetter(
+    object = object,
+    letter = "C",
+    coverage = coverages,
+    ref_alleles = refallele,
+    stabilize_variance = stabilize_variance,
+    low_coverage_threshold = low_coverage_threshold,
+    verbose = verbose
+  )
+  g.df <- ProcessLetter(
+    object = object,
+    letter = "G",
+    coverage = coverages,
+    ref_alleles = refallele,
+    stabilize_variance = stabilize_variance,
+    low_coverage_threshold = low_coverage_threshold,
+    verbose = verbose
+  )
+  return(rbind(a.df, t.df, c.df, g.df))
 }
-
 
 ####### Not exported
 
@@ -223,11 +256,133 @@ ComputeTotalCoverage <- function(object, verbose = TRUE) {
 
 # Process mutation for one DNA base
 #
+# @param object A matrix containing nucleotide counts for each base and strand
+# of the genome. This should be a stacked matrix, such that the number of
+# rows = 8 * the length of the genome.
 # @param letter DNA base to process
+# @param ref_alleles A dataframe containing reference genome alleles and
+# position
+# @param coverage Total coverage for all bases and strands
 # @param verbose Display messages
-ProcessLetter <- function(letter, verbose = TRUE) {
-  # TODO
-  return()
+#' @importFrom Matrix summary rowMeans rowSums
+#' @import data.table
+ProcessLetter <- function(
+  object,
+  letter,
+  ref_alleles,
+  coverage,
+  stabilize_variance = TRUE,
+  low_coverage_threshold = 10,
+  verbose = TRUE
+) {
+  if (verbose) {
+    message("Processing ", letter)
+  }
+  boo <- ref_alleles$ref != letter & ref_alleles$ref != "N"
+  cov <- coverage[boo, ]
+
+  variant_name <- paste0(
+    as.character(ref_alleles$pos),
+    ref_alleles$ref,
+    ">",
+    letter
+  )[boo]
+
+  nucleotide <- paste0(
+    ref_alleles$ref,
+    ">",
+    letter
+  )[boo]
+
+  position_filt <- ref_alleles$pos[boo]
+
+  # get forward and reverse counts
+  fwd.counts <- GetMutationMatrix(
+    object = object,
+    letter = letter,
+    strand = "fwd"
+  )[boo, ]
+
+  rev.counts <- GetMutationMatrix(
+    object = object,
+    letter = letter,
+    strand = "rev"
+  )[boo, ]
+
+  # convert to row, column, value
+  fwd.ijx <- summary(fwd.counts)
+  rev.ijx <- summary(rev.counts)
+
+  # get bulk coverage stats
+  bulk <- (rowSums(fwd.counts + rev.counts) / rowSums(cov))
+  # replace NA or NaN with 0
+  bulk[is.na(bulk)] <- 0
+  bulk[is.nan(bulk)] <- 0
+
+  # find correlation between strands for cells with >0 counts on either strand
+  # group by variant (row) and find correlation between strand depth
+  both.strand <- data.table(cbind(fwd.ijx, rev.ijx$x))
+  both.strand$i <- variant_name[both.strand$i]
+  colnames(both.strand) <- c("variant", "cell_idx", "forward", "reverse")
+
+  cor_dt <- suppressWarnings(expr = both.strand[, .(cor = cor(
+    x = forward, y = reverse, method = "pearson", use = "pairwise.complete")
+  ), by = list(variant)])
+
+  # Put in vector for convenience
+  cor_vec_val <- cor_dt$cor
+  names(cor_vec_val) <- as.character(cor_dt$variant)
+
+  # Compute the single-cell data
+  mat <- (fwd.counts + rev.counts) / cov
+  rownames(mat) <- variant_name
+  # set NAs and NaNs to zero
+  mat@x[!is.finite(mat@x)] <- 0
+
+  # Stablize variances by replacing low coverage cells with mean
+  if (stabilize_variance) {
+    idx_mat <- which(cov < low_coverage_threshold, arr.ind = TRUE)
+    idx_mat_mean <- bulk[idx_mat[, 1]]
+    ones <- 1 - sparseMatrix(
+      i = c(idx_mat[, 1], dim(x = mat)[1]),
+      j = c(idx_mat[, 2], dim(x = mat)[2]),
+      x = 1
+    )
+    means_mat <- sparseMatrix(
+      i = c(idx_mat[, 1], dim(x = mat)[1]),
+      j = c(idx_mat[, 2], dim(x = mat)[2]),
+      x = c(idx_mat_mean, 0)
+    )
+    mmat2 <- mat * ones + means_mat
+    variance <- SparseRowVar(x = mmat2)
+  } else {
+    variance <- SparseRowVar(x = mat)
+  }
+  detected <- (fwd.counts >= 2) + (rev.counts >= 2)
+
+  # Compute per-mutation summary statistics
+  var_summary_df <- data.frame(
+    position = position_filt,
+    nucleotide = nucleotide,
+    variant = variant_name,
+    vmr = variance / (bulk + 0.00000000001),
+    mean = round(x = bulk, digits = 7),
+    variance = round(x = variance, digits = 7),
+    n_cells_detected = rowSums(x = detected == 2),
+    n_cells_over_5 = rowSums(x = mat >= 0.05),
+    n_cells_over_10 = rowSums(x = mat >= 0.10),
+    n_cells_over_20 = rowSums(x = mat >= 0.20),
+    strand_correlation = cor_vec_val[variant_name],
+    mean_coverage = rowMeans(x = cov),
+    stringsAsFactors = FALSE,
+    row.names = variant_name
+  )
+  return(var_summary_df)
+}
+
+#' @importFrom Matrix rowMeans rowSums
+SparseRowVar <- function(x) {
+  return(rowSums(x = (x - rowMeans(x = x)) ^ 2) / (dim(x = x)[2] - 1))
 }
 
 # Extract mutation matrix
