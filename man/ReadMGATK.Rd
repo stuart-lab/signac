@@ -12,11 +12,15 @@ ReadMGATK(dir, verbose = TRUE)
 \item{verbose}{Display messages}
 }
 \value{
-Returns a list containing a sparse matrix (counts) and two dataframes (depth and refallele).
+Returns a list containing a sparse matrix (counts) and two dataframes
+(depth and refallele).
+
 The sparse matrix contains read counts for each base at each position
 and strand.
+
 The depth dataframe contains the total depth for each cell.
-The refallele dataframe contains the reference genome allele at each position.
+The refallele dataframe contains the reference genome allele at each
+position.
 }
 \description{
 Read output files from MGATK (\url{https://github.com/caleblareau/mgatk}).

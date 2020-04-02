@@ -4,12 +4,25 @@
 \alias{CallVariants}
 \title{Call mitochondrial variants}
 \usage{
-CallVariants(object, verbose = TRUE, ...)
+CallVariants(
+  object,
+  refallele,
+  stabilize_variance = TRUE,
+  low_coverage_threshold = 10,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{object}{An Assay object}
 
+\item{refallele}{A dataframe containing reference alleles for the
+mitochondrial genome.}
+
 \item{verbose}{Display messages}
+
+\item{stabilize.variance}{Stabilize variance}
+
+\item{low.coverage.threshold}{Low coverage threshold}
 }
 \value{
 Returns a dataframe
