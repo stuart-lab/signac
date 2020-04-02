@@ -121,11 +121,6 @@ ReadMGATK <- function(dir, verbose = TRUE) {
   return(list("counts" = counts, "depth" = depth, "refallele" = refallele))
 }
 
-#' Identify mitochondrial variants
-#'
-#' Identify mitochondrial variants present in single cells.
-#'
-#' @param object An Assay object
 #' @param refallele A dataframe containing reference alleles for the
 #' mitochondrial genome.
 #' @param stabilize.variance Stabilize variance
@@ -134,23 +129,24 @@ ReadMGATK <- function(dir, verbose = TRUE) {
 #'
 #' @return Returns a dataframe
 #' @export
+#' @rdname IdentifyVariants
 #' @examples
 #' \dontrun{
 #' data.dir <- "path/to/data/directory"
 #' mgatk <- ReadMGATK(dir = data.dir)
-#' variant.df <- CallVariants(
+#' variant.df <- IdentifyVariants(
 #'   object = mgatk$counts,
 #'   refallele = mgatk$refallele
 #' )
 #' }
-IdentifyVariants <- function(
+IdentifyVariants.default <- function(
   object,
   refallele,
   stabilize_variance = TRUE,
   low_coverage_threshold = 10,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
-  # determine key coverage statistics
   coverages <- ComputeTotalCoverage(object = object, verbose = verbose)
   a.df <- ProcessLetter(
     object = object,
@@ -189,6 +185,37 @@ IdentifyVariants <- function(
     verbose = verbose
   )
   return(rbind(a.df, t.df, c.df, g.df))
+}
+
+#' @importFrom Seurat GetAssayData
+#' @rdname IdentifyVariants
+#' @method IdentifyVariants Assay
+#' @export
+IdentifyVariants.Assay <- function(
+  object,
+  refallele,
+  ...
+) {
+  counts <- GetAssayData(object = object, slot = 'counts')
+  df <- IdentifyVariants(object = counts, ...)
+  return(df)
+}
+
+#' @importFrom Seurat GetAssay DefaultAssay
+#' @param assay Name of assay to use. If NULL, use the default assay.
+#' @rdname IdentifyVariants
+#' @method IdentifyVariants Seurat
+#' @export
+IdentifyVariants.Seurat <- function(
+  object,
+  refallele,
+  assay = NULL,
+  ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay.obj <- GetAssay(object = object, assay = assay)
+  df <- IdentifyVariants(object = assay.obj, ...)
+  return(df)
 }
 
 ####### Not exported
