@@ -67,7 +67,7 @@ RunSVD.default <- function(
   assay = NULL,
   n = 50,
   scale.embeddings = TRUE,
-  reduction.key = 'SVD_',
+  reduction.key = "SVD_",
   standardize.embeddings = TRUE,
   scale.max = NULL,
   verbose = TRUE,
@@ -84,7 +84,7 @@ RunSVD.default <- function(
   cell.embeddings <- components$u
   if (scale.embeddings) {
     if (verbose) {
-      message('Scaling cell embeddings')
+      message("Scaling cell embeddings")
     }
     embed.mean <- apply(X = cell.embeddings, MARGIN = 2, FUN = mean)
     embed.sd <- apply(X = cell.embeddings, MARGIN = 2, FUN = sd)
@@ -128,7 +128,7 @@ RunSVD.Assay <- function(
   assay = NULL,
   features = NULL,
   n = 50,
-  reduction.key = 'SVD_',
+  reduction.key = "SVD_",
   scale.max = NULL,
   verbose = TRUE,
   ...
@@ -136,7 +136,7 @@ RunSVD.Assay <- function(
   features <- SetIfNull(x = features, y = VariableFeatures(object = object))
   data.use <- GetAssayData(
     object = object,
-    slot = 'data'
+    slot = "data"
   )[features, ]
   reduction.data <- RunSVD(
     object = data.use,
@@ -163,8 +163,8 @@ RunSVD.Seurat <- function(
   assay = NULL,
   features = NULL,
   n = 50,
-  reduction.key = 'SVD_',
-  reduction.name = 'svd',
+  reduction.key = "SVD_",
+  reduction.name = "svd",
   scale.max = NULL,
   verbose = TRUE,
   ...

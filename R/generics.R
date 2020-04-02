@@ -4,7 +4,7 @@
 #' @rdname as.ChromatinAssay
 #' @export as.ChromatinAssay
 as.ChromatinAssay <- function(x, ...) {
-  UseMethod(generic = 'as.ChromatinAssay', object = x)
+  UseMethod(generic = "as.ChromatinAssay", object = x)
 }
 
 #' Annotation
@@ -17,7 +17,7 @@ as.ChromatinAssay <- function(x, ...) {
 #' @rdname Annotation
 #' @export Annotation
 Annotation <- function(object, ...) {
-  UseMethod(generic = 'Annotation', object = object)
+  UseMethod(generic = "Annotation", object = object)
 }
 
 #' Binarize counts
@@ -30,7 +30,7 @@ Annotation <- function(object, ...) {
 #' @rdname BinarizeCounts
 #' @export BinarizeCounts
 BinarizeCounts <- function(object, ...) {
-  UseMethod(generic = 'BinarizeCounts', object = object)
+  UseMethod(generic = "BinarizeCounts", object = object)
 }
 
 #' Find most frequently observed features
@@ -45,7 +45,7 @@ BinarizeCounts <- function(object, ...) {
 #' @rdname FindTopFeatures
 #' @export FindTopFeatures
 FindTopFeatures <- function(object, ...) {
-  UseMethod(generic = 'FindTopFeatures', object = object)
+  UseMethod(generic = "FindTopFeatures", object = object)
 }
 
 #' Retrieve a motif matrix
@@ -58,7 +58,7 @@ FindTopFeatures <- function(object, ...) {
 #' @rdname GetMotifData
 #' @export GetMotifData
 GetMotifData <- function(object, ...) {
-  UseMethod(generic = 'GetMotifData', object = object)
+  UseMethod(generic = "GetMotifData", object = object)
 }
 
 #' Motifs
@@ -70,7 +70,7 @@ GetMotifData <- function(object, ...) {
 #' @rdname Motifs
 #' @export Motifs
 Motifs <- function(object, ...) {
-  UseMethod(generic = 'Motifs', object = object)
+  UseMethod(generic = "Motifs", object = object)
 }
 
 #' Compute base composition information for genomic ranges
@@ -84,7 +84,7 @@ Motifs <- function(object, ...) {
 #' @rdname RegionStats
 #' @export RegionStats
 RegionStats <- function(object, ...) {
-  UseMethod(generic = 'RegionStats', object = object)
+  UseMethod(generic = "RegionStats", object = object)
 }
 
 #' Run singular value decomposition
@@ -97,7 +97,7 @@ RegionStats <- function(object, ...) {
 #' @rdname RunSVD
 #' @export RunSVD
 RunSVD <- function(object, ...) {
-  UseMethod(generic = 'RunSVD', object = object)
+  UseMethod(generic = "RunSVD", object = object)
 }
 
 #' Compute the term-frequency inverse-document-frequency
@@ -110,7 +110,7 @@ RunSVD <- function(object, ...) {
 #' @rdname RunTFIDF
 #' @export RunTFIDF
 RunTFIDF <- function(object, ...) {
-  UseMethod(generic = 'RunTFIDF', object = object)
+  UseMethod(generic = "RunTFIDF", object = object)
 }
 
 #' Set motif data
@@ -123,5 +123,5 @@ RunTFIDF <- function(object, ...) {
 #' @rdname SetMotifData
 #' @export SetMotifData
 SetMotifData <- function(object, ...) {
-  UseMethod(generic = 'SetMotifData', object = object)
+  UseMethod(generic = "SetMotifData", object = object)
 }

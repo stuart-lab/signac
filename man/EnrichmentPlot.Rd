@@ -2,7 +2,8 @@
 % Please edit documentation in R/visualization.R
 \name{EnrichmentPlot}
 \alias{EnrichmentPlot}
-\title{Plot the enrichment of Tn5 integration sites centered on a set of genomic regions.}
+\title{Plot the enrichment of Tn5 integration sites centered on a set of genomic
+regions.}
 \usage{
 EnrichmentPlot(
   object,
@@ -15,12 +16,13 @@ EnrichmentPlot(
 \arguments{
 \item{object}{A Seurat object}
 
-\item{enrichment.key}{Name of a position enrichment matrix stored in the \code{positionEnrichment} slot
+\item{enrichment.key}{Name of a position enrichment matrix stored in the
+\code{positionEnrichment} slot
 of a \code{\link{ChromatinAssay}}.}
 
 \item{assay}{Name of the assay to use. Must be a \code{\link{ChromatinAssay}}
-and have the enrichment information for each cell stored in the \code{positionEnrichment}
-slot.}
+and have the enrichment information for each cell stored in the
+\code{positionEnrichment} slot.}
 
 \item{group.by}{Set of identities to group cells by}
 
@@ -30,5 +32,6 @@ slot.}
 Returns a \code{\link[ggplot2]{ggplot2}} object
 }
 \description{
-Plot the enrichment of Tn5 integration sites centered on a set of genomic regions.
+Plot the enrichment of Tn5 integration sites centered on a set of genomic
+regions.
 }

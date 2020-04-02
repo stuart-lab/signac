@@ -7,11 +7,15 @@ test_that("BinarizeCounts works", {
   bin_mat <- BinarizeCounts(object = mat)
 
   # sparse matrix
-  mat_sparse <- as(object = mat, Class = 'dgCMatrix')
+  mat_sparse <- as(object = mat, Class = "dgCMatrix")
   bin_mat_sparse <- BinarizeCounts(object = mat_sparse)
 
-  expect_equal(object = as.vector(bin_mat[1,]), expected = c(0,1,0,1,1))
-  expect_equal(object = as.vector(bin_mat_sparse[1,]), expected = c(0,1,0,1,1))
+  expect_equal(
+    object = as.vector(bin_mat[1, ]), expected = c(0, 1, 0, 1, 1)
+  )
+  expect_equal(
+    object = as.vector(bin_mat_sparse[1, ]), expected = c(0, 1, 0, 1, 1)
+  )
 })
 
 test_that("DownsampleFeatures works", {
@@ -19,8 +23,12 @@ test_that("DownsampleFeatures works", {
   atac_ds <- DownsampleFeatures(object = atac_small, n = 5, verbose = FALSE)
   expect_equal(
     object = VariableFeatures(object = atac_ds),
-    expected = c("chr1:1804025-1804468","chr1:2221250-2223390","chr1:6074646-6075340",
-                 "chr1:8931013-8932013","chr1:1562519-1567986")
+    expected = c(
+      "chr1:1804025-1804468",
+      "chr1:2221250-2223390",
+      "chr1:6074646-6075340",
+      "chr1:8931013-8932013",
+      "chr1:1562519-1567986")
   )
 })
 
@@ -41,13 +49,15 @@ test_that("FindTopFeatures works", {
 test_that("FRiP works", {
   atac_small <- FRiP(
     object = atac_small,
-    bin.assay = 'bins',
-    peak.assay = 'peaks',
+    bin.assay = "bins",
+    peak.assay = "peaks",
     chromosome = NULL
   )
   expect_equal(
     object = as.vector(x = head(atac_small$FRiP)),
-    expected = c(1.4090909,1.4444444,1.1363636,0.8798077,1.0000000,0.2166667),
-    tolerance = 1/100000
+    expected = c(
+      1.4090909, 1.4444444, 1.1363636, 0.8798077, 1.0000000, 0.2166667
+    ),
+    tolerance = 1 / 100000
   )
 })

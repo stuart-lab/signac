@@ -41,6 +41,13 @@ object = rownames(atac_small),
 genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
 )
 }
+#' \donttest{
+library(BSgenome.Hsapiens.UCSC.hg19)
+RegionStats(
+object = atac_small[['peaks']],
+genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
+)
+}
 \donttest{
 library(BSgenome.Hsapiens.UCSC.hg19)
 RegionStats(

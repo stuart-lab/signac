@@ -17,17 +17,19 @@ genomic location of features in the object}
 
 \item{\code{motifs}}{A \code{\link{Motif}} object}
 
-\item{\code{fragments}}{A character vector containing the path/s to tabix-indexed fragment file/s
-for the cells in the assay. See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}}
+\item{\code{fragments}}{A character vector containing the path/s to tabix-indexed
+fragment file/s for the cells in the assay.
+See \url{https://support.10xgenomics.com/single-cell-atac/software/
+pipelines/latest/output/fragments}}
 
 \item{\code{genome}}{Name of the genome used}
 
 \item{\code{annotation}}{An object containing genomic annotations}
 
-\item{\code{bias}}{A matrix containing Tn5 integration bias information (frequency of Tn5 integration at
-different kmers)}
+\item{\code{bias}}{A matrix containing Tn5 integration bias information
+(frequency of Tn5 integration at different kmers)}
 
-\item{\code{positionEnrichment}}{A named list of matrices containing positional enrichment scores for Tn5 integration
-(for example, enrichment at the TSS)}
+\item{\code{positionEnrichment}}{A named list of matrices containing positional
+enrichment scores for Tn5 integration (for example, enrichment at the TSS)}
 }}
 

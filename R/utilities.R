@@ -24,7 +24,7 @@ AddToMisc <- function(
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   misc.slot <- SetIfNull(x = Misc(object = object[[assay]]), y = list())
-  if (!inherits(x = misc.slot, what = 'list')) {
+  if (!inherits(x = misc.slot, what = "list")) {
     warning("Misc slot already occupied")
   } else{
     misc.slot[[save.as]] <- new.data
@@ -33,7 +33,7 @@ AddToMisc <- function(
   return(object)
 }
 
-globalVariables(names = c('group', 'readcount'), package = 'Signac')
+globalVariables(names = c("group", "readcount"), package = "Signac")
 #' Average Counts
 #'
 #' Compute the mean counts per group of cells for a given assay
@@ -61,9 +61,9 @@ AverageCounts <- function(
   } else {
     group.by <- object[[group.by, drop = TRUE]]
   }
-  counts <- GetAssayData(object = object, assay = assay, slot = 'counts')
+  counts <- GetAssayData(object = object, assay = assay, slot = "counts")
   if (verbose) {
-    message('Summing counts per cell')
+    message("Summing counts per cell")
   }
   totals <- colSums(x = counts)
   total.df <- data.frame(
@@ -74,7 +74,7 @@ AverageCounts <- function(
   total.df$group <- group.by[total.df$cell]
   total.df <- group_by(total.df, group)
   if (verbose) {
-    message('Computing average counts per group')
+    message("Computing average counts per group")
   }
   group.means <- summarize(.data = total.df, mn = mean(x = readcount))
   results <- group.means$mn
@@ -144,10 +144,10 @@ ClosestFeature <- function(
   annotation,
   ...
 ) {
-  if (!is(object = regions, class2 = 'GRanges')) {
+  if (!is(object = regions, class2 = "GRanges")) {
     regions <- StringToGRanges(regions = regions, ...)
   }
-  if (is(object = annotation, class2 = 'EnsDb')) {
+  if (is(object = annotation, class2 = "EnsDb")) {
     annotation <- genes(
       x = annotation, filter = ~ gene_biotype == "protein_coding"
     )
@@ -179,8 +179,8 @@ CalcN <- function(object) {
     return(NULL)
   }
   return(list(
-    nCount = colSums(x = object, slot = 'counts'),
-    nFeature = colSums(x = GetAssayData(object = object, slot = 'counts') > 0)
+    nCount = colSums(x = object, slot = "counts"),
+    nFeature = colSums(x = GetAssayData(object = object, slot = "counts") > 0)
   ))
 }
 
@@ -191,17 +191,23 @@ CalcN <- function(object) {
 # Parses a string (usually a cell name) and extracts fields based on a delimiter
 #
 # @param string String to parse.
-# @param field Integer(s) indicating which field(s) to extract. Can be a vector multiple numbers.
+# @param field Integer(s) indicating which field(s) to extract. Can be a vector
+# multiple numbers.
 # @param delim Delimiter to use, set to underscore by default.
 #
-# @return A new string, that parses out the requested fields, and (if multiple), rejoins them with the same delimiter
+# @return A new string, that parses out the requested fields, and (if multiple),
+# rejoins them with the same delimiter
 #
 ExtractField <- function(string, field = 1, delim = "_") {
-  fields <- as.numeric(x = unlist(x = strsplit(x = as.character(x = field), split = ",")))
+  fields <- as.numeric(
+    x = unlist(x = strsplit(x = as.character(x = field), split = ","))
+  )
   if (length(x = fields) == 1) {
     return(strsplit(x = string, split = delim)[[1]][field])
   }
-  return(paste(strsplit(x = string, split = delim)[[1]][fields], collapse = delim))
+  return(paste(
+    strsplit(x = string, split = delim)[[1]][fields],
+    collapse = delim))
 }
 
 #' Find interesecting regions between two objects
@@ -220,8 +226,8 @@ ExtractField <- function(string, field = 1, delim = "_") {
 #' the default assay
 #' @param assay.2 Name of the assay to use in the second object. If NULL, use
 #' the default assay
-#' @param distance Maximum distance between regions allowed for an intersection to
-#' be recorded. Default is 0.
+#' @param distance Maximum distance between regions allowed for an intersection
+#' to be recorded. Default is 0.
 #' @param verbose Display messages
 #'
 #' @importFrom GenomicRanges distanceToNearest
@@ -247,8 +253,8 @@ GetIntersectingFeatures <- function(
   distance = 0,
   verbose = TRUE
 ) {
-  regions.1 <- GetAssayData(object = object.1, assay = assay.1, slot = 'ranges')
-  regions.2 <- GetAssayData(object = object.2, assay = assay.2, slot = 'ranges')
+  regions.1 <- GetAssayData(object = object.1, assay = assay.1, slot = "ranges")
+  regions.2 <- GetAssayData(object = object.2, assay = assay.2, slot = "ranges")
   if (verbose) {
     message("Intersecting regions across objects")
   }
@@ -279,9 +285,9 @@ StringToGRanges <- function(regions, sep = c("-", "-")) {
   ranges.df <- data.frame(ranges = regions)
   ranges.df <- separate(
     data = ranges.df,
-    col = 'ranges',
+    col = "ranges",
     sep = paste0(sep[[1]], "|", sep[[2]]),
-    into = c('chr', 'start', 'end')
+    into = c("chr", "start", "end")
   )
   granges <- makeGRangesFromDataFrame(df = ranges.df)
   return(granges)
@@ -314,7 +320,6 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
 # Chunk GRanges
 #
 # Split a genomic ranges object into evenly sized chunks
-#
 # @param granges A GRanges object
 # @param nchunk Number of chunks to split into
 #
@@ -372,7 +377,7 @@ CutMatrix <- function(
   cells = NULL,
   verbose = TRUE
 ) {
-  if (!inherits(x = region, what = 'GRanges')) {
+  if (!inherits(x = region, what = "GRanges")) {
     stop("Region is not a GRanges object.")
   }
   all.cells <- SetIfNull(x = cells, y = colnames(x = object))
@@ -487,7 +492,7 @@ Extend <- function(
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' GetCellsInRegion(tabix = fpath, region = "chr1-10245-762629")
 GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
-  if (!is(object = region, class2 = 'GRanges')) {
+  if (!is(object = region, class2 = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
   bin.reads <- scanTabix(file = tabix, param = region)
@@ -556,13 +561,17 @@ GetReadsInRegion <- function(
     names(x = group.by) <- rownames(x = meta.data)
   }
   if (verbose) {
-    message('Extracting reads in requested region')
+    message("Extracting reads in requested region")
   }
-  if (!is(object = region, class2 = 'GRanges')) {
+  if (!is(object = region, class2 = "GRanges")) {
     region <- StringToGRanges(regions = region, ...)
   }
   if (is.null(x = tabix.file)) {
-    fragment.path <- GetAssayData(object = object, assay = assay, slot = 'fragments')
+    fragment.path <- GetAssayData(
+      object = object,
+      assay = assay,
+      slot = "fragments"
+    )
     tabix.file <- TabixFile(file = fragment.path)
     open(con = tabix.file)
     close.file <- TRUE
@@ -616,14 +625,14 @@ CountsInRegion <- function(
   regions,
   ...
 ) {
-  if (!is(object = object[[assay]], class2 = 'ChromatinAssay')) {
+  if (!is(object = object[[assay]], class2 = "ChromatinAssay")) {
     stop("Must supply a ChromatinAssay")
   }
-  obj.granges <- GetAssayData(object = object, assay = assay, slot = 'ranges')
+  obj.granges <- GetAssayData(object = object, assay = assay, slot = "ranges")
   overlaps <- findOverlaps(query = obj.granges, subject = regions, ...)
   hit.regions <- queryHits(x = overlaps)
   data.matrix <- GetAssayData(
-    object = object, assay = assay, slot = 'counts'
+    object = object, assay = assay, slot = "counts"
   )[hit.regions, ]
   return(colSums(data.matrix))
 }
@@ -680,7 +689,7 @@ FractionCountsInRegion <- function(
     ...
   )
   total.reads <- colSums(x = GetAssayData(
-    object = object, assay = assay, slot = 'counts'
+    object = object, assay = assay, slot = "counts"
   ))
   return(reads.in.region / total.reads)
 }
@@ -762,7 +771,7 @@ IntersectMatrix <- function(
   verbose = TRUE,
   ...
 ) {
-  if (is(object = regions, class2 = 'character')) {
+  if (is(object = regions, class2 = "character")) {
     regions <- StringToGRanges(regions = regions, sep = sep)
   }
   rowranges <- StringToGRanges(regions = rownames(x = matrix), sep = sep)
@@ -813,7 +822,7 @@ IntersectMatrix <- function(
 MatchRegionStats <- function(
   meta.feature,
   regions,
-  features.match = c('GC.percent'),
+  features.match = c("GC.percent"),
   n = 10000,
   verbose = TRUE,
   ...
@@ -903,7 +912,7 @@ MergeWithRegions <- function(
   assay.2 = NULL,
   regions.use = 1,
   distance = 0,
-  new.assay.name = 'ATAC',
+  new.assay.name = "ATAC",
   verbose = TRUE,
   ...
 ) {
@@ -925,7 +934,7 @@ MergeWithRegions <- function(
     project <- Project(object = object.1)
     regions <- granges(object.1[[assay.1]])[regions.obj1]
   } else if (regions.use == 2) {
-    region.names <-rownames(x = object.2)[regions.obj2]
+    region.names <- rownames(x = object.2)[regions.obj2]
     project <- Project(object = object.2)
     regions <- granges(object.2[[assay.2]])[regions.obj2]
   } else {
@@ -963,27 +972,31 @@ MergeWithRegions <- function(
   counts.1 <- GetAssayData(
     object = object.1,
     assay = assay.1,
-    slot = 'counts'
+    slot = "counts"
   )[regions.obj1, ]
   counts.2 <- GetAssayData(
     object = object.2,
     assay = assay.2,
-    slot = 'counts'
+    slot = "counts"
   )[regions.obj2, ]
   rownames(counts.1) <- region.names
   rownames(counts.2) <- region.names
   allcounts <- cbind(counts.1, counts.2)
   assays <- list()
-  new.assay <- CreateChromatinAssayObject(counts = allcounts, ranges = regions, ...)
+  new.assay <- CreateChromatinAssayObject(
+    counts = allcounts,
+    ranges = regions,
+    ...
+  )
   assays[[new.assay.name]] <- new.assay
   merged.object <- new(
-    Class = 'Seurat',
+    Class = "Seurat",
     assays = assays,
     meta.data = combined.meta.data,
     active.assay = new.assay.name,
     active.ident = new.idents,
     project.name = project,
-    version = packageVersion(pkg = 'Seurat')
+    version = packageVersion(pkg = "Seurat")
   )
   return(merged.object)
 }
@@ -1007,7 +1020,11 @@ MultiRegionCutMatrix <- function(
   cells = NULL,
   verbose = FALSE
 ) {
-  fragment.path <- GetAssayData(object = object, assay = assay, slot = 'fragments')
+  fragment.path <- GetAssayData(
+    object = object,
+    assay = assay,
+    slot = "fragments"
+  )
   tabix.file <- TabixFile(file = fragment.path)
   open(con = tabix.file)
   cm.list <- lapply(
@@ -1175,7 +1192,7 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
       stringsAsFactors = FALSE,
       comment.char = ""
     )
-    colnames(x = df) <- c('chr', 'start', 'end', 'cell', 'count')
+    colnames(x = df) <- c("chr", "start", "end", "cell", "count")
     if (record.ident) {
       df$ident <- x
     }
@@ -1206,6 +1223,7 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
 # two elements (matrix and granges).
 #' @importFrom S4Vectors queryHits subjectHits
 #' @importFrom GenomicRanges findOverlaps
+#' @importFrom Biobase isUnique
 MergeIntersectingRows <- function(
   mat.a,
   ranges.a,
@@ -1217,12 +1235,12 @@ MergeIntersectingRows <- function(
     message("Finding overlapping ranges")
   }
   if (is.null(x = mat.b)) {
-    self = TRUE
+    self <- TRUE
   } else {
-    self = FALSE
+    self <- FALSE
   }
-  mat.b <- mat.b %||% mat.a
-  ranges.b <- ranges.b %||% ranges.a
+  mat.b <- SetIfNull(x = mat.b, y = mat.a)
+  ranges.b <- SetIfNull(x = ranges.b, y = ranges.a)
   overlaps <- findOverlaps(query = ranges.b, subject = ranges.a)
   b.hits <- queryHits(x = overlaps)
   a.hits <- subjectHits(x = overlaps)
@@ -1230,12 +1248,19 @@ MergeIntersectingRows <- function(
   subjecthits.multi.a <- subjectHits(x = overlaps[which(!isUnique(x = a.hits))])
   queryhits.multi.b <- queryHits(x = overlaps[which(!isUnique(x = b.hits))])
   subjecthits.multi.b <- subjectHits(x = overlaps[which(!isUnique(x = b.hits))])
-  a.hits <- ResolveBridge(multihit = subjecthits.multi.a, corresponding = queryhits.multi.a)
-  b.hits <- ResolveBridge(multihit = queryhits.multi.b, corresponding = subjecthits.multi.b)
+  a.hits <- ResolveBridge(
+    multihit = subjecthits.multi.a,
+    corresponding = queryhits.multi.a
+  )
+  b.hits <- ResolveBridge(
+    multihit = queryhits.multi.b,
+    corresponding = subjecthits.multi.b
+  )
   multihit.a <- rle(x = b.hits$multihit)
   multihit.b <- rle(x = a.hits$multihit)
   if (verbose) {
-    message("Merging multiple rows of matrix B that intersect single row in matrix A")
+    message("Merging multiple rows of matrix B that intersect
+            single row in matrix A")
   }
   if (length(x = multihit.b$lengths) != 0) {
     b.mod <- MergeInternalRows(
@@ -1252,7 +1277,8 @@ MergeIntersectingRows <- function(
     return(b.mod)
   } else {
     if (verbose) {
-      message("Merging multiple rows of matrix A that intersect single row in matrix B")
+      message("Merging multiple rows of matrix A that intersect
+              single row in matrix B")
     }
     if (length(x = multihit.a$lengths) != 0) {
       a.mod <- MergeInternalRows(
@@ -1288,15 +1314,19 @@ ResolveBridge <- function(multihit, corresponding) {
   for (i in seq_along(along.with = nonunique.hits)) {
     q <- nonunique.hits[[i]]
     rl <- runlengths[[i]]
-    multihit[q+rl-1] <- multihit[q]
-    remove.multihit <- c(remove.multihit, (q+rl))
-    remove.corresponding <- c(remove.corresponding, (q+rl-1))
+    multihit[q + rl - 1] <- multihit[q]
+    remove.multihit <- c(remove.multihit, (q + rl))
+    remove.corresponding <- c(remove.corresponding, (q + rl - 1))
   }
-  keep.multihit <- setdiff(x = seq_along(along.with = multihit), y = remove.multihit)
-  keep.corresponding <- setdiff(x = seq_along(along.with = corresponding), y = remove.corresponding)
+  keep.multihit <- setdiff(
+    x = seq_along(along.with = multihit), y = remove.multihit
+  )
+  keep.corresponding <- setdiff(
+    x = seq_along(along.with = corresponding), y = remove.corresponding
+  )
   multihit <- multihit[keep.multihit]
   corresponding <- corresponding[keep.corresponding]
-  return(list('multihit' = multihit, 'corresponding' = corresponding))
+  return(list("multihit" = multihit, "corresponding" = corresponding))
 }
 
 # Set intersecting matrix rows to a common name
@@ -1348,14 +1378,14 @@ CondenseOverlappingGRanges <- function(
     query = grange.union,
     subject = ranges.a,
     ignore.strand = TRUE,
-    select = 'first' # select = 'first' is essential to have match matrix rows
+    select = "first" # select = 'first' is essential to have match matrix rows
   )
   a.overlap.union <- a.overlap.union[!is.na(x = a.overlap.union)]
   b.overlap.union <- findOverlaps(
     query = grange.union,
     subject = ranges.b,
     ignore.strand = TRUE,
-    select = 'first'
+    select = "first"
   )
   b.overlap.union <- b.overlap.union[!is.na(x = b.overlap.union)]
   a.subset <- ranges.a[a.overlap.union]
@@ -1371,7 +1401,8 @@ CondenseOverlappingGRanges <- function(
 #      could try to make parallel, or think about other ways of doing it.
 
 # @param mat A sparse matrix
-# @param multihit a run-length encoded list describing the number of rows to be merged in each merge step
+# @param multihit a run-length encoded list describing the number of rows to be
+# merged in each merge step
 # @param queryhits Row indices to be merged
 # @param rowranges GenomicRanges associated with matrix rows
 # @param verbose Display progress
@@ -1403,9 +1434,9 @@ MergeInternalRows <- function(
   while (i < length(x = multihit$lengths)) {
     rowrun <- multihit$lengths[[i]]
     # find the matrix rows to merge
-    rowindex <- mat.rows[queryhits[i:(i+rowrun-1)]]
+    rowindex <- mat.rows[queryhits[i:(i + rowrun - 1)]]
     if (rowrun > 1) {
-      rangeindex <- queryhits[(i+1):(i+rowrun-1)]
+      rangeindex <- queryhits[(i + 1):(i + rowrun - 1)]
     }
     # merge rows and add to list, name will become the name of the row
     if (length(x = rowindex) > 1) {
@@ -1425,7 +1456,7 @@ MergeInternalRows <- function(
   }
   merged.mat <- Reduce(f = rbind, x = newmat)
   rownames(merged.mat) <- names(newmat)
-  merged.mat <- as(object = merged.mat, Class = 'dgCMatrix')
+  merged.mat <- as(object = merged.mat, Class = "dgCMatrix")
   # remove rows from A that were merged
   tokeep <- setdiff(mat.rows, todelete)
   mat.mod <- mat[tokeep, ]
@@ -1453,7 +1484,7 @@ ValidFragments <- function(f) {
 # Convert PFMMatrix to
 # @param x A PFMatrix
 PFMatrixToList <- function(x) {
-  if (!requireNamespace('TFBSTools', quietly = TRUE)) {
+  if (!requireNamespace("TFBSTools", quietly = TRUE)) {
     stop("Please install TFBSTools.
          https://www.bioconductor.org/packages/TFBSTools/")
   }
@@ -1483,7 +1514,7 @@ PFMatrixToList <- function(x) {
 #' @return Returns a GRanges object
 #' @examples
 #' UnifyPeaks(object.list = list(atac_small, atac_small))
-UnifyPeaks <- function(object.list, mode = 'reduce', sep = c(":", "-")) {
+UnifyPeaks <- function(object.list, mode = "reduce", sep = c(":", "-")) {
   if (inherits(x = sep, what = "list")) {
     if (length(x = sep) != length(x = object.list)) {
       stop("Must specify separators for each object in the input list")
@@ -1498,9 +1529,9 @@ UnifyPeaks <- function(object.list, mode = 'reduce', sep = c(":", "-")) {
     )
   }
   peak.ranges <- Reduce(f = c, x = peak.ranges)
-  if (mode == 'reduce') {
+  if (mode == "reduce") {
     return(reduce(x = peak.ranges))
-  } else if (mode == 'disjoin') {
+  } else if (mode == "disjoin") {
     return(disjoin(x = peak.ranges))
   } else {
     stop("Unknown mode requested")

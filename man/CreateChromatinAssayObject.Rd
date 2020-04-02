@@ -28,7 +28,8 @@ CreateChromatinAssayObject(
 Will subset the counts matrix as well.
 To reintroduce excluded features, create a new object with a lower cutoff.}
 
-\item{min.features}{Include cells where at least this many features are detected.}
+\item{min.features}{Include cells where at least this many features are
+detected.}
 
 \item{max.cells}{Include features detected in less than this many cells.
 Will subset the counts matrix as well.
@@ -39,13 +40,13 @@ accumulate reads in all cells. A percentage cutoff can also be set using
 features detected in 90 percent of cells.
 If NULL (default), do not apply any maximum value.}
 
-\item{ranges}{A set of \code{\link[GenomicRanges]{GRanges}} corresponding to the
-rows of the input matrix}
+\item{ranges}{A set of \code{\link[GenomicRanges]{GRanges}} corresponding to
+the rows of the input matrix}
 
 \item{motifs}{A Motif object (not required)}
 
-\item{fragments}{Path to a tabix-indexed fragments file for the data contained
-in the input matrix (not required)}
+\item{fragments}{Path to a tabix-indexed fragments file for the data
+contained in the input matrix (not required)}
 
 \item{genome}{Name of the genome used}
 
@@ -60,9 +61,10 @@ second element is used to separate the start from end coordinate. Only
 used if \code{ranges} is NULL.}
 }
 \description{
-Create a \code{\link{ChromatinAssay}} object from a count matrix or normalized data matrix.
-The expected format of the input matrix is features x cells. A set of genomic ranges must
-be supplied along with the matrix, with the length of the ranges equal to the number of rows
-in the matrix. If a set of genomic ranges are not supplied, they will be extracted from the
+Create a \code{\link{ChromatinAssay}} object from a count matrix or
+normalized data matrix. The expected format of the input matrix is features x
+cells. A set of genomic ranges must be supplied along with the matrix, with
+the length of the ranges equal to the number of rows in the matrix. If a set
+of genomic ranges are not supplied, they will be extracted from the
 row names of the matrix.
 }

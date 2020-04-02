@@ -16,11 +16,11 @@ BinarizeCounts.default <- function(
   verbose = TRUE,
   ...
 ) {
-  if (inherits(x = object, what = 'dgCMatrix')) {
-    slot(object = object, name = 'x') <- rep.int(
+  if (inherits(x = object, what = "dgCMatrix")) {
+    slot(object = object, name = "x") <- rep.int(
       x = 1,
       times = length(
-        x = slot(object = object, name = 'x')
+        x = slot(object = object, name = "x")
         )
       )
   } else {
@@ -41,10 +41,10 @@ BinarizeCounts.Assay <- function(
   verbose = TRUE,
   ...
 ) {
-  data.matrix <- GetAssayData(object = object, slot = 'counts')
+  data.matrix <- GetAssayData(object = object, slot = "counts")
   object <- SetAssayData(
     object = object,
-    slot = 'counts',
+    slot = "counts",
     new.data = BinarizeCounts(
       object = data.matrix, assay = assay, verbose = verbose
     )
@@ -130,7 +130,7 @@ CreateMotifMatrix <- function(
   sep = c("-", "-"),
   ...
 ) {
-  if (!requireNamespace('motifmatchr', quietly = TRUE)) {
+  if (!requireNamespace("motifmatchr", quietly = TRUE)) {
     stop("Please install motifmatchr.
          https://www.bioconductor.org/packages/motifmatchr/")
   }
@@ -148,7 +148,7 @@ CreateMotifMatrix <- function(
       motif.matrix <- motifmatchr::motifCounts(object = motif_ix)
     } else {
       motif.matrix <- motifmatchr::motifMatches(object = motif_ix)
-      motif.matrix <- as(Class = 'dgCMatrix', object = motif.matrix)
+      motif.matrix <- as(Class = "dgCMatrix", object = motif.matrix)
     }
   }
   rownames(motif.matrix) <- GRangesToString(grange = features, sep = sep)
@@ -226,7 +226,7 @@ FeatureMatrix <- function(
   features,
   cells = NULL,
   chunk = 50,
-  sep = c('-', '-'),
+  sep = c("-", "-"),
   verbose = TRUE
 ) {
   tbx <- TabixFile(file = fragments)
@@ -242,7 +242,7 @@ FeatureMatrix <- function(
     nchunk = chunk
   )
   if (verbose) {
-    message('Extracting reads overlapping genomic regions')
+    message("Extracting reads overlapping genomic regions")
   }
   if (nbrOfWorkers() > 1) {
     mylapply <- future_lapply
@@ -274,7 +274,7 @@ FeatureMatrix <- function(
     j = matrix.cells,
     x = rep(x = 1, length(x = cell.vector))
   )
-  featmat <- as(Class = 'dgCMatrix', object = featmat)
+  featmat <- as(Class = "dgCMatrix", object = featmat)
   rownames(x = featmat) <- names(x = feature.lookup)
   colnames(x = featmat) <- names(x = cell.lookup)
   if (!is.null(x = cells)) {
@@ -295,7 +295,7 @@ FeatureMatrix <- function(
   }
 }
 
-globalVariables(names = c('chr', 'start'), package = 'Signac')
+globalVariables(names = c("chr", "start"), package = "Signac")
 #' FilterFragments
 #'
 #' Remove cells from a fragments file that are not present in a given list of
@@ -344,7 +344,7 @@ FilterFragments <- function(
   }
   reads <- fread(
     file = fragment.path,
-    col.names = c('chr', 'start', 'end', 'cell', 'count'),
+    col.names = c("chr", "start", "end", "cell", "count"),
     showProgress = verbose,
     ...
   )
@@ -364,7 +364,7 @@ FilterFragments <- function(
     row.names = FALSE,
     quote = FALSE,
     col.names = FALSE,
-    sep = '\t'
+    sep = "\t"
   )
   rm(reads)
   invisible(x = gc())
@@ -381,7 +381,7 @@ FilterFragments <- function(
         message("Building index")
       }
       index.file <- indexTabix(
-        file = paste0(outf), format = 'bed', zeroBased = TRUE
+        file = paste0(outf), format = "bed", zeroBased = TRUE
       )
     }
   }
@@ -407,7 +407,7 @@ FilterFragments <- function(
 FindTopFeatures.default <- function(
   object,
   assay = NULL,
-  min.cutoff = 'q5',
+  min.cutoff = "q5",
   verbose = TRUE,
   ...
 ) {
@@ -431,11 +431,11 @@ FindTopFeatures.default <- function(
 FindTopFeatures.Assay <- function(
   object,
   assay = NULL,
-  min.cutoff = 'q5',
+  min.cutoff = "q5",
   verbose = TRUE,
   ...
 ) {
-  data.use <- GetAssayData(object = object, slot = 'counts')
+  data.use <- GetAssayData(object = object, slot = "counts")
   hvf.info <- FindTopFeatures(
     object = data.use,
     assay = assay,
@@ -452,7 +452,7 @@ FindTopFeatures.Assay <- function(
     )
   } else {
     percentile.use <- as.numeric(
-      x = sub(pattern = "q",replacement = "", x = as.character(x = min.cutoff))
+      x = sub(pattern = "q", replacement = "", x = as.character(x = min.cutoff))
     ) / 100
     VariableFeatures(object = object) <- rownames(
       x = hvf.info[hvf.info$percentile > percentile.use, ]
@@ -470,7 +470,7 @@ FindTopFeatures.Assay <- function(
 FindTopFeatures.Seurat <- function(
   object,
   assay = NULL,
-  min.cutoff = 'q5',
+  min.cutoff = "q5",
   verbose = TRUE,
   ...
 ) {
@@ -507,32 +507,32 @@ FRiP <- function(
   object,
   peak.assay,
   bin.assay,
-  chromosome = 'chr1',
+  chromosome = "chr1",
   verbose = TRUE
 ) {
   if (verbose) {
-    message('Calculating fraction of reads in peaks per cell')
+    message("Calculating fraction of reads in peaks per cell")
   }
   peak.data <- GetAssayData(
-    object = object, assay = peak.assay, slot = 'counts'
+    object = object, assay = peak.assay, slot = "counts"
   )
   bin.data <- GetAssayData(
-    object = object, assay = bin.assay, slot = 'counts'
+    object = object, assay = bin.assay, slot = "counts"
   )
   if (!is.null(x = chromosome)) {
     peak.data <- peak.data[grepl(
-      pattern = paste0('^', chromosome, '\\-|^', chromosome, ':'),
+      pattern = paste0("^", chromosome, "\\-|^", chromosome, ":"),
       x = rownames(x = peak.data)
     ), ]
     bin.data <- bin.data[grepl(
-      pattern = paste0('^', chromosome, '\\-|^', chromosome, ':'),
+      pattern = paste0("^", chromosome, "\\-|^", chromosome, ":"),
       x = rownames(x = bin.data)
     ), ]
   }
   peak.counts <- colSums(x = peak.data)
   bin.counts <- colSums(x = bin.data)
   frip <- peak.counts / bin.counts
-  object <- AddMetaData(object = object, metadata = frip, col.name = 'FRiP')
+  object <- AddMetaData(object = object, metadata = frip, col.name = "FRiP")
   return(object)
 }
 
@@ -577,7 +577,7 @@ GenomeBinMatrix <- function(
   cells = NULL,
   binsize = 5000,
   chunk = 50,
-  sep = c('-', '-'),
+  sep = c("-", "-"),
   verbose = TRUE
 ) {
   tiles <- tileGenome(
@@ -596,7 +596,7 @@ GenomeBinMatrix <- function(
   return(binmat)
 }
 
-globalVariables(names = 'cell', package = 'Signac')
+globalVariables(names = "cell", package = "Signac")
 #' NucleosomeSignal
 #'
 #' Calculate the strength of the nucleosome signal per cell.
@@ -627,7 +627,7 @@ globalVariables(names = 'cell', package = 'Signac')
 NucleosomeSignal <- function(
   object,
   assay = NULL,
-  region = 'chr1-1-249250621',
+  region = "chr1-1-249250621",
   min.threshold = 147,
   max.threshold = 294,
   verbose = TRUE,
@@ -650,7 +650,7 @@ NucleosomeSignal <- function(
   if (verbose) {
     message("Computing ratio of mononucleosomal to nucleosome-free fragments")
   }
-  fragments.use <- as.data.frame(x = fragments.use[, c('cell', 'length')])
+  fragments.use <- as.data.frame(x = fragments.use[, c("cell", "length")])
   fragments.use <- group_by(.data = fragments.use, cell)
   fragment.summary <- as.data.frame(
     x = summarize(
@@ -692,13 +692,13 @@ RegionStats.default <- function(
   verbose = TRUE,
   ...
 ) {
-  if (inherits(x = object, what = 'character')) {
-    object <- StringToGRanges(regions = object, sep = sep)
+  if (inherits(x = object, what = "character")) {
+    object <- StringToGRanges(regions = object, ...)
   }
   sequence.length <- width(x = object)
   sequences <- getSeq(x = genome, names = object)
-  gc <- letterFrequency(x = sequences, letters = 'CG') / sequence.length * 100
-  colnames(gc) <- 'GC.percent'
+  gc <- letterFrequency(x = sequences, letters = "CG") / sequence.length * 100
+  colnames(gc) <- "GC.percent"
   dinuc <- dinucleotideFrequency(sequences)
   sequence.stats <- cbind(dinuc, gc, sequence.length)
   return(sequence.stats)
@@ -716,6 +716,7 @@ RegionStats.default <- function(
 #' object = atac_small[['peaks']],
 #' genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
 #' )
+#' }
 RegionStats.ChromatinAssay <- function(
   object,
   genome,
@@ -730,9 +731,9 @@ RegionStats.ChromatinAssay <- function(
     ...
   )
   rownames(x = feature.metadata) <- rownames(x = object)
-  meta.data <- GetAssayData(object = object, slot = 'meta.features')
+  meta.data <- GetAssayData(object = object, slot = "meta.features")
   meta.data <- cbind(meta.data, feature.metadata)
-  slot(object = object, name = 'meta.features') <- meta.data
+  slot(object = object, name = "meta.features") <- meta.data
   return(object)
 }
 
@@ -813,15 +814,15 @@ RunTFIDF.default <- function(
   if (method == 2) {
     idf <- log(1 + idf)
   } else if (method == 3) {
-    slot(object = tf, name = 'x') <- log1p(
-      x = slot(object = tf, name = 'x') * scale.factor
+    slot(object = tf, name = "x") <- log1p(
+      x = slot(object = tf, name = "x") * scale.factor
     )
     idf <- log(1 + idf)
   }
   norm.data <- Diagonal(n = length(x = idf), x = idf) %*% tf
   if (method == 1) {
-    slot(object = norm.data, name = 'x') <- log1p(
-      x = slot(object = norm.data, name = 'x') * scale.factor
+    slot(object = norm.data, name = "x") <- log1p(
+      x = slot(object = norm.data, name = "x") * scale.factor
     )
   }
   colnames(x = norm.data) <- colnames(x = object)
@@ -843,17 +844,17 @@ RunTFIDF.Assay <- function(
   ...
 ) {
   new.data <- RunTFIDF(
-    object = GetAssayData(object = object, slot = 'counts'),
+    object = GetAssayData(object = object, slot = "counts"),
     method = method,
     assay = assay,
     scale.factor = scale.factor,
     verbose = verbose,
     ...
   )
-  new.data <- as(object = new.data, Class = 'dgCMatrix')
+  new.data <- as(object = new.data, Class = "dgCMatrix")
   object <- SetAssayData(
     object = object,
-    slot = 'data',
+    slot = "data",
     new.data = new.data
   )
   return(object)
@@ -967,9 +968,9 @@ TSSEnrichment <- function(
   object <- SetAssayData(
     object = object,
     assay = assay,
-    slot = 'positionEnrichment',
+    slot = "positionEnrichment",
     new.data = norm.matrix,
-    key = 'TSS'
+    key = "TSS"
   )
   return(object)
 }

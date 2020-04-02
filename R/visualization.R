@@ -3,7 +3,7 @@
 #'
 NULL
 
-globalVariables(names = c('Component', 'counts'), package = 'Signac')
+globalVariables(names = c("Component", "counts"), package = "Signac")
 #' Sequencing depth correlation
 #'
 #' Compute the correlation between total counts and each reduced
@@ -23,10 +23,10 @@ globalVariables(names = c('Component', 'counts'), package = 'Signac')
 #' @importFrom stats cor
 #' @examples
 #' DepthCor(object = atac_small)
-DepthCor <- function(object, reduction = 'lsi', assay = 'peaks', n = 10, ...) {
+DepthCor <- function(object, reduction = "lsi", assay = "peaks", n = 10, ...) {
   dr <- object[[reduction]]
   embed <- Embeddings(object = dr)
-  counts <- object[[paste0('nCount_', assay)]]
+  counts <- object[[paste0("nCount_", assay)]]
   embed <- embed[rownames(x = counts), ]
   n <- SetIfNull(x = n, y = ncol(x = embed))
   embed <- embed[, seq_len(length.out = n)]
@@ -40,13 +40,13 @@ DepthCor <- function(object, reduction = 'lsi', assay = 'peaks', n = 10, ...) {
     ylim(c(-1, 1)) +
     theme_light() +
     ggtitle("Correlation between depth and reduced dimension components",
-            subtitle = paste0("Assay: ", assay, '\t', "Reduction: ", reduction))
+            subtitle = paste0("Assay: ", assay, "\t", "Reduction: ", reduction))
   return(p)
 }
 
 globalVariables(
-  names = c('position', 'coverage', 'group', 'gene_name', 'direction'),
-  package = 'Signac'
+  names = c("position", "coverage", "group", "gene_name", "direction"),
+  package = "Signac"
 )
 #' @rdname CoveragePlot
 #' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic
@@ -89,7 +89,7 @@ SingleCoveragePlot <- function(
     ident.cells <- WhichCells(object = object, idents = idents)
     cells <- intersect(x = cells, y = ident.cells)
   }
-  if (!is(object = region, class2 = 'GRanges')) {
+  if (!is(object = region, class2 = "GRanges")) {
     region <- StringToGRanges(regions = region, sep = sep)
   }
   region <- suppressWarnings(expr = Extend(
@@ -136,7 +136,7 @@ SingleCoveragePlot <- function(
       data = norm.value,
       width = window,
       FUN = mean,
-      align = 'center',
+      align = "center",
       fill = NA
     ))
     coverages <- ungroup(x = coverages)
@@ -165,33 +165,33 @@ SingleCoveragePlot <- function(
     data = downsampled_coverage,
     mapping = aes(x = position, y = coverage, fill = group)
     ) +
-    geom_area(stat = 'identity') +
+    geom_area(stat = "identity") +
     geom_hline(yintercept = 0, size = 0.1) +
-    facet_wrap(facets = ~group, strip.position = 'right', ncol = 1) +
-    xlab(label = paste0(chromosome, ' position (bp)')) +
-    ylab(label = paste0('Normalized accessibility \n(range ',
-                        as.character(x = ymin), ' - ',
-                        as.character(x = ymax), ')')) +
+    facet_wrap(facets = ~group, strip.position = "right", ncol = 1) +
+    xlab(label = paste0(chromosome, " position (bp)")) +
+    ylab(label = paste0("Normalized accessibility \n(range ",
+                        as.character(x = ymin), " - ",
+                        as.character(x = ymax), ")")) +
     ylim(c(ymin, ymax)) +
     theme_classic() +
     theme(
       axis.text.y = element_blank(),
-      legend.position = 'none',
+      legend.position = "none",
       strip.text.y = element_text(angle = 0)
     )
   if (!is.null(x = peaks)) {
     # subset to covered range
     peak.intersect <- subsetByOverlaps(x = peaks, ranges = gr)
     peak.df <- as.data.frame(x = peak.intersect)
-    peak.plot <- ggplot(data = peak.df, mapping = aes(color = 'darkgrey')) +
+    peak.plot <- ggplot(data = peak.df, mapping = aes(color = "darkgrey")) +
       geom_segment(aes(x = start, y = 0, xend = end, yend = 0, size = 2),
                    data = peak.df) +
       theme_classic() +
       ylab(label = "Peaks") +
       theme(axis.ticks.y = element_blank(),
             axis.text.y = element_blank(),
-            legend.position = 'none') +
-      xlab(label = paste0(chromosome, ' position (bp)')) +
+            legend.position = "none") +
+      xlab(label = paste0(chromosome, " position (bp)")) +
       xlim(c(start.pos, end.pos)) +
       scale_color_identity()
     # remove axis from coverage plot
@@ -205,17 +205,17 @@ SingleCoveragePlot <- function(
     peak.plot <- NULL
   }
   if (!is.null(x = annotation)) {
-    if (inherits(x = annotation, what = 'EnsDb')) {
+    if (inherits(x = annotation, what = "EnsDb")) {
       annotation.use <- genes(
         x = annotation, filter = ~ gene_biotype == "protein_coding"
       )
-    } else if (!inherits(x = annotation, what = 'GRanges')) {
+    } else if (!inherits(x = annotation, what = "GRanges")) {
       stop("Annotation must be a GRanges object or EnsDb object.")
     } else {
       annotation.use <- annotation
     }
     if (ucsc) {
-      seqlevelsStyle(x = annotation.use) <- 'UCSC'
+      seqlevelsStyle(x = annotation.use) <- "UCSC"
     }
     annotation.subset <- subsetByOverlaps(x = annotation.use, ranges = gr)
     annotation.df <- as.data.frame(x = annotation.subset)
@@ -246,10 +246,10 @@ SingleCoveragePlot <- function(
           height = unit(x = 4, units = "mm")
         ) +
         xlim(start.pos, end.pos) +
-        xlab(label = paste0(chromosome, ' position (bp)')) +
+        xlab(label = paste0(chromosome, " position (bp)")) +
         ylab("Genes") +
         theme_classic() +
-        theme(legend.position = 'none',
+        theme(legend.position = "none",
               axis.ticks.y = element_blank(),
               axis.text.y = element_blank())
 
@@ -310,8 +310,8 @@ SingleCoveragePlot <- function(
 #' @param ucsc Set annotation seqlevels style to UCSC
 #' @param peaks A GRanges object containing peak coordinates
 #' @param assay Name of the  assay to plot
-#' @param fragment.path Path to an index fragment file. If NULL, will look for a path stored in the
-#' fragments slot of the ChromatinAssay object
+#' @param fragment.path Path to an index fragment file. If NULL, will look for a
+#' path stored in the fragments slot of the ChromatinAssay object
 #' @param cells Which cells to plot. Default all cells
 #' @param idents Which identities to include in the plot. Default is all
 #' identities.
@@ -434,21 +434,21 @@ MotifPlot <- function(
   use.names = TRUE,
   ...
 ) {
-  data.use <- GetMotifData(object = object, assay = assay, slot = 'pwm')
+  data.use <- GetMotifData(object = object, assay = assay, slot = "pwm")
   if (length(x = data.use) == 0) {
-    stop('Position weight matrix list for the requested assay is empty')
+    stop("Position weight matrix list for the requested assay is empty")
   }
   data.use <- data.use[motifs]
   if (use.names) {
     names(x = data.use) <- GetMotifData(
-      object = object, assay = assay, slot = 'motif.names'
+      object = object, assay = assay, slot = "motif.names"
     )[motifs]
   }
   p <- ggseqlogo(data = data.use, ...)
   return(p)
 }
 
-globalVariables(names = 'group', package = 'Signac')
+globalVariables(names = "group", package = "Signac")
 #' Plot fragment length histogram
 #'
 #' @param object A Seurat object
@@ -476,7 +476,7 @@ globalVariables(names = 'group', package = 'Signac')
 FragmentHistogram <- function(
   object,
   assay = NULL,
-  region = 'chr1-1-2000000',
+  region = "chr1-1-2000000",
   group.by = NULL,
   cells = NULL,
   log.scale = FALSE,
@@ -499,7 +499,7 @@ FragmentHistogram <- function(
   } else {
     p <- ggplot(data = reads, mapping = aes(x = length, fill = group)) +
       geom_histogram(bins = 200) +
-      facet_wrap(~group, scales = 'free_y') +
+      facet_wrap(~group, scales = "free_y") +
       xlim(c(0, 800)) +
       theme_bw()
   }
@@ -604,29 +604,31 @@ RegionPileup <- function(
     data = coverages,
     mapping = aes(x = position, y = norm.value, color = group)
     ) +
-    geom_line(stat = 'identity', size = 0.2) +
+    geom_line(stat = "identity", size = 0.2) +
     facet_wrap(facets = ~group) +
-    xlab(label = paste0('Distance from region midpoint (bp)')) +
-    ylab(label = paste0('Mean integration counts\n(0 - ', ymax, ')')) +
+    xlab(label = paste0("Distance from region midpoint (bp)")) +
+    ylab(label = paste0("Mean integration counts\n(0 - ", ymax, ")")) +
     ylim(c(ymin, ymax)) +
     theme_classic() +
     theme(
       axis.text.y = element_blank(),
-      legend.position = 'none',
+      legend.position = "none",
       strip.text.y = element_text(angle = 0)
     )
   return(p)
 }
 
-globalVariables(names = 'norm.value', package = 'Signac')
-#' Plot the enrichment of Tn5 integration sites centered on a set of genomic regions.
+globalVariables(names = "norm.value", package = "Signac")
+#' Plot the enrichment of Tn5 integration sites centered on a set of genomic
+#' regions.
 #'
 #' @param object A Seurat object
-#' @param enrichment.key Name of a position enrichment matrix stored in the \code{positionEnrichment} slot
+#' @param enrichment.key Name of a position enrichment matrix stored in the
+#' \code{positionEnrichment} slot
 #' of a \code{\link{ChromatinAssay}}.
 #' @param assay Name of the assay to use. Must be a \code{\link{ChromatinAssay}}
-#' and have the enrichment information for each cell stored in the \code{positionEnrichment}
-#' slot.
+#' and have the enrichment information for each cell stored in the
+#' \code{positionEnrichment} slot.
 #' @param group.by Set of identities to group cells by
 #' @param idents Set of identities to include in the plot
 #'
@@ -644,7 +646,11 @@ EnrichmentPlot <- function(
   idents = NULL
 ) {
   # get the normalized TSS enrichment matrix
-  positionEnrichment <- GetAssayData(object = object, assay = assay, slot = 'positionEnrichment')
+  positionEnrichment <- GetAssayData(
+    object = object,
+    assay = assay,
+    slot = "positionEnrichment"
+  )
   if (!(enrichment.key %in% names(x = positionEnrichment))) {
     stop("Position enrichment matrix not present in assay")
   }
@@ -667,20 +673,22 @@ EnrichmentPlot <- function(
     data = groupmeans,
     mapping = aes(x = position, y = norm.value, color = group)
   ) +
-    geom_line(stat = 'identity', size = 0.2) +
+    geom_line(stat = "identity", size = 0.2) +
     facet_wrap(facets = ~group)
   return(p)
 }
 
 #' Plot the enrichment around TSS
 #'
-#' Plot the normalized TSS enrichment score at each position relative to the TSS.
-#' Requires that \code{\link{TSSEnrichment}} has already been run on the assay.
+#' Plot the normalized TSS enrichment score at each position relative to the
+#' TSS. Requires that \code{\link{TSSEnrichment}} has already been run on the
+#' assay.
 #'
 #' Wrapper for the \code{\link{EnrichmentPlot}} function
 #'
 #' @param object A Seurat object
-#' @param assay Name of the assay to use. Should have the TSS enrichment information for each cell
+#' @param assay Name of the assay to use. Should have the TSS enrichment
+#' information for each cell
 #' already computed by running \code{\link{TSSEnrichment}}
 #' @param group.by Set of identities to group cells by
 #' @param idents Set of identities to include in the plot
@@ -700,11 +708,11 @@ TSSPlot <- function(
     assay = assay,
     group.by = group.by,
     idents = idents,
-    enrichment.key = 'TSS'
+    enrichment.key = "TSS"
   )
   p <- p +
     xlab("Distance from TSS (bp)") +
-    ylab(label = 'Mean TSS enrichment score') +
+    ylab(label = "Mean TSS enrichment score") +
     theme_minimal()
   return(p)
 }

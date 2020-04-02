@@ -11,3 +11,9 @@ testcode/*
 vignettes/*
 *.old
 *.tar.gz
+Signac.Rcheck/*
+bldignore/*
+docs/*
+index.md
+vignette_data/*
+cran-comments.md

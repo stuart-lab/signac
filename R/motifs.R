@@ -41,31 +41,32 @@ NULL
 RunChromVAR <- function(
   object,
   genome,
-  new.assay.name = 'chromvar',
+  new.assay.name = "chromvar",
   motif.matrix = NULL,
   assay = NULL,
   sep = c(":", "-"),
   verbose = TRUE,
   ...
 ) {
-  if (!requireNamespace('chromVAR', quietly = TRUE)) {
+  if (!requireNamespace("chromVAR", quietly = TRUE)) {
     stop("Please install chromVAR. https://greenleaflab.github.io/chromVAR/")
   }
-  if (!requireNamespace('SummarizedExperiment', quietly = TRUE)) {
+  if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
     stop("Please install SummarizedExperiment")
   }
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   motif.matrix <- SetIfNull(
     x = motif.matrix,
-    y = GetMotifData(object = object, assay = assay, slot = 'data')
+    y = GetMotifData(object = object, assay = assay, slot = "data")
   )
-  peak.matrix <- GetAssayData(object = object, assay = assay, slot = 'counts')
+  peak.matrix <- GetAssayData(object = object, assay = assay, slot = "counts")
   if (!(all(peak.matrix@x == floor(peak.matrix@x)))) {
-    warning("Count matrix contains non-integer values. ChromVAR should only be run on integer counts.")
+    warning("Count matrix contains non-integer values.
+            ChromVAR should only be run on integer counts.")
   }
   peak.matrix <- peak.matrix[rowSums(x = peak.matrix) > 0, ]
   motif.matrix <- motif.matrix[rownames(x = peak.matrix), ]
-  peak.ranges <- GetAssayData(object = object, assay = assay, slot = 'ranges')
+  peak.ranges <- GetAssayData(object = object, assay = assay, slot = "ranges")
   chromvar.obj <- SummarizedExperiment::SummarizedExperiment(
     assays = list(counts = peak.matrix),
     rowRanges = peak.ranges
@@ -97,11 +98,11 @@ RunChromVAR <- function(
   if (verbose) {
     message("Constructing chromVAR assay")
   }
-  object[['chromvar']] <- CreateAssayObject(data = chromvar.z)
+  object[["chromvar"]] <- CreateAssayObject(data = chromvar.z)
   return(object)
 }
 
-globalVariables(names = 'pvalue', package = 'Signac')
+globalVariables(names = "pvalue", package = "Signac")
 #' FindMotifs
 #'
 #' Find motifs overrepresented in a given set of genomic features.
@@ -147,7 +148,7 @@ FindMotifs <- function(
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   background <- SetIfNull(x = background, y = rownames(x = object))
-  if (is(object = background, class2 = 'numeric')) {
+  if (is(object = background, class2 = "numeric")) {
     if (verbose) {
       message("Selecting background regions to match input
               sequence characteristics")
@@ -156,7 +157,7 @@ FindMotifs <- function(
       meta.feature = GetAssayData(
         object = object,
         assay = assay,
-        slot = 'meta.features'
+        slot = "meta.features"
       ),
       regions = features,
       n = background,
@@ -165,13 +166,13 @@ FindMotifs <- function(
     )
   }
   if (verbose) {
-    message('Testing motif enrichment in ', length(x = features), ' regions')
+    message("Testing motif enrichment in ", length(x = features), " regions")
   }
   motif.all <- GetMotifData(
-    object = object, assay = assay, slot = 'data'
+    object = object, assay = assay, slot = "data"
   )
   motif.names <- GetMotifData(
-    object = object, assay = assay, slot = 'motif.names'
+    object = object, assay = assay, slot = "motif.names"
   )
   query.motifs <- motif.all[features, ]
   background.motifs <- motif.all[background, ]

@@ -9,7 +9,8 @@ TSSPlot(object, assay = NULL, group.by = NULL, idents = NULL)
 \arguments{
 \item{object}{A Seurat object}
 
-\item{assay}{Name of the assay to use. Should have the TSS enrichment information for each cell
+\item{assay}{Name of the assay to use. Should have the TSS enrichment
+information for each cell
 already computed by running \code{\link{TSSEnrichment}}}
 
 \item{group.by}{Set of identities to group cells by}
@@ -20,8 +21,9 @@ already computed by running \code{\link{TSSEnrichment}}}
 Returns a \code{\link[ggplot2]{ggplot2}} object
 }
 \description{
-Plot the normalized TSS enrichment score at each position relative to the TSS.
-Requires that \code{\link{TSSEnrichment}} has already been run on the assay.
+Plot the normalized TSS enrichment score at each position relative to the
+TSS. Requires that \code{\link{TSSEnrichment}} has already been run on the
+assay.
 }
 \details{
 Wrapper for the \code{\link{EnrichmentPlot}} function
