@@ -4,15 +4,16 @@
 \alias{DepthCor}
 \title{Sequencing depth correlation}
 \usage{
-DepthCor(object, reduction = "lsi", assay = "peaks", n = 10, ...)
+DepthCor(object, assay = NULL, reduction = "lsi", n = 10, ...)
 }
 \arguments{
 \item{object}{A \code{\link[Seurat]{Seurat}} object}
 
+\item{assay}{Name of assay to use for sequencing depth. If NULL, use the
+default assay.}
+
 \item{reduction}{Name of a dimension reduction stored in the
 input object}
-
-\item{assay}{Name of assay to use for sequencing depth}
 
 \item{n}{Number of components to use. If \code{NULL}, use all components.}
 
