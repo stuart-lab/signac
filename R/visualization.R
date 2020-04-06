@@ -12,18 +12,20 @@ globalVariables(names = c("Component", "counts"), package = "Signac")
 #' @param object A \code{\link[Seurat]{Seurat}} object
 #' @param reduction Name of a dimension reduction stored in the
 #' input object
-#' @param assay Name of assay to use for sequencing depth
+#' @param assay Name of assay to use for sequencing depth. If NULL, use the
+#' default assay.
 #' @param n Number of components to use. If \code{NULL}, use all components.
 #' @param ... Additional arguments passed to \code{\link[stats]{cor}}
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
-#' @importFrom Seurat Embeddings
+#' @importFrom Seurat Embeddings DefaultAssay
 #' @importFrom ggplot2 ggplot geom_point scale_x_continuous
 #' ylab ylim theme_light ggtitle aes
 #' @importFrom stats cor
 #' @examples
 #' DepthCor(object = atac_small)
-DepthCor <- function(object, reduction = "lsi", assay = "peaks", n = 10, ...) {
+DepthCor <- function(object, assay = NULL, reduction = 'lsi', n = 10, ...) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   dr <- object[[reduction]]
   embed <- Embeddings(object = dr)
   counts <- object[[paste0("nCount_", assay)]]
