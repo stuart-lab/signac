@@ -48,7 +48,8 @@ Imports:
     gggenes,
     grid,
     stats,
-    utils
+    utils,
+    Biobase
 Collate: 
     'data.R'
     'generics.R'
