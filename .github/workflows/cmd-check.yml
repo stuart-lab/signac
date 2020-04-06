@@ -1,4 +1,12 @@
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
 
 name: R-CMD-check
 
@@ -58,9 +66,9 @@ jobs:
       - name: Install dependencies
         run: |
           install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
-          install.packages("BiocManager")
+          install.packages(c("BiocManager", "glue"))
           BiocManager::install(version = '${{ matrix.config.bioc }}')
-          BiocManager::install(c("GenomeInfoDbData", "GenomicAlignments", "XML"))
+          BiocManager::install(c("GenomeInfoDbData", "GenomicAlignments"))
           remotes::install_deps(dependencies = TRUE)
           remotes::install_cran("rcmdcheck")
         shell: Rscript {0}
