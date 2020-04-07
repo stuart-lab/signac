@@ -121,7 +121,7 @@ CellsPerGroup <- function(
 #' closest genomic range is reported.
 #' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #'
-#' @importFrom GenomicRanges distanceToNearest
+#' @importMethodsFrom GenomicRanges distanceToNearest
 #' @importFrom S4Vectors subjectHits mcols
 #' @importFrom GenomicFeatures genes
 #' @importFrom GenomeInfoDb seqlevelsStyle "seqlevelsStyle<-"
@@ -186,7 +186,7 @@ ClosestFeature <- function(
 #' to be recorded.
 #' @param verbose Display messages
 #'
-#' @importFrom GenomicRanges distanceToNearest
+#' @importMethodsFrom GenomicRanges distanceToNearest
 #' @importFrom S4Vectors subjectHits queryHits mcols
 #' @importFrom Seurat DefaultAssay
 #' @export
@@ -281,6 +281,8 @@ SetFragments <- function(
 #' @param sep Vector of separators to use for genomic string. First element is
 #' used to separate chromosome and coordinates, second separator is used to
 #' separate start and end coordinates.
+#' @param ... Additional arguments passed to
+#' \code{\link[GenomicRanges]{makeGRangesFromDataFrame}}
 #' @return Returns a GRanges object
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @importFrom tidyr separate
@@ -288,7 +290,7 @@ SetFragments <- function(
 #' regions <- c('chr1-1-10', 'chr2-12-3121')
 #' StringToGRanges(regions = regions)
 #' @export
-StringToGRanges <- function(regions, sep = c("-", "-")) {
+StringToGRanges <- function(regions, sep = c("-", "-"), ...) {
   ranges.df <- data.frame(ranges = regions)
   ranges.df <- separate(
     data = ranges.df,
@@ -296,7 +298,7 @@ StringToGRanges <- function(regions, sep = c("-", "-")) {
     sep = paste0(sep[[1]], "|", sep[[2]]),
     into = c('chr', 'start', 'end')
   )
-  granges <- makeGRangesFromDataFrame(df = ranges.df)
+  granges <- makeGRangesFromDataFrame(df = ranges.df, ...)
   return(granges)
 }
 
@@ -308,7 +310,7 @@ StringToGRanges <- function(regions, sep = c("-", "-")) {
 #' @param sep Vector of separators to use for genomic string. First element is
 #' used to separate chromosome and coordinates, second separator is used to
 #' separate start and end coordinates.
-#' @importFrom GenomicRanges seqnames start end
+#' @importMethodsFrom GenomicRanges start end seqnames
 #' @examples
 #' GRangesToString(grange = blacklist_hg19)
 #' @return Returns a character vector
@@ -367,7 +369,9 @@ ChunkGRanges <- function(granges, nchunk) {
 #' If iterating over many regions, providing an open TabixFile is much faster
 #' as it avoids opening and closing the connection each time.
 #' @param verbose Display messages
-#' @importFrom BiocGenerics width start end
+#' @importFrom Matrix sparseMatrix
+#' @importFrom Rsamtools TabixFile
+#' @importMethodsFrom GenomicRanges width start end
 #' @return Returns a sparse matrix
 #' @export
 #' @examples
@@ -451,7 +455,9 @@ CutMatrix <- function(
 #' rather than the 5' or 3' end for upstream and downstream
 #' respectively.
 #'
-#' @importFrom GenomicRanges strand start end trim
+#' @importFrom GenomicRanges trim
+#' @importFrom BiocGenerics start end strand width
+#' @importMethodsFrom GenomicRanges strand start end width
 #' @importFrom IRanges ranges IRanges "ranges<-"
 #' @export
 #' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
