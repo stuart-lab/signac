@@ -2,6 +2,7 @@
 
 * New `DepthCor` function to compute the correlation between sequencing depth and
 reduced dimension components. 
+* Performance improvements for `RunTFIDF`. 
 
 # Signac 0.2.4
 
