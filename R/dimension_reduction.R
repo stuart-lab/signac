@@ -56,6 +56,7 @@ Jaccard <- function(x, y) {
 #' @importFrom irlba irlba
 #' @importFrom stats sd
 #' @importFrom Seurat CreateDimReducObject
+#' @importMethodsFrom Matrix t
 #'
 #' @rdname RunSVD
 #' @export
@@ -78,7 +79,7 @@ RunSVD.default <- function(
   if (verbose) {
     message("Running SVD")
   }
-  components <- irlba(A = t(object), nv = n, work = irlba.work)
+  components <- irlba(A = t(x = object), nv = n, work = irlba.work)
   feature.loadings <- components$v
   sdev <- components$d / sqrt(x = max(1, nrow(x = object) - 1))
   cell.embeddings <- components$u
