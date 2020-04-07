@@ -790,7 +790,7 @@ RegionStats.Seurat <- function(
 #' @param scale.factor Which scale factor to use. Default is 10000.
 #' @param verbose Print progress
 #' @rdname RunTFIDF
-#' @importFrom Matrix colSums rowSums t Diagonal
+#' @importFrom Matrix colSums rowSums Diagonal tcrossprod
 #' @importFrom methods is "slot<-" slot
 #' @export
 #' @examples
@@ -817,7 +817,7 @@ RunTFIDF.default <- function(
   if (method == 4) {
     tf <- object
   } else {
-    tf <- t(x = t(x = object) / npeaks)
+    tf <- tcrossprod(x = object, y = Diagonal(x = 1 / npeaks))
   }
   idf <- ncol(x = object) / rowSums(x = object)
   if (method == 2) {
