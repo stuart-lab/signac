@@ -456,7 +456,6 @@ CutMatrix <- function(
 #' respectively.
 #'
 #' @importFrom GenomicRanges trim
-#' @importFrom BiocGenerics start end strand width
 #' @importMethodsFrom GenomicRanges strand start end width
 #' @importFrom IRanges ranges IRanges "ranges<-"
 #' @export
@@ -1094,7 +1093,7 @@ MultiRegionCutMatrix <- function(
 # @param assay Name of the assay to use
 # @param cells Which cells to include. If NULL, use all cells
 # @param verbose Display messages
-#' @importFrom BiocGenerics strand
+#' @importMethodsFrom GenomicRanges strand
 CreateRegionPileupMatrix <- function(
   object,
   regions,

@@ -212,6 +212,7 @@ DownsampleFeatures <- function(
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
 #' @importFrom Matrix sparseMatrix
+#' @importMethodsFrom GenomicRanges intersect
 #' @importFrom Rsamtools TabixFile seqnamesTabix
 #' @export
 #' @return Returns a sparse matrix
@@ -677,9 +678,7 @@ NucleosomeSignal <- function(
 #' used to separate the chromosome from the genomic coordinates, and the second
 #' element used to separate the start and end coordinates.
 #'
-#' @importFrom Biostrings letterFrequency dinucleotideFrequency
-#' @importFrom IRanges width
-#' @importFrom BSgenome getSeq
+#' @importMethodsFrom GenomicRanges width
 #' @rdname RegionStats
 #' @export
 #' @examples
@@ -697,14 +696,22 @@ RegionStats.default <- function(
   verbose = TRUE,
   ...
 ) {
+  if (!requireNamespace('BSgenome', quietly = TRUE)) {
+    stop("Please install BSgenome: BiocManager::install('BSgenome')")
+  }
+  if (!requireNamespace('Biostrings', quietly = TRUE)) {
+    stop("Please install Biostrings: BiocManager::install('Biostrings')")
+  }
   if (inherits(x = object, what = 'character')) {
     object <- StringToGRanges(regions = object, sep = sep)
   }
   sequence.length <- width(x = object)
-  sequences <- getSeq(x = genome, names = object)
-  gc <- letterFrequency(x = sequences, letters = 'CG') / sequence.length * 100
+  sequences <- BSgenome::getSeq(x = genome, names = object)
+  gc <- Biostrings::letterFrequency(
+    x = sequences, letters = 'CG'
+  ) / sequence.length * 100
   colnames(gc) <- 'GC.percent'
-  dinuc <- dinucleotideFrequency(sequences)
+  dinuc <- Biostrings::dinucleotideFrequency(sequences)
   sequence.stats <- cbind(dinuc, gc, sequence.length)
   rownames(sequence.stats) <- GRangesToString(grange = object, sep = sep)
   return(sequence.stats)

@@ -56,7 +56,7 @@ globalVariables(
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges subsetByOverlaps
 #' @importFrom GenomeInfoDb seqnames
-#' @importFrom BiocGenerics start end
+#' @importMethodsFrom GenomicRanges start end
 #' @importFrom Seurat WhichCells Idents
 #' @importFrom Matrix colSums
 #' @importFrom methods is
@@ -535,7 +535,7 @@ FragmentHistogram <- function(
 # \code{min.cells} cells.
 # @param verbose Display messages
 #
-# @importFrom BiocGenerics strand
+# @importMethodsFrom GenomicRanges strand
 # @importFrom Seurat Idents
 # @importFrom Matrix colSums colMeans
 # @importFrom ggplot2 ggplot aes geom_line facet_wrap ylim xlab ylab
