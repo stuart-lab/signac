@@ -25,7 +25,6 @@ build_script:
   - travis-tool.sh bioc_install AnnotationFilter
   - travis-tool.sh bioc_install BiocGenerics
   - travis-tool.sh bioc_install GenomeInfoDb
-  - travis-tool.sh bioc_install GenomicFeatures
   - travis-tool.sh bioc_install GenomicRanges
   - travis-tool.sh bioc_install IRanges
   - travis-tool.sh bioc_install Rsamtools
