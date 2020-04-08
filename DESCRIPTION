@@ -15,7 +15,6 @@ Description: A framework for the analysis and exploration of single-cell chromat
 Depends:
     R (>= 3.4.0),
     methods
-biocViews:
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
