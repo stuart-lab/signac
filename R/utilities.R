@@ -114,17 +114,11 @@ CellsPerGroup <- function(
 #' Find the closest feature to a given set of genomic regions
 #'
 #' @param regions A set of genomic regions to query
-#' @param annotation Annotation information. Can be a GRanges object or an EnsDb
-#' object. If an EnsDb object is provided, protein-coding genes will be
-#' extracted from the object and only the closest protein coding genes are
-#' reported. If a GRanges object is provided, no filtering is performed and the
-#' closest genomic range is reported.
+#' @param annotation A GRanges object containing annotation information.
 #' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #'
 #' @importMethodsFrom GenomicRanges distanceToNearest
 #' @importFrom S4Vectors subjectHits mcols
-#' @importFrom GenomicFeatures genes
-#' @importFrom GenomeInfoDb seqlevelsStyle "seqlevelsStyle<-"
 #' @importFrom methods is
 #' @return Returns a dataframe with the name of each region, the closest feature
 #' in the annotation, and the distance to the feature.
@@ -146,14 +140,6 @@ ClosestFeature <- function(
 ) {
   if (!is(object = regions, class2 = 'GRanges')) {
     regions <- StringToGRanges(regions = regions, ...)
-  }
-  if (is(object = annotation, class2 = 'EnsDb')) {
-    annotation <- genes(
-      x = annotation, filter = ~ gene_biotype == "protein_coding"
-    )
-    if (seqlevelsStyle(x = regions) != seqlevelsStyle(x = annotation)) {
-      seqlevelsStyle(x = annotation) <- seqlevelsStyle(x = regions)
-    }
   }
   nearest_feature <- distanceToNearest(x = regions, subject = annotation)
   feature_hits <- annotation[subjectHits(x = nearest_feature)]
