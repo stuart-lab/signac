@@ -3,7 +3,7 @@
 * New `DepthCor` function to compute the correlation between sequencing depth and
 reduced dimension components. 
 * Performance improvements for `RunTFIDF`. 
-* Removed option to use EnsDb object in `ClosestFeatures`. Use GRanges instead. 
+* Removed option to use EnsDb object in `ClosestFeatures` and `CoveragePlot`. Use GRanges instead. 
 * Removed dependencies: Biostrings, BSgenome, GenomicFeatures
 
 # Signac 0.2.4
