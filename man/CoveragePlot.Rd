@@ -29,7 +29,6 @@ CoveragePlot(
   object,
   region,
   annotation = NULL,
-  ucsc = TRUE,
   peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
@@ -93,8 +92,6 @@ identities.}
 \item{sep}{Separators to use for strings encoding genomic coordinates. First
 element is used to separate the chromosome from the coordinates, second
 element is used to separate the start from end coordinate.}
-
-\item{ucsc}{Set annotation seqlevels style to UCSC}
 
 \item{...}{Additional arguments passed to \code{\link[patchwork]{wrap_plots}}}
 }
