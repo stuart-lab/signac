@@ -920,6 +920,7 @@ RunTFIDF.Seurat <- function(
 #' @param verbose Display messages
 #' @importFrom Matrix rowMeans
 #' @importFrom methods slot
+#' @importFrom stats ecdf
 #'
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @export
@@ -979,6 +980,11 @@ TSSEnrichment <- function(
   # Take signal value at center of distribution after normalization as
   # TSS enrichment score, average the 1000 bases at the center
   object$TSS.enrichment <- rowMeans(x = norm.matrix[, 501:1500])
+  e.dist <- ecdf(x = object$TSS.enrichment)
+  object$TSS.percentile <- round(
+    x = e.dist(object$TSS.enrichment),
+    digits = 2
+  )
 
   # store the normalized TSS matrix. For now put it in misc
   object <- AddToMisc(
