@@ -5,6 +5,7 @@ reduced dimension components.
 * Performance improvements for `RunTFIDF`. 
 * Removed option to use EnsDb object in `ClosestFeatures` and `CoveragePlot`. Use GRanges instead. 
 * Removed dependencies: Biostrings, BSgenome, GenomicFeatures
+* Removed from suggests: BSgenome.Hsapiens.UCSC.hg19, EnsDb.Hsapiens.v75, JASPAR2018
 
 # Signac 0.2.4
 
