@@ -9,7 +9,6 @@ SingleCoveragePlot(
   object,
   region,
   annotation = NULL,
-  ucsc = TRUE,
   peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
@@ -57,8 +56,6 @@ coordinates to plot.}
 
 \item{annotation}{An Ensembl based annotation package}
 
-\item{ucsc}{Set annotation seqlevels style to UCSC}
-
 \item{peaks}{A GRanges object containing peak coordinates}
 
 \item{assay}{Name of the  assay to plot}
@@ -96,6 +93,8 @@ identities.}
 \item{sep}{Separators to use for strings encoding genomic coordinates. First
 element is used to separate the chromosome from the coordinates, second
 element is used to separate the start from end coordinate.}
+
+\item{ucsc}{Set annotation seqlevels style to UCSC}
 
 \item{...}{Additional arguments passed to \code{\link[patchwork]{wrap_plots}}}
 }
