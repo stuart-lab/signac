@@ -207,19 +207,13 @@ SingleCoveragePlot <- function(
     peak.plot <- NULL
   }
   if (!is.null(x = annotation)) {
-    if (inherits(x = annotation, what = 'EnsDb')) {
-      annotation.use <- genes(
-        x = annotation, filter = ~ gene_biotype == "protein_coding"
-      )
-    } else if (!inherits(x = annotation, what = 'GRanges')) {
+    if (!inherits(x = annotation, what = 'GRanges')) {
       stop("Annotation must be a GRanges object or EnsDb object.")
-    } else {
-      annotation.use <- annotation
     }
     if (ucsc) {
-      seqlevelsStyle(x = annotation.use) <- 'UCSC'
+      seqlevelsStyle(x = annotation) <- 'UCSC'
     }
-    annotation.subset <- subsetByOverlaps(x = annotation.use, ranges = gr)
+    annotation.subset <- subsetByOverlaps(x = annotation, ranges = gr)
     annotation.df <- as.data.frame(x = annotation.subset)
     # adjust coordinates so within the plot
     annotation.df$start[annotation.df$start < start.pos] <- start.pos
