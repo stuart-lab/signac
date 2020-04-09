@@ -9,7 +9,6 @@ SingleCoveragePlot(
   object,
   region,
   annotation = NULL,
-  ucsc = TRUE,
   peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
@@ -30,7 +29,6 @@ CoveragePlot(
   object,
   region,
   annotation = NULL,
-  ucsc = TRUE,
   peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
@@ -56,8 +54,6 @@ a string, or a vector of strings describing the genomic
 coordinates to plot.}
 
 \item{annotation}{An Ensembl based annotation package}
-
-\item{ucsc}{Set annotation seqlevels style to UCSC}
 
 \item{peaks}{A GRanges object containing peak coordinates}
 

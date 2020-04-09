@@ -15,7 +15,6 @@ Description: A framework for the analysis and exploration of single-cell chromat
 Depends:
     R (>= 3.4.0),
     methods
-biocViews:
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -23,9 +22,7 @@ RoxygenNote: 7.1.0
 URL: https://github.com/timoast/signac, https://satijalab.org/signac
 BugReports: https://github.com/timoast/signac/issues
 Imports: 
-    BiocGenerics,
     GenomeInfoDb,
-    GenomicFeatures,
     GenomicRanges,
     IRanges,
     Matrix,
@@ -43,8 +40,6 @@ Imports:
     tidyr,
     zoo,
     patchwork,
-    Biostrings,
-    BSgenome,
     gggenes,
     grid,
     stats,
@@ -65,6 +60,5 @@ Suggests:
     SummarizedExperiment,
     TFBSTools,
     motifmatchr,
-    BSgenome.Hsapiens.UCSC.hg19,
-    EnsDb.Hsapiens.v75,
-    JASPAR2018
+    Biostrings,
+    BSgenome
