@@ -69,7 +69,7 @@ jobs:
           install.packages("glue")
           BiocManager::install(version = '${{ matrix.config.bioc }}')
           BiocManager::install(c("GenomeInfoDbData", "GenomicAlignments"), Ncpu = 2L)
-          options(download.file.extra = paste0("-L ", getOption("download.file.extra", default = ""))
+          options(download.file.extra = paste0("-L ", getOption("download.file.extra", default = "")))
           remotes::install_deps(dependencies = TRUE, c(getOption('repos'), BiocManager::repositories()), Ncpu = 2L)
           remotes::install_cran("rcmdcheck", Ncpu = 2L)
         shell: Rscript {0}
