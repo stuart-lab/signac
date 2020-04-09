@@ -43,7 +43,7 @@ jobs:
         run: |
           install.packages("remotes", Ncpu = 2L)
           setRepositories(ind=1:2)
-          saveRDS(remotes::dev_package_deps(dependencies = TRUE, repos = c(getOption('repos')), "depends.Rds", version = 2)
+          saveRDS(remotes::dev_package_deps(dependencies = TRUE, repos = getOption('repos')), "depends.Rds", version = 2)
         shell: Rscript {0}
 
       - name: Cache R packages
@@ -71,7 +71,7 @@ jobs:
           BiocManager::install(version = '${{ matrix.config.bioc }}')
           BiocManager::install(c("GenomeInfoDbData", "GenomicAlignments"), Ncpu = 2L)
           setRepositories(ind=1:2)
-          remotes::install_deps(dependencies = TRUE, Ncpu = 2L)
+          remotes::install_deps(dependencies = TRUE, repos = getOptions('repos'), Ncpu = 2L)
           remotes::install_cran("rcmdcheck", Ncpu = 2L)
         shell: Rscript {0}
 
