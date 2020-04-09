@@ -70,7 +70,6 @@ SingleCoveragePlot <- function(
   object,
   region,
   annotation = NULL,
-  ucsc = TRUE,
   peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
@@ -210,9 +209,6 @@ SingleCoveragePlot <- function(
     if (!inherits(x = annotation, what = 'GRanges')) {
       stop("Annotation must be a GRanges object or EnsDb object.")
     }
-    if (ucsc) {
-      seqlevelsStyle(x = annotation) <- 'UCSC'
-    }
     annotation.subset <- subsetByOverlaps(x = annotation, ranges = gr)
     annotation.df <- as.data.frame(x = annotation.subset)
     # adjust coordinates so within the plot
@@ -303,7 +299,6 @@ SingleCoveragePlot <- function(
 #' a string, or a vector of strings describing the genomic
 #' coordinates to plot.
 #' @param annotation An Ensembl based annotation package
-#' @param ucsc Set annotation seqlevels style to UCSC
 #' @param peaks A GRanges object containing peak coordinates
 #' @param assay Name of the  assay to plot
 #' @param fragment.path Path to an index fragment file. If NULL, will look for a
@@ -343,7 +338,6 @@ CoveragePlot <- function(
   object,
   region,
   annotation = NULL,
-  ucsc = TRUE,
   peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
@@ -366,7 +360,6 @@ CoveragePlot <- function(
       FUN = SingleCoveragePlot,
       object = object,
       annotation = annotation,
-      ucsc = ucsc,
       peaks = peaks,
       assay = assay,
       fragment.path = fragment.path,
@@ -387,7 +380,6 @@ CoveragePlot <- function(
       object = object,
       region = region,
       annotation = annotation,
-      ucsc = ucsc,
       peaks = peaks,
       assay = assay,
       fragment.path = fragment.path,
