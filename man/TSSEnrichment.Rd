@@ -36,7 +36,7 @@ as defined by ENCODE:
 The computed score will be added to the object metadata as "TSS.enrichment".
 }
 \examples{
-\donttest{
+\dontrun{
 library(EnsDb.Hsapiens.v75)
 gene.ranges <- genes(EnsDb.Hsapiens.v75)
 gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
