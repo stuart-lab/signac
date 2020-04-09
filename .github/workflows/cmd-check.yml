@@ -41,8 +41,9 @@ jobs:
 
       - name: Query dependencies
         run: |
-          install.packages(c("remotes", "BiocManager"), Ncpu = 2L)
-          saveRDS(remotes::dev_package_deps(dependencies = TRUE, repos = c(getOption('repos'), BiocManager::repositories())), "depends.Rds", version = 2)
+          install.packages("remotes", Ncpu = 2L)
+          setRepositories(ind=1:2)
+          saveRDS(remotes::dev_package_deps(dependencies = TRUE, repos = c(getOption('repos')), "depends.Rds", version = 2)
         shell: Rscript {0}
 
       - name: Cache R packages
@@ -66,11 +67,11 @@ jobs:
       - name: Install dependencies
         run: |
           install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
-          install.packages("glue")
+          install.packages(c("BiocManager", "glue"), Ncpu = 2L)
           BiocManager::install(version = '${{ matrix.config.bioc }}')
           BiocManager::install(c("GenomeInfoDbData", "GenomicAlignments"), Ncpu = 2L)
-          options(download.file.extra = paste0("-L ", getOption("download.file.extra", default = "")))
-          remotes::install_deps(dependencies = TRUE, c(getOption('repos'), BiocManager::repositories()), Ncpu = 2L)
+          setRepositories(ind=1:2)
+          remotes::install_deps(dependencies = TRUE, Ncpu = 2L)
           remotes::install_cran("rcmdcheck", Ncpu = 2L)
         shell: Rscript {0}
 
