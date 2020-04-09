@@ -24,6 +24,7 @@ jobs:
       matrix:
         config:
           - {os: macOS-latest, r: '3.6', bioc: '3.10'}
+          - {os: windows-latest, r: '3.6'}
             #- {os: macOS-latest, r: 'devel', bioc: 'devel'}
           - {os: ubuntu-16.04, r: '3.6', bioc: '3.10', rspm: "https://demo.rstudiopm.com/all/__linux__/xenial/latest"}
     
