@@ -48,7 +48,7 @@ Requires that motifmatchr is installed
 \url{https://www.bioconductor.org/packages/motifmatchr/}.
 }
 \examples{
-\donttest{
+\dontrun{
 library(JASPAR2018)
 library(TFBSTools)
 library(BSgenome.Hsapiens.UCSC.hg19)

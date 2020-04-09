@@ -3,6 +3,11 @@
 * New `DepthCor` function to compute the correlation between sequencing depth and
 reduced dimension components. 
 * Performance improvements for `RunTFIDF`. 
+* Removed option to use EnsDb object in `ClosestFeatures` and `CoveragePlot`. Use GRanges instead. 
+* Removed `ucsc` parameter from `CoveragePlot`. 
+* Removed dependencies: GenomicFeatures
+* Moved dependencies to suggests: Biostrings, BSgenome
+* Removed from suggests: BSgenome.Hsapiens.UCSC.hg19, EnsDb.Hsapiens.v75, JASPAR2018
 
 # Signac 0.2.4
 
