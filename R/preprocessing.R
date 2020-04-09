@@ -105,7 +105,7 @@ BinarizeCounts.Seurat <- function(
 #' @return Returns a sparse matrix
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(JASPAR2018)
 #' library(TFBSTools)
 #' library(BSgenome.Hsapiens.UCSC.hg19)
@@ -682,7 +682,7 @@ NucleosomeSignal <- function(
 #' @rdname RegionStats
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
 #' object = rownames(atac_small),
@@ -723,7 +723,7 @@ RegionStats.default <- function(
 #' @importFrom Seurat GetAssayData
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
 #' object = atac_small[['peaks']],
@@ -756,7 +756,7 @@ RegionStats.Assay <- function(
 #' @method RegionStats Seurat
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
 #'   object = atac_small,
@@ -925,7 +925,7 @@ RunTFIDF.Seurat <- function(
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(EnsDb.Hsapiens.v75)
 #' gene.ranges <- genes(EnsDb.Hsapiens.v75)
 #' gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
