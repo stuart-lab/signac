@@ -59,8 +59,5 @@ Suggests:
     SummarizedExperiment,
     TFBSTools,
     motifmatchr,
-    BSgenome.Hsapiens.UCSC.hg19,
-    EnsDb.Hsapiens.v75,
-    JASPAR2018,
     Biostrings,
     BSgenome
