@@ -1076,6 +1076,23 @@ setMethod(
       genome(x = object),
       "\n"
     )
+    cat(
+      "Annotation present:",
+      ifelse(
+        test = is.null(Annotation(object = object)), yes = FALSE, no = TRUE
+      ),
+      "\n"
+    )
+    cat(
+      "Motifs present:",
+      ifelse(test = is.null(Motifs(object = object)), yes = FALSE, no = TRUE),
+      "\n"
+    )
+    cat(
+      "Fragment files:",
+      length(slot(object = object, "fragments")),
+      "\n"
+    )
   }
 )
 
