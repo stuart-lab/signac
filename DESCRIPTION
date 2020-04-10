@@ -49,6 +49,7 @@ Collate:
     'data.R'
     'generics.R'
     'dimension_reduction.R'
+    'fragments.R'
     'motifs.R'
     'objects.R'
     'preprocessing.R'

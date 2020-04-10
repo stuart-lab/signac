@@ -1460,18 +1460,6 @@ MergeInternalRows <- function(
   return(list(mat.mod, rowranges))
 }
 
-# Check if fragment file exists and is indexed
-# @param f A fragment file path
-# @return Returns TRUE is present and indexed, otherwise FALSE
-ValidFragments <- function(f) {
-  index.file <- paste0(f, ".tbi")
-  if (all(file.exists(f, index.file))) {
-    return(TRUE)
-  } else {
-    return(FALSE)
-  }
-}
-
 # Convert PFMMatrix to
 # @param x A PFMatrix
 PFMatrixToList <- function(x) {

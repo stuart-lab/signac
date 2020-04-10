@@ -373,7 +373,7 @@ FilterFragments <- function(
     if (verbose) {
       message("Compressing output")
     }
-    outf <- bgzip(file = output.path)
+    outf <- bgzip(file = output.path, dest = paste0(output.path, ".gz"))
     if (file.exists(outf)) {
       file.remove(output.path)
     }

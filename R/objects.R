@@ -9,6 +9,34 @@ NULL
 
 setClassUnion(name = "AnyMatrix", c("matrix", "dgCMatrix"))
 
+#' The Fragment class
+#'
+#' @slot path Path to the fragment file on disk.
+#' See \url{https://support.10xgenomics.com/single-cell-atac/software/
+#' pipelines/latest/output/fragments}
+#' @slot hash A vector of two md5sums: first element is the md5sum of the
+#' fragment file, the second element is the md5sum of the index.
+#' @slot cells A character vector containing the cell barcodes present in the
+#' fragment file
+#' @slot prefix A string to append to the beginning of the cell barcodes
+#' in the fragment file for them to match the barcodes in the Seurat object.
+#' @slot suffix A string to append to the end of the cell barcodes
+#' in the fragment file for them to match the barcodes in the Seurat object.
+#'
+#' @name Fragment-class
+#' @rdname Fragment-class
+#' @exportClass Fragment
+Fragment <- setClass(
+  Class = "Fragment",
+  slots = list(
+    path = "character",
+    hash = "character",
+    cells = "character",
+    prefix = "character",
+    suffix = "character"
+  )
+)
+
 #' The Motif class
 #'
 #' The Motif class stores DNA motif information
@@ -26,7 +54,6 @@ setClassUnion(name = "AnyMatrix", c("matrix", "dgCMatrix"))
 #' @name Motif-class
 #' @rdname Motif-class
 #' @exportClass Motif
-#'
 Motif <- setClass(
   Class = "Motif",
   slots = list(
@@ -45,12 +72,10 @@ Motif <- setClass(
 #' @slot ranges A \code{\link[GenomicRanges]{GRanges}} object describing the
 #' genomic location of features in the object
 #' @slot motifs A \code{\link{Motif}} object
-#' @slot fragments A character vector containing the path/s to tabix-indexed
-#' fragment file/s for the cells in the assay.
-#' See \url{https://support.10xgenomics.com/single-cell-atac/software/
-#' pipelines/latest/output/fragments}
+#' @slot fragments A vector of \code{\link{Fragment}} objects.
 #' @slot genome Name of the genome used
-#' @slot annotation An object containing genomic annotations
+#' @slot annotation A  \code{\link[GenomicRanges]{GRanges}} object containing
+#' genomic annotations
 #' @slot bias A matrix containing Tn5 integration bias information
 #' (frequency of Tn5 integration at different kmers)
 #' @slot positionEnrichment A named list of matrices containing positional
@@ -66,7 +91,7 @@ ChromatinAssay <- setClass(
   slots = list(
     "ranges" = "GRanges",
     "motifs" = "ANY",
-    "fragments" = "ANY",
+    "fragments" = "list",
     "genome" = "ANY",
     "annotation" = "ANY",
     "bias" = "ANY",
@@ -534,6 +559,15 @@ GetAssayData.ChromatinAssay <- function(
   return(slot(object = object, name = slot))
 }
 
+#' Get Fragment object data
+#'
+#' @param object A \code{\link{Fragment}} object
+#' @param slot Information to pull from object (path, hash, cells, prefix, suffix)
+#' @export
+GetFragmentData <- function(object, slot = "path") {
+  return(slot(object = object, name = slot))
+}
+
 #' @param slot Information to pull from object (data, pwm, meta.data)
 #' @rdname GetMotifData
 #' @method GetMotifData Motif
@@ -606,6 +640,8 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
     # TODO check that genome matches the genome for granges and annotation
     slot(object = object, name = slot) <- new.data
   } else if (slot == "fragments") {
+    # TODO create fragments object here
+    # check the cell names are present in the fragments file
     index.file <- paste0(new.data, ".tbi")
     if (all(file.exists(new.data, index.file))) {
       file <- normalizePath(path = new.data)
@@ -862,6 +898,7 @@ merge.ChromatinAssay <- function(
     annot <- SetIfNull(x = annot.1, y = annot.2)
   }
   # check fragments
+  # TODO update with Fragments objects
   frag.1 <- GetAssayData(object = x, slot = "fragments")
   frag.2 <- GetAssayData(object = y, slot = "fragments")
   merged.frag <- c(frag.1, frag.2)
@@ -1001,6 +1038,18 @@ setMethod(
       "motifs in",
       nrow(x = slot(object = object, name = "data")),
       "regions\n"
+    )
+  }
+)
+
+setMethod(
+  f = "show",
+  signature = "Fragment",
+  definition = function(object) {
+    cat(
+      "A Fragment object for",
+      length(x = slot(object = object, name = "cells")),
+      "cells\n"
     )
   }
 )
