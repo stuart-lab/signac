@@ -102,7 +102,8 @@ ValidateCells <- function(
   max.iter = 5,
   verbose = TRUE
 ) {
-  cells <- SetIfNull(x = cells, y = Cells(x = object))
+  cell_barcodes <- GetFragmentData(object = object, slot = "cells")
+  cells <- SetIfNull(x = cells, y = cell_barcodes)
   filepath <- GetFragmentData(object = object, slot = "path")
   x <- 0
   min.cells <- length(x = cells) - round(x = tolerance * length(x = cells))
@@ -127,7 +128,7 @@ ValidateCells <- function(
 
 #' Validate hashes for Fragment object
 #'
-#' @param object A Fragment object
+#' @param object A \code{\link{Fragment}} object
 #' @param verbose Display messages
 #' @export
 #' @importFrom tools md5sum
@@ -249,6 +250,8 @@ FilterFragments <- function(
   verbose = TRUE,
   ...
 ) {
+  # TODO update this to reset the Fragment object with the path to the new
+  # filtered fragment file
   if (verbose) {
     message("Retaining ", length(x = cells), " cells")
     message("Reading fragments")
