@@ -10,6 +10,8 @@ ValidateFragments(object, ...)
 \item{object}{A \code{\link{Fragment}} object}
 
 \item{...}{Additional parameters passed to \code{\link{ValidateCells}}}
+
+\item{verbose}{Display messages}
 }
 \description{
 Verify that the cells listed in the object exist in the fragment file

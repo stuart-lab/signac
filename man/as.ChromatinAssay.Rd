@@ -30,9 +30,9 @@ as.ChromatinAssay(x, ...)
 
 \item{annotation}{Genomic annotation}
 
-\item{motifs}{A Motif object}
+\item{motifs}{A \code{\link{Motif}} object}
 
-\item{fragments}{Path to fragments file}
+\item{fragments}{A list of \code{\link{Fragment}} objects}
 
 \item{bias}{Tn5 integration bias matrix}
 

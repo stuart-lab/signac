@@ -9,6 +9,7 @@ ValidateCells(
   cells = NULL,
   chunksize = 5e+05,
   tolerance = 0.05,
+  max.iter = 8,
   verbose = TRUE
 )
 }
@@ -25,6 +26,12 @@ TRUE. For example, \code{tolerance = 0.01} will return TRUE when 99% of cells
 have observed fragments in the file. This can be useful if there are cells
 present that have much fewer total counts, and would require extensive
 searching before a fragment from those cells are found.}
+
+\item{max.iter}{Maximum number of chunks to read in without finding the
+required number of cells before returning FALSE. Setting this value avoids
+having to search the whole file if it becomes clear that the expected cells
+are not present. Setting this value to NULL will enable an exhaustive search
+of the entire file.}
 
 \item{verbose}{Display messages}
 }

@@ -16,7 +16,9 @@ CreateChromatinAssayObject(
   genome = NULL,
   annotation = NULL,
   bias = NULL,
-  sep = c("-", "-")
+  sep = c("-", "-"),
+  verbose = TRUE,
+  ...
 )
 }
 \arguments{
@@ -59,6 +61,10 @@ annotations for the genome used}
 First element is used to separate the chromosome from the coordinates,
 second element is used to separate the start from end coordinate. Only
 used if \code{ranges} is NULL.}
+
+\item{verbose}{Display messages}
+
+\item{...}{Additional arguments passed to \code{\link{CreateFragmentObject}}}
 }
 \description{
 Create a \code{\link{ChromatinAssay}} object from a count matrix or

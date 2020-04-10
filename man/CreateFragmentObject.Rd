@@ -6,7 +6,7 @@
 \usage{
 CreateFragmentObject(
   path,
-  cells,
+  cells = NULL,
   prefix = NULL,
   suffix = NULL,
   verbose = TRUE,
@@ -21,7 +21,7 @@ index in the same directory.}
 fragment file. This does not need to be all cells in the fragment file,
 but there should be no cells in the vector that are not present in the
 fragment file. A search of the file will be performed until at least one
-fragment from each cell is found.}
+fragment from each cell is found. If NULL, don't check for expected cells.}
 
 \item{prefix}{A prefix to attach to cell barcodes in the file. This will be
 automatically added to cell barcodes that are returned by functions that

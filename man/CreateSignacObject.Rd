@@ -19,7 +19,8 @@ CreateSignacObject(
   annotation = NULL,
   genome = NULL,
   motifs = NULL,
-  sep = c("-", "-")
+  sep = c("-", "-"),
+  ...
 )
 }
 \arguments{
@@ -74,6 +75,9 @@ genomic annotations for the genome used}
 
 \item{sep}{Charaters used to separate the chromosome, start, and end
 coordinates in the row names of the data matrix}
+
+\item{...}{Additional arguments passed to
+\code{\link{CreateChromatinAssayObject}}}
 }
 \description{
 This is a wrapper for \code{\link[Seurat]{CreateSeuratObject}} to create

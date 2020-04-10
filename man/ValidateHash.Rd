@@ -4,7 +4,7 @@
 \alias{ValidateHash}
 \title{Validate hashes for Fragment object}
 \usage{
-ValidateHash(object)
+ValidateHash(object, verbose = TRUE)
 }
 \arguments{
 \item{object}{A Fragment object}

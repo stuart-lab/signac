@@ -17,7 +17,7 @@ genomic location of features in the object}
 
 \item{\code{motifs}}{A \code{\link{Motif}} object}
 
-\item{\code{fragments}}{A vector of \code{\link{Fragment}} objects.}
+\item{\code{fragments}}{A list of \code{\link{Fragment}} objects.}
 
 \item{\code{genome}}{Name of the genome used}
 
