@@ -81,6 +81,11 @@ CreateFragmentObject <- function(
 #' have observed fragments in the file. This can be useful if there are cells
 #' present that have much fewer total counts, and would require extensive
 #' searching before a fragment from those cells are found.
+#' @param max.iter Maximum number of chunks to read in without finding the
+#' required number of cells before returning FALSE. Setting this value avoids
+#' having to search the whole file if it becomes clear that the expected cells
+#' are not present. Setting this value to NULL will enable an exhaustive search
+#' of the entire file.
 #' @param verbose Display messages
 #' @export
 #' @importFrom data.table fread
@@ -89,6 +94,7 @@ ValidateCells <- function(
   cells = NULL,
   chunksize = 500000,
   tolerance = 0.05,
+  max.iter = 8,
   verbose = TRUE
 ) {
   cells <- SetIfNull(x = cells, y = Cells(x = object))
@@ -106,6 +112,9 @@ ValidateCells <- function(
     cells <- setdiff(x = cells, y = unique(x = chunk$cell))
     if (length(x = cells) <= min.cells) {
       return(TRUE)
+    }
+    if (!is.null(x = max.iter) & max.iter >= x) {
+      return(FALSE)
     }
     x <- x + 1
   }
@@ -171,3 +180,96 @@ readchunk <- function(filepath, x, chunksize) {
 Cells.Fragment <- function(x) {
   return(slot(object = x, name = "cells"))
 }
+
+globalVariables(names = c("chr", "start"), package = "Signac")
+#' FilterFragments
+#'
+#' Remove cells from a fragments file that are not present in a given list of
+#' cells. Note that this reads the whole fragments file into memory, so may
+#' require a lot of memory depending on the size of the fragments file.
+#'
+#' @param fragment.path Path to a tabix-indexed fragments file
+#' @param cells A vector of cells to retain
+#' @param output.path Name and path for output tabix file. A tabix index file
+#' will also be created in the same location, with the .tbi file extension.
+#' @param assume.sorted Assume sorted input and don't sort the filtered file.
+#' Can save a lot of time, but indexing will fail if assumption is wrong.
+#' @param compress Compress filtered fragments using bgzip (default TRUE)
+#' @param index Index the filtered tabix file (default TRUE)
+#' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{\link[data.table]{fread}}
+#'
+#' @importFrom data.table fread fwrite
+#' @importFrom Rsamtools indexTabix bgzip
+#' @export
+#' @return None
+#' @examples
+#' \donttest{
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' output.path = file.path(tempdir(), "filtered.tsv")
+#'
+#' FilterFragments(
+#'   fragment.path = fpath,
+#'   cells = colnames(atac_small),
+#'   output.path = output.path
+#' )
+#' }
+FilterFragments <- function(
+  fragment.path,
+  cells,
+  output.path,
+  assume.sorted = FALSE,
+  compress = TRUE,
+  index = TRUE,
+  verbose = TRUE,
+  ...
+) {
+  if (verbose) {
+    message("Retaining ", length(x = cells), " cells")
+    message("Reading fragments")
+  }
+  reads <- fread(
+    file = fragment.path,
+    col.names = c("chr", "start", "end", "cell", "count"),
+    showProgress = verbose,
+    ...
+  )
+  reads <- reads[reads$cell %in% cells, ]
+  if (!assume.sorted) {
+    if (verbose) {
+      message("Sorting fragments")
+    }
+    reads <- reads[with(data = reads, expr = order(chr, start)), ]
+  }
+  if (verbose) {
+    message("Writing output")
+  }
+  fwrite(
+    x = reads,
+    file = output.path,
+    row.names = FALSE,
+    quote = FALSE,
+    col.names = FALSE,
+    sep = "\t"
+  )
+  rm(reads)
+  invisible(x = gc())
+  if (compress) {
+    if (verbose) {
+      message("Compressing output")
+    }
+    outf <- bgzip(file = output.path, dest = paste0(output.path, ".gz"))
+    if (file.exists(outf)) {
+      file.remove(output.path)
+    }
+    if (index) {
+      if (verbose) {
+        message("Building index")
+      }
+      index.file <- indexTabix(
+        file = paste0(outf), format = "bed", zeroBased = TRUE
+      )
+    }
+  }
+}
+
