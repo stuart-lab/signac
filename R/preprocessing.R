@@ -193,7 +193,7 @@ DownsampleFeatures <- function(
 #'
 #' Construct a feature x cell matrix from a genomic fragments file
 #'
-#' @param fragments Path to tabix-indexed fragments file
+#' @param fragments A list of \code{\link{Fragment}} objects.
 #' @param features A GRanges object containing a set of genomic intervals.
 #' These will form the rows of the matrix, with each entry recording the number
 #' of unique reads falling in the genomic region for each cell.
@@ -207,16 +207,10 @@ DownsampleFeatures <- function(
 #' separate start and end coordinates.
 #' @param verbose Display messages
 #'
-#' @importFrom GenomeInfoDb keepSeqlevels
-#' @importFrom future.apply future_lapply
-#' @importFrom future nbrOfWorkers
-#' @importFrom pbapply pblapply
-#' @importFrom Matrix sparseMatrix
-#' @importMethodsFrom GenomicRanges intersect
-#' @importFrom Rsamtools TabixFile seqnamesTabix
 #' @export
 #' @return Returns a sparse matrix
 #' @examples
+#' # TODO update example with Fragment object
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' FeatureMatrix(
 #'   fragments = fpath,
@@ -230,11 +224,63 @@ FeatureMatrix <- function(
   sep = c("-", "-"),
   verbose = TRUE
 ) {
-  tbx <- TabixFile(file = fragments)
+  # if cells is not NULL, iterate over all fragment objects
+  # and find which objects contain cells that are requested
+  if (!is.null(x = cells)) {
+    obj.use <- c()
+    for (i in seq_along(along.with = fragments)) {
+      if (any(cells %in% Cells(x = fragments[[i]]))) {
+        obj.use <- c(obj.use, i)
+      }
+    }
+  } else {
+    obj.use <- seq_along(along.with = fragments)
+  }
+  # create a matrix from each fragment file
+  mat.list <- sapply(
+    X = obj.use,
+    FUN = function(x) {
+      SingleFeatureMatrix(
+        fragment = fragments[[x]],
+        features = features,
+        cells = cells,
+        sep = sep,
+        verbose = verbose
+      )
+    })
+  # cbind all the matrices
+  featmat <- do.call(what = cbind, args = mat.list)
+  return(featmat)
+}
+
+# Run FeatureMatrix on a single Fragment object
+# @inheritParams FeatureMatrix
+#' @importFrom GenomeInfoDb keepSeqlevels
+#' @importFrom future.apply future_lapply
+#' @importFrom future nbrOfWorkers
+#' @importFrom pbapply pblapply
+#' @importFrom Matrix sparseMatrix
+#' @importMethodsFrom GenomicRanges intersect
+#' @importFrom Rsamtools TabixFile seqnamesTabix
+SingleFeatureMatrix <- function(
+  fragment,
+  features,
+  cells = NULL,
+  chunk = 50,
+  sep = c("-", "-"),
+  verbose = TRUE
+) {
+  fragment.path <- GetFragmentData(object = fragment, slot = "path")
+  if (!is.null(cells)) {
+    # only look for cells that are in the fragment file
+    cells <- intersect(x = cells, y = Cells(x = fragment))
+  }
+  tbx <- TabixFile(file = fragment.path)
   features <- keepSeqlevels(
     x = features,
     value = intersect(
-      x = seqnames(x = features), y = seqnamesTabix(file = tbx)
+      x = seqnames(x = features),
+      y = seqnamesTabix(file = tbx)
     ),
     pruning.mode = "coarse"
   )
@@ -278,6 +324,7 @@ FeatureMatrix <- function(
   featmat <- as(Class = "dgCMatrix", object = featmat)
   rownames(x = featmat) <- names(x = feature.lookup)
   colnames(x = featmat) <- names(x = cell.lookup)
+  # add zero columns for missing cells
   if (!is.null(x = cells)) {
     missing.cells <- setdiff(x = cells, y = colnames(x = featmat))
     if (!(length(x = missing.cells) == 0)) {
@@ -290,11 +337,23 @@ FeatureMatrix <- function(
       colnames(x = null.mat) <- missing.cells
       featmat <- cbind(featmat, null.mat)
     }
-    return(featmat[, cells])
-  } else {
-    return(featmat)
+    featmat <- featmat[, cells]
   }
+  # add zero rows for missing features
+  all.features <- GRangesToString(grange = features, sep = sep)
+  missing.features <- all.features[!(all.features %in% rownames(featmat))]
+  if (length(x = missing.features) > 0) {
+    null.mat <- sparseMatrix(
+      i = c(),
+      j = c(),
+      dims = c(length(x = missing.features), ncol(x = featmat))
+    )
+    rownames(x = null.mat) <- missing.features
+    featmat <- rbind(featmat, null.mat)
+  }
+  return(featmat)
 }
+
 
 #' @param assay Name of assay to use
 #' @param min.cutoff Cutoff for feature to be included in the VariableFeatures
