@@ -29,6 +29,7 @@ CreateFragmentObject <- function(
   cells = NULL,
   prefix = NULL,
   suffix = NULL,
+  validate.fragments = TRUE,
   verbose = TRUE,
   ...
 ) {
@@ -59,7 +60,7 @@ CreateFragmentObject <- function(
     suffix = SetIfNull(x = suffix, y = "")
   )
   # validate cells
-  if (!is.null(x = cells)) {
+  if (!is.null(x = cells) & validate.fragments) {
     if (ValidateCells(object = frags, verbose = verbose, ...)) {
       return(frags)
     } else {
@@ -96,15 +97,15 @@ CreateFragmentObject <- function(
 ValidateCells <- function(
   object,
   cells = NULL,
-  chunksize = 500000,
-  tolerance = 0.05,
-  max.iter = 8,
+  chunksize = 1e7,
+  tolerance = 0.2,
+  max.iter = 5,
   verbose = TRUE
 ) {
   cells <- SetIfNull(x = cells, y = Cells(x = object))
   filepath <- GetFragmentData(object = object, slot = "path")
   x <- 0
-  min.cells <- round(x = tolerance * length(x = cells))
+  min.cells <- length(x = cells) - round(x = tolerance * length(x = cells))
   while (TRUE) {
     if (verbose) {
       message("Reading ", chunksize, " fragments")
@@ -117,7 +118,7 @@ ValidateCells <- function(
     if (length(x = cells) <= min.cells) {
       return(TRUE)
     }
-    if (!is.null(x = max.iter) & max.iter >= x) {
+    if ((!is.null(x = max.iter)) & (x >= max.iter)) {
       return(FALSE)
     }
     x <- x + 1
