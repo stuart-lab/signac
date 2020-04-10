@@ -136,6 +136,8 @@ ChromatinAssay <- setClass(
 #' First element is used to separate the chromosome from the coordinates,
 #' second element is used to separate the start from end coordinate. Only
 #' used if \code{ranges} is NULL.
+#' @param validate.fragments Check that cells in the assay are present in the
+#' fragment file.
 #' @param verbose Display messages
 #' @param ... Additional arguments passed to \code{\link{CreateFragmentObject}}
 #'
@@ -156,6 +158,7 @@ CreateChromatinAssayObject <- function(
   annotation = NULL,
   bias = NULL,
   sep = c("-", "-"),
+  validate.fragments = TRUE,
   verbose = TRUE,
   ...
 ) {
@@ -203,24 +206,22 @@ CreateChromatinAssayObject <- function(
     min.cells = 0,
     min.features = 0
   )
-  frag.list <- list()
-  if (!is.null(x = fragments)) {
-    for (i in seq_along(along.with = fragments)) {
-      if (nchar(x = fragments[[i]]) > 0){
-        frag.list[[length(x = frag.list) + 1]] <- CreateFragmentObject(
-          path = fragments[[i]],
-          verbose = verbose,
-          ...
-        )
-      }
-    }
+  frags <- list()
+  if (!is.null(x = fragments) & (nchar(x = fragments) > 0)) {
+    frags[[1]] <- CreateFragmentObject(
+      path = fragments,
+      cells = colnames(x = seurat.assay),
+      validate.fragments = validate.fragments,
+      verbose = verbose,
+      ...
+    )
   }
   chrom.assay <- as.ChromatinAssay(
     x = seurat.assay,
     ranges = ranges,
     genome = genome,
     motifs = motifs,
-    fragments = frag.list,
+    fragments = frags,
     annotation = annotation,
     bias = bias,
     positionEnrichment = list()
@@ -365,13 +366,20 @@ setAs(
 #' @param meta.data Additional cell-level metadata to add to the Seurat object.
 #' Should be a data frame where the rows are cell names and the columns are
 #' additional metadata fields.
-#' @param fragments A character vector containing path/s to tabix-indexed
-#' fragment file/s for cells in the object
+#' @param fragments A path to a fragment file on disk. A \code{\link{Fragment}}
+#' object will be created from the file path and stored in the object. Only
+#' one path should be supplied, and it is assumed that all cells in the input
+#' matrix should be present in the fragment file. If you need to create multiple
+#' fragment files, you can add them after creating the Seurat object using
+#' the \code{\link{CreateFragmentObject}} and \code{\link{Fragments}} functions.
 #' @param annotation A \code{\link[GenomicRanges]{GRanges}} object containing
 #' genomic annotations for the genome used
 #' @param motifs A \code{\link{Motif}} object
 #' @param sep Charaters used to separate the chromosome, start, and end
 #' coordinates in the row names of the data matrix
+#' @param validate.fragments Check that cells in the assay are present in the
+#' fragment file.
+#' @param verbose Display messages
 #' @param ... Additional arguments passed to
 #' \code{\link{CreateChromatinAssayObject}}
 #'
@@ -393,6 +401,8 @@ CreateSignacObject <- function(
   genome = NULL,
   motifs = NULL,
   sep = c("-", "-"),
+  validate.fragments = TRUE,
+  verbose = TRUE,
   ...
 ) {
   ranges <- SetIfNull(
@@ -432,6 +442,8 @@ CreateSignacObject <- function(
     annotation = annotation,
     genome = genome,
     motifs = motifs,
+    validate.fragments = validate.fragments,
+    verbose = verbose,
     ...
   )
   Key(object = assay.data) <- paste0(tolower(x = assay), "_")
