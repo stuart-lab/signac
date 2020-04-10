@@ -31,7 +31,7 @@ Fragment <- setClass(
   slots = list(
     path = "character",
     hash = "character",
-    cells = "character",
+    cells = "ANY",
     prefix = "character",
     suffix = "character"
   )
@@ -72,7 +72,7 @@ Motif <- setClass(
 #' @slot ranges A \code{\link[GenomicRanges]{GRanges}} object describing the
 #' genomic location of features in the object
 #' @slot motifs A \code{\link{Motif}} object
-#' @slot fragments A vector of \code{\link{Fragment}} objects.
+#' @slot fragments A list of \code{\link{Fragment}} objects.
 #' @slot genome Name of the genome used
 #' @slot annotation A  \code{\link[GenomicRanges]{GRanges}} object containing
 #' genomic annotations
@@ -136,6 +136,8 @@ ChromatinAssay <- setClass(
 #' First element is used to separate the chromosome from the coordinates,
 #' second element is used to separate the start from end coordinate. Only
 #' used if \code{ranges} is NULL.
+#' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{\link{CreateFragmentObject}}
 #'
 #' @importFrom Seurat CreateAssayObject
 #' @importFrom Matrix rowSums
@@ -153,7 +155,9 @@ CreateChromatinAssayObject <- function(
   genome = NULL,
   annotation = NULL,
   bias = NULL,
-  sep = c("-", "-")
+  sep = c("-", "-"),
+  verbose = TRUE,
+  ...
 ) {
   if (missing(x = counts) && missing(x = data)) {
     stop("Must provide either 'counts' or 'data'")
@@ -171,6 +175,9 @@ CreateChromatinAssayObject <- function(
     }
   } else {
     ranges <- StringToGRanges(regions = rownames(x = data.use), sep = sep)
+  }
+  if (!is.null(x = annotation) & !inherits(x = annotation, what = "GRanges")) {
+    stop("Annotation must be a GRanges object.")
   }
   ncell.feature <- rowSums(data.use > 0)
   if (!is.null(x = max.cells)) {
@@ -196,14 +203,27 @@ CreateChromatinAssayObject <- function(
     min.cells = 0,
     min.features = 0
   )
+  frag.list <- list()
+  if (!is.null(x = fragments)) {
+    for (i in seq_along(along.with = fragments)) {
+      if (nchar(x = fragments[[i]]) > 0){
+        frag.list[[length(x = frag.list) + 1]] <- CreateFragmentObject(
+          path = fragments[[i]],
+          verbose = verbose,
+          ...
+        )
+      }
+    }
+  }
   chrom.assay <- as.ChromatinAssay(
     x = seurat.assay,
     ranges = ranges,
     genome = genome,
     motifs = motifs,
-    fragments = fragments,
+    fragments = frag.list,
     annotation = annotation,
-    bias = bias
+    bias = bias,
+    positionEnrichment = list()
   )
   return(chrom.assay)
 }
@@ -219,8 +239,8 @@ as.Assay.ChromatinAssay <- function(x) {
 #' @param ranges A GRanges object
 #' @param genome Name of genome used
 #' @param annotation Genomic annotation
-#' @param motifs A Motif object
-#' @param fragments Path to fragments file
+#' @param motifs A \code{\link{Motif}} object
+#' @param fragments A list of \code{\link{Fragment}} objects
 #' @param bias Tn5 integration bias matrix
 #' @param sep Charaters used to separate the chromosome, start, and end
 #' coordinates in the row names of the data matrix
@@ -352,6 +372,8 @@ setAs(
 #' @param motifs A \code{\link{Motif}} object
 #' @param sep Charaters used to separate the chromosome, start, and end
 #' coordinates in the row names of the data matrix
+#' @param ... Additional arguments passed to
+#' \code{\link{CreateChromatinAssayObject}}
 #'
 #' @importFrom Seurat Key<-
 #' @export
@@ -370,7 +392,8 @@ CreateSignacObject <- function(
   annotation = NULL,
   genome = NULL,
   motifs = NULL,
-  sep = c("-", "-")
+  sep = c("-", "-"),
+  ...
 ) {
   ranges <- SetIfNull(
     x = ranges,
@@ -408,7 +431,8 @@ CreateSignacObject <- function(
     fragments = fragments,
     annotation = annotation,
     genome = genome,
-    motifs = motifs
+    motifs = motifs,
+    ...
   )
   Key(object = assay.data) <- paste0(tolower(x = assay), "_")
   assay.list <- list(assay.data)
@@ -640,16 +664,17 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
     # TODO check that genome matches the genome for granges and annotation
     slot(object = object, name = slot) <- new.data
   } else if (slot == "fragments") {
-    # TODO create fragments object here
-    # check the cell names are present in the fragments file
-    index.file <- paste0(new.data, ".tbi")
-    if (all(file.exists(new.data, index.file))) {
-      file <- normalizePath(path = new.data)
-      slot(object = object, name = slot) <- new.data
+    # check that it's a list containing fragment class objects
+    for (i in seq_along(along.with = new.data)) {
+      if (!inherits(x = new.data[[i]], what = "Fragment")) {
+        stop("New data is not a Fragment object")
+      }
     }
-    else {
-      stop("Requested file does not exist or is not indexed")
+    frag.list <- GetAssayData(object = object, slot = "fragments")
+    if (length(x = frag.list) != 0) {
+      warning("Overwriting existing fragment objects")
     }
+    slot(object = object, name = "fragments") <- new.data
   } else if (slot == "annotation") {
     if (!is(object = new.data, class2 = "GRanges")) {
       stop("Must provide a GRanges object")
@@ -1079,18 +1104,22 @@ setMethod(
     cat(
       "Annotation present:",
       ifelse(
-        test = is.null(Annotation(object = object)), yes = FALSE, no = TRUE
+        test = is.null(x = Annotation(object = object)), yes = FALSE, no = TRUE
       ),
       "\n"
     )
     cat(
       "Motifs present:",
-      ifelse(test = is.null(Motifs(object = object)), yes = FALSE, no = TRUE),
+      ifelse(
+        test = is.null(x = Motifs(object = object)),
+        yes = FALSE,
+        no = TRUE
+      ),
       "\n"
     )
     cat(
       "Fragment files:",
-      length(slot(object = object, "fragments")),
+      length(x = slot(object = object, "fragments")),
       "\n"
     )
   }
@@ -1161,6 +1190,23 @@ Annotation.Seurat <- function(object, ...) {
   return(Annotation(object = object[[assay]]))
 }
 
+#' @rdname Fragments
+#' @method Fragments ChromatinAssay
+#' @export
+Fragments.ChromatinAssay <- function(object, ...) {
+  return(slot(object, name = "fragments"))
+}
+
+#' @param object A Seurat object or ChromatinAssay object
+#' @importFrom Seurat DefaultAssay
+#' @rdname Fragments
+#' @method Fragments Seurat
+#' @export
+Fragments.Seurat <- function(object, ...) {
+  assay <- DefaultAssay(object = object)
+  return(Fragments(object = object[[assay]]))
+}
+
 #' @rdname Motifs
 #' @method Motifs ChromatinAssay
 #' @export
@@ -1188,4 +1234,76 @@ dimnames.Motif <- function(x) {
 #' @export
 dim.Motif <- function(x) {
   return(dim(x = GetMotifData(object = x)))
+}
+
+#' @export
+#' @method Fragments<- ChromatinAssay
+"Fragments<-.ChromatinAssay" <- function(object, ..., value) {
+  if (inherits(x = value, what = "list")) {
+    for (i in seq_along(along.with = value)) {
+      object <- AddFragments(object = object, fragments = value[[i]])
+    }
+  } else {
+    object <- AddFragments(object = object, fragments = value)
+  }
+  return(object)
+}
+
+#' @export
+#' @importFrom Seurat DefaultAssay
+#' @method Fragments<- Seurat
+"Fragments<-.Seurat" <- function(object, ..., value) {
+  assay <- DefaultAssay(object = object)
+  Fragments(object = object[[assay]]) <- value
+  return(object)
+}
+
+#' Add a single Fragment object to a ChromatinAssay
+#' @param object A \code{\link{ChromatinAssay}} object
+#' @param fragments A \code{\link{Fragment}} object
+AddFragments <- function(object, fragments) {
+  # validate hash
+  if (!ValidateHash(object = fragments, verbose = FALSE)) {
+    stop("Invalid Fragment object")
+  }
+  # if cells is NULL, set to all cells in the assay
+  # ValidateCells is run in the Cells<- method
+  # only allowed if there is no fragment object currently set
+  if (nchar(x = Cells(x = fragments)) == 0) {
+    if (length(x = Fragments(object = object)) == 0) {
+      stop("Fragment objects already present in the assay.
+           To assign more fragment objects, you must provide a list
+           of cells that are contained in each fragment object.")
+    } else {
+      Cells(x = fragments) <- colnames(x = object)
+    }
+  } else {
+    # subset cells in the fragment file to those in the assay
+    keep.cells <- Cells(x = fragments) %in% colnames(x = object)
+    if (!all(keep.cells)) {
+      if (sum(keep.cells) == 0) {
+        stop(
+          "None of the cells in the fragment object are present in the assay"
+        )
+      } else {
+        # subset the fragment cells, don't need to validate cells again
+        # need to make sure to retain the original barcode, not adding
+        # the prefix and suffix as returned by Cells
+        cell.barcodes <- slot(object = fragments, name = "cells")
+        slot(object = fragments, name = "cells") <- cell.barcodes[keep.cells]
+      }
+    }
+    # check that cells not found in any existing fragment objects
+    current.frags <- GetAssayData(object = object, slot = "fragments")
+    for (i in seq_along(along.with = current.frags)) {
+      if (any(Cells(x = fragments) %in% Cells(x = current.frags[[i]]))) {
+        stop("Cells already present in a fragment object")
+      }
+    }
+  }
+  # append fragments to list
+  current.frags <- GetAssayData(object = object, slot = "fragments")
+  current.frags[[length(x = current.frags) + 1]] <- fragments
+  slot(object = object, name = "fragments") <- current.frags
+  return(object)
 }

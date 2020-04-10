@@ -16,7 +16,7 @@ NULL
 #' fragment file. This does not need to be all cells in the fragment file,
 #' but there should be no cells in the vector that are not present in the
 #' fragment file. A search of the file will be performed until at least one
-#' fragment from each cell is found.
+#' fragment from each cell is found. If NULL, don't check for expected cells.
 #' @param prefix A prefix to attach to cell barcodes in the file. This will be
 #' automatically added to cell barcodes that are returned by functions that
 #' use the \code{Fragment} class object. If NULL, don't append a prefix.
@@ -26,17 +26,17 @@ NULL
 #' @importFrom tools md5sum file_ext
 CreateFragmentObject <- function(
   path,
-  cells,
+  cells = NULL,
   prefix = NULL,
   suffix = NULL,
   verbose = TRUE,
   ...
 ) {
   # check that file exists and is indexed
-  index.file <- paste0(path, ".tbi")
   if (!file.exists(path)) {
     stop("Fragment file does not exist.")
   }
+  index.file <- paste0(path, ".tbi")
   if (!file.exists(index.file)) {
     stop("Fragment file is not indexed.")
   }
@@ -59,10 +59,14 @@ CreateFragmentObject <- function(
     suffix = SetIfNull(x = suffix, y = "")
   )
   # validate cells
-  if (ValidateCells(object = frags, verbose = verbose, ...)) {
-    return(frags)
+  if (!is.null(x = cells)) {
+    if (ValidateCells(object = frags, verbose = verbose, ...)) {
+      return(frags)
+    } else {
+      stop("Not all cells requested could be found in the fragment file.")
+    }
   } else {
-    stop("Not all cells requested could be found in the fragment file.")
+    return(frags)
   }
 }
 
@@ -173,12 +177,32 @@ readchunk <- function(filepath, x, chunksize) {
   )
 }
 
+#' Set and get cell barcode information for a \code{\link{Fragment}} object
+#'
 #' @rdname Cells
 #' @export
 #' @method Cells Fragment
 #' @importFrom Seurat Cells
 Cells.Fragment <- function(x) {
-  return(slot(object = x, name = "cells"))
+  # add the suffix and prefix, then return cells
+  cells <- paste0(
+    slot(object = x, name = "prefix"),
+    slot(object = x, name = "cells"),
+    slot(object = x, name = "suffix")
+  )
+  return(cells)
+}
+
+#' @rdname Cells
+#' @export
+#' @method Cells<- Fragment
+"Cells<-.Fragment" <- function(object, ..., value) {
+  slot(object = object, name = "cells") <- value
+  if (!ValidateCells(object = object, verbose = FALSE, ...)) {
+    stop("Cells not present in fragment file")
+  } else {
+    return(object)
+  }
 }
 
 globalVariables(names = c("chr", "start"), package = "Signac")

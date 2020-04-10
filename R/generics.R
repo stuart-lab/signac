@@ -33,6 +33,14 @@ BinarizeCounts <- function(object, ...) {
   UseMethod(generic = "BinarizeCounts", object = object)
 }
 
+#' Set and get cell barcode information for a Fragment object
+#'
+#' @param value A character vector of cell barcodes
+#' @export Cells<-
+"Cells<-" <- function(object, ..., value) {
+  UseMethod(generic = "Cells<-", object = object)
+}
+
 #' Find most frequently observed features
 #'
 #' Find top binary features for a given assay based on total number of cells
@@ -46,6 +54,26 @@ BinarizeCounts <- function(object, ...) {
 #' @export FindTopFeatures
 FindTopFeatures <- function(object, ...) {
   UseMethod(generic = "FindTopFeatures", object = object)
+}
+
+#' Get the Fragment objects
+#'
+#' @param ... Arguments passed to other methods
+#' @return Returns a list of \code{\link{Fragment}} objects. If there are
+#' no Fragment objects present, returns an empty list.
+#' @rdname Fragments
+#' @export Fragments
+Fragments <- function(object, ...) {
+  UseMethod(generic = "Fragments", object = object)
+}
+
+#' @param value A \code{\link{Fragment}} object or list of Fragment objects
+#'
+#' @rdname Fragments
+#' @export Fragments<-
+#'
+"Fragments<-" <- function(object, ..., value) {
+  UseMethod(generic = 'Fragments<-', object = object)
 }
 
 #' Retrieve a motif matrix
