@@ -14,7 +14,7 @@ FeatureMatrix(
 )
 }
 \arguments{
-\item{fragments}{Path to tabix-indexed fragments file}
+\item{fragments}{A list of \code{\link{Fragment}} objects.}
 
 \item{features}{A GRanges object containing a set of genomic intervals.
 These will form the rows of the matrix, with each entry recording the number
@@ -40,6 +40,7 @@ Returns a sparse matrix
 Construct a feature x cell matrix from a genomic fragments file
 }
 \examples{
+# TODO update example with Fragment object
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 FeatureMatrix(
   fragments = fpath,

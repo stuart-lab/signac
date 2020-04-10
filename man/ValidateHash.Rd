@@ -7,7 +7,7 @@
 ValidateHash(object, verbose = TRUE)
 }
 \arguments{
-\item{object}{A Fragment object}
+\item{object}{A \code{\link{Fragment}} object}
 
 \item{verbose}{Display messages}
 }

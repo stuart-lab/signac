@@ -7,9 +7,9 @@
 ValidateCells(
   object,
   cells = NULL,
-  chunksize = 5e+05,
-  tolerance = 0.05,
-  max.iter = 8,
+  chunksize = 1e+07,
+  tolerance = 0.2,
+  max.iter = 5,
   verbose = TRUE
 )
 }

@@ -17,6 +17,7 @@ CreateChromatinAssayObject(
   annotation = NULL,
   bias = NULL,
   sep = c("-", "-"),
+  validate.fragments = TRUE,
   verbose = TRUE,
   ...
 )
@@ -61,6 +62,9 @@ annotations for the genome used}
 First element is used to separate the chromosome from the coordinates,
 second element is used to separate the start from end coordinate. Only
 used if \code{ranges} is NULL.}
+
+\item{validate.fragments}{Check that cells in the assay are present in the
+fragment file.}
 
 \item{verbose}{Display messages}
 

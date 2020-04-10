@@ -9,6 +9,7 @@ CreateFragmentObject(
   cells = NULL,
   prefix = NULL,
   suffix = NULL,
+  validate.fragments = TRUE,
   verbose = TRUE,
   ...
 )

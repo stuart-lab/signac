@@ -20,6 +20,8 @@ CreateSignacObject(
   genome = NULL,
   motifs = NULL,
   sep = c("-", "-"),
+  validate.fragments = TRUE,
+  verbose = TRUE,
   ...
 )
 }
@@ -63,8 +65,12 @@ initial identities to CELLTYPE.}
 \item{ranges}{A \code{\link[GenomicRanges]{GRanges}} object containing the
 genomic position of each row of the counts matrix}
 
-\item{fragments}{A character vector containing path/s to tabix-indexed
-fragment file/s for cells in the object}
+\item{fragments}{A path to a fragment file on disk. A \code{\link{Fragment}}
+object will be created from the file path and stored in the object. Only
+one path should be supplied, and it is assumed that all cells in the input
+matrix should be present in the fragment file. If you need to create multiple
+fragment files, you can add them after creating the Seurat object using
+the \code{\link{CreateFragmentObject}} and \code{\link{Fragments}} functions.}
 
 \item{annotation}{A \code{\link[GenomicRanges]{GRanges}} object containing
 genomic annotations for the genome used}
@@ -75,6 +81,11 @@ genomic annotations for the genome used}
 
 \item{sep}{Charaters used to separate the chromosome, start, and end
 coordinates in the row names of the data matrix}
+
+\item{validate.fragments}{Check that cells in the assay are present in the
+fragment file.}
+
+\item{verbose}{Display messages}
 
 \item{...}{Additional arguments passed to
 \code{\link{CreateChromatinAssayObject}}}
