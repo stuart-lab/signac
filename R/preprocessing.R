@@ -968,7 +968,8 @@ TSSEnrichment <- function(
 
   # if the flanking mean is 0 for any cells, the enrichment score will be zero.
   # instead replace with the mean from the whole population
-  flanking.mean[flanking.mean == 0] <- mean(flanking.mean)
+  flanking.mean[is.na(x = flanking.mean)] <- 0
+  flanking.mean[flanking.mean == 0] <- mean(flanking.mean, na.rm = TRUE)
 
   # compute fold change at each position relative to flanking mean
   # (flanks should start at 1)
@@ -979,7 +980,7 @@ TSSEnrichment <- function(
 
   # Take signal value at center of distribution after normalization as
   # TSS enrichment score, average the 1000 bases at the center
-  object$TSS.enrichment <- rowMeans(x = norm.matrix[, 501:1500])
+  object$TSS.enrichment <- rowMeans(x = norm.matrix[, 501:1500], na.rm = TRUE)
   e.dist <- ecdf(x = object$TSS.enrichment)
   object$TSS.percentile <- round(
     x = e.dist(object$TSS.enrichment),

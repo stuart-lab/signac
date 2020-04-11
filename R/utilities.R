@@ -414,7 +414,7 @@ CutMatrix <- function(
       stringsAsFactors = FALSE
     )
     cut.df <- cut.df[
-      cut.df$position > 0 & cut.df$position <= width(x = region),
+      (cut.df$position > 0) & (cut.df$position <= width(x = region)),
     ]
     cell.vector <- seq_along(along.with = all.cells)
     names(x = cell.vector) <- all.cells
