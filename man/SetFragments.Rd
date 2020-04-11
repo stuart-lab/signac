@@ -10,8 +10,7 @@ SetFragments(object, file, assay = NULL)
 \item{object}{A Seurat object}
 
 \item{file}{Path to indexed fragment file.
-See \url{https://support.10xgenomics.com/single-cell-atac/software/
-pipelines/latest/output/fragments}}
+See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}}
 
 \item{assay}{Assay used to generate the fragments.
 If NULL, use the active assay.}

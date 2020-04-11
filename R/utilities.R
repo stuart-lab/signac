@@ -227,8 +227,7 @@ GetIntersectingFeatures <- function(
 #'
 #' @param object A Seurat object
 #' @param file Path to indexed fragment file.
-#' See \url{https://support.10xgenomics.com/single-cell-atac/software/
-#' pipelines/latest/output/fragments}
+#' See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
 #' @param assay Assay used to generate the fragments.
 #' If NULL, use the active assay.
 #'
