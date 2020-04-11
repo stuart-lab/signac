@@ -323,6 +323,9 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
 # @examples
 # ChunkGRanges(blacklist_hg19, n = 10)
 ChunkGRanges <- function(granges, nchunk) {
+  if (length(x = granges) < nchunk) {
+    nchunk <- length(x = granges)
+  }
   chunksize <- as.integer(x = (length(granges) / nchunk))
   range.list <- sapply(X = seq_len(length.out = nchunk), FUN = function(x) {
     chunkupper <- (x * chunksize)
