@@ -111,6 +111,7 @@ SingleCoveragePlot <- function(
   cutmat <- CutMatrix(
     object = object,
     region = region,
+    assay = assay,
     cells = cells,
     verbose = FALSE
   )
