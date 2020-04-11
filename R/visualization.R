@@ -111,6 +111,7 @@ SingleCoveragePlot <- function(
   cutmat <- CutMatrix(
     object = object,
     region = region,
+    assay = assay,
     cells = cells,
     verbose = FALSE
   )
@@ -355,23 +356,27 @@ CoveragePlot <- function(
 ) {
   if (length(x = region) > 1) {
     plot.list <- lapply(
-      X = region,
-      FUN = SingleCoveragePlot,
-      object = object,
-      annotation = annotation,
-      peaks = peaks,
-      assay = assay,
-      fragment.path = fragment.path,
-      group.by = group.by,
-      window = window,
-      downsample = downsample,
-      ymax = ymax,
-      scale.factor = scale.factor,
-      extend.upstream = extend.upstream,
-      extend.downstream = extend.downstream,
-      cells = cells,
-      idents = idents,
-      sep = sep
+      X = seq_along(region),
+      FUN = function(x) {
+        SingleCoveragePlot(
+          object = object,
+          region = region[x],
+          annotation = annotation,
+          peaks = peaks,
+          assay = assay,
+          fragment.path = fragment.path,
+          group.by = group.by,
+          window = window,
+          downsample = downsample,
+          ymax = ymax,
+          scale.factor = scale.factor,
+          extend.upstream = extend.upstream,
+          extend.downstream = extend.downstream,
+          cells = cells,
+          idents = idents,
+          sep = sep
+        )
+      }
     )
     return(wrap_plots(plot.list, ...))
   } else {
