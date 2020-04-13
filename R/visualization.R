@@ -3,13 +3,60 @@
 #'
 NULL
 
-globalVariables(names = c('position', 'coverage', 'group', 'gene_name', 'direction'), package = 'Signac')
+globalVariables(names = c('Component', 'counts'), package = 'Signac')
+#' Sequencing depth correlation
+#'
+#' Compute the correlation between total counts and each reduced
+#' dimension component.
+#'
+#' @param object A \code{\link[Seurat]{Seurat}} object
+#' @param reduction Name of a dimension reduction stored in the
+#' input object
+#' @param assay Name of assay to use for sequencing depth. If NULL, use the
+#' default assay.
+#' @param n Number of components to use. If \code{NULL}, use all components.
+#' @param ... Additional arguments passed to \code{\link[stats]{cor}}
+#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @export
+#' @importFrom Seurat Embeddings DefaultAssay
+#' @importFrom ggplot2 ggplot geom_point scale_x_continuous
+#' ylab ylim theme_light ggtitle aes
+#' @importFrom stats cor
+#' @examples
+#' DepthCor(object = atac_small)
+DepthCor <- function(object, assay = NULL, reduction = 'lsi', n = 10, ...) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  dr <- object[[reduction]]
+  embed <- Embeddings(object = dr)
+  counts <- object[[paste0('nCount_', assay)]]
+  embed <- embed[rownames(x = counts), ]
+  n <- SetIfNull(x = n, y = ncol(x = embed))
+  embed <- embed[, seq_len(length.out = n)]
+  depth.cor <- as.data.frame(cor(x = embed, y = counts, ...))
+  depth.cor$counts <- depth.cor[, 1]
+  depth.cor$Component <- seq_len(length.out = nrow(x = depth.cor))
+  p <- ggplot(depth.cor, aes(Component, counts)) +
+    geom_point() +
+    scale_x_continuous(n.breaks = n, limits = c(1, n)) +
+    ylab("Correlation") +
+    ylim(c(-1, 1)) +
+    theme_light() +
+    ggtitle("Correlation between depth and reduced dimension components",
+            subtitle = paste0("Assay: ", assay, '\t', "Reduction: ", reduction))
+  return(p)
+}
+
+globalVariables(
+  names = c('position', 'coverage', 'group', 'gene_name', 'direction'),
+  package = 'Signac'
+)
 #' @rdname CoveragePlot
-#' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic aes ylim theme element_blank element_text geom_segment scale_color_identity
+#' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic
+#' aes ylim theme element_blank element_text geom_segment scale_color_identity
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges subsetByOverlaps
 #' @importFrom GenomeInfoDb seqnames
-#' @importFrom BiocGenerics start end
+#' @importMethodsFrom GenomicRanges start end
 #' @importFrom Seurat WhichCells Idents
 #' @importFrom Matrix colSums
 #' @importFrom methods is
@@ -23,7 +70,6 @@ SingleCoveragePlot <- function(
   object,
   region,
   annotation = NULL,
-  ucsc = TRUE,
   peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
@@ -65,11 +111,14 @@ SingleCoveragePlot <- function(
   cutmat <- CutMatrix(
     object = object,
     region = region,
+    assay = assay,
     cells = cells,
     verbose = FALSE
   )
   group.scale.factors <- reads.per.group * cells.per.group
-  scale.factor <- SetIfNull(x = scale.factor, y = median(x = group.scale.factors))
+  scale.factor <- SetIfNull(
+    x = scale.factor, y = median(x = group.scale.factors)
+  )
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
@@ -100,24 +149,31 @@ SingleCoveragePlot <- function(
   start.pos <- start(x = region)
   end.pos <- end(x = region)
   stepsize <- 1 / downsample
-  total_range <- end.pos - start.pos
-  steps <- ceiling(x = (total_range / stepsize))
   retain_positions <- seq(from = start.pos, to = end.pos, by = stepsize)
   downsampled_coverage <- coverages[coverages$position %in% retain_positions, ]
-  ymax <- SetIfNull(x = ymax, y = signif(x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2))
+  ymax <- SetIfNull(x = ymax, y = signif(
+    x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
+  )
   ymin <- 0
-  downsampled_coverage <- downsampled_coverage[!is.na(x = downsampled_coverage$coverage), ]
+  downsampled_coverage <- downsampled_coverage[!is.na(
+    x = downsampled_coverage$coverage
+  ), ]
 
   gr <- GRanges(
     seqnames = chromosome,
     IRanges(start = start.pos, end = end.pos)
   )
-  p <- ggplot(data = downsampled_coverage, mapping = aes(x = position, y = coverage, fill = group)) +
+  p <- ggplot(
+    data = downsampled_coverage,
+    mapping = aes(x = position, y = coverage, fill = group)
+    ) +
     geom_area(stat = 'identity') +
     geom_hline(yintercept = 0, size = 0.1) +
     facet_wrap(facets = ~group, strip.position = 'right', ncol = 1) +
     xlab(label = paste0(chromosome, ' position (bp)')) +
-    ylab(label = paste0('Normalized accessibility \n(range ', as.character(x = ymin), ' - ', as.character(x = ymax), ')')) +
+    ylab(label = paste0('Normalized accessibility \n(range ',
+                        as.character(x = ymin), ' - ',
+                        as.character(x = ymax), ')')) +
     ylim(c(ymin, ymax)) +
     theme_classic() +
     theme(
@@ -130,7 +186,8 @@ SingleCoveragePlot <- function(
     peak.intersect <- subsetByOverlaps(x = peaks, ranges = gr)
     peak.df <- as.data.frame(x = peak.intersect)
     peak.plot <- ggplot(data = peak.df, mapping = aes(color = 'darkgrey')) +
-      geom_segment(aes(x = start, y = 0, xend = end, yend = 0, size = 2), data = peak.df) +
+      geom_segment(aes(x = start, y = 0, xend = end, yend = 0, size = 2),
+                   data = peak.df) +
       theme_classic() +
       ylab(label = "Peaks") +
       theme(axis.ticks.y = element_blank(),
@@ -150,31 +207,37 @@ SingleCoveragePlot <- function(
     peak.plot <- NULL
   }
   if (!is.null(x = annotation)) {
-    if (inherits(x = annotation, what = 'EnsDb')) {
-      annotation.use <- genes(x = annotation, filter = ~ gene_biotype == "protein_coding")
-    } else if(!inherits(x = annotation, what = 'GRanges')) {
-      stop("Annotation must be a GRanges object or EnsDb object. Skipping annotation plot.")
-    } else {
-      annotation.use <- annotation
+    if (!inherits(x = annotation, what = 'GRanges')) {
+      stop("Annotation must be a GRanges object or EnsDb object.")
     }
-    if (ucsc) {
-      seqlevelsStyle(x = annotation.use) <- 'UCSC'
-    }
-    annotation.subset <- subsetByOverlaps(x = annotation.use, ranges = gr)
+    annotation.subset <- subsetByOverlaps(x = annotation, ranges = gr)
     annotation.df <- as.data.frame(x = annotation.subset)
     # adjust coordinates so within the plot
     annotation.df$start[annotation.df$start < start.pos] <- start.pos
     annotation.df$end[annotation.df$end > end.pos] <- end.pos
-    annotation.df$direction <- ifelse(test = annotation.df$strand == "-", yes = -1, no = 1)
+    annotation.df$direction <- ifelse(
+      test = annotation.df$strand == "-", yes = -1, no = 1
+    )
     if (nrow(x = annotation.df) > 0) {
       gene.plot <- ggplot(
         data = annotation.df,
-        mapping = aes(xmin = start, xmax = end, y = strand, fill = strand, label = gene_name, forward = direction)) +
+        mapping = aes(
+          xmin = start,
+          xmax = end,
+          y = strand,
+          fill = strand,
+          label = gene_name,
+          forward = direction)
+        ) +
         geom_gene_arrow(
           arrow_body_height = unit(x = 4, units = "mm"),
           arrowhead_height = unit(x = 4, units = "mm"),
           arrowhead_width = unit(x = 5, units = "mm")) +
-        geom_gene_label(grow = TRUE, reflow = TRUE, height = unit(x = 4, units = "mm")) +
+        geom_gene_label(
+          grow = TRUE,
+          reflow = TRUE,
+          height = unit(x = 4, units = "mm")
+        ) +
         xlim(start.pos, end.pos) +
         xlab(label = paste0(chromosome, ' position (bp)')) +
         ylab("Genes") +
@@ -197,18 +260,27 @@ SingleCoveragePlot <- function(
             axis.line.x.bottom = element_blank(),
             axis.ticks.x.bottom = element_blank()
           )
-          p <- p + peak.plot + gene.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1, 1))
+          p <- p +
+            peak.plot +
+            gene.plot +
+            plot_layout(ncol = 1, heights = c(height.tracks, 1, 1))
         } else {
-          p <- p + gene.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1))
+          p <- p +
+            gene.plot +
+            plot_layout(ncol = 1, heights = c(height.tracks, 1))
         }
     } else {
       if (!is.null(peak.plot)) {
-        p <- p + peak.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1))
+        p <- p +
+          peak.plot +
+          plot_layout(ncol = 1, heights = c(height.tracks, 1))
       }
     }
   } else {
     if (!is.null(peak.plot)) {
-      p <- p + peak.plot + plot_layout(ncol = 1, heights = c(height.tracks, 1))
+      p <- p +
+        peak.plot +
+        plot_layout(ncol = 1, heights = c(height.tracks, 1))
     }
   }
   return(p)
@@ -216,34 +288,41 @@ SingleCoveragePlot <- function(
 
 #' Plot Tn5 insertion sites over a region
 #'
-#' Plot fragment coverage (frequence of Tn5 insertion) within given regions for groups of cells.
+#' Plot fragment coverage (frequence of Tn5 insertion) within given regions
+#' for groups of cells.
 #'
 #' Thanks to Andrew Hill for providing an early version of this function
-#'  \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
+#' \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
 #'
 #' @param object A Seurat object
-#' @param region A set of genomic coordinates to show. Can be a GRanges object, a string, or a vector of strings describing the genomic
+#' @param region A set of genomic coordinates to show. Can be a GRanges object,
+#' a string, or a vector of strings describing the genomic
 #' coordinates to plot.
 #' @param annotation An Ensembl based annotation package
-#' @param ucsc Set annotation seqlevels style to UCSC
 #' @param peaks A GRanges object containing peak coordinates
 #' @param assay Name of the  assay to plot
-#' @param fragment.path Path to an index fragment file. If NULL, will look for a path stored for the
-#' requested assay using the \code{\link{SetFragments}} function
+#' @param fragment.path Path to an index fragment file. If NULL, will look for a
+#' path stored for the requested assay using the \code{\link{SetFragments}}
+#' function
 #' @param cells Which cells to plot. Default all cells
-#' @param idents Which identities to include in the plot. Default is all identities.
+#' @param idents Which identities to include in the plot. Default is all
+#' identities.
 #' @param window Smoothing window size
-#' @param downsample Fraction of positions to retain in the plot. Default is 0.1 (retain 10 percent, ie every 10th position)
-#' @param height.tracks Height of the accessibility tracks relative to the height of the gene annotation track.
-#' Default is 2 (twice as high as annotation track).
-#' @param extend.upstream Number of bases to extend the region upstream (Default 0)
-#' @param extend.downstream Number of bases to extend the region downstream (Default 0)
-#' @param ymax Maximum value for Y axis. If NULL (default) set to the highest value among all the tracks.
-#' @param scale.factor Scaling factor for track height. If NULL (default), use the median group scaling factor
-#' determined by total number of fragments sequences in each group.
-#' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
-#' @param sep Separators to use for strings encoding genomic coordinates. First element is used to separate the
-#' chromosome from the coordinates, second element is used to separate the start from end coordinate.
+#' @param downsample Fraction of positions to retain in the plot.
+#' @param height.tracks Height of the accessibility tracks relative to the
+#' height of the gene annotation track.
+#' @param extend.upstream Number of bases to extend the region upstream.
+#' @param extend.downstream Number of bases to extend the region downstream.
+#' @param ymax Maximum value for Y axis. If NULL (default) set to the highest
+#' value among all the tracks.
+#' @param scale.factor Scaling factor for track height. If NULL (default),
+#' use the median group scaling factor determined by total number of fragments
+#' sequences in each group.
+#' @param group.by Name of one or more metadata columns to group (color) the
+#' cells by. Default is the current cell identities
+#' @param sep Separators to use for strings encoding genomic coordinates. First
+#' element is used to separate the chromosome from the coordinates, second
+#' element is used to separate the start from end coordinate.
 #' @param ... Additional arguments passed to \code{\link[patchwork]{wrap_plots}}
 #'
 #' @importFrom patchwork wrap_plots
@@ -259,7 +338,6 @@ CoveragePlot <- function(
   object,
   region,
   annotation = NULL,
-  ucsc = TRUE,
   peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
@@ -278,24 +356,27 @@ CoveragePlot <- function(
 ) {
   if (length(x = region) > 1) {
     plot.list <- lapply(
-      X = region,
-      FUN = SingleCoveragePlot,
-      object = object,
-      annotation = annotation,
-      ucsc = ucsc,
-      peaks = peaks,
-      assay = assay,
-      fragment.path = fragment.path,
-      group.by = group.by,
-      window = window,
-      downsample = downsample,
-      ymax = ymax,
-      scale.factor = scale.factor,
-      extend.upstream = extend.upstream,
-      extend.downstream = extend.downstream,
-      cells = cells,
-      idents = idents,
-      sep = sep
+      X = seq_along(region),
+      FUN = function(x) {
+        SingleCoveragePlot(
+          object = object,
+          region = region[x],
+          annotation = annotation,
+          peaks = peaks,
+          assay = assay,
+          fragment.path = fragment.path,
+          group.by = group.by,
+          window = window,
+          downsample = downsample,
+          ymax = ymax,
+          scale.factor = scale.factor,
+          extend.upstream = extend.upstream,
+          extend.downstream = extend.downstream,
+          cells = cells,
+          idents = idents,
+          sep = sep
+        )
+      }
     )
     return(wrap_plots(plot.list, ...))
   } else {
@@ -303,7 +384,6 @@ CoveragePlot <- function(
       object = object,
       region = region,
       annotation = annotation,
-      ucsc = ucsc,
       peaks = peaks,
       assay = assay,
       fragment.path = fragment.path,
@@ -353,7 +433,9 @@ MotifPlot <- function(
   }
   data.use <- data.use[motifs]
   if (use.names) {
-    names(x = data.use) <- GetMotifData(object = object, assay = assay, slot = 'motif.names')[motifs]
+    names(x = data.use) <- GetMotifData(
+      object = object, assay = assay, slot = 'motif.names'
+    )[motifs]
   }
   p <- ggseqlogo(data = data.use, ...)
   return(p)
@@ -364,14 +446,17 @@ globalVariables(names = 'group', package = 'Signac')
 #'
 #' @param object A Seurat object
 #' @param assay Which assay to use. Default is the active assay.
-#' @param region Genomic range to use. Default is fist two megabases of chromosome 1. Can be a GRanges object, a string, or a vector
+#' @param region Genomic range to use. Default is fist two megabases of
+#' chromosome 1. Can be a GRanges object, a string, or a vector
 #' of strings.
 #' @param cells Which cells to plot. Default all cells
-#' @param group.by Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities
+#' @param group.by Name of one or more metadata columns to group (color) the
+#' cells by. Default is the current cell identities
 #' @param log.scale Display Y-axis on log scale. Default is FALSE.
 #' @param ... Additional arguments passed to \code{\link{GetReadsInRegion}}
 #'
-#' @importFrom ggplot2 ggplot geom_histogram theme_bw aes facet_wrap xlim scale_y_log10
+#' @importFrom ggplot2 ggplot geom_histogram theme_bw aes facet_wrap xlim
+#' scale_y_log10
 #'
 #' @export
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
@@ -420,8 +505,8 @@ FragmentHistogram <- function(
 # Plot pileup of Tn5 integration sites
 #
 # Plots a pileup of integration sites centered on a set of genomic positions.
-# Each genomic region will be aligned on the region midpoint, and extended upstream
-# and downstream from the midpoint.
+# Each genomic region will be aligned on the region midpoint, and extended
+# upstream and downstream from the midpoint.
 #
 # @param object A Seurat object
 # @param assay Name of the assay to use
@@ -429,18 +514,22 @@ FragmentHistogram <- function(
 # @param cells Vector of cells to include. If NULL (default), use all cells.
 # @param upstream Number of bases to extend upstream of the region midpoint
 # @param downstream Number of bases to extend downstream of the region midpoint
-# @param group.by A set of identities to group the cells by. Can by anything in the metadata.
-# Default is to use the active identities.
-# @param min.cells Minimum number of cells in the group for the pileup to be displayed for that group.
-# @param ymax Maximum value for the y-axis. If NULL (default), will be set automatically.
-# @param idents Which identities to include in the plot. If NULL (default), include everything with more than
+# @param group.by A set of identities to group the cells by. Can by anything in
+# the metadata. Default is to use the active identities.
+# @param min.cells Minimum number of cells in the group for the pileup to be
+# displayed for that group.
+# @param ymax Maximum value for the y-axis. If NULL (default), will be set
+# automatically.
+# @param idents Which identities to include in the plot. If NULL (default),
+# include everything with more than
 # \code{min.cells} cells.
 # @param verbose Display messages
 #
-# @importFrom BiocGenerics strand
+# @importMethodsFrom GenomicRanges strand
 # @importFrom Seurat Idents
 # @importFrom Matrix colSums colMeans
-# @importFrom ggplot2 ggplot aes geom_line facet_wrap ylim xlab ylab theme_classic theme element_blank element_text
+# @importFrom ggplot2 ggplot aes geom_line facet_wrap ylim xlab ylab
+# theme_classic theme element_blank element_text
 # @export
 # @return Returns a \code{\link[ggplot2]{ggplot2}} object
 RegionPileup <- function(
@@ -483,7 +572,9 @@ RegionPileup <- function(
     idents = idents
   )
   cellcounts <- table(obj.groups)
-  obj.groups <- obj.groups[obj.groups %in% names(x = cellcounts[cellcounts > min.cells])]
+  obj.groups <- obj.groups[obj.groups %in% names(
+    x = cellcounts[cellcounts > min.cells]
+  )]
   if (verbose) {
     message("Computing pileup for each cell group")
   }
@@ -496,8 +587,16 @@ RegionPileup <- function(
     normalize = FALSE
   )
   ymin <- 0
-  ymax <- SetIfNull(x = ymax, y = signif(x = max(coverages$norm.value, na.rm = TRUE), digits = 2))
-  p <- ggplot(data = coverages, mapping = aes(x = position, y = norm.value, color = group)) +
+  ymax <- SetIfNull(
+    x = ymax,
+    y = signif(
+      x = max(coverages$norm.value, na.rm = TRUE),
+      digits = 2)
+    )
+  p <- ggplot(
+    data = coverages,
+    mapping = aes(x = position, y = norm.value, color = group)
+    ) +
     geom_line(stat = 'identity', size = 0.2) +
     facet_wrap(facets = ~group) +
     xlab(label = paste0('Distance from region midpoint (bp)')) +
@@ -515,12 +614,14 @@ RegionPileup <- function(
 globalVariables(names = 'norm.value', package = 'Signac')
 #' Plot the enrichment around TSS
 #'
-#' Plot the normalized TSS enrichment score at each position relative to the TSS.
-#' Requires that \code{\link{TSSEnrichment}} has already been run on the assay.
+#' Plot the normalized TSS enrichment score at each position relative to the
+#' TSS. Requires that \code{\link{TSSEnrichment}} has already been run on the
+#' assay.
 #'
 #' @param object A Seurat object
-#' @param assay Name of the assay to use. Should have the TSS enrichment information for each cell
-#' already computed by running \code{\link{TSSEnrichment}}
+#' @param assay Name of the assay to use. Should have the TSS enrichment
+#' information for each cell already computed by running
+#' \code{\link{TSSEnrichment}}
 #' @param group.by Set of identities to group cells by
 #' @param idents Set of identities to include in the plot
 #' @importFrom Seurat GetAssayData
@@ -544,7 +645,10 @@ globalVariables(names = 'norm.value', package = 'Signac')
 #' tss.ranges <- keepStandardChromosomes(tss.ranges, pruning.mode = 'coarse')
 #'
 #' # to save time use the first 2000 TSSs
-#' atac_small <- TSSEnrichment(object = atac_small, tss.positions = tss.ranges[1:2000])
+#' atac_small <- TSSEnrichment(
+#' object = atac_small,
+#' tss.positions = tss.ranges[1:2000]
+#' )
 #' TSSPlot(atac_small)
 #' }
 TSSPlot <- function(
@@ -587,4 +691,3 @@ TSSPlot <- function(
     theme_minimal()
   return(p)
 }
-

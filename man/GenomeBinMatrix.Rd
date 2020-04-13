@@ -17,20 +17,22 @@ GenomeBinMatrix(
 \arguments{
 \item{fragments}{Path to tabix-indexed fragments file}
 
-\item{genome}{A vector of chromosome sizes for the genome. This is used to construct the
-genome bin coordinates. The can be obtained by calling \code{\link[GenomeInfoDb]{seqlengths}} on
-a \code{\link[BSgenome]{BSgenome-class}} object.}
+\item{genome}{A vector of chromosome sizes for the genome. This is used to
+construct the genome bin coordinates. The can be obtained by calling
+\code{\link[GenomeInfoDb]{seqlengths}} on a
+\code{\link[BSgenome]{BSgenome-class}} object.}
 
 \item{cells}{Vector of cells to include. If NULL, include all cells found
 in the fragments file}
 
 \item{binsize}{Size of the genome bins to use}
 
-\item{chunk}{Number of chunks to use when processing the fragments file. Fewer chunks may enable faster processing,
-but will use more memory.}
+\item{chunk}{Number of chunks to use when processing the fragments file.
+Fewer chunks may enable faster processing, but will use more memory.}
 
-\item{sep}{Vector of separators to use for genomic string. First element is used to separate chromosome
-and coordinates, second separator is used to separate start and end coordinates.}
+\item{sep}{Vector of separators to use for genomic string. First element is
+used to separate chromosome and coordinates, second separator is used to
+separate start and end coordinates.}
 
 \item{verbose}{Display messages}
 }

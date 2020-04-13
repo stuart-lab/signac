@@ -31,7 +31,11 @@ Add a Motif object to a Seurat object
 }
 \examples{
 obj <- GetMotifObject(atac_small[['peaks']])
-atac_small[['peaks']] <- AddMotifObject(object = atac_small[['peaks']], motif.object = obj)
+atac_small[['peaks']] <- AddMotifObject(
+object = atac_small[['peaks']], motif.object = obj
+)
 obj <- GetMotifObject(object = atac_small)
-atac_small[['peaks']] <- AddMotifObject(object = atac_small, motif.object = obj)
+atac_small[['peaks']] <- AddMotifObject(
+object = atac_small, motif.object = obj
+)
 }

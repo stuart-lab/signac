@@ -17,21 +17,24 @@ CreateMotifMatrix(
 \arguments{
 \item{features}{A GRanges object containing a set of genomic features}
 
-\item{pwm}{A \code{\link[TFBSTools]{PFMatrixList}} or \code{\link[TFBSTools]{PWMatrixList}}
+\item{pwm}{A \code{\link[TFBSTools]{PFMatrixList}} or
+\code{\link[TFBSTools]{PWMatrixList}}
 object containing position weight/frequency matrices to use}
 
 \item{genome}{Any object compatible with the \code{genome} argument
 in \code{\link[motifmatchr]{matchMotifs}}}
 
-\item{score}{Record the motif match score, rather than presence/absence (default FALSE)}
+\item{score}{Record the motif match score, rather than presence/absence
+(default FALSE)}
 
-\item{use.counts}{Record motif counts per region. If FALSE (default), record presence/absence of motif.
-Only applicable if \code{score=FALSE}.}
+\item{use.counts}{Record motif counts per region. If FALSE (default),
+record presence/absence of motif. Only applicable if \code{score=FALSE}.}
 
-\item{sep}{A length-2 character vector containing the separators to be used when constructing
-matrix rownames from the GRanges}
+\item{sep}{A length-2 character vector containing the separators to be used
+when constructing matrix rownames from the GRanges}
 
-\item{...}{Additional arguments passed to \code{\link[motifmatchr]{matchMotifs}}}
+\item{...}{Additional arguments passed to
+\code{\link[motifmatchr]{matchMotifs}}}
 }
 \value{
 Returns a sparse matrix
@@ -41,10 +44,11 @@ Create a motif x feature matrix from a set of genomic ranges,
 the genome, and a set of position weight matrices.
 }
 \details{
-Requires that motifmatchr is installed (https://www.bioconductor.org/packages/motifmatchr/).
+Requires that motifmatchr is installed
+\url{https://www.bioconductor.org/packages/motifmatchr/}.
 }
 \examples{
-\donttest{
+\dontrun{
 library(JASPAR2018)
 library(TFBSTools)
 library(BSgenome.Hsapiens.UCSC.hg19)

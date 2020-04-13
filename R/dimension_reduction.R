@@ -4,11 +4,12 @@ NULL
 
 #' Calculate the Jaccard index between two matrices
 #'
-#' Finds the Jaccard similarity between rows of the two matricies. Note that the matrices must be binary,
-#' and any rows with zero total counts will result in an NaN entry that could cause problems in downstream analyses.
+#' Finds the Jaccard similarity between rows of the two matricies. Note that
+#' the matrices must be binary, and any rows with zero total counts will result
+#' in an NaN entry that could cause problems in downstream analyses.
 #'
-#' This will calculate the raw Jaccard index, without normalizing for the expected similarity
-#' between cells due to differences in sequencing depth.
+#' This will calculate the raw Jaccard index, without normalizing for the
+#' expected similarity between cells due to differences in sequencing depth.
 #'
 #' @param x The first matrix
 #' @param y The second matrix
@@ -22,7 +23,8 @@ NULL
 #' Jaccard(x = x, y = x)
 Jaccard <- function(x, y) {
   if (any(x > 1) | any(y > 1)) {
-    warning("Matrices contain values greater than 1. Please binarize matrices before running Jaccard")
+    warning("Matrices contain values greater than 1.
+            Please binarize matrices before running Jaccard")
   }
   intersection <- tcrossprod(x = x, y = y)
   union.counts.x <- rowSums(x = x)
@@ -42,15 +44,19 @@ Jaccard <- function(x, y) {
 #' @param assay Which assay to use. If NULL, use the default assay
 #' @param n Number of singular values to compute
 #' @param reduction.key Key for dimension reduction object
-#' @param scale.max Clipping value for cell embeddings. Default (NULL) is no clipping.
-#' @param scale.embeddings Scale cell embeddings within each component to mean 0 and SD 1 (default TRUE).
+#' @param scale.max Clipping value for cell embeddings.
+#' Default (NULL) is no clipping.
+#' @param scale.embeddings Scale cell embeddings within each component to
+#' mean 0 and SD 1 (default TRUE).
 #' @param irlba.work work parameter for \code{\link[irlba]{irlba}}.
-#' Working subspace dimension, larger values can speed convergence at the cost of more memory use.
+#' Working subspace dimension, larger values can speed convergence at the
+#' cost of more memory use.
 #' @param verbose Print messages
 #'
 #' @importFrom irlba irlba
 #' @importFrom stats sd
 #' @importFrom Seurat CreateDimReducObject
+#' @importMethodsFrom Matrix t
 #'
 #' @rdname RunSVD
 #' @export
@@ -72,7 +78,7 @@ RunSVD.default <- function(
   if (verbose) {
     message("Running SVD")
   }
-  components <- irlba(A = t(object), nv = n, work = irlba.work)
+  components <- irlba(A = t(x = object), nv = n, work = irlba.work)
   feature.loadings <- components$v
   sdev <- components$d / sqrt(x = max(1, nrow(x = object) - 1))
   cell.embeddings <- components$u
@@ -91,9 +97,13 @@ RunSVD.default <- function(
     norm.embeddings <- cell.embeddings
   }
   rownames(x = feature.loadings) <- rownames(x = object)
-  colnames(x = feature.loadings) <- paste0(reduction.key, seq_len(length.out = n))
+  colnames(x = feature.loadings) <- paste0(
+    reduction.key, seq_len(length.out = n)
+  )
   rownames(x = norm.embeddings) <- colnames(x = object)
-  colnames(x = norm.embeddings) <- paste0(reduction.key, seq_len(length.out = n))
+  colnames(x = norm.embeddings) <- paste0(
+    reduction.key, seq_len(length.out = n)
+  )
   reduction.data <- CreateDimReducObject(
     embeddings = norm.embeddings,
     loadings = feature.loadings,
@@ -141,7 +151,8 @@ RunSVD.Assay <- function(
   return(reduction.data)
 }
 
-#' @param reduction.name Name for stored dimension reduction object. Default 'svd'
+#' @param reduction.name Name for stored dimension reduction object.
+#' Default 'svd'
 #' @rdname RunSVD
 #' @export
 #' @examples

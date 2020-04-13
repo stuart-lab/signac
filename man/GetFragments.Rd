@@ -15,8 +15,8 @@ GetFragments(object, assay = NULL)
 Returns the path to a fragments file stored in the Assay if present
 }
 \description{
-Retrieve path to fragments file from assay object, and checks that the file exists and
-is indexed before returning the file path.
+Retrieve path to fragments file from assay object, and checks that the file
+exists and is indexed before returning the file path.
 }
 \examples{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")

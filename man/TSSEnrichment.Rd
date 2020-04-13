@@ -28,14 +28,15 @@ in the object}
 Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
-Compute the transcription start site (TSS) enrichment score for each cell, as defined by ENCODE:
+Compute the transcription start site (TSS) enrichment score for each cell,
+as defined by ENCODE:
 \url{https://www.encodeproject.org/data-standards/terms/}.
 }
 \details{
 The computed score will be added to the object metadata as "TSS.enrichment".
 }
 \examples{
-\donttest{
+\dontrun{
 library(EnsDb.Hsapiens.v75)
 gene.ranges <- genes(EnsDb.Hsapiens.v75)
 gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]

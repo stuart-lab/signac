@@ -45,7 +45,9 @@ BinarizeCounts.Assay <- function(
   object <- SetAssayData(
     object = object,
     slot = 'counts',
-    new.data = BinarizeCounts(object = data.matrix, assay = assay, verbose = verbose)
+    new.data = BinarizeCounts(
+      object = data.matrix, assay = assay, verbose = verbose
+    )
   )
   return(object)
 }
@@ -82,24 +84,28 @@ BinarizeCounts.Seurat <- function(
 #' Create a motif x feature matrix from a set of genomic ranges,
 #' the genome, and a set of position weight matrices.
 #'
-#' Requires that motifmatchr is installed (https://www.bioconductor.org/packages/motifmatchr/).
+#' Requires that motifmatchr is installed
+#' \url{https://www.bioconductor.org/packages/motifmatchr/}.
 #'
 #' @param features A GRanges object containing a set of genomic features
-#' @param pwm A \code{\link[TFBSTools]{PFMatrixList}} or \code{\link[TFBSTools]{PWMatrixList}}
+#' @param pwm A \code{\link[TFBSTools]{PFMatrixList}} or
+#' \code{\link[TFBSTools]{PWMatrixList}}
 #' object containing position weight/frequency matrices to use
 #' @param genome Any object compatible with the \code{genome} argument
 #' in \code{\link[motifmatchr]{matchMotifs}}
-#' @param score Record the motif match score, rather than presence/absence (default FALSE)
-#' @param use.counts Record motif counts per region. If FALSE (default), record presence/absence of motif.
-#' Only applicable if \code{score=FALSE}.
-#' @param sep A length-2 character vector containing the separators to be used when constructing
-#' matrix rownames from the GRanges
-#' @param ... Additional arguments passed to \code{\link[motifmatchr]{matchMotifs}}
+#' @param score Record the motif match score, rather than presence/absence
+#' (default FALSE)
+#' @param use.counts Record motif counts per region. If FALSE (default),
+#' record presence/absence of motif. Only applicable if \code{score=FALSE}.
+#' @param sep A length-2 character vector containing the separators to be used
+#' when constructing matrix rownames from the GRanges
+#' @param ... Additional arguments passed to
+#' \code{\link[motifmatchr]{matchMotifs}}
 #'
 #' @return Returns a sparse matrix
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(JASPAR2018)
 #' library(TFBSTools)
 #' library(BSgenome.Hsapiens.UCSC.hg19)
@@ -125,7 +131,8 @@ CreateMotifMatrix <- function(
   ...
 ) {
   if (!requireNamespace('motifmatchr', quietly = TRUE)) {
-    stop("Please install motifmatchr. https://www.bioconductor.org/packages/motifmatchr/")
+    stop("Please install motifmatchr.
+         https://www.bioconductor.org/packages/motifmatchr/")
   }
   motif_ix <- motifmatchr::matchMotifs(
     pwms = pwm,
@@ -150,8 +157,8 @@ CreateMotifMatrix <- function(
 
 #' DownsampleFeatures
 #'
-#' Randomly downsample features and assign to VariableFeatures for the object. This will
-#' select n features at random.
+#' Randomly downsample features and assign to VariableFeatures for the object.
+#' This will select n features at random.
 #'
 #' @param object A Seurat object
 #' @param assay Name of assay to use. Default is the active assay.
@@ -170,14 +177,15 @@ DownsampleFeatures <- function(
   verbose = TRUE
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  counts <- GetAssayData(object = object, assay = assay, slot = 'counts')
   if (n > nrow(object[[assay]])) {
     stop("Requested more features than present in the assay")
   }
   if (verbose) {
     message("Randomly downsampling features")
   }
-  VariableFeatures(object = object) <- sample(x = rownames(x = object[[assay]]), size = n, replace = FALSE)
+  VariableFeatures(object = object) <- sample(
+    x = rownames(x = object[[assay]]), size = n, replace = FALSE
+  )
   return(object)
 }
 
@@ -186,14 +194,17 @@ DownsampleFeatures <- function(
 #' Construct a feature x cell matrix from a genomic fragments file
 #'
 #' @param fragments Path to tabix-indexed fragments file
-#' @param features A GRanges object containing a set of genomic intervals. These will form the rows of the
-#' matrix, with each entry recording the number of unique reads falling in the genomic region for each cell.
+#' @param features A GRanges object containing a set of genomic intervals.
+#' These will form the rows of the matrix, with each entry recording the number
+#' of unique reads falling in the genomic region for each cell.
 #' @param cells Vector of cells to include. If NULL, include all cells found
 #' in the fragments file
-#' @param chunk Number of chunks to use when processing the fragments file. Fewer chunks may enable faster processing,
+#' @param chunk Number of chunks to use when processing the fragments file.
+#' Fewer chunks may enable faster processing,
 #'  but will use more memory.
-#' @param sep Vector of separators to use for genomic string. First element is used to separate chromosome
-#' and coordinates, second separator is used to separate start and end coordinates.
+#' @param sep Vector of separators to use for genomic string. First element is
+#' used to separate chromosome and coordinates, second separator is used to
+#' separate start and end coordinates.
 #' @param verbose Display messages
 #'
 #' @importFrom GenomeInfoDb keepSeqlevels
@@ -201,6 +212,7 @@ DownsampleFeatures <- function(
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
 #' @importFrom Matrix sparseMatrix
+#' @importMethodsFrom GenomicRanges intersect
 #' @importFrom Rsamtools TabixFile seqnamesTabix
 #' @export
 #' @return Returns a sparse matrix
@@ -221,7 +233,9 @@ FeatureMatrix <- function(
   tbx <- TabixFile(file = fragments)
   features <- keepSeqlevels(
     x = features,
-    value = intersect(x = seqnames(x = features), y = seqnamesTabix(file = tbx)),
+    value = intersect(
+      x = seqnames(x = features), y = seqnamesTabix(file = tbx)
+    ),
     pruning.mode = "coarse"
   )
   feature.list <- ChunkGRanges(
@@ -282,18 +296,19 @@ FeatureMatrix <- function(
   }
 }
 
+globalVariables(names = c('chr', 'start'), package = 'Signac')
 #' FilterFragments
 #'
-#' Remove cells from a fragments file that are not present in a given list of cells.
-#' Note that this reads the whole fragments file into memory, so may require a lot of memory
-#' depending on the size of the fragments file.
+#' Remove cells from a fragments file that are not present in a given list of
+#' cells. Note that this reads the whole fragments file into memory, so may
+#' require a lot of memory depending on the size of the fragments file.
 #'
 #' @param fragment.path Path to a tabix-indexed fragments file
 #' @param cells A vector of cells to retain
-#' @param output.path Name and path for output tabix file. A tabix index file will also be created in the same location, with
-#' the .tbi file extension.
-#' @param assume.sorted Assume sorted input and don't sort the filtered file. Can save a lot of time, but indexing will
-#' fail if assumption is wrong.
+#' @param output.path Name and path for output tabix file. A tabix index file
+#' will also be created in the same location, with the .tbi file extension.
+#' @param assume.sorted Assume sorted input and don't sort the filtered file.
+#' Can save a lot of time, but indexing will fail if assumption is wrong.
 #' @param compress Compress filtered fragments using bgzip (default TRUE)
 #' @param index Index the filtered tabix file (default TRUE)
 #' @param verbose Display messages
@@ -366,18 +381,22 @@ FilterFragments <- function(
       if (verbose) {
         message("Building index")
       }
-      index.file <- indexTabix(file = paste0(outf), format = 'bed', zeroBased = TRUE)
+      index.file <- indexTabix(
+        file = paste0(outf), format = 'bed', zeroBased = TRUE
+      )
     }
   }
 }
 
 #' @param assay Name of assay to use
-#' @param min.cutoff Cutoff for feature to be included in the VariableFeatures for the object.
-#' This can be a percentile specified as 'q' followed by the minimum percentile, for example 'q5' to set
-#' the top 95\% most common features as the VariableFeatures for the object. Alternatively, this can be
-#' an integer specifying the minumum number of cells containing the feature for the feature to be included
-#' in the set of VariableFeatures. For example, setting to 10 will include features in >10 cells in the
-#' set of VariableFeatures. If NULL, include all features in VariableFeatures.
+#' @param min.cutoff Cutoff for feature to be included in the VariableFeatures
+#' for the object. This can be a percentile specified as 'q' followed by the
+#' minimum percentile, for example 'q5' to set the top 95\% most common features
+#' as the VariableFeatures for the object. Alternatively, this can be an integer
+#' specifying the minumum number of cells containing the feature for the feature
+#' to be included in the set of VariableFeatures. For example, setting to 10
+#' will include features in >10 cells in the set of VariableFeatures. If NULL,
+#' include all features in VariableFeatures.
 #' @param verbose Display messages
 #'
 #' @importFrom Matrix rowSums
@@ -429,10 +448,16 @@ FindTopFeatures.Assay <- function(
   if (is.null(x = min.cutoff)) {
     VariableFeatures(object = object) <- rownames(x = hvf.info)
   } else if (is.numeric(x = min.cutoff)) {
-    VariableFeatures(object = object) <- rownames(x = hvf.info[hvf.info$count > min.cutoff, ])
+    VariableFeatures(object = object) <- rownames(
+      x = hvf.info[hvf.info$count > min.cutoff, ]
+    )
   } else {
-    percentile.use <- as.numeric(x = sub(pattern = "q", replacement = "", x = as.character(x = min.cutoff)))/100
-    VariableFeatures(object = object) <- rownames(x = hvf.info[hvf.info$percentile > percentile.use, ])
+    percentile.use <- as.numeric(
+      x = sub(pattern = "q",replacement = "", x = as.character(x = min.cutoff))
+    ) / 100
+    VariableFeatures(object = object) <- rownames(
+      x = hvf.info[hvf.info$percentile > percentile.use, ]
+    )
   }
   return(object)
 }
@@ -468,7 +493,8 @@ FindTopFeatures.Seurat <- function(
 #' @param object A Seurat object
 #' @param peak.assay Name of the assay containing a peak x cell matrix
 #' @param bin.assay Name of the assay containing a bin x cell matrix
-#' @param chromosome Which chromosome to use. Default is chromosome 1 ('chr1'). If NULL, use the whole genome.
+#' @param chromosome Which chromosome to use. Default is chromosome 1 ('chr1').
+#' If NULL, use the whole genome.
 #' @param verbose Display messages
 #'
 #' @importFrom Matrix colSums
@@ -488,14 +514,24 @@ FRiP <- function(
   if (verbose) {
     message('Calculating fraction of reads in peaks per cell')
   }
-  peak.data <- GetAssayData(object = object, assay = peak.assay, slot = 'counts')
-  bin.data <- GetAssayData(object = object, assay = bin.assay, slot = 'counts')
+  peak.data <- GetAssayData(
+    object = object, assay = peak.assay, slot = 'counts'
+  )
+  bin.data <- GetAssayData(
+    object = object, assay = bin.assay, slot = 'counts'
+  )
   if (!is.null(x = chromosome)) {
-    peak.data <- peak.data[grepl(pattern = paste0('^', chromosome, '\\-|^', chromosome, ':'), x = rownames(x = peak.data)), ]
-    bin.data <- bin.data[grepl(pattern = paste0('^', chromosome, '\\-|^', chromosome, ':'), x = rownames(x = bin.data)), ]
+    peak.data <- peak.data[grepl(
+      pattern = paste0('^', chromosome, '\\-|^', chromosome, ':'),
+      x = rownames(x = peak.data)
+    ), ]
+    bin.data <- bin.data[grepl(
+      pattern = paste0('^', chromosome, '\\-|^', chromosome, ':'),
+      x = rownames(x = bin.data)
+    ), ]
   }
   peak.counts <- colSums(x = peak.data)
-  bin.counts <-colSums(x = bin.data)
+  bin.counts <- colSums(x = bin.data)
   frip <- peak.counts / bin.counts
   object <- AddMetaData(object = object, metadata = frip, col.name = 'FRiP')
   return(object)
@@ -509,16 +545,18 @@ FRiP <- function(
 #' construct a bin x cell matrix.
 #'
 #' @param fragments Path to tabix-indexed fragments file
-#' @param genome A vector of chromosome sizes for the genome. This is used to construct the
-#' genome bin coordinates. The can be obtained by calling \code{\link[GenomeInfoDb]{seqlengths}} on
-#' a \code{\link[BSgenome]{BSgenome-class}} object.
+#' @param genome A vector of chromosome sizes for the genome. This is used to
+#' construct the genome bin coordinates. The can be obtained by calling
+#' \code{\link[GenomeInfoDb]{seqlengths}} on a
+#' \code{\link[BSgenome]{BSgenome-class}} object.
 #' @param cells Vector of cells to include. If NULL, include all cells found
 #' in the fragments file
 #' @param binsize Size of the genome bins to use
-#' @param chunk Number of chunks to use when processing the fragments file. Fewer chunks may enable faster processing,
-#'  but will use more memory.
-#' @param sep Vector of separators to use for genomic string. First element is used to separate chromosome
-#' and coordinates, second separator is used to separate start and end coordinates.
+#' @param chunk Number of chunks to use when processing the fragments file.
+#' Fewer chunks may enable faster processing, but will use more memory.
+#' @param sep Vector of separators to use for genomic string. First element is
+#' used to separate chromosome and coordinates, second separator is used to
+#' separate start and end coordinates.
 #' @param verbose Display messages
 #'
 #' @importFrom GenomicRanges tileGenome
@@ -563,11 +601,14 @@ globalVariables(names = 'cell', package = 'Signac')
 #' NucleosomeSignal
 #'
 #' Calculate the strength of the nucleosome signal per cell.
-#' Computes the ratio of fragments between 147 bp and 294 bp (mononucleosome) to fragments < 147 bp (nucleosome-free)
+#' Computes the ratio of fragments between 147 bp and 294 bp (mononucleosome) to
+#' fragments < 147 bp (nucleosome-free)
 #'
 #' @param object A Seurat object
-#' @param assay Name of assay to use. Only required if a fragment path is not provided. If NULL, use the active assay.
-#' @param region Which region to use. Can be a GRanges region, a string, or a vector of strings. Default is human chromosome 1.
+#' @param assay Name of assay to use. Only required if a fragment path is not
+#' provided. If NULL, use the active assay.
+#' @param region Which region to use. Can be a GRanges region, a string, or a
+#' vector of strings. Default is human chromosome 1.
 #' @param min.threshold Lower bound for the mononucleosome size. Default is 147
 #' @param max.threshold Upper bound for the mononucleosome size. Default is 294
 #' @param verbose Display messages
@@ -632,20 +673,21 @@ NucleosomeSignal <- function(
 
 #' @param genome A BSgenome object
 #' @param verbose Display messages
-#' @param sep A length-2 character vector containing the separators to be used when constructing
-#' genomic coordinates from the regions. The first element is used to separate the chromosome
-#' from the genomic coordinates, and the second element used to separate the start and
-#' end coordinates.
+#' @param sep A length-2 character vector containing the separators to be used
+#' when constructing genomic coordinates from the regions. The first element is
+#' used to separate the chromosome from the genomic coordinates, and the second
+#' element used to separate the start and end coordinates.
 #'
-#' @importFrom Biostrings letterFrequency dinucleotideFrequency
-#' @importFrom IRanges width
-#' @importFrom BSgenome getSeq
+#' @importMethodsFrom GenomicRanges width
 #' @rdname RegionStats
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
-#' RegionStats(object = rownames(atac_small), genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-"))
+#' RegionStats(
+#' object = rownames(atac_small),
+#' genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
+#' )
 #' }
 RegionStats.default <- function(
   object,
@@ -654,14 +696,22 @@ RegionStats.default <- function(
   verbose = TRUE,
   ...
 ) {
+  if (!requireNamespace('BSgenome', quietly = TRUE)) {
+    stop("Please install BSgenome: BiocManager::install('BSgenome')")
+  }
+  if (!requireNamespace('Biostrings', quietly = TRUE)) {
+    stop("Please install Biostrings: BiocManager::install('Biostrings')")
+  }
   if (inherits(x = object, what = 'character')) {
     object <- StringToGRanges(regions = object, sep = sep)
   }
   sequence.length <- width(x = object)
-  sequences <- getSeq(x = genome, names = object)
-  gc <- letterFrequency(x = sequences, letters = 'CG') / sequence.length * 100
+  sequences <- BSgenome::getSeq(x = genome, names = object)
+  gc <- Biostrings::letterFrequency(
+    x = sequences, letters = 'CG'
+  ) / sequence.length * 100
   colnames(gc) <- 'GC.percent'
-  dinuc <- dinucleotideFrequency(sequences)
+  dinuc <- Biostrings::dinucleotideFrequency(sequences)
   sequence.stats <- cbind(dinuc, gc, sequence.length)
   rownames(sequence.stats) <- GRangesToString(grange = object, sep = sep)
   return(sequence.stats)
@@ -673,9 +723,12 @@ RegionStats.default <- function(
 #' @importFrom Seurat GetAssayData
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
-#' RegionStats(object = atac_small[['peaks']], genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-"))
+#' RegionStats(
+#' object = atac_small[['peaks']],
+#' genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
+#' )
 #' }
 RegionStats.Assay <- function(
   object,
@@ -703,7 +756,7 @@ RegionStats.Assay <- function(
 #' @method RegionStats Seurat
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
 #'   object = atac_small,
@@ -734,15 +787,17 @@ RegionStats.Seurat <- function(
 
 #' @param method Which TF-IDF implementation to use. Choice of:
 #' \itemize{
-#'  \item{1}: The LSI implementation used by Stuart & Butler et al. 2019 (\url{https://doi.org/10.1101/460147}).
-#'  \item{2}: The standard LSI implementation used by Cusanovich & Hill et al. 2018 (\url{https://doi.org/10.1016/j.cell.2018.06.052}).
+#'  \item{1}: The LSI implementation used by Stuart & Butler et al. 2019
+#'  (\url{https://doi.org/10.1101/460147}).
+#'  \item{2}: The standard LSI implementation used by Cusanovich & Hill
+#'  et al. 2018 (\url{https://doi.org/10.1016/j.cell.2018.06.052}).
 #'  \item{3}: The log-TF method
 #'  \item{4}: The 10x Genomics method (no TF normalization)
 #' }
 #' @param scale.factor Which scale factor to use. Default is 10000.
 #' @param verbose Print progress
 #' @rdname RunTFIDF
-#' @importFrom Matrix colSums rowSums t Diagonal
+#' @importFrom Matrix colSums rowSums Diagonal tcrossprod
 #' @importFrom methods is "slot<-" slot
 #' @export
 #' @examples
@@ -769,18 +824,22 @@ RunTFIDF.default <- function(
   if (method == 4) {
     tf <- object
   } else {
-    tf <- t(x = t(x = object) / npeaks)
+    tf <- tcrossprod(x = object, y = Diagonal(x = 1 / npeaks))
   }
   idf <- ncol(x = object) / rowSums(x = object)
   if (method == 2) {
     idf <- log(1 + idf)
   } else if (method == 3) {
-    slot(object = tf, name = 'x') <- log1p(x = slot(object = tf, name = 'x') * scale.factor)
+    slot(object = tf, name = 'x') <- log1p(
+      x = slot(object = tf, name = 'x') * scale.factor
+    )
     idf <- log(1 + idf)
   }
   norm.data <- Diagonal(n = length(x = idf), x = idf) %*% tf
   if (method == 1) {
-    slot(object = norm.data, name = 'x') <- log1p(x = slot(object = norm.data, name = 'x') * scale.factor)
+    slot(object = norm.data, name = 'x') <- log1p(
+      x = slot(object = norm.data, name = 'x') * scale.factor
+    )
   }
   colnames(x = norm.data) <- colnames(x = object)
   rownames(x = norm.data) <- rownames(x = object)
@@ -808,6 +867,7 @@ RunTFIDF.Assay <- function(
     verbose = verbose,
     ...
   )
+  new.data <- as(object = new.data, Class = 'dgCMatrix')
   object <- SetAssayData(
     object = object,
     slot = 'data',
@@ -846,7 +906,8 @@ RunTFIDF.Seurat <- function(
 
 #' Compute TSS enrichment score per cell
 #'
-#' Compute the transcription start site (TSS) enrichment score for each cell, as defined by ENCODE:
+#' Compute the transcription start site (TSS) enrichment score for each cell,
+#' as defined by ENCODE:
 #' \url{https://www.encodeproject.org/data-standards/terms/}.
 #'
 #' The computed score will be added to the object metadata as "TSS.enrichment".
@@ -859,11 +920,12 @@ RunTFIDF.Seurat <- function(
 #' @param verbose Display messages
 #' @importFrom Matrix rowMeans
 #' @importFrom methods slot
+#' @importFrom stats ecdf
 #'
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(EnsDb.Hsapiens.v75)
 #' gene.ranges <- genes(EnsDb.Hsapiens.v75)
 #' gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
@@ -897,7 +959,8 @@ TSSEnrichment <- function(
     verbose = verbose
   )
 
-  # compute mean read counts in 100 bp at eack flank for each cell (200 bp total averaged)
+  # compute mean read counts in 100 bp at eack flank for each cell
+  # (200 bp total averaged)
   if (verbose) {
     message("Computing mean insertion frequency in flanking regions")
   }
@@ -905,17 +968,24 @@ TSSEnrichment <- function(
 
   # if the flanking mean is 0 for any cells, the enrichment score will be zero.
   # instead replace with the mean from the whole population
-  flanking.mean[flanking.mean == 0] <- mean(flanking.mean)
+  flanking.mean[is.na(x = flanking.mean)] <- 0
+  flanking.mean[flanking.mean == 0] <- mean(flanking.mean, na.rm = TRUE)
 
-  # compute fold change at each position relative to flanking mean (flanks should start at 1)
+  # compute fold change at each position relative to flanking mean
+  # (flanks should start at 1)
   if (verbose) {
     message("Normalizing TSS score")
   }
   norm.matrix <- cutmatrix / flanking.mean
 
-  # Take signal value at center of distribution after normalization as TSS enrichment score
-  # average the 1000 bases at the center
-  object$TSS.enrichment <- rowMeans(x = norm.matrix[, 501:1500])
+  # Take signal value at center of distribution after normalization as
+  # TSS enrichment score, average the 1000 bases at the center
+  object$TSS.enrichment <- rowMeans(x = norm.matrix[, 501:1500], na.rm = TRUE)
+  e.dist <- ecdf(x = object$TSS.enrichment)
+  object$TSS.percentile <- round(
+    x = e.dist(object$TSS.enrichment),
+    digits = 2
+  )
 
   # store the normalized TSS matrix. For now put it in misc
   object <- AddToMisc(

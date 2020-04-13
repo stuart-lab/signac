@@ -29,10 +29,10 @@ RegionStats(object, ...)
 
 \item{genome}{A BSgenome object}
 
-\item{sep}{A length-2 character vector containing the separators to be used when constructing
-genomic coordinates from the regions. The first element is used to separate the chromosome
-from the genomic coordinates, and the second element used to separate the start and
-end coordinates.}
+\item{sep}{A length-2 character vector containing the separators to be used
+when constructing genomic coordinates from the regions. The first element is
+used to separate the chromosome from the genomic coordinates, and the second
+element used to separate the start and end coordinates.}
 
 \item{verbose}{Display messages}
 
@@ -46,15 +46,21 @@ Compute the GC content, region lengths, and dinucleotide base frequencies
 for regions in the assay and add to the feature metadata.
 }
 \examples{
-\donttest{
+\dontrun{
 library(BSgenome.Hsapiens.UCSC.hg19)
-RegionStats(object = rownames(atac_small), genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-"))
+RegionStats(
+object = rownames(atac_small),
+genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
+)
 }
-\donttest{
+\dontrun{
 library(BSgenome.Hsapiens.UCSC.hg19)
-RegionStats(object = atac_small[['peaks']], genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-"))
+RegionStats(
+object = atac_small[['peaks']],
+genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
+)
 }
-\donttest{
+\dontrun{
 library(BSgenome.Hsapiens.UCSC.hg19)
 RegionStats(
   object = atac_small,

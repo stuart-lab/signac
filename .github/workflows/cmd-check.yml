@@ -1,0 +1,87 @@
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
+
+name: R-CMD-check
+
+jobs:
+  R-CMD-check:
+    
+    if: "!contains(github.event.head_commit.message, 'ci-skip')"
+
+    runs-on: ${{ matrix.config.os }}
+
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: macOS-latest, r: '3.6', bioc: '3.10'}
+          - {os: windows-latest, r: '3.6', bioc: '3.10'}
+            #- {os: macOS-latest, r: 'devel', bioc: 'devel'}
+          - {os: ubuntu-16.04, r: '3.6', bioc: '3.10', rspm: "https://demo.rstudiopm.com/all/__linux__/xenial/latest"}
+    
+    env:
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      RSPM: ${{ matrix.config.rspm }}
+    
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: r-lib/actions/setup-r@master
+        with: 
+          r-version: ${{ matrix.config.r }}
+
+      - name: Query dependencies
+        run: |
+          install.packages("remotes", Ncpu = 2L)
+          setRepositories(ind=1:2)
+          saveRDS(remotes::dev_package_deps(dependencies = TRUE, repos = getOption('repos')), "depends.Rds", version = 2)
+        shell: Rscript {0}
+
+      - name: Cache R packages
+        if: runner.os != 'Windows'
+        uses: actions/cache@v1
+        with:
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-r-${{ matrix.config.r }}-${{ hashFiles('depends.Rds') }}
+          restore-keys: ${{ runner.os }}-r-${{ matrix.config.r }}-
+      
+      - name: Install system dependencies
+        if: runner.os == 'Linux'
+        env:
+          RHUB_PLATFORM: linux-x86_64-ubuntu-gcc
+        run: |
+          Rscript -e "remotes::install_github('r-hub/sysreqs')"
+          sysreqs=$(Rscript -e "cat(sysreqs::sysreq_commands('DESCRIPTION'))")
+          sudo -s eval "$sysreqs"
+          sudo apt-get install libgsl2 libgsl-dev
+
+      - name: Install dependencies
+        run: |
+          install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
+          install.packages(c("BiocManager", "glue"), Ncpu = 2L)
+          BiocManager::install(version = '${{ matrix.config.bioc }}')
+          BiocManager::install(c("GenomeInfoDbData", "GenomicAlignments"), Ncpu = 2L)
+          setRepositories(ind=1:2)
+          remotes::install_deps(dependencies = TRUE, repos = getOption('repos'), Ncpu = 2L)
+          remotes::install_cran("rcmdcheck", Ncpu = 2L)
+        shell: Rscript {0}
+
+      - name: Check
+        run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "warning", check_dir = "check")
+        shell: Rscript {0}
+
+      - name: Upload check results
+        if: failure()
+        uses: actions/upload-artifact@master
+        with:
+          name: ${{ runner.os }}-r${{ matrix.config.r }}-results
+          path: check

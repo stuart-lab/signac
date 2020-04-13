@@ -9,7 +9,6 @@ SingleCoveragePlot(
   object,
   region,
   annotation = NULL,
-  ucsc = TRUE,
   peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
@@ -30,7 +29,6 @@ CoveragePlot(
   object,
   region,
   annotation = NULL,
-  ucsc = TRUE,
   peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
@@ -51,44 +49,49 @@ CoveragePlot(
 \arguments{
 \item{object}{A Seurat object}
 
-\item{region}{A set of genomic coordinates to show. Can be a GRanges object, a string, or a vector of strings describing the genomic
+\item{region}{A set of genomic coordinates to show. Can be a GRanges object,
+a string, or a vector of strings describing the genomic
 coordinates to plot.}
 
 \item{annotation}{An Ensembl based annotation package}
-
-\item{ucsc}{Set annotation seqlevels style to UCSC}
 
 \item{peaks}{A GRanges object containing peak coordinates}
 
 \item{assay}{Name of the  assay to plot}
 
-\item{fragment.path}{Path to an index fragment file. If NULL, will look for a path stored for the
-requested assay using the \code{\link{SetFragments}} function}
+\item{fragment.path}{Path to an index fragment file. If NULL, will look for a
+path stored for the requested assay using the \code{\link{SetFragments}}
+function}
 
-\item{group.by}{Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities}
+\item{group.by}{Name of one or more metadata columns to group (color) the
+cells by. Default is the current cell identities}
 
 \item{window}{Smoothing window size}
 
-\item{downsample}{Fraction of positions to retain in the plot. Default is 0.1 (retain 10 percent, ie every 10th position)}
+\item{downsample}{Fraction of positions to retain in the plot.}
 
-\item{height.tracks}{Height of the accessibility tracks relative to the height of the gene annotation track.
-Default is 2 (twice as high as annotation track).}
+\item{height.tracks}{Height of the accessibility tracks relative to the
+height of the gene annotation track.}
 
-\item{extend.upstream}{Number of bases to extend the region upstream (Default 0)}
+\item{extend.upstream}{Number of bases to extend the region upstream.}
 
-\item{extend.downstream}{Number of bases to extend the region downstream (Default 0)}
+\item{extend.downstream}{Number of bases to extend the region downstream.}
 
-\item{ymax}{Maximum value for Y axis. If NULL (default) set to the highest value among all the tracks.}
+\item{ymax}{Maximum value for Y axis. If NULL (default) set to the highest
+value among all the tracks.}
 
-\item{scale.factor}{Scaling factor for track height. If NULL (default), use the median group scaling factor
-determined by total number of fragments sequences in each group.}
+\item{scale.factor}{Scaling factor for track height. If NULL (default),
+use the median group scaling factor determined by total number of fragments
+sequences in each group.}
 
 \item{cells}{Which cells to plot. Default all cells}
 
-\item{idents}{Which identities to include in the plot. Default is all identities.}
+\item{idents}{Which identities to include in the plot. Default is all
+identities.}
 
-\item{sep}{Separators to use for strings encoding genomic coordinates. First element is used to separate the
-chromosome from the coordinates, second element is used to separate the start from end coordinate.}
+\item{sep}{Separators to use for strings encoding genomic coordinates. First
+element is used to separate the chromosome from the coordinates, second
+element is used to separate the start from end coordinate.}
 
 \item{...}{Additional arguments passed to \code{\link[patchwork]{wrap_plots}}}
 }
@@ -96,11 +99,12 @@ chromosome from the coordinates, second element is used to separate the start fr
 Returns a \code{\link[ggplot2]{ggplot}} object
 }
 \description{
-Plot fragment coverage (frequence of Tn5 insertion) within given regions for groups of cells.
+Plot fragment coverage (frequence of Tn5 insertion) within given regions
+for groups of cells.
 }
 \details{
 Thanks to Andrew Hill for providing an early version of this function
- \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
+\url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
 }
 \examples{
 \donttest{

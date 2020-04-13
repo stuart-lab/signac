@@ -1,7 +1,7 @@
 Package: Signac
 Title: Analysis of Single-Cell Chromatin Data
-Version: 0.2.4
-Date: 2020-03-04
+Version: 0.2.5
+Date: 2020-04-11
 Authors@R: c(
   person(given = 'Tim', family = 'Stuart', email = 'tstuart@nygenome.org', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3044-0897')),
   person(given = 'Paul', family = 'Hoffman', email = 'phoffman@nygenome.org', role = 'ctb', comment = c(ORCID = '0000-0002-7693-8957')),
@@ -15,7 +15,6 @@ Description: A framework for the analysis and exploration of single-cell chromat
 Depends:
     R (>= 3.4.0),
     methods
-biocViews:
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -23,9 +22,7 @@ RoxygenNote: 7.1.0
 URL: https://github.com/timoast/signac, https://satijalab.org/signac
 BugReports: https://github.com/timoast/signac/issues
 Imports: 
-    BiocGenerics,
     GenomeInfoDb,
-    GenomicFeatures,
     GenomicRanges,
     IRanges,
     Matrix,
@@ -43,8 +40,6 @@ Imports:
     tidyr,
     zoo,
     patchwork,
-    Biostrings,
-    BSgenome,
     gggenes,
     grid,
     stats,
@@ -64,6 +59,5 @@ Suggests:
     SummarizedExperiment,
     TFBSTools,
     motifmatchr,
-    BSgenome.Hsapiens.UCSC.hg19,
-    EnsDb.Hsapiens.v75,
-    JASPAR2018
+    Biostrings,
+    BSgenome

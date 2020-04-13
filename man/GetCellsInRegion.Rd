@@ -11,8 +11,9 @@ GetCellsInRegion(tabix, region, sep = c("-", "-"), cells = NULL)
 
 \item{region}{A string giving the region to extract from the fragments file}
 
-\item{sep}{Vector of separators to use for genomic string. First element is used to separate chromosome
-and coordinates, second separator is used to separate start and end coordinates.}
+\item{sep}{Vector of separators to use for genomic string. First element is
+used to separate chromosome and coordinates, second separator is used to
+separate start and end coordinates.}
 
 \item{cells}{Vector of cells to include in output. If NULL, include all cells}
 }

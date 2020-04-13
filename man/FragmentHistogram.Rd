@@ -19,10 +19,12 @@ FragmentHistogram(
 
 \item{assay}{Which assay to use. Default is the active assay.}
 
-\item{region}{Genomic range to use. Default is fist two megabases of chromosome 1. Can be a GRanges object, a string, or a vector
+\item{region}{Genomic range to use. Default is fist two megabases of
+chromosome 1. Can be a GRanges object, a string, or a vector
 of strings.}
 
-\item{group.by}{Name of one or more metadata columns to group (color) the cells by. Default is the current cell identities}
+\item{group.by}{Name of one or more metadata columns to group (color) the
+cells by. Default is the current cell identities}
 
 \item{cells}{Which cells to plot. Default all cells}
 

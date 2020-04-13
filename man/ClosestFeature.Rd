@@ -9,17 +9,13 @@ ClosestFeature(regions, annotation, ...)
 \arguments{
 \item{regions}{A set of genomic regions to query}
 
-\item{annotation}{Annotation information. Can be a GRanges object or an EnsDb object.
-If an EnsDb object is provided, protein-coding genes will be extracted from the
-object and only the closest protein coding genes are reported. If a GRanges
-object is provided, no filtering is performed and the closest genomic range
-is reported.}
+\item{annotation}{A GRanges object containing annotation information.}
 
 \item{...}{Additional arguments passed to \code{\link{StringToGRanges}}}
 }
 \value{
-Returns a dataframe with the name of each region, the closest feature in the annotation,
-and the distance to the feature.
+Returns a dataframe with the name of each region, the closest feature
+in the annotation, and the distance to the feature.
 }
 \description{
 Find the closest feature to a given set of genomic regions
@@ -28,7 +24,9 @@ Find the closest feature to a given set of genomic regions
 \donttest{
 ClosestFeature(
   regions = head(rownames(atac_small)),
-  annotation = StringToGRanges(head(rownames(atac_small)), sep = c(':', '-')),
+  annotation = StringToGRanges(
+  head(rownames(atac_small)),
+  sep = c(':', '-')),
   sep = c(":", "-")
 )
 }

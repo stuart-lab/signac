@@ -12,16 +12,17 @@ SetFragments(object, file, assay = NULL)
 \item{file}{Path to indexed fragment file.
 See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}}
 
-\item{assay}{Assay used to generate the fragments. If NULL, use the active assay.}
+\item{assay}{Assay used to generate the fragments.
+If NULL, use the active assay.}
 }
 \value{
 Returns a Seurat object
 }
 \description{
 Give path of indexed fragments file that goes with data in the object.
-Checks for a valid path and an index file with the same name (.tbi) at the same path.
-Stores the path under the tools slot for access by visualization functions.
-One fragments file can be stored for each assay.
+Checks for a valid path and an index file with the same name (.tbi) at the
+same path. Stores the path under the tools slot for access by visualization
+functions. One fragments file can be stored for each assay.
 }
 \examples{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
