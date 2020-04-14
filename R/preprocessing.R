@@ -602,7 +602,7 @@ NucleosomeSignal <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  fragments.use <- GetReadsInRegion(
+  fragments.use <- MultiGetReadsInRegion(
     object = object,
     region = region,
     assay = assay,

@@ -334,64 +334,54 @@ ChunkGRanges <- function(granges, nchunk) {
   return(range.list)
 }
 
-#' Generate matrix of integration sites
-#'
-#' Generates a cell-by-position matrix of Tn5 integration sites
-#' centered on a given region (usually a DNA sequence motif). This
-#' matrix can be used for downstream footprinting analysis.
-#'
-#' @param object A Seurat object
-#' @param region A GRanges object containing the region of interest
-#' @param assay Name of the assay to use
-#' @param cells Which cells to include in the matrix. If NULL (default), use all
-#' cells in the object
-#' @param tabix.file A TabixFile object. If NULL, the file specified in
-#' \code{fragment.path} will be opened and closed after the function completes.
-#' If iterating over many regions, providing an open TabixFile is much faster
-#' as it avoids opening and closing the connection each time.
-#' @param verbose Display messages
+# Generate matrix of integration sites
+#
+# Generates a cell-by-position matrix of Tn5 integration sites
+# centered on a given region (usually a DNA sequence motif). This
+# matrix can be used for downstream footprinting analysis.
+#
+# @param object A Seurat object
+# @param region A GRanges object containing the region of interest
+# @param cells Which cells to include in the matrix. If NULL (default), use all
+# cells in the object
+# @param tabix.file A \code{\link[Rsamtools]{TabixFile}} object.
+# @param verbose Display messages
 #' @importFrom Matrix sparseMatrix
 #' @importFrom Rsamtools TabixFile
 #' @importMethodsFrom GenomicRanges width start end
-#' @return Returns a sparse matrix
-#' @export
-#' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' atac_small <- SetFragments(atac_small, file = fpath)
-#' CutMatrix(
-#'  object = atac_small,
-#'  region = StringToGRanges("chr1-10245-762629")
-#' )
-CutMatrix <- function(
+# @return Returns a sparse matrix
+# @examples
+# fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+# atac_small <- SetFragments(atac_small, file = fpath)
+# SingleFileCutMatrix(
+#  object = atac_small,
+#  region = StringToGRanges("chr1-10245-762629")
+# )
+SingleFileCutMatrix <- function(
   object,
   region,
-  tabix.file = NULL,
-  assay = NULL,
+  tabix.file,
   cells = NULL,
   verbose = TRUE
 ) {
   if (!inherits(x = region, what = "GRanges")) {
     stop("Region is not a GRanges object.")
   }
-  all.cells <- SetIfNull(x = cells, y = colnames(x = object))
+  cells <- SetIfNull(x = cells, y = colnames(x = object))
   fragments <- GetReadsInRegion(
     object = object,
-    assay = assay,
     region = region,
     cells = cells,
     tabix.file = tabix.file,
     verbose = verbose
   )
-  if (closefile) {
-    close(con = tabix.file)
-  }
   # if there are no reads in the region
   # create an empty matrix of the correct dimension
   if (nrow(x = fragments) == 0) {
     cut.matrix <- sparseMatrix(
       i = NULL,
       j = NULL,
-      dims = c(length(x = all.cells), width(x = region))
+      dims = c(length(x = cells), width(x = region))
     )
   } else {
     cut.df <- data.frame(
@@ -402,19 +392,71 @@ CutMatrix <- function(
     cut.df <- cut.df[
       (cut.df$position > 0) & (cut.df$position <= width(x = region)),
     ]
-    cell.vector <- seq_along(along.with = all.cells)
-    names(x = cell.vector) <- all.cells
+    cell.vector <- seq_along(along.with = cells)
+    names(x = cell.vector) <- cells
     cell.matrix.info <- cell.vector[cut.df$cell]
     cut.matrix <- sparseMatrix(
       i = cell.matrix.info,
       j = cut.df$position,
       x = 1,
-      dims = c(length(x = all.cells), width(x = region))
+      dims = c(length(x = cells), width(x = region))
     )
   }
-  rownames(x = cut.matrix) <- all.cells
+  rownames(x = cut.matrix) <- cells
   colnames(x = cut.matrix) <- start(region):end(region)
   return(cut.matrix)
+}
+
+#' Generate matrix of integration sites
+#'
+#' Generates a cell-by-position matrix of Tn5 integration sites.
+#'
+#' @param object A Seurat object
+#' @param region A GRanges object containing the region of interest
+#' @param assay A name of assay to use. Must be a \code{\link{ChromatinAssay}}
+#' containing a list of \code{\link{Fragment}} objects.
+#' @param cells Which cells to include in the matrix. If NULL (default), use all
+#' cells in the object
+#' @param verbose Display messages
+#' @return Returns a sparse matrix
+#' @importFrom Seurat DefaultAssay
+#' @importFrom Rsamtools TabixFile
+#' @examples
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' atac_small <- SetFragments(atac_small, file = fpath)
+#' CutMatrix(
+#'  object = atac_small,
+#'  region = StringToGRanges("chr1-10245-762629")
+#' )
+CutMatrix <- function(
+  object,
+  region,
+  assay = NULL,
+  cells = NULL,
+  verbose = TRUE
+) {
+  # run SingleFileCutMatrix for each fragment file and combine results
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  cells <- SetIfNull(x = cells, y = colnames(x = object))
+  fragments <- Fragments(object = object[[assay]])
+  res <- list()
+  browser()
+  for (i in seq_along(along.with = fragments)) {
+    fragment.path <- GetFragmentData(object = fragments[[i]], slot = "path")
+    tabix.file <- TabixFile(file = fragment.path)
+    open(con = tabix.file)
+    cm <- SingleFileCutMatrix(
+      object = object,
+      region = region,
+      tabix.file = tabix.file,
+      cells = cells,
+      verbose = FALSE
+    )
+    close(con = tabix.file)
+    res[[i]] <- cm
+  }
+  res <- Reduce(f = `+`, x = res)
+  return(res)
 }
 
 #' Extend
@@ -516,18 +558,14 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 #' @param object A Seurat object
 #' @param region A genomic region, specified as a string in the format
 #' 'chr:start-end'. Can be a vector of regions.
-#' @param assay Name of assay to use
-#' @param tabix.file A TabixFile object. If NULL, the file specified in
-#' \code{fragment.path} will be opened and closed after the function completes.
-#' If iterating over many regions, providing an open TabixFile is much faster
-#' as it avoids opening and closing the connection each time.
+#' @param tabix.file A TabixFile object.
 #' @param group.by Cell grouping information to add
 #' @param cells Cells to include. Default is all cells present in the object.
 #' @param verbose Display messages
 #' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #'
 #' @importFrom Rsamtools TabixFile scanTabix
-#' @importFrom Seurat Idents DefaultAssay
+#' @importFrom Seurat Idents
 #'
 #' @return Returns a data frame
 #' @export
@@ -539,14 +577,12 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 GetReadsInRegion <- function(
   object,
   region,
-  assay = NULL,
-  tabix.file = NULL,
+  tabix.file,
   group.by = NULL,
   cells = NULL,
   verbose = TRUE,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (is.null(x = group.by)) {
     group.by <- Idents(object = object)
   } else {
@@ -560,22 +596,7 @@ GetReadsInRegion <- function(
   if (!is(object = region, class2 = "GRanges")) {
     region <- StringToGRanges(regions = region, ...)
   }
-  if (is.null(x = tabix.file)) {
-    fragment.path <- GetAssayData(
-      object = object,
-      assay = assay,
-      slot = "fragments"
-    )
-    tabix.file <- TabixFile(file = fragment.path)
-    open(con = tabix.file)
-    close.file <- TRUE
-  } else {
-    close.file <- FALSE
-  }
   reads <- scanTabix(file = tabix.file, param = region)
-  if (close.file) {
-    close(con = tabix.file)
-  }
   reads <- TabixOutputToDataFrame(reads = reads)
   reads <- reads[reads$cell %in% names(group.by), ]
   if (!is.null(x = cells)) {
@@ -587,6 +608,39 @@ GetReadsInRegion <- function(
   reads$length <- reads$end - reads$start
   reads$group <- group.by[reads$cell]
   return(reads)
+}
+
+# Run GetReadsInRegion for a list of Fragment objects
+# concatenate the output dataframes and return
+#' @importFrom Seurat DefaultAssay
+#' @importFrom Rsamtools TabixFile
+MultiGetReadsInRegion <- function(
+  object,
+  region,
+  fragment.list = NULL,
+  assay = NULL,
+  ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  fragment.list <- SetIfNull(
+    x = fragment.list,
+    y = Fragments(object = object[[assay]])
+  )
+  res <- data.frame()
+  for (i in seq_along(along.with = fragment.list)) {
+    tbx.path <- GetFragmentData(object = fragment.list[[i]], slot = "path")
+    tabix.file <- TabixFile(file = tbx.path)
+    open(con = tabix.file)
+    reads <- GetReadsInRegion(
+      object = object,
+      region = region,
+      tabix.file = tabix.file,
+      ...
+    )
+    res <- rbind(res, reads)
+    close(con = tabix.file)
+  }
+  return(res)
 }
 
 #' CountsInRegion
@@ -1002,40 +1056,44 @@ MergeWithRegions <- function(
 #
 # @param object A Seurat object
 # @param regions A set of GRanges
+# @param fragments A list of Fragment objects
 # @param assay Name of the assay to use
 # @param cells Vector of cells to include
 # @param verbose Display messages
 #' @importFrom Rsamtools TabixFile
-#' @importFrom Seurat GetAssayData
+#' @importFrom Seurat DefaultAssay
 MultiRegionCutMatrix <- function(
   object,
   regions,
+  fragments = NULL,
   assay = NULL,
   cells = NULL,
   verbose = FALSE
 ) {
-  fragment.path <- GetAssayData(
-    object = object,
-    assay = assay,
-    slot = "fragments"
-  )
-  tabix.file <- TabixFile(file = fragment.path)
-  open(con = tabix.file)
-  cm.list <- lapply(
-    X = seq_along(along.with = regions),
-    FUN = function(x) {
-      CutMatrix(
-        object = object,
-        assay = assay,
-        tabix.file = tabix.file,
-        region = regions[x, ],
-        verbose = verbose
-      )
-    }
-  )
-  cm <- Reduce(f = `+`, x = cm.list)
-  close(con = tabix.file)
-  return(cm)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  fragments <- SetIfNull(x = fragments, y = Fragments(object = object[[assay]]))
+  res <- list()
+  for (i in seq_along(along.with = fragments)) {
+    frag.path <- GetFragmentData(object = fragments[[i]], slot = "path")
+    tabix.file <- TabixFile(file = frag.path)
+    open(con = tabix.file)
+    cm.list <- lapply(
+      X = seq_along(regions),
+      FUN = function(x) {
+        SingleFileCutMatrix(
+          object = object,
+          tabix.file = tabix.file,
+          region = regions[x, ],
+          verbose = verbose
+        )
+      }
+    )
+    cm <- Reduce(f = `+`, x = cm.list)
+    close(con = tabix.file)
+    res[[i]] <- cm
+  }
+  res <- Reduce(f = `+`, x = res)
+  return(res)
 }
 
 # Create cut site pileup matrix
@@ -1170,22 +1228,31 @@ ApplyMatrixByGroup <- function(
 # @param reads List of character vectors (the output of \code{\link{scanTabix}})
 # @param record.ident Add a column recording which region the reads overlapped
 # with
-#' @importFrom data.table rbindlist
+#' @importFrom data.table rbindlist fread
 #' @importFrom utils read.table
+#' @importFrom future nbrOfWorkers
 # @return Returns a data.frame
 TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
-  # TODO rewrite this without rbindlist
   df.list <- lapply(X = seq_along(along.with = reads), FUN = function(x) {
     if (length(x = reads[[x]]) == 0) {
       return(NULL)
     }
-    df <- read.table(
-      file = textConnection(object = reads[[x]]),
-      header = FALSE,
-      sep = "\t",
-      stringsAsFactors = FALSE,
-      comment.char = ""
-    )
+    if (length(reads[[x]]) < 2) {
+      df <- read.table(
+        file = textConnection(object = reads[[x]]),
+        header = FALSE,
+        sep = "\t",
+        stringsAsFactors = FALSE,
+        comment.char = ""
+      )
+    } else {
+      df <- fread(
+        text = reads[[x]],
+        sep = "\t",
+        header = FALSE,
+        nThread = nbrOfWorkers()
+      )
+    }
     colnames(x = df) <- c("chr", "start", "end", "cell", "count")
     if (record.ident) {
       df$ident <- x

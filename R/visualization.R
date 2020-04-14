@@ -474,7 +474,7 @@ FragmentHistogram <- function(
   log.scale = FALSE,
   ...
 ) {
-  reads <- GetReadsInRegion(
+  reads <- MultiGetReadsInRegion(
     object = object,
     assay = assay,
     region = region,
