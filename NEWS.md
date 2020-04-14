@@ -5,6 +5,12 @@ reduced dimension components.
 * Performance improvements for `RunTFIDF`. 
 * Removed option to use EnsDb object in `ClosestFeatures` and `CoveragePlot`. Use GRanges instead. 
 * Removed `ucsc` parameter from `CoveragePlot`. 
+* Fixed bug in FeatureMatrix that would cause fragments to be counted multiple
+times if `nchunk` was greater than the number of features used. 
+* Fixed bug in `CoveragePlot` that would prevent plotting multiple regions when
+using `GRanges`. 
+* Fixed bug in `CoveragePlot` that would prevent plotting when a different 
+assay was active. 
 * Removed dependencies: GenomicFeatures
 * Moved dependencies to suggests: Biostrings, BSgenome
 * Removed from suggests: BSgenome.Hsapiens.UCSC.hg19, EnsDb.Hsapiens.v75, JASPAR2018
