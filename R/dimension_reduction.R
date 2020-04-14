@@ -106,7 +106,7 @@ RunSVD.default <- function(
     reduction.key, seq_len(length.out = n)
   )
   reduction.data <- CreateDimReducObject(
-    embeddings = cell.embeddings,
+    embeddings = norm.embeddings,
     loadings = feature.loadings,
     assay = assay,
     stdev = sdev,
