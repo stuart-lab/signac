@@ -7,8 +7,7 @@
 GetReadsInRegion(
   object,
   region,
-  assay = NULL,
-  tabix.file = NULL,
+  tabix.file,
   group.by = NULL,
   cells = NULL,
   verbose = TRUE,
@@ -21,12 +20,7 @@ GetReadsInRegion(
 \item{region}{A genomic region, specified as a string in the format
 'chr:start-end'. Can be a vector of regions.}
 
-\item{assay}{Name of assay to use}
-
-\item{tabix.file}{A TabixFile object. If NULL, the file specified in
-\code{fragment.path} will be opened and closed after the function completes.
-If iterating over many regions, providing an open TabixFile is much faster
-as it avoids opening and closing the connection each time.}
+\item{tabix.file}{A TabixFile object.}
 
 \item{group.by}{Cell grouping information to add}
 

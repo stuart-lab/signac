@@ -4,26 +4,15 @@
 \alias{CutMatrix}
 \title{Generate matrix of integration sites}
 \usage{
-CutMatrix(
-  object,
-  region,
-  tabix.file = NULL,
-  assay = NULL,
-  cells = NULL,
-  verbose = TRUE
-)
+CutMatrix(object, region, assay = NULL, cells = NULL, verbose = TRUE)
 }
 \arguments{
 \item{object}{A Seurat object}
 
 \item{region}{A GRanges object containing the region of interest}
 
-\item{tabix.file}{A TabixFile object. If NULL, the file specified in
-\code{fragment.path} will be opened and closed after the function completes.
-If iterating over many regions, providing an open TabixFile is much faster
-as it avoids opening and closing the connection each time.}
-
-\item{assay}{Name of the assay to use}
+\item{assay}{A name of assay to use. Must be a \code{\link{ChromatinAssay}}
+containing a list of \code{\link{Fragment}} objects.}
 
 \item{cells}{Which cells to include in the matrix. If NULL (default), use all
 cells in the object}
@@ -34,9 +23,7 @@ cells in the object}
 Returns a sparse matrix
 }
 \description{
-Generates a cell-by-position matrix of Tn5 integration sites
-centered on a given region (usually a DNA sequence motif). This
-matrix can be used for downstream footprinting analysis.
+Generates a cell-by-position matrix of Tn5 integration sites.
 }
 \examples{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
