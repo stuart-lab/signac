@@ -1176,6 +1176,15 @@ setMethod(
   }
 )
 
+#' @importFrom GenomeInfoDb genome<-
+setMethod(
+  f = "genome<-",
+  signature = "ChromatinAssay",
+  definition = function(x, value) {
+    SetAssayData(object = x, slot = "genome", new.data = value)
+  }
+)
+
 #' @importFrom GenomeInfoDb genome
 #' @importFrom Seurat DefaultAssay
 setMethod(
@@ -1184,6 +1193,20 @@ setMethod(
   definition = function(x) {
     assay <- DefaultAssay(object = x)
     genome(x = x[[assay]])
+  }
+)
+
+#' @importFrom GenomeInfoDb genome<-
+#' @importFrom Seurat DefaultAssay
+setMethod(
+  f = "genome<-",
+  signature = "Seurat",
+  definition = function(x, value) {
+    assay <- DefaultAssay(object = x)
+    x[[assay]] <- SetAssayData(
+      object = x[[assay]], slot = "genome", new.data = value
+    )
+    return(x)
   }
 )
 
@@ -1248,6 +1271,22 @@ dimnames.Motif <- function(x) {
 #' @export
 dim.Motif <- function(x) {
   return(dim(x = GetMotifData(object = x)))
+}
+
+#' @export
+#' @method Annotation<- ChromatinAssay
+"Annotation<-.ChromatinAssay" <- function(object, ..., value) {
+  object <- SetAssayData(object = object, slot = "annotation", new.data = value)
+  return(object)
+}
+
+#' @export
+#' @importFrom Seurat DefaultAssay
+#' @method Annotation<- Seurat
+"Annotation<-.Seurat" <- function(object, ..., value) {
+  assay <- DefaultAssay(object = object)
+  Annotation(object = object[[assay]]) <- value
+  return(object)
 }
 
 #' @export
