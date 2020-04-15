@@ -43,7 +43,8 @@ Imports:
     gggenes,
     grid,
     stats,
-    utils
+    utils,
+    BiocGenerics
 Collate: 
     'data.R'
     'generics.R'

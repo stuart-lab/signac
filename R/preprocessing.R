@@ -677,7 +677,7 @@ NucleosomeSignal <- function(
 #' when constructing genomic coordinates from the regions. The first element is
 #' used to separate the chromosome from the genomic coordinates, and the second
 #' element used to separate the start and end coordinates.
-#'
+#' @importFrom BiocGenerics width
 #' @importMethodsFrom GenomicRanges width
 #' @rdname RegionStats
 #' @export

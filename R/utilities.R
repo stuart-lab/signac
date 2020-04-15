@@ -444,6 +444,7 @@ CutMatrix <- function(
 #' respectively.
 #'
 #' @importFrom GenomicRanges trim
+#' @importFrom BiocGenerics start strand end width
 #' @importMethodsFrom GenomicRanges strand start end width
 #' @importFrom IRanges ranges IRanges "ranges<-"
 #' @export
