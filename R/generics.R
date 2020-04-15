@@ -20,6 +20,18 @@ Annotation <- function(object, ...) {
   UseMethod(generic = "Annotation", object = object)
 }
 
+#' @param value A value to set. Can be NULL, to remove the current annotation
+#' information, or a \code{\link[GenomicRanges]{GRanges}} object. If a
+#' \code{GRanges} object is supplied and the genome information is stored in the
+#' assay, the genome of the new annotations must match the genome of the assay.
+#'
+#' @rdname Annotation
+#' @export Annotation<-
+#'
+"Annotation<-" <- function(object, ..., value) {
+  UseMethod(generic = 'Annotation<-', object = object)
+}
+
 #' Binarize counts
 #'
 #' Set counts >1 to 1 in a count matrix
