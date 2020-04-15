@@ -53,9 +53,13 @@ CoveragePlot(
 a string, or a vector of strings describing the genomic
 coordinates to plot.}
 
-\item{annotation}{An Ensembl based annotation package}
+\item{annotation}{A GRanges object containing genomic annotations. If NULL,
+use the annotations stored in the assay. If NA or FALSE, don't plot
+annotations.}
 
-\item{peaks}{A GRanges object containing peak coordinates}
+\item{peaks}{A GRanges object containing peak coordinates. If NULL, use the
+genomic ranges associated with the assay. If NA or FALSE, don't plot genomic
+ranges.}
 
 \item{assay}{Name of the  assay to plot}
 

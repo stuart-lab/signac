@@ -2,11 +2,14 @@
 % Please edit documentation in R/generics.R, R/objects.R
 \name{Annotation}
 \alias{Annotation}
+\alias{Annotation<-}
 \alias{Annotation.ChromatinAssay}
 \alias{Annotation.Seurat}
 \title{Annotation}
 \usage{
 Annotation(object, ...)
+
+Annotation(object, ...) <- value
 
 \method{Annotation}{ChromatinAssay}(object, ...)
 
@@ -16,6 +19,11 @@ Annotation(object, ...)
 \item{object}{A Seurat object or ChromatinAssay object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{value}{A value to set. Can be NULL, to remove the current annotation
+information, or a \code{\link[GenomicRanges]{GRanges}} object. If a
+\code{GRanges} object is supplied and the genome information is stored in the
+assay, the genome of the new annotations must match the genome of the assay.}
 }
 \value{
 Returns a \code{\link[GenomicRanges]{GRanges}} object

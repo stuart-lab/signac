@@ -49,7 +49,10 @@ the rows of the input matrix}
 \item{motifs}{A Motif object (not required)}
 
 \item{fragments}{Path to a tabix-indexed fragments file for the data
-contained in the input matrix (not required)}
+contained in the input matrix. If multiple fragment files are required,
+you can add additional \code{\link{Fragment}} object to the assay after it is
+created using the \code{\link{CreateFragmentObject}} and
+\code{\link{Fragments}} functions.}
 
 \item{genome}{Name of the genome used}
 
