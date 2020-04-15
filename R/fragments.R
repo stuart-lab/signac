@@ -12,23 +12,21 @@ NULL
 #'
 #' @param path A path to the fragment file. The file should contain a tabix
 #' index in the same directory.
-#' @param cells A character vector containing cell barcodes contained in the
-#' fragment file. This does not need to be all cells in the fragment file,
+#' @param cells A named character vector containing cell barcodes contained in
+#' the fragment file. This does not need to be all cells in the fragment file,
 #' but there should be no cells in the vector that are not present in the
 #' fragment file. A search of the file will be performed until at least one
 #' fragment from each cell is found. If NULL, don't check for expected cells.
-#' @param prefix A prefix to attach to cell barcodes in the file. This will be
-#' automatically added to cell barcodes that are returned by functions that
-#' use the \code{Fragment} class object. If NULL, don't append a prefix.
-#' @param suffix The same as the \code{prefix} argument, but for a suffix.
+#'
+#' Each element of the vector should be a cell barcode that appears in the
+#' fragment file, and the name of each element should be the corresponding cell
+#' name in the object.
 #' @param verbose Display messages
 #' @param ... Additional arguments passed to \code{ValidateCells}
 #' @importFrom tools md5sum file_ext
 CreateFragmentObject <- function(
   path,
   cells = NULL,
-  prefix = NULL,
-  suffix = NULL,
   validate.fragments = TRUE,
   verbose = TRUE,
   ...
@@ -45,6 +43,11 @@ CreateFragmentObject <- function(
   if (file_ext(x = path) != "gz") {
     stop("File must end in .gz")
   }
+  if (!is.null(x = cells)) {
+    if (is.null(names(x = cells))) {
+      stop("Cells must be a named vector")
+    }
+  }
   # compute hash of the file and index
   if (verbose) {
     message("Computing hash")
@@ -55,9 +58,7 @@ CreateFragmentObject <- function(
     Class = "Fragment",
     path = path,
     hash = unname(obj = hashes),
-    cells = cells,
-    prefix = SetIfNull(x = prefix, y = ""),
-    suffix = SetIfNull(x = suffix, y = "")
+    cells = cells
   )
   # validate cells
   if (!is.null(x = cells) & validate.fragments) {
@@ -104,6 +105,10 @@ ValidateCells <- function(
 ) {
   cell_barcodes <- GetFragmentData(object = object, slot = "cells")
   cells <- SetIfNull(x = cells, y = cell_barcodes)
+  if (is.null(x = cells)) {
+    warning("No cells stored in object")
+    return(TRUE)
+  }
   filepath <- GetFragmentData(object = object, slot = "path")
   x <- 0
   min.cells <- length(x = cells) - round(x = tolerance * length(x = cells))
@@ -181,24 +186,32 @@ readchunk <- function(filepath, x, chunksize) {
 
 #' Set and get cell barcode information for a \code{\link{Fragment}} object
 #'
+#' This returns the names of cells in the object that are contained in the
+#' fragment file. These cell barcodes may not match the barcodes present in the
+#' fragment file. The \code{\link{Fragment}} object contains an internal mapping
+#' of the cell names in the \code{\link{ChromatinAssay}} object to the cell
+#' names in the fragment file, so that cell names can be changed in the
+#' assay without needing to change the cell names on disk.
+#'
+#' To access the cell names that are stored in the fragment file itself, use
+#' \code{GetFragmentData(object = x, name = "cells")}.
+#'
 #' @rdname Cells
 #' @export
 #' @method Cells Fragment
 #' @importFrom Seurat Cells
 Cells.Fragment <- function(x) {
-  # add the suffix and prefix, then return cells
-  cells <- paste0(
-    slot(object = x, name = "prefix"),
-    slot(object = x, name = "cells"),
-    slot(object = x, name = "suffix")
-  )
-  return(cells)
+  cells <- slot(object = x, name = "cells")
+  return(names(x = cells))
 }
 
 #' @rdname Cells
 #' @export
 #' @method Cells<- Fragment
 "Cells<-.Fragment" <- function(object, ..., value) {
+  if (is.null(x = names(x = value))) {
+    stop("Cells must be a named vector")
+  }
   slot(object = object, name = "cells") <- value
   if (!ValidateCells(object = object, verbose = FALSE, ...)) {
     stop("Cells not present in fragment file")

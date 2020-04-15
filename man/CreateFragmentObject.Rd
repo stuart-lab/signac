@@ -7,8 +7,6 @@
 CreateFragmentObject(
   path,
   cells = NULL,
-  prefix = NULL,
-  suffix = NULL,
   validate.fragments = TRUE,
   verbose = TRUE,
   ...
@@ -18,17 +16,15 @@ CreateFragmentObject(
 \item{path}{A path to the fragment file. The file should contain a tabix
 index in the same directory.}
 
-\item{cells}{A character vector containing cell barcodes contained in the
-fragment file. This does not need to be all cells in the fragment file,
+\item{cells}{A named character vector containing cell barcodes contained in
+the fragment file. This does not need to be all cells in the fragment file,
 but there should be no cells in the vector that are not present in the
 fragment file. A search of the file will be performed until at least one
-fragment from each cell is found. If NULL, don't check for expected cells.}
+fragment from each cell is found. If NULL, don't check for expected cells.
 
-\item{prefix}{A prefix to attach to cell barcodes in the file. This will be
-automatically added to cell barcodes that are returned by functions that
-use the \code{Fragment} class object. If NULL, don't append a prefix.}
-
-\item{suffix}{The same as the \code{prefix} argument, but for a suffix.}
+Each element of the vector should be a cell barcode that appears in the
+fragment file, and the name of each element should be the corresponding cell
+name in the object.}
 
 \item{verbose}{Display messages}
 

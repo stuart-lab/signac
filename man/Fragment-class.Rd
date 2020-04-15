@@ -18,13 +18,8 @@ pipelines/latest/output/fragments}}
 \item{\code{hash}}{A vector of two md5sums: first element is the md5sum of the
 fragment file, the second element is the md5sum of the index.}
 
-\item{\code{cells}}{A character vector containing the cell barcodes present in the
-fragment file}
-
-\item{\code{prefix}}{A string to append to the beginning of the cell barcodes
-in the fragment file for them to match the barcodes in the Seurat object.}
-
-\item{\code{suffix}}{A string to append to the end of the cell barcodes
-in the fragment file for them to match the barcodes in the Seurat object.}
+\item{\code{cells}}{A named vector of cells where each element is the cell barcode
+as it appears in the fragment file, and the name of each element is the
+corresponding cell barcode as stored in the ChromatinAssay object.}
 }}
 

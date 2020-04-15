@@ -16,12 +16,9 @@ setClassUnion(name = "AnyMatrix", c("matrix", "dgCMatrix"))
 #' pipelines/latest/output/fragments}
 #' @slot hash A vector of two md5sums: first element is the md5sum of the
 #' fragment file, the second element is the md5sum of the index.
-#' @slot cells A character vector containing the cell barcodes present in the
-#' fragment file
-#' @slot prefix A string to append to the beginning of the cell barcodes
-#' in the fragment file for them to match the barcodes in the Seurat object.
-#' @slot suffix A string to append to the end of the cell barcodes
-#' in the fragment file for them to match the barcodes in the Seurat object.
+#' @slot cells A named vector of cells where each element is the cell barcode
+#' as it appears in the fragment file, and the name of each element is the
+#' corresponding cell barcode as stored in the ChromatinAssay object.
 #'
 #' @name Fragment-class
 #' @rdname Fragment-class
@@ -31,9 +28,7 @@ Fragment <- setClass(
   slots = list(
     path = "character",
     hash = "character",
-    cells = "ANY",
-    prefix = "character",
-    suffix = "character"
+    cells = "ANY"
   )
 )
 
@@ -127,7 +122,10 @@ ChromatinAssay <- setClass(
 #' the rows of the input matrix
 #' @param motifs A Motif object (not required)
 #' @param fragments Path to a tabix-indexed fragments file for the data
-#' contained in the input matrix (not required)
+#' contained in the input matrix. If multiple fragment files are required,
+#' you can add additional \code{\link{Fragment}} object to the assay after it is
+#' created using the \code{\link{CreateFragmentObject}} and
+#' \code{\link{Fragments}} functions.
 #' @param genome Name of the genome used
 #' @param annotation A set of \code{\link[GenomicRanges]{GRanges}} containing
 #' annotations for the genome used
@@ -208,9 +206,11 @@ CreateChromatinAssayObject <- function(
   )
   frags <- list()
   if (!is.null(x = fragments) & (nchar(x = fragments) > 0)) {
+    cells <- colnames(x = seurat.assay)
+    names(x = cells) <- cells
     frags[[1]] <- CreateFragmentObject(
       path = fragments,
-      cells = colnames(x = seurat.assay),
+      cells = cells,
       validate.fragments = validate.fragments,
       verbose = verbose,
       ...

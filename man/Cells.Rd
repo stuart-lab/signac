@@ -10,5 +10,14 @@
 \method{Cells}{Fragment}(object, ...) <- value
 }
 \description{
-Set and get cell barcode information for a \code{\link{Fragment}} object
+This returns the names of cells in the object that are contained in the
+fragment file. These cell barcodes may not match the barcodes present in the
+fragment file. The \code{\link{Fragment}} object contains an internal mapping
+of the cell names in the \code{\link{ChromatinAssay}} object to the cell
+names in the fragment file, so that cell names can be changed in the
+assay without needing to change the cell names on disk.
+}
+\details{
+To access the cell names that are stored in the fragment file itself, use
+\code{GetFragmentData(object = x, name = "cells")}.
 }
