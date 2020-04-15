@@ -57,7 +57,7 @@ globalVariables(
 #' @importFrom IRanges IRanges subsetByOverlaps
 #' @importFrom GenomeInfoDb seqnames
 #' @importMethodsFrom GenomicRanges start end
-#' @importFrom Seurat WhichCells Idents
+#' @importFrom Seurat WhichCells Idents DefaultAssay
 #' @importFrom Matrix colSums
 #' @importFrom methods is
 #' @importFrom stats median
@@ -86,6 +86,19 @@ SingleCoveragePlot <- function(
   sep = c("-", "-")
 ) {
   cells <- SetIfNull(x = cells, y = colnames(x = object))
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = annotation, what = "logical")) {
+    annotation <- SetIfNull(
+      x = annotation, y = Annotation(object = object[[assay]])
+    )
+  } else {
+    annotation <- NULL
+  }
+  if (!inherits(x = peaks, what = "logical")) {
+    peaks <- SetIfNull(x = peaks, y = granges(x = object[[assay]]))
+  } else {
+    peaks <- NULL
+  }
   if (!is.null(x = idents)) {
     ident.cells <- WhichCells(object = object, idents = idents)
     cells <- intersect(x = cells, y = ident.cells)
@@ -298,8 +311,12 @@ SingleCoveragePlot <- function(
 #' @param region A set of genomic coordinates to show. Can be a GRanges object,
 #' a string, or a vector of strings describing the genomic
 #' coordinates to plot.
-#' @param annotation An Ensembl based annotation package
-#' @param peaks A GRanges object containing peak coordinates
+#' @param annotation A GRanges object containing genomic annotations. If NULL,
+#' use the annotations stored in the assay. If NA or FALSE, don't plot
+#' annotations.
+#' @param peaks A GRanges object containing peak coordinates. If NULL, use the
+#' genomic ranges associated with the assay. If NA or FALSE, don't plot genomic
+#' ranges.
 #' @param assay Name of the  assay to plot
 #' @param fragment.path Path to an index fragment file. If NULL, will look for a
 #' path stored in the fragments slot of the ChromatinAssay object
