@@ -205,16 +205,18 @@ CreateChromatinAssayObject <- function(
     min.features = 0
   )
   frags <- list()
-  if (!is.null(x = fragments) & (nchar(x = fragments) > 0)) {
-    cells <- colnames(x = seurat.assay)
-    names(x = cells) <- cells
-    frags[[1]] <- CreateFragmentObject(
-      path = fragments,
-      cells = cells,
-      validate.fragments = validate.fragments,
-      verbose = verbose,
-      ...
-    )
+  if (!is.null(x = fragments)) {
+    if (nchar(x = fragments) > 0) {
+      cells <- colnames(x = seurat.assay)
+      names(x = cells) <- cells
+      frags[[1]] <- CreateFragmentObject(
+        path = fragments,
+        cells = cells,
+        validate.fragments = validate.fragments,
+        verbose = verbose,
+        ...
+      )
+    }
   }
   chrom.assay <- as.ChromatinAssay(
     x = seurat.assay,
@@ -1251,6 +1253,10 @@ dim.Motif <- function(x) {
 #' @export
 #' @method Fragments<- ChromatinAssay
 "Fragments<-.ChromatinAssay" <- function(object, ..., value) {
+  if (is.null(x = value)) {
+    slot(object = object, name = "fragments") <- list()
+    return(object)
+  }
   if (inherits(x = value, what = "list")) {
     for (i in seq_along(along.with = value)) {
       object <- AddFragments(object = object, fragments = value[[i]])
@@ -1281,16 +1287,22 @@ AddFragments <- function(object, fragments) {
   # if cells is NULL, set to all cells in the assay
   # ValidateCells is run in the Cells<- method
   # only allowed if there is no fragment object currently set
-  if (nchar(x = Cells(x = fragments)) == 0) {
-    if (length(x = Fragments(object = object)) == 0) {
+  if (is.null(x = Cells(x = fragments))) {
+    if (length(x = Fragments(object = object)) != 0) {
       stop("Fragment objects already present in the assay.
            To assign more fragment objects, you must provide a list
            of cells that are contained in each fragment object.")
     } else {
-      Cells(x = fragments) <- colnames(x = object)
+      # each element is the cell name as it appears in the fragment file
+      # each element name is the cell name as it appears in the assay
+      # here they are assumed to be the same
+      cells <- colnames(x = object)
+      names(x = cells) <- cells
+      Cells(x = fragments) <- cells
     }
   } else {
     # subset cells in the fragment file to those in the assay
+    # Cells method returns the names as they appear in the assay
     keep.cells <- Cells(x = fragments) %in% colnames(x = object)
     if (!all(keep.cells)) {
       if (sum(keep.cells) == 0) {
@@ -1299,9 +1311,9 @@ AddFragments <- function(object, fragments) {
         )
       } else {
         # subset the fragment cells, don't need to validate cells again
-        # need to make sure to retain the original barcode, not adding
-        # the prefix and suffix as returned by Cells
-        cell.barcodes <- slot(object = fragments, name = "cells")
+        # need to make sure to retain the original barcode
+        # not the version of the cel name that's stored in the assay
+        cell.barcodes <- GetFragmentData(object = fragments, slot = "cells")
         slot(object = fragments, name = "cells") <- cell.barcodes[keep.cells]
       }
     }
