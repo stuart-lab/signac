@@ -224,6 +224,9 @@ FeatureMatrix <- function(
   sep = c("-", "-"),
   verbose = TRUE
 ) {
+  if (!inherits(x = fragments, what = "list")) {
+    stop("fragments should be a list of Fragment objects")
+  }
   # if cells is not NULL, iterate over all fragment objects
   # and find which objects contain cells that are requested
   if (!is.null(x = cells)) {
