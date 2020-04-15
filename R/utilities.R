@@ -440,7 +440,6 @@ CutMatrix <- function(
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   fragments <- Fragments(object = object[[assay]])
   res <- list()
-  browser()
   for (i in seq_along(along.with = fragments)) {
     fragment.path <- GetFragmentData(object = fragments[[i]], slot = "path")
     tabix.file <- TabixFile(file = fragment.path)
