@@ -6,7 +6,8 @@
 \usage{
 TSSEnrichment(
   object,
-  tss.positions,
+  tss.positions = NULL,
+  n = 2000,
   assay = NULL,
   cells = NULL,
   verbose = TRUE
@@ -15,7 +16,11 @@ TSSEnrichment(
 \arguments{
 \item{object}{A Seurat object}
 
-\item{tss.positions}{A GRanges object containing the TSS positions}
+\item{tss.positions}{A GRanges object containing the TSS positions. If NULL,
+use the genomic annotations stored in the assay.}
+
+\item{n}{Number of TSS positions to use. This will select the first _n_
+TSSs from the set. If NULL, use all TSSs (slower).}
 
 \item{assay}{Name of assay to use}
 

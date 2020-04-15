@@ -875,13 +875,19 @@ RunTFIDF.Seurat <- function(
 #'
 #' @param object A Seurat object
 #' @param assay Name of assay to use
-#' @param tss.positions A GRanges object containing the TSS positions
+#' @param tss.positions A GRanges object containing the TSS positions. If NULL,
+#' use the genomic annotations stored in the assay.
+#' @param n Number of TSS positions to use. This will select the first _n_
+#' TSSs from the set. If NULL, use all TSSs (slower).
 #' @param cells A vector of cells to include. If NULL (default), use all cells
 #' in the object
 #' @param verbose Display messages
 #' @importFrom Matrix rowMeans
 #' @importFrom methods slot
 #' @importFrom stats ecdf
+#' @importFrom GenomeInfoDb seqnames
+#' @importFrom IRanges IRanges
+#' @importFrom GenomicRanges start width strand
 #'
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @export
@@ -904,12 +910,28 @@ RunTFIDF.Seurat <- function(
 #' }
 TSSEnrichment <- function(
   object,
-  tss.positions,
+  tss.positions = NULL,
+  n = 2000,
   assay = NULL,
   cells = NULL,
   verbose = TRUE
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (is.null(x = tss.positions)) {
+    # work out TSS positions from gene annotations
+    annotations <- Annotation(object = object[[assay]])
+    tss.positions <- GRanges(
+      seqnames = seqnames(x = annotations),
+      ranges = IRanges(start = start(x = gene.ranges), width = 2),
+      strand = strand(x = gene.ranges)
+    )
+  }
+  if (!is.null(x = n)) {
+    if (n < length(x = tss.positions)) {
+      n <- length(x = tss.positions)
+    }
+    tss.positions <- tss.positions[1:n, ]
+  }
   cutmatrix <- CreateRegionPileupMatrix(
     object = object,
     regions = tss.positions,
