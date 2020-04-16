@@ -2,7 +2,7 @@
 #' @importFrom methods callGeneric
 #' @importFrom Seurat DefaultAssay
 #' @importFrom IRanges precede follow nearest distance distanceToNearest
-#' findOverlaps
+#' findOverlaps coverage
 
 setOldClass(Classes = "ChromatinAssay")
 
@@ -461,6 +461,33 @@ setMethod(
     assay.q <- DefaultAssay(object = query)
     query <- granges(x = query[[assay.q]])
     subject <- granges(x = subject[[assay.s]])
+    callGeneric()
+  }
+)
+
+## Coverage methods
+
+setMethod(
+  f = "coverage",
+  signature = "ChromatinAssay",
+  definition = function(
+    x, shift = 0L, width = NULL, weight = 1L,
+    method = c("auto", "sort", "hash")
+  ) {
+    x <- granges(x = x)
+    callGeneric()
+  }
+)
+
+setMethod(
+  f = "coverage",
+  signature = "Seurat",
+  definition = function(
+    x, shift = 0L, width = NULL, weight = 1L,
+    method = c("auto", "sort", "hash")
+  ) {
+    assay <- DefaultAssay(object = x)
+    x <- granges(x = x[[assay]])
     callGeneric()
   }
 )
