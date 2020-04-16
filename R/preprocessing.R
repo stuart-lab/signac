@@ -927,7 +927,7 @@ TSSEnrichment <- function(
     )
   }
   if (!is.null(x = n)) {
-    if (n < length(x = tss.positions)) {
+    if (n > length(x = tss.positions)) {
       n <- length(x = tss.positions)
     }
     tss.positions <- tss.positions[1:n, ]

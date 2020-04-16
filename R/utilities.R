@@ -420,7 +420,8 @@ SingleFileCutMatrix <- function(
 #' @param verbose Display messages
 #' @return Returns a sparse matrix
 #' @importFrom Seurat DefaultAssay
-#' @importFrom Rsamtools TabixFile
+#' @importFrom Rsamtools TabixFile seqnamesTabix
+#' @importFrom GenomeInfoDb keepSeqlevels
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' atac_small <- SetFragments(atac_small, file = fpath)
@@ -444,6 +445,12 @@ CutMatrix <- function(
     fragment.path <- GetFragmentData(object = fragments[[i]], slot = "path")
     tabix.file <- TabixFile(file = fragment.path)
     open(con = tabix.file)
+    # remove regions that aren't in the fragment file
+    region <- keepSeqlevels(
+      x = region,
+      value = seqnamesTabix(tabix.file),
+      pruning.mode = "coarse"
+    )
     cm <- SingleFileCutMatrix(
       object = object,
       region = region,
@@ -1059,8 +1066,9 @@ MergeWithRegions <- function(
 # @param assay Name of the assay to use
 # @param cells Vector of cells to include
 # @param verbose Display messages
-#' @importFrom Rsamtools TabixFile
+#' @importFrom Rsamtools TabixFile seqnamesTabix
 #' @importFrom Seurat DefaultAssay
+#' @importFrom GenomeInfoDb keepSeqlevels
 MultiRegionCutMatrix <- function(
   object,
   regions,
@@ -1076,6 +1084,12 @@ MultiRegionCutMatrix <- function(
     frag.path <- GetFragmentData(object = fragments[[i]], slot = "path")
     tabix.file <- TabixFile(file = frag.path)
     open(con = tabix.file)
+    # remove regions that aren't in the fragment file
+    regions <- keepSeqlevels(
+      x = regions,
+      value = seqnamesTabix(file = tabix.file),
+      pruning.mode = "coarse"
+    )
     cm.list <- lapply(
       X = seq_along(regions),
       FUN = function(x) {
