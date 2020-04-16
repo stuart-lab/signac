@@ -51,6 +51,7 @@ Collate:
     'dimension_reduction.R'
     'fragments.R'
     'motifs.R'
+    'nearest-methods.R'
     'objects.R'
     'preprocessing.R'
     'utilities.R'
