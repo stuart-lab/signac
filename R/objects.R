@@ -68,7 +68,8 @@ Motif <- setClass(
 #' genomic location of features in the object
 #' @slot motifs A \code{\link{Motif}} object
 #' @slot fragments A list of \code{\link{Fragment}} objects.
-#' @slot genome Name of the genome used
+#' @slot seqinfo A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
+#' information about the genome sequence used.
 #' @slot annotation A  \code{\link[GenomicRanges]{GRanges}} object containing
 #' genomic annotations
 #' @slot bias A matrix containing Tn5 integration bias information
@@ -87,7 +88,7 @@ ChromatinAssay <- setClass(
     "ranges" = "GRanges",
     "motifs" = "ANY",
     "fragments" = "list",
-    "genome" = "ANY",
+    "seqinfo" = "ANY",
     "annotation" = "ANY",
     "bias" = "ANY",
     "positionEnrichment" = "list"
@@ -126,7 +127,9 @@ ChromatinAssay <- setClass(
 #' you can add additional \code{\link{Fragment}} object to the assay after it is
 #' created using the \code{\link{CreateFragmentObject}} and
 #' \code{\link{Fragments}} functions.
-#' @param genome Name of the genome used
+#' @param genome A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
+#' information about the genome used. Alternatively, the name of a UCSC genome
+#' can be provided and the sequence information will be downloaded from UCSC.
 #' @param annotation A set of \code{\link[GenomicRanges]{GRanges}} containing
 #' annotations for the genome used
 #' @param bias A Tn5 integration bias matrix
@@ -221,7 +224,7 @@ CreateChromatinAssayObject <- function(
   chrom.assay <- as.ChromatinAssay(
     x = seurat.assay,
     ranges = ranges,
-    genome = genome,
+    seqinfo = genome,
     motifs = motifs,
     fragments = frags,
     annotation = annotation,
@@ -240,7 +243,9 @@ as.Assay.ChromatinAssay <- function(x) {
 }
 
 #' @param ranges A GRanges object
-#' @param genome Name of genome used
+#' @param genome A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
+#' information about the genome used. Alternatively, the name of a UCSC genome
+#' can be provided and the sequence information will be downloaded from UCSC.
 #' @param annotation Genomic annotation
 #' @param motifs A \code{\link{Motif}} object
 #' @param fragments A list of \code{\link{Fragment}} objects
@@ -255,7 +260,7 @@ as.Assay.ChromatinAssay <- function(x) {
 as.ChromatinAssay.Assay <- function(
   x,
   ranges = NULL,
-  genome = NULL,
+  seqinfo = NULL,
   annotation = NULL,
   motifs = NULL,
   fragments = NULL,
@@ -280,11 +285,11 @@ as.ChromatinAssay.Assay <- function(
       new.data = fragments
     )
   }
-  if (!is.null(x = genome)) {
+  if (!is.null(x = seqinfo)) {
     new.assay <- SetAssayData(
       object = new.assay,
-      slot = "genome",
-      new.data = genome
+      slot = "seqinfo",
+      new.data = seqinfo
     )
   }
   if (!is.null(x = annotation)) {
@@ -647,7 +652,7 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = "data", ...) {
 }
 
 #' @importFrom Seurat SetAssayData
-#' @importFrom GenomeInfoDb genome
+#' @importFrom GenomeInfoDb genome Seqinfo
 #' @method SetAssayData ChromatinAssay
 #' @export
 SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
@@ -671,12 +676,17 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
            the number of cells in the object")
     }
     slot(object = object, name = slot) <- new.data
-  } else if (slot == "genome") {
-    if (!is(object = new.data, class2 = "character")) {
-      stop("Genome must be a character class object")
+  } else if (slot == "seqinfo") {
+    if (inherits(x = new.data, what = "Seqinfo")) {
+      slot(object = object, name = slot) <- new.data
+    } else if (is(object = new.data, class2 = "character")) {
+      slot(object = object, name = slot) <- Seqinfo(genome = new.data)
+    } else if(is.null(x = new.data)) {
+      slot(object = object, name = slot) <- NULL
+    } else {
+      stop("Unknown object supplied. Choose a Seqinfo object or the name
+           of a UCSC genome")
     }
-    # TODO check that genome matches the genome for granges and annotation
-    slot(object = object, name = slot) <- new.data
   } else if (slot == "fragments") {
     # check that it's a list containing fragment class objects
     for (i in seq_along(along.with = new.data)) {
@@ -1136,77 +1146,6 @@ setMethod(
       length(x = slot(object = object, "fragments")),
       "\n"
     )
-  }
-)
-
-#' @importFrom GenomicRanges granges
-setMethod(
-  f = "granges",
-  signature = "ChromatinAssay",
-  definition = function(x, use.mcols = FALSE, ...) {
-    if (!identical(x = use.mcols, y = FALSE)) {
-      stop("\"granges\" method for ChromatinAssay objects ",
-           "does not support the 'use.mcols' argument")
-    }
-    slot(object = x, name = "ranges")
-  }
-)
-
-#' @importFrom GenomicRanges granges
-#' @importFrom Seurat DefaultAssay
-setMethod(
-  f = "granges",
-  signature = "Seurat",
-  definition = function(x, use.mcols = FALSE, ...) {
-    if (!identical(x = use.mcols, y = FALSE)) {
-      stop("\"granges\" method for Seurat objects ",
-           "does not support the 'use.mcols' argument")
-    }
-    assay <- DefaultAssay(object = x)
-    granges(x = x[[assay]])
-  }
-)
-
-#' @importFrom GenomeInfoDb genome
-setMethod(
-  f = "genome",
-  signature = "ChromatinAssay",
-  definition = function(x) {
-    slot(object = x, name = "genome")
-  }
-)
-
-#' @importFrom GenomeInfoDb genome<-
-setMethod(
-  f = "genome<-",
-  signature = "ChromatinAssay",
-  definition = function(x, value) {
-    SetAssayData(object = x, slot = "genome", new.data = value)
-  }
-)
-
-#' @importFrom GenomeInfoDb genome
-#' @importFrom Seurat DefaultAssay
-setMethod(
-  f = "genome",
-  signature = "Seurat",
-  definition = function(x) {
-    assay <- DefaultAssay(object = x)
-    genome(x = x[[assay]])
-  }
-)
-
-#' @importFrom GenomeInfoDb genome<-
-#' @importFrom Seurat DefaultAssay
-setMethod(
-  f = "genome<-",
-  signature = "Seurat",
-  definition = function(x, value) {
-    assay <- DefaultAssay(object = x)
-    x[[assay]] <- SetAssayData(
-      object = x[[assay]], slot = "genome", new.data = value
-    )
-    return(x)
   }
 )
 

@@ -54,7 +54,9 @@ you can add additional \code{\link{Fragment}} object to the assay after it is
 created using the \code{\link{CreateFragmentObject}} and
 \code{\link{Fragments}} functions.}
 
-\item{genome}{Name of the genome used}
+\item{genome}{A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
+information about the genome used. Alternatively, the name of a UCSC genome
+can be provided and the sequence information will be downloaded from UCSC.}
 
 \item{annotation}{A set of \code{\link[GenomicRanges]{GRanges}} containing
 annotations for the genome used}
