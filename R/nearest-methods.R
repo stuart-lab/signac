@@ -1,6 +1,9 @@
 #' @include generics.R
 #' @importFrom methods callGeneric
 #' @importFrom Seurat DefaultAssay
+#' @importFrom IRanges precede follow nearest distance distanceToNearest
+
+setOldClass(Classes = "ChromatinAssay")
 
 # precede
 setMethod(
