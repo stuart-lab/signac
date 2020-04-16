@@ -50,6 +50,8 @@ Collate:
     'generics.R'
     'dimension_reduction.R'
     'fragments.R'
+    'genomeinfodb-methods.R'
+    'granges-methods.R'
     'iranges-methods.R'
     'motifs.R'
     'objects.R'
