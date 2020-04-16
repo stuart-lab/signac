@@ -2,8 +2,11 @@
 #' @importFrom methods callGeneric
 #' @importFrom Seurat DefaultAssay
 #' @importFrom IRanges precede follow nearest distance distanceToNearest
+#' findOverlaps
 
 setOldClass(Classes = "ChromatinAssay")
+
+## Nearest methods
 
 # precede
 setMethod(
@@ -366,6 +369,98 @@ setMethod(
     subject <- granges(x = subject[[assay.s]])
     assay.x <- DefaultAssay(object = x)
     x <- granges(x = x[[assay.x]])
+    callGeneric()
+  }
+)
+
+## Find overlaps methods
+
+setMethod(
+  f = "findOverlaps",
+  signature = c("Vector", "ChromatinAssay"),
+  definition = function(
+    query, subject, maxgap = -1L, minoverlap = 0L,
+    type = c("any", "start", "end", "within", "equal"),
+    select = c("all", "first", "last", "arbitrary"),
+    ignore.strand = FALSE
+  ) {
+    subject <- granges(x = subject)
+    callGeneric()
+  }
+)
+
+setMethod(
+  f = "findOverlaps",
+  signature = c("ChromatinAssay", "Vector"),
+  definition = function(
+    query, subject, maxgap = -1L, minoverlap = 0L,
+    type = c("any", "start", "end", "within", "equal"),
+    select = c("all", "first", "last", "arbitrary"),
+    ignore.strand = FALSE
+  ) {
+    query <- granges(x = query)
+    callGeneric()
+  }
+)
+
+setMethod(
+  f = "findOverlaps",
+  signature = c("ChromatinAssay", "ChromatinAssay"),
+  definition = function(
+    query, subject, maxgap = -1L, minoverlap = 0L,
+    type = c("any", "start", "end", "within", "equal"),
+    select = c("all", "first", "last", "arbitrary"),
+    ignore.strand = FALSE
+  ) {
+    query <- granges(x = query)
+    subject <- granges(x = subject)
+    callGeneric()
+  }
+)
+
+setMethod(
+  f = "findOverlaps",
+  signature = c("Vector", "Seurat"),
+  definition = function(
+    query, subject, maxgap = -1L, minoverlap = 0L,
+    type = c("any", "start", "end", "within", "equal"),
+    select = c("all", "first", "last", "arbitrary"),
+    ignore.strand = FALSE
+  ) {
+    assay <- DefaultAssay(object = subject)
+    subject <- granges(x = subject[[assay]])
+    callGeneric()
+  }
+)
+
+setMethod(
+  f = "findOverlaps",
+  signature = c("Seurat", "Vector"),
+  definition = function(
+    query, subject, maxgap = -1L, minoverlap = 0L,
+    type = c("any", "start", "end", "within", "equal"),
+    select = c("all", "first", "last", "arbitrary"),
+    ignore.strand = FALSE
+  ) {
+    assay <- DefaultAssay(object = query)
+    query <- granges(x = query[[assay]])
+    callGeneric()
+  }
+)
+
+setMethod(
+  f = "findOverlaps",
+  signature = c("Seurat", "Seurat"),
+  definition = function(
+    query, subject, maxgap = -1L, minoverlap = 0L,
+    type = c("any", "start", "end", "within", "equal"),
+    select = c("all", "first", "last", "arbitrary"),
+    ignore.strand = FALSE
+  ) {
+    assay.s <- DefaultAssay(object = subject)
+    assay.q <- DefaultAssay(object = query)
+    query <- granges(x = query[[assay.q]])
+    subject <- granges(x = subject[[assay.s]])
     callGeneric()
   }
 )
