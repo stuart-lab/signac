@@ -109,6 +109,48 @@ CellsPerGroup <- function(
   return(lut)
 }
 
+#' Closest Feature
+#'
+#' Find the closest feature to a given set of genomic regions
+#'
+#' @param object A Seurat object
+#' @param regions A set of genomic regions to query
+#' @param annotation A GRanges object containing annotation information. If
+#' NULL, use the annotations stored in the object.
+#' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
+#'
+#' @importMethodsFrom GenomicRanges distanceToNearest
+#' @importFrom S4Vectors subjectHits mcols
+#' @importFrom methods is
+#' @return Returns a dataframe with the name of each region, the closest feature
+#' in the annotation, and the distance to the feature.
+#' @export
+#' @examples
+#' \donttest{
+#' ClosestFeature(
+#'   object = atac_small,
+#'   regions = head(rownames(atac_small))
+#' )
+#' }
+ClosestFeature <- function(
+  object,
+  regions,
+  annotation = NULL,
+  ...
+) {
+  if (!is(object = regions, class2 = 'GRanges')) {
+    regions <- StringToGRanges(regions = regions, ...)
+  }
+  annotation <- SetIfNull(x = annotation, y = Annotation(object = object))
+  nearest_feature <- distanceToNearest(x = regions, subject = annotation)
+  feature_hits <- annotation[subjectHits(x = nearest_feature)]
+  df <- as.data.frame(x = mcols(x = feature_hits))
+  df$closest_region <- GRangesToString(grange = feature_hits, ...)
+  df$query_region <- GRangesToString(grange = regions, ...)
+  df$distance <- mcols(x = nearest_feature)$distance
+  return(df)
+}
+
 # Calculate nCount and nFeature
 #
 # From Seurat
