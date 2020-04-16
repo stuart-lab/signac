@@ -207,6 +207,6 @@ FindMotifs <- function(
   if (nrow(x = results) == 0) {
     return(results)
   } else {
-    return(results[order(-results[, 7], -results[, 6]), ])
+    return(results[order(results[, 7], -results[, 6]), ])
   }
 }
