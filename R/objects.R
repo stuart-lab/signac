@@ -1122,7 +1122,7 @@ setMethod(
     )
     cat(
       "Genome:",
-      genome(x = object),
+      unique(x = genome(x = object)),
       "\n"
     )
     cat(
@@ -1143,7 +1143,7 @@ setMethod(
     )
     cat(
       "Fragment files:",
-      length(x = slot(object = object, "fragments")),
+      length(x = Fragments(object = object)),
       "\n"
     )
   }
