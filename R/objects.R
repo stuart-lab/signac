@@ -1103,7 +1103,6 @@ setMethod(
   }
 )
 
-#' @importFrom GenomeInfoDb genome
 setMethod(
   f = "show",
   signature = "ChromatinAssay",
