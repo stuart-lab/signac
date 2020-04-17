@@ -3,42 +3,78 @@
 \name{seqinfo-methods}
 \alias{seqinfo-methods}
 \alias{seqinfo}
+\alias{seqinfo<-,ChromatinAssay-method}
 \alias{seqlevels,ChromatinAssay-method}
+\alias{seqlevels<-,ChromatinAssay-method}
 \alias{seqnames,ChromatinAssay-method}
+\alias{seqnames<-,ChromatinAssay-method}
 \alias{seqlengths,ChromatinAssay-method}
+\alias{seqlengths<-,ChromatinAssay-method}
 \alias{genome,ChromatinAssay-method}
+\alias{genome<-,ChromatinAssay-method}
 \alias{isCircular,ChromatinAssay-method}
+\alias{isCircular<-,ChromatinAssay-method}
 \alias{seqinfo,Seurat-method}
+\alias{seqinfo<-,Seurat-method}
 \alias{seqlevels,Seurat-method}
+\alias{seqlevels<-,Seurat-method}
 \alias{seqnames,Seurat-method}
+\alias{seqnames<-,Seurat-method}
 \alias{seqlengths,Seurat-method}
+\alias{seqlengths<-,Seurat-method}
 \alias{genome,Seurat-method}
+\alias{genome<-,Seurat-method}
 \alias{isCircular,Seurat-method}
+\alias{isCircular<-,Seurat-method}
 \title{Access and modify sequence information for ChromatinAssay objects}
 \usage{
 \S4method{seqinfo}{ChromatinAssay}(x)
 
+\S4method{seqinfo}{ChromatinAssay}(x) <- value
+
 \S4method{seqlevels}{ChromatinAssay}(x)
+
+\S4method{seqlevels}{ChromatinAssay}(x) <- value
 
 \S4method{seqnames}{ChromatinAssay}(x)
 
+\S4method{seqnames}{ChromatinAssay}(x) <- value
+
 \S4method{seqlengths}{ChromatinAssay}(x)
+
+\S4method{seqlengths}{ChromatinAssay}(x) <- value
 
 \S4method{genome}{ChromatinAssay}(x)
 
+\S4method{genome}{ChromatinAssay}(x) <- value
+
 \S4method{isCircular}{ChromatinAssay}(x)
+
+\S4method{isCircular}{ChromatinAssay}(x) <- value
 
 \S4method{seqinfo}{Seurat}(x)
 
+\S4method{seqinfo}{Seurat}(x) <- value
+
 \S4method{seqlevels}{Seurat}(x)
+
+\S4method{seqlevels}{Seurat}(x) <- value
 
 \S4method{seqnames}{Seurat}(x)
 
+\S4method{seqnames}{Seurat}(x) <- value
+
 \S4method{seqlengths}{Seurat}(x)
+
+\S4method{seqlengths}{Seurat}(x) <- value
 
 \S4method{genome}{Seurat}(x)
 
+\S4method{genome}{Seurat}(x) <- value
+
 \S4method{isCircular}{Seurat}(x)
+
+\S4method{isCircular}{Seurat}(x) <- value
 }
 \description{
 Methods for accessing and modifying
@@ -47,27 +83,51 @@ Methods for accessing and modifying
 }
 \section{Functions}{
 \itemize{
-\item \code{seqlevels,ChromatinAssay-method}: method for ChromatinAssay objects
+\item \code{seqinfo<-,ChromatinAssay-method}: set method for ChromatinAssay objects
 
-\item \code{seqnames,ChromatinAssay-method}: method for ChromatinAssay objects
+\item \code{seqlevels,ChromatinAssay-method}: get method for ChromatinAssay objects
 
-\item \code{seqlengths,ChromatinAssay-method}: method for ChromatinAssay objects
+\item \code{seqlevels<-,ChromatinAssay-method}: set method for ChromatinAssay objects
 
-\item \code{genome,ChromatinAssay-method}: method for ChromatinAssay objects
+\item \code{seqnames,ChromatinAssay-method}: get method for ChromatinAssay objects
 
-\item \code{isCircular,ChromatinAssay-method}: method for ChromatinAssay objects
+\item \code{seqnames<-,ChromatinAssay-method}: set method for ChromatinAssay objects
 
-\item \code{seqinfo,Seurat-method}: method for Seurat objects objects
+\item \code{seqlengths,ChromatinAssay-method}: get method for ChromatinAssay objects
 
-\item \code{seqlevels,Seurat-method}: method for Seurat objects
+\item \code{seqlengths<-,ChromatinAssay-method}: set method for ChromatinAssay objects
 
-\item \code{seqnames,Seurat-method}: method for Seurat objects
+\item \code{genome,ChromatinAssay-method}: get method for ChromatinAssay objects
 
-\item \code{seqlengths,Seurat-method}: method for Seurat objects
+\item \code{genome<-,ChromatinAssay-method}: set method for ChromatinAssay objects
 
-\item \code{genome,Seurat-method}: method for Seurat objects
+\item \code{isCircular,ChromatinAssay-method}: get method for ChromatinAssay objects
 
-\item \code{isCircular,Seurat-method}: method for Seurat objects
+\item \code{isCircular<-,ChromatinAssay-method}: set method for ChromatinAssay objects
+
+\item \code{seqinfo,Seurat-method}: get method for Seurat objects
+
+\item \code{seqinfo<-,Seurat-method}: set method for Seurat objects
+
+\item \code{seqlevels,Seurat-method}: get method for Seurat objects
+
+\item \code{seqlevels<-,Seurat-method}: set method for Seurat objects
+
+\item \code{seqnames,Seurat-method}: get method for Seurat objects
+
+\item \code{seqnames<-,Seurat-method}: set method for Seurat objects
+
+\item \code{seqlengths,Seurat-method}: get method for Seurat objects
+
+\item \code{seqlengths<-,Seurat-method}: set method for Seurat objects
+
+\item \code{genome,Seurat-method}: get method for Seurat objects
+
+\item \code{genome<-,Seurat-method}: set method for Seurat objects
+
+\item \code{isCircular,Seurat-method}: get method for Seurat objects
+
+\item \code{isCircular<-,Seurat-method}: set method for Seurat objects
 }}
 
 \seealso{
