@@ -49,6 +49,7 @@ setMethod(
   }
 )
 
+#' @aliases seqlevels
 #' @describeIn seqinfo-methods get method for ChromatinAssay objects
 #' @exportMethod seqlevels
 setMethod(
@@ -73,6 +74,7 @@ setMethod(
   }
 )
 
+#' @aliases seqnames
 #' @describeIn seqinfo-methods get method for ChromatinAssay objects
 #' @exportMethod seqnames
 setMethod(
@@ -97,6 +99,7 @@ setMethod(
   }
 )
 
+#' @aliases seqlengths
 #' @describeIn seqinfo-methods get method for ChromatinAssay objects
 #' @exportMethod seqlengths
 setMethod(
@@ -121,6 +124,7 @@ setMethod(
   }
 )
 
+#' @aliases genome
 #' @describeIn seqinfo-methods get method for ChromatinAssay objects
 #' @exportMethod genome
 setMethod(
@@ -145,6 +149,7 @@ setMethod(
   }
 )
 
+#' @aliases isCircular
 #' @describeIn seqinfo-methods get method for ChromatinAssay objects
 #' @exportMethod isCircular
 setMethod(

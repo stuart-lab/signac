@@ -9,6 +9,7 @@
 \alias{findOverlaps,Seurat,Vector-method}
 \alias{findOverlaps,Seurat,Seurat-method}
 \alias{countOverlaps,Vector,ChromatinAssay-method}
+\alias{countOverlaps}
 \alias{countOverlaps,ChromatinAssay,Vector-method}
 \alias{countOverlaps,ChromatinAssay,ChromatinAssay-method}
 \alias{countOverlaps,Seurat,Vector-method}

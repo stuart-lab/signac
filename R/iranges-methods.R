@@ -105,6 +105,7 @@ setMethod(
 
 # follow
 
+#' @aliases follow
 #' @describeIn nearest-methods method for ANY, ChromatinAssay
 #' @exportMethod follow
 setMethod(
@@ -184,7 +185,7 @@ setMethod(
   }
 )
 
-# nearest
+#' @aliases nearest
 #' @describeIn nearest-methods method for ANY, ChromatinAssay
 #' @exportMethod nearest
 setMethod(
@@ -264,8 +265,7 @@ setMethod(
   }
 )
 
-# distance
-
+#' @aliases distance
 #' @exportMethod distance
 #' @describeIn nearest-methods method for ANY, ChromatinAssay
 setMethod(
@@ -345,7 +345,7 @@ setMethod(
   }
 )
 
-# distanceToNearest
+#' @aliases distanceToNearest
 #' @exportMethod distanceToNearest
 #' @describeIn nearest-methods method for ANY, ChromatinAssay
 setMethod(
@@ -543,8 +543,7 @@ setMethod(
   }
 )
 
-# countOverlaps
-
+#' @aliases countOverlaps
 #' @describeIn findOverlaps-methods method for Vector, ChromatinAssay
 setMethod(
   f = "countOverlaps",
