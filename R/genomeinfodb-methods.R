@@ -9,13 +9,14 @@
 #' seqlengths seqlengths<-
 #' isCircular isCircular<-
 #' genome genome<-
+NULL
 
 setOldClass(Classes = "ChromatinAssay")
 
 #' Access and modify sequence information for ChromatinAssay objects
 #'
-#' Generic functions for accessing and modifying
-#' \code{\link[GenomeInfoDb]{Seqinfo}} information stored in a
+#' Methods for accessing and modifying
+#' \code{\link[GenomeInfoDb]{Seqinfo}} object information stored in a
 #' \code{\link{ChromatinAssay}} object.
 #'
 #' @name seqinfo-methods
@@ -151,3 +152,5 @@ setMethod(
     callGeneric()
   }
 )
+
+# TODO add setters

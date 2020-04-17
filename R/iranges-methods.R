@@ -3,6 +3,7 @@
 #' @importFrom Seurat DefaultAssay
 #' @importFrom IRanges precede follow nearest distance distanceToNearest
 #' findOverlaps countOverlaps coverage
+NULL
 
 setOldClass(Classes = "ChromatinAssay")
 

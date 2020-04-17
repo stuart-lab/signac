@@ -41,8 +41,8 @@
 \S4method{isCircular}{Seurat}(x)
 }
 \description{
-Generic functions for accessing and modifying
-\code{\link[GenomeInfoDb]{Seqinfo}} information stored in a
+Methods for accessing and modifying
+\code{\link[GenomeInfoDb]{Seqinfo}} object information stored in a
 \code{\link{ChromatinAssay}} object.
 }
 \section{Functions}{
