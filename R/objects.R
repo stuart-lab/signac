@@ -651,6 +651,31 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = "data", ...) {
   ))
 }
 
+
+# @param new.names vector of new cell names
+#
+# @rdname RenameCells
+# @method RenameCells ChromatinAssay
+RenameCells.ChromatinAssay <- function(object, new.name = NULL, ...) {
+  # TODO define RenameCells for ChromatinAssay
+
+  # problem: need to check if new.name is a named vector, or just a vector
+  # where the order is meant to correspond to the name in the object
+  # if it's just ordered, we need to first create a named vector from the
+  # current names in the assay, then iterate over the fragment objects
+  # and update the cell names in each object, since they're unordered and contain
+  # subsets of all cell names.
+
+  # needs to update cell names in Fragment objects
+
+  # Motif object is independent of cells, so don't need to do anything
+
+  # because RenameCells only gives vector of new names, we can't just use
+  # prefix and suffix for Fragment object
+  return()
+}
+
+
 #' @importFrom Seurat SetAssayData
 #' @importFrom GenomeInfoDb genome Seqinfo
 #' @method SetAssayData ChromatinAssay
