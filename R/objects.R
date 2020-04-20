@@ -652,6 +652,12 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = "data", ...) {
   ))
 }
 
+#' Rename cells in a ChromatinAssay
+#'
+#' Method for renaming cells in a \code{\link{ChromatinAssay}} object
+#'
+#' @seealso \code{\link[Seurat]{RenameCells}} in the \pkg{Seurat} package
+#'
 #' @rdname RenameCells
 #' @importFrom Seurat GetAssayData
 #' @export
@@ -943,6 +949,7 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
 }
 
 #' @export
+#' @importClassesFrom Seurat Assay
 #' @method subset ChromatinAssay
 subset.ChromatinAssay <- function(
   x,
@@ -950,33 +957,37 @@ subset.ChromatinAssay <- function(
   cells = NULL,
   ...
 ) {
-  # TODO
-  # need to coerce to standard Assay class, then subset the other parts
-  # and re-build the ChromatinAssay
-  standardassay <- as.Assay(x = x) # TODO internal conversion function
+  # subset elements in the standard assay
+  standardassay <- as(object = x, Class = "Assay")
+  standardassay <- standardassay[features, cells]
 
-  # subet genomic ranges
+  # subset genomic ranges
   ranges.keep <- granges(x = x)
   if (!is.null(x = features)) {
-    idx.keep <- which(colnames(x = object) == features)
+    idx.keep <- which(colnames(x = x) == features)
     ranges.keep <- ranges.keep[idx.keep]
   }
+
   # need to subsect matrix first, otherwise will give errors
   # when dimension doesn't match the matrix dimension
-  object <- SetAssayData(
-    object = object,
+  x <- SetAssayData(
+    object = x,
     slot = "ranges",
     new.data = ranges.keep
   )
   # subset motifs
   motifs <- Motif(object = x)
-  object <- SetAssayData(
-    object = object,
+  x <- SetAssayData(
+    object = x,
     slot = "motifs",
     new.data = subset(x = motifs, features = features)
   )
-  # TODO subset cells in positionEnrichment matrices
-  # TODO subset cells in Fragments objects
+  # subset cells in positionEnrichment matrices
+
+  # subset cells in Fragments objects
+
+  # convert standard assay to ChromatinAssay
+
   return(x)
 }
 
