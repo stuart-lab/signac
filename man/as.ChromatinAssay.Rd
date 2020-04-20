@@ -15,6 +15,7 @@ as.ChromatinAssay(x, ...)
   motifs = NULL,
   fragments = NULL,
   bias = NULL,
+  positionEnrichment = NULL,
   sep = c("-", "-"),
   ...
 )
@@ -33,6 +34,8 @@ as.ChromatinAssay(x, ...)
 \item{fragments}{A list of \code{\link{Fragment}} objects}
 
 \item{bias}{Tn5 integration bias matrix}
+
+\item{positionEnrichment}{A named list of position enrichment matrices.}
 
 \item{sep}{Charaters used to separate the chromosome, start, and end
 coordinates in the row names of the data matrix}
