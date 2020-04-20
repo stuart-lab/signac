@@ -756,7 +756,7 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
     if (!is(object = new.data, class2 = "GRanges")) {
       stop("Must provide a GRanges object")
     }
-    current.genome <- genome(x = object)
+    current.genome <- unique(x = genome(x = object))
     annotation.genome <- unique(x = genome(x = new.data))
     if (!is.null(x = current.genome) &
         !is.na(x = annotation.genome) &
@@ -771,6 +771,7 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
     slot(object = object, name = slot) <- new.data
   } else if (slot == "positionEnrichment") {
     if (inherits(x = new.data, what = "list")) {
+      # list of position enrichment matrices being added
       if (is.null(x = names(x = new.data))) {
         stop("If supplying a list of position enrichment matrices,
              each element must be named")
@@ -788,21 +789,22 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
               )
           }
         }
-        slot(object = object, name = "postionEnrichment") <- new.data
+        slot(object = object, name = "positionEnrichment") <- new.data
       }
-    }
-    if (!is(object = new.data, class2 = "AnyMatrix")) {
+    } else if (!is(object = new.data, class2 = "AnyMatrix")) {
       stop("Position enrichment must be provided as a matrix or sparseMatrix")
-    }
-    args <- list(...)
-    if (!("key" %in% names(x = args))) {
-      stop("Must supply a key when adding positionEnrichment data")
     } else {
-      key <- args$key
+      # single new matrix being added, needs a key
+      args <- list(...)
+      if (!("key" %in% names(x = args))) {
+        stop("Must supply a key when adding positionEnrichment data")
+      } else {
+        key <- args$key
+      }
+      current.pos <- slot(object = object, name = slot)
+      current.pos[[key]] <- new.data
+      slot(object = object, name = slot) <- current.pos
     }
-    current.pos <- slot(object = object, name = slot)
-    current.pos[[key]] <- new.data
-    slot(object = object, name = slot) <- current.pos
   } else if (slot == "ranges") {
     if (!is(object = new.data, class2 = "GRanges")) {
       stop("Must provide a GRanges object")
@@ -959,7 +961,7 @@ subset.ChromatinAssay <- function(
 ) {
   # subset elements in the standard assay
   standardassay <- as(object = x, Class = "Assay")
-  standardassay <- standardassay[features, cells]
+  standardassay <- subset(x = standardassay, features = features, cells = cells)
 
   # subset genomic ranges
   ranges.keep <- granges(x = x)
@@ -976,19 +978,39 @@ subset.ChromatinAssay <- function(
     new.data = ranges.keep
   )
   # subset motifs
-  motifs <- Motif(object = x)
-  x <- SetAssayData(
-    object = x,
-    slot = "motifs",
-    new.data = subset(x = motifs, features = features)
-  )
+  motifs <- Motifs(object = x)
+  if (!is.null(x = motifs)) {
+    motifs <- subset(x = motifs, features = features)
+  }
+
   # subset cells in positionEnrichment matrices
+  cells <- SetIfNull(x = cells, y = colnames(x = x))
+  posmat <- GetAssayData(object = x, slot = "positionEnrichment")
+  for (i in seq_along(along.with = posmat)) {
+    posmat[[i]] <- posmat[[i]][cells, ]
+  }
 
   # subset cells in Fragments objects
+  frags <- Fragments(object = x)
+  for (i in seq_along(along.with = frags)) {
+    frag.cells <- GetFragmentData(object = frags[[i]], slot = "cells")
+    # there can be cells in the assay that are not in the fragment object
+    keep <- names(x = frag.cells) %in% cells
+    slot(object = frags[[i]], name = "cells") <- frag.cells[keep]
+  }
 
   # convert standard assay to ChromatinAssay
-
-  return(x)
+  chromassay <- as.ChromatinAssay(
+    x = standardassay,
+    ranges = ranges.keep,
+    seqinfo = seqinfo(x = x),
+    annotation = Annotation(object = x),
+    motifs = motifs,
+    fragments = frags,
+    bias = GetAssayData(object = x, slot = "bias"),
+    positionEnrichment = posmat
+  )
+  return(chromassay)
 }
 
 #' @rdname merge.ChromatinAssay
