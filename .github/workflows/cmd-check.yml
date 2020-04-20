@@ -66,6 +66,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          options(install.packages.check.source = "no")
           install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
           install.packages(c("BiocManager", "glue"), Ncpu = 2L)
           BiocManager::install(version = '${{ matrix.config.bioc }}')
