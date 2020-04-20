@@ -133,6 +133,9 @@ ChromatinAssay <- setClass(
 #' @param annotation A set of \code{\link[GenomicRanges]{GRanges}} containing
 #' annotations for the genome used
 #' @param bias A Tn5 integration bias matrix
+#' @param positionEnrichment A named list of matrices containing positional
+#' signal enrichment information for each cell. Should be a cell x position
+#' matrix, centered on an element of interest (for example, TSS sites).
 #' @param sep Separators to use for strings encoding genomic coordinates.
 #' First element is used to separate the chromosome from the coordinates,
 #' second element is used to separate the start from end coordinate. Only
@@ -158,6 +161,7 @@ CreateChromatinAssayObject <- function(
   genome = NULL,
   annotation = NULL,
   bias = NULL,
+  positionEnrichment = list(),
   sep = c("-", "-"),
   validate.fragments = TRUE,
   verbose = TRUE,
@@ -229,7 +233,7 @@ CreateChromatinAssayObject <- function(
     fragments = frags,
     annotation = annotation,
     bias = bias,
-    positionEnrichment = list()
+    positionEnrichment = positionEnrichment
   )
   return(chrom.assay)
 }
