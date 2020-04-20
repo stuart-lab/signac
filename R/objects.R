@@ -234,14 +234,6 @@ CreateChromatinAssayObject <- function(
   return(chrom.assay)
 }
 
-#' @rdname as.Assay
-#' @method as.Assay ChromatinAssay
-as.Assay.ChromatinAssay <- function(x) {
-  # TODO
-  # remove the ChromatinAssay-specific slots and recreate as a standard Assay
-  return(x)
-}
-
 #' @param ranges A GRanges object
 #' @param genome A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
 #' information about the genome used. Alternatively, the name of a UCSC genome
@@ -250,6 +242,7 @@ as.Assay.ChromatinAssay <- function(x) {
 #' @param motifs A \code{\link{Motif}} object
 #' @param fragments A list of \code{\link{Fragment}} objects
 #' @param bias Tn5 integration bias matrix
+#' @param positionEnrichment A named list of position enrichment matrices.
 #' @param sep Charaters used to separate the chromosome, start, and end
 #' coordinates in the row names of the data matrix
 #'
@@ -265,6 +258,7 @@ as.ChromatinAssay.Assay <- function(
   motifs = NULL,
   fragments = NULL,
   bias = NULL,
+  positionEnrichment = NULL,
   sep = c("-", "-"),
   ...
 ) {
@@ -311,6 +305,13 @@ as.ChromatinAssay.Assay <- function(
       object = new.assay,
       slot = "bias",
       new.data = bias
+    )
+  }
+  if (!is.null(x = positionEnrichment)) {
+    new.assay <- SetAssayData(
+      object = new.assay,
+      slot = "positionEnrichment",
+      new.data = positionEnrichment
     )
   }
   return(new.assay)
@@ -763,6 +764,27 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
     }
     slot(object = object, name = slot) <- new.data
   } else if (slot == "positionEnrichment") {
+    if (inherits(x = new.data, what = "list")) {
+      if (is.null(x = names(x = new.data))) {
+        stop("If supplying a list of position enrichment matrices,
+             each element must be named")
+      } else {
+        current.data <- GetAssayData(
+          object = object, slot = "positionEnrichment"
+        )
+        if (length(x = current.data) != 0) {
+          warning("Overwriting current list of position enrichement matrices")
+        }
+        for (i in seq_along(along.with = new.data)) {
+          if (!is(object = new.data[[i]], class2 = "AnyMatrix")) {
+            stop(
+              "Position enrichment must be provided as a matrix or sparseMatrix"
+              )
+          }
+        }
+        slot(object = object, name = "postionEnrichment") <- new.data
+      }
+    }
     if (!is(object = new.data, class2 = "AnyMatrix")) {
       stop("Position enrichment must be provided as a matrix or sparseMatrix")
     }
