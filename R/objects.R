@@ -652,7 +652,7 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = "data", ...) {
 }
 
 #' @rdname RenameCells
-#' @importFrom Seurat RenameCells
+#' @importFrom Seurat GetAssayData
 #' @export
 #' @method RenameCells ChromatinAssay
 RenameCells.ChromatinAssay <- function(object, new.names = NULL, ...) {
@@ -671,10 +671,17 @@ RenameCells.ChromatinAssay <- function(object, new.names = NULL, ...) {
     pos.enrich[[i]] <- mat
   }
   slot(object = object, name = "positionEnrichment") <- pos.enrich
+
   # TODO need to convert to standard assay, rename cells, convert back
-  object <- Seurat:::RenameCells.Assay(
-    object = object, new.names = new.names, ...
-  )
+  # this would account for possibility of SCT-normalized data in a ChrAssay
+  names(x = new.names) <- NULL
+  for (data.slot in c("counts", "data", "scale.data")) {
+    old.data <- GetAssayData(object = object, slot = data.slot)
+    if (ncol(x = old.data) <= 1) {
+      next
+    }
+    colnames(x = slot(object = object, name = data.slot)) <- new.names
+  }
   return(object)
 }
 
