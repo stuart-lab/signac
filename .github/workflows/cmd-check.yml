@@ -67,6 +67,7 @@ jobs:
       - name: Install dependencies
         run: |
           install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
+          install.packages("Rcurl", type = "binary")
           install.packages(c("BiocManager", "glue"), Ncpu = 2L)
           BiocManager::install(version = '${{ matrix.config.bioc }}')
           BiocManager::install(c("GenomeInfoDbData", "GO.db", "GenomicAlignments"), Ncpu = 2L)
