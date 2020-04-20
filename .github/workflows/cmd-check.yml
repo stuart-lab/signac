@@ -66,8 +66,10 @@ jobs:
 
       - name: Install dependencies
         run: |
+          if (Sys.info()['sysname'] == "Windows") {
+              install.packages("RCurl", type = "binary")
+          }
           install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
-          install.packages("Rcurl", type = "binary")
           install.packages(c("BiocManager", "glue"), Ncpu = 2L)
           BiocManager::install(version = '${{ matrix.config.bioc }}')
           BiocManager::install(c("GenomeInfoDbData", "GO.db", "GenomicAlignments"), Ncpu = 2L)
