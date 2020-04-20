@@ -651,30 +651,44 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = "data", ...) {
   ))
 }
 
-
-# @param new.names vector of new cell names
-#
-# @rdname RenameCells
-# @method RenameCells ChromatinAssay
-RenameCells.ChromatinAssay <- function(object, new.name = NULL, ...) {
-  # TODO define RenameCells for ChromatinAssay
-
-  # problem: need to check if new.name is a named vector, or just a vector
-  # where the order is meant to correspond to the name in the object
-  # if it's just ordered, we need to first create a named vector from the
-  # current names in the assay, then iterate over the fragment objects
-  # and update the cell names in each object, since they're unordered and contain
-  # subsets of all cell names.
-
-  # needs to update cell names in Fragment objects
-
-  # Motif object is independent of cells, so don't need to do anything
-
-  # because RenameCells only gives vector of new names, we can't just use
-  # prefix and suffix for Fragment object
-  return()
+#' @rdname RenameCells
+#' @importFrom Seurat RenameCells
+#' @export
+#' @method RenameCells ChromatinAssay
+RenameCells.ChromatinAssay <- function(object, new.names = NULL, ...) {
+  names(x = new.names) <- colnames(x = object)
+  for (i in seq_along(along.with = Fragments(object = object))) {
+    slot(object = object, name = "fragments")[[i]] <- RenameCells(
+      object = slot(object = object, name = "fragments")[[i]],
+      new.names = new.names
+    )
+  }
+  pos.enrich <- GetAssayData(object = object, slot = "positionEnrichment")
+  for (i in seq_along(along.with = pos.enrich)) {
+    mat <- pos.enrich[[i]]
+    mat <- mat[colnames(x = object), ]
+    rownames(x = mat) <- new.names[rownames(x = mat)]
+    pos.enrich[[i]] <- mat
+  }
+  slot(object = object, name = "positionEnrichment") <- pos.enrich
+  # TODO need to convert to standard assay, rename cells, convert back
+  object <- Seurat:::RenameCells.Assay(
+    object = object, new.names = new.names, ...
+  )
+  return(object)
 }
 
+#' @rdname RenameCells
+#' @export
+#' @method RenameCells Fragment
+RenameCells.Fragment <- function(object, new.names, ...) {
+  cells <- GetFragmentData(object = object, slot = "cells")
+  # TODO subset cells in Fragment object when subsetting object
+  cells <- cells[names(x = new.names)]
+  names(x = cells) <- new.names[names(x = cells)]
+  slot(object = object, name = "cells") <- cells
+  return(object)
+}
 
 #' @importFrom Seurat SetAssayData
 #' @importFrom GenomeInfoDb genome Seqinfo
@@ -932,6 +946,8 @@ subset.ChromatinAssay <- function(
     slot = "motifs",
     new.data = subset(x = motifs, features = features)
   )
+  # TODO subset cells in positionEnrichment matrices
+  # TODO subset cells in Fragments objects
   return(x)
 }
 
