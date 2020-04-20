@@ -447,9 +447,13 @@ CutMatrix <- function(
     tabix.file <- TabixFile(file = fragment.path)
     open(con = tabix.file)
     # remove regions that aren't in the fragment file
+    seqnames.in.both <- intersect(
+      x = seqnames(x = region),
+      y = seqnamesTabix(file = tabix.file)
+    )
     region <- keepSeqlevels(
       x = region,
-      value = seqnamesTabix(tabix.file),
+      value = seqnames.in.both,
       pruning.mode = "coarse"
     )
     cm <- SingleFileCutMatrix(
