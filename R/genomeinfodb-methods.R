@@ -57,7 +57,11 @@ setMethod(
   signature = "ChromatinAssay",
   definition = function(x) {
     x <- seqinfo(x = x)
-    callGeneric()
+    if (is.null(x = x)) {
+      return(NULL)
+    } else {
+      callGeneric()
+    }
   }
 )
 
@@ -82,7 +86,11 @@ setMethod(
   signature = "ChromatinAssay",
   definition = function(x) {
     x <- seqinfo(x = x)
-    callGeneric()
+    if (is.null(x = x)) {
+      return(NULL)
+    } else {
+      callGeneric()
+    }
   }
 )
 
@@ -107,7 +115,15 @@ setMethod(
   signature = "ChromatinAssay",
   definition = function(x) {
     x <- seqinfo(x = x)
-    callGeneric()
+    if (is.null(x = x)) {
+      return(NULL)
+    } else {
+      if (is.null(x = x)) {
+        return(NULL)
+      } else {
+        callGeneric()
+      }
+    }
   }
 )
 
@@ -132,7 +148,11 @@ setMethod(
   signature = "ChromatinAssay",
   definition = function(x) {
     x <- seqinfo(x = x)
-    callGeneric()
+    if (is.null(x = x)) {
+      return(NULL)
+    } else {
+      callGeneric()
+    }
   }
 )
 
@@ -157,7 +177,11 @@ setMethod(
   signature = "ChromatinAssay",
   definition = function(x) {
     x <- seqinfo(x = x)
-    callGeneric()
+    if (is.null(x = x)) {
+      return(NULL)
+    } else {
+      callGeneric()
+    }
   }
 )
 
@@ -204,7 +228,11 @@ setMethod(
   signature = "Seurat",
   definition = function(x) {
     x <- seqinfo(x = x)
-    callGeneric()
+    if (is.null(x = x)) {
+      return(NULL)
+    } else {
+      callGeneric()
+    }
   }
 )
 
@@ -226,7 +254,11 @@ setMethod(
   signature = "Seurat",
   definition = function(x) {
     x <- seqinfo(x = x)
-    callGeneric()
+    if (is.null(x = x)) {
+      return(NULL)
+    } else {
+      callGeneric()
+    }
   }
 )
 
@@ -248,7 +280,11 @@ setMethod(
   signature = "Seurat",
   definition = function(x) {
     x <- seqinfo(x = x)
-    callGeneric()
+    if (is.null(x = x)) {
+      return(NULL)
+    } else {
+      callGeneric()
+    }
   }
 )
 
@@ -270,7 +306,11 @@ setMethod(
   signature = "Seurat",
   definition = function(x) {
     x <- seqinfo(x = x)
-    callGeneric()
+    if (is.null(x = x)) {
+      return(NULL)
+    } else {
+      callGeneric()
+    }
   }
 )
 
@@ -292,7 +332,11 @@ setMethod(
   signature = "Seurat",
   definition = function(x) {
     x <- seqinfo(x = x)
-    callGeneric()
+    if (is.null(x = x)) {
+      return(NULL)
+    } else {
+      callGeneric()
+    }
   }
 )
 
