@@ -792,13 +792,14 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
   } else if (slot == "positionEnrichment") {
     if (inherits(x = new.data, what = "list")) {
       # list of position enrichment matrices being added
-      if (is.null(x = names(x = new.data))) {
+      if (length(x = new.data) == 0) {
+        # if list is empty, assign and overwrite slot
+        slot(object = object, name = slot) <- new.data
+      } else if (is.null(x = names(x = new.data))) {
         stop("If supplying a list of position enrichment matrices,
              each element must be named")
       } else {
-        current.data <- GetAssayData(
-          object = object, slot = "positionEnrichment"
-        )
+        current.data <- GetAssayData(object = object, slot = slot)
         if (length(x = current.data) != 0) {
           warning("Overwriting current list of position enrichement matrices")
         }
@@ -809,7 +810,7 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
               )
           }
         }
-        slot(object = object, name = "positionEnrichment") <- new.data
+        slot(object = object, name = slot) <- new.data
       }
     } else if (!is(object = new.data, class2 = "AnyMatrix")) {
       stop("Position enrichment must be provided as a matrix or sparseMatrix")
