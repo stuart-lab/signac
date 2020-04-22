@@ -1036,7 +1036,6 @@ subset.ChromatinAssay <- function(
   return(chromassay)
 }
 
-#' @rdname merge.ChromatinAssay
 #' @export
 #' @method merge ChromatinAssay
 #' @importFrom GenomicRanges union findOverlaps
