@@ -1320,6 +1320,7 @@ MergeIntersectingRows <- function(
   }
   mat.b <- SetIfNull(x = mat.b, y = mat.a)
   ranges.b <- SetIfNull(x = ranges.b, y = ranges.a)
+
   overlaps <- findOverlaps(query = ranges.b, subject = ranges.a)
   b.hits <- queryHits(x = overlaps)
   a.hits <- subjectHits(x = overlaps)
@@ -1327,6 +1328,7 @@ MergeIntersectingRows <- function(
   subjecthits.multi.a <- subjectHits(x = overlaps[which(!isUnique(x = a.hits))])
   queryhits.multi.b <- queryHits(x = overlaps[which(!isUnique(x = b.hits))])
   subjecthits.multi.b <- subjectHits(x = overlaps[which(!isUnique(x = b.hits))])
+
   a.hits <- ResolveBridge(
     multihit = subjecthits.multi.a,
     corresponding = queryhits.multi.a
@@ -1372,6 +1374,127 @@ MergeIntersectingRows <- function(
     }
     return(c(a.mod, b.mod))
   }
+}
+
+#' Unify genomic ranges
+#'
+#' Create a unified set of non-overlapping genomic ranges
+#' from multiple Seurat objects containing single-cell
+#' chromatin data.
+#'
+#' @param object.list A list of Seurat objects or ChromatinAssay objects
+#' @param mode Function to use when combining genomic ranges. Can be "reduce"
+#' (default) or "disjoin".
+#' See \code{\link[GenomicRanges]{reduce}}
+#' and \code{\link[GenomicRanges]{disjoin}}
+#' for more information on these functions.
+#' @importFrom GenomicRanges reduce disjoin
+#' @export
+#' @return Returns a GRanges object
+#' @examples
+#' UnifyPeaks(object.list = list(atac_small, atac_small))
+UnifyPeaks <- function(object.list, mode = "reduce") {
+  peak.ranges <- list()
+  for (i in seq_along(along.with = object.list)) {
+    peak.ranges[[i]] <- granges(x = object.list[[i]])
+  }
+  peak.ranges <- Reduce(f = c, x = peak.ranges)
+  if (mode == "reduce") {
+    return(reduce(x = peak.ranges))
+  } else if (mode == "disjoin") {
+    return(disjoin(x = peak.ranges))
+  } else {
+    stop("Unknown mode requested")
+  }
+}
+
+#' Subset matrix rows and columns
+#'
+#' Subset the rows and columns of a matrix by removing
+#' rows and columns with less than the specified number of
+#' non-zero elements.
+#'
+#' @param mat A matrix
+#' @param min.rows Minimum number of non-zero elements for
+#' the row to be retained
+#' @param min.cols Minimum number of non-zero elements for
+#' the column to be retained
+#' @param max.row.val Maximum allowed value in a row for the
+#' row to be retained. If NULL, don't set any limit.
+#' @param max.col.val Maximum allowed value in a column for
+#' the column to be retained. If NULL, don't set any limit.
+#'
+#' @return Returns a matrix
+#' @export
+#' @importFrom Matrix colSums rowSums
+#' @examples
+#' SubsetMatrix(mat = volcano)
+SubsetMatrix <- function(
+  mat,
+  min.rows = 1,
+  min.cols = 1,
+  max.row.val = 10,
+  max.col.val = NULL
+) {
+  rowcount <- rowSums(mat > 0)
+  colcount <- colSums(mat > 0)
+  keeprows <- rowcount > min.rows
+  keepcols <- colcount > min.cols
+  if (!is.null(x = max.row.val)) {
+    rowmax <- apply(X = mat, MARGIN = 1, FUN = max)
+    keeprows <- keeprows & (rowmax < max.row.val)
+  }
+  if (!is.null(x = max.col.val)) {
+    colmax <- apply(X = mat, MARGIN = 2, FUN = max)
+    keepcols <- keepcols & (colmax < max.col.val)
+  }
+  return(mat[keeprows, keepcols])
+}
+
+#### Not exported ####
+
+# Find matrix indices corresponding to overlapping genomic ranges
+GetRowsToMerge <- function(assay.list, all.ranges, reduced.ranges) {
+  revmap <- as.vector(x = reduced.ranges$revmap)
+
+  # get indices of ranges that changed
+  revmap.lengths <- sapply(X = revmap, FUN = length)
+  changed.ranges <- which(x = revmap.lengths > 1)
+  grange.string <- GRangesToString(grange = reduced.ranges[changed.ranges])
+
+  # preallocate
+  offsets <- list()
+  results <- list()
+  matrix.indices <- vector(
+    mode = "numeric",
+    length = length(x = changed.ranges) * 2
+  )
+  granges <- vector(
+    mode = "character",
+    length = length(x = changed.ranges) * 2
+  )
+  for (i in seq_along(along.with = assay.list)) {
+    indices <- which(x = all.ranges$dataset == i)
+    offsets[[i]] <- min(indices) - 1
+    offsets[[i]][[2]] <- max(indices) + 1
+    results[['matrix']][[i]] <- matrix.indices
+    results[['grange']][[i]] <- granges
+  }
+
+  # find sets of ranges for each dataset
+  for (x in seq_along(along.with = changed.ranges)) {
+    idx <- changed.ranges[[x]]
+    this.assay <- revmap[[idx]]
+    for (i in seq_along(along.with = assay.list)) {
+      mat.idx <- this.assay - offsets[[i]][1]
+      mat.idx <- mat.idx[mat.idx < offsets[[i]][2] & mat.idx > 0]
+      for (y in seq_along(along.with = mat.idx)) {
+        results[['matrix']][[i]][[x + y - 1]] <- mat.idx[[y]]
+        results[['grange']][[i]][[x + y - 1]] <- grange.string[[x]]
+      }
+    }
+  }
+  return(results)
 }
 
 # Resolve cases where a row overlaps two
@@ -1558,79 +1681,4 @@ PFMatrixToList <- function(x) {
   position.matrix <- TFBSTools::Matrix(x = x)
   name.use <- TFBSTools::name(x = x)
   return(list("matrix" = position.matrix, "name" = name.use))
-}
-
-#' Unify genomic ranges
-#'
-#' Create a unified set of non-overlapping genomic ranges
-#' from multiple Seurat objects containing single-cell
-#' chromatin data.
-#'
-#' @param object.list A list of Seurat objects or ChromatinAssay objects
-#' @param mode Function to use when combining genomic ranges. Can be "reduce"
-#' (default) or "disjoin".
-#' See \code{\link[GenomicRanges]{reduce}}
-#' and \code{\link[GenomicRanges]{disjoin}}
-#' for more information on these functions.
-#' @importFrom GenomicRanges reduce disjoin
-#' @export
-#' @return Returns a GRanges object
-#' @examples
-#' UnifyPeaks(object.list = list(atac_small, atac_small))
-UnifyPeaks <- function(object.list, mode = "reduce") {
-  peak.ranges <- list()
-  for (i in seq_along(along.with = object.list)) {
-    peak.ranges[[i]] <- granges(x = object.list[[i]])
   }
-  peak.ranges <- Reduce(f = c, x = peak.ranges)
-  if (mode == "reduce") {
-    return(reduce(x = peak.ranges))
-  } else if (mode == "disjoin") {
-    return(disjoin(x = peak.ranges))
-  } else {
-    stop("Unknown mode requested")
-  }
-}
-
-#' Subset matrix rows and columns
-#'
-#' Subset the rows and columns of a matrix by removing
-#' rows and columns with less than the specified number of
-#' non-zero elements.
-#'
-#' @param mat A matrix
-#' @param min.rows Minimum number of non-zero elements for
-#' the row to be retained
-#' @param min.cols Minimum number of non-zero elements for
-#' the column to be retained
-#' @param max.row.val Maximum allowed value in a row for the
-#' row to be retained. If NULL, don't set any limit.
-#' @param max.col.val Maximum allowed value in a column for
-#' the column to be retained. If NULL, don't set any limit.
-#'
-#' @return Returns a matrix
-#' @export
-#' @importFrom Matrix colSums rowSums
-#' @examples
-#' SubsetMatrix(mat = volcano)
-SubsetMatrix <- function(
-  mat,
-  min.rows = 1,
-  min.cols = 1,
-  max.row.val = 10,
-  max.col.val = NULL
-) {
-  rowcount <- rowSums(mat > 0)
-  colcount <- colSums(mat > 0)
-  keeprows <- rowcount > min.rows
-  keepcols <- colcount > min.cols
-  if (!is.null(x = max.row.val)) {
-    rowmax <- apply(X = mat, MARGIN = 1, FUN = max)
-    keeprows <- keeprows & (rowmax < max.row.val)
-  }
-  if (!is.null(x = max.col.val)) {
-    colmax <- apply(X = mat, MARGIN = 2, FUN = max)
-    keepcols <- keepcols & (colmax < max.col.val)
-  }
-  return(mat[keeprows, keepcols])
-}
