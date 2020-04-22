@@ -988,7 +988,7 @@ subset.ChromatinAssay <- function(
   # subset genomic ranges
   ranges.keep <- granges(x = x)
   if (!is.null(x = features)) {
-    idx.keep <- which(colnames(x = x) == features)
+    idx.keep <- which(rownames(x = x) == features)
     ranges.keep <- ranges.keep[idx.keep]
   }
 
