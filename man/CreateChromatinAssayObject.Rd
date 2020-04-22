@@ -16,6 +16,7 @@ CreateChromatinAssayObject(
   genome = NULL,
   annotation = NULL,
   bias = NULL,
+  positionEnrichment = NULL,
   sep = c("-", "-"),
   validate.fragments = TRUE,
   verbose = TRUE,
@@ -52,7 +53,8 @@ the rows of the input matrix}
 contained in the input matrix. If multiple fragment files are required,
 you can add additional \code{\link{Fragment}} object to the assay after it is
 created using the \code{\link{CreateFragmentObject}} and
-\code{\link{Fragments}} functions.}
+\code{\link{Fragments}} functions. Alternatively, a list of
+\code{\link{Fragment}} objects can be provided.}
 
 \item{genome}{A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
 information about the genome used. Alternatively, the name of a UCSC genome
@@ -62,6 +64,10 @@ can be provided and the sequence information will be downloaded from UCSC.}
 annotations for the genome used}
 
 \item{bias}{A Tn5 integration bias matrix}
+
+\item{positionEnrichment}{A named list of matrices containing positional
+signal enrichment information for each cell. Should be a cell x position
+matrix, centered on an element of interest (for example, TSS sites).}
 
 \item{sep}{Separators to use for strings encoding genomic coordinates.
 First element is used to separate the chromosome from the coordinates,

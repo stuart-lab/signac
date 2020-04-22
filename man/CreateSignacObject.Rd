@@ -95,3 +95,7 @@ This is a wrapper for \code{\link[Seurat]{CreateSeuratObject}} to create
 an object containing a \code{\link{ChromatinAssay}} rather than a
 standard Seurat \code{\link[Seurat]{Assay}}.
 }
+\seealso{
+The \code{\link[Seurat]{CreateSeuratObject}} function in the
+\pkg{Seurat} package, and the \code{\link{ChromatinAssay-class}}.
+}
