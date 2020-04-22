@@ -1504,6 +1504,89 @@ GetRowsToMerge <- function(assay.list, all.ranges, reduced.ranges) {
   return(results)
 }
 
+# Merge rows of count matrices with overlapping genomic ranges
+#' @importFrom utils txtProgressBar setTxtProgressBar
+#' @importFrom Matrix colSums
+MergeOverlappingRows <- function(mergeinfo, assay.list, verbose = TRUE) {
+  merge.counts <- list()
+  for (i in seq_along(along.with = assay.list)) {
+    # get count matrix
+    counts <- GetAssayData(object = assay.list[[i]], slot = "counts")
+
+    # get rows to merge
+    mrows <- mergeinfo$matrix[[i]]
+    new.rownames <- mergeinfo$grange[[i]]
+    nrep <- rle(x = new.rownames)
+
+    # allocate
+    todelete <- c()
+    newmat <- vector(
+      mode = "list",
+      length = length(new.rownames)
+    )
+    newmat.names <- vector(
+      mode = "character",
+      length = length(x = new.rownames)
+    )
+    x <- 1  # row index for matrix
+    y <- 1  # counter for list index
+    if (verbose) {
+      pb <- txtProgressBar(
+        min = 1,
+        max = length(x = nrep$lengths),
+        style = 3,
+        file = stderr()
+      )
+    }
+    for (j in seq_along(along.with = nrep$lengths)) {
+      rowrun <- nrep$lengths[[j]]
+      new.feature.name <- nrep$values[[j]]
+      index.range <- x:(x + rowrun - 1)
+      matrix.index <- mrows[index.range]
+      if (rowrun < 2) {
+        # no merge needed, just rename row in-place
+        rownames(x = counts)[matrix.index] <- new.feature.name
+      } else {
+        # merge multiple rows and add to list
+        newmat[[y]] <- colSums(x = counts[matrix.index, ])
+        # mark merged row for deletion
+        todelete <- c(todelete, matrix.index)
+        # add row names
+        newmat.names[y] <- new.feature.name
+        y <- y + 1
+      }
+      if (verbose) setTxtProgressBar(pb = pb, value = j)
+      x <- x + rowrun
+    }
+    # remove extra elements in vectors
+    newmat <- newmat[1:(y - 1)]
+    newmat.names <- newmat.names[1:(y - 1)]
+
+    if (y == 1) {
+      # no rows were merged, can return counts
+      merge.counts[[i]] <- counts
+    } else {
+      # construct sparse matrix
+      if (verbose) {
+        message("\nBinding matrix rows")
+      }
+      merged.mat <- Reduce(f = rbind, x = newmat)
+      rownames(merged.mat) <- newmat.names
+      merged.mat <- as(object = merged.mat, Class = "dgCMatrix")
+
+      # remove rows from count matrix that were merged
+      mat.rows <- seq_len(length.out = nrow(x = counts))
+      tokeep <- setdiff(mat.rows, todelete)
+      counts <- counts[tokeep, ]
+
+      # add new merged rows to counts
+      counts <- rbind(counts, merged.mat)
+      merge.counts[[i]] <- counts
+    }
+  }
+  return(merge.counts)
+}
+
 # Resolve cases where a row overlaps two
 # ranges that each have multiple overlapping
 # rows. This would cause the middle row,
