@@ -1482,6 +1482,7 @@ GetRowsToMerge <- function(assay.list, all.ranges, reduced.ranges) {
   }
 
   # find sets of ranges for each dataset
+  counter <- vector(mode = "numeric", length = length(x = assay.list))
   for (x in seq_along(along.with = changed.ranges)) {
     idx <- changed.ranges[[x]]
     this.assay <- revmap[[idx]]
@@ -1489,10 +1490,16 @@ GetRowsToMerge <- function(assay.list, all.ranges, reduced.ranges) {
       mat.idx <- this.assay - offsets[[i]][1]
       mat.idx <- mat.idx[mat.idx < offsets[[i]][2] & mat.idx > 0]
       for (y in seq_along(along.with = mat.idx)) {
-        results[['matrix']][[i]][[x + y - 1]] <- mat.idx[[y]]
-        results[['grange']][[i]][[x + y - 1]] <- grange.string[[x]]
+        counter[i] <- counter[i] + 1
+        results[['matrix']][[i]][[counter[i]]] <- mat.idx[[y]]
+        results[['grange']][[i]][[counter[i]]] <- grange.string[[x]]
       }
     }
+  }
+  # remove trailing extra values in each vector
+  for (i in seq_along(along.with = assay.list)) {
+    results$matrix[[i]] <- results$matrix[[i]][1:counter[i]]
+    results$grange[[i]] <- results$grange[[i]][1:counter[i]]
   }
   return(results)
 }
