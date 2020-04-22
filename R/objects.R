@@ -126,7 +126,8 @@ ChromatinAssay <- setClass(
 #' contained in the input matrix. If multiple fragment files are required,
 #' you can add additional \code{\link{Fragment}} object to the assay after it is
 #' created using the \code{\link{CreateFragmentObject}} and
-#' \code{\link{Fragments}} functions.
+#' \code{\link{Fragments}} functions. Alternatively, a list of
+#' \code{\link{Fragment}} objects can be provided.
 #' @param genome A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
 #' information about the genome used. Alternatively, the name of a UCSC genome
 #' can be provided and the sequence information will be downloaded from UCSC.
@@ -215,20 +216,35 @@ CreateChromatinAssayObject <- function(
     min.cells = 0,
     min.features = 0
   )
-  frags <- list()
-  if (!is.null(x = fragments)) {
-    if (nchar(x = fragments) > 0) {
-      cells <- colnames(x = seurat.assay)
-      names(x = cells) <- cells
-      frags[[1]] <- CreateFragmentObject(
-        path = fragments,
-        cells = cells,
-        validate.fragments = validate.fragments,
-        verbose = verbose,
-        ...
-      )
+  if (inherits(x = fragments, what = "list")) {
+    # check each object in the list is a fragment object
+    # fragment list usually supplied when doing object merge,
+    # so don't validate cells here, we can assume that was done in
+    # individual object creation
+    obj.class <- sapply(
+      X = fragments, FUN = function(x) inherits(x = x, what = "Fragment")
+    )
+    if (!all(obj.class)) {
+      stop("All objects in fragments list must be Fragment-class objects")
+    }
+    frags <- fragments
+  } else {
+    frags <- list()
+    if (!is.null(x = fragments)) {
+      if (nchar(x = fragments) > 0) {
+        cells <- colnames(x = seurat.assay)
+        names(x = cells) <- cells
+        frags[[1]] <- CreateFragmentObject(
+          path = fragments,
+          cells = cells,
+          validate.fragments = validate.fragments,
+          verbose = verbose,
+          ...
+        )
+      }
     }
   }
+
   chrom.assay <- as.ChromatinAssay(
     x = seurat.assay,
     ranges = ranges,
@@ -1128,7 +1144,7 @@ merge.ChromatinAssay <- function(
   merged.counts <- MergeOverlappingRows(
     mergeinfo = tomerge,
     assay.list = assays,
-    verbose = FALSE
+    verbose = TRUE
   )
 
   # merge matrices
@@ -1146,13 +1162,13 @@ merge.ChromatinAssay <- function(
 
   # create new ChromatinAssay object
   # bias, motifs, positionEnrichment, metafeatures, scaledata and data not kept
+  # data wiped since changing cells will change TF-IDF
   new.assay <- CreateChromatinAssayObject(
-    counts = merged.counts,
-    data = NULL, # data wiped since changing cells will change TF-IDF
+    counts = merged.all,
     min.cells = 0,
     min.features = 0,
     max.cells = NULL,
-    ranges = grange.union,
+    ranges = reduced.ranges,
     motifs = NULL,
     fragments = all.frag,
     genome = seqinfo.use,
