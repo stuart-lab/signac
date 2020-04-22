@@ -922,144 +922,6 @@ MatchRegionStats <- function(
   return(feature.select)
 }
 
-#' Region-aware object merging
-#'
-#' This will find intersecting regions in both objects and rename the
-#' overlapping features with the region coordinates of the first object
-#' (by default; this can be changed with the regions.use parameter).
-#'
-#' This allows a merged object to be constructed with common feature names.
-#'
-#' @param object.1 The first Seurat object
-#' @param object.2 The second Seurat object
-#' @param assay.1 Name of the assay to use in the first object. If NULL, use
-#' the default assay
-#' @param assay.2 Name of the assay to use in the second object. If NULL, use
-#' the default assay
-#' @param regions.use Which regions to use when naming regions in the merged
-#' object. Options are:
-#' \itemize{
-#'  \item{1}: Use the region coordinates from the first object
-#'  \item{2}: Use the region coordinates from the second object
-#' }
-#' @param distance Maximum distance between regions allowed for an intersection
-#' to be recorded. Default is 0.
-#' @param new.assay.name Name for the merged assay. Default is 'peaks'
-#' @param verbose Display messages
-#' @param ... Additional arguments passed to
-#' \code{\link[Seurat]{CreateChromatinAssayObject}}
-#'
-#' @importFrom Seurat DefaultAssay CreateAssayObject GetAssayData Project
-#' @importFrom utils packageVersion
-#' @importFrom GenomicRanges granges
-#'
-#' @export
-#' @return Returns a \code{\link[Seurat]{Seurat}} object
-#' @examples
-#' MergeWithRegions(
-#'   object.1 = atac_small,
-#'   object.2 = atac_small,
-#'   assay.1 = 'peaks',
-#'   assay.2 = 'bins',
-#'   sep.1 = c(":","-"),
-#'   sep.2 = c("-","-")
-#' )
-MergeWithRegions <- function(
-  object.1,
-  object.2,
-  assay.1 = NULL,
-  assay.2 = NULL,
-  regions.use = 1,
-  distance = 0,
-  new.assay.name = "ATAC",
-  verbose = TRUE,
-  ...
-) {
-  assay.1 <- SetIfNull(x = assay.1, y = DefaultAssay(object = object.1))
-  assay.2 <- SetIfNull(x = assay.2, y = DefaultAssay(object = object.2))
-  intersecting.regions <- GetIntersectingFeatures(
-    object.1 = object.1,
-    object.2 = object.2,
-    assay.1 = assay.1,
-    assay.2 = assay.2,
-    distance = distance,
-    verbose = verbose
-  )
-  regions.obj1 <- intersecting.regions[[1]]
-  regions.obj2 <- intersecting.regions[[2]]
-  # TODO add option to keep non-overlapping regions
-  if (regions.use == 1) {
-    region.names <- rownames(x = object.1)[regions.obj1]
-    project <- Project(object = object.1)
-    regions <- granges(object.1[[assay.1]])[regions.obj1]
-  } else if (regions.use == 2) {
-    region.names <- rownames(x = object.2)[regions.obj2]
-    project <- Project(object = object.2)
-    regions <- granges(object.2[[assay.2]])[regions.obj2]
-  } else {
-    # TODO add option to rename regions as coordinate merge
-    # TODO add option to rename regions as coordinate intersect
-    stop("Choose either 1 or 2 for regions.use")
-  }
-  combined.meta.data <- data.frame(
-    row.names = c(colnames(object.1, colnames(object.2)))
-  )
-  new.idents <- c()
-  for (object in c(object.1, object.2)) {
-    old.meta.data <- object[[]]
-    if (
-      any(!colnames(x = old.meta.data) %in% colnames(x = combined.meta.data))
-    ) {
-      cols.to.add <- colnames(
-        x = old.meta.data
-      )[!colnames(x = old.meta.data) %in% colnames(x = combined.meta.data)]
-      combined.meta.data[, cols.to.add] <- NA
-    }
-    i <- sapply(X = old.meta.data, FUN = is.factor)
-    old.meta.data[i] <- lapply(X = old.meta.data[i], FUN = as.vector)
-    combined.meta.data[
-      rownames(x = old.meta.data),
-      colnames(x = old.meta.data)
-    ] <- old.meta.data
-    new.idents <- c(new.idents, as.vector(Idents(object = object)))
-  }
-  names(x = new.idents) <- rownames(x = combined.meta.data)
-  new.idents <- factor(x = new.idents)
-  if (verbose) {
-    message("Constructing merged object")
-  }
-  counts.1 <- GetAssayData(
-    object = object.1,
-    assay = assay.1,
-    slot = "counts"
-  )[regions.obj1, ]
-  counts.2 <- GetAssayData(
-    object = object.2,
-    assay = assay.2,
-    slot = "counts"
-  )[regions.obj2, ]
-  rownames(counts.1) <- region.names
-  rownames(counts.2) <- region.names
-  allcounts <- cbind(counts.1, counts.2)
-  assays <- list()
-  new.assay <- CreateChromatinAssayObject(
-    counts = allcounts,
-    ranges = regions,
-    ...
-  )
-  assays[[new.assay.name]] <- new.assay
-  merged.object <- new(
-    Class = "Seurat",
-    assays = assays,
-    meta.data = combined.meta.data,
-    active.assay = new.assay.name,
-    active.ident = new.idents,
-    project.name = project,
-    version = packageVersion(pkg = "Seurat")
-  )
-  return(merged.object)
-}
-
 # Generate cut matrix for many regions
 #
 # Run CutMatrix on multiple regions and add them together.
@@ -1454,6 +1316,11 @@ SubsetMatrix <- function(
 #### Not exported ####
 
 # Find matrix indices corresponding to overlapping genomic ranges
+# @param assay.list A list of ChromatinAssay objects
+# @param all.ranges Combined genomic ranges for all objects. This should be the
+# set of ranges that \code{reduce} was run on to get \code{reduced.ranges}
+# @param reduced.ranges A set of reduced genomic ranges containing the rev.map
+# information
 GetRowsToMerge <- function(assay.list, all.ranges, reduced.ranges) {
   revmap <- as.vector(x = reduced.ranges$revmap)
 
@@ -1505,6 +1372,10 @@ GetRowsToMerge <- function(assay.list, all.ranges, reduced.ranges) {
 }
 
 # Merge rows of count matrices with overlapping genomic ranges
+# @param mergeinfo The output of GetRowsToMerge: a list of matrix indices
+#  and matrix rownames to be merged for each assay
+# @param assay.list List of assays
+# @param verbose Display messages
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom Matrix colSums
 MergeOverlappingRows <- function(mergeinfo, assay.list, verbose = TRUE) {
@@ -1585,180 +1456,6 @@ MergeOverlappingRows <- function(mergeinfo, assay.list, verbose = TRUE) {
     }
   }
   return(merge.counts)
-}
-
-# Resolve cases where a row overlaps two
-# ranges that each have multiple overlapping
-# rows. This would cause the middle row,
-# that overlaps multiple, to become duplicated
-# @param multihit vector of indexes that overlap multiple
-# features in the opposite dataset
-# @param corresponding vector of indexes that are
-# overlapped by multiple features of the opposite dataset
-# @return Returns a named list with the modified
-# query and subject
-ResolveBridge <- function(multihit, corresponding) {
-  rle.hits <- rle(corresponding)
-  nonunique.hits <- which(rle.hits$lengths > 1)
-  runlengths <- rle.hits$lengths[nonunique.hits]
-  remove.multihit <- c()
-  remove.corresponding <- c()
-  for (i in seq_along(along.with = nonunique.hits)) {
-    q <- nonunique.hits[[i]]
-    rl <- runlengths[[i]]
-    multihit[q + rl - 1] <- multihit[q]
-    remove.multihit <- c(remove.multihit, (q + rl))
-    remove.corresponding <- c(remove.corresponding, (q + rl - 1))
-  }
-  keep.multihit <- setdiff(
-    x = seq_along(along.with = multihit), y = remove.multihit
-  )
-  keep.corresponding <- setdiff(
-    x = seq_along(along.with = corresponding), y = remove.corresponding
-  )
-  multihit <- multihit[keep.multihit]
-  corresponding <- corresponding[keep.corresponding]
-  return(list("multihit" = multihit, "corresponding" = corresponding))
-}
-
-# Set intersecting matrix rows to a common name
-#
-# ranges.a should correspond to the rows of mat.a
-# ranges.b should correspond to the rows of mat.b
-# Finds intersecting genomic ranges and renames rows
-# mat.b with the name of row in mat.a that it intersects
-#
-# @param mat.a The first matrix
-# @param mat.b The second matrix
-# @param ranges.a Genomic ranges corresponding to the rows of mat.a
-# @param ranges.b Genomic ranges corresponding to the rows of mat.b
-# @param verbose Display messages
-# @return Returns mat.b with altered row names
-#' @importFrom S4Vectors queryHits subjectHits
-#' @importFrom GenomicRanges findOverlaps
-RenameIntersectingRows <- function(
-  mat.a,
-  mat.b,
-  ranges.a,
-  ranges.b,
-  verbose = TRUE
-) {
-  overlaps <- findOverlaps(query = ranges.a, subject = ranges.b)
-  a.hits <- queryHits(x = overlaps)
-  b.hits <- subjectHits(x = overlaps)
-  rownames(mat.b)[b.hits] <- rownames(mat.a)[a.hits]
-  return(mat.b)
-}
-
-# Condense overlapping GenomicRanges
-#
-# Take the union of two sets of genomic ranges,
-# then split back into the ranges that were present
-# in each original set.
-#
-# @param ranges.a First set of GenomicRanges
-# @param ranges.b Second set of GenomicRanges
-# @return Returns a list of two GenomicRanges objects
-#' @importFrom GenomicRanges union findOverlaps
-#' @importFrom S4Vectors queryHits
-CondenseOverlappingGRanges <- function(
-  ranges.a,
-  ranges.b
-) {
-  grange.union <- union(x = granges(x = ranges.a), y = granges(x = ranges.b))
-  a.overlap.union <- findOverlaps(
-    query = grange.union,
-    subject = ranges.a,
-    ignore.strand = TRUE,
-    select = "first" # select = 'first' is essential to have match matrix rows
-  )
-  a.overlap.union <- a.overlap.union[!is.na(x = a.overlap.union)]
-  b.overlap.union <- findOverlaps(
-    query = grange.union,
-    subject = ranges.b,
-    ignore.strand = TRUE,
-    select = "first"
-  )
-  b.overlap.union <- b.overlap.union[!is.na(x = b.overlap.union)]
-  a.subset <- ranges.a[a.overlap.union]
-  b.subset <- ranges.b[b.overlap.union]
-  # TODO still doesn't match results from matrix row merge
-  return(list(a.subset, b.subset))
-}
-
-# Merge rows of matrix based on intersection with a second matrix.
-
-# TODO this can be slow if there are a lot of rows to merge
-#      because we repeatedly extract and sum rows of a sparse matrix.
-#      could try to make parallel, or think about other ways of doing it.
-
-# @param mat A sparse matrix
-# @param multihit a run-length encoded list describing the number of rows to be
-# merged in each merge step
-# @param queryhits Row indices to be merged
-# @param rowranges GenomicRanges associated with matrix rows
-# @param verbose Display progress
-# @return Returns a list containing a sparse matrix,
-# with target rows merged in-place (order same but condensed rows),
-# and a set of GenomicRanges
-#' @importFrom utils txtProgressBar setTxtProgressBar
-#' @importFrom Matrix colSums
-MergeInternalRows <- function(
-  mat,
-  multihit,
-  queryhits,
-  rowranges,
-  verbose = TRUE
-) {
-  mat.rows <- rownames(x = mat)
-  i <- 1
-  newmat <- list()
-  todelete <- c()
-  todelete.range <- c()
-  if (verbose) {
-    pb <- txtProgressBar(
-      min = 1,
-      max = length(x = multihit$lengths),
-      style = 3,
-      file = stderr()
-    )
-  }
-  while (i < length(x = multihit$lengths)) {
-    rowrun <- multihit$lengths[[i]]
-    # find the matrix rows to merge
-    rowindex <- mat.rows[queryhits[i:(i + rowrun - 1)]]
-    if (rowrun > 1) {
-      rangeindex <- queryhits[(i + 1):(i + rowrun - 1)]
-    }
-    # merge rows and add to list, name will become the name of the row
-    if (length(x = rowindex) > 1) {
-      newmat[[rowindex[[1]]]] <- colSums(mat[rowindex, ])
-    } else {
-      newmat <- NULL
-    }
-    # record which rows need to be removed
-    todelete <- c(todelete, rowindex)
-    todelete.range <- c(todelete.range, rangeindex)
-    i <- i + rowrun
-    if (verbose) setTxtProgressBar(pb = pb, value = i)
-  }
-  # contruct matrix
-  if (verbose) {
-    message("\nBinding matrix rows")
-  }
-  merged.mat <- Reduce(f = rbind, x = newmat)
-  rownames(merged.mat) <- names(newmat)
-  merged.mat <- as(object = merged.mat, Class = "dgCMatrix")
-  # remove rows from A that were merged
-  tokeep <- setdiff(mat.rows, todelete)
-  mat.mod <- mat[tokeep, ]
-  rowranges[todelete.range] <- NULL
-  # add new merged rows to A
-  mat.mod <- rbind(mat.mod, merged.mat)
-  # put back in original order
-  rows.order <- mat.rows[mat.rows %in% rownames(x = mat.mod)]
-  mat.mod <- mat.mod[rows.order, ]
-  return(list(mat.mod, rowranges))
 }
 
 # Convert PFMMatrix to
