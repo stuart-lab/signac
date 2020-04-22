@@ -161,7 +161,7 @@ CreateChromatinAssayObject <- function(
   genome = NULL,
   annotation = NULL,
   bias = NULL,
-  positionEnrichment = list(),
+  positionEnrichment = NULL,
   sep = c("-", "-"),
   validate.fragments = TRUE,
   verbose = TRUE,
@@ -199,9 +199,13 @@ CreateChromatinAssayObject <- function(
     max.cells <- ncol(x = data.use)
   }
   features.keep <- (ncell.feature > min.cells) & (ncell.feature < max.cells)
+  # re-assign row names of matrix so that it's a known granges transformation
+  new.rownames <- GRangesToString(grange = ranges, sep = c("-", "-"))
   if (!missing(x = counts)) {
+    rownames(x = counts) <- new.rownames
     counts <- counts[features.keep, ]
   } else {
+    rownames(x = data) <- new.rownames
     data <- data[features.keep, ]
   }
   ranges <- ranges[features.keep, ]
@@ -394,6 +398,9 @@ setAs(
 #' @param verbose Display messages
 #' @param ... Additional arguments passed to
 #' \code{\link{CreateChromatinAssayObject}}
+#'
+#' @seealso The \code{\link[Seurat]{CreateSeuratObject}} function in the
+#' \pkg{Seurat} package, and the \code{\link{ChromatinAssay-class}}.
 #'
 #' @importFrom Seurat Key<-
 #' @export
@@ -656,16 +663,10 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = "data", ...) {
   ))
 }
 
-#' Rename cells in a ChromatinAssay
-#'
-#' Method for renaming cells in a \code{\link{ChromatinAssay}} object
-#'
-#' @seealso \code{\link[Seurat]{RenameCells}} in the \pkg{Seurat} package
-#'
-#' @rdname RenameCells
+#' @importFrom Seurat RenameCells
 #' @importFrom Seurat GetAssayData
-#' @export
 #' @method RenameCells ChromatinAssay
+#' @export
 RenameCells.ChromatinAssay <- function(object, new.names = NULL, ...) {
   names(x = new.names) <- colnames(x = object)
   for (i in seq_along(along.with = Fragments(object = object))) {
@@ -696,12 +697,11 @@ RenameCells.ChromatinAssay <- function(object, new.names = NULL, ...) {
   return(object)
 }
 
-#' @rdname RenameCells
-#' @export
+#' @importFrom Seurat RenameCells
 #' @method RenameCells Fragment
+#' @export
 RenameCells.Fragment <- function(object, new.names, ...) {
   cells <- GetFragmentData(object = object, slot = "cells")
-  # TODO subset cells in Fragment object when subsetting object
   cells <- cells[names(x = new.names)]
   names(x = cells) <- new.names[names(x = cells)]
   slot(object = object, name = "cells") <- cells
@@ -821,6 +821,8 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
     if (!inherits(x = new.data, what = "Motif")) {
       stop("Must provide a Motif class object")
     }
+    # TODO allow mismatching row names, but check that the genomic ranges
+    # are equivalent. Requires adding a granges slot to the motif class
     if (!all(rownames(x = object) == rownames(x = new.data))) {
       keep.features <- intersect(x = rownames(x = new.data),
                                  y = rownames(x = object))
@@ -1022,121 +1024,141 @@ subset.ChromatinAssay <- function(
 #' @method merge ChromatinAssay
 #' @importFrom GenomicRanges union findOverlaps
 #' @importFrom Seurat RowMergeSparseMatrices
-#' @importFrom S4Vectors subjectHits queryHits
+#' @importFrom S4Vectors subjectHits queryHits mcols
+#' @importMethodsFrom GenomeInfoDb merge
 merge.ChromatinAssay <- function(
   x = NULL,
   y = NULL,
-  add.cell.ids = NULL, # TODO add cell IDs, esp for fragment file paths
-  merge.data = TRUE,
+  add.cell.ids = NULL,
   ...
 ) {
-  # check that genome is the same if both not NULL
-  genome.1 <- genome(x = x)
-  genome.2 <- genome(x = y)
-  if ((!is.null(x = genome.1) &
-       !is.null(x = genome.2)) &
-      !(identical(x = genome.1, y = genome.2))) {
+  # need to do all operations over a list of assays
+  assays <- c(x, y)
+
+  # rename cells in each assay
+  # merge.Seurat already does this, so should only happen here when merging
+  # assay objects outside of a Seurat object
+  if (!is.null(x = add.cell.ids)) {
+    for (i in seq_along(along.with = assays)) {
+      # TODO check this works, might need to define a vector of new cell names
+      assays[[i]] <- RenameCells(
+        object = assays[[i]],
+        new.names = add.cell.ids[i]
+      )
+    }
+  }
+
+  # check genomes are all the same
+  genomes <- lapply(X = assays, FUN = function(x) unique(x = genome(x = x)))
+  if (length(x = unique(x = genomes)) > 1) {
     warning("Genomes do not match, not merging ChromatinAssays")
     return(NULL)
-  } else {
-    genome.use <- SetIfNull(x = genome.1, y = genome.2)
   }
-  # check the annotations slot
-  annot.1 <- Annotation(object = x)
-  annot.2 <- Annotation(object = y)
-  if ((!is.null(x = annot.1) &
-       !is.null(x = annot.2)) &
-      !(identical(x = annot.1, y = annot.2))) {
-    warning("Annotations do not match, keeping annotation from the
-            first object")
-    annot <- annot.1
+
+  # merge seqinfo
+  all.seqinfo <- lapply(X = assays, FUN = function(x) seqinfo(x = x))
+  seqinfo.present <- !sapply(X = all.seqinfo, FUN = is.null)
+  if (any(seqinfo.present)) {
+    # need at least one non-NULL seqinfo, otherwise just set it as NULL
+    all.seqinfo <- all.seqinfo[seqinfo.present]
+    if (length(x = all.seqinfo) > 1) {
+      seqinfo.use <- all.seqinfo[[1]]
+      # iteratively merge seqinfo objects
+      for (x in 2:length(x = all.seqinfo)) {
+        seqinfo.use <- merge(x = seqinfo.use, y = all.seqinfo[[x]])
+      }
+    } else {
+      seqinfo.use <- all.seqinfo[[1]]
+    }
   } else {
-    annot <- SetIfNull(x = annot.1, y = annot.2)
+    seqinfo.use <- NULL
   }
-  # check fragments
-  # TODO update with Fragments objects
-  frag.1 <- GetAssayData(object = x, slot = "fragments")
-  frag.2 <- GetAssayData(object = y, slot = "fragments")
-  merged.frag <- c(frag.1, frag.2)
-  valid.frags <- sapply(X = merged.frag, FUN = ValidFragments)
+
+  # merge annotations
+  all.annot <- lapply(X = assays, FUN = function(x) Annotation(object = x))
+  annot.present <- !sapply(X = all.annot, FUN = is.null)
+  if (any(annot.present)) {
+    all.annot <- all.annot[annot.present]
+    annot.use <- all.annot[[1]]
+    if (length(x = all.annot) > 1) {
+      for (x in 2:length(x = all.annot)) {
+        if (!identical(x = annot.use, y = all.annot[[x]])) {
+          warning("Annotations do not match, keeping annotation from the
+            first object only")
+        }
+      }
+    }
+  } else {
+    annot.use <- NULL
+  }
+
+  # merge fragments
+  all.frag <- lapply(X = assays, FUN = function(x) Fragments(object = x))
+  all.frag <- Reduce(f = c, x = all.frag)
+  valid.frags <- sapply(X = all.frag, FUN = ValidateHash, verbose = FALSE)
   if (!all(valid.frags)) {
     warning("Some fragment files are not valid or not indexed.
             Removing invalid files from merged ChromatinAssay")
-    merged.frag <- merged.frag[valid.frags]
+    all.frag <- all.frag[valid.frags]
   }
 
-  # find fraction overlap in granges in each direction
-  overlaps <- findOverlaps(query = granges(x = x), subject = granges(x = y))
-  percent.overlap.x <- length(
-    x = unique(x = queryHits(x = overlaps))
-  ) / length(granges(x = x)) * 100
-  percent.overlap.y <- length(
-    x = unique(x = subjectHits(x = overlaps))
-  ) / length(granges(x = y)) * 100
-  if (max(percent.overlap.x, percent.overlap.y) < 30) {
-    warning("Few overlapping ranges between the assays to be merged:\n",
-            "\t", round(x = percent.overlap.x, digits = 1), "% for x\n",
-            "\t", round(x = percent.overlap.y, digits = 1), "% for y")
+  # merge counts
+
+  # first create a merged set of granges, preserving the assay of origin
+  granges.all <- sapply(X = assays, FUN = granges)
+  for (i in seq_along(along.with = granges.all)) {
+    granges.all[[i]]$dataset <- i
   }
+  granges.all <- Reduce(f = c, x = granges.all)
 
-  # merge matrix rows that intersect the same range
-  # condense individual matrices first
-  # should not typically have overlapping features in a single object
-  condensed.a <- MergeIntersectingRows(
-    mat.a = GetAssayData(object = x, slot = "counts"),
-    ranges.a = granges(x = x),
+  # create reduced ranges, recording the indices of the merged ranges
+  reduced.ranges <- reduce(x = granges.all, with.revmap = TRUE)
+
+  # get the new rownames for the count matrix
+  new.rownames <- GRangesToString(grange = reduced.ranges)
+
+  # function to look up original
+  tomerge <- GetRowsToMerge(
+    assay.list = assays,
+    all.ranges = granges.all,
+    reduced.ranges = reduced.ranges
+  )
+
+  # if the grange is the same, merge matrix rows
+  merged.counts <- MergeOverlappingRows(
+    mergeinfo = tomerge,
+    assay.list = assays,
     verbose = FALSE
   )
-  condensed.b <- MergeIntersectingRows(
-    mat.a = GetAssayData(object = y, slot = "counts"),
-    ranges.a = granges(x = y),
-    verbose = FALSE
-  )
-  # TODO this can be sped up significantly
-  condensed <- MergeIntersectingRows(
-    mat.a = condensed.a[[1]],
-    mat.b = condensed.b[[1]],
-    ranges.a = condensed.a[[2]],
-    ranges.b = condensed.b[[2]],
-    verbose = TRUE
-  )
-  # returns list: matrix A, ranges A, matrix B, ranges B
-
-  # rename matrix rows in B that intersect A
-  condensed[[3]] <- RenameIntersectingRows(
-    mat.a = condensed[[1]],
-    mat.b = condensed[[3]],
-    ranges.a = condensed[[2]],
-    ranges.b = condensed[[4]],
-    verbose = TRUE
-  )
-  # should now have 1-1 intersection of ranges and matching row names
 
   # merge matrices
   # RowMergeSparseMatrices only exported in Seurat release Dec-2019 (3.1.2)
-  merged.counts <- RowMergeSparseMatrices(
-    mat1 = condensed.matrices[[1]],
-    mat2 = condensed.matrices[[2]]
-  )
+  merged.all <- merged.counts[[1]]
+  for (i in 2:length(x = merged.counts)) {
+    merged.all <- RowMergeSparseMatrices(
+      mat1 = merged.all,
+      mat2 = merged.counts[[i]]
+    )
+  }
 
-  # perform same operation to ranges
-  # TODO check this works
-  grange.union <- union(x = condensed[[2]], y = condensed[[4]])
+  # reorder rows to match genomic ranges
+  merged.all <- merged.all[new.rownames, ]
 
   # create new ChromatinAssay object
   # bias, motifs, positionEnrichment, metafeatures, scaledata and data not kept
   new.assay <- CreateChromatinAssayObject(
     counts = merged.counts,
-    data = NULL,
+    data = NULL, # data wiped since changing cells will change TF-IDF
     min.cells = 0,
     min.features = 0,
     max.cells = NULL,
     ranges = grange.union,
     motifs = NULL,
-    fragments = merged.frag,
-    genome = genome.use,
-    annotation = annot,
-    bias = NULL
+    fragments = all.frag,
+    genome = seqinfo.use,
+    annotation = annot.use,
+    bias = NULL,
+    validate.fragments = FALSE
   )
   return(new.assay)
 }
