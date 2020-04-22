@@ -1352,8 +1352,11 @@ GetRowsToMerge <- function(assay.list, all.ranges, reduced.ranges) {
   counter <- vector(mode = "numeric", length = length(x = assay.list))
   for (x in seq_along(along.with = changed.ranges)) {
     idx <- changed.ranges[[x]]
-    this.assay <- revmap[[idx]]
+    all.assay <- revmap[[idx]]
     for (i in seq_along(along.with = assay.list)) {
+      this.assay <- all.assay[
+        (all.assay > offsets[[i]][1]) & (all.assay < offsets[[i]][2])
+      ]
       mat.idx <- this.assay - offsets[[i]][1]
       mat.idx <- mat.idx[mat.idx < offsets[[i]][2] & mat.idx > 0]
       for (y in seq_along(along.with = mat.idx)) {
