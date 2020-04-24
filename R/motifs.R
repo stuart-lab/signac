@@ -64,9 +64,11 @@ RunChromVAR <- function(
     warning("Count matrix contains non-integer values.
             ChromVAR should only be run on integer counts.")
   }
-  peak.matrix <- peak.matrix[rowSums(x = peak.matrix) > 0, ]
-  motif.matrix <- motif.matrix[rownames(x = peak.matrix), ]
-  peak.ranges <- GetAssayData(object = object, assay = assay, slot = "ranges")
+  idx.keep <- rowSums(x = peak.matrix) > 0
+  peak.matrix <- peak.matrix[idx.keep, ]
+  motif.matrix <- motif.matrix[idx.keep, ]
+  peak.ranges <- granges(x = object[[assay]])
+  peak.ranges <- peak.ranges[idx.keep]
   chromvar.obj <- SummarizedExperiment::SummarizedExperiment(
     assays = list(counts = peak.matrix),
     rowRanges = peak.ranges
