@@ -986,6 +986,8 @@ subset.ChromatinAssay <- function(
   standardassay <- as(object = x, Class = "Assay")
   standardassay <- subset(x = standardassay, features = features, cells = cells)
 
+  # TODO if cells or features change, need to wipe the data slot
+
   # subset genomic ranges
   ranges.keep <- granges(x = x)
   if (!is.null(x = features)) {
@@ -1054,12 +1056,24 @@ merge.ChromatinAssay <- function(
   # rename cells in each assay
   # merge.Seurat already does this, so should only happen here when merging
   # assay objects outside of a Seurat object
+  if (is.null(x = add.cell.ids)) {
+    # check if any cell names clash, if so add a prefix
+    cellnames.all <- sapply(X = assays, FUN = colnames)
+    cellnames.all <- Reduce(f = c, x = cellnames.all)
+    cellname.freq <- table(cellnames.all)
+    if (max(cellname.freq) > 1) {
+      message(
+        "Cell names not unique, ",
+        "adding prefix to enforce unique cell names"
+      )
+      add.cell.ids <- seq_along(along.with = assays)
+    }
+  }
   if (!is.null(x = add.cell.ids)) {
     for (i in seq_along(along.with = assays)) {
-      # TODO check this works, might need to define a vector of new cell names
       assays[[i]] <- RenameCells(
         object = assays[[i]],
-        new.names = add.cell.ids[i]
+        new.names = paste(add.cell.ids[i], colnames(x = assays[[i]]), sep = "_")
       )
     }
   }
