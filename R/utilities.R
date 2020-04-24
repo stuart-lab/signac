@@ -1411,12 +1411,16 @@ GetRowsToMerge <- function(assay.list, all.ranges, reduced.ranges) {
 # @param assay.list List of assays
 # @param verbose Display messages
 #' @importFrom utils txtProgressBar setTxtProgressBar
-#' @importFrom Matrix colSums
+#' @importFrom Matrix rowSums
+#' @importMethodsFrom Matrix t
 MergeOverlappingRows <- function(mergeinfo, assay.list, verbose = TRUE) {
   merge.counts <- list()
   for (i in seq_along(along.with = assay.list)) {
     # get count matrix
     counts <- GetAssayData(object = assay.list[[i]], slot = "counts")
+
+    # transpose for faster access since matrix is column major
+    counts <- t(x = counts)
 
     # get rows to merge
     mrows <- mergeinfo$matrix[[i]]
@@ -1443,17 +1447,27 @@ MergeOverlappingRows <- function(mergeinfo, assay.list, verbose = TRUE) {
         file = stderr()
       )
     }
+    to.rename.idx <- vector(
+      mode = "numeric", length = length(x = nrep$lengths)
+    )
+    to.rename.names <- vector(
+      mode = "character", length = length(x = nrep$lengths)
+    )
+    idx.counter <- 0
     for (j in seq_along(along.with = nrep$lengths)) {
       rowrun <- nrep$lengths[[j]]
       new.feature.name <- nrep$values[[j]]
       index.range <- x:(x + rowrun - 1)
       matrix.index <- mrows[index.range]
       if (rowrun < 2) {
+        idx.counter <- idx.counter + 1
         # no merge needed, just rename row in-place
-        rownames(x = counts)[matrix.index] <- new.feature.name
+        # store row indices and names to do the change in one step at the end
+        to.rename.idx[idx.counter] <- matrix.index
+        to.rename.names[idx.counter] <- new.feature.name
       } else {
         # merge multiple rows and add to list
-        newmat[[y]] <- colSums(x = counts[matrix.index, ])
+        newmat[[y]] <- rowSums(x = counts[, matrix.index])
         # mark merged row for deletion
         todelete <- c(todelete, matrix.index)
         # add row names
@@ -1464,8 +1478,16 @@ MergeOverlappingRows <- function(mergeinfo, assay.list, verbose = TRUE) {
       x <- x + rowrun
     }
     # remove extra elements in vectors
+    to.rename.idx <- to.rename.idx[1:idx.counter]
+    to.rename.names <- to.rename.names[1:idx.counter]
     newmat <- newmat[1:(y - 1)]
     newmat.names <- newmat.names[1:(y - 1)]
+
+    # transpose back
+    counts <- t(x = counts)
+
+    # rename matrix rows that weren't merged
+    rownames(counts)[to.rename.idx] <- to.rename.names
 
     if (y == 1) {
       # no rows were merged, can return counts
