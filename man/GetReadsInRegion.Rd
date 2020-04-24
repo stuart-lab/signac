@@ -6,6 +6,7 @@
 \usage{
 GetReadsInRegion(
   object,
+  cellmap,
   region,
   tabix.file,
   group.by = NULL,
@@ -16,6 +17,11 @@ GetReadsInRegion(
 }
 \arguments{
 \item{object}{A Seurat object}
+
+\item{cellmap}{A mapping of cell names in the fragment file to cell names in
+the Seurat object. Should be a named vector where each element is a cell name
+that appears in the fragment file and the name of each element is the
+name of the cell in the Seurat object.}
 
 \item{region}{A genomic region, specified as a string in the format
 'chr:start-end'. Can be a vector of regions.}

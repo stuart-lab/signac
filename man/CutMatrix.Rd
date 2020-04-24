@@ -4,12 +4,21 @@
 \alias{CutMatrix}
 \title{Generate matrix of integration sites}
 \usage{
-CutMatrix(object, region, assay = NULL, cells = NULL, verbose = TRUE)
+CutMatrix(
+  object,
+  region,
+  group.by = NULL,
+  assay = NULL,
+  cells = NULL,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{object}{A Seurat object}
 
 \item{region}{A GRanges object containing the region of interest}
+
+\item{group.by}{Name of grouping variable to use}
 
 \item{assay}{A name of assay to use. Must be a \code{\link{ChromatinAssay}}
 containing a list of \code{\link{Fragment}} objects.}
