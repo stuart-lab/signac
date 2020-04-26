@@ -1043,6 +1043,9 @@ MergeWithRegions <- function(
 # @param cells Vector of cells to include
 # @param verbose Display messages
 #' @importFrom Rsamtools TabixFile
+#' @importFrom future.apply future_lapply
+#' @importFrom future nbrOfWorkers
+#' @importFrom pbapply pblapply
 MultiRegionCutMatrix <- function(
   object,
   regions,
@@ -1053,8 +1056,13 @@ MultiRegionCutMatrix <- function(
   fragment.path <- GetFragments(object = object, assay = assay)
   tabix.file <- TabixFile(file = fragment.path)
   open(con = tabix.file)
-  cm.list <- lapply(
-    X = seq_along(along.with = regions),
+  if (nbrOfWorkers() > 1) {
+    mylapply <- future_lapply
+  } else {
+    mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
+  }
+  cm.list <- mylapply(
+    X = seq_along(regions),
     FUN = function(x) {
       CutMatrix(
         object = object,
