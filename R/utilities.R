@@ -496,6 +496,7 @@ CutMatrix <- function(
 #' respectively.
 #'
 #' @importFrom GenomicRanges trim
+#' @importFrom BiocGenerics start strand end width
 #' @importMethodsFrom GenomicRanges strand start end width
 #' @importFrom IRanges ranges IRanges "ranges<-"
 #' @export
@@ -963,6 +964,9 @@ MatchRegionStats <- function(
 #' @importFrom Rsamtools TabixFile seqnamesTabix
 #' @importFrom Seurat DefaultAssay
 #' @importFrom GenomeInfoDb keepSeqlevels
+#' @importFrom future.apply future_lapply
+#' @importFrom future nbrOfWorkers
+#' @importFrom pbapply pblapply
 MultiRegionCutMatrix <- function(
   object,
   regions,
@@ -975,6 +979,11 @@ MultiRegionCutMatrix <- function(
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   fragments <- SetIfNull(x = fragments, y = Fragments(object = object[[assay]]))
   res <- list()
+  if (nbrOfWorkers() > 1) {
+    mylapply <- future_lapply
+  } else {
+    mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
+  }
   for (i in seq_along(along.with = fragments)) {
     frag.path <- GetFragmentData(object = fragments[[i]], slot = "path")
     cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
@@ -986,7 +995,7 @@ MultiRegionCutMatrix <- function(
       value = seqnamesTabix(file = tabix.file),
       pruning.mode = "coarse"
     )
-    cm.list <- lapply(
+    cm.list <- mylapply(
       X = seq_along(regions),
       FUN = function(x) {
         SingleFileCutMatrix(
