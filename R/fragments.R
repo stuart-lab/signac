@@ -45,7 +45,8 @@ CreateFragmentObject <- function(
   }
   if (!is.null(x = cells)) {
     if (is.null(names(x = cells))) {
-      stop("Cells must be a named vector")
+      # assume cells are as they appear in the assay
+      names(x = cells) <- cells
     }
   }
   # compute hash of the file and index
