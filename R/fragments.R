@@ -24,6 +24,7 @@ NULL
 #' @param verbose Display messages
 #' @param ... Additional arguments passed to \code{ValidateCells}
 #' @importFrom tools md5sum file_ext
+#' @export
 CreateFragmentObject <- function(
   path,
   cells = NULL,
