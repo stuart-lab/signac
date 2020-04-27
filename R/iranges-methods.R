@@ -3,6 +3,7 @@
 #' @importFrom Seurat DefaultAssay
 #' @importFrom IRanges precede follow nearest distance distanceToNearest
 #' findOverlaps countOverlaps coverage
+#' reduce disjoin gaps isDisjoint disjointBins
 NULL
 
 setOldClass(Classes = "ChromatinAssay")
@@ -669,6 +670,170 @@ setMethod(
     x, shift = 0L, width = NULL, weight = 1L,
     method = c("auto", "sort", "hash")
   ) {
+    assay <- DefaultAssay(object = x)
+    x <- granges(x = x[[assay]])
+    callGeneric()
+  }
+)
+
+## inter-range methods
+
+#' Inter-range transformations for ChromatinAssay objects
+#'
+#' The \code{range, reduce, gaps, disjoin, isDisjoint, disjointBins} methods
+#' are available for \code{\link{ChromatinAssay}} objects.
+#'
+#' @name inter-range-methods
+#' @aliases range
+#' @seealso
+#' \itemize{
+#'   \item{\link[IRanges]{inter-range-methods} in the \pkg{IRanges} package.}
+#'   \item{\link[GenomicRanges]{inter-range-methods} in the \pkg{GenomicRanges}
+#'   package}
+#'   \item{\link{ChromatinAssay-class}}
+#'  }
+#' @exportMethod range
+setMethod(
+  f = "range",
+  signature = "ChromatinAssay",
+  definition = function(
+    x, ..., with.revmap = FALSE, na.rm = FALSE
+  ) {
+    x <- granges(x = x)
+    callGeneric()
+  }
+)
+
+#' @describeIn inter-range-methods method for Seurat objects
+setMethod(
+  f = "range",
+  signature = "Seurat",
+  definition = function(
+    x, ..., with.revmap = FALSE, na.rm = FALSE
+  ) {
+    assay <- DefaultAssay(object = x)
+    x <- granges(x = x[[assay]])
+    callGeneric()
+  }
+)
+
+#' @aliases reduce
+#' @describeIn inter-range-methods method for ChromatinAssay objects
+#' @exportMethod reduce
+setMethod(
+  f = "reduce",
+  signature = "ChromatinAssay",
+  definition = function(
+    x, drop.empty.ranges = FALSE, ...
+  ) {
+    x <- granges(x = x)
+    callGeneric()
+  }
+)
+
+#' @describeIn inter-range-methods method for Seurat objects
+setMethod(
+  f = "reduce",
+  signature = "Seurat",
+  definition = function(
+    x, drop.empty.ranges = FALSE, ...
+  ) {
+    assay <- DefaultAssay(object = x)
+    x <- granges(x = x[[assay]])
+    callGeneric()
+  }
+)
+
+#' @aliases gaps
+#' @describeIn inter-range-methods method for ChromatinAssay objects
+#' @exportMethod gaps
+setMethod(
+  f = "gaps",
+  signature = "ChromatinAssay",
+  definition = function(
+    x, start = NA, end = NA
+  ) {
+    x <- granges(x = x)
+    callGeneric()
+  }
+)
+
+#' @describeIn inter-range-methods method for Seurat objects
+setMethod(
+  f = "gaps",
+  signature = "Seurat",
+  definition = function(
+    x, start = NA, end = NA
+  ) {
+    assay <- DefaultAssay(object = x)
+    x <- granges(x = x[[assay]])
+    callGeneric()
+  }
+)
+
+#' @aliases disjoin
+#' @describeIn inter-range-methods method for ChromatinAssay objects
+#' @exportMethod disjoin
+setMethod(
+  f = "disjoin",
+  signature = "ChromatinAssay",
+  definition = function(x, ...) {
+    x <- granges(x = x)
+    callGeneric()
+  }
+)
+
+#' @describeIn inter-range-methods method for Seurat objects
+setMethod(
+  f = "disjoin",
+  signature = "Seurat",
+  definition = function(x, ...) {
+    assay <- DefaultAssay(object = x)
+    x <- granges(x = x[[assay]])
+    callGeneric()
+  }
+)
+
+#' @aliases isDisjoint
+#' @describeIn inter-range-methods method for ChromatinAssay objects
+#' @exportMethod isDisjoint
+setMethod(
+  f = "isDisjoint",
+  signature = "ChromatinAssay",
+  definition = function(x, ...) {
+    x <- granges(x = x)
+    callGeneric()
+  }
+)
+
+#' @describeIn inter-range-methods method for Seurat objects
+setMethod(
+  f = "isDisjoint",
+  signature = "Seurat",
+  definition = function(x, ...) {
+    assay <- DefaultAssay(object = x)
+    x <- granges(x = x[[assay]])
+    callGeneric()
+  }
+)
+
+#' @aliases disjointBins
+#' @describeIn inter-range-methods method for ChromatinAssay objects
+#' @exportMethod disjointBins
+setMethod(
+  f = "disjointBins",
+  signature = "ChromatinAssay",
+  definition = function(x, ...) {
+    x <- granges(x = x)
+    callGeneric()
+  }
+)
+
+#' @describeIn inter-range-methods method for Seurat objects
+setMethod(
+  f = "disjointBins",
+  signature = "Seurat",
+  definition = function(x, ...) {
     assay <- DefaultAssay(object = x)
     x <- granges(x = x[[assay]])
     callGeneric()
