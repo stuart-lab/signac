@@ -228,7 +228,11 @@ CreateChromatinAssayObject <- function(
       stop("All objects in fragments list must be Fragment-class objects")
     }
     frags <- fragments
+   } else if (inherits(x = fragments, what = "Fragment")) {
+    # single Fragment object supplied
+    frags <- fragments
   } else {
+    # path to fragment file supplied, create fragment object
     frags <- list()
     if (!is.null(x = fragments)) {
       if (nchar(x = fragments) > 0) {
