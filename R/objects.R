@@ -765,11 +765,16 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
            of a UCSC genome")
     }
   } else if (slot == "fragments") {
-    # check that it's a list containing fragment class objects
-    for (i in seq_along(along.with = new.data)) {
-      if (!inherits(x = new.data[[i]], what = "Fragment")) {
-        stop("New data is not a Fragment object")
+    if (inherits(x = new.data, what = "list")) {
+      # check that it's a list containing fragment class objects
+      for (i in seq_along(new.data)) {
+        if (!inherits(x = new.data[[i]], what = "Fragment")) {
+          stop("New data is not a Fragment object")
+        }
       }
+    } else if (inherits(x = new.data, what = "Fragment")) {
+      # single fragment object
+      new.data <- list(new.data)
     }
     frag.list <- GetAssayData(object = object, slot = "fragments")
     if (length(x = frag.list) != 0) {
