@@ -103,7 +103,7 @@ CellsPerGroup <- function(
     meta.data <- object[[]]
     cellgroups <- meta.data[[group.by]]
   }
-  cells.per.group <- table(cellgroups)
+  cells.per.group <- table(cellgroups, useNA = "always")
   lut <- as.vector(x = cells.per.group)
   names(x = lut) <- names(x = cells.per.group)
   return(lut)
@@ -1112,6 +1112,27 @@ ApplyMatrixByGroup <- function(
   }
   results <- list()
   all.groups <- unique(x = groups)
+  # first do NA if it exists
+  if (any(is.na(x = groups))) {
+    pos.cells <- names(x = groups)[is.na(x = groups)]
+    if (length(x = pos.cells) > 1) {
+      totals <- fun(x = mat[pos.cells, ])
+    } else {
+      totals <- mat[pos.cells, ]
+    }
+    results[[1]] <- data.frame(
+      group = NA,
+      count = totals,
+      position = as.numeric(colnames(x = mat)),
+      stringsAsFactors = FALSE
+    )
+    startpos <- 1
+    # remove NAs
+    groups <- groups[!is.na(groups)]
+    all.groups <- all.groups[!is.na(all.groups)]
+  } else {
+    startpos <- 0
+  }
   for (i in seq_along(along.with = all.groups)) {
     pos.cells <- names(x = groups)[groups == all.groups[[i]]]
     if (length(x = pos.cells) > 1) {
@@ -1119,7 +1140,7 @@ ApplyMatrixByGroup <- function(
     } else {
       totals <- mat[pos.cells, ]
     }
-    results[[i]] <- data.frame(
+    results[[i + startpos]] <- data.frame(
       group = all.groups[[i]],
       count = totals,
       position = as.numeric(colnames(x = mat)),
