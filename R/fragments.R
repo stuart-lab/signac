@@ -173,13 +173,15 @@ ValidateFragments <- function(
 
 # Read chunk of a file, return FALSE if reading gives an error,
 # otherwise return the chunk of file
+#' @importFrom future nbrOfWorkers
 readchunk <- function(filepath, x, chunksize) {
   tryCatch(
     expr = fread(
       file = filepath,
       skip = x * chunksize,
       nrows = chunksize,
-      col.names = c("chr", "start", "end", "cell", "count")
+      col.names = c("chr", "start", "end", "cell", "count"),
+      nThread = nbrOfWorkers()
     ),
     error = function(x) return(FALSE)
   )
@@ -241,6 +243,7 @@ globalVariables(names = c("chr", "start"), package = "Signac")
 #'
 #' @importFrom data.table fread fwrite
 #' @importFrom Rsamtools indexTabix bgzip
+#' @importFrom future nbrOfWorkers
 #' @export
 #' @return None
 #' @examples
@@ -274,6 +277,7 @@ FilterFragments <- function(
     file = fragment.path,
     col.names = c("chr", "start", "end", "cell", "count"),
     showProgress = verbose,
+    nThread = nbrOfWorkers(),
     ...
   )
   reads <- reads[reads$cell %in% cells, ]
