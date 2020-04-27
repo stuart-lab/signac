@@ -198,10 +198,15 @@ SingleCoveragePlot <- function(
     # subset to covered range
     peak.intersect <- subsetByOverlaps(x = peaks, ranges = gr)
     peak.df <- as.data.frame(x = peak.intersect)
-    peak.plot <- ggplot(data = peak.df, mapping = aes(color = "darkgrey")) +
-      geom_segment(aes(x = start, y = 0, xend = end, yend = 0, size = 2),
-                   data = peak.df) +
-      theme_classic() +
+    if (nrow(x = peak.df) > 0) {
+      peak.plot <- ggplot(data = peak.df, mapping = aes(color = "darkgrey")) +
+        geom_segment(aes(x = start, y = 0, xend = end, yend = 0, size = 2),
+                     data = peak.df)
+    } else {
+      # no peaks present in region, make empty panel
+      peak.plot <- ggplot(data = peak.df)
+    }
+    peak.plot <- peak.plot + theme_classic() +
       ylab(label = "Peaks") +
       theme(axis.ticks.y = element_blank(),
             axis.text.y = element_blank(),
@@ -209,7 +214,6 @@ SingleCoveragePlot <- function(
       xlab(label = paste0(chromosome, " position (bp)")) +
       xlim(c(start.pos, end.pos)) +
       scale_color_identity()
-    # remove axis from coverage plot
     p <- p + theme(
       axis.title.x = element_blank(),
       axis.text.x = element_blank(),
