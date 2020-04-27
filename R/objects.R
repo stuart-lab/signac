@@ -1143,32 +1143,48 @@ merge.ChromatinAssay <- function(
 
   # merge counts
 
-  # first create a merged set of granges, preserving the assay of origin
-  granges.all <- sapply(X = assays, FUN = granges)
-  for (i in seq_along(along.with = granges.all)) {
-    granges.all[[i]]$dataset <- i
+  # check that all features are not equal
+  all.features <- sapply(X = assays, FUN = rownames)
+  all.features <- Reduce(f = c, x = all.features)
+
+  if (all(table(all.features) == length(x = assays))) {
+    # exact same features, can just run cbind
+    merged.counts <- list()
+    feat.use <- rownames(x = assays[[1]])
+    for (i in seq_along(along.with = assays)) {
+      merged.counts[[i]] <- GetAssayData(object = assays[[i]], slot = "counts")[feat.use, ]
+    }
+    merged.all <- Reduce(f = cbind, x = merged.counts)
+    reduced.ranges <- granges(x = assays[[1]])
+
+  } else {
+    # first create a merged set of granges, preserving the assay of origin
+    granges.all <- sapply(X = assays, FUN = granges)
+    for (i in seq_along(along.with = granges.all)) {
+      granges.all[[i]]$dataset <- i
+    }
+    granges.all <- Reduce(f = c, x = granges.all)
+
+    # create reduced ranges, recording the indices of the merged ranges
+    reduced.ranges <- reduce(x = granges.all, with.revmap = TRUE)
+
+    # get the new rownames for the count matrix
+    new.rownames <- GRangesToString(grange = reduced.ranges)
+
+    # function to look up original
+    tomerge <- GetRowsToMerge(
+      assay.list = assays,
+      all.ranges = granges.all,
+      reduced.ranges = reduced.ranges
+    )
+
+    # if the grange is the same, merge matrix rows
+    merged.counts <- MergeOverlappingRows(
+      mergeinfo = tomerge,
+      assay.list = assays,
+      verbose = TRUE
+    )
   }
-  granges.all <- Reduce(f = c, x = granges.all)
-
-  # create reduced ranges, recording the indices of the merged ranges
-  reduced.ranges <- reduce(x = granges.all, with.revmap = TRUE)
-
-  # get the new rownames for the count matrix
-  new.rownames <- GRangesToString(grange = reduced.ranges)
-
-  # function to look up original
-  tomerge <- GetRowsToMerge(
-    assay.list = assays,
-    all.ranges = granges.all,
-    reduced.ranges = reduced.ranges
-  )
-
-  # if the grange is the same, merge matrix rows
-  merged.counts <- MergeOverlappingRows(
-    mergeinfo = tomerge,
-    assay.list = assays,
-    verbose = TRUE
-  )
 
   # merge matrices
   # RowMergeSparseMatrices only exported in Seurat release Dec-2019 (3.1.2)
