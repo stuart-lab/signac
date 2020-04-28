@@ -142,13 +142,18 @@ RunSVD <- function(object, ...) {
 
 #' Compute the term-frequency inverse-document-frequency
 #'
-#' Run term frequency inverse document frequency (TF-IDF) normalization
+#' Run term frequency inverse document frequency (TF-IDF) normalization on a
+#' matrix.
+#'
+#' Four different TF-IDF methods are implemented. We recommend using method 1
+#' (the default).
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @rdname RunTFIDF
 #' @export RunTFIDF
+#' @references \url{https://en.wikipedia.org/wiki/Latent_semantic_analysis#Latent_semantic_indexing}
 RunTFIDF <- function(object, ...) {
   UseMethod(generic = "RunTFIDF", object = object)
 }
