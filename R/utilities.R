@@ -1458,7 +1458,6 @@ MergeOverlappingRows <- function(mergeinfo, assay.list, verbose = TRUE) {
     nrep <- rle(x = new.rownames)
 
     # allocate
-    # browser()
     todelete <- c()
     newmat <- vector(
       mode = "list",
