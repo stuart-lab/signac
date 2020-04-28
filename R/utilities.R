@@ -1458,6 +1458,7 @@ MergeOverlappingRows <- function(mergeinfo, assay.list, verbose = TRUE) {
     nrep <- rle(x = new.rownames)
 
     # allocate
+    # browser()
     todelete <- c()
     newmat <- vector(
       mode = "list",
@@ -1469,7 +1470,7 @@ MergeOverlappingRows <- function(mergeinfo, assay.list, verbose = TRUE) {
     )
     x <- 1  # row index for matrix
     y <- 1  # counter for list index
-    if (verbose) {
+    if (verbose & length(x = nrep$lengths) > 1) {
       pb <- txtProgressBar(
         min = 1,
         max = length(x = nrep$lengths),
