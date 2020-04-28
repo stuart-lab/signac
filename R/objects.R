@@ -148,6 +148,7 @@ ChromatinAssay <- setClass(
 #'
 #' @importFrom Seurat CreateAssayObject
 #' @importFrom Matrix rowSums
+#' @importFrom GenomicRanges isDisjoint
 #'
 #' @export
 CreateChromatinAssayObject <- function(
@@ -184,6 +185,9 @@ CreateChromatinAssayObject <- function(
     }
   } else {
     ranges <- StringToGRanges(regions = rownames(x = data.use), sep = sep)
+  }
+  if (!isDisjoint(x = ranges)) {
+    warning("Overlapping ranges supplied. Ranges should be non-overlapping.")
   }
   if (!is.null(x = annotation) & !inherits(x = annotation, what = "GRanges")) {
     stop("Annotation must be a GRanges object.")
@@ -740,7 +744,7 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
       call. = FALSE
     )
   }
-  if (slot %in% c("counts", "data")) {
+  if (slot %in% c("counts", "data", "scale.data")) {
     if (!(is(object = new.data, class2 = "AnyMatrix"))) {
       stop("Data must be a matrix or sparseMatrix")
     }
@@ -1053,6 +1057,7 @@ subset.ChromatinAssay <- function(
 #' @importFrom Seurat RowMergeSparseMatrices
 #' @importFrom S4Vectors subjectHits queryHits mcols
 #' @importMethodsFrom GenomeInfoDb merge
+#' @importMethodsFrom Seurat merge
 merge.ChromatinAssay <- function(
   x = NULL,
   y = NULL,
@@ -1061,6 +1066,48 @@ merge.ChromatinAssay <- function(
 ) {
   # need to do all operations over a list of assays
   assays <- c(x, y)
+
+  # if any are standard Assay class, coerce all to Assay and run merge
+  isChromatin <- sapply(
+    X = assays, FUN = function(x) inherits(x = x, what = "ChromatinAssay")
+  )
+  if (!all(isChromatin)) {
+    # check that the non-chromatinassays have >1 feature
+    nfeature <- sapply(X = assays, FUN = nrow)
+    if (all(nfeature > 1)) {
+      # genuine assays, coerce to standard assay and run merge.Assay
+      warning(
+        "Some assays are not ChromatinAssay class, ",
+        "coercing ChromatinAssays to standard Assay"
+      )
+      assays <- sapply(
+        X = assays, FUN = function(x) as(object = x, Class = "Assay")
+      )
+      new.assay <- merge(
+        x = assays[[1]], y = assays[[2:length(x = assays)]], ...
+      )
+      return(new.assay)
+    } else {
+      # Find which assays are placeholder
+      placeholders <- nfeature == 1 & !isChromatin
+      # Set feature name as first peak in first real assay
+      peak.use <- rownames(x = assays[isChromatin][[1]])[1]
+      converted <- sapply(
+        X = assays[placeholders], FUN = function(x) {
+          rownames(x = x@counts) <- peak.use
+          rownames(x = x@data) <- peak.use
+          return(x)
+        }
+      )
+      # Covert placeholder assays to ChromatinAssay
+      converted <- sapply(
+        X = converted, FUN = function(x) as.ChromatinAssay(x = x)
+      )
+      # Replace original assays
+      assays[placeholders] <- converted
+      # Continue with merge function
+    }
+  }
 
   # rename cells in each assay
   # merge.Seurat already does this, so should only happen here when merging
@@ -1088,7 +1135,9 @@ merge.ChromatinAssay <- function(
   }
 
   # check genomes are all the same
-  genomes <- lapply(X = assays, FUN = function(x) unique(x = genome(x = x)))
+  genomes <- unlist(
+    x = lapply(X = assays, FUN = function(x) unique(x = genome(x = x)))
+  )
   if (length(x = unique(x = genomes)) > 1) {
     warning("Genomes do not match, not merging ChromatinAssays")
     return(NULL)
@@ -1142,6 +1191,7 @@ merge.ChromatinAssay <- function(
   }
 
   # merge counts
+  # merge data if all features exactly the same
 
   # check that all features are not equal
   all.features <- sapply(X = assays, FUN = rownames)
@@ -1149,14 +1199,75 @@ merge.ChromatinAssay <- function(
 
   if (all(table(all.features) == length(x = assays))) {
     # exact same features, can just run cbind
+    # can also merge data and scaledata
     merged.counts <- list()
+    merged.data <- list()
+    merged.scaledata <- list()
     feat.use <- rownames(x = assays[[1]])
     for (i in seq_along(along.with = assays)) {
-      merged.counts[[i]] <- GetAssayData(object = assays[[i]], slot = "counts")[feat.use, ]
+      # check that counts are present
+      # can be removed by DietSeurat
+      assay.counts <- GetAssayData(object = assays[[i]], slot = "counts")
+      if (nrow(x = assay.counts) > 0) {
+        merged.counts[[i]] <- assay.counts[feat.use, ]
+      } else {
+        merged.counts[[i]] <- assay.counts
+      }
+      merged.data[[i]] <- GetAssayData(
+        object = assays[[i]], slot = "data"
+      )[feat.use, ]
+      assay.scale <- GetAssayData(object = assays[[i]], slot = "scale.data")
+      if (nrow(x = assay.scale) > 0) {
+        merged.scaledata[[i]] <- assay.scale[feat.use, ]
+      } else {
+        merged.scaledata <- assay.scale
+      }
     }
-    merged.all <- Reduce(f = cbind, x = merged.counts)
+    merged.counts <- Reduce(f = cbind, x = merged.counts)
+    merged.data <- Reduce(f = cbind, x = merged.data)
+    merged.scaledata <- Reduce(f = cbind, x = merged.scaledata)
     reduced.ranges <- granges(x = assays[[1]])
 
+    # create new ChromatinAssay object
+    # bias, motifs, positionEnrichment, metafeatures not kept
+    # data and scaledata only kept if features exactly identical
+    if (nrow(x = merged.counts) > 0) {
+      new.assay <- CreateChromatinAssayObject(
+        counts = merged.counts,
+        min.cells = 0,
+        min.features = 0,
+        max.cells = NULL,
+        ranges = reduced.ranges,
+        motifs = NULL,
+        fragments = all.frag,
+        genome = seqinfo.use,
+        annotation = annot.use,
+        bias = NULL,
+        validate.fragments = FALSE
+      )
+      new.assay <- SetAssayData(
+        object = new.assay, slot = "data", new.data = merged.data
+      )
+    } else {
+      new.assay <- CreateChromatinAssayObject(
+        data = merged.data,
+        min.cells = 0,
+        min.features = 0,
+        max.cells = NULL,
+        ranges = reduced.ranges,
+        motifs = NULL,
+        fragments = all.frag,
+        genome = seqinfo.use,
+        annotation = annot.use,
+        bias = NULL,
+        validate.fragments = FALSE
+      )
+    }
+    if (!is.null(x = merged.scaledata)) {
+      new.assay <- SetAssayData(
+        object = new.assay, slot = "scale.data", new.data = merged.scaledata
+      )
+    }
   } else {
     # first create a merged set of granges, preserving the assay of origin
     granges.all <- sapply(X = assays, FUN = granges)
@@ -1184,37 +1295,37 @@ merge.ChromatinAssay <- function(
       assay.list = assays,
       verbose = TRUE
     )
-  }
 
-  # merge matrices
-  # RowMergeSparseMatrices only exported in Seurat release Dec-2019 (3.1.2)
-  merged.all <- merged.counts[[1]]
-  for (i in 2:length(x = merged.counts)) {
-    merged.all <- RowMergeSparseMatrices(
-      mat1 = merged.all,
-      mat2 = merged.counts[[i]]
+    # merge matrices
+    # RowMergeSparseMatrices only exported in Seurat release Dec-2019 (3.1.2)
+    merged.all <- merged.counts[[1]]
+    for (i in 2:length(x = merged.counts)) {
+      merged.all <- RowMergeSparseMatrices(
+        mat1 = merged.all,
+        mat2 = merged.counts[[i]]
+      )
+    }
+
+    # reorder rows to match genomic ranges
+    merged.all <- merged.all[new.rownames, ]
+
+    # create new ChromatinAssay object
+    # bias, motifs, positionEnrichment, metafeatures not kept
+    # data and scaledata only kept if features exactly identical
+    new.assay <- CreateChromatinAssayObject(
+      counts = merged.all,
+      min.cells = 0,
+      min.features = 0,
+      max.cells = NULL,
+      ranges = reduced.ranges,
+      motifs = NULL,
+      fragments = all.frag,
+      genome = seqinfo.use,
+      annotation = annot.use,
+      bias = NULL,
+      validate.fragments = FALSE
     )
   }
-
-  # reorder rows to match genomic ranges
-  merged.all <- merged.all[new.rownames, ]
-
-  # create new ChromatinAssay object
-  # bias, motifs, positionEnrichment, metafeatures, scaledata and data not kept
-  # data wiped since changing cells will change TF-IDF
-  new.assay <- CreateChromatinAssayObject(
-    counts = merged.all,
-    min.cells = 0,
-    min.features = 0,
-    max.cells = NULL,
-    ranges = reduced.ranges,
-    motifs = NULL,
-    fragments = all.frag,
-    genome = seqinfo.use,
-    annotation = annot.use,
-    bias = NULL,
-    validate.fragments = FALSE
-  )
   return(new.assay)
 }
 
