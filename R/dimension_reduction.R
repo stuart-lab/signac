@@ -72,7 +72,7 @@ RunSVD.default <- function(
   standardize.embeddings = TRUE,
   scale.max = NULL,
   verbose = TRUE,
-  irlba.work = n + 50,
+  irlba.work = n * 3,
   ...
 ) {
   n <- min(n, (ncol(x = object) - 1))

@@ -18,7 +18,7 @@ RunSVD(object, ...)
   standardize.embeddings = TRUE,
   scale.max = NULL,
   verbose = TRUE,
-  irlba.work = n + 50,
+  irlba.work = n * 3,
   ...
 )
 
