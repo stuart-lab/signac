@@ -49,6 +49,7 @@ Collate:
     'data.R'
     'generics.R'
     'dimension_reduction.R'
+    'footprinting.R'
     'fragments.R'
     'genomeinfodb-methods.R'
     'granges-methods.R'
