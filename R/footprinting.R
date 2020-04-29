@@ -2,25 +2,22 @@
 #'
 NULL
 
-#' Transcription factor footprinting analysis
-#'
-#' Compute the normalized observed/expected Tn5 insertion frequency
-#' for each position surrounding a set of motif instances.
-#'
-#' @param object A Seurat object
-#' @param assay Name of assay to use
-#' @param regions A set of GRanges containing the motif instances
-#' @param genome A BSgenome object
+
+#' @param regions A set of genomic ranges containing the motif instances
+#' @param genome A \code{\link[BSgenome]{BSgenome}} object
 #' @param group.by Grouping variable for the cells
 #' @param idents Which identities to include
 #' @param upstream Number of bases to extend upstream
 #' @param downstream Number of bases to extend downstream
 #' @param verbose Display messages
-#' @importFrom Seurat Misc DefaultAssay
+#' @param ... Arguments passed to other methods
 #' @importFrom Biostrings getSeq
 #' @importFrom Matrix sparseMatrix
 #' @importFrom Matrix colSums
-Footprint <- function(
+#' @export
+#' @rdname Footprint
+#' @method Footprint ChromatinAssay
+Footprint.ChromatinAssay <- function(
   object,
   regions,
   genome,
@@ -29,12 +26,17 @@ Footprint <- function(
   assay = NULL,
   upstream = 250,
   downstream = 250,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
-  regions.use <- Extend(x = regions, upstream = upstream + 3, downstream = downstream + 3)
+  regions.use <- Extend(
+    x = regions,
+    upstream = upstream + 3,
+    downstream = downstream + 3
+  )
   dna.sequence <- getSeq(x = genome, regions.use)
   misc.slot <- Misc(object = object[[assay]])
+  bias <- Bias
   if (!("Tn5.bias" %in% names(x = misc.slot))) {
     object <- InsertionBias(
       object = object,
@@ -112,3 +114,123 @@ Footprint <- function(
   # norm.counts[['expected']] <- as.vector(x = norm.expected)
   return(norm.counts)
 }
+
+#' @rdname Footprint
+#' @param assay Name of assay to use
+#' @method Footprint Seurat
+#' @importFrom Seurat DefaultAssay
+Footprint <- function(
+  object,
+  regions,
+  genome,
+  group.by = NULL,
+  idents = NULL,
+  assay = NULL,
+  upstream = 250,
+  downstream = 250,
+  verbose = TRUE
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  object[[assay]] <- Footprint(
+    object = object[[assay]],
+    regions = regions,
+    genome = genome,
+    group.by = group.by,
+    idents = idents,
+    upstream = upstream,
+    downstream = downstream,
+    verbose = verbose,
+    ...
+  )
+  return(object)
+}
+
+#' @param genome A BSgenome object
+#' @param region Region to use when assessing bias. Default is human chromosome 1.
+#' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
+#'
+#' @importFrom GenomicRanges GRanges
+#' @importFrom IRanges IRanges
+#' @importFrom Biostrings oligonucleotideFrequency
+#' @export
+#' @rdname InsertionBias
+#' @method InsertionBias ChromatinAssay
+#' @examples
+#' \donttest{
+#' library(BSgenome.Mmusculus.UCSC.mm10)
+#'
+#' region.use <- GRanges(
+#'   seqnames = c('chr1', 'chr2'),
+#'   IRanges(start = c(1,1), end = c(195471971, 182113224))
+#' )
+#'
+#' InsertionBias(
+#'  object = atac_small,
+#'  genome = BSgenome.Mmusculus.UCSC.mm10,
+#'  region = region.use
+#' )
+#' }
+InsertionBias.ChromatinAssay <- function(
+  object,
+  genome,
+  region = 'chr1-1-249250621',
+  verbose = TRUE,
+  ...
+) {
+  reads <- MultiGetReadsInRegion(
+    object = object,
+    region = region,
+    ...
+  )
+  insertions <- GRanges(
+    seqnames = c(reads$chr, reads$chr),
+    ranges = IRanges(
+      start = c(reads$start, reads$end),
+      width = 1
+    ),
+    strand = '+'
+  )
+  insertions <- Extend(x = insertions, upstream = 3, downstream = 2)
+  sequences <- as.vector(x = getSeq(x = genome, insertions))
+  seq.freq <- table(sequences)
+  # remove sequences containing N
+  keep.seq <- !grepl(pattern = "N", x = names(x = seq.freq))
+  insertion_hex_freq <- as.matrix(x = seq.freq[keep.seq])
+  genome_freq <- oligonucleotideFrequency(
+    x = getSeq(x = genome, names = 'chr1'),
+    width = 6
+  )
+  if (nrow(x = insertion_hex_freq) != length(x = genome_freq)) {
+    stop("Not all hexamers represented in input region")
+  }
+  insertion_hex_freq <- insertion_hex_freq[names(x = genome_freq), ]
+  bias <- insertion_hex_freq / genome_freq
+  object <- SetAssayData(object = object, slot = "bias", new.data = bias)
+  return(object)
+}
+
+#' @param assay Name of assay to use
+#' @rdname InsertionBias
+#' @method InsertionBias Seurat
+#' @importFrom Seurat DefaultAssay
+#' @export
+InsertionBias.Seurat <- function(
+  object,
+  genome,
+  assay = NULL,
+  region = 'chr1-1-249250621',
+  verbose = TRUE,
+  ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  object[[assay]] <- InsertionBias(
+    object = object[[assay]],
+    genome = genome,
+    region = region,
+    verbose = verbose,
+    ...
+  )
+  return(object)
+}
+
