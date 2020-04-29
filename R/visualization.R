@@ -292,8 +292,7 @@ SingleCoveragePlot <- function(
 #' for groups of cells.
 #'
 #' Thanks to Andrew Hill for providing an early version of this function
-#'  \url{http://andrewjohnhill.com/blog/2019/04/12/
-#'  streamlining-scatac-seq-visualization-and-analysis/}
+#' \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
 #'
 #' @param object A Seurat object
 #' @param region A set of genomic coordinates to show. Can be a GRanges object,
