@@ -586,7 +586,7 @@ globalVariables(names = "cell", package = "Signac")
 #' @param min.threshold Lower bound for the mononucleosome size. Default is 147
 #' @param max.threshold Upper bound for the mononucleosome size. Default is 294
 #' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{\link{GetReadsInRegion}}
+#' @param ... Additional arguments passed to \code{\link{MultiGetReadsInRegion}}
 #'
 #' @importFrom dplyr group_by summarize
 #' @importFrom stats ecdf
