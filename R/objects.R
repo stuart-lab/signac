@@ -42,6 +42,8 @@ Fragment <- setClass(
 #' genomic feature contains the motif, and 0 otherwise.
 #' @slot pwm A named list of position weight matrices
 #' @slot motif.names A list containing the name of each motif
+#' @slot motif.positions A \code{\link[GenomicRanges]{GRangesList}} object
+#' containing exact positions of each motif.
 #' @slot meta.data A dataframe for storage of additional
 #' information related to each motif. This could include the
 #' names of proteins that bind the motif.
@@ -55,6 +57,7 @@ Motif <- setClass(
     data = "dgCMatrix",
     pwm = "list",
     motif.names = "list",
+    motif.positions = "ANY",
     meta.data = "data.frame"
   )
 )
