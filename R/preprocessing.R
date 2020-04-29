@@ -979,12 +979,12 @@ TSSEnrichment <- function(
   )
 
   # store the normalized TSS matrix
-  object <- SetAssayData(
+  object <- suppressWarnings(SetAssayData(
     object = object,
     assay = assay,
     slot = "positionEnrichment",
     new.data = norm.matrix,
     key = "TSS"
-  )
+  ))
   return(object)
 }
