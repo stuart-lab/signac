@@ -1504,7 +1504,9 @@ MergeOverlappingRows <- function(mergeinfo, assay.list, verbose = TRUE) {
         newmat.names[y] <- new.feature.name
         y <- y + 1
       }
-      if (verbose) setTxtProgressBar(pb = pb, value = j)
+      if (verbose & length(x = nrep$lengths) > 1) {
+        setTxtProgressBar(pb = pb, value = j)
+      }
       x <- x + rowrun
     }
     # remove extra elements in vectors
