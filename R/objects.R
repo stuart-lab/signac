@@ -799,8 +799,8 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
     }
     slot(object = object, name = slot) <- new.data
   } else if (slot == "bias") {
-    if (!is(object = new.data, class2 = "AnyMatrix")) {
-      stop("Bias must be provided as a matrix or sparseMatrix")
+    if (!is(object = new.data, class2 = "vector")) {
+      stop("Bias must be provided as a vector")
     }
     slot(object = object, name = slot) <- new.data
   } else if (slot == "positionEnrichment") {
