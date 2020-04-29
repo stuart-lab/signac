@@ -42,8 +42,8 @@ Fragment <- setClass(
 #' genomic feature contains the motif, and 0 otherwise.
 #' @slot pwm A named list of position weight matrices
 #' @slot motif.names A list containing the name of each motif
-#' @slot motif.positions A \code{\link[GenomicRanges]{GRangesList}} object
-#' containing exact positions of each motif.
+#' @slot positions A \code{\link[GenomicRanges]{GRangesList}} object containing
+#' exact positions of each motif.
 #' @slot meta.data A dataframe for storage of additional
 #' information related to each motif. This could include the
 #' names of proteins that bind the motif.
@@ -57,7 +57,7 @@ Motif <- setClass(
     data = "dgCMatrix",
     pwm = "list",
     motif.names = "list",
-    motif.positions = "ANY",
+    positions = "ANY",
     meta.data = "data.frame"
   )
 )
@@ -550,6 +550,8 @@ CreateSignacObject <- function(
 #' list of position weight or position frequency matrices. This can be used to
 #' set a alternative common name for the motif. If a PFMatrixList is passed to
 #' \code{pwm}, it will pull the motif name from the PFMatrixList.
+#' @param positions A \code{\link[GenomicRanges]{GRangesList}} object containing
+#' exact positions of each motif.
 #' @param meta.data A data.frame containing metadata
 #' @export
 #' @return Returns a \code{\link{Motif}} object
@@ -565,6 +567,7 @@ CreateMotifObject <- function(
   data = NULL,
   pwm = NULL,
   motif.names = NULL,
+  positions = NULL,
   meta.data = NULL
 ) {
   data <- SetIfNull(x = data, y = new(Class = "dgCMatrix"))
@@ -617,6 +620,7 @@ CreateMotifObject <- function(
     data = data,
     pwm = pwm,
     motif.names = motif.names,
+    positions = positions,
     meta.data = meta.data
   )
   return(motif.obj)
