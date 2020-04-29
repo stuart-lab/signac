@@ -500,10 +500,18 @@ FragmentHistogram <- function(
     assay = assay,
     region = region,
     cells = cells,
-    group.by = group.by,
     verbose = FALSE,
     ...
   )
+  # add group information
+  if (is.null(x = group.by)) {
+    groups <- Idents(object = object)
+  } else {
+    md <- object[[]]
+    groups <- object[[group.by]]
+    names(x = groups) <- rownames(x = md)
+  }
+  reads$group <- groups[reads$cell]
   if (length(x = unique(x = reads$group)) == 1) {
     p <- ggplot(data = reads, aes(length)) +
       geom_histogram(bins = 200) +
