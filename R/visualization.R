@@ -56,7 +56,7 @@ globalVariables(
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges subsetByOverlaps
 #' @importFrom GenomeInfoDb seqnames
-#' @importFrom BiocGenerics start end
+#' @importMethodsFrom GenomicRanges start end
 #' @importFrom Seurat WhichCells Idents
 #' @importFrom Matrix colSums
 #' @importFrom methods is
@@ -70,7 +70,6 @@ SingleCoveragePlot <- function(
   object,
   region,
   annotation = NULL,
-  ucsc = TRUE,
   peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
@@ -112,6 +111,7 @@ SingleCoveragePlot <- function(
   cutmat <- CutMatrix(
     object = object,
     region = region,
+    assay = assay,
     cells = cells,
     verbose = FALSE
   )
@@ -207,19 +207,10 @@ SingleCoveragePlot <- function(
     peak.plot <- NULL
   }
   if (!is.null(x = annotation)) {
-    if (inherits(x = annotation, what = 'EnsDb')) {
-      annotation.use <- genes(
-        x = annotation, filter = ~ gene_biotype == "protein_coding"
-      )
-    } else if (!inherits(x = annotation, what = 'GRanges')) {
+    if (!inherits(x = annotation, what = 'GRanges')) {
       stop("Annotation must be a GRanges object or EnsDb object.")
-    } else {
-      annotation.use <- annotation
     }
-    if (ucsc) {
-      seqlevelsStyle(x = annotation.use) <- 'UCSC'
-    }
-    annotation.subset <- subsetByOverlaps(x = annotation.use, ranges = gr)
+    annotation.subset <- subsetByOverlaps(x = annotation, ranges = gr)
     annotation.df <- as.data.frame(x = annotation.subset)
     # adjust coordinates so within the plot
     annotation.df$start[annotation.df$start < start.pos] <- start.pos
@@ -301,15 +292,13 @@ SingleCoveragePlot <- function(
 #' for groups of cells.
 #'
 #' Thanks to Andrew Hill for providing an early version of this function
-#'  \url{http://andrewjohnhill.com/blog/2019/04/12/
-#'  streamlining-scatac-seq-visualization-and-analysis/}
+#' \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
 #'
 #' @param object A Seurat object
 #' @param region A set of genomic coordinates to show. Can be a GRanges object,
 #' a string, or a vector of strings describing the genomic
 #' coordinates to plot.
 #' @param annotation An Ensembl based annotation package
-#' @param ucsc Set annotation seqlevels style to UCSC
 #' @param peaks A GRanges object containing peak coordinates
 #' @param assay Name of the  assay to plot
 #' @param fragment.path Path to an index fragment file. If NULL, will look for a
@@ -349,7 +338,6 @@ CoveragePlot <- function(
   object,
   region,
   annotation = NULL,
-  ucsc = TRUE,
   peaks = NULL,
   assay = NULL,
   fragment.path = NULL,
@@ -368,24 +356,27 @@ CoveragePlot <- function(
 ) {
   if (length(x = region) > 1) {
     plot.list <- lapply(
-      X = region,
-      FUN = SingleCoveragePlot,
-      object = object,
-      annotation = annotation,
-      ucsc = ucsc,
-      peaks = peaks,
-      assay = assay,
-      fragment.path = fragment.path,
-      group.by = group.by,
-      window = window,
-      downsample = downsample,
-      ymax = ymax,
-      scale.factor = scale.factor,
-      extend.upstream = extend.upstream,
-      extend.downstream = extend.downstream,
-      cells = cells,
-      idents = idents,
-      sep = sep
+      X = seq_along(region),
+      FUN = function(x) {
+        SingleCoveragePlot(
+          object = object,
+          region = region[x],
+          annotation = annotation,
+          peaks = peaks,
+          assay = assay,
+          fragment.path = fragment.path,
+          group.by = group.by,
+          window = window,
+          downsample = downsample,
+          ymax = ymax,
+          scale.factor = scale.factor,
+          extend.upstream = extend.upstream,
+          extend.downstream = extend.downstream,
+          cells = cells,
+          idents = idents,
+          sep = sep
+        )
+      }
     )
     return(wrap_plots(plot.list, ...))
   } else {
@@ -393,7 +384,6 @@ CoveragePlot <- function(
       object = object,
       region = region,
       annotation = annotation,
-      ucsc = ucsc,
       peaks = peaks,
       assay = assay,
       fragment.path = fragment.path,
@@ -535,7 +525,7 @@ FragmentHistogram <- function(
 # \code{min.cells} cells.
 # @param verbose Display messages
 #
-# @importFrom BiocGenerics strand
+# @importMethodsFrom GenomicRanges strand
 # @importFrom Seurat Idents
 # @importFrom Matrix colSums colMeans
 # @importFrom ggplot2 ggplot aes geom_line facet_wrap ylim xlab ylab

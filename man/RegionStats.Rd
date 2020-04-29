@@ -46,21 +46,21 @@ Compute the GC content, region lengths, and dinucleotide base frequencies
 for regions in the assay and add to the feature metadata.
 }
 \examples{
-\donttest{
+\dontrun{
 library(BSgenome.Hsapiens.UCSC.hg19)
 RegionStats(
 object = rownames(atac_small),
 genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
 )
 }
-\donttest{
+\dontrun{
 library(BSgenome.Hsapiens.UCSC.hg19)
 RegionStats(
 object = atac_small[['peaks']],
 genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
 )
 }
-\donttest{
+\dontrun{
 library(BSgenome.Hsapiens.UCSC.hg19)
 RegionStats(
   object = atac_small,

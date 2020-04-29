@@ -23,6 +23,8 @@ navbar:
           href: articles/integration.html
         - text: "Merging objects"
           href: articles/merging.html
+        - text: "Parallel computing"
+          href: articles/future.html
   right:
     - icon: fa-github
       href: https://github.com/timoast/signac

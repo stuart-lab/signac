@@ -24,6 +24,7 @@ jobs:
       matrix:
         config:
           - {os: macOS-latest, r: '3.6', bioc: '3.10'}
+          - {os: windows-latest, r: '3.6', bioc: '3.10'}
             #- {os: macOS-latest, r: 'devel', bioc: 'devel'}
           - {os: ubuntu-16.04, r: '3.6', bioc: '3.10', rspm: "https://demo.rstudiopm.com/all/__linux__/xenial/latest"}
     
@@ -40,7 +41,7 @@ jobs:
 
       - name: Query dependencies
         run: |
-          install.packages("remotes")
+          install.packages("remotes", Ncpu = 2L)
           setRepositories(ind=1:2)
           saveRDS(remotes::dev_package_deps(dependencies = TRUE, repos = getOption('repos')), "depends.Rds", version = 2)
         shell: Rscript {0}
@@ -65,12 +66,16 @@ jobs:
 
       - name: Install dependencies
         run: |
+          if (Sys.info()['sysname'] == "Windows") {
+              install.packages("RCurl", type = "binary")
+          }
           install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
-          install.packages(c("BiocManager", "glue"))
+          install.packages(c("BiocManager", "glue"), Ncpu = 2L)
           BiocManager::install(version = '${{ matrix.config.bioc }}')
-          BiocManager::install(c("GenomeInfoDbData", "GenomicAlignments"))
-          remotes::install_deps(dependencies = TRUE)
-          remotes::install_cran("rcmdcheck")
+          BiocManager::install(c("GenomeInfoDbData", "GO.db", "GenomicAlignments"), Ncpu = 2L)
+          setRepositories(ind=1:2)
+          remotes::install_deps(dependencies = TRUE, repos = getOption('repos'), Ncpu = 2L)
+          remotes::install_cran("rcmdcheck", Ncpu = 2L)
         shell: Rscript {0}
 
       - name: Check

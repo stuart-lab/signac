@@ -114,17 +114,11 @@ CellsPerGroup <- function(
 #' Find the closest feature to a given set of genomic regions
 #'
 #' @param regions A set of genomic regions to query
-#' @param annotation Annotation information. Can be a GRanges object or an EnsDb
-#' object. If an EnsDb object is provided, protein-coding genes will be
-#' extracted from the object and only the closest protein coding genes are
-#' reported. If a GRanges object is provided, no filtering is performed and the
-#' closest genomic range is reported.
+#' @param annotation A GRanges object containing annotation information.
 #' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #'
-#' @importFrom GenomicRanges distanceToNearest
+#' @importMethodsFrom GenomicRanges distanceToNearest
 #' @importFrom S4Vectors subjectHits mcols
-#' @importFrom GenomicFeatures genes
-#' @importFrom GenomeInfoDb seqlevelsStyle "seqlevelsStyle<-"
 #' @importFrom methods is
 #' @return Returns a dataframe with the name of each region, the closest feature
 #' in the annotation, and the distance to the feature.
@@ -146,14 +140,6 @@ ClosestFeature <- function(
 ) {
   if (!is(object = regions, class2 = 'GRanges')) {
     regions <- StringToGRanges(regions = regions, ...)
-  }
-  if (is(object = annotation, class2 = 'EnsDb')) {
-    annotation <- genes(
-      x = annotation, filter = ~ gene_biotype == "protein_coding"
-    )
-    if (seqlevelsStyle(x = regions) != seqlevelsStyle(x = annotation)) {
-      seqlevelsStyle(x = annotation) <- seqlevelsStyle(x = regions)
-    }
   }
   nearest_feature <- distanceToNearest(x = regions, subject = annotation)
   feature_hits <- annotation[subjectHits(x = nearest_feature)]
@@ -186,7 +172,7 @@ ClosestFeature <- function(
 #' to be recorded.
 #' @param verbose Display messages
 #'
-#' @importFrom GenomicRanges distanceToNearest
+#' @importMethodsFrom GenomicRanges distanceToNearest
 #' @importFrom S4Vectors subjectHits queryHits mcols
 #' @importFrom Seurat DefaultAssay
 #' @export
@@ -241,8 +227,7 @@ GetIntersectingFeatures <- function(
 #'
 #' @param object A Seurat object
 #' @param file Path to indexed fragment file.
-#' See \url{https://support.10xgenomics.com/single-cell-atac/software/
-#' pipelines/latest/output/fragments}
+#' See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
 #' @param assay Assay used to generate the fragments.
 #' If NULL, use the active assay.
 #'
@@ -281,6 +266,8 @@ SetFragments <- function(
 #' @param sep Vector of separators to use for genomic string. First element is
 #' used to separate chromosome and coordinates, second separator is used to
 #' separate start and end coordinates.
+#' @param ... Additional arguments passed to
+#' \code{\link[GenomicRanges]{makeGRangesFromDataFrame}}
 #' @return Returns a GRanges object
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @importFrom tidyr separate
@@ -288,7 +275,7 @@ SetFragments <- function(
 #' regions <- c('chr1-1-10', 'chr2-12-3121')
 #' StringToGRanges(regions = regions)
 #' @export
-StringToGRanges <- function(regions, sep = c("-", "-")) {
+StringToGRanges <- function(regions, sep = c("-", "-"), ...) {
   ranges.df <- data.frame(ranges = regions)
   ranges.df <- separate(
     data = ranges.df,
@@ -296,7 +283,7 @@ StringToGRanges <- function(regions, sep = c("-", "-")) {
     sep = paste0(sep[[1]], "|", sep[[2]]),
     into = c('chr', 'start', 'end')
   )
-  granges <- makeGRangesFromDataFrame(df = ranges.df)
+  granges <- makeGRangesFromDataFrame(df = ranges.df, ...)
   return(granges)
 }
 
@@ -308,7 +295,7 @@ StringToGRanges <- function(regions, sep = c("-", "-")) {
 #' @param sep Vector of separators to use for genomic string. First element is
 #' used to separate chromosome and coordinates, second separator is used to
 #' separate start and end coordinates.
-#' @importFrom GenomicRanges seqnames start end
+#' @importMethodsFrom GenomicRanges start end seqnames
 #' @examples
 #' GRangesToString(grange = blacklist_hg19)
 #' @return Returns a character vector
@@ -335,6 +322,9 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
 # @examples
 # ChunkGRanges(blacklist_hg19, n = 10)
 ChunkGRanges <- function(granges, nchunk) {
+  if (length(x = granges) < nchunk) {
+    nchunk <- length(x = granges)
+  }
   chunksize <- as.integer(x = (length(granges) / nchunk))
   range.list <- sapply(X = seq_len(length.out = nchunk), FUN = function(x) {
     chunkupper <- (x * chunksize)
@@ -367,7 +357,9 @@ ChunkGRanges <- function(granges, nchunk) {
 #' If iterating over many regions, providing an open TabixFile is much faster
 #' as it avoids opening and closing the connection each time.
 #' @param verbose Display messages
-#' @importFrom BiocGenerics width start end
+#' @importFrom Matrix sparseMatrix
+#' @importFrom Rsamtools TabixFile
+#' @importMethodsFrom GenomicRanges width start end
 #' @return Returns a sparse matrix
 #' @export
 #' @examples
@@ -422,7 +414,7 @@ CutMatrix <- function(
       stringsAsFactors = FALSE
     )
     cut.df <- cut.df[
-      cut.df$position > 0 & cut.df$position <= width(x = region),
+      (cut.df$position > 0) & (cut.df$position <= width(x = region)),
     ]
     cell.vector <- seq_along(along.with = all.cells)
     names(x = cell.vector) <- all.cells
@@ -451,7 +443,9 @@ CutMatrix <- function(
 #' rather than the 5' or 3' end for upstream and downstream
 #' respectively.
 #'
-#' @importFrom GenomicRanges strand start end trim
+#' @importFrom GenomicRanges trim
+#' @importFrom BiocGenerics start strand end width
+#' @importMethodsFrom GenomicRanges strand start end width
 #' @importFrom IRanges ranges IRanges "ranges<-"
 #' @export
 #' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
@@ -1049,6 +1043,9 @@ MergeWithRegions <- function(
 # @param cells Vector of cells to include
 # @param verbose Display messages
 #' @importFrom Rsamtools TabixFile
+#' @importFrom future.apply future_lapply
+#' @importFrom future nbrOfWorkers
+#' @importFrom pbapply pblapply
 MultiRegionCutMatrix <- function(
   object,
   regions,
@@ -1059,8 +1056,13 @@ MultiRegionCutMatrix <- function(
   fragment.path <- GetFragments(object = object, assay = assay)
   tabix.file <- TabixFile(file = fragment.path)
   open(con = tabix.file)
-  cm.list <- lapply(
-    X = seq_along(along.with = regions),
+  if (nbrOfWorkers() > 1) {
+    mylapply <- future_lapply
+  } else {
+    mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
+  }
+  cm.list <- mylapply(
+    X = seq_along(regions),
     FUN = function(x) {
       CutMatrix(
         object = object,
@@ -1088,7 +1090,7 @@ MultiRegionCutMatrix <- function(
 # @param assay Name of the assay to use
 # @param cells Which cells to include. If NULL, use all cells
 # @param verbose Display messages
-#' @importFrom BiocGenerics strand
+#' @importMethodsFrom GenomicRanges strand
 CreateRegionPileupMatrix <- function(
   object,
   regions,

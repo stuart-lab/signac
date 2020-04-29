@@ -34,7 +34,7 @@ NULL
 #'
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RunChromVAR(object = atac_small, genome = BSgenome.Hsapiens.UCSC.hg19)
 #' }
@@ -204,8 +204,6 @@ FindMotifs <- function(
   if (nrow(x = results) == 0) {
     return(results)
   } else {
-    return(results[with(
-      data = results, expr = order(pvalue, -fold.enrichment)
-      ), ])
+    return(results[order(-results[, 7], -results[, 6]), ])
   }
 }

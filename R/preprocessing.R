@@ -105,7 +105,7 @@ BinarizeCounts.Seurat <- function(
 #' @return Returns a sparse matrix
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(JASPAR2018)
 #' library(TFBSTools)
 #' library(BSgenome.Hsapiens.UCSC.hg19)
@@ -212,6 +212,7 @@ DownsampleFeatures <- function(
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
 #' @importFrom Matrix sparseMatrix
+#' @importMethodsFrom GenomicRanges intersect
 #' @importFrom Rsamtools TabixFile seqnamesTabix
 #' @export
 #' @return Returns a sparse matrix
@@ -676,14 +677,12 @@ NucleosomeSignal <- function(
 #' when constructing genomic coordinates from the regions. The first element is
 #' used to separate the chromosome from the genomic coordinates, and the second
 #' element used to separate the start and end coordinates.
-#'
-#' @importFrom Biostrings letterFrequency dinucleotideFrequency
-#' @importFrom IRanges width
-#' @importFrom BSgenome getSeq
+#' @importFrom BiocGenerics width
+#' @importMethodsFrom GenomicRanges width
 #' @rdname RegionStats
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
 #' object = rownames(atac_small),
@@ -697,14 +696,22 @@ RegionStats.default <- function(
   verbose = TRUE,
   ...
 ) {
+  if (!requireNamespace('BSgenome', quietly = TRUE)) {
+    stop("Please install BSgenome: BiocManager::install('BSgenome')")
+  }
+  if (!requireNamespace('Biostrings', quietly = TRUE)) {
+    stop("Please install Biostrings: BiocManager::install('Biostrings')")
+  }
   if (inherits(x = object, what = 'character')) {
     object <- StringToGRanges(regions = object, sep = sep)
   }
   sequence.length <- width(x = object)
-  sequences <- getSeq(x = genome, names = object)
-  gc <- letterFrequency(x = sequences, letters = 'CG') / sequence.length * 100
+  sequences <- BSgenome::getSeq(x = genome, names = object)
+  gc <- Biostrings::letterFrequency(
+    x = sequences, letters = 'CG'
+  ) / sequence.length * 100
   colnames(gc) <- 'GC.percent'
-  dinuc <- dinucleotideFrequency(sequences)
+  dinuc <- Biostrings::dinucleotideFrequency(sequences)
   sequence.stats <- cbind(dinuc, gc, sequence.length)
   rownames(sequence.stats) <- GRangesToString(grange = object, sep = sep)
   return(sequence.stats)
@@ -716,7 +723,7 @@ RegionStats.default <- function(
 #' @importFrom Seurat GetAssayData
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
 #' object = atac_small[['peaks']],
@@ -749,7 +756,7 @@ RegionStats.Assay <- function(
 #' @method RegionStats Seurat
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
 #'   object = atac_small,
@@ -913,11 +920,12 @@ RunTFIDF.Seurat <- function(
 #' @param verbose Display messages
 #' @importFrom Matrix rowMeans
 #' @importFrom methods slot
+#' @importFrom stats ecdf
 #'
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @export
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(EnsDb.Hsapiens.v75)
 #' gene.ranges <- genes(EnsDb.Hsapiens.v75)
 #' gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
@@ -960,7 +968,8 @@ TSSEnrichment <- function(
 
   # if the flanking mean is 0 for any cells, the enrichment score will be zero.
   # instead replace with the mean from the whole population
-  flanking.mean[flanking.mean == 0] <- mean(flanking.mean)
+  flanking.mean[is.na(x = flanking.mean)] <- 0
+  flanking.mean[flanking.mean == 0] <- mean(flanking.mean, na.rm = TRUE)
 
   # compute fold change at each position relative to flanking mean
   # (flanks should start at 1)
@@ -971,7 +980,12 @@ TSSEnrichment <- function(
 
   # Take signal value at center of distribution after normalization as
   # TSS enrichment score, average the 1000 bases at the center
-  object$TSS.enrichment <- rowMeans(x = norm.matrix[, 501:1500])
+  object$TSS.enrichment <- rowMeans(x = norm.matrix[, 501:1500], na.rm = TRUE)
+  e.dist <- ecdf(x = object$TSS.enrichment)
+  object$TSS.percentile <- round(
+    x = e.dist(object$TSS.enrichment),
+    digits = 2
+  )
 
   # store the normalized TSS matrix. For now put it in misc
   object <- AddToMisc(

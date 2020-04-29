@@ -1,17 +1,4 @@
----
-title: "Signac v0.2.5"
-output:
-  html_document:
-    keep_md: true
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(eval = FALSE)
-```
-
-
 [![R-CMD-check](https://github.com/timoast/signac/workflows/R-CMD-check/badge.svg)](https://github.com/timoast/signac/actions)
-[![AppVeyor build status](https://ci.appveyor.com/api/projects/status/github/timoast/signac?svg=true)](https://ci.appveyor.com/project/timoast/signac)
 [![CRAN Version](https://www.r-pkg.org/badges/version/Signac)](https://cran.r-project.org/package=Signac)
 [![CRAN Downloads](https://cranlogs.r-pkg.org/badges/Signac)](https://cran.r-project.org/package=Signac)
 
@@ -38,7 +25,8 @@ Please see the Signac [vignettes](https://satijalab.org/signac/articles/) page f
 To use Signac first make sure Bioconductor is installed:
 
 
-```{r, eval=FALSE}
+
+```r
 # Install bioconductor
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
@@ -47,13 +35,15 @@ BiocManager::install()
 
 ### Current release
 
-```{r, eval=FALSE}
+
+```r
 install.packages("Signac")
 ```
 
 ### Development version
 
-```{r, eval=FALSE}
+
+```r
 install.packages("devtools")
 devtools::install_github("timoast/signac", ref = "develop")
 ```
@@ -64,12 +54,14 @@ It can also be useful (but not essential) to install species-specific packages f
 
 #### Human 
 
-```{r, eval=FALSE}
+
+```r
 BiocManager::install(c('BSgenome.Hsapiens.UCSC.hg19', 'EnsDb.Hsapiens.v75'))
 ```
 
 #### Mouse
 
-```{r, eval=FALSE}
+
+```r
 BiocManager::install(c('BSgenome.Mmusculus.UCSC.mm10', 'EnsDb.Mmusculus.v79'))
 ```

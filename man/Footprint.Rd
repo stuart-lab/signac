@@ -4,8 +4,17 @@
 \alias{Footprint}
 \title{Transcription factor footprinting analysis}
 \usage{
-Footprint(object, regions, genome, group.by = NULL, idents = NULL,
-  assay = NULL, upstream = 250, downstream = 250, verbose = TRUE)
+Footprint(
+  object,
+  regions,
+  genome,
+  group.by = NULL,
+  idents = NULL,
+  assay = NULL,
+  upstream = 250,
+  downstream = 250,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{object}{A Seurat object}
