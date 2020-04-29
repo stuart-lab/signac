@@ -791,10 +791,11 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
     }
     current.genome <- unique(x = genome(x = object))
     annotation.genome <- unique(x = genome(x = new.data))
-    if (!is.null(x = current.genome) &
-        !is.na(x = annotation.genome) &
-        (current.genome != annotation.genome)) {
-      stop("Annotation genome does not match genome of the object")
+    if (!is.null(x = current.genome)) {
+      if (!is.na(x = annotation.genome) &
+          (current.genome != annotation.genome)) {
+        stop("Annotation genome does not match genome of the object")
+        }
     }
     slot(object = object, name = slot) <- new.data
   } else if (slot == "bias") {
@@ -1057,7 +1058,6 @@ subset.ChromatinAssay <- function(
 #' @importFrom Seurat RowMergeSparseMatrices
 #' @importFrom S4Vectors subjectHits queryHits mcols
 #' @importMethodsFrom GenomeInfoDb merge
-#' @importMethodsFrom Seurat merge
 merge.ChromatinAssay <- function(
   x = NULL,
   y = NULL,
