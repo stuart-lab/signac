@@ -68,6 +68,20 @@ FindTopFeatures <- function(object, ...) {
   UseMethod(generic = "FindTopFeatures", object = object)
 }
 
+#' Transcription factor footprinting analysis
+#'
+#' Compute the normalized observed/expected Tn5 insertion frequency
+#' for each position surrounding a set of motif instances.
+#'
+#' @param object A Seurat or ChromatinAssay object
+#' @param ... Arguments passed to other methods
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
+#' @rdname Footprint
+#' @export Footprint
+Footprint <- function(object, ...) {
+  UseMethod(generic = "Footprint", object = object)
+}
+
 #' Get the Fragment objects
 #'
 #' @param ... Arguments passed to other methods
@@ -86,6 +100,18 @@ Fragments <- function(object, ...) {
 #'
 "Fragments<-" <- function(object, ..., value) {
   UseMethod(generic = 'Fragments<-', object = object)
+}
+
+#' Compute Tn5 insertion bias
+#'
+#' Counts the Tn5 insertion frequency for each DNA hexamer.
+#' @param object A Seurat or ChromatinAssay object
+#' @param ... Arguments passed to other methods
+#' @return Returns a Seurat object
+#' @rdname InsertionBias
+#' @export InsertionBias
+InsertionBias <- function(object, ...) {
+  UseMethod(generic = "InsertionBias", object = object)
 }
 
 #' Retrieve a motif matrix
