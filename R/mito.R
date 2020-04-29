@@ -18,7 +18,7 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' data.dir <- "path/to/data/directory"
+#' data.dir <- system.file("extdata", "test_mgatk", package="Signac")
 #' mgatk <- ReadMGATK(dir = data.dir)
 #' }
 ReadMGATK <- function(dir, verbose = TRUE) {
@@ -29,19 +29,17 @@ ReadMGATK <- function(dir, verbose = TRUE) {
   c.path <- list.files(path = dir, pattern = "*.C.txt.gz", full.names = TRUE)
   t.path <- list.files(path = dir, pattern = "*.T.txt.gz", full.names = TRUE)
   g.path <- list.files(path = dir, pattern = "*.G.txt.gz", full.names = TRUE)
+  
   refallele.path <- list.files(
     path = dir,
     pattern = "chrM_refAllele.txt",
     full.names = TRUE
   )
+  
+  # The depth file lists all barcodes that were genotyped
   depthfile.path <- list.files(
     path = dir,
     pattern = "*.depthTable.txt",
-    full.names = TRUE
-  )
-  cellbarcode.path <- list.files(
-    path = dir,
-    pattern = "barcodes.tsv",
     full.names = TRUE
   )
 
@@ -95,24 +93,26 @@ ReadMGATK <- function(dir, verbose = TRUE) {
     col.names = c("cellbarcode", "mito.depth"),
     row.names = 1
   )
-  cellbarcodes <- unique(x = readLines(con = cellbarcode.path))
+  cellbarcodes <- unique(x = rownames(depth))
   cb.lookup <- seq_along(along.with = cellbarcodes)
   names(cb.lookup) <- cellbarcodes
 
   if (verbose) {
     message("Building matrices")
   }
+  
+  maxpos <- dim(refallele)[1]
   a.mat <- SparseMatrixFromBaseCounts(
-    basecounts = a.counts, cells = cb.lookup, dna.base = "A"
+    basecounts = a.counts, cells = cb.lookup, dna.base = "A", maxpos = maxpos
   )
   c.mat <- SparseMatrixFromBaseCounts(
-    basecounts = c.counts, cells = cb.lookup, dna.base = "C"
+    basecounts = c.counts, cells = cb.lookup, dna.base = "C", maxpos = maxpos
   )
   t.mat <- SparseMatrixFromBaseCounts(
-    basecounts = t.counts, cells = cb.lookup, dna.base = "T"
+    basecounts = t.counts, cells = cb.lookup, dna.base = "T", maxpos = maxpos
   )
   g.mat <- SparseMatrixFromBaseCounts(
-    basecounts = g.counts, cells = cb.lookup, dna.base = "G"
+    basecounts = g.counts, cells = cb.lookup, dna.base = "G", maxpos = maxpos
   )
 
   counts <- rbind(a.mat[[1]], c.mat[[1]], t.mat[[1]], g.mat[[1]],
@@ -229,14 +229,18 @@ IdentifyVariants.Seurat <- function(
 # @param basecounts A dataframe containing read counts at each position for each
 # cell
 # @param cells A lookup table giving the cell barcode numeric ID
+# @param dna.base Used to specify the alternate allele
+# @param maxpos specifies the end of the mtDNA genome (otherwise, the mat will be of wrong dim)
 #' @importFrom Matrix sparseMatrix
 #
 # @return Returns a list of two sparse matrices
-SparseMatrixFromBaseCounts <- function(basecounts, cells, dna.base) {
+SparseMatrixFromBaseCounts <- function(basecounts, cells, dna.base, maxpos) {
+  
+  # Vector addition guarantee correct dimension
   fwd.mat <- sparseMatrix(
-    i = basecounts$pos,
-    j = cells[basecounts$cellbarcode],
-    x = basecounts$plus
+    i = c(basecounts$pos,maxpos),
+    j = c(cells[basecounts$cellbarcode],1),
+    x = c(basecounts$plus,0)
   )
   colnames(x = fwd.mat) <- names(x = cells)
   rownames(x = fwd.mat) <- paste(
@@ -246,9 +250,9 @@ SparseMatrixFromBaseCounts <- function(basecounts, cells, dna.base) {
     sep = "-"
   )
   rev.mat <- sparseMatrix(
-    i = basecounts$pos,
-    j = cells[basecounts$cellbarcode],
-    x = basecounts$minus
+    i = c(basecounts$pos,maxpos),
+    j = c(cells[basecounts$cellbarcode],1),
+    x = c(basecounts$minus,0)
   )
   colnames(x = rev.mat) <- names(x = cells)
   rownames(x = rev.mat) <- paste(
@@ -404,7 +408,7 @@ ProcessLetter <- function(
     vmr = variance / (bulk + 0.00000000001),
     mean = round(x = bulk, digits = 7),
     variance = round(x = variance, digits = 7),
-    n_cells_detected = rowSums(x = detected == 2),
+    n_cells_conf_detected = rowSums(x = detected == 2),
     n_cells_over_5 = rowSums(x = mat >= 0.05),
     n_cells_over_10 = rowSums(x = mat >= 0.10),
     n_cells_over_20 = rowSums(x = mat >= 0.20),
