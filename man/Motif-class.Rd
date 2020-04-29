@@ -20,6 +20,9 @@ genomic feature contains the motif, and 0 otherwise.}
 
 \item{\code{motif.names}}{A list containing the name of each motif}
 
+\item{\code{positions}}{A \code{\link[GenomicRanges]{GRangesList}} object containing
+exact positions of each motif.}
+
 \item{\code{meta.data}}{A dataframe for storage of additional
 information related to each motif. This could include the
 names of proteins that bind the motif.}

@@ -29,7 +29,7 @@ vector of strings. Default is human chromosome 1.}
 
 \item{verbose}{Display messages}
 
-\item{...}{Additional arguments passed to \code{\link{GetReadsInRegion}}}
+\item{...}{Additional arguments passed to \code{\link{MultiGetReadsInRegion}}}
 }
 \value{
 Returns a \code{\link[Seurat]{Seurat}} object with

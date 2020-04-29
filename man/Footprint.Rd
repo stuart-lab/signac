@@ -3,24 +3,16 @@
 \name{Footprint}
 \alias{Footprint}
 \alias{Footprint.ChromatinAssay}
+\alias{Footprint.Seurat}
 \title{Transcription factor footprinting analysis}
 \usage{
-Footprint(
-  object,
-  regions,
-  genome,
-  group.by = NULL,
-  idents = NULL,
-  assay = NULL,
-  upstream = 250,
-  downstream = 250,
-  verbose = TRUE
-)
+Footprint(object, ...)
 
 \method{Footprint}{ChromatinAssay}(
   object,
-  regions,
   genome,
+  motif.name = NULL,
+  regions = NULL,
   group.by = NULL,
   idents = NULL,
   assay = NULL,
@@ -32,22 +24,29 @@ Footprint(
 
 \method{Footprint}{Seurat}(
   object,
-  regions,
   genome,
+  regions = NULL,
+  motif.name = NULL,
   group.by = NULL,
   idents = NULL,
   assay = NULL,
   upstream = 250,
   downstream = 250,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 )
 }
 \arguments{
 \item{object}{A Seurat or ChromatinAssay object}
 
-\item{regions}{A set of genomic ranges containing the motif instances}
+\item{...}{Arguments passed to other methods}
 
 \item{genome}{A \code{\link[BSgenome]{BSgenome}} object}
+
+\item{motif.name}{Name of a motif stored in the assay to footprint. If not
+supplied, must supply a set of regions.}
+
+\item{regions}{A set of genomic ranges containing the motif instances}
 
 \item{group.by}{Grouping variable for the cells}
 
@@ -60,8 +59,6 @@ Footprint(
 \item{downstream}{Number of bases to extend downstream}
 
 \item{verbose}{Display messages}
-
-\item{...}{Arguments passed to other methods}
 }
 \value{
 Returns a \code{\link[Seurat]{Seurat}} object

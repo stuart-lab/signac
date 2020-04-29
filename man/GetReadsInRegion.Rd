@@ -5,19 +5,15 @@
 \title{GetReadsInRegion}
 \usage{
 GetReadsInRegion(
-  object,
   cellmap,
   region,
   tabix.file,
-  group.by = NULL,
   cells = NULL,
   verbose = TRUE,
   ...
 )
 }
 \arguments{
-\item{object}{A Seurat object}
-
 \item{cellmap}{A mapping of cell names in the fragment file to cell names in
 the Seurat object. Should be a named vector where each element is a cell name
 that appears in the fragment file and the name of each element is the
@@ -27,8 +23,6 @@ name of the cell in the Seurat object.}
 'chr:start-end'. Can be a vector of regions.}
 
 \item{tabix.file}{A TabixFile object.}
-
-\item{group.by}{Cell grouping information to add}
 
 \item{cells}{Cells to include. Default is all cells present in the object.}
 

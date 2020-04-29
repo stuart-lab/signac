@@ -8,6 +8,7 @@ CreateMotifObject(
   data = NULL,
   pwm = NULL,
   motif.names = NULL,
+  positions = NULL,
   meta.data = NULL
 )
 }
@@ -23,6 +24,9 @@ must match the names given in \code{pwm}. If NULL, use the names from the
 list of position weight or position frequency matrices. This can be used to
 set a alternative common name for the motif. If a PFMatrixList is passed to
 \code{pwm}, it will pull the motif name from the PFMatrixList.}
+
+\item{positions}{A \code{\link[GenomicRanges]{GRangesList}} object containing
+exact positions of each motif.}
 
 \item{meta.data}{A data.frame containing metadata}
 }
