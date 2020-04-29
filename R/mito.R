@@ -32,7 +32,7 @@ ReadMGATK <- function(dir, verbose = TRUE) {
   
   refallele.path <- list.files(
     path = dir,
-    pattern = "chrM_refAllele.txt",
+    pattern = "chrM_refAllele.txt*",
     full.names = TRUE
   )
   
