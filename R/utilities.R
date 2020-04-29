@@ -364,7 +364,7 @@ ChunkGRanges <- function(granges, nchunk) {
 #  region = StringToGRanges("chr1-10245-762629")
 # )
 SingleFileCutMatrix <- function(
-  object,
+  object,  # TODO remove this parameter and replace with cell vector
   cellmap,
   region,
   tabix.file,
@@ -377,11 +377,9 @@ SingleFileCutMatrix <- function(
   }
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   fragments <- GetReadsInRegion(
-    object = object,
     region = region,
     cellmap = cellmap,
     cells = cells,
-    group.by = group.by,
     tabix.file = tabix.file,
     verbose = verbose
   )
@@ -580,7 +578,6 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 #'
 #' Extract reads for each cell within a given genomic region or set of regions
 #'
-#' @param object A Seurat object
 #' @param cellmap A mapping of cell names in the fragment file to cell names in
 #' the Seurat object. Should be a named vector where each element is a cell name
 #' that appears in the fragment file and the name of each element is the
@@ -588,7 +585,6 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 #' @param region A genomic region, specified as a string in the format
 #' 'chr:start-end'. Can be a vector of regions.
 #' @param tabix.file A TabixFile object.
-#' @param group.by Cell grouping information to add
 #' @param cells Cells to include. Default is all cells present in the object.
 #' @param verbose Display messages
 #' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
@@ -604,23 +600,13 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 #' region <- StringToGRanges(regions = "chr1-10245-762629")
 #' GetReadsInRegion(object = atac_small, region = region)
 GetReadsInRegion <- function(
-  object,
   cellmap,
   region,
   tabix.file,
-  group.by = NULL,
   cells = NULL,
   verbose = TRUE,
   ...
 ) {
-  if (is.null(x = group.by)) {
-    group.by <- Idents(object = object)
-  } else {
-    meta.data <- object[[]]
-    group.by <- meta.data[[group.by]]
-    names(x = group.by) <- rownames(x = meta.data)
-  }
-
   file.to.object <- names(x = cellmap)
   names(x = file.to.object) <- cellmap
 
@@ -642,12 +628,16 @@ GetReadsInRegion <- function(
     return(reads)
   }
   reads$length <- reads$end - reads$start
-  reads$group <- group.by[reads$cell]
   return(reads)
 }
 
 # Run GetReadsInRegion for a list of Fragment objects
 # concatenate the output dataframes and return
+# @param object A Seurat or ChromatinAssay object
+# @param region Genomic region to extract fragments for
+# @param fragment.list A list of Fragment objects. If NULL, pull them from the
+# object
+# @param assay Name of assay to use if supplying a Seurat object
 #' @importFrom Seurat DefaultAssay
 #' @importFrom Rsamtools TabixFile
 MultiGetReadsInRegion <- function(
@@ -657,10 +647,14 @@ MultiGetReadsInRegion <- function(
   assay = NULL,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (inherits(x = object, what = "Seurat")) {
+    # pull the assay
+    assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+    object <- object[[assay]]
+  }
   fragment.list <- SetIfNull(
     x = fragment.list,
-    y = Fragments(object = object[[assay]])
+    y = Fragments(object = object)
   )
   res <- data.frame()
   for (i in seq_along(along.with = fragment.list)) {
@@ -669,7 +663,6 @@ MultiGetReadsInRegion <- function(
     tabix.file <- TabixFile(file = tbx.path)
     open(con = tabix.file)
     reads <- GetReadsInRegion(
-      object = object,
       cellmap = cellmap,
       region = region,
       tabix.file = tabix.file,
