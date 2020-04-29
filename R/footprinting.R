@@ -5,6 +5,8 @@ NULL
 
 #' @param regions A set of genomic ranges containing the motif instances
 #' @param genome A \code{\link[BSgenome]{BSgenome}} object
+#' @param motif.name Name of a motif stored in the assay to footprint. If not
+#' supplied, must supply a set of regions.
 #' @param group.by Grouping variable for the cells
 #' @param idents Which identities to include
 #' @param upstream Number of bases to extend upstream
@@ -19,8 +21,9 @@ NULL
 #' @method Footprint ChromatinAssay
 Footprint.ChromatinAssay <- function(
   object,
-  regions,
   genome,
+  motif.name = NULL,
+  regions = NULL,
   group.by = NULL,
   idents = NULL,
   assay = NULL,
@@ -29,28 +32,54 @@ Footprint.ChromatinAssay <- function(
   verbose = TRUE,
   ...
 ) {
+  if (is.null(x = motif.name) & is.null(x = regions)) {
+    stop("Must supply the name of a motif or a set of regions")
+  } else if (!is.null(x = motif.name) & !is.null(x = regions)) {
+    stop("Supplied both a motif name and set of regions. Choose one only.")
+  } else if (!is.null(x = motif.name)) {
+    # pull motif positions from object
+    motif.obj <- Motifs(object = object)
+    motif.positions <- GetMotifData(object = motif.obj, slot = "positions")
+    if (is.null(x = motif.positions)) {
+      stop("Motif positions not present in Motif object.")
+    } else {
+      if (motif.name %in% names(x = motif.positions)) {
+        regions <- motif.positions[[motif.name]]
+      } else {
+        # convert to common name and look up
+        common.names <- GetMotifData(object = motif.obj, slot = "motif.names")
+        if (motif.name %in% common.names) {
+          motif.idx <- names(x = which(x = common.names == motif.name))
+          regions = motif.positions[[motif.idx]]
+        } else {
+          stop("Motif not found")
+        }
+      }
+    }
+  }
   regions.use <- Extend(
     x = regions,
     upstream = upstream + 3,
     downstream = downstream + 3
   )
   dna.sequence <- getSeq(x = genome, regions.use)
-  misc.slot <- Misc(object = object[[assay]])
-  bias <- Bias
-  if (!("Tn5.bias" %in% names(x = misc.slot))) {
+  bias <- GetAssayData(object = object, slot = "bias")
+  if (is.null(x = bias)) {
+    if (verbose) {
+      message("Computing Tn5 insertion bias")
+    }
     object <- InsertionBias(
       object = object,
       genome = genome
     )
-    misc.slot <- Misc(object = object[[assay]])
   }
-  bias <- misc.slot$Tn5.bias
   if (verbose) {
     message("Computing base composition at motif sites")
   }
   dna.string <- as.character(dna.sequence)
   row.index <- c()
   total.bases <- upstream + downstream + 1
+  # TODO add progress bar here
   for (i in 1:length(x = dna.string)) {
     for (j in 1:total.bases) {
       row.index <- c(row.index, substring(text = dna.string[[i]], first = j, last = j + 5))
@@ -119,21 +148,24 @@ Footprint.ChromatinAssay <- function(
 #' @param assay Name of assay to use
 #' @method Footprint Seurat
 #' @importFrom Seurat DefaultAssay
-Footprint <- function(
+Footprint.Seurat <- function(
   object,
-  regions,
   genome,
+  regions = NULL,
+  motif.name = NULL,
   group.by = NULL,
   idents = NULL,
   assay = NULL,
   upstream = 250,
   downstream = 250,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   object[[assay]] <- Footprint(
     object = object[[assay]],
     regions = regions,
+    motif.name = motif.name,
     genome = genome,
     group.by = group.by,
     idents = idents,
