@@ -79,7 +79,7 @@ Footprint.ChromatinAssay <- function(
   dna.string <- as.character(dna.sequence)
   row.index <- c()
   total.bases <- upstream + downstream + 1
-  # TODO add progress bar here
+  # TODO add progress bar here, add future. think about other ways to do this.
   for (i in 1:length(x = dna.string)) {
     for (j in 1:total.bases) {
       row.index <- c(row.index, substring(text = dna.string[[i]], first = j, last = j + 5))
@@ -87,7 +87,7 @@ Footprint.ChromatinAssay <- function(
   }
   unique.hexamer <- unique(x = row.index)
   hexamer.row.index <- match(x = row.index, table = unique.hexamer)
-  hexamer.col.index <- rep(1:total.bases, length(mef.peaks))
+  hexamer.col.index <- rep(1:total.bases, length(x = dna.string))
   hexamer.matrix <- sparseMatrix(
     i = hexamer.row.index,
     j = hexamer.col.index,
@@ -123,8 +123,8 @@ Footprint.ChromatinAssay <- function(
   if (verbose) {
     message("Computing observed/expected Tn5 insertions per base")
   }
-  flanks <- c(1:50, (total.bases-50):total.bases)
-  norm.factor.expected <- mean(expected.insertions[flanks,])
+  flanks <- c(1:50, (total.bases - 50):total.bases)
+  norm.factor.expected <- mean(expected.insertions[flanks, ])
   norm.expected <- expected.insertions / norm.factor.expected
   unique.groups <- unique(x = group.counts$group)
   norm.counts <- data.frame()
@@ -133,8 +133,8 @@ Footprint.ChromatinAssay <- function(
     norm.factor <- mean(x = group.use[flanks])
     normalized.group.counts <- group.use / norm.factor
     obs.expect <- normalized.group.counts / as.vector(x = norm.expected)
-    data.frame <- rbind(norm.counts, data.frame(
-      postion = -upstream:downstream+1,
+    norm.counts <- rbind(norm.counts, data.frame(
+      postion = -upstream:downstream + 1,
       observed.over.expected = obs.expect,
       group = as.character(x = unique.groups[[i]])
     ))
