@@ -1239,6 +1239,91 @@ PFMatrixToList <- function(x) {
   return(list("matrix" = position.matrix, "name" = name.use))
 }
 
+
+#' Merge fragment bed-like files for multple 10X scATAC runs. Requires awk, sort, bgzip, and tabix.
+#'
+#' @param sample_meta Dataframe with columns "path" to the cellranger-atac results and "sample" for the sample names. 
+#' Sample names must behave well on the command line. This is not well tested, but for example you should avoid '$>|()\'.
+#' @param combined_fragments_file Final result. Must end in '.gz'.
+#' @param do_run If TRUE, runs the commands via R's system function. If FALSE, prints them for you to run manually.
+#' @param force If TRUE, issue warnings instead of errors. Not recommended.
+#' @param temp_folder Where to put very large intermediate files.
+#' 
+MergeFragments = function( sample_meta, combined_fragments_file, do_run = F, force = F, temp_folder = "temp" ){
+  # check for tabix and bgzip
+  bgzip_version = system("bgzip --version", intern = TRUE) 
+  tabix_version = system("tabix --version", intern = TRUE) 
+  has_bgzip = any(grepl("htslib", bgzip_version))
+  has_tabix = any(grepl("htslib", tabix_version))
+  if(!has_bgzip | !has_tabix ){
+    myerr = "bgzip and tabix must be installed.\n"
+    if(force){
+      warning(myerr)
+    } else{
+      stop(myerr)
+    }
+  }
+  # sanitize input
+  assertthat::assert_that(all(c("path", "sample") %in% colnames(sample_meta)))
+  if(!grepl("\\.gz", combined_fragments_file)){
+    myerr = "Name of output file must end in '.gz' .\n"
+    if(force){
+      warning(myerr)
+    } else{
+      stop(myerr)
+    }
+  }
+  # Add per-sample information and begin building commands
+  sample_meta[["fragments"]]              = file.path(sample_meta[["path"]], "fragments.tsv.gz")
+  sample_meta[["temp_folder"]]            = file.path(temp_folder, sample_meta[["sample"]])
+  sample_meta[["fragments_decompressed"]] = sample_meta[["fragments"]]  %>%
+    basename %>%
+    gsub( ".gz$", "", . ) %>% 
+    file.path(sample_meta[["temp_folder"]], .)
+  sample_meta[["add_prefix_awk"]]         = paste0(
+    'awk \'BEGIN {FS=OFS="\\t"} {print $1,$2,$3,"', 
+    sample_meta[["sample"]], 
+    '_"$4,$5}\' - '
+  )
+  lapply(sample_meta[["temp_folder"]], dir.create, recursive = T, showWarnings = F)
+  # Build final shell commands
+  fragment_merging_shell_commands = list()
+  combined_fragments_file_decompressed = combined_fragments_file %>% gsub(".gz$", "", .)
+  fragment_merging_shell_commands[["decompress"]] = paste( 
+    "gzip -dc ", sample_meta[["fragments"]], " | ", 
+    sample_meta[["add_prefix_awk"]], " > ", 
+    sample_meta[["fragments_decompressed"]] 
+  )
+  fragment_merging_shell_commands$merge_and_sort = paste( 
+    "sort -m -k 1,1V -k2,2n ", 
+    paste0(sample_meta[["fragments_decompressed"]], collapse = " "), 
+    " > ", 
+    combined_fragments_file_decompressed
+  )
+  fragment_merging_shell_commands[["recompress"]] = paste(
+    "bgzip -@ 4", 
+    combined_fragments_file_decompressed
+  )
+  fragment_merging_shell_commands[["index"]] = paste("tabix", combined_fragments_file, "--preset=bed") 
+  fragment_merging_shell_commands[["cleanup"]] = paste(
+    "rm", 
+    paste(sample_meta$fragments_decompressed, collapse = " ")
+  )
+  # Run them or message them to the user.
+  if(!do_run){
+    cat("To merge fragments, execute the following commands.\n")
+  }
+  for( i in seq_along(fragment_merging_shell_commands ) ){
+    for( j in seq_along( fragment_merging_shell_commands[[i]] ) ) {
+      message( fragment_merging_shell_commands[[i]][[j]] )
+      if(do_run){
+        system( fragment_merging_shell_commands[[i]][[j]] )
+      }
+    }
+  }
+  return(fragment_merging_shell_commands)
+}
+
 #' Unify genomic ranges
 #'
 #' Create a unified set of non-overlapping genomic ranges
