@@ -1265,6 +1265,8 @@ MergeFragments = function( sample_meta, combined_fragments_file, do_run = F, for
   }
   # sanitize input
   assertthat::assert_that(all(c("path", "sample") %in% colnames(sample_meta)))
+  cat("The following prefixes will be added to the cell identifiers from your sample metadata:\n", 
+      paste0(sample_meta[["sample"]], "_\n"))
   if(!grepl("\\.gz", combined_fragments_file)){
     myerr = "Name of output file must end in '.gz' .\n"
     if(force){
