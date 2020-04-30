@@ -25,7 +25,7 @@ Signac currently supports the following features:
 * Seamless interface with [Seurat](https://satijalab.org/seurat), [SeuratWrappers](https://github.com/satijalab/seurat-wrappers), [SeuratDisk](https://github.com/mojaveazure/seurat-disk), and [SeuratData](https://github.com/satijalab/seurat-data) functionality
 * Interoperability with [Bioconductor](https://bioconductor.org/) tools
 
-Please see the Signac [vignettes](https://satijalab.org/signac/articles/) page for examples.
+Please see the Signac [vignettes](https://satijalab.org/signac/articles/overview.html) page for examples.
 
 ## Installation
 

@@ -13,10 +13,15 @@ navbar:
       href: articles/faq.html
     - text: "Vignettes"
       menu:
+        - text: "Vignettes overview"
+          href: articles/overview.html
+        - text: -------
         - text: "Human PBMCs"
           href: articles/pbmc_vignette.html
         - text: "Adult mouse brain"
           href: articles/mouse_brain_vignette.html
+        - text: "Joint RNA and ATAC analysis"
+          href: articles/coassay.Rmd
         - text: "Motif analysis"
           href: articles/motif_vignette.html
         - text: "scATAC-seq integration"
@@ -25,13 +30,17 @@ navbar:
           href: articles/merging.html
         - text: "Parallel computing"
           href: articles/future.html
+        - text: "Trajectory analysis"
+          href: articles/monocle.html
+        - text: "Transcription factor footprinting"
+          href: articles/footprinting.Rmd
   right:
     - icon: fa-github
       href: https://github.com/timoast/signac
 
 template:
   params:
-    bootswatch: readable
+    bootswatch: flatly
     ganalytics: UA-144505535-1
     docsearch:
       api_key: 6f41d2052819b9deda704726769f8647
