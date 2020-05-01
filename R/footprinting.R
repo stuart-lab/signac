@@ -76,33 +76,65 @@ Footprint.ChromatinAssay <- function(
   if (verbose) {
     message("Computing base composition at motif sites")
   }
-  dna.string <- as.character(dna.sequence)
-  row.index <- c()
   total.bases <- upstream + downstream + 1
-  # TODO add progress bar here, add future. think about other ways to do this.
-  for (i in 1:length(x = dna.string)) {
-    for (j in 1:total.bases) {
-      row.index <- c(row.index, substring(text = dna.string[[i]], first = j, last = j + 5))
-    }
-  }
-  unique.hexamer <- unique(x = row.index)
-  hexamer.row.index <- match(x = row.index, table = unique.hexamer)
-  hexamer.col.index <- rep(1:total.bases, length(x = dna.string))
-  hexamer.matrix <- sparseMatrix(
-    i = hexamer.row.index,
-    j = hexamer.col.index,
-    x = 1
+  total.hexamer.positions <- total.bases - 6
+  hex.key <- seq_along(along.with = bias)
+  names(hex.key) <- names(bias)
+
+  # x is the hexamer frequency
+  x <- vector(
+    mode = "numeric",
+    length = length(x = bias) * total.hexamer.positions
   )
-  rownames(hexamer.matrix) <- unique.hexamer
-  colnames(hexamer.matrix) <- 1:total.bases
+  # i is the hexamers sequence
+  i <- vector(
+    mode = "numeric",
+    length = length(x = bias) * total.hexamer.positions
+  )
+  # j is the base position
+  j <- vector(
+    mode = "numeric",
+    length = length(x = bias) * total.hexamer.positions
+  )
+  current.pos <- 1
+
+  for (jj in seq_len(length.out = total.hexamer.positions)) {
+    # resize dna string set
+    resized <- narrow(x = dna.sequence, start = jj, width = 6)
+    resized <- as.character(x = resized)
+    # need to remove any that contain N
+    resized <- resized[!grepl(pattern = "N", x = resized)]
+    # count
+    frequencies <- table(resized)
+    end.pos <- current.pos + length(x = frequencies) - 1
+    # append
+    x[current.pos:end.pos] <- as.numeric(x = frequencies)
+    j[current.pos:end.pos] <- jj
+    i[current.pos:end.pos] <- as.vector(x = hex.key[names(x = frequencies)])
+    # shift current position
+    current.pos <- end.pos + 1
+  }
+  # trim vectors
+  x <- x[1:(current.pos - 1)]
+  i <- i[1:(current.pos - 1)]
+  j <- j[1:(current.pos - 1)]
+
+  # construct matrix
+  hexamer.matrix <- sparseMatrix(i = i, j = j, x = x)
+  rownames(hexamer.matrix) <- names(x = hex.key)
+  colnames(hexamer.matrix) <- seq_len(length.out = total.hexamer.positions)
+  hexamer.matrix <- as.matrix(x = hexamer.matrix)
+
   if (verbose) {
     message("Computing expected Tn5 insertions per base")
   }
+  # ensure correct order
   hexamer.matrix <- hexamer.matrix[names(x = bias), ]
   expected.insertions <- crossprod(x = hexamer.matrix, y = as.matrix(x = bias))
   if (verbose) {
     message("Computing observed Tn5 insertions per base")
   }
+  # count insertions at each position for each cell
   insertion.matrix <- CreateRegionPileupMatrix(
     object = object,
     regions = regions,
