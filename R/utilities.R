@@ -341,14 +341,13 @@ ChunkGRanges <- function(granges, nchunk) {
 # centered on a given region (usually a DNA sequence motif). This
 # matrix can be used for downstream footprinting analysis.
 #
-# @param object A Seurat object
 # @param cellmap A mapping of cell names in the fragment file to cell names in
 # the Seurat object. Should be a named vector where each element is a cell name
 # that appears in the fragment file and the name of each element is the
 # name of the cell in the Seurat object.
 # @param region A GRanges object containing the region of interest
-# @param cells Which cells to include in the matrix. If NULL (default), use all
-# cells in the object
+# @param cells Which cells to include in the matrix. If NULL, use all cells in
+# the cellmap
 # @param tabix.file A \code{\link[Rsamtools]{TabixFile}} object.
 # @param group.by Grouping variable
 # @param verbose Display messages
@@ -364,18 +363,17 @@ ChunkGRanges <- function(granges, nchunk) {
 #  region = StringToGRanges("chr1-10245-762629")
 # )
 SingleFileCutMatrix <- function(
-  object,  # TODO remove this parameter and replace with cell vector
   cellmap,
   region,
+  cells = NULL,
   tabix.file,
   group.by = NULL,
-  cells = NULL,
   verbose = TRUE
 ) {
   if (!inherits(x = region, what = "GRanges")) {
     stop("Region is not a GRanges object.")
   }
-  cells <- SetIfNull(x = cells, y = colnames(x = object))
+  cells <- SetIfNull(x = cells, y = names(x = cellmap))
   fragments <- GetReadsInRegion(
     region = region,
     cellmap = cellmap,
@@ -467,7 +465,6 @@ CutMatrix <- function(
       pruning.mode = "coarse"
     )
     cm <- SingleFileCutMatrix(
-      object = object,
       region = region,
       cellmap = cellmap,
       tabix.file = tabix.file,
@@ -969,8 +966,11 @@ MultiRegionCutMatrix <- function(
   cells = NULL,
   verbose = FALSE
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  fragments <- SetIfNull(x = fragments, y = Fragments(object = object[[assay]]))
+  if (inherits(x = object, what = "Seurat")) {
+    assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+    object <- object[[assay]]
+  }
+  fragments <- SetIfNull(x = fragments, y = Fragments(object = object))
   res <- list()
   if (nbrOfWorkers() > 1) {
     mylapply <- future_lapply
@@ -992,7 +992,6 @@ MultiRegionCutMatrix <- function(
       X = seq_along(regions),
       FUN = function(x) {
         SingleFileCutMatrix(
-          object = object,
           group.by = group.by,
           cellmap = cellmap,
           tabix.file = tabix.file,
