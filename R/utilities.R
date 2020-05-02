@@ -988,6 +988,9 @@ MultiRegionCutMatrix <- function(
       value = seqnamesTabix(file = tabix.file),
       pruning.mode = "coarse"
     )
+    # TODO can crash when using future
+    # TODO can we extract all regions in one scanTabix call rather than
+    # doing lapply across the regions?
     cm.list <- mylapply(
       X = seq_along(regions),
       FUN = function(x) {
@@ -1548,4 +1551,14 @@ PFMatrixToList <- function(x) {
   position.matrix <- TFBSTools::Matrix(x = x)
   name.use <- TFBSTools::name(x = x)
   return(list("matrix" = position.matrix, "name" = name.use))
-  }
+}
+
+#' @importFrom Matrix rowMeans rowSums
+SparseRowVar <- function(x) {
+  return(rowSums(x = (x - rowMeans(x = x)) ^ 2) / (dim(x = x)[2] - 1))
+}
+
+#' @importMethodsFrom Matrix t
+SparseColVar <- function(x) {
+  return(SparseRowVar(x = t(x = x)))
+}
