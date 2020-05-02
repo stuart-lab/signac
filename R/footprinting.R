@@ -7,8 +7,7 @@ NULL
 #' @param genome A \code{\link[BSgenome]{BSgenome}} object
 #' @param motif.name Name of a motif stored in the assay to footprint. If not
 #' supplied, must supply a set of regions.
-#' @param group.by Grouping variable for the cells
-#' @param idents Which identities to include
+#' @param key Key to store positional enrichment information under.
 #' @param upstream Number of bases to extend upstream
 #' @param downstream Number of bases to extend downstream
 #' @param verbose Display messages
@@ -23,9 +22,8 @@ Footprint.ChromatinAssay <- function(
   object,
   genome,
   motif.name = NULL,
+  key = motif.name,
   regions = NULL,
-  group.by = NULL,
-  idents = NULL,
   assay = NULL,
   upstream = 250,
   downstream = 250,
@@ -55,6 +53,10 @@ Footprint.ChromatinAssay <- function(
           stop("Motif not found")
         }
       }
+    }
+  } else {
+    if (is.null(x = key)) {
+      stop("Must set a key to store positional enrichment information")
     }
   }
   regions.use <- Extend(
@@ -130,10 +132,20 @@ Footprint.ChromatinAssay <- function(
   }
   # ensure correct order
   hexamer.matrix <- hexamer.matrix[names(x = bias), ]
-  expected.insertions <- crossprod(x = hexamer.matrix, y = as.matrix(x = bias))
+  expected.insertions <- as.vector(
+    x = crossprod(x = hexamer.matrix, y = as.matrix(x = bias))
+  )
+
+  # pad the expected insertions to equal length as the region
+  expected.insertions <- c(
+    rep(x = expected.insertions[1], 3),
+    expected.insertions,
+    rep(x = expected.insertions[length(x = expected.insertions)], 3)
+  )
   if (verbose) {
     message("Computing observed Tn5 insertions per base")
   }
+  # TODO this seems to fail when future enabled
   # count insertions at each position for each cell
   insertion.matrix <- CreateRegionPileupMatrix(
     object = object,
@@ -141,39 +153,18 @@ Footprint.ChromatinAssay <- function(
     upstream = upstream,
     downstream = downstream
   )
-  obj.groups <- GetGroups(
+
+  # store expected as one additional row in the matrix
+  insertion.matrix <- rbind(insertion.matrix, round(x = expected.insertions))
+
+  # store expected and observed insertions
+  object <- suppressWarnings(expr = SetAssayData(
     object = object,
-    group.by = group.by,
-    idents = idents
-  )
-  group.counts <- ApplyMatrixByGroup(
-    mat = insertion.matrix,
-    groups = obj.groups,
-    fun = colSums,
-    normalize = FALSE
-  )
-  if (verbose) {
-    message("Computing observed/expected Tn5 insertions per base")
-  }
-  flanks <- c(1:50, (total.bases - 50):total.bases)
-  norm.factor.expected <- mean(expected.insertions[flanks, ])
-  norm.expected <- expected.insertions / norm.factor.expected
-  unique.groups <- unique(x = group.counts$group)
-  norm.counts <- data.frame()
-  for (i in seq_along(along.with = unique.groups)) {
-    group.use <- group.counts[group.counts$group == unique.groups[[i]], 'count']
-    norm.factor <- mean(x = group.use[flanks])
-    normalized.group.counts <- group.use / norm.factor
-    obs.expect <- normalized.group.counts / as.vector(x = norm.expected)
-    norm.counts <- rbind(norm.counts, data.frame(
-      postion = -upstream:downstream + 1,
-      observed.over.expected = obs.expect,
-      group = as.character(x = unique.groups[[i]])
-    ))
-    # norm.counts[[as.character(unique.groups[[i]])]] <- obs.expect
-  }
-  # norm.counts[['expected']] <- as.vector(x = norm.expected)
-  return(norm.counts)
+    slot = "positionEnrichment",
+    new.data = insertion.matrix,
+    key = key
+  ))
+  return(object)
 }
 
 #' @rdname Footprint
