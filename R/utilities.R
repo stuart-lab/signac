@@ -15,24 +15,6 @@ SetIfNull <- function(x, y) {
   }
 }
 
-#' @importFrom Seurat DefaultAssay Misc
-AddToMisc <- function(
-  object,
-  new.data,
-  save.as,
-  assay = NULL
-) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  misc.slot <- SetIfNull(x = Misc(object = object[[assay]]), y = list())
-  if (!inherits(x = misc.slot, what = "list")) {
-    warning("Misc slot already occupied")
-  } else{
-    misc.slot[[save.as]] <- new.data
-    object[[assay]]@misc <- misc.slot
-  }
-  return(object)
-}
-
 globalVariables(names = c("group", "readcount"), package = "Signac")
 #' Average Counts
 #'
