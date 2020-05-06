@@ -47,8 +47,6 @@ GetIntersectingFeatures(
   object.1 = atac_small,
   object.2 = atac_small,
   assay.1 = 'peaks',
-  assay.2 = 'bins',
-  sep.1 = c(":", "-"),
-  sep.2 = c("-", "-")
+  assay.2 = 'bins'
 )
 }
