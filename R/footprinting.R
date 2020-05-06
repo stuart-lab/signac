@@ -2,6 +2,98 @@
 #'
 NULL
 
+#' Plot footprinting results
+#'
+#' @param object A Seurat object
+#' @param features A vector of features to plot
+#' @param assay Name of assay to use
+#' @param group.by A grouping variable
+#' @param idents Set of identities to include in the plot
+#' @export
+#' @importFrom Seurat DefaultAssay
+#' @importFrom ggplot2 ggplot aes
+PlotFootprint <- function(
+  object,
+  features,
+  assay = NULL,
+  group.by = NULL,
+  idents = NULL
+) {
+  # TODO add option to plot expected below plot
+  # TODO add option to label top identities
+  # TODO add option to show variance among cells
+  plot.data <- GetFootprintData(
+    object = object,
+    features = features,
+    assay = assay,
+    group.by = group.by,
+    idents = idents
+  )
+  p <- ggplot(
+    data = plot.data,
+    mapping = aes(x = position, y = norm.value, color = group)
+  ) +
+    geom_line(stat = "identity", size = 0.2) +
+    facet_wrap(facets = ~feature)
+  p <- p +
+    xlab("Distance from motif") +
+    ylab(label = "Normalized Tn5 insertions") +
+    theme_minimal()
+  return(p)
+}
+
+#' Extract footprint data for a set of transcription factors
+#'
+#' @param object A Seurat object
+#' @param features A vector of features to plot
+#' @param assay Name of assay to use
+#' @param group.by A grouping variable
+#' @param idents Set of identities to include in the plot
+#' @export
+#' @importFrom Seurat DefaultAssay
+GetFootprintData <- function(
+  object,
+  features,
+  assay = NULL,
+  group.by = NULL,
+  idents = NULL
+) {
+  # TODO add normalization options
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  positionEnrichment <- GetAssayData(
+    object = object,
+    assay = assay,
+    slot = "positionEnrichment"
+  )
+  obj.groups <- GetGroups(
+    object = object,
+    group.by = group.by,
+    idents = idents
+  )
+  plot.data <- lapply(X = features, FUN = function(x) {
+    if (!(x %in% names(x = positionEnrichment))) {
+      warning("Footprint information for ", x, " not found in assay")
+      return()
+    } else {
+      fp <- positionEnrichment[[x]]
+      # remove row containing expected insertions
+      expected <- fp["expected", ]
+      fp <- fp[1:(nrow(x = fp) - 1), ]
+      # average the signal per group per base
+      groupmeans <- ApplyMatrixByGroup(
+        mat = fp,
+        groups = obj.groups,
+        fun = colMeans,
+        normalize = FALSE
+      )
+      # add feature information
+      groupmeans$feature <- x
+      return(groupmeans)
+    }
+  })
+  plot.data <- do.call(what = rbind, args = plot.data)
+  return(plot.data)
+}
 
 #' @param regions A set of genomic ranges containing the motif instances
 #' @param genome A \code{\link[BSgenome]{BSgenome}} object
@@ -60,6 +152,7 @@ Footprint.ChromatinAssay <- function(
       stop("Must set a key to store positional enrichment information")
     }
   }
+  regions <- sort(x = regions)
   # extend upstream and downstream
   regions <- Extend(
     x = regions,
