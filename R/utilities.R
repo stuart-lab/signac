@@ -345,7 +345,7 @@ ChunkGRanges <- function(granges, nchunk) {
 # the Seurat object. Should be a named vector where each element is a cell name
 # that appears in the fragment file and the name of each element is the
 # name of the cell in the Seurat object.
-# @param region A GRanges object containing the region of interest
+# @param region A set of GRanges containing the regions of interest
 # @param cells Which cells to include in the matrix. If NULL, use all cells in
 # the cellmap
 # @param tabix.file A \code{\link[Rsamtools]{TabixFile}} object.
@@ -370,9 +370,7 @@ SingleFileCutMatrix <- function(
   group.by = NULL,
   verbose = TRUE
 ) {
-  if (!inherits(x = region, what = "GRanges")) {
-    stop("Region is not a GRanges object.")
-  }
+  # if multiple regions supplied, must be the same width
   cells <- SetIfNull(x = cells, y = names(x = cellmap))
   fragments <- GetReadsInRegion(
     region = region,
@@ -381,6 +379,8 @@ SingleFileCutMatrix <- function(
     tabix.file = tabix.file,
     verbose = verbose
   )
+  start.lookup <- start(x = region)
+  names(start.lookup) <- seq_along(region)
   # if there are no reads in the region
   # create an empty matrix of the correct dimension
   if (nrow(x = fragments) == 0) {
@@ -390,14 +390,15 @@ SingleFileCutMatrix <- function(
       dims = c(length(x = cells), width(x = region))
     )
   } else {
+    fragstarts <- start.lookup[fragments$ident] + 1
     cut.df <- data.frame(
-      position = c(fragments$start, fragments$end) - start(x = region) + 1,
+      position = c(fragments$start, fragments$end) - fragstarts,
       cell = c(fragments$cell, fragments$cell),
       stringsAsFactors = FALSE
     )
     cut.df <- cut.df[
-      (cut.df$position > 0) & (cut.df$position <= width(x = region)),
-    ]
+      (cut.df$position > 0) & (cut.df$position <= width(x = region)[[1]]),
+      ]
     cell.vector <- seq_along(along.with = cells)
     names(x = cell.vector) <- cells
     cell.matrix.info <- cell.vector[cut.df$cell]
@@ -405,11 +406,11 @@ SingleFileCutMatrix <- function(
       i = cell.matrix.info,
       j = cut.df$position,
       x = 1,
-      dims = c(length(x = cells), width(x = region))
+      dims = c(length(x = cells), width(x = region)[[1]])
     )
   }
   rownames(x = cut.matrix) <- cells
-  colnames(x = cut.matrix) <- start(region):end(region)
+  colnames(x = cut.matrix) <- seq_len(width(x = region)[[1]])
   return(cut.matrix)
 }
 
@@ -954,9 +955,6 @@ MatchRegionStats <- function(
 #' @importFrom Rsamtools TabixFile seqnamesTabix
 #' @importFrom Seurat DefaultAssay
 #' @importFrom GenomeInfoDb keepSeqlevels
-#' @importFrom future.apply future_lapply
-#' @importFrom future nbrOfWorkers
-#' @importFrom pbapply pblapply
 MultiRegionCutMatrix <- function(
   object,
   regions,
@@ -972,11 +970,6 @@ MultiRegionCutMatrix <- function(
   }
   fragments <- SetIfNull(x = fragments, y = Fragments(object = object))
   res <- list()
-  if (nbrOfWorkers() > 1) {
-    mylapply <- future_lapply
-  } else {
-    mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
-  }
   for (i in seq_along(along.with = fragments)) {
     frag.path <- GetFragmentData(object = fragments[[i]], slot = "path")
     cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
@@ -988,22 +981,13 @@ MultiRegionCutMatrix <- function(
       value = seqnamesTabix(file = tabix.file),
       pruning.mode = "coarse"
     )
-    # TODO can crash when using future
-    # TODO can we extract all regions in one scanTabix call rather than
-    # doing lapply across the regions?
-    cm.list <- mylapply(
-      X = seq_along(regions),
-      FUN = function(x) {
-        SingleFileCutMatrix(
-          group.by = group.by,
-          cellmap = cellmap,
-          tabix.file = tabix.file,
-          region = regions[x, ],
-          verbose = verbose
-        )
-      }
+    cm <- SingleFileCutMatrix(
+      group.by = group.by,
+      cellmap = cellmap,
+      tabix.file = tabix.file,
+      region = regions,
+      verbose = verbose
     )
-    cm <- Reduce(f = `+`, x = cm.list)
     close(con = tabix.file)
     res[[i]] <- cm
   }
@@ -1060,7 +1044,10 @@ CreateRegionPileupMatrix <- function(
   full.matrix <- cut.matrix.plus + cut.matrix.minus[, rev(
     x = colnames(x = cut.matrix.minus)
   )]
-  colnames(full.matrix) <- -upstream:downstream
+  # rename so 0 is center
+  region.width <- width(x = regions)[[1]]
+  midpoint <- round(x = (region.width / 2))
+  colnames(full.matrix) <- seq_len(length.out = region.width) - midpoint
   return(full.matrix)
 }
 
@@ -1156,9 +1143,15 @@ ApplyMatrixByGroup <- function(
 #' @importFrom data.table rbindlist fread
 #' @importFrom utils read.table
 #' @importFrom future nbrOfWorkers
+#' @importFrom future.apply future_lapply
 # @return Returns a data.frame
 TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
-  df.list <- lapply(X = seq_along(along.with = reads), FUN = function(x) {
+  if (nbrOfWorkers() > 1) {
+    mylapply <- future_lapply
+  } else {
+    mylapply <- lapply
+  }
+  df.list <- mylapply(X = seq_along(along.with = reads), FUN = function(x) {
     if (length(x = reads[[x]]) == 0) {
       return(NULL)
     }
@@ -1174,8 +1167,7 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
       df <- fread(
         text = reads[[x]],
         sep = "\t",
-        header = FALSE,
-        nThread = nbrOfWorkers()
+        header = FALSE
       )
     }
     colnames(x = df) <- c("chr", "start", "end", "cell", "count")
