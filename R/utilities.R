@@ -1137,16 +1137,9 @@ ApplyMatrixByGroup <- function(
 # with
 #' @importFrom data.table rbindlist fread
 #' @importFrom utils read.table
-#' @importFrom future nbrOfWorkers
-#' @importFrom future.apply future_lapply
 # @return Returns a data.frame
 TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
-  if (nbrOfWorkers() > 1) {
-    mylapply <- future_lapply
-  } else {
-    mylapply <- lapply
-  }
-  df.list <- mylapply(X = seq_along(along.with = reads), FUN = function(x) {
+  df.list <- lapply(X = seq_along(along.with = reads), FUN = function(x) {
     if (length(x = reads[[x]]) == 0) {
       return(NULL)
     }
