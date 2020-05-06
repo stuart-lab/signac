@@ -924,6 +924,12 @@ TSSEnrichment <- function(
   cells = NULL,
   verbose = TRUE
 ) {
+  # TODO add fast = TRUE option that would just get the total insertions
+  # in the center and the total in the two flanks, and compute the ratio
+  # would allow computing the score faster but can't generate the plot
+  # should pull all regions at once (one scanTabix call), rather than iterating
+  # in loop.
+
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (is.null(x = tss.positions)) {
     # work out TSS positions from gene annotations
@@ -940,11 +946,15 @@ TSSEnrichment <- function(
     }
     tss.positions <- tss.positions[1:n, ]
   }
+  tss.positions <- Extend(
+    x = tss.positions,
+    upstream = 1000,
+    downstream = 1000,
+    from.midpoint = TRUE
+  )
   cutmatrix <- CreateRegionPileupMatrix(
     object = object,
     regions = tss.positions,
-    upstream = 1000,
-    downstream = 1000,
     assay = assay,
     cells = cells,
     verbose = verbose
