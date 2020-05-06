@@ -3,88 +3,6 @@
 NULL
 
 
-# Find the expected number of insertions over a set of genomic regions
-# given the DNA sequences and the insertion bias of Tn5 for the experiment
-# @param dna.sequence A set of DNA sequences
-# @param bias A vector describing Tn5 insertion frequency at each hexamer
-# @param verbose Display messages
-#' @importFrom Matrix sparseMatrix
-#' @importFrom Matrix colSums
-#' @importFrom IRanges width narrow
-FindExpectedInsertions <- function(dna.sequence, bias, verbose = TRUE) {
-  if (verbose) {
-    message("Computing base composition at motif sites")
-  }
-  # TODO update to calculate from width of dna.sequence
-  total.hexamer.positions <- upstream + downstream + footprint.size
-  hex.key <- seq_along(along.with = bias)
-  names(hex.key) <- names(bias)
-
-  # x is the hexamer frequency
-  x <- vector(
-    mode = "numeric",
-    length = length(x = bias) * total.hexamer.positions
-  )
-  # i is the hexamers sequence
-  i <- vector(
-    mode = "numeric",
-    length = length(x = bias) * total.hexamer.positions
-  )
-  # j is the base position
-  j <- vector(
-    mode = "numeric",
-    length = length(x = bias) * total.hexamer.positions
-  )
-  current.pos <- 1
-
-  for (jj in seq_len(length.out = total.hexamer.positions)) {
-    # resize dna string set
-    resized <- narrow(x = dna.sequence, start = jj, width = 6)
-    resized <- as.character(x = resized)
-    # need to remove any that contain N
-    resized <- resized[!grepl(pattern = "N", x = resized)]
-    # count
-    frequencies <- table(resized)
-    end.pos <- current.pos + length(x = frequencies) - 1
-    # append
-    x[current.pos:end.pos] <- as.numeric(x = frequencies)
-    j[current.pos:end.pos] <- jj
-    i[current.pos:end.pos] <- as.vector(x = hex.key[names(x = frequencies)])
-    # shift current position
-    current.pos <- end.pos + 1
-  }
-  # trim vectors
-  x <- x[1:(current.pos - 1)]
-  i <- i[1:(current.pos - 1)]
-  j <- j[1:(current.pos - 1)]
-
-  # construct matrix
-  hexamer.matrix <- sparseMatrix(i = i, j = j, x = x)
-  rownames(hexamer.matrix) <- names(x = hex.key)
-  colnames(hexamer.matrix) <- seq_len(length.out = total.hexamer.positions)
-  hexamer.matrix <- as.matrix(x = hexamer.matrix)
-
-  if (verbose) {
-    message("Computing expected Tn5 insertions per base")
-  }
-  # ensure correct order
-  hexamer.matrix <- hexamer.matrix[names(x = bias), ]
-  expected.insertions <- as.vector(
-    x = crossprod(x = hexamer.matrix, y = as.matrix(x = bias))
-  )
-
-  # normalize expected by dividing by flanks
-  flanks <- mean(
-    x = c(expected.insertions[1:50],
-          expected.insertions[
-            (total.hexamer.positions - 50):total.hexamer.positions
-            ])
-  )
-  expected.insertions <- expected.insertions / flanks
-  return(expected.insertions)
-}
-
-
 #' @param regions A set of genomic ranges containing the motif instances
 #' @param genome A \code{\link[BSgenome]{BSgenome}} object
 #' @param motif.name Name of a motif stored in the assay to footprint. If not
@@ -96,7 +14,6 @@ FindExpectedInsertions <- function(dna.sequence, bias, verbose = TRUE) {
 #' @param compute.expected Find the expected number of insertions at each
 #' position given the local DNA sequence context and the insertion bias of Tn5
 #' @param ... Arguments passed to other methods
-#' @importFrom Biostrings getSeq
 #' @importFrom IRanges width
 #' @export
 #' @rdname Footprint
@@ -143,54 +60,21 @@ Footprint.ChromatinAssay <- function(
       stop("Must set a key to store positional enrichment information")
     }
   }
-  # add three bases each side here so we can get the hexamer frequencies
-  # for every position
-  footprint.size <- width(x = regions)[[1]]
-  regions.use <- Extend(
+  # extend upstream and downstream
+  regions <- Extend(
     x = regions,
-    upstream = upstream + 3,
-    downstream = downstream + 3
-  )
-  dna.sequence <- getSeq(x = genome, regions.use)
-
-  if (compute.expected) {
-    bias <- GetAssayData(object = object, slot = "bias")
-    if (is.null(x = bias)) {
-      if (verbose) {
-        message("Computing Tn5 insertion bias")
-      }
-      object <- InsertionBias(
-        object = object,
-        genome = genome
-      )
-    }
-    expected.insertions <- FindExpectedInsertions(
-      dna.sequence = dna.sequence,
-      bias = bias,
-      verbose = verbose
-    )
-  } else {
-    expected.insertions <- rep(1, width(x = dna.sequence)[[1]])
-  }
-
-  if (verbose) {
-    message("Computing observed Tn5 insertions per base")
-  }
-  # count insertions at each position for each cell
-  # TODO this seems to fail when future enabled
-  insertion.matrix <- CreateRegionPileupMatrix(
-    object = object,
-    regions = regions,
     upstream = upstream,
     downstream = downstream
   )
-
-  # store expected as one additional row in the matrix
-  expected.insertions <- t(x = as.matrix(x = round(x = expected.insertions)))
-  rownames(x = expected.insertions) <- "expected"
-  insertion.matrix <- rbind(insertion.matrix, expected.insertions)
-
-  # store expected and observed insertions
+  # find expected and observed insertions across all regions
+  insertion.matrix <- Pileup(
+    object = object,
+    genome = genome,
+    regions = regions,
+    compute.expected = compute.expected,
+    verbose = verbose
+  )
+  # store results in the assay
   object <- suppressWarnings(expr = SetAssayData(
     object = object,
     slot = "positionEnrichment",
@@ -198,6 +82,7 @@ Footprint.ChromatinAssay <- function(
     key = key
   ))
   return(object)
+
 }
 
 #' @rdname Footprint
@@ -321,3 +206,148 @@ InsertionBias.Seurat <- function(
   )
   return(object)
 }
+
+####### Not exported #######
+
+# Find the expected number of insertions over a set of genomic regions
+# given the DNA sequences and the insertion bias of Tn5 for the experiment
+# @param dna.sequence A set of DNA sequences
+# @param bias A vector describing Tn5 insertion frequency at each hexamer
+# @param verbose Display messages
+#' @importFrom Matrix sparseMatrix
+#' @importFrom Matrix colSums
+#' @importFrom IRanges width narrow
+FindExpectedInsertions <- function(dna.sequence, bias, verbose = TRUE) {
+  if (verbose) {
+    message("Computing base composition at motif sites")
+  }
+  total.hexamer.positions <- width(x = dna.sequence)[[1]] - 6
+  hex.key <- seq_along(along.with = bias)
+  names(hex.key) <- names(bias)
+
+  # x is the hexamer frequency
+  x <- vector(
+    mode = "numeric",
+    length = length(x = bias) * total.hexamer.positions
+  )
+  # i is the hexamers sequence
+  i <- vector(
+    mode = "numeric",
+    length = length(x = bias) * total.hexamer.positions
+  )
+  # j is the base position
+  j <- vector(
+    mode = "numeric",
+    length = length(x = bias) * total.hexamer.positions
+  )
+  current.pos <- 1
+
+  for (jj in seq_len(length.out = total.hexamer.positions)) {
+    # resize dna string set
+    resized <- narrow(x = dna.sequence, start = jj, width = 6)
+    resized <- as.character(x = resized)
+    # need to remove any that contain N
+    resized <- resized[!grepl(pattern = "N", x = resized)]
+    # count
+    frequencies <- table(resized)
+    end.pos <- current.pos + length(x = frequencies) - 1
+    # append
+    x[current.pos:end.pos] <- as.numeric(x = frequencies)
+    j[current.pos:end.pos] <- jj
+    i[current.pos:end.pos] <- as.vector(x = hex.key[names(x = frequencies)])
+    # shift current position
+    current.pos <- end.pos + 1
+  }
+  # trim vectors
+  x <- x[1:(current.pos - 1)]
+  i <- i[1:(current.pos - 1)]
+  j <- j[1:(current.pos - 1)]
+
+  # construct matrix
+  hexamer.matrix <- sparseMatrix(i = i, j = j, x = x)
+  rownames(hexamer.matrix) <- names(x = hex.key)
+  colnames(hexamer.matrix) <- seq_len(length.out = total.hexamer.positions)
+  hexamer.matrix <- as.matrix(x = hexamer.matrix)
+
+  if (verbose) {
+    message("Computing expected Tn5 insertions per base")
+  }
+  # ensure correct order
+  hexamer.matrix <- hexamer.matrix[names(x = bias), ]
+  expected.insertions <- as.vector(
+    x = crossprod(x = hexamer.matrix, y = as.matrix(x = bias))
+  )
+
+  # normalize expected by dividing by flanks
+  flanks <- mean(
+    x = c(expected.insertions[1:50],
+          expected.insertions[
+            (total.hexamer.positions - 50):total.hexamer.positions
+            ])
+  )
+  expected.insertions <- expected.insertions / flanks
+  return(expected.insertions)
+}
+
+# @param object A ChromatinAssay object
+# @param genome a BSgenome object
+# @param regions a set of regions of the same width
+# @param compute.expected Compute the expected number of insertions given
+# DNA sequence bias of Tn5
+# @param verbose Display messages
+#' @importFrom Seurat GetAssayData
+#' @importFrom Biostrings getSeq
+Pileup <- function(
+  object,
+  genome,
+  regions,
+  compute.expected = TRUE,
+  verbose = TRUE
+) {
+  # add three bases each side here so we can get the hexamer frequencies
+  # for every position
+  dna.sequence <- getSeq(x = genome, Extend(
+    x = regions,
+    upstream = 3,
+    downstream = 3
+  )
+  )
+  if (compute.expected) {
+    bias <- GetAssayData(object = object, slot = "bias")
+    if (is.null(x = bias)) {
+      if (verbose) {
+        message("Computing Tn5 insertion bias")
+      }
+      object <- InsertionBias(
+        object = object,
+        genome = genome
+      )
+    }
+    expected.insertions <- FindExpectedInsertions(
+      dna.sequence = dna.sequence,
+      bias = bias,
+      verbose = verbose
+    )
+  } else {
+    expected.insertions <- rep(1, width(x = dna.sequence)[[1]])
+  }
+
+  if (verbose) {
+    message("Computing observed Tn5 insertions per base")
+  }
+  # count insertions at each position for each cell
+  # TODO this seems to fail when future enabled
+  insertion.matrix <- CreateRegionPileupMatrix(
+    object = object,
+    regions = regions,
+    upstream = 0,
+    downstream = 0
+  )
+
+  # store expected as one additional row in the matrix
+  expected.insertions <- t(x = as.matrix(x = round(x = expected.insertions)))
+  rownames(x = expected.insertions) <- "expected"
+  insertion.matrix <- rbind(insertion.matrix, expected.insertions)
+  return(insertion.matrix)
+}
+
