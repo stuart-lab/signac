@@ -336,16 +336,13 @@ Pileup <- function(
     message("Computing observed Tn5 insertions per base")
   }
   # count insertions at each position for each cell
-  # TODO this seems to fail when future enabled
   insertion.matrix <- CreateRegionPileupMatrix(
     object = object,
-    regions = regions,
-    upstream = 0,
-    downstream = 0
+    regions = regions
   )
 
   # store expected as one additional row in the matrix
-  expected.insertions <- t(x = as.matrix(x = round(x = expected.insertions)))
+  expected.insertions <- t(x = as.matrix(x = expected.insertions))
   rownames(x = expected.insertions) <- "expected"
   insertion.matrix <- rbind(insertion.matrix, expected.insertions)
   return(insertion.matrix)
