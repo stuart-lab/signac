@@ -1018,8 +1018,6 @@ MultiRegionCutMatrix <- function(
 #
 # @param object A Seurat object
 # @param regions A GRanges object
-# @param upstream Number of bases to extend upstream
-# @param downstream Number of bases to extend downstream
 # @param assay Name of the assay to use
 # @param cells Which cells to include. If NULL, use all cells
 # @param verbose Display messages
@@ -1027,19 +1025,10 @@ MultiRegionCutMatrix <- function(
 CreateRegionPileupMatrix <- function(
   object,
   regions,
-  upstream = 1000,
-  downstream = 1000,
   assay = NULL,
   cells = NULL,
   verbose = TRUE
 ) {
-  # extend upstream and downstream from midpoint
-  regions <- Extend(
-    x = regions,
-    upstream = upstream,
-    downstream = downstream,
-    from.midpoint = TRUE
-  )
   # split into strands
   on_plus <- strand(x = regions) == "+" | strand(x = regions) == "*"
   plus.strand <- regions[on_plus, ]
