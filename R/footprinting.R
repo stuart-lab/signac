@@ -2,6 +2,10 @@
 #'
 NULL
 
+globalVariables(
+  names = c("feature", "group", "mn", "norm.value"),
+  package = "Signac"
+)
 #' Plot footprinting results
 #'
 #' @param object A Seurat object
@@ -13,11 +17,16 @@ NULL
 #' main footprint plot
 #' @param normalization Method to normalize for Tn5 DNA sequence bias. Options
 #' are "subtract", "divide", or NULL to perform no bias correction.
+#' @param label Label groups
+#' @param repel Repel labels from each other
+#' @param label.top Number of groups to label based on highest accessibility
+#' in motif flanking region.
 #' @export
 #' @importFrom Seurat DefaultAssay
 #' @importFrom ggrepel geom_label_repel
-#' @importFrom ggplot2 ggplot aes
-#' @importFrom
+#' @importFrom ggplot2 ggplot aes geom_line facet_wrap xlab ylab theme_classic
+#' theme element_blank geom_label guides guide_legend
+#' @importFrom dplyr group_by summarize top_n
 #' @import patchwork
 PlotFootprint <- function(
   object,
@@ -25,10 +34,12 @@ PlotFootprint <- function(
   assay = NULL,
   group.by = NULL,
   idents = NULL,
+  label = TRUE,
+  repel = TRUE,
   show.expected = TRUE,
-  normalization = "subtract"
+  normalization = "subtract",
+  label.top = 3
 ) {
-  # TODO add option to label top identities based on flanking accessiblity
   # TODO add option to show variance among cells
   # TODO update TSSPlot to use the GetFootprintData function
   plot.data <- GetFootprintData(
@@ -38,8 +49,25 @@ PlotFootprint <- function(
     group.by = group.by,
     idents = idents
   )
+  motif.sizes <- GetMotifSize(
+    object = object,
+    features = features,
+    assay = assay
+  )
   obs <- plot.data[plot.data$class == "Observed", ]
   expect <- plot.data[plot.data$class == "Expected", ]
+
+  # flanks are motif edge to 50 bp each side
+  # add flank information (T/F)
+  base <- ceiling(motif.sizes / 2)
+  obs$flanks <- sapply(
+    X = seq_len(length.out = nrow(x = obs)),
+    FUN = function(x) {
+      pos <- abs(obs[x, "position"])
+      size <- base[[obs[x, "feature"]]]
+      return((pos > size) & (pos < (size + 50)))
+  })
+
   if (!is.null(normalization)) {
     # need to group by position and motif
     correction.vec <- expect$norm.value
@@ -56,29 +84,89 @@ PlotFootprint <- function(
       stop("Unknown normalization method requested")
     }
   }
-  p <- ggplot(
-    data = obs,
-    mapping = aes(x = position, y = norm.value, color = group)
-  ) +
-    geom_line(stat = "identity", size = 0.2) +
-    facet_wrap(facets = ~feature) +
-    xlab("Distance from motif") +
-    ylab(label = "Normalized\nTn5 insertions") +
-    theme_minimal()
-  if (show.expected) {
-    p1 <- ggplot(
-      data = expect,
-      mapping = aes(x = position, y = norm.value)
-    ) +
-      geom_line(size = 0.2) +
-      facet_wrap(facets = ~feature) +
-      xlab("Distance from motif") +
-      ylab(label = "Expected\nTn5 insertions") +
-      theme_minimal() +
-      theme(plot.title = element_blank())
-    p <- wrap_plots(list(p, p1), nrow = 2, heights = c(3, 1))
+
+  # find flanking accessibility for each group and each feature
+  flanks <- obs[obs$flanks, ]
+  flanks <- group_by(.data = flanks, feature, group)
+  flankmeans <- summarize(.data = flanks, mn = mean(x = norm.value))
+
+  # find top n groups for each feature
+  topmean <- top_n(x = flankmeans, n = label.top, wt = mn)
+
+  # find the top for each feature to determine axis limits
+  ymax <- top_n(x = flankmeans, n = 1, wt = mn)
+  ymin <- top_n(x = flankmeans, n = 1, wt =-mn)
+
+  # make df for labels
+  label.df <- data.frame()
+  sub <- obs[obs$position == 50, ]
+  for (i in seq_along(along.with = features)) {
+    groups.use <- topmean[topmean$feature == features[[i]], ]$group
+    df.sub <- sub[
+      (sub$feature == features[[i]]) &
+        (sub$group %in% groups.use), ]
+    label.df <- rbind(label.df, df.sub)
   }
-  return(p)
+  obs$label <- NA
+  label.df$label <- label.df$group
+  obs <- rbind(obs, label.df)
+
+  plotlist <- list()
+  for (i in seq_along(along.with = features)) {
+    # plot each feature separately rather than using facet
+    # easier to manage the "expected" track
+    df <- obs[obs$feature == features[[i]], ]
+    min.use <- ifelse(test = normalization == "subtract", yes = -0.5, no = 0.5)
+    axis.min <- min(min.use, ymin[ymin$feature == features[[i]], ]$mn)
+    axis.max <- ymax[ymax$feature == features[[i]], ]$mn + 0.5
+
+    p <- ggplot(
+      data = df,
+      mapping = aes(
+        x = position,
+        y = norm.value,
+        color = group,
+        label = label)
+    )
+    p <- p +
+      geom_line(size = 0.2) +
+      xlab("Distance from motif") +
+      ylab(label = "Tn5 insertion\nenrichment") +
+      theme_classic() +
+      ggtitle(label = features[[i]]) +
+      ylim(c(axis.min, axis.max)) +
+      guides(color = guide_legend(override.aes = list(size = 1)))
+    if (label) {
+      if (repel) {
+        p <- p + geom_label_repel(box.padding = 0.5, show.legend = FALSE)
+      } else {
+        p <- p + geom_label(show.legend = FALSE)
+      }
+    }
+    if (show.expected) {
+      df <- expect[expect$feature == features[[i]], ]
+      p1 <- ggplot(
+        data = df,
+        mapping = aes(x = position, y = norm.value)
+      ) +
+        geom_line(size = 0.2) +
+        xlab("Distance from motif") +
+        ylab(label = "Expected\nTn5 enrichment") +
+        theme_classic()
+
+      # remove x-axis labels from top plot
+      p <- p + theme(
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.line.x.bottom = element_blank(),
+        axis.ticks.x.bottom = element_blank()
+      )
+      p <- p + p1 + plot_layout(ncol = 1, heights = c(3, 1))
+      plotlist[[i]] <- p
+    }
+  }
+  plots <- wrap_plots(plotlist)
+  return(plots)
 }
 
 #' Extract footprint data for a set of transcription factors
@@ -97,7 +185,6 @@ GetFootprintData <- function(
   group.by = NULL,
   idents = NULL
 ) {
-  # TODO add normalization options
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   positionEnrichment <- GetAssayData(
     object = object,
@@ -116,8 +203,10 @@ GetFootprintData <- function(
       return()
     } else {
       fp <- positionEnrichment[[x]]
+      # extract expected
       expected <- fp["expected", ]
-      fp <- fp[1:(nrow(x = fp) - 1), ]
+      # remove expected and motif position from main matrix
+      fp <- fp[1:(nrow(x = fp) - 2), ]
       bg.norm <- lapply(X = all.groups, FUN = function(x) {
         cells.use <- names(x = obj.groups)[obj.groups == x]
         mat.use <- fp[cells.use, ]
@@ -149,15 +238,6 @@ GetFootprintData <- function(
   })
   plot.data <- do.call(what = rbind, args = plot.data)
   return(plot.data)
-}
-
-# Divide matrix by flanks
-#' @importMethodsFrom Matrix mean
-BackgroundMeanNorm <- function(x, background = 50) {
-  positions.use <- c(1:background, (ncol(x = x) - background):ncol(x = x))
-  flanks <- mean(x = x[ ,positions.use])
-  x <- x / flanks
-  return(x)
 }
 
 #' @param regions A set of genomic ranges containing the motif instances
@@ -217,6 +297,7 @@ Footprint.ChromatinAssay <- function(
       stop("Must set a key to store positional enrichment information")
     }
   }
+  motif.size <- width(x = regions)[[1]]
   regions <- sort(x = regions)
   # extend upstream and downstream
   regions <- Extend(
@@ -224,6 +305,19 @@ Footprint.ChromatinAssay <- function(
     upstream = upstream,
     downstream = downstream
   )
+  if (compute.expected) {
+    # check that bias is computed
+    bias <- GetAssayData(object = object, slot = "bias")
+    if (is.null(x = bias)) {
+      if (verbose) {
+        message("Computing Tn5 insertion bias")
+      }
+      object <- InsertionBias(
+        object = object,
+        genome = genome
+      )
+    }
+  }
   # find expected and observed insertions across all regions
   insertion.matrix <- Pileup(
     object = object,
@@ -232,6 +326,17 @@ Footprint.ChromatinAssay <- function(
     compute.expected = compute.expected,
     verbose = verbose
   )
+  # encode motif position as additional row in matrix
+  motif.vec <- t(x = matrix(
+    data = c(
+      rep(x = 0, upstream),
+      rep(x = 1, motif.size),
+      rep(x = 0, downstream)
+      )
+    )
+  )
+  rownames(x = motif.vec) <- "motif"
+  insertion.matrix <- rbind(insertion.matrix, motif.vec)
   # store results in the assay
   object <- suppressWarnings(expr = SetAssayData(
     object = object,
@@ -240,7 +345,6 @@ Footprint.ChromatinAssay <- function(
     key = key
   ))
   return(object)
-
 }
 
 #' @rdname Footprint
@@ -367,6 +471,15 @@ InsertionBias.Seurat <- function(
 
 ####### Not exported #######
 
+# Divide matrix by flanks
+#' @importMethodsFrom Matrix mean
+BackgroundMeanNorm <- function(x, background = 50) {
+  positions.use <- c(1:background, (ncol(x = x) - background):ncol(x = x))
+  flanks <- mean(x = x[ ,positions.use])
+  x <- x / flanks
+  return(x)
+}
+
 # Find the expected number of insertions over a set of genomic regions
 # given the DNA sequences and the insertion bias of Tn5 for the experiment
 # @param dna.sequence A set of DNA sequences
@@ -448,6 +561,31 @@ FindExpectedInsertions <- function(dna.sequence, bias, verbose = TRUE) {
   return(expected.insertions)
 }
 
+# Get size of motif that was footprinted
+# @param object A Seurat object
+# @param feature A vector of footprinted TFs
+# @param assay Name of assay to use
+#' @importFrom Seurat DefaultAssay GetAssayData
+GetMotifSize <- function(
+  object,
+  features,
+  assay = NULL
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  positionEnrichment <- GetAssayData(
+    object = object,
+    assay = assay,
+    slot = "positionEnrichment"
+  )
+  sizes <- c()
+  for (i in features) {
+    motif <- positionEnrichment[[i]]["motif", ]
+    sizes <- c(sizes, sum(motif))
+  }
+  names(x = sizes) <- features
+  return(sizes)
+}
+
 # @param object A ChromatinAssay object
 # @param genome a BSgenome object
 # @param regions a set of regions of the same width
@@ -474,19 +612,14 @@ Pileup <- function(
   if (compute.expected) {
     bias <- GetAssayData(object = object, slot = "bias")
     if (is.null(x = bias)) {
-      if (verbose) {
-        message("Computing Tn5 insertion bias")
-      }
-      object <- InsertionBias(
-        object = object,
-        genome = genome
+      stop("Insertion bias not computed")
+    } else {
+      expected.insertions <- FindExpectedInsertions(
+        dna.sequence = dna.sequence,
+        bias = bias,
+        verbose = verbose
       )
     }
-    expected.insertions <- FindExpectedInsertions(
-      dna.sequence = dna.sequence,
-      bias = bias,
-      verbose = verbose
-    )
   } else {
     expected.insertions <- rep(1, width(x = dna.sequence)[[1]])
   }
@@ -506,4 +639,3 @@ Pileup <- function(
   insertion.matrix <- rbind(insertion.matrix, expected.insertions)
   return(insertion.matrix)
 }
-
