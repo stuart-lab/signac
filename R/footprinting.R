@@ -9,19 +9,28 @@ NULL
 #' @param assay Name of assay to use
 #' @param group.by A grouping variable
 #' @param idents Set of identities to include in the plot
+#' @param show.expected Plot the expected Tn5 integration frequency below the
+#' main footprint plot
+#' @param normalization Method to normalize for Tn5 DNA sequence bias. Options
+#' are "subtract", "divide", or NULL to perform no bias correction.
 #' @export
 #' @importFrom Seurat DefaultAssay
+#' @importFrom ggrepel geom_label_repel
 #' @importFrom ggplot2 ggplot aes
+#' @importFrom
+#' @import patchwork
 PlotFootprint <- function(
   object,
   features,
   assay = NULL,
   group.by = NULL,
-  idents = NULL
+  idents = NULL,
+  show.expected = TRUE,
+  normalization = "subtract"
 ) {
-  # TODO add option to plot expected below plot
-  # TODO add option to label top identities
+  # TODO add option to label top identities based on flanking accessiblity
   # TODO add option to show variance among cells
+  # TODO update TSSPlot to use the GetFootprintData function
   plot.data <- GetFootprintData(
     object = object,
     features = features,
@@ -29,16 +38,46 @@ PlotFootprint <- function(
     group.by = group.by,
     idents = idents
   )
+  obs <- plot.data[plot.data$class == "Observed", ]
+  expect <- plot.data[plot.data$class == "Expected", ]
+  if (!is.null(normalization)) {
+    # need to group by position and motif
+    correction.vec <- expect$norm.value
+    names(correction.vec) <- paste(expect$position, expect$feature)
+    if (normalization == "subtract") {
+      obs$norm.value <- obs$norm.value - correction.vec[
+        paste(obs$position, obs$feature)
+      ]
+    } else if (normalization == "divide") {
+      obs$norm.value <- obs$norm.value / correction.vec[
+        paste(obs$position, obs$feature)
+      ]
+    } else {
+      stop("Unknown normalization method requested")
+    }
+  }
   p <- ggplot(
-    data = plot.data,
+    data = obs,
     mapping = aes(x = position, y = norm.value, color = group)
   ) +
     geom_line(stat = "identity", size = 0.2) +
-    facet_wrap(facets = ~feature)
-  p <- p +
+    facet_wrap(facets = ~feature) +
     xlab("Distance from motif") +
-    ylab(label = "Normalized Tn5 insertions") +
+    ylab(label = "Normalized\nTn5 insertions") +
     theme_minimal()
+  if (show.expected) {
+    p1 <- ggplot(
+      data = expect,
+      mapping = aes(x = position, y = norm.value)
+    ) +
+      geom_line(size = 0.2) +
+      facet_wrap(facets = ~feature) +
+      xlab("Distance from motif") +
+      ylab(label = "Expected\nTn5 insertions") +
+      theme_minimal() +
+      theme(plot.title = element_blank())
+    p <- wrap_plots(list(p, p1), nrow = 2, heights = c(3, 1))
+  }
   return(p)
 }
 
@@ -70,29 +109,55 @@ GetFootprintData <- function(
     group.by = group.by,
     idents = idents
   )
+  all.groups <- unique(x = obj.groups)
   plot.data <- lapply(X = features, FUN = function(x) {
     if (!(x %in% names(x = positionEnrichment))) {
       warning("Footprint information for ", x, " not found in assay")
       return()
     } else {
       fp <- positionEnrichment[[x]]
-      # remove row containing expected insertions
       expected <- fp["expected", ]
       fp <- fp[1:(nrow(x = fp) - 1), ]
-      # average the signal per group per base
+      bg.norm <- lapply(X = all.groups, FUN = function(x) {
+        cells.use <- names(x = obj.groups)[obj.groups == x]
+        mat.use <- fp[cells.use, ]
+        return(BackgroundMeanNorm(x = mat.use, background = 50))
+      })
+      bg.norm <- do.call(what = rbind, args = bg.norm)
       groupmeans <- ApplyMatrixByGroup(
-        mat = fp,
+        mat = bg.norm,
         groups = obj.groups,
         fun = colMeans,
         normalize = FALSE
       )
       # add feature information
       groupmeans$feature <- x
+      groupmeans$class <- "Observed"
+
+      # add expected insertions
+      expect.df <- data.frame(
+        group = NA,
+        count = expected,
+        norm.value = expected,
+        position = as.numeric(x = names(x = expected)),
+        feature = x,
+        class = "Expected"
+      )
+      groupmeans <- rbind(groupmeans, expect.df)
       return(groupmeans)
     }
   })
   plot.data <- do.call(what = rbind, args = plot.data)
   return(plot.data)
+}
+
+# Divide matrix by flanks
+#' @importMethodsFrom Matrix mean
+BackgroundMeanNorm <- function(x, background = 50) {
+  positions.use <- c(1:background, (ncol(x = x) - background):ncol(x = x))
+  flanks <- mean(x = x[ ,positions.use])
+  x <- x / flanks
+  return(x)
 }
 
 #' @param regions A set of genomic ranges containing the motif instances
@@ -372,6 +437,7 @@ FindExpectedInsertions <- function(dna.sequence, bias, verbose = TRUE) {
   )
 
   # normalize expected by dividing by flanks
+  # TODO use BackgroundMeanNorm function here
   flanks <- mean(
     x = c(expected.insertions[1:50],
           expected.insertions[
