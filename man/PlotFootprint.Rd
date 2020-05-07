@@ -4,7 +4,18 @@
 \alias{PlotFootprint}
 \title{Plot footprinting results}
 \usage{
-PlotFootprint(object, features, assay = NULL, group.by = NULL, idents = NULL)
+PlotFootprint(
+  object,
+  features,
+  assay = NULL,
+  group.by = NULL,
+  idents = NULL,
+  label = TRUE,
+  repel = TRUE,
+  show.expected = TRUE,
+  normalization = "subtract",
+  label.top = 3
+)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -16,6 +27,19 @@ PlotFootprint(object, features, assay = NULL, group.by = NULL, idents = NULL)
 \item{group.by}{A grouping variable}
 
 \item{idents}{Set of identities to include in the plot}
+
+\item{label}{Label groups}
+
+\item{repel}{Repel labels from each other}
+
+\item{show.expected}{Plot the expected Tn5 integration frequency below the
+main footprint plot}
+
+\item{normalization}{Method to normalize for Tn5 DNA sequence bias. Options
+are "subtract", "divide", or NULL to perform no bias correction.}
+
+\item{label.top}{Number of groups to label based on highest accessibility
+in motif flanking region.}
 }
 \description{
 Plot footprinting results
