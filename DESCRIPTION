@@ -44,7 +44,10 @@ Imports:
     grid,
     stats,
     utils,
-    Biobase
+    Biobase,
+    BiocGenerics,
+    Biostrings,
+    ggrepel
 Collate: 
     'data.R'
     'generics.R'
@@ -65,5 +68,4 @@ Suggests:
     SummarizedExperiment,
     TFBSTools,
     motifmatchr,
-    Biostrings,
     BSgenome
