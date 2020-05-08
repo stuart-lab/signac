@@ -9,6 +9,9 @@ NULL
 #' information stored in a \code{\link{ChromatinAssay}} object.
 #'
 #' @name granges-methods
+#' @param x A \code{\link{ChromatinAssay}} object
+#' @param use.mcols Not supported for \code{\link{ChromatinAssay}} objects
+#'
 #' @aliases granges granges,ChromatinAssay-method
 #' @seealso
 #' \itemize{

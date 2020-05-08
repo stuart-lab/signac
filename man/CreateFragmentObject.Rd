@@ -26,6 +26,9 @@ Each element of the vector should be a cell barcode that appears in the
 fragment file, and the name of each element should be the corresponding cell
 name in the object.}
 
+\item{validate.fragments}{Check that expected cells are present in the
+fragment file.}
+
 \item{verbose}{Display messages}
 
 \item{...}{Additional arguments passed to \code{ValidateCells}}

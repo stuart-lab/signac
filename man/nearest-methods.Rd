@@ -99,6 +99,20 @@
 
 \S4method{distanceToNearest}{Seurat,Seurat}(x, subject, ignore.strand = FALSE, ...)
 }
+\arguments{
+\item{x}{A query \code{\link{ChromatinAssay}} object}
+
+\item{subject}{The subject \code{\link[GenomicRanges]{GRanges}} or
+\code{\link{ChromatinAssay}} object. If missing, \code{x} is used as the
+subject.}
+
+\item{select}{Logic for handling ties.
+See \code{\link[GenomicRanges]{nearest-methods}} in the \pkg{GenomicRanges}
+package.}
+
+\item{ignore.strand}{Logical argument controlling whether strand information
+should be ignored.}
+}
 \description{
 The \code{precede, follow, nearest, distance, distanceToNearest} methods
 are available for \code{\link{ChromatinAssay}} objects.

@@ -338,8 +338,6 @@ Footprint.Seurat <- function(
   genome,
   regions = NULL,
   motif.name = NULL,
-  group.by = NULL,
-  idents = NULL,
   assay = NULL,
   upstream = 250,
   downstream = 250,

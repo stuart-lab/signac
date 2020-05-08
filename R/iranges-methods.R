@@ -18,6 +18,16 @@ setOldClass(Classes = "ChromatinAssay")
 #' are available for \code{\link{ChromatinAssay}} objects.
 #'
 #' @name nearest-methods
+#' @param x A query \code{\link{ChromatinAssay}} object
+#' @param subject The subject \code{\link[GenomicRanges]{GRanges}} or
+#' \code{\link{ChromatinAssay}} object. If missing, \code{x} is used as the
+#' subject.
+#' @param select Logic for handling ties.
+#' See \code{\link[GenomicRanges]{nearest-methods}} in the \pkg{GenomicRanges}
+#' package.
+#' @param ignore.strand Logical argument controlling whether strand information
+#' should be ignored.
+#'
 #' @aliases precede precede,ANY,ChromatinAssay-method
 #' @seealso
 #' \itemize{
@@ -641,6 +651,16 @@ setMethod(
 #' Coverage of a ChromatinAssay object
 #'
 #' This is the \code{coverage} method for \code{\link{ChromatinAssay}} objects.
+#' @param x A \code{\link{ChromatinAssay}} object
+#' @param shift How much each range should be shifted before coverage is
+#' computed. See \code{\link[IRanges]{coverage}} in the \pkg{IRanges} package.
+#' @param weight Assigns weight to each range in \code{x}.
+#' See \code{\link[IRanges]{coverage}} in the \pkg{IRanges} package.
+#' @param width Specifies the length of the returned coverage vectors.
+#' See \code{\link[IRanges]{coverage}} in the \pkg{IRanges} package.
+#' @param method See \code{\link[IRanges]{coverage}} in the \pkg{IRanges}
+#' package
+#'
 #' @aliases coverage
 #' @seealso
 #' \itemize{
@@ -685,6 +705,13 @@ setMethod(
 #' are available for \code{\link{ChromatinAssay}} objects.
 #'
 #' @name inter-range-methods
+#' @param x A \code{\link{ChromatinAssay}} object
+#' @param ... Additional arguments
+#' @param with.revmap See \code{\link[IRanges]{inter-range-methods}} in the
+#' \pkg{IRanges} packages
+#'
+#' @param na.rm
+#'
 #' @aliases range range,ChromatinAssay-method
 #' @seealso
 #' \itemize{

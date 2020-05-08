@@ -27,6 +27,10 @@ as.ChromatinAssay(x, ...)
 
 \item{ranges}{A GRanges object}
 
+\item{seqinfo}{A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
+information about the genome used. Alternatively, the name of a UCSC genome
+can be provided and the sequence information will be downloaded from UCSC.}
+
 \item{annotation}{Genomic annotation}
 
 \item{motifs}{A \code{\link{Motif}} object}
@@ -39,10 +43,6 @@ as.ChromatinAssay(x, ...)
 
 \item{sep}{Charaters used to separate the chromosome, start, and end
 coordinates in the row names of the data matrix}
-
-\item{genome}{A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
-information about the genome used. Alternatively, the name of a UCSC genome
-can be provided and the sequence information will be downloaded from UCSC.}
 }
 \description{
 Convert objects to a ChromatinAssay

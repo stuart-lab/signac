@@ -22,6 +22,21 @@
   method = c("auto", "sort", "hash")
 )
 }
+\arguments{
+\item{x}{A \code{\link{ChromatinAssay}} object}
+
+\item{shift}{How much each range should be shifted before coverage is
+computed. See \code{\link[IRanges]{coverage}} in the \pkg{IRanges} package.}
+
+\item{width}{Specifies the length of the returned coverage vectors.
+See \code{\link[IRanges]{coverage}} in the \pkg{IRanges} package.}
+
+\item{weight}{Assigns weight to each range in \code{x}.
+See \code{\link[IRanges]{coverage}} in the \pkg{IRanges} package.}
+
+\item{method}{See \code{\link[IRanges]{coverage}} in the \pkg{IRanges}
+package}
+}
 \description{
 This is the \code{coverage} method for \code{\link{ChromatinAssay}} objects.
 }

@@ -46,6 +46,16 @@
 
 \S4method{disjointBins}{Seurat}(x, ...)
 }
+\arguments{
+\item{x}{A \code{\link{ChromatinAssay}} object}
+
+\item{...}{Additional arguments}
+
+\item{with.revmap}{See \code{\link[IRanges]{inter-range-methods}} in the
+\pkg{IRanges} packages}
+
+\item{na.rm}{}
+}
 \description{
 The \code{range, reduce, gaps, disjoin, isDisjoint, disjointBins} methods
 are available for \code{\link{ChromatinAssay}} objects.

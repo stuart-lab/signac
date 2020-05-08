@@ -7,7 +7,15 @@
 \usage{
 \method{Cells}{Fragment}(x, ...)
 
-\method{Cells}{Fragment}(object, ...) <- value
+\method{Cells}{Fragment}(x, ...) <- value
+}
+\arguments{
+\item{x}{A Fragment object}
+
+\item{...}{Arguments passed to other methods}
+
+\item{value}{A vector of cell names to store in the \code{\link{Fragment}}
+object}
 }
 \description{
 This returns the names of cells in the object that are contained in the

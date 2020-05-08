@@ -21,6 +21,8 @@ NULL
 #' Each element of the vector should be a cell barcode that appears in the
 #' fragment file, and the name of each element should be the corresponding cell
 #' name in the object.
+#' @param validate.fragments Check that expected cells are present in the
+#' fragment file.
 #' @param verbose Display messages
 #' @param ... Additional arguments passed to \code{ValidateCells}
 #' @importFrom tools md5sum file_ext
@@ -200,7 +202,8 @@ readchunk <- function(filepath, x, chunksize) {
 #'
 #' To access the cell names that are stored in the fragment file itself, use
 #' \code{GetFragmentData(object = x, name = "cells")}.
-#'
+#' @param x A Fragment object
+#' @param ... Arguments passed to other methods
 #' @rdname Cells
 #' @export
 #' @method Cells Fragment
@@ -210,18 +213,20 @@ Cells.Fragment <- function(x, ...) {
   return(names(x = cells))
 }
 
+#' @param value A vector of cell names to store in the \code{\link{Fragment}}
+#' object
 #' @rdname Cells
 #' @export
 #' @method Cells<- Fragment
-"Cells<-.Fragment" <- function(object, ..., value) {
+"Cells<-.Fragment" <- function(x, ..., value) {
   if (is.null(x = names(x = value))) {
     stop("Cells must be a named vector")
   }
-  slot(object = object, name = "cells") <- value
-  if (!ValidateCells(object = object, verbose = FALSE, ...)) {
+  slot(object = x, name = "cells") <- value
+  if (!ValidateCells(object = x, verbose = FALSE, ...)) {
     stop("Cells not present in fragment file")
   } else {
-    return(object)
+    return(x)
   }
 }
 

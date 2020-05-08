@@ -11,6 +11,11 @@
 
 \S4method{granges}{Seurat}(x, use.names = TRUE, use.mcols = FALSE, ...)
 }
+\arguments{
+\item{x}{A \code{\link{ChromatinAssay}} object}
+
+\item{use.mcols}{Not supported for \code{\link{ChromatinAssay}} objects}
+}
 \description{
 Methods for accessing \code{\link[GenomicRanges]{GRanges}} object
 information stored in a \code{\link{ChromatinAssay}} object.

@@ -15,7 +15,6 @@ RunSVD(object, ...)
   n = 50,
   scale.embeddings = TRUE,
   reduction.key = "SVD_",
-  standardize.embeddings = TRUE,
   scale.max = NULL,
   verbose = TRUE,
   irlba.work = n * 3,

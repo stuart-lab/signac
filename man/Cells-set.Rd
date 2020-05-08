@@ -7,6 +7,8 @@
 Cells(object, ...) <- value
 }
 \arguments{
+\item{object}{A Seurat object}
+
 \item{...}{Arguments passed to other methods}
 
 \item{value}{A character vector of cell barcodes}

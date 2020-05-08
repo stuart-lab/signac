@@ -270,7 +270,7 @@ CreateChromatinAssayObject <- function(
 }
 
 #' @param ranges A GRanges object
-#' @param genome A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
+#' @param seqinfo A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
 #' information about the genome used. Alternatively, the name of a UCSC genome
 #' can be provided and the sequence information will be downloaded from UCSC.
 #' @param annotation Genomic annotation
