@@ -4,10 +4,10 @@
 \alias{Cells<-}
 \title{Set and get cell barcode information for a Fragment object}
 \usage{
-Cells(object, ...) <- value
+Cells(x, ...) <- value
 }
 \arguments{
-\item{object}{A Seurat object}
+\item{x}{A Seurat object}
 
 \item{...}{Arguments passed to other methods}
 

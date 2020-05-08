@@ -47,11 +47,11 @@ BinarizeCounts <- function(object, ...) {
 
 #' Set and get cell barcode information for a Fragment object
 #'
-#' @param object A Seurat object
+#' @param x A Seurat object
 #' @param value A character vector of cell barcodes
 #' @param ... Arguments passed to other methods
 #' @export Cells<-
-"Cells<-" <- function(object, ..., value) {
+"Cells<-" <- function(x, ..., value) {
   UseMethod(generic = "Cells<-", object = object)
 }
 
