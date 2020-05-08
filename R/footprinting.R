@@ -350,6 +350,7 @@ Footprint.ChromatinAssay <- function(
 #' @rdname Footprint
 #' @param assay Name of assay to use
 #' @method Footprint Seurat
+#' @export
 #' @importFrom Seurat DefaultAssay
 Footprint.Seurat <- function(
   object,
