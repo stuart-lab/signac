@@ -114,7 +114,7 @@ package.}
 should be ignored.}
 
 \item{y}{For the \code{distance} method, a
-\code{\link[GenomicRanges]{Grange}} object or a \code{\link{ChromatinAssay}}
+\code{\link[GenomicRanges]{GRanges}} object or a \code{\link{ChromatinAssay}}
 object}
 
 \item{...}{Additional arguments for methods}
