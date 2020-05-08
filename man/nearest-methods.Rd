@@ -112,6 +112,11 @@ package.}
 
 \item{ignore.strand}{Logical argument controlling whether strand information
 should be ignored.}
+
+\item{y}{For the \code{distance} method, a \code{\link[GenomicRange]{Grange}}
+object or a \code{\link{ChromatinAssay}} object}
+
+\item{...}{Additional arguments for methods}
 }
 \description{
 The \code{precede, follow, nearest, distance, distanceToNearest} methods

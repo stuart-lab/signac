@@ -20,6 +20,8 @@ setOldClass(Classes = "ChromatinAssay")
 #' \code{\link{ChromatinAssay}} object.
 #'
 #' @name seqinfo-methods
+#' @param x A \code{\link{ChromatinAssay}} object
+#'
 #' @aliases seqinfo seqinfo,ChromatinAssay-method
 #' @seealso
 #' \itemize{

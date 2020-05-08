@@ -27,6 +27,7 @@ setOldClass(Classes = "ChromatinAssay")
 #' package.
 #' @param ignore.strand Logical argument controlling whether strand information
 #' should be ignored.
+#' @param ... Additional arguments for methods
 #'
 #' @aliases precede precede,ANY,ChromatinAssay-method
 #' @seealso
@@ -276,6 +277,8 @@ setMethod(
   }
 )
 
+#' @param y For the \code{distance} method, a \code{\link[GenomicRange]{Grange}}
+#' object or a \code{\link{ChromatinAssay}} object
 #' @aliases distance
 #' @exportMethod distance
 #' @describeIn nearest-methods method for ANY, ChromatinAssay
@@ -447,6 +450,12 @@ setMethod(
 #' If a ChromatinAssay is set as the default assay in a
 #' \code{\link[Seurat]{Seurat}} object, you can also call \code{findOverlaps}
 #' directly on the Seurat object.
+#'
+#' @param query,subject A \code{\link{ChromatinAssay}} object
+#' @param maxgap,minoverlap,type,select,ignore.strand See
+#' \code{?\link[GenomicRanges]{findOverlaps}} in the \pkg{GenomicRanges} and
+#' \pkg{IRanges} packages.
+#' @return See \code{\link[GenomicRanges]{findOverlaps}}
 #'
 #' @name findOverlaps-methods
 #' @aliases findOverlaps findOverlaps,Vector,ChromatinAssay-method

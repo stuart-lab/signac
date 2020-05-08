@@ -132,6 +132,16 @@
   ignore.strand = FALSE
 )
 }
+\arguments{
+\item{query, subject}{A \code{\link{ChromatinAssay}} object}
+
+\item{maxgap, minoverlap, type, select, ignore.strand}{See
+\code{?\link[GenomicRanges]{findOverlaps}} in the \pkg{GenomicRanges} and
+\pkg{IRanges} packages.}
+}
+\value{
+See \code{\link[GenomicRanges]{findOverlaps}}
+}
 \description{
 The \code{findOverlaps, countOverlaps} methods are available for
 \code{\link{ChromatinAssay}} objects. This allows finding overlaps between

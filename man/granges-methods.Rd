@@ -14,7 +14,15 @@
 \arguments{
 \item{x}{A \code{\link{ChromatinAssay}} object}
 
+\item{use.names}{Whether the names on the genomic ranges should be
+propagated to the returned object.}
+
 \item{use.mcols}{Not supported for \code{\link{ChromatinAssay}} objects}
+
+\item{...}{Additional arguments}
+}
+\value{
+Returns a \code{\link[GenomicRanges]{GRanges}} object
 }
 \description{
 Methods for accessing \code{\link[GenomicRanges]{GRanges}} object
@@ -25,6 +33,9 @@ information stored in a \code{\link{ChromatinAssay}} object.
 \item \code{granges,Seurat-method}: method for Seurat objects
 }}
 
+\examples{
+granges(atac_small)
+}
 \seealso{
 \itemize{
   \item{\link[GenomicRanges]{granges} in the \pkg{GenomicRanges} package.}

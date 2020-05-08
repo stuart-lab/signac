@@ -52,7 +52,7 @@ BinarizeCounts <- function(object, ...) {
 #' @param ... Arguments passed to other methods
 #' @export Cells<-
 "Cells<-" <- function(x, ..., value) {
-  UseMethod(generic = "Cells<-", object = object)
+  UseMethod(generic = "Cells<-", object = x)
 }
 
 #' Find most frequently observed features

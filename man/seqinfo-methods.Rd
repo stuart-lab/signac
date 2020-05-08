@@ -82,6 +82,9 @@
 
 \S4method{isCircular}{Seurat}(x) <- value
 }
+\arguments{
+\item{x}{A \code{\link{ChromatinAssay}} object}
+}
 \description{
 Methods for accessing and modifying
 \code{\link[GenomeInfoDb]{Seqinfo}} object information stored in a
