@@ -430,6 +430,7 @@ setAs(
 #' \pkg{Seurat} package, and the \code{\link{ChromatinAssay-class}}.
 #'
 #' @importFrom Seurat Key<-
+#' @importFrom utils packageVersion
 #' @export
 CreateSignacObject <- function(
   counts,
