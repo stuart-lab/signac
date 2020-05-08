@@ -39,7 +39,7 @@ Returns a Seurat object
 Counts the Tn5 insertion frequency for each DNA hexamer.
 }
 \examples{
-\donttest{
+\dontrun{
 library(BSgenome.Mmusculus.UCSC.mm10)
 
 region.use <- GRanges(
