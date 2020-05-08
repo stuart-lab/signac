@@ -3,8 +3,6 @@ url: https://satijalab.org/signac
 navbar:
   title: "Signac"
   left:
-    - text: "Reference"
-      href: reference/index.html
     - text: "News"
       href: news/index.html
     - text: "Get started"
@@ -34,6 +32,8 @@ navbar:
           href: articles/monocle.html
         - text: "Transcription factor footprinting"
           href: articles/footprinting.html
+    - text: "Reference"
+      href: reference/index.html
   right:
     - icon: fa-github
       href: https://github.com/timoast/signac
