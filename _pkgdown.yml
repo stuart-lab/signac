@@ -3,7 +3,7 @@ url: https://satijalab.org/signac
 navbar:
   title: "Signac"
   left:
-    - text: "Functions"
+    - text: "Reference"
       href: reference/index.html
     - text: "News"
       href: news/index.html
@@ -21,7 +21,7 @@ navbar:
         - text: "Adult mouse brain"
           href: articles/mouse_brain_vignette.html
         - text: "Joint RNA and ATAC analysis"
-          href: articles/coassay.Rmd
+          href: articles/coassay.html
         - text: "Motif analysis"
           href: articles/motif_vignette.html
         - text: "scATAC-seq integration"
@@ -33,7 +33,7 @@ navbar:
         - text: "Trajectory analysis"
           href: articles/monocle.html
         - text: "Transcription factor footprinting"
-          href: articles/footprinting.Rmd
+          href: articles/footprinting.html
   right:
     - icon: fa-github
       href: https://github.com/timoast/signac
