@@ -474,7 +474,7 @@ globalVariables(names = "group", package = "Signac")
 #' @param group.by Name of one or more metadata columns to group (color) the
 #' cells by. Default is the current cell identities
 #' @param log.scale Display Y-axis on log scale. Default is FALSE.
-#' @param ... Additional arguments passed to \code{\link{GetReadsInRegion}}
+#' @param ... Arguments passed to other functions
 #'
 #' @importFrom ggplot2 ggplot geom_histogram theme_bw aes facet_wrap xlim
 #' scale_y_log10
@@ -484,7 +484,7 @@ globalVariables(names = "group", package = "Signac")
 #' @examples
 #' \donttest{
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' atac_small <- SetFragments(atac_small, file = fpath)
+#' Fragments(atac_small) <- fpath
 #' FragmentHistogram(object = atac_small, region = "chr1-10245-780007")
 #' }
 FragmentHistogram <- function(

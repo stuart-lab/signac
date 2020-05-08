@@ -18,7 +18,7 @@ setOldClass(Classes = "ChromatinAssay")
 #' are available for \code{\link{ChromatinAssay}} objects.
 #'
 #' @name nearest-methods
-#' @aliases precede
+#' @aliases precede precede,ANY,ChromatinAssay-method
 #' @seealso
 #' \itemize{
 #'   \item{\link[IRanges]{nearest-methods} in the \pkg{IRanges} package.}
@@ -439,7 +439,7 @@ setMethod(
 #' directly on the Seurat object.
 #'
 #' @name findOverlaps-methods
-#' @aliases findOverlaps
+#' @aliases findOverlaps findOverlaps,Vector,ChromatinAssay-method
 #' @seealso
 #' \itemize{
 #'   \item{\link[IRanges]{findOverlaps-methods} in the \pkg{IRanges} package.}
@@ -650,6 +650,7 @@ setMethod(
 #'   \item{\link{ChromatinAssay-class}}
 #'  }
 #' @exportMethod coverage
+#' @describeIn coverage-ChromatinAssay-method method for ChromatinAssay objects
 setMethod(
   f = "coverage",
   signature = "ChromatinAssay",
@@ -684,7 +685,7 @@ setMethod(
 #' are available for \code{\link{ChromatinAssay}} objects.
 #'
 #' @name inter-range-methods
-#' @aliases range
+#' @aliases range range,ChromatinAssay-method
 #' @seealso
 #' \itemize{
 #'   \item{\link[IRanges]{inter-range-methods} in the \pkg{IRanges} package.}

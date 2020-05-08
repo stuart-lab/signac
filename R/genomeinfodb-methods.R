@@ -20,7 +20,7 @@ setOldClass(Classes = "ChromatinAssay")
 #' \code{\link{ChromatinAssay}} object.
 #'
 #' @name seqinfo-methods
-#' @aliases seqinfo
+#' @aliases seqinfo seqinfo,ChromatinAssay-method
 #' @seealso
 #' \itemize{
 #'   \item{\link[GenomeInfoDb]{seqinfo} in the \pkg{GenomeInfoDb} package.}

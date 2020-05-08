@@ -165,6 +165,7 @@ ValidateHash <- function(object, verbose = TRUE) {
 #' @export
 ValidateFragments <- function(
   object,
+  verbose = TRUE,
   ...
 ) {
   valid.cells <- ValidateCells(object = object, verbose = verbose, ...)
@@ -204,7 +205,7 @@ readchunk <- function(filepath, x, chunksize) {
 #' @export
 #' @method Cells Fragment
 #' @importFrom Seurat Cells
-Cells.Fragment <- function(x) {
+Cells.Fragment <- function(x, ...) {
   cells <- slot(object = x, name = "cells")
   return(names(x = cells))
 }

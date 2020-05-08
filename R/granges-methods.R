@@ -9,7 +9,7 @@ NULL
 #' information stored in a \code{\link{ChromatinAssay}} object.
 #'
 #' @name granges-methods
-#' @aliases granges
+#' @aliases granges granges,ChromatinAssay-method
 #' @seealso
 #' \itemize{
 #'   \item{\link[GenomicRanges]{granges} in the \pkg{GenomicRanges} package.}

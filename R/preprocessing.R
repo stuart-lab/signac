@@ -586,7 +586,7 @@ globalVariables(names = "cell", package = "Signac")
 #' @param min.threshold Lower bound for the mononucleosome size. Default is 147
 #' @param max.threshold Upper bound for the mononucleosome size. Default is 294
 #' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{\link{MultiGetReadsInRegion}}
+#' @param ... Arguments passed to other functions
 #'
 #' @importFrom dplyr group_by summarize
 #' @importFrom stats ecdf
@@ -597,7 +597,7 @@ globalVariables(names = "cell", package = "Signac")
 #' @export
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' atac_small <- SetFragments(object = atac_small, file = fpath)
+#' Fragments(atac_small) <- fpath
 #' NucleosomeSignal(object = atac_small)
 NucleosomeSignal <- function(
   object,
@@ -656,7 +656,7 @@ NucleosomeSignal <- function(
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
 #' object = rownames(atac_small),
-#' genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
+#' genome = BSgenome.Hsapiens.UCSC.hg19
 #' )
 #' }
 RegionStats.default <- function(
@@ -670,9 +670,6 @@ RegionStats.default <- function(
   }
   if (!requireNamespace('Biostrings', quietly = TRUE)) {
     stop("Please install Biostrings: BiocManager::install('Biostrings')")
-  }
-  if (inherits(x = object, what = 'character')) {
-    object <- StringToGRanges(regions = object, sep = sep)
   }
   sequence.length <- width(x = object)
   sequences <- BSgenome::getSeq(x = genome, names = object)
@@ -695,7 +692,7 @@ RegionStats.default <- function(
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
 #' object = atac_small[['peaks']],
-#' genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
+#' genome = BSgenome.Hsapiens.UCSC.hg19
 #' )
 #' }
 RegionStats.ChromatinAssay <- function(
@@ -901,20 +898,9 @@ RunTFIDF.Seurat <- function(
 #' @export
 #' @examples
 #' \dontrun{
-#' library(EnsDb.Hsapiens.v75)
-#' gene.ranges <- genes(EnsDb.Hsapiens.v75)
-#' gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
-#' tss.ranges <- GRanges(
-#'   seqnames = seqnames(gene.ranges),
-#'   ranges = IRanges(start = start(gene.ranges), width = 2),
-#'   strand = strand(gene.ranges)
-#' )
-#' seqlevelsStyle(tss.ranges) <- 'UCSC'
-#' tss.ranges <- keepStandardChromosomes(tss.ranges, pruning.mode = 'coarse')
-#'
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' atac_small <- SetFragments(object = atac_small, file = fpath)
-#' TSSEnrichment(object = atac_small, tss.positions = tss.ranges[1:100])
+#' Fragments(atac_small) <- fpath
+#' TSSEnrichment(object = atac_small)
 #' }
 TSSEnrichment <- function(
   object,
@@ -936,8 +922,8 @@ TSSEnrichment <- function(
     annotations <- Annotation(object = object[[assay]])
     tss.positions <- GRanges(
       seqnames = seqnames(x = annotations),
-      ranges = IRanges(start = start(x = gene.ranges), width = 2),
-      strand = strand(x = gene.ranges)
+      ranges = IRanges(start = start(x = annotations), width = 2),
+      strand = strand(x = annotations)
     )
   }
   if (!is.null(x = n)) {
