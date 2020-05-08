@@ -3,6 +3,7 @@
 \name{findOverlaps-methods}
 \alias{findOverlaps-methods}
 \alias{findOverlaps}
+\alias{findOverlaps,Vector,ChromatinAssay-method}
 \alias{findOverlaps,ChromatinAssay,Vector-method}
 \alias{findOverlaps,ChromatinAssay,ChromatinAssay-method}
 \alias{findOverlaps,Vector,Seurat-method}

@@ -4,14 +4,14 @@
 \alias{ValidateFragments}
 \title{Validate Fragment object}
 \usage{
-ValidateFragments(object, ...)
+ValidateFragments(object, verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{A \code{\link{Fragment}} object}
 
-\item{...}{Additional parameters passed to \code{\link{ValidateCells}}}
-
 \item{verbose}{Display messages}
+
+\item{...}{Additional parameters passed to \code{\link{ValidateCells}}}
 }
 \description{
 Verify that the cells listed in the object exist in the fragment file

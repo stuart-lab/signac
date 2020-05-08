@@ -5,7 +5,7 @@
 \alias{Cells<-.Fragment}
 \title{Set and get cell barcode information for a \code{\link{Fragment}} object}
 \usage{
-\method{Cells}{Fragment}(x)
+\method{Cells}{Fragment}(x, ...)
 
 \method{Cells}{Fragment}(object, ...) <- value
 }

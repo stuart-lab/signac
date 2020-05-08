@@ -3,6 +3,7 @@
 \name{inter-range-methods}
 \alias{inter-range-methods}
 \alias{range}
+\alias{range,ChromatinAssay-method}
 \alias{range,Seurat-method}
 \alias{reduce,ChromatinAssay-method}
 \alias{reduce}

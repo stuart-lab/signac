@@ -3,6 +3,7 @@
 \name{nearest-methods}
 \alias{nearest-methods}
 \alias{precede}
+\alias{precede,ANY,ChromatinAssay-method}
 \alias{precede,ChromatinAssay,ANY-method}
 \alias{precede,ChromatinAssay,ChromatinAssay-method}
 \alias{precede,ANY,Seurat-method}

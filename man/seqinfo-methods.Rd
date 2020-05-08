@@ -3,6 +3,7 @@
 \name{seqinfo-methods}
 \alias{seqinfo-methods}
 \alias{seqinfo}
+\alias{seqinfo,ChromatinAssay-method}
 \alias{seqinfo<-,ChromatinAssay-method}
 \alias{seqlevels,ChromatinAssay-method}
 \alias{seqlevels}

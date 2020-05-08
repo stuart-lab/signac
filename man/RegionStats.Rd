@@ -38,14 +38,14 @@ for regions in the assay and add to the feature metadata.
 library(BSgenome.Hsapiens.UCSC.hg19)
 RegionStats(
 object = rownames(atac_small),
-genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
+genome = BSgenome.Hsapiens.UCSC.hg19
 )
 }
 \dontrun{
 library(BSgenome.Hsapiens.UCSC.hg19)
 RegionStats(
 object = atac_small[['peaks']],
-genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
+genome = BSgenome.Hsapiens.UCSC.hg19
 )
 }
 \dontrun{

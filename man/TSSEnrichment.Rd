@@ -42,19 +42,8 @@ The computed score will be added to the object metadata as "TSS.enrichment".
 }
 \examples{
 \dontrun{
-library(EnsDb.Hsapiens.v75)
-gene.ranges <- genes(EnsDb.Hsapiens.v75)
-gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
-tss.ranges <- GRanges(
-  seqnames = seqnames(gene.ranges),
-  ranges = IRanges(start = start(gene.ranges), width = 2),
-  strand = strand(gene.ranges)
-)
-seqlevelsStyle(tss.ranges) <- 'UCSC'
-tss.ranges <- keepStandardChromosomes(tss.ranges, pruning.mode = 'coarse')
-
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-atac_small <- SetFragments(object = atac_small, file = fpath)
-TSSEnrichment(object = atac_small, tss.positions = tss.ranges[1:100])
+Fragments(atac_small) <- fpath
+TSSEnrichment(object = atac_small)
 }
 }

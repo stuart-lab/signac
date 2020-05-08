@@ -3,6 +3,7 @@
 \name{granges-methods}
 \alias{granges-methods}
 \alias{granges}
+\alias{granges,ChromatinAssay-method}
 \alias{granges,Seurat-method}
 \title{Access genomic ranges for ChromatinAssay objects}
 \usage{
