@@ -37,6 +37,8 @@ setMethod(
   }
 )
 
+#' @param value A \code{\link[GenomeInfoDb]{Seqinfo}} object or name of a UCSC
+#' genome to store in the \code{\link{ChromatinAssay}}
 #' @describeIn seqinfo-methods set method for ChromatinAssay objects
 #' @exportMethod seqinfo<-
 setMethod(

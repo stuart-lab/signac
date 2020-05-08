@@ -84,6 +84,9 @@
 }
 \arguments{
 \item{x}{A \code{\link{ChromatinAssay}} object}
+
+\item{value}{A \code{\link[GenomeInfoDb]{Seqinfo}} object or name of a UCSC
+genome to store in the \code{\link{ChromatinAssay}}}
 }
 \description{
 Methods for accessing and modifying

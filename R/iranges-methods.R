@@ -277,8 +277,10 @@ setMethod(
   }
 )
 
-#' @param y For the \code{distance} method, a \code{\link[GenomicRange]{Grange}}
-#' object or a \code{\link{ChromatinAssay}} object
+#' @param y For the \code{distance} method, a
+#' \code{\link[GenomicRanges]{Grange}} object or a \code{\link{ChromatinAssay}}
+#' object
+#'
 #' @aliases distance
 #' @exportMethod distance
 #' @describeIn nearest-methods method for ANY, ChromatinAssay
@@ -718,8 +720,7 @@ setMethod(
 #' @param ... Additional arguments
 #' @param with.revmap See \code{\link[IRanges]{inter-range-methods}} in the
 #' \pkg{IRanges} packages
-#'
-#' @param na.rm
+#' @param na.rm Ignored
 #'
 #' @aliases range range,ChromatinAssay-method
 #' @seealso
@@ -754,6 +755,7 @@ setMethod(
   }
 )
 
+#' @param drop.empty.ranges See \code{?\link{IRanges}{inter-range-methods}}
 #' @aliases reduce
 #' @describeIn inter-range-methods method for ChromatinAssay objects
 #' @exportMethod reduce
@@ -781,6 +783,7 @@ setMethod(
   }
 )
 
+#' @param start,end See \code{?\link{IRanges}{inter-range-methods}}
 #' @aliases gaps
 #' @describeIn inter-range-methods method for ChromatinAssay objects
 #' @exportMethod gaps
