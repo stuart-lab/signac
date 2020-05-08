@@ -121,6 +121,7 @@ SingleCoveragePlot <- function(
     object = object,
     group.by = group.by
   )
+  # TODO check this still works with the changes made to SingleFileCutMatrix
   cutmat <- CutMatrix(
     object = object,
     region = region,
@@ -530,115 +531,6 @@ FragmentHistogram <- function(
   return(p)
 }
 
-# Plot pileup of Tn5 integration sites
-#
-# Plots a pileup of integration sites centered on a set of genomic positions.
-# Each genomic region will be aligned on the region midpoint, and extended
-# upstream and downstream from the midpoint.
-#
-# @param object A Seurat object
-# @param assay Name of the assay to use
-# @param regions A set of GRanges to use
-# @param cells Vector of cells to include. If NULL (default), use all cells.
-# @param upstream Number of bases to extend upstream of the region midpoint
-# @param downstream Number of bases to extend downstream of the region midpoint
-# @param group.by A set of identities to group the cells by. Can by anything in
-# the metadata. Default is to use the active identities.
-# @param min.cells Minimum number of cells in the group for the pileup to be
-# displayed for that group.
-# @param ymax Maximum value for the y-axis. If NULL (default), will be set
-# automatically.
-# @param idents Which identities to include in the plot. If NULL (default),
-# include everything with more than
-# \code{min.cells} cells.
-# @param verbose Display messages
-#
-# @importMethodsFrom GenomicRanges strand
-# @importFrom Seurat Idents
-# @importFrom Matrix colSums colMeans
-# @importFrom ggplot2 ggplot aes geom_line facet_wrap ylim xlab ylab
-# theme_classic theme element_blank element_text
-# @export
-# @return Returns a \code{\link[ggplot2]{ggplot2}} object
-RegionPileup <- function(
-  object,
-  regions,
-  cells = NULL,
-  assay = NULL,
-  upstream = 200,
-  downstream = 200,
-  group.by = NULL,
-  min.cells = 100,
-  ymax = NULL,
-  idents = NULL,
-  verbose = TRUE
-) {
-  # TODO WIP
-  cells <- SetIfNull(x = cells, y = colnames(x = object))
-  full.matrix <- CreateRegionPileupMatrix(
-    object = object,
-    regions = regions,
-    upstream = upstream,
-    downstream = downstream,
-    assay = assay,
-    cells = cells,
-    verbose = verbose
-  )
-  # reads.per.group <- AverageCounts(
-  #   object = object,
-  #   group.by = group.by,
-  #   verbose = FALSE
-  # )
-  # cells.per.group <- CellsPerGroup(
-  #   object = object,
-  #   group.by = group.by
-  # )
-  # group.scale.factors <- reads.per.group * cells.per.group
-  obj.groups <- GetGroups(
-    object = object,
-    group.by = group.by,
-    idents = idents
-  )
-  cellcounts <- table(obj.groups)
-  obj.groups <- obj.groups[obj.groups %in% names(
-    x = cellcounts[cellcounts > min.cells]
-  )]
-  if (verbose) {
-    message("Computing pileup for each cell group")
-  }
-  coverages <- ApplyMatrixByGroup(
-    mat = full.matrix,
-    groups = obj.groups,
-    fun = colMeans,
-    # group.scale.factors = group.scale.factors,
-    # scale.factor = scale.factor,
-    normalize = FALSE
-  )
-  ymin <- 0
-  ymax <- SetIfNull(
-    x = ymax,
-    y = signif(
-      x = max(coverages$norm.value, na.rm = TRUE),
-      digits = 2)
-    )
-  p <- ggplot(
-    data = coverages,
-    mapping = aes(x = position, y = norm.value, color = group)
-    ) +
-    geom_line(stat = "identity", size = 0.2) +
-    facet_wrap(facets = ~group) +
-    xlab(label = paste0("Distance from region midpoint (bp)")) +
-    ylab(label = paste0("Mean integration counts\n(0 - ", ymax, ")")) +
-    ylim(c(ymin, ymax)) +
-    theme_classic() +
-    theme(
-      axis.text.y = element_blank(),
-      legend.position = "none",
-      strip.text.y = element_text(angle = 0)
-    )
-  return(p)
-}
-
 globalVariables(names = "norm.value", package = "Signac")
 #' Plot the enrichment of Tn5 integration sites centered on a set of genomic
 #' regions.
@@ -677,7 +569,7 @@ EnrichmentPlot <- function(
   }
   enrichment.matrix <- positionEnrichment[[enrichment.key]]
 
-  # average the TSS score per group per base
+  # average the signal per group per base
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
