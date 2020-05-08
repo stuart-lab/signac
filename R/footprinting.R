@@ -275,76 +275,57 @@ Footprint.ChromatinAssay <- function(
   } else if (!is.null(x = motif.name)) {
     # pull motif positions from object
     motif.obj <- Motifs(object = object)
-    motif.positions <- GetMotifData(object = motif.obj, slot = "positions")
-    if (is.null(x = motif.positions)) {
-      stop("Motif positions not present in Motif object.")
-    } else {
-      if (motif.name %in% names(x = motif.positions)) {
-        regions <- motif.positions[[motif.name]]
-      } else {
-        # convert to common name and look up
-        common.names <- GetMotifData(object = motif.obj, slot = "motif.names")
-        if (motif.name %in% common.names) {
-          motif.idx <- names(x = which(x = common.names == motif.name))
-          regions = motif.positions[[motif.idx]]
-        } else {
-          stop("Motif not found")
-        }
-      }
+    if (length(x = motif.name) != length(x = key)) {
+      stop("A Key needs to be supplied for each motif")
     }
+    regionlist <- lapply(X = motif.name, FUN = function(x) {
+      GetFootprintRegions(motif.obj = motif.obj, motif.name = x)
+    })
   } else {
     if (is.null(x = key)) {
       stop("Must set a key to store positional enrichment information")
     }
+    # supplied regions, put into list
+    regionlist <- list(regions)
   }
-  motif.size <- width(x = regions)[[1]]
-  regions <- sort(x = regions)
-  # extend upstream and downstream
-  regions <- Extend(
-    x = regions,
-    upstream = upstream,
-    downstream = downstream
-  )
-  if (compute.expected) {
-    # check that bias is computed
-    bias <- GetAssayData(object = object, slot = "bias")
-    if (is.null(x = bias)) {
-      if (verbose) {
-        message("Computing Tn5 insertion bias")
-      }
-      object <- InsertionBias(
-        object = object,
-        genome = genome
-      )
-    }
-  }
-  # find expected and observed insertions across all regions
-  insertion.matrix <- Pileup(
-    object = object,
-    genome = genome,
-    regions = regions,
-    compute.expected = compute.expected,
-    verbose = verbose
-  )
-  # encode motif position as additional row in matrix
-  motif.vec <- t(x = matrix(
-    data = c(
-      rep(x = 0, upstream),
-      rep(x = 1, motif.size),
-      rep(x = 0, downstream)
-      )
+  for (i in seq_along(along.with = regionlist)) {
+    object <- RunFootprint(
+      object = object,
+      genome = genome,
+      regions = regionlist[[i]],
+      key = key[[i]],
+      upstream = upstream,
+      downstream = downstream,
+      compute.expected = compute.expected,
+      verbose = verbose
     )
-  )
-  rownames(x = motif.vec) <- "motif"
-  insertion.matrix <- rbind(insertion.matrix, motif.vec)
-  # store results in the assay
-  object <- suppressWarnings(expr = SetAssayData(
-    object = object,
-    slot = "positionEnrichment",
-    new.data = insertion.matrix,
-    key = key
-  ))
+  }
   return(object)
+}
+
+# Extract regions for a given TF name
+GetFootprintRegions <- function(
+  motif.obj,
+  motif.name
+) {
+  motif.positions <- GetMotifData(object = motif.obj, slot = "positions")
+  if (is.null(x = motif.positions)) {
+    stop("Motif positions not present in Motif object.")
+  } else {
+    if (motif.name %in% names(x = motif.positions)) {
+      regions <- motif.positions[[motif.name]]
+    } else {
+      # convert to common name and look up
+      common.names <- GetMotifData(object = motif.obj, slot = "motif.names")
+      if (motif.name %in% common.names) {
+        motif.idx <- names(x = which(x = common.names == motif.name))
+        regions <- motif.positions[[motif.idx]]
+      } else {
+        stop("Motif not found")
+      }
+    }
+    return(regions)
+  }
 }
 
 #' @rdname Footprint
@@ -393,7 +374,7 @@ Footprint.Seurat <- function(
 #' @rdname InsertionBias
 #' @method InsertionBias ChromatinAssay
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(BSgenome.Mmusculus.UCSC.mm10)
 #'
 #' region.use <- GRanges(
@@ -639,4 +620,73 @@ Pileup <- function(
   rownames(x = expected.insertions) <- "expected"
   insertion.matrix <- rbind(insertion.matrix, expected.insertions)
   return(insertion.matrix)
+}
+
+# Run Footprint function for a single set of regions
+# @param object A ChromatinAssay object
+# @param genome A BSgenome object
+# @param regions A set of genomic regions
+# @param key Key to store positional enrichment matrix under
+# @param upstream Number of bases to extend upstream
+# @param downstream Number of bases to extend downstream
+#' @importFrom IRanges width
+#' @importFrom BiocGenerics sort
+RunFootprint <- function(
+  object,
+  genome,
+  key,
+  regions,
+  upstream = 250,
+  downstream = 250,
+  compute.expected = TRUE,
+  verbose = TRUE
+) {
+  motif.size <- width(x = regions)[[1]]
+  regions <- sort(x = regions)
+  # extend upstream and downstream
+  regions <- Extend(
+    x = regions,
+    upstream = upstream,
+    downstream = downstream
+  )
+  if (compute.expected) {
+    # check that bias is computed
+    bias <- GetAssayData(object = object, slot = "bias")
+    if (is.null(x = bias)) {
+      if (verbose) {
+        message("Computing Tn5 insertion bias")
+      }
+      object <- InsertionBias(
+        object = object,
+        genome = genome
+      )
+    }
+  }
+  # find expected and observed insertions across all regions
+  insertion.matrix <- Pileup(
+    object = object,
+    genome = genome,
+    regions = regions,
+    compute.expected = compute.expected,
+    verbose = verbose
+  )
+  # encode motif position as additional row in matrix
+  motif.vec <- t(x = matrix(
+    data = c(
+      rep(x = 0, upstream),
+      rep(x = 1, motif.size),
+      rep(x = 0, downstream)
+    )
+  )
+  )
+  rownames(x = motif.vec) <- "motif"
+  insertion.matrix <- rbind(insertion.matrix, motif.vec)
+  # store results in the assay
+  object <- suppressWarnings(expr = SetAssayData(
+    object = object,
+    slot = "positionEnrichment",
+    new.data = insertion.matrix,
+    key = key
+  ))
+  return(object)
 }
