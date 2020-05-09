@@ -905,7 +905,7 @@ RunTFIDF.Seurat <- function(
 TSSEnrichment <- function(
   object,
   tss.positions = NULL,
-  n = 2000,
+  n = NULL,
   assay = NULL,
   cells = NULL,
   verbose = TRUE
