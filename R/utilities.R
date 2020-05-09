@@ -990,7 +990,9 @@ MultiRegionCutMatrix <- function(
     close(con = tabix.file)
     res[[i]] <- cm
   }
-  res <- Reduce(f = `+`, x = res)
+  # each matrix contains data for different cells at same positions
+  # bind all matrices together
+  res <- do.call(what = rbind, args = res)
   return(res)
 }
 
