@@ -212,3 +212,61 @@ FindMotifs <- function(
     return(results[order(results[, 7], -results[, 6]), ])
   }
 }
+
+#' @param name A vector of motif names
+#' @param id A vector of motif IDs. Only one of \code{name} and \code{id} should
+#' be supplied
+#' @rdname ConvertMotifID
+#' @importFrom methods hasArg
+#' @export
+ConvertMotifID.default <- function(object, name, id, ...) {
+  if (hasArg(name = name) & hasArg(name = id)) {
+    stop("Supply either name or ID, not both")
+  } else if (!hasArg(name = name) & !(hasArg(name = id))) {
+    stop("Supply vector of names or IDs to convert")
+  } else {
+    if (hasArg(name = name)) {
+      # convert name to ID
+      # construct a new vector for conversion
+      name.to.id <- names(x = object)
+      names(x = name.to.id) <- object
+      converted.names <- as.vector(x = name.to.id[name])
+    } else {
+      # convert ID to name
+      tmp <- object[id]
+      # for missing motif, change from NULL to NA
+      tmp[is.na(x = names(x = tmp))] <- NA
+      converted.names <- unlist(x = tmp, use.names = FALSE)
+    }
+    return(converted.names)
+  }
+}
+
+#' @method ConvertMotifID Motif
+#' @rdname ConvertMotifID
+#' @export
+ConvertMotifID.Motif <- function(object, ...) {
+  motif.names <- GetMotifData(object = object, slot = "motif.names")
+  return(ConvertMotifID(object = motif.names, ...))
+}
+
+#' @method ConvertMotifID ChromatinAssay
+#' @rdname ConvertMotifID
+#' @export
+ConvertMotifID.ChromatinAssay <- function(object, ...) {
+  motifs <- Motifs(object = object)
+  return(ConvertMotifID(object = motifs, ...))
+}
+
+#' @param assay For \code{Seurat} objectd. Name of assay to use.
+#' If NULL, use the default assay
+#'
+#' @importFrom Seurat DefaultAssay
+#'
+#' @method ConvertMotifID Seurat
+#' @rdname ConvertMotifID
+#' @export
+ConvertMotifID.Seurat <- function(object, assay = NULL, ...) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  return(ConvertMotifID(object = object[[assay]], ...))
+}

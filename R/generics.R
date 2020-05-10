@@ -55,6 +55,25 @@ BinarizeCounts <- function(object, ...) {
   UseMethod(generic = "Cells<-", object = x)
 }
 
+#' Convert between motif name and motif ID
+#'
+#' Converts from motif name to motif ID or vice versa. To convert common names
+#' to IDs, use the \code{name} parameter. To convert IDs to common names, use
+#' the \code{id} parameter.
+#'
+#' @param object A Seurat, ChromatinAssay, or Motif object
+#' @param ... Arguments passed to other methods
+#'
+#' @return Returns a character vector with the same length and order as the
+#' input. Any names or IDs that were not found will be stored as \code{NA}.
+#'
+#' @rdname ConvertMotifID
+#' @export ConvertMotifID
+#'
+ConvertMotifID <- function(object, ...) {
+  UseMethod(generic = "ConvertMotifID", object = object)
+}
+
 #' Find most frequently observed features
 #'
 #' Find top binary features for a given assay based on total number of cells
