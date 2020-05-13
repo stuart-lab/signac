@@ -370,18 +370,19 @@ CountsInRegion <- function(
 #' @param x List of character vectors
 #' @export
 #' @return Returns a string
+#' @importFrom stringi stri_split_fixed
 #' @examples
 #' ExtractCell(x = "chr1\t1\t10\tatcg\t1")
 ExtractCell <- function(x) {
   if (length(x = x) == 0) {
     return(NULL)
   } else {
-    tmp <- strsplit(x = x, split = "\t")
+    tmp <- stri_split_fixed(str = x, pattern = "\t")
     return(unlist(x = tmp)[5 * (seq_along(along.with = tmp)) - 1])
   }
 }
 
-#' FractionCountsInRegion
+#' Fraction of counts in a genomic region
 #'
 #' Find the fraction of counts per cell that overlap a given set of genomic
 #' ranges
@@ -391,7 +392,7 @@ ExtractCell <- function(x) {
 #' @param regions A GRanges object containing a set of genomic regions
 #' @param ... Additional arguments passed to \code{\link{CountsInRegion}}
 #' @importFrom Matrix colSums
-#' @importFrom Seurat GetAssayData
+#' @importFrom Seurat GetAssayData DefaultAssay
 #'
 #' @export
 #' @return Returns a numeric vector
@@ -403,10 +404,11 @@ ExtractCell <- function(x) {
 #' )
 FractionCountsInRegion <- function(
   object,
-  assay,
   regions,
+  assay = NULL,
   ...
 ) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   reads.in.region <- CountsInRegion(
     object = object,
     regions = regions,
