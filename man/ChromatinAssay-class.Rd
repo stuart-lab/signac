@@ -25,10 +25,14 @@ information about the genome sequence used.}
 \item{\code{annotation}}{A  \code{\link[GenomicRanges]{GRanges}} object containing
 genomic annotations}
 
-\item{\code{bias}}{A matrix containing Tn5 integration bias information
+\item{\code{bias}}{A vector containing Tn5 integration bias information
 (frequency of Tn5 integration at different kmers)}
 
 \item{\code{positionEnrichment}}{A named list of matrices containing positional
 enrichment scores for Tn5 integration (for example, enrichment at the TSS)}
+
+\item{\code{links}}{A \code{\link[GenomicRanges]{GRanges}} object describing linked
+genomic positions, such as co-accessible sites or enhancer-gene regulatory
+relationships.}
 }}
 
