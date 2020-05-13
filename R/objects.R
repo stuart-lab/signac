@@ -75,10 +75,13 @@ Motif <- setClass(
 #' information about the genome sequence used.
 #' @slot annotation A  \code{\link[GenomicRanges]{GRanges}} object containing
 #' genomic annotations
-#' @slot bias A matrix containing Tn5 integration bias information
+#' @slot bias A vector containing Tn5 integration bias information
 #' (frequency of Tn5 integration at different kmers)
 #' @slot positionEnrichment A named list of matrices containing positional
 #' enrichment scores for Tn5 integration (for example, enrichment at the TSS)
+#' @slot links A \code{\link[GenomicRanges]{GRanges}} object describing linked
+#' genomic positions, such as co-accessible sites or enhancer-gene regulatory
+#' relationships.
 #'
 #' @name ChromatinAssay-class
 #' @rdname ChromatinAssay-class
@@ -94,7 +97,8 @@ ChromatinAssay <- setClass(
     "seqinfo" = "ANY",
     "annotation" = "ANY",
     "bias" = "ANY",
-    "positionEnrichment" = "list"
+    "positionEnrichment" = "list",
+    "links" = "GRanges"
   )
 )
 
