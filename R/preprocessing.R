@@ -252,7 +252,8 @@ FeatureMatrix <- function(
         features = features,
         cells = cells,
         sep = sep,
-        verbose = verbose
+        verbose = verbose,
+        chunk = chunk
       )
     })
   # cbind all the matrices
