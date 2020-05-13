@@ -47,7 +47,8 @@ Imports:
     Biobase,
     BiocGenerics,
     Biostrings,
-    ggrepel
+    ggrepel,
+    stringi
 Collate: 
     'data.R'
     'generics.R'
