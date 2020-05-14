@@ -112,7 +112,12 @@ Thanks to Andrew Hill for providing an early version of this function
 \examples{
 \donttest{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-atac_small <- SetFragments(atac_small, file = fpath)
+fragments <- CreateFragmentObject(
+  path = fpath,
+  cells = colnames(atac_small),
+  validate.fragments = FALSE
+)
+Fragments(atac_small) <- fragments
 CoveragePlot(object = atac_small, region = c("chr1-713500-714500"))
 }
 }
