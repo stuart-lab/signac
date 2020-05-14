@@ -810,13 +810,6 @@ MultiGetReadsInRegion <- function(
 #' @importFrom Rsamtools TabixFile
 #' @importMethodsFrom GenomicRanges width start end
 # @return Returns a sparse matrix
-# @examples
-# fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-# atac_small <- SetFragments(atac_small, file = fpath)
-# SingleFileCutMatrix(
-#  object = atac_small,
-#  region = StringToGRanges("chr1-10245-762629")
-# )
 SingleFileCutMatrix <- function(
   cellmap,
   region,
@@ -1178,16 +1171,19 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
 #
 # @return A new string, that parses out the requested fields, and (if multiple),
 # rejoins them with the same delimiter
+#' @importFrom stringi stri_split_fixed
 #
 ExtractField <- function(string, field = 1, delim = "_") {
   fields <- as.numeric(
-    x = unlist(x = strsplit(x = as.character(x = field), split = ","))
+    x = unlist(x = stri_split_fixed(
+      str = as.character(x = field), pattern = ",")
+    )
   )
   if (length(x = fields) == 1) {
-    return(strsplit(x = string, split = delim)[[1]][field])
+    return(stri_split_fixed(str = string, pattern = delim)[[1]][field])
   }
   return(paste(
-    strsplit(x = string, split = delim)[[1]][fields],
+    stri_split_fixed(str = string, pattern = delim)[[1]][fields],
     collapse = delim))
 }
 
