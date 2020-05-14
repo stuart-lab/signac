@@ -610,7 +610,7 @@ CoveragePlot <- function(
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
 #' \donttest{
-#' motif.obj <- GetMotifObject(atac_small)
+#' motif.obj <- Seurat::GetAssayData(atac_small, slot = "motifs")
 #' MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
 #' }
 MotifPlot <- function(
@@ -656,7 +656,11 @@ globalVariables(names = "group", package = "Signac")
 #' @examples
 #' \donttest{
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' Fragments(atac_small) <- fpath
+#' Fragments(atac_small) <- CreateFragmentObject(
+#'   path = fpath,
+#'   cells = colnames(atac_small),
+#'   validate.fragments = FALSE
+#' )
 #' FragmentHistogram(object = atac_small, region = "chr1-10245-780007")
 #' }
 FragmentHistogram <- function(

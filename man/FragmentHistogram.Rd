@@ -41,7 +41,11 @@ Plot fragment length histogram
 \examples{
 \donttest{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-Fragments(atac_small) <- fpath
+Fragments(atac_small) <- CreateFragmentObject(
+  path = fpath,
+  cells = colnames(atac_small),
+  validate.fragments = FALSE
+)
 FragmentHistogram(object = atac_small, region = "chr1-10245-780007")
 }
 }
