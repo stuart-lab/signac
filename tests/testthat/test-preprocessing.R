@@ -22,13 +22,14 @@ test_that("DownsampleFeatures works", {
   set.seed(1)
   atac_ds <- DownsampleFeatures(object = atac_small, n = 5, verbose = FALSE)
   expect_equal(
-    object = VariableFeatures(object = atac_ds),
+    object = Seurat::VariableFeatures(object = atac_ds),
     expected = c(
-      "chr1:1804025-1804468",
-      "chr1:2221250-2223390",
-      "chr1:6074646-6075340",
-      "chr1:8931013-8932013",
-      "chr1:1562519-1567986")
+      "chr1-1804025-1804468",
+      "chr1-2221250-2223390",
+      "chr1-6074646-6075340",
+      "chr1-8931013-8932013",
+      "chr1-1562519-1567986"
+      )
   )
 })
 
@@ -36,13 +37,13 @@ test_that("FindTopFeatures works", {
   VariableFeatures(atac_small) <- NULL
   atac_small <- FindTopFeatures(object = atac_small)
   expect_equal(
-    object = head(VariableFeatures(object = atac_small)),
-    expected = c("chr1:1549446-1552535",
-                 "chr1:1051006-1053102",
-                 "chr1:1240091-1245762",
-                 "chr1:1333514-1336003",
-                 "chr1:1309645-1311492",
-                 "chr1:928630-937949")
+    object = head(Seurat::VariableFeatures(object = atac_small)),
+    expected = c("chr1-2157847-2188813",
+                 "chr1-2471903-2481288",
+                 "chr1-6843960-6846894",
+                 "chr1-3815928-3820356",
+                 "chr1-8935313-8940649",
+                 "chr1-2515241-2519350")
   )
 })
 
@@ -56,7 +57,7 @@ test_that("FRiP works", {
   expect_equal(
     object = as.vector(x = head(atac_small$FRiP)),
     expected = c(
-      1.4090909, 1.4444444, 1.1363636, 0.8798077, 1.0000000, 0.2166667
+      2.9200000, 2.9090909, 2.1980198, 2.2282454, 2.2333333, 0.3478261
     ),
     tolerance = 1 / 100000
   )

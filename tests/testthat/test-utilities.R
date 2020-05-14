@@ -3,7 +3,7 @@ library(GenomicRanges)
 test_that("AverageCounts works", {
   expect_equal(
     object = as.vector(x = AverageCounts(object = atac_small)),
-    expected = c(39.84444, 45.01818),
+    expected = c(141.8545, 139.4444),
     tolerance = 1 / 1000
   )
 })
@@ -11,7 +11,7 @@ test_that("AverageCounts works", {
 test_that("CellsPerGroup works", {
   expect_equal(
     object = as.vector(x = CellsPerGroup(object = atac_small)),
-    expected = c(45, 55)
+    expected = c(55, 45, 0)
   )
 })
 
