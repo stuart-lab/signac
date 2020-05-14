@@ -869,29 +869,22 @@ SingleFileCutMatrix <- function(
   return(cut.matrix)
 }
 
-#' Generate matrix of integration sites
-#'
-#' Generates a cell-by-position matrix of Tn5 integration sites.
-#'
-#' @param object A Seurat object
-#' @param region A GRanges object containing the region of interest
-#' @param assay A name of assay to use. Must be a \code{\link{ChromatinAssay}}
-#' containing a list of \code{\link{Fragment}} objects.
-#' @param cells Which cells to include in the matrix. If NULL (default), use all
-#' cells in the object
-#' @param group.by Name of grouping variable to use
-#' @param verbose Display messages
-#' @return Returns a sparse matrix
+# Generate matrix of integration sites
+#
+# Generates a cell-by-position matrix of Tn5 integration sites.
+#
+# @param object A Seurat object
+# @param region A GRanges object containing the region of interest
+# @param assay A name of assay to use. Must be a \code{\link{ChromatinAssay}}
+# containing a list of \code{\link{Fragment}} objects.
+# @param cells Which cells to include in the matrix. If NULL (default), use all
+# cells in the object
+# @param group.by Name of grouping variable to use
+# @param verbose Display messages
+# @return Returns a sparse matrix
 #' @importFrom Seurat DefaultAssay
 #' @importFrom Rsamtools TabixFile seqnamesTabix
 #' @importFrom GenomeInfoDb keepSeqlevels
-#' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' atac_small <- SetFragments(atac_small, file = fpath)
-#' CutMatrix(
-#'  object = atac_small,
-#'  region = StringToGRanges("chr1-10245-762629")
-#' )
 CutMatrix <- function(
   object,
   region,
