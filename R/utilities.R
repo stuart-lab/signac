@@ -51,6 +51,38 @@ AverageCounts <- function(
   return(results)
 }
 
+#' Accessible peaks
+#'
+#' Find accessible peaks in a set of cells
+#'
+#' @param object A Seurat object
+#' @param assay Name of assay to use
+#' @param idents A set of identity classes to find accessible peaks for
+#' @param cells A vector of cells to find accessible peaks for
+#' @param min.cells Minimum number of cells with the peak accessible (>0 counts)
+#' for the peak to be called accessible
+#' @export
+#' @importFrom Seurat WhichCells DefaultAssay GetAssayData
+#' @importFrom Matrix rowSums
+#' @return Returns a vector of peak names
+AccessiblePeaks <- function(
+  object,
+  assay = NULL,
+  idents = NULL,
+  cells = NULL,
+  min.cells = 10
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  cells <- SetIfNull(x = cells, y = WhichCells(object, idents = idents))
+  open.peaks <- GetAssayData(
+    object = object,
+    assay = assay,
+    slot = "counts"
+  )[, cells]
+  peaks <- names(x = which(x = rowSums(x = open.peaks > 0) > min.cells))
+  return(peaks)
+}
+
 #' Cells per group
 #'
 #' Count the number of cells in each group
