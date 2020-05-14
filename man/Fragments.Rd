@@ -44,7 +44,7 @@ fragments <- CreateFragmentObject(
   cells = colnames(atac_small),
   validate.fragments = FALSE
 )
-Fragments(atac_small[["peaks"]]) <- fragments
+Fragments(atac_small[["bins"]]) <- fragments
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 fragments <- CreateFragmentObject(
   path = fpath,

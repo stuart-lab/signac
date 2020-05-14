@@ -30,9 +30,11 @@ Returns a subsetted \code{\link{Motif}} object
 Return a subset of a Motif object
 }
 \examples{
-motif.obj <- GetAssayData(object = atac_small[['peaks']], slot = "motifs")
+motif.obj <- Seurat::GetAssayData(
+  object = atac_small[['peaks']], slot = "motifs"
+)
 subset(x = motif.obj, features = head(rownames(motif.obj), 10))
-motif.obj <- GetAssayData(
+motif.obj <- Seurat::GetAssayData(
   object = atac_small, assay = 'peaks', slot = 'motifs'
 )
 motif.obj[1:10,1:10]

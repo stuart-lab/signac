@@ -31,7 +31,9 @@ Returns a \code{\link[Seurat]{Seurat}} object
 Get motif matrix for given assay
 }
 \examples{
-motif.obj <- GetAssayData(object = atac_small[['peaks']], slot = "motifs")
+motif.obj <- Seurat::GetAssayData(
+  object = atac_small[['peaks']], slot = "motifs"
+)
 GetMotifData(object = motif.obj)
 GetMotifData(object = atac_small)
 }
