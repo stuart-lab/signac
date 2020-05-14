@@ -43,7 +43,10 @@ The computed score will be added to the object metadata as "TSS.enrichment".
 \examples{
 \dontrun{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-Fragments(atac_small) <- fpath
+Fragments(atac_small) <- CreateFragmentObject(
+  path = fpath,
+  cells = colnames(atac_small)
+)
 TSSEnrichment(object = atac_small)
 }
 }

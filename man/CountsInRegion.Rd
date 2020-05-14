@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{CountsInRegion}
 \alias{CountsInRegion}
-\title{CountsInRegion}
+\title{Counts in region}
 \usage{
 CountsInRegion(object, assay, regions, ...)
 }

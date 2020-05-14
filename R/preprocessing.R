@@ -117,8 +117,7 @@ BinarizeCounts.Seurat <- function(
 #' motif.matrix <- CreateMotifMatrix(
 #'   features = granges(atac_small),
 #'   pwm = pwm,
-#'   genome = BSgenome.Hsapiens.UCSC.hg19,
-#'   sep = c(":", "-")
+#'   genome = BSgenome.Hsapiens.UCSC.hg19
 #' )
 #' }
 CreateMotifMatrix <- function(
@@ -189,7 +188,7 @@ DownsampleFeatures <- function(
   return(object)
 }
 
-#' FeatureMatrix
+#' Feature Matrix
 #'
 #' Construct a feature x cell matrix from a genomic fragments file
 #'
@@ -210,11 +209,11 @@ DownsampleFeatures <- function(
 #' @export
 #' @return Returns a sparse matrix
 #' @examples
-#' # TODO update example with Fragment object
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fragments <- CreateFragmentObject(fpath)
 #' FeatureMatrix(
-#'   fragments = fpath,
-#'   features = StringToGRanges(rownames(atac_small), sep = c(":", "-"))
+#'   fragments = fragments,
+#'   features = granges(atac_small)
 #' )
 FeatureMatrix <- function(
   fragments,
@@ -512,7 +511,7 @@ FRiP <- function(
   return(object)
 }
 
-#' GenomeBinMatrix
+#' Genome bin matrix
 #'
 #' Construct a bin x cell matrix from a fragments file.
 #'
@@ -538,14 +537,14 @@ FRiP <- function(
 #' @export
 #' @return Returns a sparse matrix
 #' @examples
-#' gn <- 780007
-#' names(gn) <- 'chr1'
+#' genome <- 780007
+#' names(genome) <- 'chr1'
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fragments <- CreateFragmentObject(fpath)
 #' GenomeBinMatrix(
-#'   fragments = fpath,
-#'   genome = gn,
-#'   binsize = 1000,
-#'   chunk = 1
+#'   fragments = fragments,
+#'   genome = genome,
+#'   binsize = 1000
 #' )
 GenomeBinMatrix <- function(
   fragments,
@@ -598,7 +597,10 @@ globalVariables(names = "cell", package = "Signac")
 #' @export
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' Fragments(atac_small) <- fpath
+#' Fragments(atac_small) <- CreateFragmentObject(
+#'   path = fpath,
+#'   cells = colnames(atac_small)
+#' )
 #' NucleosomeSignal(object = atac_small)
 NucleosomeSignal <- function(
   object,
@@ -656,8 +658,8 @@ NucleosomeSignal <- function(
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
-#' object = rownames(atac_small),
-#' genome = BSgenome.Hsapiens.UCSC.hg19
+#'   object = rownames(atac_small),
+#'   genome = BSgenome.Hsapiens.UCSC.hg19
 #' )
 #' }
 RegionStats.default <- function(
@@ -692,8 +694,8 @@ RegionStats.default <- function(
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
-#' object = atac_small[['peaks']],
-#' genome = BSgenome.Hsapiens.UCSC.hg19
+#'   object = atac_small[['peaks']],
+#'   genome = BSgenome.Hsapiens.UCSC.hg19
 #' )
 #' }
 RegionStats.ChromatinAssay <- function(
@@ -900,7 +902,10 @@ RunTFIDF.Seurat <- function(
 #' @examples
 #' \dontrun{
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' Fragments(atac_small) <- fpath
+#' Fragments(atac_small) <- CreateFragmentObject(
+#'   path = fpath,
+#'   cells = colnames(atac_small)
+#' )
 #' TSSEnrichment(object = atac_small)
 #' }
 TSSEnrichment <- function(
@@ -911,12 +916,6 @@ TSSEnrichment <- function(
   cells = NULL,
   verbose = TRUE
 ) {
-  # TODO add fast = TRUE option that would just get the total insertions
-  # in the center and the total in the two flanks, and compute the ratio
-  # would allow computing the score faster but can't generate the plot
-  # should pull all regions at once (one scanTabix call), rather than iterating
-  # in loop.
-
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (is.null(x = tss.positions)) {
     # work out TSS positions from gene annotations
@@ -974,6 +973,8 @@ TSSEnrichment <- function(
     x = e.dist(object$TSS.enrichment),
     digits = 2
   )
+
+  # TODO add row for expected and motif position
 
   # store the normalized TSS matrix
   object <- suppressWarnings(SetAssayData(

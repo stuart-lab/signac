@@ -5,6 +5,8 @@
 \alias{Fragments<-}
 \alias{Fragments.ChromatinAssay}
 \alias{Fragments.Seurat}
+\alias{Fragments<-.ChromatinAssay}
+\alias{Fragments<-.Seurat}
 \title{Get the Fragment objects}
 \usage{
 Fragments(object, ...)
@@ -14,6 +16,10 @@ Fragments(object, ...) <- value
 \method{Fragments}{ChromatinAssay}(object, ...)
 
 \method{Fragments}{Seurat}(object, ...)
+
+\method{Fragments}{ChromatinAssay}(object, ...) <- value
+
+\method{Fragments}{Seurat}(object, ...) <- value
 }
 \arguments{
 \item{object}{A Seurat object or ChromatinAssay object}
@@ -28,4 +34,22 @@ no Fragment objects present, returns an empty list.
 }
 \description{
 Get the Fragment objects
+}
+\examples{
+Fragments(atac_small[["peaks"]])
+Fragments(atac_small)
+fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fragments <- CreateFragmentObject(
+  path = fpath,
+  cells = colnames(atac_small),
+  validate.fragments = FALSE
+)
+Fragments(atac_small[["peaks"]]) <- fragments
+fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fragments <- CreateFragmentObject(
+  path = fpath,
+  cells = colnames(atac_small),
+  validate.fragments = FALSE
+)
+Fragments(atac_small) <- fragments
 }

@@ -136,9 +136,9 @@ globalVariables(names = "pvalue", package = "Signac")
 #' de.motif <- head(rownames(atac_small))
 #' bg.peaks <- tail(rownames(atac_small))
 #' FindMotifs(
-#' object = atac_small,
-#' features = de.motif,
-#' background = bg.peaks
+#'   object = atac_small,
+#'   features = de.motif,
+#'   background = bg.peaks
 #' )
 FindMotifs <- function(
   object,

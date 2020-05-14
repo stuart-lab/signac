@@ -27,7 +27,7 @@ Find the closest feature to a given set of genomic regions
 \donttest{
 ClosestFeature(
   object = atac_small,
-  regions = head(rownames(atac_small))
+  regions = head(granges(atac_small))
 )
 }
 }

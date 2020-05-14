@@ -43,6 +43,9 @@ fragments < 147 bp (nucleosome-free)
 }
 \examples{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-Fragments(atac_small) <- fpath
+Fragments(atac_small) <- CreateFragmentObject(
+  path = fpath,
+  cells = colnames(atac_small)
+)
 NucleosomeSignal(object = atac_small)
 }

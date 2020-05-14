@@ -86,7 +86,6 @@ Motif <- setClass(
 #' @name ChromatinAssay-class
 #' @rdname ChromatinAssay-class
 #' @exportClass ChromatinAssay
-#'
 ChromatinAssay <- setClass(
   Class = "ChromatinAssay",
   contains = "Assay",
@@ -664,7 +663,7 @@ GetFragmentData <- function(object, slot = "path") {
 #' @method GetMotifData Motif
 #' @export
 #' @examples
-#' motif.obj <- GetMotifObject(object = atac_small[['peaks']])
+#' motif.obj <- GetAssayData(object = atac_small[['peaks']], slot = "motifs")
 #' GetMotifData(object = motif.obj)
 GetMotifData.Motif <- function(object, slot = "data", ...) {
   return(slot(object = object, name = slot))
@@ -888,7 +887,7 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
 #' @method SetMotifData Motif
 #' @export
 #' @examples
-#' motif.obj <- GetMotifObject(object = atac_small)
+#' motif.obj <- GetAssayData(object = atac_small[['peaks']], slot = "motifs")
 #' SetMotifData(object = motif.obj, slot = 'data', new.data = matrix())
 SetMotifData.Motif <- function(object, slot, new.data, ...) {
   if (!(slot %in% slotNames(x = object))) {
@@ -915,7 +914,7 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
 #' @export
 #' @examples
 #' SetMotifData(
-#' object = atac_small[['peaks']], slot = 'data', new.data = matrix()
+#'   object = atac_small[['peaks']], slot = 'data', new.data = matrix()
 #' )
 #' @method SetMotifData ChromatinAssay
 SetMotifData.ChromatinAssay <- function(object, slot, new.data, ...) {
@@ -980,7 +979,7 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
 #' @return Returns a subsetted \code{\link{Motif}} object
 #' @export
 #' @examples
-#' motif.obj <- GetMotifObject(object = atac_small)
+#' motif.obj <- GetAssayData(object = atac_small[['peaks']], slot = "motifs")
 #' subset(x = motif.obj, features = head(rownames(motif.obj), 10))
 subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
   features <- SetIfNull(x = features, y = rownames(x = x))
@@ -1348,7 +1347,7 @@ merge.ChromatinAssay <- function(
 #' @export
 #' @method [ Motif
 #' @examples
-#' motif.obj <- Seurat::GetAssayData(
+#' motif.obj <- GetAssayData(
 #'   object = atac_small, assay = 'peaks', slot = 'motifs'
 #' )
 #' motif.obj[1:10,1:10]
@@ -1458,6 +1457,8 @@ setMethod(
 #' @rdname Annotation
 #' @method Annotation ChromatinAssay
 #' @export
+#' @examples
+#' Annotation(atac_small[["peaks"]])
 Annotation.ChromatinAssay <- function(object, ...) {
   return(slot(object = object, name = "annotation"))
 }
@@ -1467,6 +1468,8 @@ Annotation.ChromatinAssay <- function(object, ...) {
 #' @rdname Annotation
 #' @method Annotation Seurat
 #' @export
+#' @examples
+#' Annotation(atac_small)
 Annotation.Seurat <- function(object, ...) {
   assay <- DefaultAssay(object = object)
   return(Annotation(object = object[[assay]]))
@@ -1475,6 +1478,8 @@ Annotation.Seurat <- function(object, ...) {
 #' @rdname Fragments
 #' @method Fragments ChromatinAssay
 #' @export
+#' @examples
+#' Fragments(atac_small[["peaks"]])
 Fragments.ChromatinAssay <- function(object, ...) {
   return(slot(object, name = "fragments"))
 }
@@ -1484,6 +1489,8 @@ Fragments.ChromatinAssay <- function(object, ...) {
 #' @rdname Fragments
 #' @method Fragments Seurat
 #' @export
+#' @examples
+#' Fragments(atac_small)
 Fragments.Seurat <- function(object, ...) {
   assay <- DefaultAssay(object = object)
   return(Fragments(object = object[[assay]]))
@@ -1492,6 +1499,8 @@ Fragments.Seurat <- function(object, ...) {
 #' @rdname Motifs
 #' @method Motifs ChromatinAssay
 #' @export
+#' @examples
+#' Motifs(atac_small[["peaks"]])
 Motifs.ChromatinAssay <- function(object, ...) {
   return(slot(object = object, name = "motifs"))
 }
@@ -1501,6 +1510,8 @@ Motifs.ChromatinAssay <- function(object, ...) {
 #' @importFrom Seurat DefaultAssay
 #' @method Motifs Seurat
 #' @export
+#' @examples
+#' Motifs(atac_small)
 Motifs.Seurat <- function(object, ...) {
   assay <- DefaultAssay(object = object)
   return(Motifs(object = object[[assay]]))
@@ -1519,7 +1530,11 @@ dim.Motif <- function(x) {
 }
 
 #' @export
+#' @rdname Annotation
 #' @method Annotation<- ChromatinAssay
+#' @examples
+#' genes <- Annotation(atac_small)
+#' Annotation(atac_small[["peaks"]]) <- genes
 "Annotation<-.ChromatinAssay" <- function(object, ..., value) {
   object <- SetAssayData(object = object, slot = "annotation", new.data = value)
   return(object)
@@ -1528,6 +1543,10 @@ dim.Motif <- function(x) {
 #' @export
 #' @importFrom Seurat DefaultAssay
 #' @method Annotation<- Seurat
+#' @rdname Annotation
+#' @examples
+#' genes <- Annotation(atac_small)
+#' Annotation(atac_small) <- genes
 "Annotation<-.Seurat" <- function(object, ..., value) {
   assay <- DefaultAssay(object = object)
   Annotation(object = object[[assay]]) <- value
@@ -1536,6 +1555,15 @@ dim.Motif <- function(x) {
 
 #' @export
 #' @method Fragments<- ChromatinAssay
+#' @rdname Fragments
+#' @examples
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fragments <- CreateFragmentObject(
+#'   path = fpath,
+#'   cells = colnames(atac_small),
+#'   validate.fragments = FALSE
+#' )
+#' Fragments(atac_small[["peaks"]]) <- fragments
 "Fragments<-.ChromatinAssay" <- function(object, ..., value) {
   if (is.null(x = value)) {
     slot(object = object, name = "fragments") <- list()
@@ -1552,8 +1580,17 @@ dim.Motif <- function(x) {
 }
 
 #' @export
-#' @importFrom Seurat DefaultAssay
 #' @method Fragments<- Seurat
+#' @rdname Fragments
+#' @importFrom Seurat DefaultAssay
+#' @examples
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fragments <- CreateFragmentObject(
+#'   path = fpath,
+#'   cells = colnames(atac_small),
+#'   validate.fragments = FALSE
+#' )
+#' Fragments(atac_small) <- fragments
 "Fragments<-.Seurat" <- function(object, ..., value) {
   assay <- DefaultAssay(object = object)
   Fragments(object = object[[assay]]) <- value

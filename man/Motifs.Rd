@@ -21,3 +21,7 @@ Motifs(object, ...)
 \description{
 Get the Motif object
 }
+\examples{
+Motifs(atac_small[["peaks"]])
+Motifs(atac_small)
+}

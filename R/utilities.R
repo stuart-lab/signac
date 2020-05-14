@@ -98,7 +98,7 @@ CellsPerGroup <- function(
 #' \donttest{
 #' ClosestFeature(
 #'   object = atac_small,
-#'   regions = head(rownames(atac_small))
+#'   regions = head(granges(atac_small))
 #' )
 #' }
 ClosestFeature <- function(
@@ -320,7 +320,7 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
   return(list(cells = cellnames, region = regions))
 }
 
-#' CountsInRegion
+#' Counts in region
 #'
 #' Count reads per cell overlapping a given set of regions
 #'
@@ -360,26 +360,6 @@ CountsInRegion <- function(
     object = object, assay = assay, slot = "counts"
   )[hit.regions, ]
   return(colSums(data.matrix))
-}
-
-#' ExtractCell
-#'
-#' Extract cell barcode from list of tab delimited character
-#' vectors (output of \code{\link{scanTabix}})
-#'
-#' @param x List of character vectors
-#' @export
-#' @return Returns a string
-#' @importFrom stringi stri_split_fixed
-#' @examples
-#' ExtractCell(x = "chr1\t1\t10\tatcg\t1")
-ExtractCell <- function(x) {
-  if (length(x = x) == 0) {
-    return(NULL)
-  } else {
-    tmp <- stri_split_fixed(str = x, pattern = "\t")
-    return(unlist(x = tmp)[5 * (seq_along(along.with = tmp)) - 1])
-  }
 }
 
 #' Fraction of counts in a genomic region
@@ -673,6 +653,23 @@ ChunkGRanges <- function(granges, nchunk) {
     return(granges[chunklower:chunkupper])
   })
   return(range.list)
+}
+
+# Extract cell
+#
+# Extract cell barcode from list of tab delimited character
+# vectors (output of \code{\link{scanTabix}})
+#
+# @param x List of character vectors
+# @return Returns a string
+#' @importFrom stringi stri_split_fixed
+ExtractCell <- function(x) {
+  if (length(x = x) == 0) {
+    return(NULL)
+  } else {
+    tmp <- stri_split_fixed(str = x, pattern = "\t")
+    return(unlist(x = tmp)[5 * (seq_along(along.with = tmp)) - 1])
+  }
 }
 
 # GetReadsInRegion

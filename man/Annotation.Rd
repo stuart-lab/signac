@@ -5,6 +5,8 @@
 \alias{Annotation<-}
 \alias{Annotation.ChromatinAssay}
 \alias{Annotation.Seurat}
+\alias{Annotation<-.ChromatinAssay}
+\alias{Annotation<-.Seurat}
 \title{Annotation}
 \usage{
 Annotation(object, ...)
@@ -14,6 +16,10 @@ Annotation(object, ...) <- value
 \method{Annotation}{ChromatinAssay}(object, ...)
 
 \method{Annotation}{Seurat}(object, ...)
+
+\method{Annotation}{ChromatinAssay}(object, ...) <- value
+
+\method{Annotation}{Seurat}(object, ...) <- value
 }
 \arguments{
 \item{object}{A Seurat object or ChromatinAssay object}
@@ -31,4 +37,12 @@ if the annotation data is present, otherwise returns NULL
 }
 \description{
 Get the annotation from a ChromatinAssay
+}
+\examples{
+Annotation(atac_small[["peaks"]])
+Annotation(atac_small)
+genes <- Annotation(atac_small)
+Annotation(atac_small[["peaks"]]) <- genes
+genes <- Annotation(atac_small)
+Annotation(atac_small) <- genes
 }

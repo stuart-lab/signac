@@ -60,8 +60,7 @@ pwm <- getMatrixSet(
 motif.matrix <- CreateMotifMatrix(
   features = granges(atac_small),
   pwm = pwm,
-  genome = BSgenome.Hsapiens.UCSC.hg19,
-  sep = c(":", "-")
+  genome = BSgenome.Hsapiens.UCSC.hg19
 )
 }
 }

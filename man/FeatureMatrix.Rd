@@ -2,7 +2,7 @@
 % Please edit documentation in R/preprocessing.R
 \name{FeatureMatrix}
 \alias{FeatureMatrix}
-\title{FeatureMatrix}
+\title{Feature Matrix}
 \usage{
 FeatureMatrix(
   fragments,
@@ -40,10 +40,10 @@ Returns a sparse matrix
 Construct a feature x cell matrix from a genomic fragments file
 }
 \examples{
-# TODO update example with Fragment object
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fragments <- CreateFragmentObject(fpath)
 FeatureMatrix(
-  fragments = fpath,
-  features = StringToGRanges(rownames(atac_small), sep = c(":", "-"))
+  fragments = fragments,
+  features = granges(atac_small)
 )
 }
