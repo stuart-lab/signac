@@ -288,7 +288,6 @@ SingleCoveragePlot <- function(
     object = object,
     group.by = group.by
   )
-  # TODO check this still works with the changes made to SingleFileCutMatrix
   cutmat <- CutMatrix(
     object = object,
     region = region,
@@ -296,6 +295,7 @@ SingleCoveragePlot <- function(
     cells = cells,
     verbose = FALSE
   )
+  colnames(cutmat) <- start(x = region):end(x = region)
   group.scale.factors <- reads.per.group * cells.per.group
   scale.factor <- SetIfNull(
     x = scale.factor, y = median(x = group.scale.factors)
@@ -519,7 +519,12 @@ SingleCoveragePlot <- function(
 #' @examples
 #' \donttest{
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' atac_small <- SetFragments(atac_small, file = fpath)
+#' fragments <- CreateFragmentObject(
+#'   path = fpath,
+#'   cells = colnames(atac_small),
+#'   validate.fragments = FALSE
+#' )
+#' Fragments(atac_small) <- fragments
 #' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"))
 #' }
 CoveragePlot <- function(
@@ -677,6 +682,7 @@ FragmentHistogram <- function(
   } else {
     md <- object[[]]
     groups <- object[[group.by]]
+    groups <- groups[, 1]
     names(x = groups) <- rownames(x = md)
   }
   reads$group <- groups[reads$cell]
