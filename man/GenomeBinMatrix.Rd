@@ -57,3 +57,5 @@ GenomeBinMatrix(
   binsize = 1000
 )
 }
+\concept{preprocessing}
+\concept{utilities}

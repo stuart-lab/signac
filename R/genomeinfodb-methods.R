@@ -13,6 +13,8 @@ NULL
 
 setOldClass(Classes = "ChromatinAssay")
 
+# TODO add keepSeqlevels, dropSeqlevels, renameSeqlevels, etc
+
 #' Access and modify sequence information for ChromatinAssay objects
 #'
 #' Methods for accessing and modifying
@@ -29,6 +31,7 @@ setOldClass(Classes = "ChromatinAssay")
 #'   \item{\link{ChromatinAssay-class}}
 #'  }
 #' @exportMethod seqinfo
+#' @concept seqinfo
 setMethod(
   f = "seqinfo",
   signature = "ChromatinAssay",
@@ -41,6 +44,7 @@ setMethod(
 #' genome to store in the \code{\link{ChromatinAssay}}
 #' @describeIn seqinfo-methods set method for ChromatinAssay objects
 #' @exportMethod seqinfo<-
+#' @concept seqinfo
 setMethod(
   f = "seqinfo<-",
   signature = "ChromatinAssay",
@@ -56,6 +60,7 @@ setMethod(
 #' @aliases seqlevels
 #' @describeIn seqinfo-methods get method for ChromatinAssay objects
 #' @exportMethod seqlevels
+#' @concept seqinfo
 setMethod(
   f = "seqlevels",
   signature = "ChromatinAssay",
@@ -71,20 +76,24 @@ setMethod(
 
 #' @describeIn seqinfo-methods set method for ChromatinAssay objects
 #' @exportMethod seqlevels<-
+#' @concept seqinfo
 setMethod(
   f = "seqlevels<-",
   signature = "ChromatinAssay",
   definition = function(
     x, value
   ) {
-    x <- seqinfo(x = x)
-    callGeneric()
+    sinfo <- seqinfo(x = x)
+    seqlevels(x = sinfo) <- value
+    x <- SetAssayData(object = x, slot = "seqinfo", new.data = sinfo)
+    return(x)
   }
 )
 
 #' @aliases seqnames
 #' @describeIn seqinfo-methods get method for ChromatinAssay objects
 #' @exportMethod seqnames
+#' @concept seqinfo
 setMethod(
   f = "seqnames",
   signature = "ChromatinAssay",
@@ -100,20 +109,24 @@ setMethod(
 
 #' @describeIn seqinfo-methods set method for ChromatinAssay objects
 #' @exportMethod seqnames<-
+#' @concept seqinfo
 setMethod(
   f = "seqnames<-",
   signature = "ChromatinAssay",
   definition = function(
     x, value
   ) {
-    x <- seqinfo(x = x)
-    callGeneric()
+    sinfo <- seqinfo(x = x)
+    seqnames(x = sinfo) <- value
+    x <- SetAssayData(object = x, slot = "seqinfo", new.data = sinfo)
+    return(x)
   }
 )
 
 #' @aliases seqlengths
 #' @describeIn seqinfo-methods get method for ChromatinAssay objects
 #' @exportMethod seqlengths
+#' @concept seqinfo
 setMethod(
   f = "seqlengths",
   signature = "ChromatinAssay",
@@ -133,20 +146,24 @@ setMethod(
 
 #' @describeIn seqinfo-methods set method for ChromatinAssay objects
 #' @exportMethod seqlengths<-
+#' @concept seqinfo
 setMethod(
   f = "seqlengths<-",
   signature = "ChromatinAssay",
   definition = function(
     x, value
   ) {
-    x <- seqinfo(x = x)
-    callGeneric()
+    sinfo <- seqinfo(x = x)
+    seqlengths(x = sinfo) <- value
+    x <- SetAssayData(object = x, slot = "seqinfo", new.data = sinfo)
+    return(x)
   }
 )
 
 #' @aliases genome
 #' @describeIn seqinfo-methods get method for ChromatinAssay objects
 #' @exportMethod genome
+#' @concept seqinfo
 setMethod(
   f = "genome",
   signature = "ChromatinAssay",
@@ -161,21 +178,24 @@ setMethod(
 )
 
 #' @describeIn seqinfo-methods set method for ChromatinAssay objects
+#' @importFrom Seurat SetAssayData
 #' @exportMethod genome<-
+#' @concept seqinfo
 setMethod(
   f = "genome<-",
   signature = "ChromatinAssay",
   definition = function(
     x, value
   ) {
-    x <- seqinfo(x = x)
-    callGeneric()
+    x <- SetAssayData(object = x, slot = "seqinfo", new.data = value)
+    return(x)
   }
 )
 
 #' @aliases isCircular
 #' @describeIn seqinfo-methods get method for ChromatinAssay objects
 #' @exportMethod isCircular
+#' @concept seqinfo
 setMethod(
   f = "isCircular",
   signature = "ChromatinAssay",
@@ -191,18 +211,22 @@ setMethod(
 
 #' @describeIn seqinfo-methods set method for ChromatinAssay objects
 #' @exportMethod isCircular<-
+#' @concept seqinfo
 setMethod(
   f = "isCircular<-",
   signature = "ChromatinAssay",
   definition = function(
     x, value
   ) {
-    x <- seqinfo(x = x)
-    callGeneric()
+    sinfo <- seqinfo(x = x)
+    isCircular(x = sinfo) <- value
+    x <- SetAssayData(object = x, slot = "seqinfo", new.data = sinfo)
+    return(x)
   }
 )
 
 #' @describeIn seqinfo-methods get method for Seurat objects
+#' @concept seqinfo
 setMethod(
   f = "seqinfo",
   signature = "Seurat",
@@ -213,6 +237,7 @@ setMethod(
 )
 
 #' @describeIn seqinfo-methods set method for Seurat objects
+#' @concept seqinfo
 setMethod(
   f = "seqinfo<-",
   signature = "Seurat",
@@ -227,6 +252,7 @@ setMethod(
 )
 
 #' @describeIn seqinfo-methods get method for Seurat objects
+#' @concept seqinfo
 setMethod(
   f = "seqlevels",
   signature = "Seurat",
@@ -241,18 +267,21 @@ setMethod(
 )
 
 #' @describeIn seqinfo-methods set method for Seurat objects
+#' @concept seqinfo
 setMethod(
   f = "seqlevels<-",
   signature = "Seurat",
   definition = function(
     x, value
   ) {
-    x <- seqinfo(x = x)
-    callGeneric()
+    assay <- DefaultAssay(object = x)
+    seqlevels(x = x[[assay]]) <- value
+    x
   }
 )
 
 #' @describeIn seqinfo-methods get method for Seurat objects
+#' @concept seqinfo
 setMethod(
   f = "seqnames",
   signature = "Seurat",
@@ -267,18 +296,21 @@ setMethod(
 )
 
 #' @describeIn seqinfo-methods set method for Seurat objects
+#' @concept seqinfo
 setMethod(
   f = "seqnames<-",
   signature = "Seurat",
   definition = function(
     x, value
   ) {
-    x <- seqinfo(x = x)
-    callGeneric()
+    assay <- DefaultAssay(object = x)
+    seqnames(x = x[[assay]]) <- value
+    x
   }
 )
 
 #' @describeIn seqinfo-methods get method for Seurat objects
+#' @concept seqinfo
 setMethod(
   f = "seqlengths",
   signature = "Seurat",
@@ -293,18 +325,21 @@ setMethod(
 )
 
 #' @describeIn seqinfo-methods set method for Seurat objects
+#' @concept seqinfo
 setMethod(
   f = "seqlengths<-",
   signature = "Seurat",
   definition = function(
     x, value
   ) {
-    x <- seqinfo(x = x)
-    callGeneric()
+    assay <- DefaultAssay(object = x)
+    seqlengths(x = x[[assay]]) <- value
+    x
   }
 )
 
 #' @describeIn seqinfo-methods get method for Seurat objects
+#' @concept seqinfo
 setMethod(
   f = "genome",
   signature = "Seurat",
@@ -319,18 +354,20 @@ setMethod(
 )
 
 #' @describeIn seqinfo-methods set method for Seurat objects
+#' @importFrom Seurat SetAssayData
+#' @concept seqinfo
 setMethod(
   f = "genome<-",
   signature = "Seurat",
   definition = function(
     x, value
   ) {
-    x <- seqinfo(x = x)
-    callGeneric()
+    x <- SetAssayData(object = x, slot = "seqinfo", new.data = value)
   }
 )
 
 #' @describeIn seqinfo-methods get method for Seurat objects
+#' @concept seqinfo
 setMethod(
   f = "isCircular",
   signature = "Seurat",
@@ -345,13 +382,15 @@ setMethod(
 )
 
 #' @describeIn seqinfo-methods set method for Seurat objects
+#' @concept seqinfo
 setMethod(
   f = "isCircular<-",
   signature = "Seurat",
   definition = function(
     x, value
   ) {
-    x <- seqinfo(x = x)
-    callGeneric()
+    assay <- DefaultAssay(object = x)
+    isCircular(x = x[[assay]]) <- value
+    x
   }
 )

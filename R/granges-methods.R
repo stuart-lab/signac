@@ -24,6 +24,7 @@ NULL
 #'   \item{\link{ChromatinAssay-class}}
 #'  }
 #' @exportMethod granges
+#' @concept granges
 #' @examples
 #' granges(atac_small)
 setMethod(
@@ -39,6 +40,7 @@ setMethod(
 )
 
 #' @describeIn granges-methods method for Seurat objects
+#' @concept granges
 setMethod(
   f = "granges",
   signature = "Seurat",

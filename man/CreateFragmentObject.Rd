@@ -40,3 +40,4 @@ file index so that any changes to the files on-disk can be detected. A check
 is also performed to ensure that the expected cells are present in the
 fragment file.
 }
+\concept{fragments}

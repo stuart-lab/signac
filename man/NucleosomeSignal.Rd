@@ -49,3 +49,4 @@ Fragments(atac_small) <- CreateFragmentObject(
 )
 NucleosomeSignal(object = atac_small)
 }
+\concept{qc}

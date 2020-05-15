@@ -57,3 +57,4 @@ library(BSgenome.Hsapiens.UCSC.hg19)
 RunChromVAR(object = atac_small, genome = BSgenome.Hsapiens.UCSC.hg19)
 }
 }
+\concept{motifs}

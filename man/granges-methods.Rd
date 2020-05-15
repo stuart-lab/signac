@@ -42,3 +42,4 @@ granges(atac_small)
   \item{\link{ChromatinAssay-class}}
  }
 }
+\concept{granges}

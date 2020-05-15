@@ -22,6 +22,7 @@ globalVariables(names = c("Component", "counts"), package = "Signac")
 #' @importFrom ggplot2 ggplot geom_point scale_x_continuous
 #' ylab ylim theme_light ggtitle aes
 #' @importFrom stats cor
+#' @concept visualization
 #' @examples
 #' DepthCor(object = atac_small)
 DepthCor <- function(object, assay = NULL, reduction = 'lsi', n = 10, ...) {
@@ -66,6 +67,8 @@ globalVariables(
 #' @param label.top Number of groups to label based on highest accessibility
 #' in motif flanking region.
 #' @export
+#' @concept visualization
+#' @concept footprinting
 #' @importFrom Seurat DefaultAssay
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom ggplot2 ggplot aes geom_line facet_wrap xlab ylab theme_classic
@@ -515,6 +518,7 @@ SingleCoveragePlot <- function(
 #'
 #' @importFrom patchwork wrap_plots
 #' @export
+#' @concept visualization
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
 #' \donttest{
@@ -607,6 +611,8 @@ CoveragePlot <- function(
 #'
 #' @importFrom ggseqlogo ggseqlogo
 #' @export
+#' @concept visualization
+#' @concept motifs
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
 #' \donttest{
@@ -652,6 +658,8 @@ globalVariables(names = "group", package = "Signac")
 #' scale_y_log10
 #'
 #' @export
+#' @concept visualization
+#' @concept qc
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
 #' \donttest{
@@ -728,6 +736,7 @@ globalVariables(names = "norm.value", package = "Signac")
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot2}} object
 #' @export
+#' @concept visualization
 EnrichmentPlot <- function(
   object,
   enrichment.key,
@@ -787,6 +796,8 @@ EnrichmentPlot <- function(
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot2}} object
 #' @export
+#' @concept visualization
+#' @concept qc
 TSSPlot <- function(
   object,
   assay = NULL,

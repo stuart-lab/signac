@@ -38,3 +38,4 @@ non-zero elements.
 \examples{
 SubsetMatrix(mat = volcano)
 }
+\concept{utilities}

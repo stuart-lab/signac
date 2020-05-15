@@ -35,3 +35,4 @@ Returns a \code{\link[ggplot2]{ggplot2}} object
 Plot the enrichment of Tn5 integration sites centered on a set of genomic
 regions.
 }
+\concept{visualization}

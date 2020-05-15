@@ -18,6 +18,7 @@ Footprint(object, ...)
   upstream = 250,
   downstream = 250,
   compute.expected = TRUE,
+  in.peaks = TRUE,
   verbose = TRUE,
   ...
 )
@@ -30,6 +31,7 @@ Footprint(object, ...)
   assay = NULL,
   upstream = 250,
   downstream = 250,
+  in.peaks = TRUE,
   verbose = TRUE,
   ...
 )
@@ -57,6 +59,8 @@ supplied, must supply a set of regions.}
 \item{compute.expected}{Find the expected number of insertions at each
 position given the local DNA sequence context and the insertion bias of Tn5}
 
+\item{in.peaks}{Restrict motifs to those that fall in peaks}
+
 \item{verbose}{Display messages}
 }
 \value{
@@ -66,3 +70,4 @@ Returns a \code{\link[Seurat]{Seurat}} object
 Compute the normalized observed/expected Tn5 insertion frequency
 for each position surrounding a set of motif instances.
 }
+\concept{footprinting}

@@ -28,3 +28,5 @@ assay.
 \details{
 Wrapper for the \code{\link{EnrichmentPlot}} function
 }
+\concept{qc}
+\concept{visualization}

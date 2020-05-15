@@ -47,3 +47,4 @@ coordinates in the row names of the data matrix}
 \description{
 Convert objects to a ChromatinAssay
 }
+\concept{assay}

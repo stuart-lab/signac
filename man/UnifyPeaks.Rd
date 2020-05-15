@@ -26,3 +26,5 @@ chromatin data.
 \examples{
 UnifyPeaks(object.list = list(atac_small, atac_small))
 }
+\concept{preprocessing}
+\concept{utilities}

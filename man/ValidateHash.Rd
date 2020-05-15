@@ -14,3 +14,4 @@ ValidateHash(object, verbose = TRUE)
 \description{
 Validate hashes for Fragment object
 }
+\concept{fragments}

@@ -81,3 +81,4 @@ RunTFIDF(object = atac_small)
 \references{
 \url{https://en.wikipedia.org/wiki/Latent_semantic_analysis#Latent_semantic_indexing}
 }
+\concept{preprocessing}

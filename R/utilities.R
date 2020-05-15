@@ -15,6 +15,7 @@ globalVariables(names = c("group", "readcount"), package = "Signac")
 #' @importFrom Matrix colSums
 #' @importFrom dplyr group_by summarize
 #' @export
+#' @concept utilities
 #' @return Returns a dataframe
 #' @examples
 #' AverageCounts(atac_small)
@@ -62,6 +63,7 @@ AverageCounts <- function(
 #' @param min.cells Minimum number of cells with the peak accessible (>0 counts)
 #' for the peak to be called accessible
 #' @export
+#' @concept utilities
 #' @importFrom Seurat WhichCells DefaultAssay GetAssayData
 #' @importFrom Matrix rowSums
 #' @return Returns a vector of peak names
@@ -91,6 +93,7 @@ AccessiblePeaks <- function(
 #' @param group.by A grouping variable. Default is the active identities
 #' @importFrom Seurat Idents
 #' @export
+#' @concept utilities
 #' @return Returns a vector
 #' @examples
 #' CellsPerGroup(atac_small)
@@ -126,6 +129,7 @@ CellsPerGroup <- function(
 #' @return Returns a dataframe with the name of each region, the closest feature
 #' in the annotation, and the distance to the feature.
 #' @export
+#' @concept utilities
 #' @examples
 #' \donttest{
 #' ClosestFeature(
@@ -176,6 +180,7 @@ ClosestFeature <- function(
 #' @importFrom S4Vectors subjectHits queryHits mcols
 #' @importFrom Seurat DefaultAssay
 #' @export
+#' @concept utilities
 #' @return Returns a list of two character vectors containing the row names
 #' in each object that overlap each other.
 #' @examples
@@ -223,6 +228,7 @@ GetIntersectingFeatures <- function(
 #' regions <- c('chr1-1-10', 'chr2-12-3121')
 #' StringToGRanges(regions = regions)
 #' @export
+#' @concept utilities
 StringToGRanges <- function(regions, sep = c("-", "-"), ...) {
   ranges.df <- data.frame(ranges = regions)
   ranges.df <- separate(
@@ -248,6 +254,7 @@ StringToGRanges <- function(regions, sep = c("-", "-"), ...) {
 #' GRangesToString(grange = blacklist_hg19)
 #' @return Returns a character vector
 #' @export
+#' @concept utilities
 GRangesToString <- function(grange, sep = c("-", "-")) {
   regions <- paste0(
     as.character(x = seqnames(x = grange)),
@@ -276,6 +283,7 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
 #' @importMethodsFrom GenomicRanges strand start end width
 #' @importFrom IRanges ranges IRanges "ranges<-"
 #' @export
+#' @concept utilities
 #' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
 #' @examples
 #' Extend(x = blacklist_hg19, upstream = 100, downstream = 100)
@@ -310,7 +318,7 @@ Extend <- function(
   return(x)
 }
 
-#' GetCellsInRegion
+#' Get cells in a region
 #'
 #' Extract cell names containing reads mapped within a given genomic region
 #'
@@ -324,6 +332,7 @@ Extend <- function(
 #' @importFrom Rsamtools TabixFile scanTabix
 #' @importFrom methods is
 #' @export
+#' @concept utilities
 #' @return Returns a list
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
@@ -367,6 +376,7 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 #' @importFrom Seurat GetAssayData
 #'
 #' @export
+#' @concept utilities
 #' @return Returns a numeric vector
 #' @examples
 #' \donttest{
@@ -407,6 +417,7 @@ CountsInRegion <- function(
 #' @importFrom Seurat GetAssayData DefaultAssay
 #'
 #' @export
+#' @concept utilities
 #' @return Returns a numeric vector
 #' @examples
 #' FractionCountsInRegion(
@@ -454,6 +465,7 @@ FractionCountsInRegion <- function(
 #' @importFrom S4Vectors queryHits
 #'
 #' @export
+#' @concept utilities
 #' @return Returns a sparse matrix
 #' @examples
 #' counts <- matrix(data = rep(0, 12), ncol = 2)
@@ -507,6 +519,8 @@ IntersectMatrix <- function(
 #'
 #' @importFrom stats density approx
 #' @export
+#' @concept utilities
+#' @concept motifs
 #' @examples
 #' metafeatures <- Seurat::GetAssayData(
 #'   object = atac_small[['peaks']], slot = 'meta.features'
@@ -575,6 +589,8 @@ MatchRegionStats <- function(
 #' for more information on these functions.
 #' @importFrom GenomicRanges reduce disjoin
 #' @export
+#' @concept utilities
+#' @concept preprocessing
 #' @return Returns a GRanges object
 #' @examples
 #' UnifyPeaks(object.list = list(atac_small, atac_small))
@@ -611,6 +627,7 @@ UnifyPeaks <- function(object.list, mode = "reduce") {
 #'
 #' @return Returns a matrix
 #' @export
+#' @concept utilities
 #' @importFrom Matrix colSums rowSums
 #' @examples
 #' SubsetMatrix(mat = volcano)
@@ -1175,6 +1192,7 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
         comment.char = ""
       )
     } else {
+      # TODO look for faster way to do this
       df <- fread(
         text = reads[[x]],
         sep = "\t",

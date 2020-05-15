@@ -89,3 +89,4 @@ the length of the ranges equal to the number of rows in the matrix. If a set
 of genomic ranges are not supplied, they will be extracted from the
 row names of the matrix.
 }
+\concept{assay}

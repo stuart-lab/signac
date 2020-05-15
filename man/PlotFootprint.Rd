@@ -44,3 +44,5 @@ in motif flanking region.}
 \description{
 Plot footprinting results
 }
+\concept{footprinting}
+\concept{visualization}

@@ -29,3 +29,4 @@ dimension component.
 \examples{
 DepthCor(object = atac_small)
 }
+\concept{visualization}

@@ -31,12 +31,95 @@ navbar:
         - text: "Trajectory analysis"
           href: articles/monocle.html
         - text: "Transcription factor footprinting"
-          href: articles/footprinting.html
+          href: articles/footprint.html
+        - text: "Data structures and object interaction"
+          href: articles/data_structures.html
     - text: "Reference"
       href: reference/index.html
   right:
     - icon: fa-github
       href: https://github.com/timoast/signac
+
+reference:
+  - title: "Object interaction"
+    desc: "Functions for interacting with a Signac classes"
+  - contents:
+    - has_concept("assay")
+
+  - title: "Preprocessing"
+    desc: "Functions for preprocessing single-cell data"
+  - contents:
+    - has_concept("preprocessing")
+
+  - title: "Quality control"
+    desc: "Functions for performing quality control"
+  - contents:
+    - has_concept("qc")
+
+  - title: "Dimension reduction"
+    desc: "Functions for reducing dimensions"
+  - contents:
+    - has_concept("dimension_reduction")
+
+  - title: "Visualization"
+    desc: "Functions for visualizing single-cell data"
+  - contents:
+    - has_concept("visualization")
+
+  - title: "Utilities"
+    desc: "Utility functions for working with single-cell data"
+  - contents:
+    - has_concept("utilities")
+
+  - title: "Footprinting"
+    desc: "Functions for performing TF footprinting"
+  - contents:
+    - has_concept("footprinting")
+
+  - title: "Motif analysis"
+    desc: "Functions for performing DNA sequence motif analysis"
+  - contents:
+    - has_concept("motifs")
+
+  - title: "Fragments"
+    desc: "Functions for working with fragment files"
+  - contents:
+    - has_concept("fragments")
+
+  - title: "Nearest methods"
+    desc: "Nearest genomic range methods for Signac-defined classes"
+  - contents:
+    - has_concept("nearest")
+
+  - title: "Inter-range methods"
+    desc: "Inter-range methods for Signac-defined classes"
+  - contents:
+    - has_concept("inter_range")
+
+  - title: "Overlap methods"
+    desc: "Overlap-range methods for Signac-defined classes"
+  - contents:
+    - has_concept("overlaps")
+
+  - title: "Coverage methods"
+    desc: "Genomic range coverage methods for Signac-defined classes"
+  - contents:
+    - has_concept("coverage")
+
+  - title: "Genomic range methods"
+    desc: "Genomic ranges methods for Signac-defined classes"
+  - contents:
+    - has_concept("granges")
+
+  - title: "Seqinfo methods"
+    desc: "Seqinfo methods for Signac-defined classes"
+  - contents:
+    - has_concept("seqinfo")
+
+  - title: "Data"
+    desc: "Datasets included in Signac"
+  - contents:
+    - has_concept("data")
 
 template:
   params:

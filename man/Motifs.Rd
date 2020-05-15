@@ -2,21 +2,32 @@
 % Please edit documentation in R/generics.R, R/objects.R
 \name{Motifs}
 \alias{Motifs}
+\alias{Motifs<-}
 \alias{Motifs.ChromatinAssay}
 \alias{Motifs.Seurat}
+\alias{Motifs<-.ChromatinAssay}
+\alias{Motifs<-.Seurat}
 \title{Motifs
 Retrieve a Motif object}
 \usage{
 Motifs(object, ...)
 
+Motifs(object, ...) <- value
+
 \method{Motifs}{ChromatinAssay}(object, ...)
 
 \method{Motifs}{Seurat}(object, ...)
+
+\method{Motifs}{ChromatinAssay}(object, ...) <- value
+
+\method{Motifs}{Seurat}(object, ...) <- value
 }
 \arguments{
 \item{object}{A Seurat object}
 
 \item{...}{Arguments passed to other methods}
+
+\item{value}{A \code{\link{Motif}} object}
 }
 \description{
 Get the Motif object
@@ -24,4 +35,10 @@ Get the Motif object
 \examples{
 Motifs(atac_small[["peaks"]])
 Motifs(atac_small)
+motifs <- Motifs(atac_small)
+Motifs(atac_small[["peaks"]]) <- motifs
+motifs <- Motifs(atac_small)
+Motifs(atac_small) <- motifs
 }
+\concept{assay}
+\concept{motifs}

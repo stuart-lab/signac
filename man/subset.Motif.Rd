@@ -42,3 +42,4 @@ motif.obj[1:10,1:10]
 \seealso{
 \code{\link[base]{subset}}
 }
+\concept{motifs}

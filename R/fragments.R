@@ -27,6 +27,7 @@ NULL
 #' @param ... Additional arguments passed to \code{ValidateCells}
 #' @importFrom tools md5sum file_ext
 #' @export
+#' @concept fragments
 CreateFragmentObject <- function(
   path,
   cells = NULL,
@@ -98,6 +99,7 @@ CreateFragmentObject <- function(
 #' of the entire file.
 #' @param verbose Display messages
 #' @export
+#' @concept fragments
 #' @importFrom data.table fread
 ValidateCells <- function(
   object,
@@ -140,6 +142,7 @@ ValidateCells <- function(
 #' @param object A \code{\link{Fragment}} object
 #' @param verbose Display messages
 #' @export
+#' @concept fragments
 #' @importFrom tools md5sum
 ValidateHash <- function(object, verbose = TRUE) {
   path <- GetFragmentData(object = object, slot = "path")
@@ -165,6 +168,7 @@ ValidateHash <- function(object, verbose = TRUE) {
 #' @param verbose Display messages
 #' @param ... Additional parameters passed to \code{\link{ValidateCells}}
 #' @export
+#' @concept fragments
 ValidateFragments <- function(
   object,
   verbose = TRUE,
@@ -206,6 +210,7 @@ readchunk <- function(filepath, x, chunksize) {
 #' @param ... Arguments passed to other methods
 #' @rdname Cells
 #' @export
+#' @concept fragments
 #' @method Cells Fragment
 #' @importFrom Seurat Cells
 Cells.Fragment <- function(x, ...) {
@@ -217,6 +222,7 @@ Cells.Fragment <- function(x, ...) {
 #' object
 #' @rdname Cells
 #' @export
+#' @concept fragments
 #' @method Cells<- Fragment
 "Cells<-.Fragment" <- function(x, ..., value) {
   if (is.null(x = names(x = value))) {
@@ -252,6 +258,7 @@ globalVariables(names = c("chr", "start"), package = "Signac")
 #' @importFrom Rsamtools indexTabix bgzip
 #' @importFrom future nbrOfWorkers
 #' @export
+#' @concept fragments
 #' @return None
 #' @examples
 #' \donttest{

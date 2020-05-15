@@ -29,3 +29,5 @@ motif.obj <- Seurat::GetAssayData(atac_small, slot = "motifs")
 MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
 }
 }
+\concept{motifs}
+\concept{visualization}

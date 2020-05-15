@@ -148,3 +148,4 @@ Methods for accessing and modifying
   \item{\link{ChromatinAssay-class}}
  }
 }
+\concept{seqinfo}

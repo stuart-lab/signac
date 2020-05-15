@@ -50,3 +50,4 @@ GetIntersectingFeatures(
   assay.2 = 'bins'
 )
 }
+\concept{utilities}

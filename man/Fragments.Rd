@@ -53,3 +53,5 @@ fragments <- CreateFragmentObject(
 )
 Fragments(atac_small) <- fragments
 }
+\concept{assay}
+\concept{fragments}

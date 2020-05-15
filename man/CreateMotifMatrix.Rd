@@ -2,7 +2,7 @@
 % Please edit documentation in R/preprocessing.R
 \name{CreateMotifMatrix}
 \alias{CreateMotifMatrix}
-\title{CreateMotifMatrix}
+\title{Create motif matrix}
 \usage{
 CreateMotifMatrix(
   features,
@@ -64,3 +64,5 @@ motif.matrix <- CreateMotifMatrix(
 )
 }
 }
+\concept{motifs}
+\concept{preprocessing}

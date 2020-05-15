@@ -33,6 +33,7 @@ NULL
 #' @return Returns a \code{\link[Seurat]{Seurat}} object with a new assay
 #'
 #' @export
+#' @concept motifs
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
@@ -132,6 +133,7 @@ globalVariables(names = "pvalue", package = "Signac")
 #' @importFrom methods is
 #'
 #' @export
+#' @concept motifs
 #' @examples
 #' de.motif <- head(rownames(atac_small))
 #' bg.peaks <- tail(rownames(atac_small))
@@ -217,6 +219,7 @@ FindMotifs <- function(
 #' @param id A vector of motif IDs. Only one of \code{name} and \code{id} should
 #' be supplied
 #' @rdname ConvertMotifID
+#' @concept motifs
 #' @importFrom methods hasArg
 #' @export
 ConvertMotifID.default <- function(object, name, id, ...) {
@@ -244,6 +247,7 @@ ConvertMotifID.default <- function(object, name, id, ...) {
 
 #' @method ConvertMotifID Motif
 #' @rdname ConvertMotifID
+#' @concept motifs
 #' @export
 ConvertMotifID.Motif <- function(object, ...) {
   motif.names <- GetMotifData(object = object, slot = "motif.names")
@@ -252,6 +256,7 @@ ConvertMotifID.Motif <- function(object, ...) {
 
 #' @method ConvertMotifID ChromatinAssay
 #' @rdname ConvertMotifID
+#' @concept motifs
 #' @export
 ConvertMotifID.ChromatinAssay <- function(object, ...) {
   motifs <- Motifs(object = object)
@@ -265,6 +270,7 @@ ConvertMotifID.ChromatinAssay <- function(object, ...) {
 #'
 #' @method ConvertMotifID Seurat
 #' @rdname ConvertMotifID
+#' @concept motifs
 #' @export
 ConvertMotifID.Seurat <- function(object, assay = NULL, ...) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))

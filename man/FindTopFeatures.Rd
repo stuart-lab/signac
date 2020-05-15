@@ -46,3 +46,4 @@ FindTopFeatures(object = atac_small[['peaks']][])
 FindTopFeatures(object = atac_small[['peaks']])
 FindTopFeatures(atac_small)
 }
+\concept{preprocessing}

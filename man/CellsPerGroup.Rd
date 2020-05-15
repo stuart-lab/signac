@@ -20,3 +20,4 @@ Count the number of cells in each group
 \examples{
 CellsPerGroup(atac_small)
 }
+\concept{utilities}

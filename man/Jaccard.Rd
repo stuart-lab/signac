@@ -27,3 +27,4 @@ expected similarity between cells due to differences in sequencing depth.
 x <- matrix(data = sample(c(0, 1), size = 25, replace = TRUE), ncol = 5)
 Jaccard(x = x, y = x)
 }
+\concept{dimension_reduction}

@@ -40,3 +40,4 @@ Search for a fragment from each cell that should exist in the fragment file.
 Will iterate through chunks of the fragment file until at least one fragment
 from each cell barcode requested is found.
 }
+\concept{fragments}

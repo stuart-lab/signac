@@ -18,6 +18,7 @@ NULL
 #' @return Returns a matrix
 #'
 #' @export
+#' @concept dimension_reduction
 #' @examples
 #' x <- matrix(data = sample(c(0, 1), size = 25, replace = TRUE), ncol = 5)
 #' Jaccard(x = x, y = x)
@@ -60,6 +61,7 @@ Jaccard <- function(x, y) {
 #'
 #' @rdname RunSVD
 #' @export
+#' @concept dimension_reduction
 #' @examples
 #' x <- matrix(data = rnorm(100), ncol = 10)
 #' RunSVD(x)
@@ -120,6 +122,7 @@ RunSVD.default <- function(
 #' @rdname RunSVD
 #' @importFrom Seurat VariableFeatures GetAssayData
 #' @export
+#' @concept dimension_reduction
 #' @method RunSVD Assay
 #' @examples
 #' RunSVD(atac_small[['peaks']])
@@ -155,6 +158,7 @@ RunSVD.Assay <- function(
 #' Default 'svd'
 #' @rdname RunSVD
 #' @export
+#' @concept dimension_reduction
 #' @examples
 #' RunSVD(atac_small)
 #' @method RunSVD Seurat

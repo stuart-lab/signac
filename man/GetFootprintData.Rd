@@ -2,7 +2,7 @@
 % Please edit documentation in R/footprinting.R
 \name{GetFootprintData}
 \alias{GetFootprintData}
-\title{Extract footprint data for a set of transcription factors}
+\title{Get footprinting data}
 \usage{
 GetFootprintData(
   object,
@@ -15,14 +15,22 @@ GetFootprintData(
 \arguments{
 \item{object}{A Seurat object}
 
-\item{features}{A vector of features to plot}
+\item{features}{A vector of features to extract data for}
 
 \item{assay}{Name of assay to use}
 
 \item{group.by}{A grouping variable}
 
-\item{idents}{Set of identities to include in the plot}
+\item{idents}{Set of identities to group cells by}
+}
+\value{
+Returns a matrix
 }
 \description{
-Extract footprint data for a set of transcription factors
+Extract footprint data for a set of transcription factors or metafeatures.
+This function will pull accessibility data for a given feature (eg, a TF),
+and perform background normalization for each identity class. This is the
+data that's used to create TF footprinting plots with the
+\code{PlotFootprint} function.
 }
+\concept{footprinting}

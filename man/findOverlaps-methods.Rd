@@ -185,3 +185,4 @@ directly on the Seurat object.
   \item{\link{ChromatinAssay-class}}
  }
 }
+\concept{overlaps}

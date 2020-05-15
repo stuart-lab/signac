@@ -38,6 +38,7 @@ setOldClass(Classes = "ChromatinAssay")
 #'   \item{\link{ChromatinAssay-class}}
 #'  }
 #' @exportMethod precede
+#' @concept nearest
 setMethod(
   f = "precede",
   signature = c("ANY", "ChromatinAssay"),
@@ -50,6 +51,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for ChromatinAssay, ANY
+#' @concept nearest
 setMethod(
   f = "precede",
   signature = c("ChromatinAssay", "ANY"),
@@ -62,6 +64,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for ChromatinAssay, ChromatinAssay
+#' @concept nearest
 setMethod(
   f = "precede",
   signature = c("ChromatinAssay", "ChromatinAssay"),
@@ -75,6 +78,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for ANY, Seurat
+#' @concept nearest
 setMethod(
   f = "precede",
   signature = c("ANY", "Seurat"),
@@ -88,6 +92,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for Seurat, ANY
+#' @concept nearest
 setMethod(
   f = "precede",
   signature = c("Seurat", "ANY"),
@@ -101,6 +106,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for Seurat, Seurat
+#' @concept nearest
 setMethod(
   f = "precede",
   signature = c("Seurat", "Seurat"),
@@ -120,6 +126,7 @@ setMethod(
 #' @aliases follow
 #' @describeIn nearest-methods method for ANY, ChromatinAssay
 #' @exportMethod follow
+#' @concept nearest
 setMethod(
   f = "follow",
   signature = c("ANY", "ChromatinAssay"),
@@ -132,6 +139,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for ChromatinAssay, ANY
+#' @concept nearest
 setMethod(
   f = "follow",
   signature = c("ChromatinAssay", "ANY"),
@@ -144,6 +152,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for ChromatinAssay, ChromatinAssay
+#' @concept nearest
 setMethod(
   f = "follow",
   signature = c("ChromatinAssay", "ChromatinAssay"),
@@ -157,6 +166,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for ANY, Seurat
+#' @concept nearest
 setMethod(
   f = "follow",
   signature = c("ANY", "Seurat"),
@@ -170,6 +180,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for Seurat, ANY
+#' @concept nearest
 setMethod(
   f = "follow",
   signature = c("Seurat", "ANY"),
@@ -183,6 +194,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for Seurat, Seurat
+#' @concept nearest
 setMethod(
   f = "follow",
   signature = c("Seurat", "Seurat"),
@@ -200,6 +212,7 @@ setMethod(
 #' @aliases nearest
 #' @describeIn nearest-methods method for ANY, ChromatinAssay
 #' @exportMethod nearest
+#' @concept nearest
 setMethod(
   f = "nearest",
   signature = c("ANY", "ChromatinAssay"),
@@ -212,6 +225,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for ChromatinAssay, ANY
+#' @concept nearest
 setMethod(
   f = "nearest",
   signature = c("ChromatinAssay", "ANY"),
@@ -224,6 +238,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for ChromatinAssay, ChromatinAssay
+#' @concept nearest
 setMethod(
   f = "nearest",
   signature = c("ChromatinAssay", "ChromatinAssay"),
@@ -237,6 +252,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for ANY, Seurat
+#' @concept nearest
 setMethod(
   f = "nearest",
   signature = c("ANY", "Seurat"),
@@ -250,6 +266,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for Seurat, ANY
+#' @concept nearest
 setMethod(
   f = "nearest",
   signature = c("Seurat", "ANY"),
@@ -263,6 +280,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for Seurat, Seurat
+#' @concept nearest
 setMethod(
   f = "nearest",
   signature = c("Seurat", "Seurat"),
@@ -284,6 +302,7 @@ setMethod(
 #' @aliases distance
 #' @exportMethod distance
 #' @describeIn nearest-methods method for ANY, ChromatinAssay
+#' @concept nearest
 setMethod(
   f = "distance",
   signature = c("ANY", "ChromatinAssay"),
@@ -296,6 +315,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for ChromatinAssay, ANY
+#' @concept nearest
 setMethod(
   f = "distance",
   signature = c("ChromatinAssay", "ANY"),
@@ -308,6 +328,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for ChromatinAssay, ChromatinAssay
+#' @concept nearest
 setMethod(
   f = "distance",
   signature = c("ChromatinAssay", "ChromatinAssay"),
@@ -321,6 +342,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for ANY, Seurat
+#' @concept nearest
 setMethod(
   f = "distance",
   signature = c("ANY", "Seurat"),
@@ -334,6 +356,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for Seurat, ANY
+#' @concept nearest
 setMethod(
   f = "distance",
   signature = c("Seurat", "ANY"),
@@ -347,6 +370,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for Seurat, Seurat
+#' @concept nearest
 setMethod(
   f = "distance",
   signature = c("Seurat", "Seurat"),
@@ -364,6 +388,7 @@ setMethod(
 #' @aliases distanceToNearest
 #' @exportMethod distanceToNearest
 #' @describeIn nearest-methods method for ANY, ChromatinAssay
+#' @concept nearest
 setMethod(
   f = "distanceToNearest",
   signature = c("ANY", "ChromatinAssay"),
@@ -376,6 +401,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for ChromatinAssay, ANY
+#' @concept nearest
 setMethod(
   f = "distanceToNearest",
   signature = c("ChromatinAssay", "ANY"),
@@ -388,6 +414,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for ChromatinAssay, ChromatinAssay
+#' @concept nearest
 setMethod(
   f = "distanceToNearest",
   signature = c("ChromatinAssay", "ChromatinAssay"),
@@ -401,6 +428,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for ANY, Seurat
+#' @concept nearest
 setMethod(
   f = "distanceToNearest",
   signature = c("ANY", "Seurat"),
@@ -414,6 +442,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for Seurat, ANY
+#' @concept nearest
 setMethod(
   f = "distanceToNearest",
   signature = c("Seurat", "ANY"),
@@ -427,6 +456,7 @@ setMethod(
 )
 
 #' @describeIn nearest-methods method for Seurat, Seurat
+#' @concept nearest
 setMethod(
   f = "distanceToNearest",
   signature = c("Seurat", "Seurat"),
@@ -470,6 +500,7 @@ setMethod(
 #'  }
 #'
 #' @exportMethod findOverlaps
+#' @concept overlaps
 setMethod(
   f = "findOverlaps",
   signature = c("Vector", "ChromatinAssay"),
@@ -485,6 +516,7 @@ setMethod(
 )
 
 #' @describeIn findOverlaps-methods method for ChromatinAssay, Vector
+#' @concept overlaps
 setMethod(
   f = "findOverlaps",
   signature = c("ChromatinAssay", "Vector"),
@@ -500,6 +532,7 @@ setMethod(
 )
 
 #' @describeIn findOverlaps-methods method for ChromatinAssay, ChromatinAssay
+#' @concept overlaps
 setMethod(
   f = "findOverlaps",
   signature = c("ChromatinAssay", "ChromatinAssay"),
@@ -516,6 +549,7 @@ setMethod(
 )
 
 #' @describeIn findOverlaps-methods method for Vector, Seurat
+#' @concept overlaps
 setMethod(
   f = "findOverlaps",
   signature = c("Vector", "Seurat"),
@@ -532,6 +566,7 @@ setMethod(
 )
 
 #' @describeIn findOverlaps-methods method for Seurat, Vector
+#' @concept overlaps
 setMethod(
   f = "findOverlaps",
   signature = c("Seurat", "Vector"),
@@ -548,6 +583,7 @@ setMethod(
 )
 
 #' @describeIn findOverlaps-methods method for Seurat, Seurat
+#' @concept overlaps
 setMethod(
   f = "findOverlaps",
   signature = c("Seurat", "Seurat"),
@@ -567,6 +603,7 @@ setMethod(
 
 #' @aliases countOverlaps
 #' @describeIn findOverlaps-methods method for Vector, ChromatinAssay
+#' @concept overlaps
 setMethod(
   f = "countOverlaps",
   signature = c("Vector", "ChromatinAssay"),
@@ -581,6 +618,7 @@ setMethod(
 )
 
 #' @describeIn findOverlaps-methods method for ChromatinAssay, Vector
+#' @concept overlaps
 setMethod(
   f = "countOverlaps",
   signature = c("ChromatinAssay", "Vector"),
@@ -595,6 +633,7 @@ setMethod(
 )
 
 #' @describeIn findOverlaps-methods method for ChromatinAssay, ChromatinAssay
+#' @concept overlaps
 setMethod(
   f = "countOverlaps",
   signature = c("ChromatinAssay", "ChromatinAssay"),
@@ -610,6 +649,7 @@ setMethod(
 )
 
 #' @describeIn findOverlaps-methods method for Seurat, Vector
+#' @concept overlaps
 setMethod(
   f = "countOverlaps",
   signature = c("Seurat", "Vector"),
@@ -625,6 +665,7 @@ setMethod(
 )
 
 #' @describeIn findOverlaps-methods method for Vector, Seurat
+#' @concept overlaps
 setMethod(
   f = "countOverlaps",
   signature = c("Vector", "Seurat"),
@@ -640,6 +681,7 @@ setMethod(
 )
 
 #' @describeIn findOverlaps-methods method for Seurat, Seurat
+#' @concept overlaps
 setMethod(
   f = "countOverlaps",
   signature = c("Seurat", "Seurat"),
@@ -682,6 +724,7 @@ setMethod(
 #'  }
 #' @exportMethod coverage
 #' @describeIn coverage-ChromatinAssay-method method for ChromatinAssay objects
+#' @concept coverage
 setMethod(
   f = "coverage",
   signature = "ChromatinAssay",
@@ -695,6 +738,7 @@ setMethod(
 )
 
 #' @describeIn coverage-ChromatinAssay-method method for Seurat objects
+#' @concept coverage
 setMethod(
   f = "coverage",
   signature = "Seurat",
@@ -731,6 +775,7 @@ setMethod(
 #'   \item{\link{ChromatinAssay-class}}
 #'  }
 #' @exportMethod range
+#' @concept inter_range
 setMethod(
   f = "range",
   signature = "ChromatinAssay",
@@ -743,6 +788,7 @@ setMethod(
 )
 
 #' @describeIn inter-range-methods method for Seurat objects
+#' @concept inter_range
 setMethod(
   f = "range",
   signature = "Seurat",
@@ -759,6 +805,7 @@ setMethod(
 #' @aliases reduce
 #' @describeIn inter-range-methods method for ChromatinAssay objects
 #' @exportMethod reduce
+#' @concept inter_range
 setMethod(
   f = "reduce",
   signature = "ChromatinAssay",
@@ -771,6 +818,7 @@ setMethod(
 )
 
 #' @describeIn inter-range-methods method for Seurat objects
+#' @concept inter_range
 setMethod(
   f = "reduce",
   signature = "Seurat",
@@ -787,6 +835,7 @@ setMethod(
 #' @aliases gaps
 #' @describeIn inter-range-methods method for ChromatinAssay objects
 #' @exportMethod gaps
+#' @concept inter_range
 setMethod(
   f = "gaps",
   signature = "ChromatinAssay",
@@ -799,6 +848,7 @@ setMethod(
 )
 
 #' @describeIn inter-range-methods method for Seurat objects
+#' @concept inter_range
 setMethod(
   f = "gaps",
   signature = "Seurat",
@@ -814,6 +864,7 @@ setMethod(
 #' @aliases disjoin
 #' @describeIn inter-range-methods method for ChromatinAssay objects
 #' @exportMethod disjoin
+#' @concept inter_range
 setMethod(
   f = "disjoin",
   signature = "ChromatinAssay",
@@ -824,6 +875,7 @@ setMethod(
 )
 
 #' @describeIn inter-range-methods method for Seurat objects
+#' @concept inter_range
 setMethod(
   f = "disjoin",
   signature = "Seurat",
@@ -837,6 +889,7 @@ setMethod(
 #' @aliases isDisjoint
 #' @describeIn inter-range-methods method for ChromatinAssay objects
 #' @exportMethod isDisjoint
+#' @concept inter_range
 setMethod(
   f = "isDisjoint",
   signature = "ChromatinAssay",
@@ -847,6 +900,7 @@ setMethod(
 )
 
 #' @describeIn inter-range-methods method for Seurat objects
+#' @concept inter_range
 setMethod(
   f = "isDisjoint",
   signature = "Seurat",
@@ -860,6 +914,7 @@ setMethod(
 #' @aliases disjointBins
 #' @describeIn inter-range-methods method for ChromatinAssay objects
 #' @exportMethod disjointBins
+#' @concept inter_range
 setMethod(
   f = "disjointBins",
   signature = "ChromatinAssay",
@@ -870,6 +925,7 @@ setMethod(
 )
 
 #' @describeIn inter-range-methods method for Seurat objects
+#' @concept inter_range
 setMethod(
   f = "disjointBins",
   signature = "Seurat",

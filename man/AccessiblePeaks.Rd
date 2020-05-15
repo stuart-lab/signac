@@ -30,3 +30,4 @@ Returns a vector of peak names
 \description{
 Find accessible peaks in a set of cells
 }
+\concept{utilities}

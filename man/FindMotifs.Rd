@@ -50,3 +50,4 @@ FindMotifs(
   background = bg.peaks
 )
 }
+\concept{motifs}

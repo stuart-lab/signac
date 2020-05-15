@@ -99,3 +99,4 @@ standard Seurat \code{\link[Seurat]{Assay}}.
 The \code{\link[Seurat]{CreateSeuratObject}} function in the
 \pkg{Seurat} package, and the \code{\link{ChromatinAssay-class}}.
 }
+\concept{assay}

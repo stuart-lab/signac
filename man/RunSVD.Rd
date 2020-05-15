@@ -84,3 +84,4 @@ RunSVD(x)
 RunSVD(atac_small[['peaks']])
 RunSVD(atac_small)
 }
+\concept{dimension_reduction}

@@ -49,3 +49,5 @@ Fragments(atac_small) <- CreateFragmentObject(
 FragmentHistogram(object = atac_small, region = "chr1-10245-780007")
 }
 }
+\concept{qc}
+\concept{visualization}

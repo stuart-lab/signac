@@ -37,3 +37,4 @@ motif.obj <- Seurat::GetAssayData(
 GetMotifData(object = motif.obj)
 GetMotifData(object = atac_small)
 }
+\concept{motifs}

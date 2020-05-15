@@ -14,3 +14,4 @@ GetFragmentData(object, slot = "path")
 \description{
 Get Fragment object data
 }
+\concept{assay}

@@ -45,3 +45,4 @@ motif.matrix <- matrix(
 )
 motif <- CreateMotifObject(data = motif.matrix)
 }
+\concept{motifs}

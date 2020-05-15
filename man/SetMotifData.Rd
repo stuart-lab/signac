@@ -45,3 +45,4 @@ SetMotifData(
 object = atac_small, assay = 'peaks', slot = 'data', new.data = motif.matrix
 )
 }
+\concept{motifs}

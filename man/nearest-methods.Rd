@@ -192,3 +192,4 @@ are available for \code{\link{ChromatinAssay}} objects.
   \item{\link{ChromatinAssay-class}}
  }
 }
+\concept{nearest}

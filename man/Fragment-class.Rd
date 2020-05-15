@@ -12,8 +12,7 @@ The Fragment class
 
 \describe{
 \item{\code{path}}{Path to the fragment file on disk.
-See \url{https://support.10xgenomics.com/single-cell-atac/software/
-pipelines/latest/output/fragments}}
+See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}}
 
 \item{\code{hash}}{A vector of two md5sums: first element is the md5sum of the
 fragment file, the second element is the md5sum of the index.}
@@ -23,3 +22,4 @@ as it appears in the fragment file, and the name of each element is the
 corresponding cell barcode as stored in the ChromatinAssay object.}
 }}
 
+\concept{fragments}

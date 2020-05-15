@@ -2,7 +2,7 @@
 % Please edit documentation in R/preprocessing.R
 \name{DownsampleFeatures}
 \alias{DownsampleFeatures}
-\title{DownsampleFeatures}
+\title{Downsample Features}
 \usage{
 DownsampleFeatures(object, assay = NULL, n = 20000, verbose = TRUE)
 }
@@ -26,3 +26,4 @@ This will select n features at random.
 \examples{
 DownsampleFeatures(atac_small, n = 10)
 }
+\concept{preprocessing}

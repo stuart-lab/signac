@@ -2,14 +2,22 @@
 #'
 NULL
 
-#' Extract footprint data for a set of transcription factors
+#' Get footprinting data
+#'
+#' Extract footprint data for a set of transcription factors or metafeatures.
+#' This function will pull accessibility data for a given feature (eg, a TF),
+#' and perform background normalization for each identity class. This is the
+#' data that's used to create TF footprinting plots with the
+#' \code{PlotFootprint} function.
 #'
 #' @param object A Seurat object
-#' @param features A vector of features to plot
+#' @param features A vector of features to extract data for
 #' @param assay Name of assay to use
 #' @param group.by A grouping variable
-#' @param idents Set of identities to include in the plot
+#' @param idents Set of identities to group cells by
 #' @export
+#' @return Returns a matrix
+#' @concept footprinting
 #' @importFrom Seurat DefaultAssay
 GetFootprintData <- function(
   object,
@@ -83,9 +91,14 @@ GetFootprintData <- function(
 #' @param verbose Display messages
 #' @param compute.expected Find the expected number of insertions at each
 #' position given the local DNA sequence context and the insertion bias of Tn5
+#' @param in.peaks Restrict motifs to those that fall in peaks
 #' @param ... Arguments passed to other methods
 #' @importFrom IRanges width
+#' @importFrom future.apply future_lapply
+#' @importFrom future nbrOfWorkers
+#' @importFrom pbapply pblapply
 #' @export
+#' @concept footprinting
 #' @rdname Footprint
 #' @method Footprint ChromatinAssay
 Footprint.ChromatinAssay <- function(
@@ -98,6 +111,7 @@ Footprint.ChromatinAssay <- function(
   upstream = 250,
   downstream = 250,
   compute.expected = TRUE,
+  in.peaks = TRUE,
   verbose = TRUE,
   ...
 ) {
@@ -121,16 +135,47 @@ Footprint.ChromatinAssay <- function(
     # supplied regions, put into list
     regionlist <- list(regions)
   }
-  for (i in seq_along(along.with = regionlist)) {
-    object <- RunFootprint(
+  if (compute.expected) {
+    # check that bias is computed
+    bias <- GetAssayData(object = object, slot = "bias")
+    if (is.null(x = bias)) {
+      if (verbose) {
+        message("Computing Tn5 insertion bias")
+      }
+      object <- InsertionBias(
+        object = object,
+        genome = genome
+      )
+    }
+  }
+  # run in parallel
+  if (nbrOfWorkers() > 1) {
+    mylapply <- future_lapply
+  } else {
+    mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
+  }
+  matrices <- mylapply(
+    X = seq_along(along.with = regionlist),
+    FUN = function(x) {
+      RunFootprint(
+        object = object,
+        genome = genome,
+        regions = regionlist[[x]],
+        upstream = upstream,
+        downstream = downstream,
+        compute.expected = compute.expected,
+        in.peaks = in.peaks,
+        verbose = verbose
+      )
+    })
+
+  # store in object
+  for (i in seq_along(along.with = matrices)) {
+    object <- SetAssayData(
       object = object,
-      genome = genome,
-      regions = regionlist[[i]],
-      key = key[[i]],
-      upstream = upstream,
-      downstream = downstream,
-      compute.expected = compute.expected,
-      verbose = verbose
+      slot = "positionEnrichment",
+      new.data = matrices[[i]],
+      key = key[[i]]
     )
   }
   return(object)
@@ -140,6 +185,7 @@ Footprint.ChromatinAssay <- function(
 #' @param assay Name of assay to use
 #' @method Footprint Seurat
 #' @export
+#' @concept footprinting
 #' @importFrom Seurat DefaultAssay
 Footprint.Seurat <- function(
   object,
@@ -149,6 +195,7 @@ Footprint.Seurat <- function(
   assay = NULL,
   upstream = 250,
   downstream = 250,
+  in.peaks = TRUE,
   verbose = TRUE,
   ...
 ) {
@@ -175,6 +222,7 @@ Footprint.Seurat <- function(
 #' @importFrom IRanges IRanges
 #' @importFrom Biostrings oligonucleotideFrequency
 #' @export
+#' @concept footprinting
 #' @rdname InsertionBias
 #' @method InsertionBias ChromatinAssay
 #' @examples
@@ -236,6 +284,7 @@ InsertionBias.ChromatinAssay <- function(
 #' @method InsertionBias Seurat
 #' @importFrom Seurat DefaultAssay
 #' @export
+#' @concept footprinting
 InsertionBias.Seurat <- function(
   object,
   genome,
@@ -399,34 +448,53 @@ GetMotifSize <- function(
   return(sizes)
 }
 
+# Run Footprint function for a single set of regions
 # @param object A ChromatinAssay object
-# @param genome a BSgenome object
-# @param regions a set of regions of the same width
-# @param compute.expected Compute the expected number of insertions given
-# DNA sequence bias of Tn5
-# @param verbose Display messages
-#' @importFrom Seurat GetAssayData
+# @param genome A BSgenome object
+# @param regions A set of genomic regions
+# @param upstream Number of bases to extend upstream
+# @param downstream Number of bases to extend downstream
+# @param in.peaks Restrict to motifs in peaks
+#' @importFrom IRanges width subsetByOverlaps
 #' @importFrom Biostrings getSeq
-Pileup <- function(
+#' @importFrom BiocGenerics sort
+RunFootprint <- function(
   object,
   genome,
   regions,
+  upstream = 250,
+  downstream = 250,
   compute.expected = TRUE,
+  in.peaks = TRUE,
   verbose = TRUE
 ) {
-  # add three bases each side here so we can get the hexamer frequencies
-  # for every position
-  dna.sequence <- getSeq(x = genome, Extend(
+  motif.size <- width(x = regions)[[1]]
+  regions <- sort(x = regions)
+  if (in.peaks) {
+    regions <- subsetByOverlaps(x = regions, ranges = granges(x = object))
+  }
+  # extend upstream and downstream
+  regions <- Extend(
     x = regions,
-    upstream = 3,
-    downstream = 3
+    upstream = upstream,
+    downstream = downstream
   )
-  )
+  if (verbose) {
+    message("Computing observed Tn5 insertions per base")
+  }
   if (compute.expected) {
     bias <- GetAssayData(object = object, slot = "bias")
     if (is.null(x = bias)) {
       stop("Insertion bias not computed")
     } else {
+      # add three bases each side here so we can get the hexamer frequencies
+      # for every position
+      dna.sequence <- getSeq(x = genome, Extend(
+        x = regions,
+        upstream = 3,
+        downstream = 3
+       )
+      )
       expected.insertions <- FindExpectedInsertions(
         dna.sequence = dna.sequence,
         bias = bias,
@@ -437,9 +505,6 @@ Pileup <- function(
     expected.insertions <- rep(1, width(x = dna.sequence)[[1]])
   }
 
-  if (verbose) {
-    message("Computing observed Tn5 insertions per base")
-  }
   # count insertions at each position for each cell
   insertion.matrix <- CreateRegionPileupMatrix(
     object = object,
@@ -450,57 +515,7 @@ Pileup <- function(
   expected.insertions <- t(x = as.matrix(x = expected.insertions))
   rownames(x = expected.insertions) <- "expected"
   insertion.matrix <- rbind(insertion.matrix, expected.insertions)
-  return(insertion.matrix)
-}
 
-# Run Footprint function for a single set of regions
-# @param object A ChromatinAssay object
-# @param genome A BSgenome object
-# @param regions A set of genomic regions
-# @param key Key to store positional enrichment matrix under
-# @param upstream Number of bases to extend upstream
-# @param downstream Number of bases to extend downstream
-#' @importFrom IRanges width
-#' @importFrom BiocGenerics sort
-RunFootprint <- function(
-  object,
-  genome,
-  key,
-  regions,
-  upstream = 250,
-  downstream = 250,
-  compute.expected = TRUE,
-  verbose = TRUE
-) {
-  motif.size <- width(x = regions)[[1]]
-  regions <- sort(x = regions)
-  # extend upstream and downstream
-  regions <- Extend(
-    x = regions,
-    upstream = upstream,
-    downstream = downstream
-  )
-  if (compute.expected) {
-    # check that bias is computed
-    bias <- GetAssayData(object = object, slot = "bias")
-    if (is.null(x = bias)) {
-      if (verbose) {
-        message("Computing Tn5 insertion bias")
-      }
-      object <- InsertionBias(
-        object = object,
-        genome = genome
-      )
-    }
-  }
-  # find expected and observed insertions across all regions
-  insertion.matrix <- Pileup(
-    object = object,
-    genome = genome,
-    regions = regions,
-    compute.expected = compute.expected,
-    verbose = verbose
-  )
   # encode motif position as additional row in matrix
   motif.vec <- t(x = matrix(
     data = c(
@@ -508,16 +523,9 @@ RunFootprint <- function(
       rep(x = 1, motif.size),
       rep(x = 0, downstream)
     )
-  )
+   )
   )
   rownames(x = motif.vec) <- "motif"
   insertion.matrix <- rbind(insertion.matrix, motif.vec)
-  # store results in the assay
-  object <- suppressWarnings(expr = SetAssayData(
-    object = object,
-    slot = "positionEnrichment",
-    new.data = insertion.matrix,
-    key = key
-  ))
-  return(object)
+  return(insertion.matrix)
 }

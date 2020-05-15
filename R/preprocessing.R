@@ -7,6 +7,7 @@ NULL
 #' @rdname BinarizeCounts
 #' @importFrom methods is slot "slot<-"
 #' @export
+#' @concept preprocessing
 #' @examples
 #' x <- matrix(data = sample(0:3, size = 25, replace = TRUE), ncol = 5)
 #' BinarizeCounts(x)
@@ -33,6 +34,7 @@ BinarizeCounts.default <- function(
 #' @method BinarizeCounts Assay
 #' @importFrom Seurat GetAssayData SetAssayData
 #' @export
+#' @concept preprocessing
 #' @examples
 #' BinarizeCounts(atac_small[['peaks']])
 BinarizeCounts.Assay <- function(
@@ -58,6 +60,7 @@ BinarizeCounts.Assay <- function(
 #' @method BinarizeCounts Seurat
 #' @importFrom Seurat GetAssay DefaultAssay
 #' @export
+#' @concept preprocessing
 #' @examples
 #' BinarizeCounts(atac_small)
 BinarizeCounts.Seurat <- function(
@@ -79,7 +82,7 @@ BinarizeCounts.Seurat <- function(
   return(object)
 }
 
-#' CreateMotifMatrix
+#' Create motif matrix
 #'
 #' Create a motif x feature matrix from a set of genomic ranges,
 #' the genome, and a set of position weight matrices.
@@ -104,6 +107,8 @@ BinarizeCounts.Seurat <- function(
 #'
 #' @return Returns a sparse matrix
 #' @export
+#' @concept motifs
+#' @concept preprocessing
 #' @examples
 #' \dontrun{
 #' library(JASPAR2018)
@@ -154,7 +159,7 @@ CreateMotifMatrix <- function(
   return(motif.matrix)
 }
 
-#' DownsampleFeatures
+#' Downsample Features
 #'
 #' Randomly downsample features and assign to VariableFeatures for the object.
 #' This will select n features at random.
@@ -167,6 +172,7 @@ CreateMotifMatrix <- function(
 #' @return Returns a \code{\link[Seurat]{Seurat}} object with
 #' \code{\link[Seurat]{VariableFeatures}} set to the randomly sampled features.
 #' @export
+#' @concept preprocessing
 #' @examples
 #' DownsampleFeatures(atac_small, n = 10)
 DownsampleFeatures <- function(
@@ -207,6 +213,8 @@ DownsampleFeatures <- function(
 #' @param verbose Display messages
 #'
 #' @export
+#' @concept preprocessing
+#' @concept utilities
 #' @return Returns a sparse matrix
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
@@ -377,6 +385,7 @@ SingleFeatureMatrix <- function(
 #' @importFrom stats ecdf
 #' @rdname FindTopFeatures
 #' @export
+#' @concept preprocessing
 #' @examples
 #' FindTopFeatures(object = atac_small[['peaks']][])
 FindTopFeatures.default <- function(
@@ -401,6 +410,7 @@ FindTopFeatures.default <- function(
 #' @importFrom Seurat GetAssayData VariableFeatures
 #' @export
 #' @method FindTopFeatures Assay
+#' @concept preprocessing
 #' @examples
 #' FindTopFeatures(object = atac_small[['peaks']])
 FindTopFeatures.Assay <- function(
@@ -439,6 +449,7 @@ FindTopFeatures.Assay <- function(
 #' @rdname FindTopFeatures
 #' @importFrom Seurat DefaultAssay GetAssay
 #' @export
+#' @concept preprocessing
 #' @method FindTopFeatures Seurat
 #' @examples
 #' FindTopFeatures(atac_small)
@@ -475,6 +486,7 @@ FindTopFeatures.Seurat <- function(
 #' @importFrom Seurat GetAssayData AddMetaData
 #'
 #' @export
+#' @concept qc
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
 #' FRiP(object = atac_small, peak.assay = 'peaks', bin.assay = 'bins')
@@ -535,6 +547,8 @@ FRiP <- function(
 #'
 #' @importFrom GenomicRanges tileGenome
 #' @export
+#' @concept preprocessing
+#' @concept utilities
 #' @return Returns a sparse matrix
 #' @examples
 #' genome <- 780007
@@ -595,6 +609,7 @@ globalVariables(names = "cell", package = "Signac")
 #' added metadata for the ratio of mononucleosomal to nucleosome-free fragments
 #' per cell, and the percentile rank of each ratio.
 #' @export
+#' @concept qc
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' Fragments(atac_small) <- CreateFragmentObject(
@@ -654,6 +669,7 @@ NucleosomeSignal <- function(
 #' @importMethodsFrom GenomicRanges width
 #' @rdname RegionStats
 #' @export
+#' @concept motifs
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
@@ -690,6 +706,7 @@ RegionStats.default <- function(
 #' @importFrom methods slot
 #' @importFrom Seurat GetAssayData
 #' @export
+#' @concept motifs
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
@@ -722,6 +739,7 @@ RegionStats.ChromatinAssay <- function(
 #' @rdname RegionStats
 #' @method RegionStats Seurat
 #' @export
+#' @concept motifs
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
@@ -769,6 +787,7 @@ RegionStats.Seurat <- function(
 #' @importFrom Matrix colSums rowSums Diagonal tcrossprod
 #' @importFrom methods is "slot<-" slot
 #' @export
+#' @concept preprocessing
 #' @examples
 #' mat <- matrix(data = rbinom(n = 25, size = 5, prob = 0.2), nrow = 5)
 #' RunTFIDF(object = mat)
@@ -818,6 +837,7 @@ RunTFIDF.default <- function(
 #' @rdname RunTFIDF
 #' @method RunTFIDF Assay
 #' @export
+#' @concept preprocessing
 #' @examples
 #' RunTFIDF(atac_small[['peaks']])
 RunTFIDF.Assay <- function(
@@ -849,6 +869,7 @@ RunTFIDF.Assay <- function(
 #' @rdname RunTFIDF
 #' @method RunTFIDF Seurat
 #' @export
+#' @concept preprocessing
 #' @examples
 #' RunTFIDF(object = atac_small)
 RunTFIDF.Seurat <- function(
@@ -899,6 +920,7 @@ RunTFIDF.Seurat <- function(
 #'
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @export
+#' @concept qc
 #' @examples
 #' \dontrun{
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")

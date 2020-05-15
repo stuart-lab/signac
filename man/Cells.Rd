@@ -29,3 +29,4 @@ assay without needing to change the cell names on disk.
 To access the cell names that are stored in the fragment file itself, use
 \code{GetFragmentData(object = x, name = "cells")}.
 }
+\concept{fragments}

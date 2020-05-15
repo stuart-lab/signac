@@ -27,3 +27,4 @@ From \url{https://support.bioconductor.org/p/78652/}
 \examples{
 Extend(x = blacklist_hg19, upstream = 100, downstream = 100)
 }
+\concept{utilities}

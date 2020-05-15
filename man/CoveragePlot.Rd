@@ -121,3 +121,4 @@ Fragments(atac_small) <- fragments
 CoveragePlot(object = atac_small, region = c("chr1-713500-714500"))
 }
 }
+\concept{visualization}

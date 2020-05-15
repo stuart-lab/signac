@@ -40,3 +40,4 @@ Converts from motif name to motif ID or vice versa. To convert common names
 to IDs, use the \code{name} parameter. To convert IDs to common names, use
 the \code{id} parameter.
 }
+\concept{motifs}

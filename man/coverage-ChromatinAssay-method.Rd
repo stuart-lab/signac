@@ -55,3 +55,4 @@ This is the \code{coverage} method for \code{\link{ChromatinAssay}} objects.
   \item{\link{ChromatinAssay-class}}
  }
 }
+\concept{coverage}

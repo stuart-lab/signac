@@ -50,3 +50,4 @@ Fragments(atac_small) <- CreateFragmentObject(
 TSSEnrichment(object = atac_small)
 }
 }
+\concept{qc}

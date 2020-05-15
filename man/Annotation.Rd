@@ -46,3 +46,4 @@ Annotation(atac_small[["peaks"]]) <- genes
 genes <- Annotation(atac_small)
 Annotation(atac_small) <- genes
 }
+\concept{assay}
