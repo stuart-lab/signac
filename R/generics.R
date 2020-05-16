@@ -160,6 +160,13 @@ Motifs <- function(object, ...) {
   UseMethod(generic = "Motifs", object = object)
 }
 
+#' @param value A \code{\link{Motif}} object
+#' @rdname Motifs
+#' @export Motifs<-
+"Motifs<-" <- function(object, ..., value) {
+  UseMethod(generic = 'Motifs<-', object = object)
+}
+
 #' Compute base composition information for genomic ranges
 #'
 #' Compute the GC content, region lengths, and dinucleotide base frequencies
