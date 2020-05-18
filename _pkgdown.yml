@@ -24,14 +24,16 @@ navbar:
           href: articles/motif_vignette.html
         - text: "scATAC-seq integration"
           href: articles/integration.html
-        - text: "Merging objects"
-          href: articles/merging.html
         - text: "Parallel computing"
           href: articles/future.html
         - text: "Trajectory analysis"
           href: articles/monocle.html
+        - text: "Finding co-accessible sites"
+          href: articles/cicero.html
         - text: "Transcription factor footprinting"
           href: articles/footprint.html
+        - text: "Merging objects"
+          href: articles/merging.html
         - text: "Data structures and object interaction"
           href: articles/data_structures.html
     - text: "Reference"
