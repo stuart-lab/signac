@@ -817,3 +817,59 @@ TSSPlot <- function(
     theme_minimal()
   return(p)
 }
+
+#' Combine genome region plots
+#'
+#' This can be used to combine coverage plots, peak region plots, gene
+#' annotation plots, and linked element plots. The different tracks are stacked
+#' on top of each other and the x-axis combined.
+#'
+#' @param plotlist A list of plots to combine. Must be from the same genomic
+#' region.
+#' @return Returns a patchworked ggplot2 object
+#' @export
+#' @concept visualization
+CombineTracks <- function(plotlist) {
+  return()
+}
+
+#' Plot peaks in a genomic region
+#'
+#' Display the genomic ranges in a \code{\link{ChromatinAssay}} object that fall
+#' in a given genomic region
+#'
+#' @param object A \code{\link[Seurat]{Seurat}} object
+#' @param region A genomic region to plot
+#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @export
+#' @concept visualization
+PeakPlot <- function(object, region) {
+  return()
+}
+
+#' Plot linked genomic elements
+#'
+#' Display links between pairs of genomic elements within a given region of the
+#' genome.
+#'
+#' @param object A \code{\link[Seurat]{Seurat}} object
+#' @param region A genomic region to plot
+#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @export
+#' @concept visualization
+LinkPlot <- function(object, region) {
+  return()
+}
+
+#' Plot gene annotations
+#'
+#' Display gene annotations in a given region of the genome.
+#'
+#' @param object A \code{\link[Seurat]{Seurat}} object
+#' @param region A genomic region to plot
+#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @export
+#' @concept visualization
+AnnotationPlot <- function(object, region) {
+  return()
+}
