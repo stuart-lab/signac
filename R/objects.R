@@ -1572,7 +1572,7 @@ dim.Motif <- function(x) {
 #' @rdname Motifs
 #' @method Motifs<- ChromatinAssay
 #' @concept assay
-#' @concet motifs
+#' @concept motifs
 #' @examples
 #' motifs <- Motifs(atac_small)
 #' Motifs(atac_small[["peaks"]]) <- motifs
