@@ -18,4 +18,7 @@ Returns a \code{\link[ggplot2]{ggplot}} object
 Display the genomic ranges in a \code{\link{ChromatinAssay}} object that fall
 in a given genomic region
 }
+\examples{
+PeakPlot(atac_small, region = "chr1-710000-715000")
+}
 \concept{visualization}

@@ -843,8 +843,43 @@ CombineTracks <- function(plotlist) {
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
 #' @concept visualization
+#' @importFrom GenomicRanges start end
+#' @importFrom IRanges subsetByOverlaps
+#' @importFrom GenomeInfoDb seqnames
+#' @importFrom ggplot2 ggplot aes geom_segment theme_classic element_blank
+#' theme xlab ylab scale_color_identity
+#' @examples
+#' PeakPlot(atac_small, region = "chr1-710000-715000")
 PeakPlot <- function(object, region) {
-  return()
+  if (!inherits(x = region, what = "GRanges")) {
+    region <- StringToGRanges(regions = region)
+  }
+  # get ranges from object
+  peaks <- granges(x = object)
+  # subset to covered range
+  peak.intersect <- subsetByOverlaps(x = peaks, ranges = region)
+  peak.df <- as.data.frame(x = peak.intersect)
+  start.pos <- start(x = region)
+  end.pos <- end(x = region)
+  chromosome <- seqnames(x = region)
+
+  if (nrow(x = peak.df) > 0) {
+    peak.plot <- ggplot(data = peak.df, mapping = aes(color = "darkgrey")) +
+      geom_segment(aes(x = start, y = 0, xend = end, yend = 0, size = 2),
+                   data = peak.df)
+  } else {
+    # no peaks present in region, make empty panel
+    peak.plot <- ggplot(data = peak.df)
+  }
+  peak.plot <- peak.plot + theme_classic() +
+    ylab(label = "Peaks") +
+    theme(axis.ticks.y = element_blank(),
+          axis.text.y = element_blank(),
+          legend.position = "none") +
+    xlab(label = paste0(chromosome, " position (bp)")) +
+    xlim(c(start.pos, end.pos)) +
+    scale_color_identity()
+  return(peak.plot)
 }
 
 #' Plot linked genomic elements
