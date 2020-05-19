@@ -891,9 +891,43 @@ PeakPlot <- function(object, region) {
 #' @param region A genomic region to plot
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
+#' @importFrom IRanges subsetByOverlaps
+#' @importFrom GenomicRanges start end
+#' @importFrom GenomeInfoDb seqnames
+#' @importFrom ggplot2 ggplot geom_hline geom_curve aes theme_classic ylim xlim
+#' ylab theme element_blank
 #' @concept visualization
 LinkPlot <- function(object, region) {
-  return()
+  if (!inherits(x = region, what = "GRanges")) {
+    region <- StringToGRanges(regions = region)
+  }
+  chromosome <- seqnames(x = region)
+
+  # extract link information
+  links <- Links(object = object)
+
+  # subset to those in region
+  links.keep <- subsetByOverlaps(x = links, ranges = region)
+
+  # convert to dataframe
+  link.df <- as.data.frame(x = links.keep)
+  link.df$group <- as.factor(link.df$group)
+
+  # plot
+  p <- ggplot(data = link.df) +
+    geom_hline(yintercept = 0, color = 'grey') +
+    geom_curve(
+      mapping = aes(x = start, y = 0, xend = end, yend = 0, alpha = score),
+      curvature = 1/2
+    ) +
+    theme_classic() +
+    ylim(c(-1, 0)) +
+    theme(axis.ticks.y = element_blank(),
+          axis.text.y = element_blank()) +
+    ylab("Links") +
+    xlab(label = paste0(chromosome, " position (bp)")) +
+    xlim(c(start(x = region), end(x = region)))
+  return(p)
 }
 
 #' Plot gene annotations
