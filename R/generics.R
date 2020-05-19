@@ -148,10 +148,9 @@ GetMotifData <- function(object, ...) {
   UseMethod(generic = "GetMotifData", object = object)
 }
 
-#' Motifs
-#' Retrieve a Motif object
+#' Get or set a motif information
 #'
-#' Get the Motif object
+#' Get or set the Motif object for a Seurat object or ChromatinAssay.
 #'
 #' @param ... Arguments passed to other methods
 #' @rdname Motifs
@@ -165,6 +164,24 @@ Motifs <- function(object, ...) {
 #' @export Motifs<-
 "Motifs<-" <- function(object, ..., value) {
   UseMethod(generic = 'Motifs<-', object = object)
+}
+
+#' Get or set a links information
+#'
+#' Get or set the genomic link information for a Seurat object or ChromatinAssay
+#'
+#' @param ... Arguments passed to other methods
+#' @rdname Links
+#' @export Links
+Links <- function(object, ...) {
+  UseMethod(generic = "Links", object = object)
+}
+
+#' @param value A \code{\link[GenomicRanges]{GRanges}} object
+#' @rdname Links
+#' @export Links<-
+"Links<-" <- function(object, ..., value) {
+  UseMethod(generic = "Links<-", object = object)
 }
 
 #' Compute base composition information for genomic ranges

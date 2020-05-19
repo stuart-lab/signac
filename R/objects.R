@@ -1554,6 +1554,31 @@ Motifs.Seurat <- function(object, ...) {
   return(Motifs(object = object[[assay]]))
 }
 
+#' @rdname Links
+#' @method Links ChromatinAssay
+#' @export
+#' @concept assay
+#' @concept links
+#' @examples
+#' Links(atac_small[["peaks"]])
+Links.ChromatinAssay <- function(object, ...) {
+  return(slot(object = object, name = "links"))
+}
+
+#' @param object A Seurat object
+#' @rdname Links
+#' @method Links Seurat
+#' @importFrom Seurat DefaultAssay
+#' @export
+#' @concept links
+#' @concept assay
+#' @examples
+#' Links(atac_small)
+Links.Seurat <- function(object, ...) {
+  assay <- DefaultAssay(object = object)
+  return(Links(object = object[[assay]]))
+}
+
 #' @method dimnames Motif
 #' @concept motifs
 #' @export
@@ -1593,6 +1618,33 @@ dim.Motif <- function(x) {
 "Motifs<-.Seurat" <- function(object, ..., value) {
   assay <- DefaultAssay(object = object)
   Motifs(object = object[[assay]]) <- value
+  return(object)
+}
+
+#' @export
+#' @rdname Links
+#' @method Links<- ChromatinAssay
+#' @concept assay
+#' @concept links
+#' @examples
+#' links <- Links(atac_small)
+#' Links(atac_small[["peaks"]]) <- links
+"Links<-.ChromatinAssay" <- function(object, ..., value) {
+  object <- SetAssayData(object = object, slot = "links", new.data = value)
+  return(object)
+}
+
+#' @export
+#' @rdname Links
+#' @method Links<- Seurat
+#' @concept assay
+#' @concept links
+#' @examples
+#' links <- Links(atac_small)
+#' Links(atac_small) <- links
+"Links<-.Seurat" <- function(object, ..., value) {
+  assay <- DefaultAssay(object = object)
+  Links(object[[assay]]) <- value
   return(object)
 }
 
