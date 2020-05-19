@@ -7,8 +7,7 @@
 \alias{Motifs.Seurat}
 \alias{Motifs<-.ChromatinAssay}
 \alias{Motifs<-.Seurat}
-\title{Motifs
-Retrieve a Motif object}
+\title{Get or set a motif information}
 \usage{
 Motifs(object, ...)
 
@@ -30,7 +29,7 @@ Motifs(object, ...) <- value
 \item{value}{A \code{\link{Motif}} object}
 }
 \description{
-Get the Motif object
+Get or set the Motif object for a Seurat object or ChromatinAssay.
 }
 \examples{
 Motifs(atac_small[["peaks"]])
