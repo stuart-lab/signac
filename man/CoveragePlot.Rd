@@ -12,18 +12,17 @@ SingleCoveragePlot(
   annotation = TRUE,
   peaks = TRUE,
   links = TRUE,
-  fragment.path = NULL,
   group.by = NULL,
   window = 100,
   downsample = 0.1,
-  height.tracks = 10,
   extend.upstream = 0,
   extend.downstream = 0,
   ymax = NULL,
   scale.factor = NULL,
   cells = NULL,
   idents = NULL,
-  sep = c("-", "-")
+  sep = c("-", "-"),
+  heights = NULL
 )
 
 CoveragePlot(
@@ -33,11 +32,10 @@ CoveragePlot(
   annotation = TRUE,
   peaks = TRUE,
   links = TRUE,
-  fragment.path = NULL,
+  heights = NULL,
   group.by = NULL,
   window = 100,
   downsample = 0.1,
-  height.tracks = 10,
   extend.upstream = 0,
   extend.downstream = 0,
   scale.factor = NULL,
@@ -63,18 +61,12 @@ coordinates to plot.}
 
 \item{links}{Display links}
 
-\item{fragment.path}{Path to an index fragment file. If NULL, will look for a
-path stored in the fragments slot of the ChromatinAssay object}
-
 \item{group.by}{Name of one or more metadata columns to group (color) the
 cells by. Default is the current cell identities}
 
 \item{window}{Smoothing window size}
 
 \item{downsample}{Fraction of positions to retain in the plot.}
-
-\item{height.tracks}{Height of the accessibility tracks relative to the
-height of the gene annotation track.}
 
 \item{extend.upstream}{Number of bases to extend the region upstream.}
 
@@ -95,6 +87,9 @@ identities.}
 \item{sep}{Separators to use for strings encoding genomic coordinates. First
 element is used to separate the chromosome from the coordinates, second
 element is used to separate the start from end coordinate.}
+
+\item{heights}{Relative heights for each track (accessibility, gene
+annotations, peaks, links).}
 
 \item{...}{Additional arguments passed to \code{\link[patchwork]{wrap_plots}}}
 }

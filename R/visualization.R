@@ -414,6 +414,7 @@ SingleCoveragePlot <- function(
 #' element is used to separate the start from end coordinate.
 #' @param heights Relative heights for each track (accessibility, gene
 #' annotations, peaks, links).
+#' @param ... Additional arguments passed to \code{\link[patchwork]{wrap_plots}}
 #'
 #' @importFrom patchwork wrap_plots
 #' @export
@@ -447,7 +448,8 @@ CoveragePlot <- function(
   ymax = NULL,
   cells = NULL,
   idents = NULL,
-  sep = c("-", "-")
+  sep = c("-", "-"),
+  ...
 ) {
   if (length(x = region) > 1) {
     plot.list <- lapply(
