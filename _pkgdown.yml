@@ -88,6 +88,11 @@ reference:
   - contents:
     - has_concept("fragments")
 
+  - title: "Links"
+    desc: "Functions for working with genomic links"
+  - contents:
+    - has_concept("links")
+
   - title: "Nearest methods"
     desc: "Nearest genomic range methods for Signac-defined classes"
   - contents:
