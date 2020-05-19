@@ -8,9 +8,10 @@
 SingleCoveragePlot(
   object,
   region,
-  annotation = NULL,
-  peaks = NULL,
   assay = NULL,
+  annotation = TRUE,
+  peaks = TRUE,
+  links = TRUE,
   fragment.path = NULL,
   group.by = NULL,
   window = 100,
@@ -28,9 +29,10 @@ SingleCoveragePlot(
 CoveragePlot(
   object,
   region,
-  annotation = NULL,
-  peaks = NULL,
   assay = NULL,
+  annotation = TRUE,
+  peaks = TRUE,
+  links = TRUE,
   fragment.path = NULL,
   group.by = NULL,
   window = 100,
@@ -53,15 +55,13 @@ CoveragePlot(
 a string, or a vector of strings describing the genomic
 coordinates to plot.}
 
-\item{annotation}{A GRanges object containing genomic annotations. If NULL,
-use the annotations stored in the assay. If NA or FALSE, don't plot
-annotations.}
-
-\item{peaks}{A GRanges object containing peak coordinates. If NULL, use the
-genomic ranges associated with the assay. If NA or FALSE, don't plot genomic
-ranges.}
-
 \item{assay}{Name of the  assay to plot}
+
+\item{annotation}{Display gene annotations}
+
+\item{peaks}{Display peaks}
+
+\item{links}{Display links}
 
 \item{fragment.path}{Path to an index fragment file. If NULL, will look for a
 path stored in the fragments slot of the ChromatinAssay object}
