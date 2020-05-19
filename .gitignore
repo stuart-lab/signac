@@ -11,3 +11,4 @@ testcode/*
 vignettes/*
 *.old
 *.tar.gz
+vignettes/*_cache/*
