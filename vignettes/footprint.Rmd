@@ -8,39 +8,32 @@ library(Signac)
 library(Seurat)
 ```
 
+## Data loading
+
+For this vignette we'll use the dataset introduced and pre-processed in the
+[trajectory building vignette](https://satijalab.org/signac/articles/monocle.html).
+
 ```{r}
 bone <- readRDS("../vignette_data/cd34.rds")
 DimPlot(bone, label = TRUE)
 ```
 
-Next we add motif information to the object
-
-To aid in the annotation of cell types, we'll compute the chromVAR TF motif 
-deviations per cell. As there is a lot of literature describing which TFs are 
-important for different cell lineages in the blood, we can use these TF activity
-scores to annotate each lineage in the dataset.
-
-First we'll add motif information to the object, then run chromVAR using the 
-`RunChromVAR` wrapper function. 
+To perform a footprinting analysis we first need to add motif information to the
+object, including the exact positions of each motif. This can be done using 
+functions from the \code{motifmatchr} and \code{TFBSTools} packages.
 
 ```{r message=FALSE, warning=FALSE}
-library(BSgenome.Hsapiens.UCSC.hg19)
-library(EnsDb.Hsapiens.v75)
 library(motifmatchr)
 library(JASPAR2018)
 library(TFBSTools)
 
+# extract position frequency matrices for the motifs
 pwm <- getMatrixSet(
   x = JASPAR2018,
   opts = list(species = 9606, all_versions = FALSE)
 )
 
-motif.matrix <- CreateMotifMatrix(
-  features = granges(bone),
-  pwm = pwm,
-  genome = 'hg19'
-)
-
+# scan the genome and record the position of each motif using motifmatchr
 motif.positions <- matchMotifs(
   pwms = pwm,
   subject = granges(bone),
@@ -48,8 +41,8 @@ motif.positions <- matchMotifs(
   genome = 'hg19'
 )
 
+# create a Motif object and add it to the assay
 motif <- CreateMotifObject(
-  data = motif.matrix,
   positions = motif.positions,
   pwm = pwm
 )
@@ -61,6 +54,8 @@ bone <- SetAssayData(
 )
 ```
 
+## Motif footprinting
+
 Now we can footprint any motif that we have positional information for. By
 default, this includes every instance of the motif in the genome. We can instead
 use the `in.peaks = TRUE` parameter to include only those motifs that fall
@@ -69,12 +64,14 @@ data and stores it in the assay. We can then plot the footprinted motifs using
 the `PlotFootprint()` function.
 
 ```{r message=FALSE, warning=FALSE}
+# gather the footprinting information for sets of motifs
 bone <- Footprint(
   object = bone,
   motif.name = c("GATA2", "CEBPA", "EBF1"),
   genome = BSgenome.Hsapiens.UCSC.hg19
 )
 
+# plot the footprint data for each group of cells
 p2 <- PlotFootprint(bone, features = c("GATA2", "CEBPA", "EBF1"))
 ```
 
