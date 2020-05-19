@@ -895,6 +895,8 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
       }
     }
     slot(object = object, name = slot) <- new.data
+  } else if (slot == "links") {
+    slot(object = object, name = slot) <- new.data
   }
   return(object)
 }
