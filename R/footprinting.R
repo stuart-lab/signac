@@ -111,7 +111,7 @@ Footprint.ChromatinAssay <- function(
   upstream = 250,
   downstream = 250,
   compute.expected = TRUE,
-  in.peaks = TRUE,
+  in.peaks = FALSE,
   verbose = TRUE,
   ...
 ) {
@@ -195,7 +195,7 @@ Footprint.Seurat <- function(
   assay = NULL,
   upstream = 250,
   downstream = 250,
-  in.peaks = TRUE,
+  in.peaks = FALSE,
   verbose = TRUE,
   ...
 ) {
@@ -207,6 +207,7 @@ Footprint.Seurat <- function(
     genome = genome,
     upstream = upstream,
     downstream = downstream,
+    in.peaks = in.peaks,
     verbose = verbose,
     ...
   )
@@ -465,7 +466,7 @@ RunFootprint <- function(
   upstream = 250,
   downstream = 250,
   compute.expected = TRUE,
-  in.peaks = TRUE,
+  in.peaks = FALSE,
   verbose = TRUE
 ) {
   motif.size <- width(x = regions)[[1]]

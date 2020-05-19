@@ -18,7 +18,7 @@ Footprint(object, ...)
   upstream = 250,
   downstream = 250,
   compute.expected = TRUE,
-  in.peaks = TRUE,
+  in.peaks = FALSE,
   verbose = TRUE,
   ...
 )
@@ -31,7 +31,7 @@ Footprint(object, ...)
   assay = NULL,
   upstream = 250,
   downstream = 250,
-  in.peaks = TRUE,
+  in.peaks = FALSE,
   verbose = TRUE,
   ...
 )
