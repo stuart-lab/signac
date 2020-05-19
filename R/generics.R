@@ -166,7 +166,7 @@ Motifs <- function(object, ...) {
   UseMethod(generic = 'Motifs<-', object = object)
 }
 
-#' Get or set a links information
+#' Get or set links information
 #'
 #' Get or set the genomic link information for a Seurat object or ChromatinAssay
 #'

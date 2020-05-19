@@ -7,7 +7,7 @@
 \alias{Links.Seurat}
 \alias{Links<-.ChromatinAssay}
 \alias{Links<-.Seurat}
-\title{Get or set a links information}
+\title{Get or set links information}
 \usage{
 Links(object, ...)
 
