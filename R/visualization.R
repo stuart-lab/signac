@@ -243,18 +243,17 @@ SingleCoveragePlot <- function(
   annotation = TRUE,
   peaks = TRUE,
   links = TRUE,
-  fragment.path = NULL,
   group.by = NULL,
   window = 100,
   downsample = 0.1,
-  height.tracks = 10,
   extend.upstream = 0,
   extend.downstream = 0,
   ymax = NULL,
   scale.factor = NULL,
   cells = NULL,
   idents = NULL,
-  sep = c("-", "-")
+  sep = c("-", "-"),
+  heights = NULL
 ) {
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
@@ -288,7 +287,7 @@ SingleCoveragePlot <- function(
     verbose = FALSE
   )
   colnames(cutmat) <- start(x = region):end(x = region)
-  group.scale.factors <- reads.per.group * cells.per.group
+  group.scale.factors <- suppressWarnings(reads.per.group * cells.per.group)
   scale.factor <- SetIfNull(
     x = scale.factor, y = median(x = group.scale.factors)
   )
@@ -373,7 +372,10 @@ SingleCoveragePlot <- function(
     peak.plot <- NULL
   }
 
-  p <- CombineTracks(plotlist = list(p, gene.plot, peak.plot, link.plot))
+  heights <- SetIfNull(x = heights, y = c(8, 1, 1, 2))
+
+  p <- CombineTracks(plotlist = list(p, gene.plot, peak.plot, link.plot),
+                     heights = heights)
   return(p)
 }
 
@@ -393,15 +395,11 @@ SingleCoveragePlot <- function(
 #' @param annotation Display gene annotations
 #' @param peaks Display peaks
 #' @param links Display links
-#' @param fragment.path Path to an index fragment file. If NULL, will look for a
-#' path stored in the fragments slot of the ChromatinAssay object
 #' @param cells Which cells to plot. Default all cells
 #' @param idents Which identities to include in the plot. Default is all
 #' identities.
 #' @param window Smoothing window size
 #' @param downsample Fraction of positions to retain in the plot.
-#' @param height.tracks Height of the accessibility tracks relative to the
-#' height of the gene annotation track.
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
 #' @param ymax Maximum value for Y axis. If NULL (default) set to the highest
@@ -414,7 +412,8 @@ SingleCoveragePlot <- function(
 #' @param sep Separators to use for strings encoding genomic coordinates. First
 #' element is used to separate the chromosome from the coordinates, second
 #' element is used to separate the start from end coordinate.
-#' @param ... Additional arguments passed to \code{\link[patchwork]{wrap_plots}}
+#' @param heights Relative heights for each track (accessibility, gene
+#' annotations, peaks, links).
 #'
 #' @importFrom patchwork wrap_plots
 #' @export
@@ -438,19 +437,17 @@ CoveragePlot <- function(
   annotation = TRUE,
   peaks = TRUE,
   links = TRUE,
-  fragment.path = NULL,
+  heights = NULL,
   group.by = NULL,
   window = 100,
   downsample = 0.1,
-  height.tracks = 10,
   extend.upstream = 0,
   extend.downstream = 0,
   scale.factor = NULL,
   ymax = NULL,
   cells = NULL,
   idents = NULL,
-  sep = c("-", "-"),
-  ...
+  sep = c("-", "-")
 ) {
   if (length(x = region) > 1) {
     plot.list <- lapply(
@@ -463,7 +460,6 @@ CoveragePlot <- function(
           peaks = peaks,
           assay = assay,
           links = links,
-          fragment.path = fragment.path,
           group.by = group.by,
           window = window,
           downsample = downsample,
@@ -473,7 +469,8 @@ CoveragePlot <- function(
           extend.downstream = extend.downstream,
           cells = cells,
           idents = idents,
-          sep = sep
+          sep = sep,
+          heights = heights
         )
       }
     )
@@ -486,18 +483,17 @@ CoveragePlot <- function(
       peaks = peaks,
       assay = assay,
       links = links,
-      fragment.path = fragment.path,
       group.by = group.by,
       window = window,
       downsample = downsample,
-      height.tracks = height.tracks,
       extend.upstream = extend.upstream,
       extend.downstream = extend.downstream,
       ymax = ymax,
       scale.factor = scale.factor,
       cells = cells,
       idents = idents,
-      sep = sep
+      sep = sep,
+      heights = heights
     ))
   }
 }
@@ -729,15 +725,17 @@ TSSPlot <- function(
 #'
 #' @param plotlist A list of plots to combine. Must be from the same genomic
 #' region.
+#' @param heights Relative heights for each plot. If NULL, the first
 #' @return Returns a patchworked ggplot2 object
 #' @export
 #' @importFrom ggplot2 theme element_blank
 #' @importFrom patchwork wrap_plots
 #' @concept visualization
-CombineTracks <- function(plotlist) {
+CombineTracks <- function(plotlist, heights = NULL) {
   # remove any that are NULL
   nullplots <- sapply(X = plotlist, FUN = is.null)
   plotlist <- plotlist[!nullplots]
+  heights <- heights[!nullplots]
 
   if (length(x = plotlist) == 1) {
     return(plotlist[[1]])
@@ -754,7 +752,16 @@ CombineTracks <- function(plotlist) {
   }
 
   # combine plots
-  p <- wrap_plots(plotlist, ncol = 1)
+  if (is.null(x = heights)) {
+    # set height of first element to 10x more than other elements
+    n.plots <- length(x = plotlist)
+    heights <- c(8, rep(1, n.plots - 1))
+  } else {
+    if (length(x = heights) != length(x = plotlist)) {
+      stop("Relative height must be supplied for each plot")
+    }
+  }
+  p <- wrap_plots(plotlist, ncol = 1, heights = heights)
   return(p)
 }
 
