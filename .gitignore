@@ -16,4 +16,4 @@ docs/*
 index.md
 vignette_data/*
 cran-comments.md
-*_cache/*
+vignettes/*_cache/*
