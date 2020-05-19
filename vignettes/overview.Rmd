@@ -1,0 +1,79 @@
+---
+title: "Vignettes overview"
+output: html_document
+---
+
+# Guided analyses
+
+The following guided analyses demonstrate a standard end-to-end analysis 
+pipeline for different types of single-cell chromatin data.
+
+### Human peripheral blood mononuclear cells
+
+In this tutorial we analyze a human peripheral blood mononuclear cell (PBMC)
+dataset of ~10,000 cells.
+
+### Mouse cortical brain cells
+
+In this tutorial we analyze a dataset of cortical neurons from the adult mouse
+brain.
+
+### Joint scRNA-seq and scATAC-seq analysis
+
+In this tutorial we demonstrate strategies to analyze a SNARE-seq2 dataset where
+we have paired measurements of gene expression and DNA accessibility from the 
+same human brain cell nuclei.
+
+# How-to
+
+The following short vignettes demonstrate how to perform more specialized 
+analysis tasks.
+
+### Integration and label transfer
+
+Here we demonstrate two different approaches for the integration of multiple 
+scATAC-seq datasets, as well as label transfer from a reference scATAC-seq
+dataset to an unlabelled query dataset.
+
+### DNA sequence motif enrichment analysis
+
+In this vignette we demonstrate how to perform DNA sequence motif enrichment
+analysis using Signac.
+
+### Transcription factor footprinting analysis
+
+In this vignette we demonstrate how to perform motif footprinting analysis,
+using a human hematopoietic stem cell dataset as an example.
+
+### Building trajectories with Monocle 3
+
+Here we demonstrate how to build trajectories using scATAC-seq data with the 
+Monocle 3 package and conversion functions present in SeuratWrappers.
+
+### Finding co-accessible sites with Cicero
+
+Here we demonstrate how to find co-accessible peaks in scATAC-seq data using the
+Cicero package and coversion functions present in SeuratWrappers.
+
+# Object interaction
+
+The following vignettes demonstrate how to interact with the Seurat object and 
+object classes defined in the Signac package.
+
+### Merging datasets
+
+This vignette outlines strategies for merging different single-cell chromatin
+datasets together. For information about data integration methods, see the 
+integration vignette instead.
+
+### Data structures and object interaction
+
+This vignette details each class defined in Signac, the methods that operate on
+each class, and provides some examples of how to interact with these objects to
+perform common analysis tasks.
+
+### Parallel and distributed computing
+
+This vignette demonstrates how to enable parallel computing in Signac and Seurat,
+and gives an example of the amount of speedup that might be expected from 
+enabling paralellization. 

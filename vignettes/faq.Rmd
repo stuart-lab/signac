@@ -1,0 +1,76 @@
+---
+title: "Frequently asked questions"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## What is Signac?
+
+Signac is an extension of Seurat for the analysis of single-cell chromatin data
+(DNA-based single-cell assays). We have extended the Seurat object to include
+information about the genome sequence and genomic coordinates of sequenced
+fragments per cell, and include functions needed for the analysis of single-cell
+chromatin data.
+
+## How do I interact with the object?
+
+Signac uses the Seurat object structure, and so all the Seurat commands can be
+used when analysing data with Signac. See the Data Structures and Object
+Interaction [vignette]() for an explanation of the classes defined in Signac
+and how to use them. See the Seurat documentation for more information about the
+Seurat object: https://satijalab.org/seurat/
+
+## How do I merge objects with Signac?
+
+See the [merge](https://satijalab.org/signac/articles/merging.html) and
+[integration](https://satijalab.org/signac/articles/integration.html) vignettes
+for information on combining multiple single-cell chromatin datasets.
+
+## How can I create a fragment file for my dataset?
+
+The fragment file is provided in the output of [cellranger-atac](https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/what-is-cell-ranger-atac),
+so if you use the 10x Genomics scATAC-seq kit and process the data using Cellranger you will have a fragment file generated.
+
+If you are using another method that does not provide a fragment file as output,
+you can use the [sinto](https://github.com/timoast/sinto) package to generate a fragment file from the BAM file.
+See here for more information on using Sinto to generate a fragment file: https://timoast.github.io/sinto/basic_usage.html#create-scatac-seq-fragments-file
+
+## How should I decide on the number of dimensions to use?
+
+Choosing the dimensionality is a general problem in single-cell analysis for which there is no simple solution.
+There has been discussion about this for scRNA-seq, and you can read our recommendations for scRNA-seq in the Seurat vignettes: https://satijalab.org/seurat/v3.1/pbmc3k_tutorial.html (see "Determine the ‘dimensionality’ of the dataset").
+
+Here are some general tips/suggestions that might help guide you in the choice for number of dimensions:
+
+* the number of dimensions needed will generally scale with the size and complexity of the dataset
+* you can try varying the number of dimensions used and observing how the resulting clusters or UMAP changes
+* it is usually better to choose values that are higher rather than too low
+* having a good understanding of the biology will help a lot in knowing whether the clusters make sense, or if the dimensionality might be too high/low
+
+## An annotation or genome sequence for my organism is not available on BioConductor, what do I do?
+
+If you are studying an organism that does not have a `BSgenome` genome package or `EnsDB` annotation package available on BioConductor,
+you can still use your own GTF file or FASTA files with Signac.
+
+To create your own `BSgenome` data package, see this [vignette](https://www.bioconductor.org/packages/devel/bioc/vignettes/BSgenome/inst/doc/BSgenomeForge.pdf).
+
+To use a GTF file, you can import it using `rtracklayer`, for example:
+
+```{r, eval=FALSE}
+gtf <- rtracklayer::import('genes.gtf')
+gene.coords <- gtf[gtf$type == 'gene']
+seqlevelsStyle(gene.coords) <- 'UCSC'
+gene.coords <- keepStandardChromosomes(gene.coords, pruning.mode = 'coarse')
+```
+
+## How should I cite Signac?
+
+Signac is currently unpublished, so we ask that you simply list the version of the package that 
+you used and link to the github page (https://github.com/timoast/signac). 
+
+Signac is an extension of [Seurat](https://satijalab.org/seurat/), and uses the Seurat object structure, so you should 
+consider citing the Seurat paper if you have used Signac: https://doi.org/10.1016/j.cell.2019.05.031
+

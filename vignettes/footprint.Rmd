@@ -1,0 +1,83 @@
+---
+title: "Transcription factor footprinting"
+output: html_document
+---
+
+```{r message=FALSE, warning=FALSE}
+library(Signac)
+library(Seurat)
+```
+
+```{r}
+bone <- readRDS("../vignette_data/cd34.rds")
+DimPlot(bone, label = TRUE)
+```
+
+Next we add motif information to the object
+
+To aid in the annotation of cell types, we'll compute the chromVAR TF motif 
+deviations per cell. As there is a lot of literature describing which TFs are 
+important for different cell lineages in the blood, we can use these TF activity
+scores to annotate each lineage in the dataset.
+
+First we'll add motif information to the object, then run chromVAR using the 
+`RunChromVAR` wrapper function. 
+
+```{r message=FALSE, warning=FALSE}
+library(BSgenome.Hsapiens.UCSC.hg19)
+library(EnsDb.Hsapiens.v75)
+library(motifmatchr)
+library(JASPAR2018)
+library(TFBSTools)
+
+pwm <- getMatrixSet(
+  x = JASPAR2018,
+  opts = list(species = 9606, all_versions = FALSE)
+)
+
+motif.matrix <- CreateMotifMatrix(
+  features = granges(bone),
+  pwm = pwm,
+  genome = 'hg19'
+)
+
+motif.positions <- matchMotifs(
+  pwms = pwm,
+  subject = granges(bone),
+  out = 'positions',
+  genome = 'hg19'
+)
+
+motif <- CreateMotifObject(
+  data = motif.matrix,
+  positions = motif.positions,
+  pwm = pwm
+)
+
+bone <- SetAssayData(
+  object = bone,
+  slot = 'motifs',
+  new.data = motif
+)
+```
+
+Now we can footprint any motif that we have positional information for. By
+default, this includes every instance of the motif in the genome. We can instead
+use the `in.peaks = TRUE` parameter to include only those motifs that fall
+inside a peak in the assay. The `Footprint()` function gathers all the required
+data and stores it in the assay. We can then plot the footprinted motifs using
+the `PlotFootprint()` function.
+
+```{r message=FALSE, warning=FALSE}
+bone <- Footprint(
+  object = bone,
+  motif.name = c("GATA2", "CEBPA", "EBF1"),
+  genome = BSgenome.Hsapiens.UCSC.hg19
+)
+
+p2 <- PlotFootprint(bone, features = c("GATA2", "CEBPA", "EBF1"))
+```
+
+```{r fig.height=12, message=FALSE, warning=FALSE}
+p2 + patchwork::plot_layout(ncol = 1)
+```
