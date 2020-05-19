@@ -92,7 +92,7 @@ bone <- NucleosomeSignal(bone)
 bone$blacklist_fraction <- FractionCountsInRegion(bone, regions = blacklist_hg19)
 ```
 
-```{r fig.height=6, fig.width=8, message=FALSE, warning=FALSE}
+```{r fig.height=6, fig.width=10, message=FALSE, warning=FALSE}
 VlnPlot(
   object = bone,
   features = c("nCount_ATAC", "TSS.enrichment", "nucleosome_signal", "blacklist_fraction"),
@@ -113,7 +113,7 @@ bone <- bone[, (bone$nCount_ATAC < 50000) &
 Next we can run a standard scATAC-seq analysis pipeline using Signac to perform
 dimension reduction, clustering, and cell type annotation.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 bone <- FindTopFeatures(bone, min.cells = 10)
 bone <- RunTFIDF(bone)
 bone <- RunSVD(bone, n = 100, reduction.name = "LSI", reduction.key = "LSI_")
