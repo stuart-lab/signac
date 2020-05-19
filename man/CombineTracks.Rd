@@ -4,11 +4,13 @@
 \alias{CombineTracks}
 \title{Combine genome region plots}
 \usage{
-CombineTracks(plotlist)
+CombineTracks(plotlist, heights = NULL)
 }
 \arguments{
 \item{plotlist}{A list of plots to combine. Must be from the same genomic
 region.}
+
+\item{heights}{Relative heights for each plot. If NULL, the first}
 }
 \value{
 Returns a patchworked ggplot2 object
