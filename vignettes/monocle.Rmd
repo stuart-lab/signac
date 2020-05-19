@@ -324,7 +324,7 @@ erythroid.cds <- cluster_cells(cds = erythroid.cds, reduction_method = "UMAP")
 erythroid.cds <- learn_graph(erythroid.cds, use_partition = TRUE)
 
 lymphoid.cds <- as.cell_data_set(lymphoid)
-lymphoid.cds <- cluster_cells(cds = lymphoid.cds, reduction_method = "UMAP", resolution = 0.0001)
+lymphoid.cds <- cluster_cells(cds = lymphoid.cds, reduction_method = "UMAP", resolution = 0.0002)
 lymphoid.cds <- learn_graph(lymphoid.cds, use_partition = TRUE)
 ```
 
@@ -377,7 +377,7 @@ bone <- AddMetaData(
 )
 ```
 
-```{r fig.height=6, fig.width=8, message=FALSE, warning=FALSE}
+```{r fig.height=4, fig.width=8, message=FALSE, warning=FALSE}
 FeaturePlot(bone, c("Erythroid", "Lymphoid"), pt.size = 0.1) & scale_color_viridis_c()
 ```
 
