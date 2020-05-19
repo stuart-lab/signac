@@ -831,6 +831,7 @@ PeakPlot <- function(object, region) {
 #' @importFrom ggplot2 ggplot geom_hline geom_curve aes theme_classic ylim xlim
 #' ylab theme element_blank
 #' @concept visualization
+#' @concept links
 LinkPlot <- function(object, region) {
   if (!inherits(x = region, what = "GRanges")) {
     region <- StringToGRanges(regions = region)
