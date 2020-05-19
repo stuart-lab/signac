@@ -905,6 +905,11 @@ LinkPlot <- function(object, region) {
   # extract link information
   links <- Links(object = object)
 
+  # if links not set, return NULL
+  if (length(x = links) == 0) {
+    return(NULL)
+  }
+
   # subset to those in region
   links.keep <- subsetByOverlaps(x = links, ranges = region)
 
@@ -951,6 +956,11 @@ LinkPlot <- function(object, region) {
 #' @concept visualization
 AnnotationPlot <- function(object, region) {
   annotation <- Annotation(object = object)
+
+  if (is.null(x = annotation)) {
+    return(NULL)
+  }
+
   if (!inherits(x = region, what = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
