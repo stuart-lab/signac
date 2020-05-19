@@ -1,0 +1,230 @@
+---
+title: "Merging objects"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+When merging multiple single-cell chromatin datasets, it's important to be aware that if peak calling was performed on 
+each dataset independently, the peaks are unlikely to perfectly overlap. Any peaks that are not exactly the same are 
+treated as different features by Seurat. Therefore, we need to create a common set of peaks across all the datasets 
+to be merged.
+
+To create a unified set of peaks we can use functions from the [GenomicRanges](https://bioconductor.org/packages/GenomicRanges/) package.
+The `reduce` function from GenomicRanges will merge all intersecting peaks. Another option is to use the `disjoin` function, that will
+create distinct non-overlapping sets of peaks. Here is a visual example to illustrate the difference between `reduce` and `disjoin`:
+
+```{r, echo=FALSE, include=FALSE}
+library(GenomicRanges)
+library(ggplot2)
+library(ggbio)
+library(patchwork)
+```
+
+```{r}
+gr <- GRanges(seqnames = "chr1", ranges = IRanges(start = c(20, 70, 300), end = c(120, 200, 400)))
+gr
+```
+
+```{r fig.height=1, fig.width=6, echo=FALSE}
+ggplot(gr) + geom_segment(size = 5) + theme_classic() + ggtitle("Ranges") + ylab("")
+ggplot(reduce(gr)) + geom_segment(size = 5) + theme_classic() + ggtitle("Reduce") + ylab("")
+ggplot(disjoin(gr)) + geom_segment(size = 5) + theme_classic() + ggtitle("Disjoin") + ylab("")
+```
+
+Alternatively, we can treat overlapping peaks as equivalent, and rename peaks that overlap with a common name so that they
+are recognized as equivalent by Seurat. This is what is done by the `MergeWithRegions` function. See the See the 
+[integration](https://satijalab.org/signac/articles/integration.html) vignette for a demonstration of the `MergeWithRegions` function.
+
+In this vignette we demonstrate how to merge multiple Seurat objects containing single-cell chromatin data, by 
+creating a new assay in each object containing a common set of peaks.
+
+To demonstrate, we will use four scATAC-seq PBMC datasets provided by 10x Genomics:
+
+* [500-cell PBMC](https://support.10xgenomics.com/single-cell-atac/datasets/1.1.0/atac_pbmc_500_nextgem)
+* [1k-cell PBMC](https://support.10xgenomics.com/single-cell-atac/datasets/1.1.0/atac_pbmc_1k_nextgem)
+* [5k-cell PBMC](https://support.10xgenomics.com/single-cell-atac/datasets/1.1.0/atac_pbmc_5k_nextgem)
+* [10k-cell PBMC](https://support.10xgenomics.com/single-cell-atac/datasets/1.1.0/atac_pbmc_10k_nextgem)
+
+## Loading data
+
+```{r message=FALSE, warning=FALSE}
+library(Signac)
+library(Seurat)
+```
+
+```{r}
+# define a convenient function to load all the data and create a Seurat object
+create_obj <- function(dir) {
+  count.path <- list.files(path = dir, pattern = "*_filtered_peak_bc_matrix.h5", full.names = TRUE)
+  fragment.path <- list.files(path = dir, pattern = "*_fragments.tsv.gz", full.names = TRUE)[1]
+  counts <- Read10X_h5(count.path)
+  md.path <- list.files(path = dir, pattern = "*_singlecell.csv", full.names = TRUE)
+  md <- read.table(file = md.path, stringsAsFactors = FALSE, sep = ",", header = TRUE, row.names = 1)
+  obj <- CreateSeuratObject(counts = counts, assay = "ATAC", meta.data = md)
+  obj <- SetFragments(obj, file = fragment.path)
+  return(obj)
+}
+```
+
+```{r message=FALSE, warning=FALSE}
+pbmc500 <- create_obj("/home/stuartt/data/pbmc500")
+pbmc1k <- create_obj("/home/stuartt/data/pbmc1k")
+pbmc5k <- create_obj("/home/stuartt/data/pbmc5k")
+pbmc10k <- create_obj("/home/stuartt/data/pbmc10k")
+```
+
+After creating each object, we can perform standard pre-processing and quality control on each object as shown in other vignettes. For brevity, we will skip this step here 
+and proceed with merging the objects.
+
+## Creating a common peak set
+
+If the peaks were identified independently in each experiment then they will likely not overlap perfectly. We can merge peaks from all the datasets
+to create a common peak set, and quantify this peak set in each experiment prior to merging the objects.
+
+There are a few different ways that we can create a common peak set. One possibility is using the `reduce` or `disjoin` functions from the 
+`GenomicRanges` package. The `UnifyPeaks` function extracts the peak coordinates from a list of objects and applies `reduce` or `disjoin` 
+to the peak sets to create a single non-overlapping set of peaks.
+
+```{r}
+combined.peaks <- UnifyPeaks(object.list = list(pbmc500, pbmc1k, pbmc5k, pbmc10k), mode = "reduce")
+combined.peaks
+```
+
+## Quantify peaks in each dataset
+
+We can now add a new assay to each object that contains counts for the same set of peaks. This will ensure that all the objects 
+contain common features that we can use to merge the objects.
+
+```{r message=FALSE, warning=FALSE, cache=TRUE}
+pbmc500.counts <- FeatureMatrix(
+  fragments = GetFragments(pbmc500),
+  features = combined.peaks,
+  sep = c(":", "-"),
+  cells = colnames(pbmc500)
+)
+
+pbmc1k.counts <- FeatureMatrix(
+  fragments = GetFragments(pbmc1k),
+  features = combined.peaks,
+  sep = c(":", "-"),
+  cells = colnames(pbmc1k)
+)
+
+pbmc5k.counts <- FeatureMatrix(
+  fragments = GetFragments(pbmc5k),
+  features = combined.peaks,
+  sep = c(":", "-"),
+  cells = colnames(pbmc5k)
+)
+
+pbmc10k.counts <- FeatureMatrix(
+  fragments = GetFragments(pbmc10k),
+  features = combined.peaks,
+  sep = c(":", "-"),
+  cells = colnames(pbmc10k)
+)
+```
+
+```{r}
+pbmc500[['peaks']] <- CreateAssayObject(counts = pbmc500.counts)
+pbmc1k[['peaks']] <- CreateAssayObject(counts = pbmc1k.counts)
+pbmc5k[['peaks']] <- CreateAssayObject(counts = pbmc5k.counts)
+pbmc10k[['peaks']] <- CreateAssayObject(counts = pbmc10k.counts)
+```
+
+## Merge objects
+
+Now that the objects each contain an assay with the same set of features, we can use the standard `merge` function
+from Seurat to merge the objects.
+
+```{r}
+# add information to identify dataset of origin
+pbmc500$dataset <- 'pbmc500'
+pbmc1k$dataset <- 'pbmc1k'
+pbmc5k$dataset <- 'pbmc5k'
+pbmc10k$dataset <- 'pbmc10k'
+
+# merge all datasets, adding a cell ID to make sure cell names are unique
+combined <- merge(x = pbmc500, y = list(pbmc1k, pbmc5k, pbmc10k), add.cell.ids = c("500", "1k", "5k", "10k"))
+```
+
+```{r message=FALSE, warning=FALSE}
+# make sure to change to the assay containing common peaks
+DefaultAssay(combined) <- "peaks" 
+combined <- RunTFIDF(combined)
+combined <- FindTopFeatures(combined, min.cutoff = 20)
+combined <- RunSVD(
+  combined,
+  reduction.key = 'LSI_',
+  reduction.name = 'lsi', 
+  irlba.work = 400
+)
+combined <- RunUMAP(combined, dims = 2:30, reduction = 'lsi')
+```
+
+```{r}
+DimPlot(combined, group.by = 'dataset', pt.size = 0.1)
+```
+
+At this stage it is possible to proceed with all downstream analysis without creating a merged fragment file if you have computed quality control metrics and gene activities for each object individually prior to merging the datasets, and don't need to plot coverage tracks with the merged data.
+
+If you need to construct a merged fragment file, we demonstrate how to do this below.
+
+## Merge fragment files
+
+To create a merged fragment file we need to decompress the files, add the same cell ID that was added to the cell barcodes in the Seurat object, merge the files, and finally compress and index the merged file. This is performed on the command line rather than in R.
+
+Note that the workflow is the same for any number of datasets. Commands such as `gzip`, `bgzip`, and `sort` can take any number of input files.
+
+You will need to make sure [`tabix`](https://www.htslib.org/doc/tabix.html) and [`bgzip`](https://www.htslib.org/doc/bgzip.html) are installed.
+
+```{sh, eval=FALSE}
+# decompress files and add the same cell prefix as was added to the Seurat object
+gzip -dc atac_pbmc_500_nextgem_fragments.tsv.gz | awk 'BEGIN {FS=OFS="\t"} {print $1,$2,$3,"500_"$4,$5}' - > pbmc500_fragments.tsv
+gzip -dc atac_pbmc_1k_nextgem_fragments.tsv.gz | awk 'BEGIN {FS=OFS="\t"} {print $1,$2,$3,"1k_"$4,$5}' - > pbmc1k_fragments.tsv
+gzip -dc atac_pbmc_5k_nextgem_fragments.tsv.gz | awk 'BEGIN {FS=OFS="\t"} {print $1,$2,$3,"5k_"$4,$5}' - > pbmc5k_fragments.tsv
+gzip -dc atac_pbmc_10k_nextgem_fragments.tsv.gz | awk 'BEGIN {FS=OFS="\t"} {print $1,$2,$3,"10k_"$4,$5}' - > pbmc10k_fragments.tsv
+
+# merge files (avoids having to re-sort)
+sort -m -k 1,1V -k2,2n pbmc500_fragments.tsv pbmc1k_fragments.tsv pbmc5k_fragments.tsv pbmc10k_fragments.tsv > fragments.tsv
+
+# block gzip compress the merged file
+bgzip -@ 4 fragments.tsv # -@ 4 uses 4 threads
+
+# index the bgzipped file
+tabix -p bed fragments.tsv.gz
+
+# remove intermediate files
+rm pbmc500_fragments.tsv pbmc1k_fragments.tsv pbmc5k_fragments.tsv pbmc10k_fragments.tsv
+```
+
+We can now add the path to the merged fragment file to the Seurat object:
+
+```{r}
+combined <- SetFragments(combined, "/home/stuartt/data/pbmc_combined/fragments.tsv.gz")
+```
+
+```{r coverageplot, message=FALSE, warning=FALSE, cache=FALSE, out.width='90%', fig.height=4}
+CoveragePlot(
+  object = combined,
+  group.by = 'dataset',
+  region = "chr14-99700000-99760000",
+  peaks = StringToGRanges(rownames(combined), sep = c(":", "-"))
+)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+saveRDS(object = combined, file = "../vignette_data/pbmc_combined.rds")
+```
+
+<details>
+  <summary>**Session Info**</summary>
+  
+```{r}
+sessionInfo()
+```
+
+</details>

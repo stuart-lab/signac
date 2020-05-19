@@ -1,0 +1,149 @@
+---
+title: "Parallel and distributed processing"
+output: html_document
+date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
+---
+
+Parallel computing is supported in Signac through the [future](https://cran.r-project.org/package=future) package, making it easy to specify different parallelization options.
+Here we demonstrate parallelization of the `FeatureMatrix` function and show some benchmark results to get a sense for the amout of speedup you might expect.
+
+The [Seurat](https://satijalab.org/seurat/) package also uses `future` for 
+parallelization, and you can see the Seurat [vignette](https://satijalab.org/seurat/v3.1/future_vignette.html) for more information.
+
+## How to enable parallelization in Signac
+
+Parallelization can be enabled simply by importing the `future` package and setting the `plan`.
+
+```{r}
+library(future)
+plan()
+```
+
+By default the plan is set to sequential processing (no parallelization). We can change this
+to `multicore`, `multiprocessor`, or `multisession` to get parallel processing, and set the 
+number of workers to change the number of cores used.
+
+```{r, warning=FALSE, message=FALSE}
+plan("multiprocess", workers = 10)
+plan()
+```
+
+You may also need to increase the maximum memory usage:
+
+```{r}
+options(future.globals.maxSize = 50000 * 1024^2) # for 50 Gb RAM
+```
+
+Note that as of `future` version [1.14.0](https://cran.r-project.org/web/packages/future/NEWS), forked processing is disabled when running in RStudio. To enable parallel computing in RStudio, you will need to select the "multisession" option.
+
+## Benchmarking
+
+Here we demonstrate the runtime of `FeatureMatrix` run on 90,686 peaks for 10,247 human PBMCs under different parallelization options:
+
+<details>
+  <summary>**View benchmarking code**</summary>
+  
+The following code was run on Ubuntu 18.04 LTS with 12 Intel Xeon W-2135 CPUs @ 3.70GHz and 500 Gb RAM.
+  
+```{r, eval=FALSE}
+library(Signac)
+
+# load data
+fragments <- "/home/stuartt/data/pbmc10k/atac_pbmc_10k_nextgem_fragments.tsv.gz"
+peaks.10k <- read.table(
+  file = "/home/stuartt/data/pbmc10k/atac_pbmc_10k_nextgem_peaks.bed",
+  col.names = c("chr", "start", "end")
+)
+peaks <- GenomicRanges::makeGRangesFromDataFrame(peaks.10k)
+cells <- readLines("/home/stuartt/data/pbmc10k/cells.txt")
+
+# set number of replicates
+nrep <- 5
+results <- data.frame()
+
+# run sequentially
+timing.sequential <- c()
+for (i in seq_len(nrep)) {
+  start <- Sys.time()
+  fmat <- FeatureMatrix(fragments = fragments, features = peaks, cells = cells)
+  timing.sequential <- c(timing.sequential, as.numeric(Sys.time() - start, units = "secs"))
+}
+res <- data.frame(
+  "setting" = rep("Sequential", nrep),
+  "cores" = rep(1, nrep),
+  "replicate" = seq_len(nrep),
+  "time" = timing.sequential
+)
+results <- rbind(results, res)
+
+# 4 core
+library(future)
+plan("multiprocess", workers = 4)
+options(future.globals.maxSize = 100000 * 1024^2)
+
+timing.4core <- c()
+for (i in seq_len(nrep)) {
+  start <- Sys.time()
+  fmat <- FeatureMatrix(fragments = fragments, features = peaks, cells = cells)
+  timing.4core <- c(timing.4core, as.numeric(Sys.time() - start, units = "secs"))
+}
+res <- data.frame(
+  "setting" = rep("Parallel", nrep),
+  "cores" = rep(4, nrep),
+  "replicate" = seq_len(nrep),
+  "time" = timing.4core
+)
+results <- rbind(results, res)
+
+# 10 core
+plan("multiprocess", workers = 10)
+
+timing.10core <- c()
+for (i in seq_len(nrep)) {
+  start <- Sys.time()
+  fmat <- FeatureMatrix(fragments = fragments, features = peaks, cells = cells)
+  timing.10core <- c(timing.10core, as.numeric(Sys.time() - start, units = "secs"))
+}
+res <- data.frame(
+  "setting" = rep("Parallel", nrep),
+  "cores" = rep(10, nrep),
+  "replicate" = seq_len(nrep),
+  "time" = timing.10core
+)
+results <- rbind(results, res)
+
+# save results
+write.table(
+  x = results,
+  file = "timings.tsv",
+  quote = FALSE,
+  row.names = FALSE
+)
+```
+
+</details>
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+library(ggplot2)
+results <- read.table("/home/stuartt/github/chrom/bldignore/timings.tsv", header = TRUE)
+results$cores <- factor(results$cores, levels = c("1", "4", "10"))
+
+p <- ggplot(results, aes(x = cores, y = time/60, color = cores)) +
+  geom_jitter(width = 1/10) +
+  ylim(c(0, 15)) +
+  ylab("Time (min)") +
+  xlab("Number of cores") +
+  theme_bw() +
+  theme(legend.position = "none") +
+  ggtitle("FeatureMatrix")
+p
+```
+
+<details>
+  <summary>**Session Info**</summary>
+
+```{r}
+sessionInfo()
+```
+
+</details>
