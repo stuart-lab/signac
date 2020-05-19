@@ -8,7 +8,6 @@ src/*.so
 *.pdf
 *.Rproj
 testcode/*
-vignettes/*
 *.old
 *.tar.gz
 Signac.Rcheck/*
