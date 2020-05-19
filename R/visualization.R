@@ -365,35 +365,12 @@ SingleCoveragePlot <- function(
       legend.position = "none",
       strip.text.y = element_text(angle = 0)
     )
-  if (!is.null(x = peaks)) {
-    # subset to covered range
-    peak.intersect <- subsetByOverlaps(x = peaks, ranges = gr)
-    peak.df <- as.data.frame(x = peak.intersect)
-    if (nrow(x = peak.df) > 0) {
-      peak.plot <- ggplot(data = peak.df, mapping = aes(color = "darkgrey")) +
-        geom_segment(aes(x = start, y = 0, xend = end, yend = 0, size = 2),
-                     data = peak.df)
-    } else {
-      # no peaks present in region, make empty panel
-      peak.plot <- ggplot(data = peak.df)
-    }
-    peak.plot <- peak.plot + theme_classic() +
-      ylab(label = "Peaks") +
-      theme(axis.ticks.y = element_blank(),
-            axis.text.y = element_blank(),
-            legend.position = "none") +
-      xlab(label = paste0(chromosome, " position (bp)")) +
-      xlim(c(start.pos, end.pos)) +
-      scale_color_identity()
-    p <- p + theme(
-      axis.title.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.line.x.bottom = element_blank(),
-      axis.ticks.x.bottom = element_blank()
-    )
-  } else {
-    peak.plot <- NULL
-  }
+  peak.plot <- PeakPlot(object = object, region = region)
+  link.plot <- LinkPlot(object = object, region = region)
+  gene.plot <- AnnotationPlot(object = object, region = region)
+  p <- CombineTracks(plotlist = list(p, gene.plot, peak.plot, link.plot))
+  return(p)
+
   if (!is.null(x = annotation)) {
     if (!inherits(x = annotation, what = 'GRanges')) {
       stop("Annotation must be a GRanges object or EnsDb object.")
@@ -914,12 +891,17 @@ LinkPlot <- function(object, region) {
   link.df$group <- as.factor(link.df$group)
 
   # plot
-  p <- ggplot(data = link.df) +
-    geom_hline(yintercept = 0, color = 'grey') +
-    geom_curve(
-      mapping = aes(x = start, y = 0, xend = end, yend = 0, alpha = score),
-      curvature = 1/2
-    ) +
+  if (nrow(x = link.df) > 0) {
+    p <- ggplot(data = link.df) +
+      geom_hline(yintercept = 0, color = 'grey') +
+      geom_curve(
+        mapping = aes(x = start, y = 0, xend = end, yend = 0, alpha = score),
+        curvature = 1/2
+      )
+  } else {
+    p <- ggplot(data = link.df)
+  }
+  p <- p +
     theme_classic() +
     ylim(c(-1, 0)) +
     theme(axis.ticks.y = element_blank(),
@@ -938,7 +920,62 @@ LinkPlot <- function(object, region) {
 #' @param region A genomic region to plot
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
+#' @importFrom IRanges subsetByOverlaps
+#' @importFrom GenomicRanges start end
+#' @importFrom GenomeInfoDb seqnames
+#' @importFrom ggplot2 ggplot aes theme_classic ylim xlim
+#' ylab theme element_blank
+#' @importFrom gggenes geom_gene_arrow geom_gene_label
 #' @concept visualization
 AnnotationPlot <- function(object, region) {
-  return()
+  annotation <- Annotation(object = object)
+  if (!inherits(x = region, what = "GRanges")) {
+    region <- StringToGRanges(regions = region)
+  }
+  annotation.subset <- subsetByOverlaps(x = annotation, ranges = region)
+
+  start.pos <- start(x = region)
+  end.pos <- end(x = region)
+  chromosome <- seqnames(x = region)
+
+  annotation.df <- as.data.frame(x = annotation.subset)
+  # adjust coordinates so within the plot
+  annotation.df$start[annotation.df$start < start.pos] <- start.pos
+  annotation.df$end[annotation.df$end > end.pos] <- end.pos
+  annotation.df$direction <- ifelse(
+    test = annotation.df$strand == "-", yes = -1, no = 1
+  )
+  if (nrow(x = annotation.df) > 0) {
+    gene.plot <- ggplot(
+      data = annotation.df,
+      mapping = aes(
+        xmin = start,
+        xmax = end,
+        y = strand,
+        fill = strand,
+        label = gene_name,
+        forward = direction)
+    ) +
+      geom_gene_arrow(
+        arrow_body_height = unit(x = 4, units = "mm"),
+        arrowhead_height = unit(x = 4, units = "mm"),
+        arrowhead_width = unit(x = 5, units = "mm")) +
+      geom_gene_label(
+        grow = TRUE,
+        reflow = TRUE,
+        height = unit(x = 4, units = "mm")
+      )
+  } else {
+    # make blank plot
+    gene.plot <- ggplot(data = peak.df)
+  }
+  gene.plot <- gene.plot +
+    xlim(start.pos, end.pos) +
+    xlab(label = paste0(chromosome, " position (bp)")) +
+    ylab("Genes") +
+    theme_classic() +
+    theme(legend.position = "none",
+          axis.ticks.y = element_blank(),
+          axis.text.y = element_blank())
+  return(gene.plot)
 }
