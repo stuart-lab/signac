@@ -20,9 +20,9 @@ stem and progenitor cells published by Satpathy and Granja et al. (2019, Nature
 Biotechnology). The processed datasets are available on NCBI GEO here:
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE129785
 
-This is the same dataset we used in the [Monocle 3](https://satijalab.org/signac/articles/monocle.html)
+This is the same dataset we used in the [trajectory](https://satijalab.org/signac/articles/monocle.html)
 vignette, and we'll start by loading the dataset that was created in that
-vignette. See the [Monocle 3](https://satijalab.org/signac/articles/monocle.html)
+vignette. See the [trajectory](https://satijalab.org/signac/articles/monocle.html)
 vignette for the code used to create the object from raw data.
 
 First we will load their dataset and perform some standard preprocessing using
@@ -128,7 +128,7 @@ Links(bone) <- links
 We can now visualize these links along with DNA accessibility information by
 running `CoveragePlot()` for a region:
 
-```{r fig.height=8, fig.width=6, message=FALSE, warning=FALSE}
+```{r fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
 CoveragePlot(bone, region = "chr1-40189344-40252549")
 ```
 
@@ -141,3 +141,12 @@ saveRDS(object = bone, file = "../vignette_data/cd34.rds")
 Thanks to the developers of Cicero, especially Cole Trapnell, Hannah Pliner, and
 members of the [Trapnell lab](https://cole-trapnell-lab.github.io/). If you use
 Cicero please cite the [Cicero paper](https://doi.org/10.1016/j.molcel.2018.06.044).
+
+<details>
+  <summary>**Session Info**</summary>
+  
+```{r}
+sessionInfo()
+```
+
+</details>

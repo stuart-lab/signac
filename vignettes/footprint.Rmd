@@ -78,3 +78,12 @@ p2 <- PlotFootprint(bone, features = c("GATA2", "CEBPA", "EBF1"))
 ```{r fig.height=12, message=FALSE, warning=FALSE}
 p2 + patchwork::plot_layout(ncol = 1)
 ```
+
+<details>
+  <summary>**Session Info**</summary>
+  
+```{r}
+sessionInfo()
+```
+
+</details>

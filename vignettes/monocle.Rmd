@@ -391,3 +391,12 @@ Thanks to the developers of Monocle 3, especially Cole Trapnell, Hannah Pliner,
 and members of the [Trapnell lab](https://cole-trapnell-lab.github.io/). If you
 use Monocle please cite the
 [Monocle papers](https://cole-trapnell-lab.github.io/monocle3/docs/citations/).
+
+<details>
+  <summary>**Session Info**</summary>
+  
+```{r}
+sessionInfo()
+```
+
+</details>
