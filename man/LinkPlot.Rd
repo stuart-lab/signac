@@ -18,4 +18,5 @@ Returns a \code{\link[ggplot2]{ggplot}} object
 Display links between pairs of genomic elements within a given region of the
 genome.
 }
+\concept{links}
 \concept{visualization}
