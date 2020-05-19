@@ -805,9 +805,31 @@ TSSPlot <- function(
 #' region.
 #' @return Returns a patchworked ggplot2 object
 #' @export
+#' @importFrom ggplot2 theme element_blank
+#' @importFrom patchwork wrap_plots
 #' @concept visualization
 CombineTracks <- function(plotlist) {
-  return()
+  # remove any that are NULL
+  nullplots <- sapply(X = plotlist, FUN = is.null)
+  plotlist <- plotlist[!nullplots]
+
+  if (length(x = plotlist) == 1) {
+    return(plotlist[[1]])
+  }
+
+  # remove x-axis from all but last plot
+  for (i in 1:(length(x = plotlist) - 1)) {
+    plotlist[[i]] <- plotlist[[i]] + theme(
+      axis.title.x = element_blank(),
+      axis.text.x = element_blank(),
+      axis.line.x.bottom = element_blank(),
+      axis.ticks.x.bottom = element_blank()
+    )
+  }
+
+  # combine plots
+  p <- wrap_plots(plotlist, ncol = 1)
+  return(p)
 }
 
 #' Plot peaks in a genomic region
