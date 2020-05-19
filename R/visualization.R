@@ -239,9 +239,10 @@ globalVariables(
 SingleCoveragePlot <- function(
   object,
   region,
-  annotation = NULL,
-  peaks = NULL,
   assay = NULL,
+  annotation = TRUE,
+  peaks = TRUE,
+  links = TRUE,
   fragment.path = NULL,
   group.by = NULL,
   window = 100,
@@ -257,18 +258,6 @@ SingleCoveragePlot <- function(
 ) {
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = annotation, what = "logical")) {
-    annotation <- SetIfNull(
-      x = annotation, y = Annotation(object = object[[assay]])
-    )
-  } else {
-    annotation <- NULL
-  }
-  if (!inherits(x = peaks, what = "logical")) {
-    peaks <- SetIfNull(x = peaks, y = granges(x = object[[assay]]))
-  } else {
-    peaks <- NULL
-  }
   if (!is.null(x = idents)) {
     ident.cells <- WhichCells(object = object, idents = idents)
     cells <- intersect(x = cells, y = ident.cells)
@@ -365,89 +354,26 @@ SingleCoveragePlot <- function(
       legend.position = "none",
       strip.text.y = element_text(angle = 0)
     )
-  peak.plot <- PeakPlot(object = object, region = region)
-  link.plot <- LinkPlot(object = object, region = region)
-  gene.plot <- AnnotationPlot(object = object, region = region)
-  p <- CombineTracks(plotlist = list(p, gene.plot, peak.plot, link.plot))
-  return(p)
 
-  if (!is.null(x = annotation)) {
-    if (!inherits(x = annotation, what = 'GRanges')) {
-      stop("Annotation must be a GRanges object or EnsDb object.")
-    }
-    annotation.subset <- subsetByOverlaps(x = annotation, ranges = gr)
-    annotation.df <- as.data.frame(x = annotation.subset)
-    # adjust coordinates so within the plot
-    annotation.df$start[annotation.df$start < start.pos] <- start.pos
-    annotation.df$end[annotation.df$end > end.pos] <- end.pos
-    annotation.df$direction <- ifelse(
-      test = annotation.df$strand == "-", yes = -1, no = 1
-    )
-    if (nrow(x = annotation.df) > 0) {
-      gene.plot <- ggplot(
-        data = annotation.df,
-        mapping = aes(
-          xmin = start,
-          xmax = end,
-          y = strand,
-          fill = strand,
-          label = gene_name,
-          forward = direction)
-        ) +
-        geom_gene_arrow(
-          arrow_body_height = unit(x = 4, units = "mm"),
-          arrowhead_height = unit(x = 4, units = "mm"),
-          arrowhead_width = unit(x = 5, units = "mm")) +
-        geom_gene_label(
-          grow = TRUE,
-          reflow = TRUE,
-          height = unit(x = 4, units = "mm")
-        ) +
-        xlim(start.pos, end.pos) +
-        xlab(label = paste0(chromosome, " position (bp)")) +
-        ylab("Genes") +
-        theme_classic() +
-        theme(legend.position = "none",
-              axis.ticks.y = element_blank(),
-              axis.text.y = element_blank())
-
-        # remove axis from coverage plot
-        p <- p + theme(
-          axis.title.x = element_blank(),
-          axis.text.x = element_blank(),
-          axis.line.x.bottom = element_blank(),
-          axis.ticks.x.bottom = element_blank()
-        )
-        if (!is.null(x = peak.plot)) {
-          peak.plot <- peak.plot + theme(
-            axis.title.x = element_blank(),
-            axis.text.x = element_blank(),
-            axis.line.x.bottom = element_blank(),
-            axis.ticks.x.bottom = element_blank()
-          )
-          p <- p +
-            peak.plot +
-            gene.plot +
-            plot_layout(ncol = 1, heights = c(height.tracks, 1, 1))
-        } else {
-          p <- p +
-            gene.plot +
-            plot_layout(ncol = 1, heights = c(height.tracks, 1))
-        }
-    } else {
-      if (!is.null(peak.plot)) {
-        p <- p +
-          peak.plot +
-          plot_layout(ncol = 1, heights = c(height.tracks, 1))
-      }
-    }
+  if (annotation) {
+    gene.plot <- AnnotationPlot(object = object, region = region)
   } else {
-    if (!is.null(peak.plot)) {
-      p <- p +
-        peak.plot +
-        plot_layout(ncol = 1, heights = c(height.tracks, 1))
-    }
+    gene.plot <- NULL
   }
+
+  if (links) {
+    link.plot <- LinkPlot(object = object, region = region)
+  } else {
+    link.plot <- NULL
+  }
+
+  if (peaks) {
+    peak.plot <- PeakPlot(object = object, region = region)
+  } else {
+    peak.plot <- NULL
+  }
+
+  p <- CombineTracks(plotlist = list(p, gene.plot, peak.plot, link.plot))
   return(p)
 }
 
@@ -463,13 +389,10 @@ SingleCoveragePlot <- function(
 #' @param region A set of genomic coordinates to show. Can be a GRanges object,
 #' a string, or a vector of strings describing the genomic
 #' coordinates to plot.
-#' @param annotation A GRanges object containing genomic annotations. If NULL,
-#' use the annotations stored in the assay. If NA or FALSE, don't plot
-#' annotations.
-#' @param peaks A GRanges object containing peak coordinates. If NULL, use the
-#' genomic ranges associated with the assay. If NA or FALSE, don't plot genomic
-#' ranges.
 #' @param assay Name of the  assay to plot
+#' @param annotation Display gene annotations
+#' @param peaks Display peaks
+#' @param links Display links
 #' @param fragment.path Path to an index fragment file. If NULL, will look for a
 #' path stored in the fragments slot of the ChromatinAssay object
 #' @param cells Which cells to plot. Default all cells
@@ -511,9 +434,10 @@ SingleCoveragePlot <- function(
 CoveragePlot <- function(
   object,
   region,
-  annotation = NULL,
-  peaks = NULL,
   assay = NULL,
+  annotation = TRUE,
+  peaks = TRUE,
+  links = TRUE,
   fragment.path = NULL,
   group.by = NULL,
   window = 100,
@@ -538,6 +462,7 @@ CoveragePlot <- function(
           annotation = annotation,
           peaks = peaks,
           assay = assay,
+          links = links,
           fragment.path = fragment.path,
           group.by = group.by,
           window = window,
@@ -560,6 +485,7 @@ CoveragePlot <- function(
       annotation = annotation,
       peaks = peaks,
       assay = assay,
+      links = links,
       fragment.path = fragment.path,
       group.by = group.by,
       window = window,
