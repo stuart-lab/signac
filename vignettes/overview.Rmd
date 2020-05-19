@@ -71,7 +71,7 @@ Here we demonstrate how to build trajectories using scATAC-seq data with the
 Monocle 3 package and conversion functions present in SeuratWrappers.
 
 ```{r echo=FALSE, out.height="30%"}
-# knitr::include_graphics("./assets/monocle.png")
+knitr::include_graphics("./assets/monocle.png")
 ```
 
 ### [Finding co-accessible sites with Cicero](https://satijalab.org/signac/articles/cicero.html)
