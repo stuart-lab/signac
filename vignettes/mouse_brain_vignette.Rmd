@@ -335,10 +335,8 @@ region2 <- GRangesToString(subset(gene.ranges, symbol=="Gad2"))
 CoveragePlot(
   object = brain,
   region = c(region1, region2),
-  annotation = gene.ranges,
   extend.upstream = 5000,
   extend.downstream = 5000,
-  downsample = 1/100,
   ncol = 1
 )
 ```
