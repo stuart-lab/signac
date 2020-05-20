@@ -1724,9 +1724,9 @@ dim.Motif <- function(x) {
   return(object)
 }
 
-#' Add a single Fragment object to a ChromatinAssay
-#' @param object A \code{\link{ChromatinAssay}} object
-#' @param fragments A \code{\link{Fragment}} object
+# Add a single Fragment object to a ChromatinAssay
+# @param object A \code{\link{ChromatinAssay}} object
+# @param fragments A \code{\link{Fragment}} object
 AddFragments <- function(object, fragments) {
   # validate hash
   if (!ValidateHash(object = fragments, verbose = FALSE)) {
