@@ -245,6 +245,48 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
   return(links)
 }
 
+#' Extract genomic ranges from EnsDb object
+#'
+#' Pulls the transcript information for all chromosomes from an EnsDb object.
+#' This wraps \code{\link[biovizBase]{crunch}} and applies the extractor
+#' function to all chromosomes present in the EnsDb object.
+#'
+#' @param ensdb An EnsDb object
+#' @param standard.chromosomes Keep only standard chromosomes
+#' @param verbose Display messages
+#'
+#' @importFrom biovizBase crunch
+#' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo
+#' @concept utilities
+#' @export
+GetGRangesFromEnsDb <- function(
+  ensdb,
+  standard.chromosomes = TRUE,
+  verbose = TRUE
+) {
+  # convert seqinfo to granges
+  whole.genome <-  as(object = seqinfo(x = ensdb), Class = "GRanges")
+  whole.genome <- keepStandardChromosomes(whole.genome, pruning.mode = "coarse")
+
+  # extract genes from each chromosome
+  if (verbose) {
+    tx <- sapply(X = seq_along(whole.genome), FUN = function(x){
+      crunch(ensdb, which = whole.genome[x])
+    })
+  } else {
+    tx <- sapply(X = seq_along(whole.genome), FUN = function(x){
+      suppressMessages(expr = crunch(
+        obj = ensdb,
+        which = whole.genome[x],
+        columns = c("tx_id", "gene_name", "gene_id", "gene_biotype")))
+    })
+  }
+
+  # combine
+  tx <- do.call(what = c, args = tx)
+  return(tx)
+}
+
 #' Find interesecting regions between two objects
 #'
 #' Intersects the regions stored in the rownames of two objects and
