@@ -124,9 +124,9 @@ atac_small <- SetAssayData(atac_small, slot = "bias", new.data = bias)
 ```
 
 We also have a variety of convenience functions defined for getting/setting 
-data in specific slots. This includes the `Fragments`, `Motifs`, and
-`Annotation` functions. For example, to get or set gene annotation data we can
-use the `Annotation()` getter and `Annotation<-` setter functions:
+data in specific slots. This includes the `Fragments()`, `Motifs()`, `Links()`,
+and `Annotation()` functions. For example, to get or set gene annotation data we
+can use the `Annotation()` getter and `Annotation<-` setter functions:
 
 ```{r message=FALSE, warning=FALSE}
 # first get some gene annotations for hg19
@@ -145,7 +145,7 @@ Annotation(atac_small) <- gene.ranges
 Annotation(atac_small)
 ```
 
-The `Fragments()` and `Motifs()` functions are demonstrated in other sections
+The `Fragments()`, `Motifs()`, and `Links()` functions are demonstrated in other sections
 below.
 
 ### Other `ChromatinAssay` methods
