@@ -135,7 +135,7 @@ enriched.motifs <- FindMotifs(
 ```
 
 ```{r}
-enriched.motifs
+knitr::kable(head(enriched.motifs))
 ```
 
 We can also plot the position weight matrices for the motifs, so we can visualize the different motif sequences.
