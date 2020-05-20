@@ -382,7 +382,6 @@ CoveragePlot(
   region = StringToGRanges(rownames(da_peaks[c(1, 4), ]), sep = c(":", "-")),
   extend.upstream = 20000,
   extend.downstream = 20000,
-  downsample = 1/100,
   ncol = 1
 )
 ```
