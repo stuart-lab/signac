@@ -809,12 +809,19 @@ RunTFIDF.default <- function(
     message("Performing TF-IDF normalization")
   }
   npeaks <- colSums(x = object)
+  if (any(npeaks == 0)) {
+    warning("Some cells contain 0 total counts")
+  }
   if (method == 4) {
     tf <- object
   } else {
     tf <- tcrossprod(x = object, y = Diagonal(x = 1 / npeaks))
   }
-  idf <- ncol(x = object) / rowSums(x = object)
+  rsums <- rowSums(x = object)
+  if (any(rsums == 0)) {
+    warning("Some features contain 0 total counts")
+  }
+  idf <- ncol(x = object) / rsums
   if (method == 2) {
     idf <- log(1 + idf)
   } else if (method == 3) {
@@ -831,6 +838,10 @@ RunTFIDF.default <- function(
   }
   colnames(x = norm.data) <- colnames(x = object)
   rownames(x = norm.data) <- rownames(x = object)
+  # set NA values to 0
+  vals <- slot(object = object, name = "x")
+  vals[is.na(x = vals)] <- 0
+  slot(object = object, name = "x") <- vals
   return(norm.data)
 }
 
@@ -942,11 +953,7 @@ TSSEnrichment <- function(
   if (is.null(x = tss.positions)) {
     # work out TSS positions from gene annotations
     annotations <- Annotation(object = object[[assay]])
-    tss.positions <- GRanges(
-      seqnames = seqnames(x = annotations),
-      ranges = IRanges(start = start(x = annotations), width = 2),
-      strand = strand(x = annotations)
-    )
+    tss.positions <- GetTSSPositions(ranges = annotations)
   }
   if (!is.null(x = n)) {
     if (n > length(x = tss.positions)) {
