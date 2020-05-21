@@ -618,29 +618,31 @@ FragmentHistogram <- function(
 }
 
 globalVariables(names = "norm.value", package = "Signac")
-#' Plot the enrichment of Tn5 integration sites centered on a set of genomic
-#' regions.
+#' Plot the enrichment around TSS
+#'
+#' Plot the normalized TSS enrichment score at each position relative to the
+#' TSS. Requires that \code{\link{TSSEnrichment}} has already been run on the
+#' assay.
+#'
+#' Wrapper for the \code{\link{EnrichmentPlot}} function
 #'
 #' @param object A Seurat object
-#' @param enrichment.key Name of a position enrichment matrix stored in the
-#' \code{positionEnrichment} slot
-#' of a \code{\link{ChromatinAssay}}.
-#' @param assay Name of the assay to use. Must be a \code{\link{ChromatinAssay}}
-#' and have the enrichment information for each cell stored in the
-#' \code{positionEnrichment} slot.
+#' @param assay Name of the assay to use. Should have the TSS enrichment
+#' information for each cell
+#' already computed by running \code{\link{TSSEnrichment}}
 #' @param group.by Set of identities to group cells by
 #' @param idents Set of identities to include in the plot
 #'
 #' @importFrom Seurat GetAssayData
 #' @importFrom Matrix colMeans
-#' @importFrom ggplot2 ggplot aes geom_line
+#' @importFrom ggplot2 ggplot aes geom_line xlab ylab theme_minimal
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot2}} object
 #' @export
 #' @concept visualization
-EnrichmentPlot <- function(
+#' @concept qc
+TSSPlot <- function(
   object,
-  enrichment.key,
   assay = NULL,
   group.by = NULL,
   idents = NULL
@@ -651,10 +653,13 @@ EnrichmentPlot <- function(
     assay = assay,
     slot = "positionEnrichment"
   )
-  if (!(enrichment.key %in% names(x = positionEnrichment))) {
+  if (!("TSS" %in% names(x = positionEnrichment))) {
     stop("Position enrichment matrix not present in assay")
   }
-  enrichment.matrix <- positionEnrichment[[enrichment.key]]
+  enrichment.matrix <- positionEnrichment[["TSS"]]
+
+  # remove motif and expected
+  enrichment.matrix <- enrichment.matrix[1:(nrow(x = enrichment.matrix) - 2), ]
 
   # average the signal per group per base
   obj.groups <- GetGroups(
@@ -674,45 +679,7 @@ EnrichmentPlot <- function(
     mapping = aes(x = position, y = norm.value, color = group)
   ) +
     geom_line(stat = "identity", size = 0.2) +
-    facet_wrap(facets = ~group)
-  return(p)
-}
-
-#' Plot the enrichment around TSS
-#'
-#' Plot the normalized TSS enrichment score at each position relative to the
-#' TSS. Requires that \code{\link{TSSEnrichment}} has already been run on the
-#' assay.
-#'
-#' Wrapper for the \code{\link{EnrichmentPlot}} function
-#'
-#' @param object A Seurat object
-#' @param assay Name of the assay to use. Should have the TSS enrichment
-#' information for each cell
-#' already computed by running \code{\link{TSSEnrichment}}
-#' @param group.by Set of identities to group cells by
-#' @param idents Set of identities to include in the plot
-#'
-#' @importFrom ggplot2 xlab ylab theme_minimal
-#'
-#' @return Returns a \code{\link[ggplot2]{ggplot2}} object
-#' @export
-#' @concept visualization
-#' @concept qc
-TSSPlot <- function(
-  object,
-  assay = NULL,
-  group.by = NULL,
-  idents = NULL
-) {
-  p <- EnrichmentPlot(
-    object = object,
-    assay = assay,
-    group.by = group.by,
-    idents = idents,
-    enrichment.key = "TSS"
-  )
-  p <- p +
+    facet_wrap(facets = ~group) +
     xlab("Distance from TSS (bp)") +
     ylab(label = "Mean TSS enrichment score") +
     theme_minimal()
@@ -888,9 +855,14 @@ LinkPlot <- function(object, region) {
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom ggplot2 ggplot aes theme_classic ylim xlim
 #' ylab theme element_blank
+#'
+#' @importFrom S4Vectors split
+#' @importFrom ggbio autoplot
+#'
 #' @importFrom gggenes geom_gene_arrow geom_gene_label
 #' @concept visualization
 AnnotationPlot <- function(object, region) {
+
   annotation <- Annotation(object = object)
 
   if (is.null(x = annotation)) {
@@ -900,50 +872,68 @@ AnnotationPlot <- function(object, region) {
   if (!inherits(x = region, what = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
-  annotation.subset <- subsetByOverlaps(x = annotation, ranges = region)
-
   start.pos <- start(x = region)
   end.pos <- end(x = region)
   chromosome <- seqnames(x = region)
 
-  annotation.df <- as.data.frame(x = annotation.subset)
-  # adjust coordinates so within the plot
-  annotation.df$start[annotation.df$start < start.pos] <- start.pos
-  annotation.df$end[annotation.df$end > end.pos] <- end.pos
-  annotation.df$direction <- ifelse(
-    test = annotation.df$strand == "-", yes = -1, no = 1
+  annotation.subset <- subsetByOverlaps(x = annotation, ranges = region)
+  annotation.subset <- split(
+    x = annotation.subset,
+    f = annotation.subset$gene_name
   )
-  if (nrow(x = annotation.df) > 0) {
-    gene.plot <- ggplot(
-      data = annotation.df,
-      mapping = aes(
-        xmin = start,
-        xmax = end,
-        y = strand,
-        fill = strand,
-        label = gene_name,
-        forward = direction)
-    ) +
-      geom_gene_arrow(
-        arrow_body_height = unit(x = 4, units = "mm"),
-        arrowhead_height = unit(x = 4, units = "mm"),
-        arrowhead_width = unit(x = 5, units = "mm")) +
-      geom_gene_label(
-        grow = TRUE,
-        reflow = TRUE,
-        height = unit(x = 4, units = "mm")
-      )
-  } else {
-    # make blank plot
-    gene.plot <- ggplot(data = peak.df)
-  }
-  gene.plot <- gene.plot +
-    xlim(start.pos, end.pos) +
-    xlab(label = paste0(chromosome, " position (bp)")) +
+
+  p <- suppressWarnings(expr = suppressMessages(expr = autoplot(
+    object = annotation.subset,
+    GRangesFilter(value = region),
+    fill = "darkblue",
+    size = 1/2,
+    color = "darkblue",
+    names.expr = "gene_name"
+  ) + theme_classic() +
     ylab("Genes") +
-    theme_classic() +
-    theme(legend.position = "none",
-          axis.ticks.y = element_blank(),
-          axis.text.y = element_blank())
-  return(gene.plot)
+    xlab(label = paste0(chromosome, " position (kb)")) +
+    xlim(start.pos, end.pos)))
+
+  return(p@ggplot)
+
+  # annotation.df <- as.data.frame(x = annotation.subset)
+  # # adjust coordinates so within the plot
+  # annotation.df$start[annotation.df$start < start.pos] <- start.pos
+  # annotation.df$end[annotation.df$end > end.pos] <- end.pos
+  # annotation.df$direction <- ifelse(
+  #   test = annotation.df$strand == "-", yes = -1, no = 1
+  # )
+  # if (nrow(x = annotation.df) > 0) {
+  #   gene.plot <- ggplot(
+  #     data = annotation.df,
+  #     mapping = aes(
+  #       xmin = start,
+  #       xmax = end,
+  #       y = strand,
+  #       fill = strand,
+  #       label = gene_name,
+  #       forward = direction)
+  #   ) +
+  #     geom_gene_arrow(
+  #       arrow_body_height = unit(x = 4, units = "mm"),
+  #       arrowhead_height = unit(x = 4, units = "mm"),
+  #       arrowhead_width = unit(x = 5, units = "mm")) +
+  #     geom_gene_label(
+  #       grow = TRUE,
+  #       reflow = TRUE,
+  #       height = unit(x = 4, units = "mm")
+  #     )
+  # } else {
+  #   # make blank plot
+  #   gene.plot <- ggplot(data = peak.df)
+  # }
+  # gene.plot <- gene.plot +
+  #   xlim(start.pos, end.pos) +
+  #   xlab(label = paste0(chromosome, " position (bp)")) +
+  #   ylab("Genes") +
+  #   theme_classic() +
+  #   theme(legend.position = "none",
+  #         axis.ticks.y = element_blank(),
+  #         axis.text.y = element_blank())
+  # return(gene.plot)
 }
