@@ -36,11 +36,13 @@ CreateFragmentObject <- function(
   ...
 ) {
   # check that file exists and is indexed
-  if (!file.exists(path)) {
+  # don't check if supplying remote file
+  is.remote <- grepl(pattern = "^http|^ftp", x = path)
+  if (!file.exists(path) & !is.remote) {
     stop("Fragment file does not exist.")
   }
   index.file <- paste0(path, ".tbi")
-  if (!file.exists(index.file)) {
+  if (!file.exists(index.file) & !is.remote) {
     stop("Fragment file is not indexed.")
   }
   # file must end in gz otherwise data.table::fread fails
@@ -57,6 +59,7 @@ CreateFragmentObject <- function(
   if (verbose) {
     message("Computing hash")
   }
+  # will be NA if file remote
   hashes <- md5sum(files = c(path, index.file))
   # create object
   frags <- new(
@@ -116,6 +119,11 @@ ValidateCells <- function(
     return(TRUE)
   }
   filepath <- GetFragmentData(object = object, slot = "path")
+  is.remote <- grepl(pattern = "^http|^ftp", x = filepath)
+  # if remote, return TRUE
+  if (is.remote) {
+    return(TRUE)
+  }
   x <- 0
   min.cells <- length(x = cells) - round(x = tolerance * length(x = cells))
   while (TRUE) {
@@ -147,6 +155,11 @@ ValidateCells <- function(
 ValidateHash <- function(object, verbose = TRUE) {
   path <- GetFragmentData(object = object, slot = "path")
   index.file <- paste0(path, ".tbi")
+  is.remote <- grepl(pattern = "^http|^ftp", x = path)
+  # if remote, return TRUE
+  if (is.remote) {
+    return(TRUE)
+  }
   if (!all(file.exists(path, index.file))) {
     return(FALSE)
   }
