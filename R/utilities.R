@@ -335,17 +335,6 @@ GetTSSPositions <- function(ranges) {
   return(tss)
 }
 
-gene.ranges <- genes(EnsDb.Hsapiens.v75)
-seqlevelsStyle(gene.ranges) <- 'UCSC'
-gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
-gene.ranges <- keepStandardChromosomes(gene.ranges, pruning.mode = 'coarse')
-
-tss.ranges <- GRanges(
-  seqnames = seqnames(gene.ranges),
-  ranges = IRanges(start = start(gene.ranges), width = 2),
-  strand = strand(gene.ranges)
-)
-
 #' Find interesecting regions between two objects
 #'
 #' Intersects the regions stored in the rownames of two objects and
