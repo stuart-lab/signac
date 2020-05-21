@@ -1003,7 +1003,25 @@ TSSEnrichment <- function(
     digits = 2
   )
 
-  # TODO add row for expected and motif position
+  # store expected as one additional row in the matrix
+  expected.insertions <- rep(1, ncol(x = cutmatrix))
+  expected.insertions <- t(x = as.matrix(x = expected.insertions))
+  rownames(x = expected.insertions) <- "expected"
+
+  # encode motif position as additional row in matrix
+  motif.vec <- t(x = matrix(
+    data = c(
+      rep(x = 0, 1000),
+      1,
+      rep(x = 0, 1000)
+    )
+  )
+  )
+  rownames(x = motif.vec) <- "motif"
+
+  # append
+  norm.matrix <- rbind(norm.matrix, expected.insertions)
+  norm.matrix <- rbind(norm.matrix, motif.vec)
 
   # store the normalized TSS matrix
   object <- suppressWarnings(SetAssayData(
