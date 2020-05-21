@@ -11,6 +11,9 @@ setClassUnion(name = "AnyMatrix", c("matrix", "dgCMatrix"))
 
 #' The Fragment class
 #'
+#' The Fragment class is designed to hold information needed for working with
+#' fragment files.
+#'
 #' @slot path Path to the fragment file on disk.
 #' See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
 #' @slot hash A vector of two md5sums: first element is the md5sum of the
@@ -34,7 +37,8 @@ Fragment <- setClass(
 
 #' The Motif class
 #'
-#' The Motif class stores DNA motif information
+#' The Motif class is designed to store DNA sequence motif information,
+#' including motif PWMs or PFMs, motif positions, and metadata.
 #'
 #' @slot data A sparse, binary, feature x motif matrix. Columns
 #' correspond to motif IDs, rows correspond to genomic features
@@ -66,7 +70,7 @@ Motif <- setClass(
 #' The ChromatinAssay class
 #'
 #' The ChramatinAssay object is an extended \code{\link[Seurat]{Assay}}
-#' for the storage and analysis of chromatin-based single-cell data.
+#' for the storage and analysis of single-cell chromatin data.
 #'
 #' @slot ranges A \code{\link[GenomicRanges]{GRanges}} object describing the
 #' genomic location of features in the object
@@ -380,7 +384,7 @@ setAs(
   }
 )
 
-#' Create Seurat object with a chromatin assay
+#' Create a Seurat object containing a ChromatinAssay
 #'
 #' This is a wrapper for \code{\link[Seurat]{CreateSeuratObject}} to create
 #' an object containing a \code{\link{ChromatinAssay}} rather than a
@@ -546,9 +550,9 @@ CreateSignacObject <- function(
 
 ## Functions
 
-#' CreateMotifObject
+#' Create motif object
 #'
-#' Create an object of class \code{Motif}
+#' Create a \code{\link{Motif-class}} object.
 #'
 #' @param data A motif x region matrix
 #' @param pwm A named list of position weight matrices or position frequency
@@ -657,6 +661,8 @@ GetAssayData.ChromatinAssay <- function(
 }
 
 #' Get Fragment object data
+#'
+#' Extract data from a \code{\link{Fragment-class}} object
 #'
 #' @param object A \code{\link{Fragment}} object
 #' @param slot Information to pull from object (path, hash, cells, prefix, suffix)
@@ -987,7 +993,9 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
   return(object)
 }
 
-#' Return a subset of a Motif object
+#' Subset a Motif object
+#'
+#' Returns a subset of a \code{\link{Motif-class}} object.
 #'
 #' @param x A Motif object
 #' @param features Which features to retain

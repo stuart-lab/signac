@@ -36,7 +36,8 @@ cells by. Default is the current cell identities}
 Returns a \code{\link[ggplot2]{ggplot}} object
 }
 \description{
-Plot fragment length histogram
+Plot the frequency that fragments of different lengths are present for
+different groups of cells.
 }
 \examples{
 \donttest{

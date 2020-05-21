@@ -7,7 +7,7 @@
 \title{The ChromatinAssay class}
 \description{
 The ChramatinAssay object is an extended \code{\link[Seurat]{Assay}}
-for the storage and analysis of chromatin-based single-cell data.
+for the storage and analysis of single-cell chromatin data.
 }
 \section{Slots}{
 

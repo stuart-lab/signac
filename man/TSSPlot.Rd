@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{TSSPlot}
 \alias{TSSPlot}
-\title{Plot the enrichment around TSS}
+\title{Plot signal enrichment around TSSs}
 \usage{
 TSSPlot(object, assay = NULL, group.by = NULL, idents = NULL)
 }
@@ -24,9 +24,6 @@ Returns a \code{\link[ggplot2]{ggplot2}} object
 Plot the normalized TSS enrichment score at each position relative to the
 TSS. Requires that \code{\link{TSSEnrichment}} has already been run on the
 assay.
-}
-\details{
-Wrapper for the \code{\link{EnrichmentPlot}} function
 }
 \concept{qc}
 \concept{visualization}

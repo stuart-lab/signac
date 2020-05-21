@@ -6,7 +6,8 @@
 \alias{Fragment}
 \title{The Fragment class}
 \description{
-The Fragment class
+The Fragment class is designed to hold information needed for working with
+fragment files.
 }
 \section{Slots}{
 

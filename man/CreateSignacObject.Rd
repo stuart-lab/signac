@@ -2,7 +2,7 @@
 % Please edit documentation in R/objects.R
 \name{CreateSignacObject}
 \alias{CreateSignacObject}
-\title{Create Seurat object with a chromatin assay}
+\title{Create a Seurat object containing a ChromatinAssay}
 \usage{
 CreateSignacObject(
   counts,

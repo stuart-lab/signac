@@ -12,6 +12,6 @@ GetFragmentData(object, slot = "path")
 \item{slot}{Information to pull from object (path, hash, cells, prefix, suffix)}
 }
 \description{
-Get Fragment object data
+Extract data from a \code{\link{Fragment-class}} object
 }
 \concept{assay}

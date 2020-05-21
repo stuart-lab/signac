@@ -4,7 +4,7 @@
 \alias{subset.Motif}
 \alias{subset}
 \alias{[.Motif}
-\title{Return a subset of a Motif object}
+\title{Subset a Motif object}
 \usage{
 \method{subset}{Motif}(x, features = NULL, motifs = NULL, ...)
 
@@ -27,7 +27,7 @@
 Returns a subsetted \code{\link{Motif}} object
 }
 \description{
-Return a subset of a Motif object
+Returns a subset of a \code{\link{Motif-class}} object.
 }
 \examples{
 motif.obj <- Seurat::GetAssayData(

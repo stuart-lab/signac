@@ -6,7 +6,8 @@
 \alias{Motif}
 \title{The Motif class}
 \description{
-The Motif class stores DNA motif information
+The Motif class is designed to store DNA sequence motif information,
+including motif PWMs or PFMs, motif positions, and metadata.
 }
 \section{Slots}{
 

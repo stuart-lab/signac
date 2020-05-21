@@ -2,7 +2,7 @@
 % Please edit documentation in R/objects.R
 \name{CreateMotifObject}
 \alias{CreateMotifObject}
-\title{CreateMotifObject}
+\title{Create motif object}
 \usage{
 CreateMotifObject(
   data = NULL,
@@ -34,7 +34,7 @@ exact positions of each motif.}
 Returns a \code{\link{Motif}} object
 }
 \description{
-Create an object of class \code{Motif}
+Create a \code{\link{Motif-class}} object.
 }
 \examples{
 motif.matrix <- matrix(

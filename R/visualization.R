@@ -4,7 +4,7 @@
 NULL
 
 globalVariables(names = c("Component", "counts"), package = "Signac")
-#' Sequencing depth correlation
+#' Plot sequencing depth correlation
 #'
 #' Compute the correlation between total counts and each reduced
 #' dimension component.
@@ -51,7 +51,7 @@ globalVariables(
   names = c("feature", "group", "mn", "norm.value"),
   package = "Signac"
 )
-#' Plot footprinting results
+#' Plot motif footprinting results
 #'
 #' @param object A Seurat object
 #' @param features A vector of features to plot
@@ -88,7 +88,6 @@ PlotFootprint <- function(
   label.top = 3
 ) {
   # TODO add option to show variance among cells
-  # TODO update TSSPlot to use the GetFootprintData function
   plot.data <- GetFootprintData(
     object = object,
     features = features,
@@ -220,7 +219,6 @@ globalVariables(
   names = c("position", "coverage", "group", "gene_name", "direction"),
   package = "Signac"
 )
-#' @rdname CoveragePlot
 #' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic
 #' aes ylim theme element_blank element_text geom_segment scale_color_identity
 #' @importFrom GenomicRanges GRanges
@@ -233,9 +231,6 @@ globalVariables(
 #' @importFrom stats median
 #' @importFrom dplyr mutate group_by ungroup
 #' @importFrom zoo rollapply
-#' @importFrom grid unit
-#' @importFrom gggenes geom_gene_arrow geom_gene_label
-#' @import patchwork
 SingleCoveragePlot <- function(
   object,
   region,
@@ -353,36 +348,31 @@ SingleCoveragePlot <- function(
       legend.position = "none",
       strip.text.y = element_text(angle = 0)
     )
-
   if (annotation) {
     gene.plot <- AnnotationPlot(object = object, region = region)
   } else {
     gene.plot <- NULL
   }
-
   if (links) {
     link.plot <- LinkPlot(object = object, region = region)
   } else {
     link.plot <- NULL
   }
-
   if (peaks) {
     peak.plot <- PeakPlot(object = object, region = region)
   } else {
     peak.plot <- NULL
   }
-
   heights <- SetIfNull(x = heights, y = c(8, 1, 1, 2))
-
   p <- CombineTracks(plotlist = list(p, gene.plot, peak.plot, link.plot),
                      heights = heights)
   return(p)
 }
 
-#' Plot Tn5 insertion sites over a region
+#' Plot Tn5 insertion frequency over a region
 #'
-#' Plot fragment coverage (frequence of Tn5 insertion) within given regions
-#' for groups of cells.
+#' Plot frequency of Tn5 insertion events for different groups of cells within
+#' given regions of the genome.
 #'
 #' Thanks to Andrew Hill for providing an early version of this function
 #' \url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
@@ -500,9 +490,10 @@ CoveragePlot <- function(
   }
 }
 
-#' MotifPlot
+#' Plot DNA sequence motif
 #'
-#' Plot motifs
+#' Plot position weight matrix or position frequency matrix for different DNA
+#' sequence motifs.
 #'
 #' @param object A Seurat object
 #' @param motifs A list of motifs to plot
@@ -543,6 +534,9 @@ MotifPlot <- function(
 
 globalVariables(names = "group", package = "Signac")
 #' Plot fragment length histogram
+#'
+#' Plot the frequency that fragments of different lengths are present for
+#' different groups of cells.
 #'
 #' @param object A Seurat object
 #' @param assay Which assay to use. Default is the active assay.
@@ -618,13 +612,11 @@ FragmentHistogram <- function(
 }
 
 globalVariables(names = "norm.value", package = "Signac")
-#' Plot the enrichment around TSS
+#' Plot signal enrichment around TSSs
 #'
 #' Plot the normalized TSS enrichment score at each position relative to the
 #' TSS. Requires that \code{\link{TSSEnrichment}} has already been run on the
 #' assay.
-#'
-#' Wrapper for the \code{\link{EnrichmentPlot}} function
 #'
 #' @param object A Seurat object
 #' @param assay Name of the assay to use. Should have the TSS enrichment
@@ -853,35 +845,27 @@ LinkPlot <- function(object, region) {
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom GenomicRanges start end
 #' @importFrom GenomeInfoDb seqnames
-#' @importFrom ggplot2 ggplot aes theme_classic ylim xlim
-#' ylab theme element_blank
-#'
+#' @importFrom ggplot2 theme_classic ylim xlim ylab xlab
 #' @importFrom S4Vectors split
 #' @importFrom ggbio autoplot
-#'
-#' @importFrom gggenes geom_gene_arrow geom_gene_label
+#' @importFrom AnnotationFilter GRangesFilter
 #' @concept visualization
 AnnotationPlot <- function(object, region) {
-
   annotation <- Annotation(object = object)
-
   if (is.null(x = annotation)) {
     return(NULL)
   }
-
   if (!inherits(x = region, what = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
   start.pos <- start(x = region)
   end.pos <- end(x = region)
   chromosome <- seqnames(x = region)
-
   annotation.subset <- subsetByOverlaps(x = annotation, ranges = region)
   annotation.subset <- split(
     x = annotation.subset,
     f = annotation.subset$gene_name
   )
-
   p <- suppressWarnings(expr = suppressMessages(expr = autoplot(
     object = annotation.subset,
     GRangesFilter(value = region),
@@ -893,47 +877,5 @@ AnnotationPlot <- function(object, region) {
     ylab("Genes") +
     xlab(label = paste0(chromosome, " position (kb)")) +
     xlim(start.pos, end.pos)))
-
   return(p@ggplot)
-
-  # annotation.df <- as.data.frame(x = annotation.subset)
-  # # adjust coordinates so within the plot
-  # annotation.df$start[annotation.df$start < start.pos] <- start.pos
-  # annotation.df$end[annotation.df$end > end.pos] <- end.pos
-  # annotation.df$direction <- ifelse(
-  #   test = annotation.df$strand == "-", yes = -1, no = 1
-  # )
-  # if (nrow(x = annotation.df) > 0) {
-  #   gene.plot <- ggplot(
-  #     data = annotation.df,
-  #     mapping = aes(
-  #       xmin = start,
-  #       xmax = end,
-  #       y = strand,
-  #       fill = strand,
-  #       label = gene_name,
-  #       forward = direction)
-  #   ) +
-  #     geom_gene_arrow(
-  #       arrow_body_height = unit(x = 4, units = "mm"),
-  #       arrowhead_height = unit(x = 4, units = "mm"),
-  #       arrowhead_width = unit(x = 5, units = "mm")) +
-  #     geom_gene_label(
-  #       grow = TRUE,
-  #       reflow = TRUE,
-  #       height = unit(x = 4, units = "mm")
-  #     )
-  # } else {
-  #   # make blank plot
-  #   gene.plot <- ggplot(data = peak.df)
-  # }
-  # gene.plot <- gene.plot +
-  #   xlim(start.pos, end.pos) +
-  #   xlab(label = paste0(chromosome, " position (bp)")) +
-  #   ylab("Genes") +
-  #   theme_classic() +
-  #   theme(legend.position = "none",
-  #         axis.ticks.y = element_blank(),
-  #         axis.text.y = element_blank())
-  # return(gene.plot)
 }

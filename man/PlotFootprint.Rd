@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{PlotFootprint}
 \alias{PlotFootprint}
-\title{Plot footprinting results}
+\title{Plot motif footprinting results}
 \usage{
 PlotFootprint(
   object,
@@ -42,7 +42,7 @@ are "subtract", "divide", or NULL to perform no bias correction.}
 in motif flanking region.}
 }
 \description{
-Plot footprinting results
+Plot motif footprinting results
 }
 \concept{footprinting}
 \concept{visualization}
