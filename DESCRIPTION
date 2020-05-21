@@ -40,7 +40,6 @@ Imports:
     tidyr,
     zoo,
     patchwork,
-    gggenes,
     grid,
     stats,
     utils,
@@ -48,7 +47,10 @@ Imports:
     BiocGenerics,
     Biostrings,
     ggrepel,
-    stringi
+    stringi,
+    ggbio,
+    biovizBase,
+    AnnotationFilter
 Collate: 
     'data.R'
     'generics.R'
