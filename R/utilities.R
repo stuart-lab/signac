@@ -271,7 +271,10 @@ GetGRangesFromEnsDb <- function(
   # extract genes from each chromosome
   if (verbose) {
     tx <- sapply(X = seq_along(whole.genome), FUN = function(x){
-      crunch(ensdb, which = whole.genome[x])
+      crunch(
+        obj = ensdb,
+        which = whole.genome[x],
+        columns = c("tx_id", "gene_name", "gene_id", "gene_biotype"))
     })
   } else {
     tx <- sapply(X = seq_along(whole.genome), FUN = function(x){
