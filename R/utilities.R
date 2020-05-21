@@ -290,6 +290,62 @@ GetGRangesFromEnsDb <- function(
   return(tx)
 }
 
+#' Find transcriptional start sites
+#'
+#' Get the TSS positions from a set of genomic ranges containing gene positions.
+#' Ranges can contain exons, introns, UTRs, etc, rather than the whole
+#' transcript. Only protein coding gene biotypes are included in output.
+#'
+#' @param ranges A GRanges object containing gene annotations.
+#'
+#' @importFrom S4Vectors split
+#' @importFrom GenomicRanges resize start end strand GRanges
+#' @importFrom IRanges IRanges
+#' @importFrom GenomeInfoDb seqnames
+#'
+#' @export
+#' @concept utilities
+GetTSSPositions <- function(ranges) {
+  # get protein coding genes
+  ranges <- ranges[ranges$gene_biotype == "protein_coding"]
+
+  # split by gene name
+  ranges.split <- split(x = ranges, f = ranges$gene_id, drop = TRUE)
+
+  # iterate over elements and get start/end/strand for whole gene
+  strands <- strand(x = ranges.split)
+  starts <- start(x = ranges.split)
+  ends <- end(x = ranges.split)
+  chrom <- seqnames(x = ranges.split)
+
+  strands <- sapply(X = strands, FUN = function(x) as.vector(x = x)[[1]])
+  starts <- sapply(X = starts, FUN = min)
+  ends <- sapply(X = ends, FUN = max)
+  chrom <- sapply(X = chrom, FUN = function(x) as.vector(x = x)[[1]])
+
+  # construct granges object
+  gene.ranges <- GRanges(
+    seqnames = chrom,
+    ranges = IRanges(start = starts, end = ends),
+    strand = strands
+  )
+
+  # shrink to TSS position
+  tss <- resize(gene.ranges, width = 1, fix = 'start')
+  return(tss)
+}
+
+gene.ranges <- genes(EnsDb.Hsapiens.v75)
+seqlevelsStyle(gene.ranges) <- 'UCSC'
+gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
+gene.ranges <- keepStandardChromosomes(gene.ranges, pruning.mode = 'coarse')
+
+tss.ranges <- GRanges(
+  seqnames = seqnames(gene.ranges),
+  ranges = IRanges(start = start(gene.ranges), width = 2),
+  strand = strand(gene.ranges)
+)
+
 #' Find interesecting regions between two objects
 #'
 #' Intersects the regions stored in the rownames of two objects and
