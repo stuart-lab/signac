@@ -251,7 +251,8 @@ this is a named vector where the elements of the vector are the cell names as
 they appear in the fragment file, and the name of each element is the cell
 name as it appears in the `ChromatinAssay` object storing the `Fragment`
 object. This allows a mapping of cell names on disk to cell names in R, and 
-avoids the need to alter fragement files on disk.
+avoids the need to alter fragement files on disk. This path can also be a remote
+file accessible by `http` or `ftp`.
 
 ### Constructing the `Fragment` class
 
@@ -318,6 +319,24 @@ object <- CreateSignacObject(counts = counts, genome = "hg19", fragments = frag.
 
 This will create a Seurat object containing a `ChromatinAssay`, with a single
 `Fragment` object.
+
+### Using remote fragment files
+
+Fragment files hosted on remote servers accessible via http or ftp can also be
+added to the `ChromatinAssay` in the same way as for locally-hosted fragment 
+files. This can enable the exploration of large single-cell datasets without
+the need for downloading large files. For example, we can create a Fragment
+object using a file hosted on the 10x Genomics website:
+
+```{r}
+fragments <- CreateFragmentObject(
+  path = "http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_pbmc_10k/atac_v1_pbmc_10k_fragments.tsv.gz"
+)
+fragments
+```
+
+When files are hosted remotely, the checks described in the section above (MD5
+hash and expected cells) are not performed.
 
 ### Getting and setting `Fragment` data
 
