@@ -299,39 +299,13 @@ GetGRangesFromEnsDb <- function(
 #' transcript. Only protein coding gene biotypes are included in output.
 #'
 #' @param ranges A GRanges object containing gene annotations.
-#'
-#' @importFrom S4Vectors split
-#' @importFrom GenomicRanges resize start end strand GRanges
-#' @importFrom IRanges IRanges
-#' @importFrom GenomeInfoDb seqnames
-#'
+#' @importFrom GenomicRanges resize
 #' @export
 #' @concept utilities
 GetTSSPositions <- function(ranges) {
   # get protein coding genes
   ranges <- ranges[ranges$gene_biotype == "protein_coding"]
-
-  # split by gene name
-  ranges.split <- split(x = ranges, f = ranges$gene_id, drop = TRUE)
-
-  # iterate over elements and get start/end/strand for whole gene
-  strands <- strand(x = ranges.split)
-  starts <- start(x = ranges.split)
-  ends <- end(x = ranges.split)
-  chrom <- seqnames(x = ranges.split)
-
-  strands <- sapply(X = strands, FUN = function(x) as.vector(x = x)[[1]])
-  starts <- sapply(X = starts, FUN = min)
-  ends <- sapply(X = ends, FUN = max)
-  chrom <- sapply(X = chrom, FUN = function(x) as.vector(x = x)[[1]])
-
-  # construct granges object
-  gene.ranges <- GRanges(
-    seqnames = chrom,
-    ranges = IRanges(start = starts, end = ends),
-    strand = strands
-  )
-
+  gene.ranges <- CollapseToLongestTranscript(ranges = ranges)
   # shrink to TSS position
   tss <- resize(gene.ranges, width = 1, fix = 'start')
   return(tss)
@@ -854,6 +828,33 @@ CalcN <- function(object) {
     nCount = colSums(x = object, slot = "counts"),
     nFeature = colSums(x = GetAssayData(object = object, slot = "counts") > 0)
   ))
+}
+
+#' @importFrom S4Vectors split
+#' @importFrom GenomicRanges start end strand GRanges
+#' @importFrom IRanges IRanges
+#' @importFrom GenomeInfoDb seqnames
+CollapseToLongestTranscript <- function(ranges) {
+  # split by gene name
+  ranges.split <- split(x = ranges, f = ranges$gene_id, drop = TRUE)
+
+  # iterate over elements and get start/end/strand for whole gene
+  strands <- strand(x = ranges.split)
+  starts <- start(x = ranges.split)
+  ends <- end(x = ranges.split)
+  chrom <- seqnames(x = ranges.split)
+
+  strands <- sapply(X = strands, FUN = function(x) as.vector(x = x)[[1]])
+  starts <- sapply(X = starts, FUN = min)
+  ends <- sapply(X = ends, FUN = max)
+  chrom <- sapply(X = chrom, FUN = function(x) as.vector(x = x)[[1]])
+
+  # construct granges object
+  gene.ranges <- GRanges(
+    seqnames = chrom,
+    ranges = IRanges(start = starts, end = ends),
+    strand = strands
+  )
 }
 
 # Chunk GRanges
