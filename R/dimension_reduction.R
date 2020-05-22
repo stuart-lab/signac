@@ -70,7 +70,7 @@ RunSVD.default <- function(
   assay = NULL,
   n = 50,
   scale.embeddings = TRUE,
-  reduction.key = "SVD_",
+  reduction.key = "LSI_",
   scale.max = NULL,
   verbose = TRUE,
   irlba.work = n * 3,
@@ -131,7 +131,7 @@ RunSVD.Assay <- function(
   assay = NULL,
   features = NULL,
   n = 50,
-  reduction.key = "SVD_",
+  reduction.key = "LSI_",
   scale.max = NULL,
   verbose = TRUE,
   ...
@@ -167,8 +167,8 @@ RunSVD.Seurat <- function(
   assay = NULL,
   features = NULL,
   n = 50,
-  reduction.key = "SVD_",
-  reduction.name = "svd",
+  reduction.key = "LSI_",
+  reduction.name = "lsi",
   scale.max = NULL,
   verbose = TRUE,
   ...
