@@ -871,6 +871,7 @@ AnnotationPlot <- function(object, region) {
   if (length(x = annotation.subset) == 0) {
     # make empty plot
     p <- ggplot(data = data.frame())
+
   } else {
     annotation.subset <- split(
       x = annotation.subset,
@@ -885,13 +886,13 @@ AnnotationPlot <- function(object, region) {
       names.expr = "gene_name"
     )))
     p <- p@ggplot
+    # extract y-axis limits and extend slightly so the label isn't covered
+    y.limits <- ggplot_build(plot = p)$layout$panel_scales_y[[1]]$range$range
+    p <- p + ylim(y.limits[[1]], y.limits[[2]] + 0.5)
   }
-  # extract y-axis limits and extend slightly so the label isn't covered
-  y.limits <- ggplot_build(plot = p)$layout$panel_scales_y[[1]]$range$range
   p <- p +
     theme_classic() +
     ylab("Genes") +
-    ylim(y.limits[[1]], y.limits[[2]] + 0.5) +
     xlab(label = paste0(chromosome, " position (kb)")) +
     xlim(start.pos, end.pos) +
     theme(
