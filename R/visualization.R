@@ -846,7 +846,7 @@ LinkPlot <- function(object, region) {
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom GenomicRanges start end
 #' @importFrom GenomeInfoDb seqnames
-#' @importFrom ggplot2 theme_classic ylim xlim ylab xlab
+#' @importFrom ggplot2 theme_classic ylim xlim ylab xlab ggplot_build
 #' @importFrom S4Vectors split
 #' @importFrom ggbio autoplot
 #' @importFrom AnnotationFilter GRangesFilter
@@ -862,7 +862,13 @@ AnnotationPlot <- function(object, region) {
   start.pos <- start(x = region)
   end.pos <- end(x = region)
   chromosome <- seqnames(x = region)
+
+  # get names of genes that overlap region, then subset to include only those
+  # genes. This avoids truncating the gene if it runs outside the region
   annotation.subset <- subsetByOverlaps(x = annotation, ranges = region)
+  genes.keep <- unique(x = annotation.subset$gene_name)
+  annotation.subset <- annotation[annotation$gene_name %in% genes.keep]
+
   if (length(x = annotation.subset) == 0) {
     # make empty plot
     p <- ggplot(data = data.frame())
@@ -881,10 +887,17 @@ AnnotationPlot <- function(object, region) {
     )))
     p <- p@ggplot
   }
+  # extract y-axis limits and extend slightly so the label isn't covered
+  y.limits <- ggplot_build(plot = p)$layout$panel_scales_y[[1]]$range$range
   p <- p +
     theme_classic() +
     ylab("Genes") +
+    ylim(y.limits[[1]], y.limits[[2]] + 0.5) +
     xlab(label = paste0(chromosome, " position (kb)")) +
-    xlim(start.pos, end.pos)
+    xlim(start.pos, end.pos) +
+    theme(
+      axis.ticks.y = element_blank(),
+      axis.text.y = element_blank()
+    )
   return(p)
 }
