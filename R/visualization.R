@@ -736,8 +736,7 @@ CombineTracks <- function(plotlist, heights = NULL) {
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
 #' @concept visualization
-#' @importFrom GenomicRanges start end
-#' @importFrom IRanges subsetByOverlaps
+#' @importFrom GenomicRanges start end intersect
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom ggplot2 ggplot aes geom_segment theme_classic element_blank
 #' theme xlab ylab scale_color_identity
@@ -750,7 +749,7 @@ PeakPlot <- function(object, region) {
   # get ranges from object
   peaks <- granges(x = object)
   # subset to covered range
-  peak.intersect <- subsetByOverlaps(x = peaks, ranges = region)
+  peak.intersect <- intersect(x = peaks, y = region)
   peak.df <- as.data.frame(x = peak.intersect)
   start.pos <- start(x = region)
   end.pos <- end(x = region)
