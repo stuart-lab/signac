@@ -775,6 +775,7 @@ PeakPlot <- function(object, region) {
   return(peak.plot)
 }
 
+globalVariables(names = "score", package = "Signac")
 #' Plot linked genomic elements
 #'
 #' Display links between pairs of genomic elements within a given region of the
@@ -862,20 +863,28 @@ AnnotationPlot <- function(object, region) {
   end.pos <- end(x = region)
   chromosome <- seqnames(x = region)
   annotation.subset <- subsetByOverlaps(x = annotation, ranges = region)
-  annotation.subset <- split(
-    x = annotation.subset,
-    f = annotation.subset$gene_name
-  )
-  p <- suppressWarnings(expr = suppressMessages(expr = autoplot(
-    object = annotation.subset,
-    GRangesFilter(value = region),
-    fill = "darkblue",
-    size = 1/2,
-    color = "darkblue",
-    names.expr = "gene_name"
-  ) + theme_classic() +
+  if (length(x = annotation.subset) == 0) {
+    # make empty plot
+    p <- ggplot(data = data.frame())
+  } else {
+    annotation.subset <- split(
+      x = annotation.subset,
+      f = annotation.subset$gene_name
+    )
+    p <- suppressWarnings(expr = suppressMessages(expr = autoplot(
+      object = annotation.subset,
+      GRangesFilter(value = region),
+      fill = "darkblue",
+      size = 1/2,
+      color = "darkblue",
+      names.expr = "gene_name"
+    )))
+    p <- p@ggplot
+  }
+  p <- p +
+    theme_classic() +
     ylab("Genes") +
     xlab(label = paste0(chromosome, " position (kb)")) +
-    xlim(start.pos, end.pos)))
-  return(p@ggplot)
+    xlim(start.pos, end.pos)
+  return(p)
 }
