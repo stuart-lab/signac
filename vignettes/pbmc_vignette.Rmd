@@ -296,7 +296,7 @@ plot1 + plot2
 You can see that the RNA-based classifications are entirely consistent with the UMAP visualization, computed only on the ATAC-seq data. We can now easily annotate our scATAC-seq derived clusters (alternately, we could use the RNA classifications themselves). We note that cluster 14 maps to CD4 Memory T cells, but is a very small cluster with lower QC metrics. As this group is likely representing low-quality cells, we remove it from downstream analysis. 
 
 ```{r, cache=FALSE}
-pbmc <- subset(pbmc, idents = 15, invert = TRUE)
+pbmc <- subset(pbmc, idents = 14, invert = TRUE)
 pbmc <- RenameIdents(
   object = pbmc,
   '0' = 'CD14 Mono',
@@ -306,14 +306,13 @@ pbmc <- RenameIdents(
   '4' = 'CD14 Mono',
   '5' = 'DN T',
   '6' = 'CD8 Naive',
-  '7' = 'CD14 Mono',
-  '8' = 'NK CD56Dim', 
-  '9' = 'pre-B',
-  '10' = 'CD16 Mono',
-  '11' = 'pro-B',
-  '12' = 'DC',
-  '13' = 'NK CD56bright',
-  '14' = 'pDC'
+  '7' = 'NK CD56Dim',
+  '8' = 'pre-B',
+  '9' = 'CD16 Mono',
+  '10' = 'pro-B',
+  '11' = 'DC',
+  '12' = 'NK CD56bright',
+  '13' = 'pDC'
 )
 ```
 
