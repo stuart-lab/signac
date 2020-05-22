@@ -262,6 +262,7 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 GetGRangesFromEnsDb <- function(
   ensdb,
   standard.chromosomes = TRUE,
+  biotypes = c("protein_coding", "lincRNA", "rRNA", "processed_transcript"),
   verbose = TRUE
 ) {
   # convert seqinfo to granges
@@ -287,6 +288,7 @@ GetGRangesFromEnsDb <- function(
 
   # combine
   tx <- do.call(what = c, args = tx)
+  tx <- tx[tx$gene_biotype %in% biotypes]
   return(tx)
 }
 
