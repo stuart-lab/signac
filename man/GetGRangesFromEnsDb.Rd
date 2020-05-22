@@ -4,7 +4,12 @@
 \alias{GetGRangesFromEnsDb}
 \title{Extract genomic ranges from EnsDb object}
 \usage{
-GetGRangesFromEnsDb(ensdb, standard.chromosomes = TRUE, verbose = TRUE)
+GetGRangesFromEnsDb(
+  ensdb,
+  standard.chromosomes = TRUE,
+  biotypes = c("protein_coding", "lincRNA", "rRNA", "processed_transcript"),
+  verbose = TRUE
+)
 }
 \arguments{
 \item{ensdb}{An EnsDb object}
