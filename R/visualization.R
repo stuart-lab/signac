@@ -234,7 +234,10 @@ globalVariables(
 SingleCoveragePlot <- function(
   object,
   region,
+  features = NULL,
   assay = NULL,
+  expression.assay = NULL,
+  expression.slot = "data",
   annotation = TRUE,
   peaks = TRUE,
   links = TRUE,
@@ -336,7 +339,7 @@ SingleCoveragePlot <- function(
     ) +
     geom_area(stat = "identity") +
     geom_hline(yintercept = 0, size = 0.1) +
-    facet_wrap(facets = ~group, strip.position = "right", ncol = 1) +
+    facet_wrap(facets = ~group, strip.position = "left", ncol = 1) +
     xlab(label = paste0(chromosome, " position (bp)")) +
     ylab(label = paste0("Normalized accessibility \n(range ",
                         as.character(x = ymin), " - ",
@@ -347,8 +350,22 @@ SingleCoveragePlot <- function(
       axis.text.y = element_blank(),
       legend.position = "none",
       strip.background = element_blank(),
-      strip.text.y = element_text(angle = 0)
+      strip.text.y.left = element_text(angle = 0)
     )
+  if (!is.null(x = features)) {
+    ex.plot <- ExpressionPlot(
+      object = object,
+      features = features,
+      assay = expression.assay,
+      idents = idents,
+      group.by = group.by,
+      slot = expression.slot
+    )
+    widths <- c(10, length(x = features))
+  } else {
+    ex.plot <- NULL
+    widths <- NULL
+  }
   if (annotation) {
     gene.plot <- AnnotationPlot(object = object, region = region)
   } else {
@@ -365,8 +382,12 @@ SingleCoveragePlot <- function(
     peak.plot <- NULL
   }
   heights <- SetIfNull(x = heights, y = c(8, 1, 1, 2))
-  p <- CombineTracks(plotlist = list(p, gene.plot, peak.plot, link.plot),
-                     heights = heights)
+  p <- CombineTracks(
+    plotlist = list(p, gene.plot, peak.plot, link.plot),
+    expression.plot = ex.plot,
+    heights = heights,
+    widths = widths
+  )
   return(p)
 }
 
@@ -425,7 +446,10 @@ SingleCoveragePlot <- function(
 CoveragePlot <- function(
   object,
   region,
+  features = NULL,
   assay = NULL,
+  expression.assay = "RNA",
+  expression.slot = "data",
   annotation = TRUE,
   peaks = TRUE,
   links = TRUE,
@@ -449,6 +473,9 @@ CoveragePlot <- function(
         SingleCoveragePlot(
           object = object,
           region = region[x],
+          features = features,
+          expression.assay = expression.assay,
+          expression.slot = expression.slot,
           annotation = annotation,
           peaks = peaks,
           assay = assay,
@@ -473,6 +500,9 @@ CoveragePlot <- function(
       object = object,
       region = region,
       annotation = annotation,
+      features = features,
+      expression.assay = expression.assay,
+      expression.slot = expression.slot,
       peaks = peaks,
       assay = assay,
       links = links,
@@ -687,13 +717,25 @@ TSSPlot <- function(
 #'
 #' @param plotlist A list of plots to combine. Must be from the same genomic
 #' region.
-#' @param heights Relative heights for each plot. If NULL, the first
+#' @param expression.plot Plot containing gene expression information. If
+#' supplied, this will be placed to the left of the coverage tracks and aligned
+#' with each track
+#' @param heights Relative heights for each plot. If NULL, the first plot will
+#' be 8x the height of the other tracks.
+#' @param widths Relative widths for each plot. Only required if adding a gene
+#' expression panel. If NULL, main plots will be 8x the width of the gene
+#' expression panel
 #' @return Returns a patchworked ggplot2 object
 #' @export
 #' @importFrom ggplot2 theme element_blank
-#' @importFrom patchwork wrap_plots
+#' @importFrom patchwork wrap_plots plot_spacer plot_layout
 #' @concept visualization
-CombineTracks <- function(plotlist, heights = NULL) {
+CombineTracks <- function(
+  plotlist,
+  expression.plot = NULL,
+  heights = NULL,
+  widths = NULL
+) {
   # remove any that are NULL
   nullplots <- sapply(X = plotlist, FUN = is.null)
   plotlist <- plotlist[!nullplots]
@@ -723,7 +765,20 @@ CombineTracks <- function(plotlist, heights = NULL) {
       stop("Relative height must be supplied for each plot")
     }
   }
-  p <- wrap_plots(plotlist, ncol = 1, heights = heights)
+  if (!is.null(x = expression.plot)) {
+    # align expression plot with the first element in plot list
+    p <- (plotlist[[1]] + expression.plot) +
+      plot_layout(widths = widths)
+
+    n <- length(x = plotlist)
+    heights.2 <- heights[2:n]
+    p2 <- wrap_plots(plotlist[2:n], ncol = 1, heights = heights.2)
+
+    p <- p + p2 + plot_spacer() + plot_layout(
+      ncol = 2, heights = c(heights[[1]], sum(heights.2)))
+  } else {
+    p <- wrap_plots(plotlist, ncol = 1, heights = heights)
+  }
   return(p)
 }
 
@@ -977,9 +1032,11 @@ ExpressionPlot <- function(
       axis.title.x = element_blank(),
       strip.background = element_blank(),
       strip.text.x = element_blank(),
-      legend.position = "none",
-      strip.text.y = element_text(angle = 0)
+      strip.text.y = element_blank(),
+      legend.position = "none"
+      # strip.text.y = element_text(angle = 0)
     ) +
+    scale_y_continuous(position = "right") +
     ylab(label = paste0("Expression (range ",
                         as.character(x = ymin), " - ",
                         as.character(x = ymax), ")"))
