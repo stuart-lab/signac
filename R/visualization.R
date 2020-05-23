@@ -346,6 +346,7 @@ SingleCoveragePlot <- function(
     theme(
       axis.text.y = element_blank(),
       legend.position = "none",
+      strip.background = element_blank(),
       strip.text.y = element_text(angle = 0)
     )
   if (annotation) {
@@ -899,5 +900,88 @@ AnnotationPlot <- function(object, region) {
       axis.ticks.y = element_blank(),
       axis.text.y = element_blank()
     )
+  return(p)
+}
+
+#' Plot gene expression
+#'
+#' Display gene expression values for different groups of cells and different
+#' genes. Genes will be arranged on the x-axis and different groups stacked on
+#' the y-axis, with expression value distribution for each group shown as a
+#' violin plot. This is designed to work alongside a genomic coverage track,
+#' and the plot will be able to be aligned with coverage tracks for the same
+#' groups of cells.
+#'
+#' @param object A Seurat object
+#' @param features A list of features to plot
+#' @param assay Name of the assay storing expression information
+#' @param group.by A grouping variable to group cells by. If NULL, use the
+#' current cell identities
+#' @param idents A list of identities to include in the plot. If NULL, include
+#' all identities
+#' @param slot Which slot to pull expression data from
+#'
+#' @importFrom Seurat GetAssayData DefaultAssay
+#' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic theme
+#' element_blank ylab
+#' @export
+#' @concept visualization
+#' @examples
+#' ExpressionPlot(atac_small, features = "SAMD11", assay = "RNA")
+ExpressionPlot <- function(
+  object,
+  features,
+  assay = NULL,
+  group.by = NULL,
+  idents = NULL,
+  slot = "data"
+) {
+  # get data
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  data.plot <- GetAssayData(
+    object = object,
+    assay = assay,
+    slot = slot
+  )[features, ]
+  obj.groups <- GetGroups(
+    object = object,
+    group.by = group.by,
+    idents = idents
+  )
+  # construct data frame
+  if (length(x = features) == 1) {
+    df <- data.frame(
+      gene = features,
+      expression = data.plot,
+      group = obj.groups
+    )
+  } else {
+    df <- data.frame()
+    for (i in features) {
+      df.1 <- data.frame(
+        gene = i,
+        expression = data.plot[i, ],
+        group = obj.groups
+      )
+      df <- rbind(df, df.1)
+    }
+  }
+  ymin <- round(x = min(df$expression))
+  ymax <- round(x = max(df$expression))
+  p <- ggplot(data = df, aes(x = gene, y = expression, fill = group)) +
+    geom_violin() +
+    facet_wrap(~group, ncol = 1, strip.position = "right") +
+    theme_classic() +
+    theme(
+      axis.text.y = element_blank(),
+      axis.title.x = element_blank(),
+      strip.background = element_blank(),
+      strip.text.x = element_blank(),
+      legend.position = "none",
+      strip.text.y = element_text(angle = 0)
+    ) +
+    ylab(label = paste0("Expression (range ",
+                        as.character(x = ymin), " - ",
+                        as.character(x = ymax), ")"))
   return(p)
 }
