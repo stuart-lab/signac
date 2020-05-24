@@ -381,7 +381,7 @@ SingleCoveragePlot <- function(
   } else {
     peak.plot <- NULL
   }
-  heights <- SetIfNull(x = heights, y = c(8, 1, 1, 2))
+  heights <- SetIfNull(x = heights, y = c(10, 2, 1, 3))
   p <- CombineTracks(
     plotlist = list(p, gene.plot, peak.plot, link.plot),
     expression.plot = ex.plot,
@@ -812,8 +812,9 @@ PeakPlot <- function(object, region) {
   chromosome <- seqnames(x = region)
 
   if (nrow(x = peak.df) > 0) {
-    peak.plot <- ggplot(data = peak.df, mapping = aes(color = "darkgrey")) +
-      geom_segment(aes(x = start, y = 0, xend = end, yend = 0, size = 1/2),
+    peak.plot <- ggplot(data = peak.df, mapping = aes(color = "dimgrey")) +
+      geom_segment(aes(x = start, y = 0, xend = end, yend = 0),
+                   size = 2,
                    data = peak.df)
   } else {
     # no peaks present in region, make empty panel
