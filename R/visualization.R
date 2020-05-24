@@ -243,7 +243,7 @@ SingleCoveragePlot <- function(
   links = TRUE,
   group.by = NULL,
   window = 100,
-  downsample = 0.1,
+  downsample = 1/100,
   extend.upstream = 0,
   extend.downstream = 0,
   ymax = NULL,
