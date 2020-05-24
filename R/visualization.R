@@ -813,7 +813,7 @@ PeakPlot <- function(object, region) {
 
   if (nrow(x = peak.df) > 0) {
     peak.plot <- ggplot(data = peak.df, mapping = aes(color = "darkgrey")) +
-      geom_segment(aes(x = start, y = 0, xend = end, yend = 0, size = 2),
+      geom_segment(aes(x = start, y = 0, xend = end, yend = 0, size = 1/2),
                    data = peak.df)
   } else {
     # no peaks present in region, make empty panel
@@ -978,7 +978,7 @@ AnnotationPlot <- function(object, region) {
 #'
 #' @importFrom Seurat GetAssayData DefaultAssay
 #' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic theme
-#' element_blank ylab
+#' element_blank ylab scale_x_discrete scale_y_continuous
 #' @export
 #' @concept visualization
 #' @examples
@@ -1024,19 +1024,20 @@ ExpressionPlot <- function(
   ymin <- round(x = min(df$expression))
   ymax <- round(x = max(df$expression))
   p <- ggplot(data = df, aes(x = gene, y = expression, fill = group)) +
-    geom_violin() +
+    geom_violin(size = 1/4) +
     facet_wrap(~group, ncol = 1, strip.position = "right") +
     theme_classic() +
+    scale_x_discrete(position = "top") +
+    scale_y_continuous(position = "right") +
     theme(
       axis.text.y = element_blank(),
+      axis.text.x = element_text(size = 8),
       axis.title.x = element_blank(),
       strip.background = element_blank(),
       strip.text.x = element_blank(),
       strip.text.y = element_blank(),
       legend.position = "none"
-      # strip.text.y = element_text(angle = 0)
     ) +
-    scale_y_continuous(position = "right") +
     ylab(label = paste0("Expression (range ",
                         as.character(x = ymin), " - ",
                         as.character(x = ymax), ")"))
