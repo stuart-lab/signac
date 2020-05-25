@@ -627,6 +627,11 @@ NucleosomeSignal <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  # first check that fragments are present
+  frags <- Fragments(object = object[[assay]])
+  if (length(x = frags) == 0) {
+    stop("No fragment files present in assay")
+  }
   fragments.use <- MultiGetReadsInRegion(
     object = object,
     region = region,
@@ -950,6 +955,11 @@ TSSEnrichment <- function(
   verbose = TRUE
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  # first check that fragments are present
+  frags <- Fragments(object = object[[assay]])
+  if (length(x = frags) == 0) {
+    stop("No fragment files present in assay")
+  }
   if (is.null(x = tss.positions)) {
     # work out TSS positions from gene annotations
     annotations <- Annotation(object = object[[assay]])
