@@ -79,19 +79,15 @@ This will allow downstream functions to pull the gene annotation information
 directly from the object.
 
 ```{r annotations, message=FALSE, warning=FALSE, cache=FALSE}
-# load the gene information
-gene.ranges <- genes(EnsDb.Hsapiens.v75)
+# extract gene annotations from EnsDb
+annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
 
 # change to UCSC style since the data was mapped to hg19
-seqlevelsStyle(gene.ranges) <- 'UCSC'
-genome(gene.ranges) <- "hg19"
-
-# extract the protein coding genes (we could keep all biotypes if we wanted)
-gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
-gene.ranges <- keepStandardChromosomes(gene.ranges, pruning.mode = "coarse")
+seqlevelsStyle(annotations) <- 'UCSC'
+genome(annotations) <- "hg19"
 
 # add the gene information to the object
-Annotation(pbmc) <- gene.ranges
+Annotation(pbmc) <- annotations
 ```
 
 ## Computing QC Metrics
@@ -173,12 +169,7 @@ pbmc
 ```{r tfidf, cache=FALSE, message=FALSE, warning=FALSE}
 pbmc <- RunTFIDF(pbmc)
 pbmc <- FindTopFeatures(pbmc, min.cutoff = 'q0')
-pbmc <- RunSVD(
-  object = pbmc,
-  assay = 'peaks',
-  reduction.key = 'LSI_',
-  reduction.name = 'lsi'
-)
+pbmc <- RunSVD(pbmc)
 ```
 
 The first LSI component often captures sequencing depth (technical variation) rather than biological variation. If this is the case, the component should be removed from downstream analysis. We
@@ -210,6 +201,16 @@ However, we can try to quantify the activity of each gene in the genome by asses
 To create a *gene activity matrix*, we extract gene coordinates for the human genome from EnsembleDB, and extend them to include the 2kb upstream region (as promoter accessibility is often correlated with gene expression). We then count the number of fragments for each cell that map to each of these regions, using the using the `FeatureMatrix` function. This takes any set of genomic coordinates, counts the number of reads intersecting these coordinates in each cell, and returns a sparse matrix.
 
 ```{r, message=FALSE, warning=FALSE, cache=FALSE}
+gene.ranges <- genes(EnsDb.Hsapiens.v75)
+
+# change to UCSC style since the data was mapped to hg19
+seqlevelsStyle(gene.ranges) <- 'UCSC'
+genome(gene.ranges) <- "hg19"
+
+# extract the protein coding genes (we could keep all biotypes if we wanted)
+gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
+gene.ranges <- keepStandardChromosomes(gene.ranges, pruning.mode = "coarse")
+
 # Extend coordinates upstream to include the promoter
 genebodyandpromoter.coords <- Extend(x = gene.ranges, upstream = 2000, downstream = 0)
 
@@ -370,15 +371,22 @@ head(closest_genes_cd4naive)
 head(closest_genes_cd14mono)
 ```
 
-We can also create coverage plots grouped by cluster around any genomic region using the `CoveragePlot` function. These represent 'pseudo-bulk' accessibility tracks, where all cells within a cluster have been averaged together, in order to visualize a more robust chromatin landscape (thanks to Andrew Hill for giving the inspiration for this function in his excellent [blog post](http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/)).
+## Plotting genomic regions
 
-```{r coverageplot, message=FALSE, warning=FALSE, cache=FALSE, out.width='90%', fig.height=8}
+We can also create coverage plots grouped by cluster, cell type, or any other
+metadata stored in the obect for any genomic region using the `CoveragePlot()`
+function. These represent pseudo-bulk accessibility tracks, where signal from
+all cells within a group have been averaged together to visualize the DNA 
+accessibility in a region (thanks to Andrew Hill for giving the inspiration for
+this function in his excellent [blog post](http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/)).
+
+```{r coverageplot, message=FALSE, warning=FALSE, cache=FALSE, out.width='90%', fig.height=6}
 # set plotting order
 levels(pbmc) <- c("CD4 Naive","CD4 Memory","CD8 Naive","CD8 Effector","DN T","NK CD56bright","NK CD56Dim","pre-B",'pro-B',"pDC","DC","CD14 Mono",'CD16 Mono')
 
 CoveragePlot(
   object = pbmc,
-  region = StringToGRanges(rownames(da_peaks[c(1, 4), ]), sep = c(":", "-")),
+  region = rownames(da_peaks)[1],
   extend.upstream = 20000,
   extend.downstream = 20000,
   ncol = 1
