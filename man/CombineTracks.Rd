@@ -4,13 +4,22 @@
 \alias{CombineTracks}
 \title{Combine genome region plots}
 \usage{
-CombineTracks(plotlist, heights = NULL)
+CombineTracks(plotlist, expression.plot = NULL, heights = NULL, widths = NULL)
 }
 \arguments{
 \item{plotlist}{A list of plots to combine. Must be from the same genomic
 region.}
 
-\item{heights}{Relative heights for each plot. If NULL, the first}
+\item{expression.plot}{Plot containing gene expression information. If
+supplied, this will be placed to the left of the coverage tracks and aligned
+with each track}
+
+\item{heights}{Relative heights for each plot. If NULL, the first plot will
+be 8x the height of the other tracks.}
+
+\item{widths}{Relative widths for each plot. Only required if adding a gene
+expression panel. If NULL, main plots will be 8x the width of the gene
+expression panel}
 }
 \value{
 Returns a patchworked ggplot2 object

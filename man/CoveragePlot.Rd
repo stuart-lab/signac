@@ -7,7 +7,10 @@
 CoveragePlot(
   object,
   region,
+  features = NULL,
   assay = NULL,
+  expression.assay = "RNA",
+  expression.slot = "data",
   annotation = TRUE,
   peaks = TRUE,
   links = TRUE,
