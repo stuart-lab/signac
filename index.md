@@ -38,6 +38,12 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 BiocManager::install()
 ```
 
+To automatically install Bioconductor dependencies when installing Signac, run:
+
+```r
+setRepositories(ind=1:2)
+```
+
 ### Current release
 
 ```r
@@ -53,14 +59,28 @@ devtools::install_github("timoast/signac", ref = "develop")
 
 For information about installing Seurat, see the Seurat [website](https://satijalab.org/seurat/install.html)
 
-It can also be useful (but not essential) to install species-specific packages from Bioconductor:
+### Installing genome assembly and gene annotation packages
 
-#### Human 
+It can also be useful (but not essential) to install species-specific packages 
+containing genome and gene annotation information from Bioconductor.
+
+[This](https://useast.ensembl.org/info/website/archives/assembly.html) table
+from Ensembl provides a mapping of genome assembly to the corresponding gene
+annotation version.
+
+#### Human hg19
 
 ```r
 BiocManager::install(c('BSgenome.Hsapiens.UCSC.hg19', 'EnsDb.Hsapiens.v75'))
 ```
-#### Mouse
+
+#### Human hg38
+
+```r
+BiocManager::install(c('BSgenome.Hsapiens.UCSC.hg38', 'EnsDb.Hsapiens.v86'))
+```
+
+#### Mouse mm10
 
 ```r
 BiocManager::install(c('BSgenome.Mmusculus.UCSC.mm10', 'EnsDb.Mmusculus.v79'))
