@@ -26,11 +26,15 @@ brain.
 knitr::include_graphics("./assets/mouse.png")
 ```
 
-### Joint scRNA-seq and scATAC-seq analysis
+### [Joint scRNA-seq and scATAC-seq analysis](snareseq.html)
 
-In this tutorial we demonstrate strategies to analyze a SNARE-seq2 dataset where
+In this tutorial we demonstrate strategies to analyze a SNARE-seq dataset where
 we have paired measurements of gene expression and DNA accessibility from the 
-same human brain cell nuclei.
+same mouse brain nuclei.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/snareseq.png")
+```
 
 # How-to
 
@@ -105,3 +109,10 @@ perform common analysis tasks.
 This vignette demonstrates how to enable parallel computing in Signac and Seurat,
 and gives an example of the amount of speedup that might be expected from 
 enabling paralellization. 
+
+### [Storing and distributing data](disk_data.html)
+
+This vignette shows how to download pre-processed example datasets using the
+[SeuratData](https://github.com/satijalab/seurat-data) package, and how to save
+and load object from disk using [SeuratDisk](https://github.com/mojaveazure/seurat-disk).
+
