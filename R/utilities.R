@@ -245,6 +245,39 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
   return(links)
 }
 
+#' Create gene activity matrix
+#'
+#' Compute counts per cell in gene body and promoter region.
+#'
+#' @param object A Seurat object
+#' @param features Genes to include. If NULL, use all protein-coding genes in
+#' the annotations stored in the object
+#' @param ... Additional options passed to \code{\link{FeatureMatrix}}
+#'
+#' @concept utilities
+#' @export
+#' @examples
+#' GeneActivity(atac_small)
+GeneActivity <- function(object, features = NULL) {
+  # collapse to longest protein coding transcript
+  annotation <- Annotation(object = object)
+  if (length(x = annotation) == 0) {
+    stop("No gene annotations present in object")
+  }
+  transcripts <- CollapseToLongestTranscript(ranges = annotation)
+
+
+  # filter genes if provided
+
+  # extend to include promoters
+
+  # quantify
+
+  # set row names
+
+  return(gene.mat)
+}
+
 #' Extract genomic ranges from EnsDb object
 #'
 #' Pulls the transcript information for all chromosomes from an EnsDb object.
@@ -849,11 +882,21 @@ CollapseToLongestTranscript <- function(ranges) {
   ends <- sapply(X = ends, FUN = max)
   chrom <- sapply(X = chrom, FUN = function(x) as.vector(x = x)[[1]])
 
+  # add gene name and biotype
+  bt <- vector(mode = "character", length = length(x = chrom))
+  gn <- vector(mode = "character", length = length(x = chrom))
+  for (i in seq_along(ranges.split)) {
+    bt[i] <- ranges.split[[i]]$gene_biotype[[1]]
+    gn[i] <- ranges.split[[i]]$gene_name[[1]]
+  }
+
   # construct granges object
   gene.ranges <- GRanges(
     seqnames = chrom,
     ranges = IRanges(start = starts, end = ends),
-    strand = strands
+    strand = strands,
+    gene_biotype = bt,
+    gene_name = gn
   )
 }
 
@@ -1181,6 +1224,9 @@ MultiRegionCutMatrix <- function(
   }
   fragments <- SetIfNull(x = fragments, y = Fragments(object = object))
   res <- list()
+  if (length(x = fragments) == 0) {
+    stop("No fragment files present in assay")
+  }
   for (i in seq_along(along.with = fragments)) {
     frag.path <- GetFragmentData(object = fragments[[i]], slot = "path")
     cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
