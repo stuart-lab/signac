@@ -250,32 +250,60 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' Compute counts per cell in gene body and promoter region.
 #'
 #' @param object A Seurat object
+#' @param assay Name of assay to use. If NULL, use the default assay
 #' @param features Genes to include. If NULL, use all protein-coding genes in
 #' the annotations stored in the object
+#' @param extend.upstream Number of bases to extend upstream of the TSS
+#' @param extend.downstream Number of bases to extend downstream of the TTS
 #' @param ... Additional options passed to \code{\link{FeatureMatrix}}
 #'
 #' @concept utilities
 #' @export
+#' @importFrom Seurat DefaultAssay
 #' @examples
 #' GeneActivity(atac_small)
-GeneActivity <- function(object, features = NULL) {
+GeneActivity <- function(
+  object,
+  assay = NULL,
+  features = NULL,
+  extend.upstream = 2000,
+  extend.downstream = 0
+) {
   # collapse to longest protein coding transcript
   annotation <- Annotation(object = object)
   if (length(x = annotation) == 0) {
     stop("No gene annotations present in object")
   }
   transcripts <- CollapseToLongestTranscript(ranges = annotation)
-
+  transcripts <- transcripts[transcripts$gene_biotype == "protein_coding"]
 
   # filter genes if provided
+  if (!is.null(x = features)) {
+    transcripts <- transcripts[transcripts$gene_name %in% features]
+  }
 
   # extend to include promoters
+  transcripts <- Extend(
+    x = transcripts,
+    upstream = extend.upstream,
+    downstream = extend.downstream
+  )
+
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
 
   # quantify
+  counts <- FeatureMatrix(
+    fragments = Fragments(object = object[[assay]]),
+    features = transcripts,
+    ...
+  )
 
   # set row names
+  gene.key <- transcripts$gene_name
+  names(x = gene.key) <- GRangesToString(grange = transcripts)
+  rownames(x = counts) <- gene.key[rownames(x = counts)]
 
-  return(gene.mat)
+  return(counts)
 }
 
 #' Extract genomic ranges from EnsDb object
