@@ -255,6 +255,7 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' the annotations stored in the object
 #' @param extend.upstream Number of bases to extend upstream of the TSS
 #' @param extend.downstream Number of bases to extend downstream of the TTS
+#' @param verbose Display messages
 #' @param ... Additional options passed to \code{\link{FeatureMatrix}}
 #'
 #' @concept utilities
@@ -267,12 +268,17 @@ GeneActivity <- function(
   assay = NULL,
   features = NULL,
   extend.upstream = 2000,
-  extend.downstream = 0
+  extend.downstream = 0,
+  verbose = TRUE,
+  ...
 ) {
   # collapse to longest protein coding transcript
   annotation <- Annotation(object = object)
   if (length(x = annotation) == 0) {
     stop("No gene annotations present in object")
+  }
+  if (verbose) {
+    message("Extracting gene coordinates")
   }
   transcripts <- CollapseToLongestTranscript(ranges = annotation)
   transcripts <- transcripts[transcripts$gene_biotype == "protein_coding"]
@@ -295,13 +301,15 @@ GeneActivity <- function(
   counts <- FeatureMatrix(
     fragments = Fragments(object = object[[assay]]),
     features = transcripts,
+    verbose = verbose,
     ...
   )
 
   # set row names
   gene.key <- transcripts$gene_name
   names(x = gene.key) <- GRangesToString(grange = transcripts)
-  rownames(x = counts) <- gene.key[rownames(x = counts)]
+  rownames(x = counts) <- as.vector(x = gene.key[rownames(x = counts)])
+  counts <- counts[rownames(x = counts) != "", ]
 
   return(counts)
 }
