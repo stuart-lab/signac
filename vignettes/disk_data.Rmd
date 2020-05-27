@@ -1,0 +1,91 @@
+---
+title: "Storing and distributing data"
+output: html_document
+---
+
+In this vignette we overview different ways that single-cell chromatin data can
+be stored and distributed using Seurat and Signac.
+
+## Storing datasets
+
+### Storing with SeuratDisk
+
+Since Signac uses the Seurat data structure, we can save and load objects using
+the [SeuratDisk](https://github.com/mojaveazure/seurat-disk) package. This 
+writes the data to file using an [HDF5](https://www.hdfgroup.org/) file format.
+One advantage of this is that we can then selectively load parts of the dataset
+into memory when running an analysis. For example, if our dataset contains many
+assays, we can choose to only load a subset of these.
+
+To save an object using SeuratDisk, run:
+
+```{r message=FALSE, warning=FALSE}
+# install SeuratDisk
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
+remotes::install_github("mojaveazure/seurat-disk")
+
+library(SeuratDisk)
+```
+
+```{r}
+SaveH5Seurat(pbmc_atac, filename = "./vignette_data/pbmc.h5seurat")
+```
+
+To load a dataset:
+
+```{r}
+pbmc_atac <- LoadH5Seurat("./vignette_data/pbmc.h5seurat")
+pbmc_atac
+```
+
+See the SeuratDisk [website](https://mojaveazure.github.io/seurat-disk/index.html)
+for complete documentation.
+
+### Storing with RDS
+
+An alternative way to store R objects on disk is to use the `saveRDS()` and
+`readRDS()` functions. These functions are part of base R and don't require any
+additional libraries.
+
+```{r, eval=FALSE}
+# save data
+saveRDS(object = pbmc_atac, file = "./vignette_data/pbmc.rds")
+
+# use version = 2 to enable saved objects to be loaded with R version <3.6
+saveRDS(object = pbmc_atac, file = "./vignette_data/pbmc.rds", version = 2)
+
+# load data from a saved object
+pbmc_atac <- readRDS("./vignette_data/pbmc.rds")
+```
+
+## Publicly available datasets
+
+To assist new users in getting started with Signac, we have made two scATAC-seq
+datasets available through the [SeuratData](https://github.com/satijalab/seurat-data)
+package. This includes the human PBMC dataset used in the
+[PBMC vignette](pbmc_vignette.html) and the mouse brain dataset used
+in the [adult mouse brain vignette](adult_mouse_brain.html). Both of these
+datasets are available in a raw and fully processed form and in RDS and h5seurat
+formats. To facilitate data distribution, the fragment files stored in each of
+these objects are hosted remotely. This enables users to download a small file
+while retaining the ability to access the full dataset.
+
+To install SeuratData and the available scATAC-seq datasets, run:
+
+```{r}
+devtools::install_github('satijalab/seurat-data')
+library(SeuratData)
+
+# TODO add options for h5 seurat and rds, processed vs raw data
+
+# to install processed PBMC dataset
+InstallData("pbmc_atac")
+
+# to install processed mouse brain dataset
+InstallData("mouse_brain_atac")
+```
+
+To find out more about the SeuratData package, visit the
+[package website](https://github.com/satijalab/seurat-data).
