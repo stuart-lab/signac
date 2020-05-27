@@ -19,7 +19,7 @@ We will use a single-cell ATAC-seq dataset containing human CD34+ hematopoietic
 stem and progenitor cells published by
 [Satpathy and Granja et al. (2019, Nature Biotechnology)](https://doi.org/10.1038/s41587-019-0206-z).
 
-The processed datasets are available on NCBI GEO here:
+The processed dataset is available on NCBI GEO here:
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE129785
 
 First we will load their dataset and perform some standard preprocessing using
@@ -62,6 +62,17 @@ bone <- CreateSignacObject(
 # The dataset contains multiple cell types
 # We can subset to include just one replicate of CD34+ progenitor cells
 bone <- bone[, bone$Group_Barcode == "CD34_Progenitors_Rep1"]
+
+# add cell type annotations from the original paper
+cluster_names <- c("HSC",	"MEP",	"CMP-BMP",	"LMPP",	"CLP",	"Pro-B",	"Pre-B",	"GMP",
+                  "MDP",	"pDC",	"cDC",	"Monocyte-1",	"Monocyte-2",	"Naive-B",	"Memory-B",
+                  "Plasma-cell",	"Basophil",	"Immature-NK",	"Mature-NK1",	"Mature-NK2",	"Naive-CD4-T1",
+                  "Naive-CD4-T2",	"Naive-Treg",	"Memory-CD4-T",	"Treg",	"Naive-CD8-T1",	"Naive-CD8-T2",
+                  "Naive-CD8-T3",	"Central-memory-CD8-T",	"Effector-memory-CD8-T",	"Gamma delta T")
+num.labels <- length(cluster_names)
+names(cluster_names) <- paste0( rep("Cluster", num.labels), seq(num.labels) )
+bone$celltype <- cluster_names[as.character(bone$Clusters)]
+
 bone[["ATAC"]]
 ```
 
@@ -72,12 +83,15 @@ plotting.
 ```{r message=FALSE, warning=FALSE}
 library(EnsDb.Hsapiens.v75)
 
-gene.ranges <- genes(EnsDb.Hsapiens.v75)
-gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
-seqlevelsStyle(gene.ranges) <- 'UCSC'
-genome(gene.ranges) <- "hg19"
-gene.ranges <- keepStandardChromosomes(gene.ranges, pruning.mode = 'coarse')
-Annotation(bone) <- gene.ranges
+# extract gene annotations from EnsDb
+annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
+
+# change to UCSC style since the data was mapped to hg19
+seqlevelsStyle(annotations) <- 'UCSC'
+genome(annotations) <- "hg19"
+
+# add the gene information to the object
+Annotation(bone) <- annotations
 ```
 
 ## Quality control
@@ -116,185 +130,42 @@ dimension reduction, clustering, and cell type annotation.
 ```{r message=FALSE, warning=FALSE}
 bone <- FindTopFeatures(bone, min.cells = 10)
 bone <- RunTFIDF(bone)
-bone <- RunSVD(bone, n = 100, reduction.name = "LSI", reduction.key = "LSI_")
-DepthCor(bone, reduction = 'LSI')
+bone <- RunSVD(bone, n = 100)
+DepthCor(bone)
 ```
 
 ```{r message=FALSE, warning=FALSE}
 bone <- RunUMAP(
   bone,
-  reduction = "LSI",
+  reduction = "lsi",
   dims = 2:60,
   reduction.name = "UMAP"
 )
 ```
 
 ```{r message=FALSE, warning=FALSE}
-bone <- FindNeighbors(bone, dims = 2:60, reduction = "LSI")
-bone <- FindClusters(bone, resolution = 0.5, algorithm = 3)
+bone <- FindNeighbors(bone, dims = 2:60, reduction = "lsi")
+bone <- FindClusters(bone, resolution = 0.8, algorithm = 3)
 ```
 
 ```{r}
 DimPlot(bone, label = TRUE) + NoLegend()
 ```
 
-## Integration with scRNA-seq
-
-To aid in the annotation of cell type, we'll transfer gene expression values for
-each cell in the scATAC-seq dataset using an existing scRNA-seq dataset from 
-CD34+ human bone marrow cells, published by 
-[Pellin and Loperfido et al. (2019)](https://www.nature.com/articles/s41467-019-10291-0).
-
-<details>
- <summary>View scRNA-seq processing code</summary>
-
-```{r, eval = FALSE}
-hsc.counts <- read.table("~/data/pellin19/GSM3305359_HSC.raw_counts.tsv.gz", sep = "\t", header = TRUE, row.names = 1)
-mpp.counts <- read.table("~/data/pellin19/GSM3305360_MPP.raw_counts.tsv.gz", sep = "\t", header = TRUE, row.names = 1)
-mpl.counts <- read.table("~/data/pellin19/GSM3305361_MLP.raw_counts.tsv.gz", sep = "\t", header = TRUE, row.names = 1)
-pre_bnk.counts <- read.table("~/data/pellin19/GSM3305362_PreBNK.raw_counts.tsv.gz", sep = "\t", header = TRUE, row.names = 1)
-mep.counts <- read.table("~/data/pellin19/GSM3305363_MEP.raw_counts.tsv.gz", sep = "\t", header = TRUE, row.names = 1)
-cmp.counts <- read.table("~/data/pellin19/GSM3305364_CMP.raw_counts.tsv.gz", sep = "\t", header = TRUE, row.names = 1)
-gmp.counts <- read.table("~/data/pellin19/GSM3305365_GMP.raw_counts.tsv.gz", sep = "\t", header = TRUE, row.names = 1)
-
-hsc <- CreateSeuratObject(counts = hsc.counts[2:nrow(hsc.counts), ], project = "HSC")
-mpp <- CreateSeuratObject(counts = mpp.counts[2:nrow(mpp.counts), ], project = "MPP")
-mpl <- CreateSeuratObject(counts = mpl.counts[2:nrow(mpl.counts), ], project = "MPL")
-preBNK <- CreateSeuratObject(counts = pre_bnk.counts[2:nrow(pre_bnk.counts), ], project = "PreBNK")
-cmp <- CreateSeuratObject(counts = cmp.counts[2:nrow(cmp.counts), ], project = "CMP")
-gmp <- CreateSeuratObject(counts = gmp.counts[2:nrow(gmp.counts), ], project = "GMP")
-
-bone.rna <- merge(hsc, list(mpp, mpl, preBNK, cmp, gmp))
-
-bone.rna <- NormalizeData(bone.rna)
-bone.rna <- FindVariableFeatures(bone.rna)
-bone.rna <- ScaleData(bone.rna)
-bone.rna <- RunPCA(bone.rna)
-bone.rna <- RunUMAP(bone.rna, dims = 1:30, reduction = "pca")
-saveRDS(bone.rna, "../vignette_data/cd34_rna.rds")
-```
-
-</details>
+Assign each cluster to the most common cell type based on the original
+annotations from the paper.
 
 ```{r}
-bone.rna <- readRDS("../vignette_data/cd34_rna.rds")
-DimPlot(bone.rna, label = TRUE) + NoLegend()
+for(i in levels(bone)) {
+  cells_to_reid <- WhichCells(bone, idents = i)
+  newid <- names(sort(table(bone$celltype[cells_to_reid]),decreasing=TRUE))[1]
+  Idents(bone, cells = cells_to_reid) <- newid
+}
+bone$assigned_celltype <- Idents(bone)
 ```
-
-Add a gene activity assay to the scATAC-seq dataset.
-
-```{r message=FALSE, warning=FALSE, cache=TRUE}
-# Extend coordinates upstream to include the promoter
-genebodyandpromoter.coords <- Extend(x = gene.ranges, upstream = 2000, downstream = 0)
-
-# create a gene by cell matrix
-gene.activities <- FeatureMatrix(
-  fragments = Fragments(bone),
-  features = genebodyandpromoter.coords,
-  cells = colnames(bone)
-)
-
-# convert rownames from chromsomal coordinates into gene names
-gene.key <- genebodyandpromoter.coords$gene_name
-names(gene.key) <- GRangesToString(grange = genebodyandpromoter.coords)
-rownames(gene.activities) <- gene.key[rownames(gene.activities)]
-```
-
-```{r message=FALSE, warning=FALSE}
-# add the gene activity matrix to the Seurat object as a new assay, and normalize it
-bone[['RNA']] <- CreateAssayObject(counts = gene.activities)
-bone <- NormalizeData(
-  object = bone,
-  assay = 'RNA',
-  normalization.method = 'LogNormalize',
-  scale.factor = median(bone$nCount_RNA)
-)
-```
-
-```{r message=FALSE, warning=FALSE}
-DefaultAssay(bone) <- "RNA"
-
-# find transfer anchors
-transfer.anchors <- FindTransferAnchors(
-  reference = bone.rna,
-  query = bone,
-  reduction = 'cca'
-)
-
-# predict gene expression
-predicted.exp <- TransferData(
-  anchorset = transfer.anchors,
-  refdata = GetAssayData(bone.rna, slot = "data"),
-  weight.reduction = bone[['LSI']],
-  dims = 2:60
-)
-
-# replace the gene activity assay with the predicted gene expression values
-bone[["RNA"]] <- predicted.exp
-```
-
-<!-- spib = pdc -->
-<!-- gata1 = mk/erythroid -->
-<!-- gata2 = basophil/eosinophil -->
-<!-- ebf1 = b cell -->
-<!-- bcl11a = pdc -->
-<!-- tcf4   = pdc -->
-<!-- cebpb  = granulocyte / macrophage progenitor -->
-<!-- hoxa9 = hsc -->
-<!-- bst2  = hsc -->
-<!-- klf4 = dc -->
-<!-- spib = dc -->
-<!-- mme = lymphoid -->
-<!-- csf2rb = erythroid -->
-<!-- csf3r = granulocytes -->
-<!-- jun  = dc -->
-<!-- rara, cebp = neutrophil -->
-
-We can inspect the predicted expression patterns for a few different genes to 
-help assign cell type labels to the cells, and determine which cells belong to 
-the different lineages.
-
-```{r fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
-DefaultAssay(bone) <- "RNA"
-
-FeaturePlot(
-  object = bone,
-  features = c("BST2", "BCL11A", "SPIB", "TCF4",
-               "CEBPB", "GATA1", "CD14", "GATA2",
-               "KLF4", "EBF1", "LTB", "HCST"),
-  pt.size = 0.1,
-  min.cutoff = 'q5',
-  max.cutoff = 'q95'
-) & NoLegend()
-```
-
-Based on these makers we can roughly assign clusters to cell states. These
-classifications have been guided by the following papers:
-
-* [Zheng et al. 2019](https://doi.org/10.15252/msb.20178041)
-* [Pellin and Loperfido et al. 2019](https://www.nature.com/articles/s41467-019-10291-0)
 
 ```{r}
-# LMPP is lymphoid-primed multipotent progenitor
-# HSC is hematopoietic stem cell
-# Neu/Mono is neutrophil and monocyte
-# Ba/Eo is basophil and eosinophil
-
-new.cluster.ids <- c(
-  "LMPP",        # 0
-  "LMPP",        # 1
-  "HSC",         # 2
-  "Neu/Mono",    # 3
-  "Lymphoid",    # 4
-  "Erythroid",   # 5
-  "Neu/Mono",    # 6
-  "Lymphoid",    # 7
-  "Ba/Eo",       # 8
-  "Neu/Mono"     # 9
-)
-names(new.cluster.ids) <- levels(bone)
-bone$celltype <- new.cluster.ids[bone$seurat_clusters]
-DimPlot(bone, group.by = "celltype", label = TRUE)
+DimPlot(bone, label = TRUE)
 ```
 
 Next we can subset the different lineages and create a trajectory for each
@@ -304,10 +175,9 @@ by Monocle 3.
 
 ```{r}
 DefaultAssay(bone) <- "ATAC"
-Idents(bone) <- "celltype"
 
-erythroid <- bone[,  bone$celltype %in% c("HSC", "Erythroid", "Ba/Eo")]
-lymphoid <- bone[, bone$celltype %in% c("HSC", "Lymphoid", "Neu/Mono", "LMPP")]
+erythroid <- bone[,  bone$assigned_celltype %in% c("HSC", "MEP", "CMP-BMP")]
+lymphoid <- bone[, bone$assigned_celltype %in% c("HSC", "LMPP", "GMP", "CLP", "Pro-B", "pDC", "MDP", "GMP")]
 ```
 
 ## Building trajectories with Monocle 3
