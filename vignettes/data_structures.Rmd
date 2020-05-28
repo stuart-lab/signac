@@ -488,3 +488,13 @@ For a full list of methods for the `Motif` class run:
 ```{r warning=FALSE, message=FALSE}
 methods(class = 'Motif')
 ```
+
+<details>
+  <summary>**Session Info**</summary>
+  
+```{r}
+sessionInfo()
+```
+
+</details>
+

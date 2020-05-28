@@ -16,6 +16,7 @@ re-mapped the raw data to the mm10 genome and created a fragment file using
 
 The fragment file can be downloaded
 here: https://www.dropbox.com/s/se3uag0cvld4xqg/fragments.sort.bed.gz?dl=0
+
 The fragment file index can be downloaded here: https://www.dropbox.com/s/kvb8fiewkjz3kzf/fragments.sort.bed.gz.tbi?dl=0
 
 Code used to create the fragment file from raw data is available here:
@@ -72,11 +73,12 @@ snare$blacklist_fraction <- FractionCountsInRegion(
 ```
 
 ```{r}
-snare$high.tss <- ifelse(snare$TSS.enrichment > 2, 'High', 'Low')
+snare$high.tss <- ifelse(snare$TSS.enrichment > 3, 'High', 'Low')
 TSSPlot(snare, group.by = 'high.tss')
 ```
 
-```{r fig.height=5, fig.width=8, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
+Idents(snare) <- "all"  # group all cells together, rather than by replicate
 VlnPlot(
   snare,
   features = c("nCount_RNA", "nCount_ATAC", "TSS.enrichment",
@@ -194,5 +196,14 @@ expression information for different genes.
 
 ```{r message=FALSE, warning=FALSE, fig.width=12, fig.height=8}
 DefaultAssay(snare) <- "ATAC"
-CoveragePlot(snare, region = "chr2-22620000-22700000", features = "Gad2")
+CoveragePlot(snare, region = "chr2-22620000-22660000", features = "Gad2")
 ```
+
+<details>
+  <summary>**Session Info**</summary>
+  
+```{r}
+sessionInfo()
+```
+
+</details>
