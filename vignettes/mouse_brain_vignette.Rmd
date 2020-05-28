@@ -363,7 +363,7 @@ accessibility in a region.
 levels(brain) <- c("L2/3 IT","L4","L5 IT","L5 PT","L6 CT", "L6 IT","NP","Sst","Pvalb","Vip","Lamp5","Meis2","Oligo","Astro","Endo","VLMC","Macrophage")
 
 region1 <- rownames(da_peaks)[1]
-region2 <- GRangesToString(subset(gene.ranges, symbol=="Gad2"))
+region2 <- "chr2-22620000-22670000"
 
 CoveragePlot(
   object = brain,
