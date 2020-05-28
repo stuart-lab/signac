@@ -69,6 +69,8 @@ pbmc[['peaks']]
 ```
 
 For example, we can call `granges` on a Seurat object with a `ChromatinAssay` set as the active assay (or on a `ChromatinAssay`) to see the genomic ranges associated with each feature in the object.
+See the [object interaction vignette](data_structures.html) for more information
+about the `ChromatinAssay` class.
 
 ```{r}
 granges(pbmc)
@@ -123,7 +125,7 @@ score and plotting the accessibility signal over all TSS sites:
 
 ```{r tss_plot, message=FALSE, warning=FALSE, cache=FALSE}
 pbmc$high.tss <- ifelse(pbmc$TSS.enrichment > 2, 'High', 'Low')
-TSSPlot(pbmc, group.by = 'high.tss') + ggtitle("TSS enrichment score") + NoLegend()
+TSSPlot(pbmc, group.by = 'high.tss') + NoLegend()
 ```
 
 We can also look at the fragment length periodicity for all the cells, and group by cells with high or low nucleosomal signal strength. You can see that cells which are outliers for the mononucleosomal/ nucleosome-free ratio (based off the plots above) have different banding patterns. The remaining cells exhibit a pattern that is typical for a successful ATAC-seq experiment.
@@ -194,41 +196,34 @@ DimPlot(object = pbmc, label = TRUE) + NoLegend()
 
 ## Create a gene activity matrix
 
-The UMAP visualization reveals the presence of multiple cell groups in human blood. If you are familiar with our [scRNA-seq analyses of PBMC](https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html), you may even recognize the presence of certain myeloid and lymphoid populations in the scATAC-seq data. However, annotating and interpreting clusters is more challenging in scATAC-seq data, as much less is known about the functional roles of noncoding genomic regions than is known about protein coding regions (genes). 
+The UMAP visualization reveals the presence of multiple cell groups in human
+blood. If you are familiar with our [scRNA-seq analyses of PBMC](https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html),
+you may even recognize the presence of certain myeloid and lymphoid populations
+in the scATAC-seq data. However, annotating and interpreting clusters is more
+challenging in scATAC-seq data as much less is known about the functional roles
+of noncoding genomic regions than is known about protein coding regions (genes). 
 
-However, we can try to quantify the activity of each gene in the genome by assessing the chromatin accessibility associated with each gene, and create a new gene activity assay derived from the scATAC-seq data. Here we will use a simple approach of summing the reads intersecting the gene body and promoter region (we also recommend exploring the [Cicero](https://cole-trapnell-lab.github.io/cicero-release/) tool, which can accomplish a similar goal). 
+However, we can try to quantify the activity of each gene in the genome by
+assessing the chromatin accessibility associated with each gene, and create a
+new gene activity assay derived from the scATAC-seq data. Here we will use a
+simple approach of summing the fragments intersecting the gene body and promoter
+region (we also recommend exploring the
+[Cicero](https://cole-trapnell-lab.github.io/cicero-release/) tool, which can
+accomplish a similar goal). 
 
-To create a *gene activity matrix*, we extract gene coordinates for the human genome from EnsembleDB, and extend them to include the 2kb upstream region (as promoter accessibility is often correlated with gene expression). We then count the number of fragments for each cell that map to each of these regions, using the using the `FeatureMatrix` function. This takes any set of genomic coordinates, counts the number of reads intersecting these coordinates in each cell, and returns a sparse matrix.
+To create a *gene activity matrix*, we extract gene coordinates and extend them
+to include the 2 kb upstream region (as promoter accessibility is often
+correlated with gene expression). We then count the number of fragments for each
+cell that map to each of these regions, using the using the `FeatureMatrix()`
+function. These steps are automatically performed by the `GeneActivity()`
+function:
 
 ```{r, message=FALSE, warning=FALSE, cache=FALSE}
-gene.ranges <- genes(EnsDb.Hsapiens.v75)
-
-# change to UCSC style since the data was mapped to hg19
-seqlevelsStyle(gene.ranges) <- 'UCSC'
-genome(gene.ranges) <- "hg19"
-
-# extract the protein coding genes (we could keep all biotypes if we wanted)
-gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
-gene.ranges <- keepStandardChromosomes(gene.ranges, pruning.mode = "coarse")
-
-# Extend coordinates upstream to include the promoter
-genebodyandpromoter.coords <- Extend(x = gene.ranges, upstream = 2000, downstream = 0)
-
-# create a gene by cell matrix
-gene.activities <- FeatureMatrix(
-  fragments = Fragments(object = pbmc),
-  features = genebodyandpromoter.coords,
-  cells = colnames(pbmc)
-)
-
-# convert rownames from chromsomal coordinates into gene names
-gene.key <- genebodyandpromoter.coords$gene_name
-names(gene.key) <- GRangesToString(grange = genebodyandpromoter.coords)
-rownames(gene.activities) <- gene.key[rownames(gene.activities)]
+gene.activities <- GeneActivity(pbmc)
 ```
 
 ```{r, message=FALSE, warning=FALSE, cache=FALSE}
-# add the gene activity matrix to the Seurat object as a new assay, and normalize it
+# add the gene activity matrix to the Seurat object as a new assay and normalize it
 pbmc[['RNA']] <- CreateAssayObject(counts = gene.activities)
 pbmc <- NormalizeData(
   object = pbmc,
@@ -238,7 +233,14 @@ pbmc <- NormalizeData(
 )
 ```
 
-Now, we can visualize the 'activities' of canonical marker genes to help interpret our ATAC-seq clusters. Note that the activities will be much noisier than scRNA-seq measurements. This is because they represent predictions from sparse chromatin data, but also because they assume a general correspondence between gene body/promoter accessibility and expression, which may not always be the case. Nonetheless, we can begin to discern populations of monocytes, B, T, and NK cells. However, further subdivision of these cell types is challenging based on supervised analysis alone.
+Now, we can visualize the activities of canonical marker genes to help interpret
+our ATAC-seq clusters. Note that the activities will be much noisier than
+scRNA-seq measurements. This is because they represent measurements from sparse
+chromatin data, and because they assume a general correspondence between gene
+body/promoter accessibility and gene expression which may not always be the
+case. Nonetheless, we can begin to discern populations of monocytes, B, T, and
+NK cells based on these gene activity profiles. However, further subdivision of
+these cell types is challenging based on supervised analysis alone.
 
 ```{r, fig.width=12, fig.height=10}
 DefaultAssay(pbmc) <- 'RNA'
@@ -252,10 +254,22 @@ FeaturePlot(
 )
 ```
 
-
 ## Integrating with scRNA-seq data
 
-To help interpret the scATAC-seq data, we can classify cells based on an scRNA-seq experiment from the same biological system (human PBMC). We utilize methods for cross-modality integration and label transfer, described [here](https://doi.org/10.1016/j.cell.2019.05.031), with a more in-depth tutorial [here](https://satijalab.org/seurat/v3.0/atacseq_integration_vignette.html). We aim to identify shared correlation patterns in the gene activity matrix and scRNA-seq dataset in order to identify matched biological states across the two modalities. This procedure returns a classification score for each cell, based on each scRNA-seq defined cluster label. Here we load a pre-processed scRNA-seq dataset for human PBMCs, also provided by 10x Genomics. You can download the raw data for this experiment from the 10x [website](https://support.10xgenomics.com/single-cell-gene-expression/datasets/3.0.0/pbmc_10k_v3), and view the code used to construct this object on [GitHub](https://github.com/satijalab/Integration2019/blob/master/preprocessing_scripts/pbmc_10k_v3.R). Alternatively, you can download the pre-processed Seurat object [here](https://www.dropbox.com/s/zn6khirjafoyyxl/pbmc_10k_v3.rds?dl=0).
+To help interpret the scATAC-seq data, we can classify cells based on an
+scRNA-seq experiment from the same biological system (human PBMC). We utilize
+methods for cross-modality integration and label transfer, described [here](https://doi.org/10.1016/j.cell.2019.05.031), with a more in-depth
+tutorial [here](https://satijalab.org/seurat/v3.0/atacseq_integration_vignette.html).
+We aim to identify shared correlation patterns in the gene activity matrix and
+scRNA-seq dataset to identify matched biological states across the two
+modalities. This procedure returns a classification score for each cell for each
+scRNA-seq-defined cluster label.
+
+Here we load a pre-processed scRNA-seq dataset for human PBMCs, also provided by
+10x Genomics. You can download the raw data for this experiment from the 10x [website](https://support.10xgenomics.com/single-cell-gene-expression/datasets/3.0.0/pbmc_10k_v3),
+and view the code used to construct this object on
+[GitHub](https://github.com/satijalab/Integration2019/blob/master/preprocessing_scripts/pbmc_10k_v3.R).
+Alternatively, you can download the pre-processed Seurat object [here](https://www.dropbox.com/s/zn6khirjafoyyxl/pbmc_10k_v3.rds?dl=0).
 
 ```{r, cache=FALSE, cache.lazy=FALSE, warning=FALSE, message=FALSE}
 # Load the pre-processed scRNA-seq data for PBMCs
@@ -277,7 +291,6 @@ predicted.labels <- TransferData(
 pbmc <- AddMetaData(object = pbmc, metadata = predicted.labels)
 ```
 
-
 ```{r, cache=FALSE, fig.width=12}
 plot1 <- DimPlot(
   object = pbmc_rna,
@@ -294,7 +307,12 @@ plot2 <- DimPlot(
 plot1 + plot2
 ```
 
-You can see that the RNA-based classifications are entirely consistent with the UMAP visualization, computed only on the ATAC-seq data. We can now easily annotate our scATAC-seq derived clusters (alternately, we could use the RNA classifications themselves). We note that cluster 14 maps to CD4 Memory T cells, but is a very small cluster with lower QC metrics. As this group is likely representing low-quality cells, we remove it from downstream analysis. 
+You can see that the scRNA-based classifications are entirely consistent with
+the UMAP visualization, computed only on the scATAC-seq data. We can now easily
+annotate our scATAC-seq-derived clusters (alternatively, we could use the RNA
+classifications themselves). We note that cluster 14 maps to CD4 Memory T cells,
+but is a very small cluster with lower QC metrics. As this group is likely
+representing low-quality cells, we remove it from downstream analysis. 
 
 ```{r, cache=FALSE}
 pbmc <- subset(pbmc, idents = 14, invert = TRUE)
@@ -319,10 +337,18 @@ pbmc <- RenameIdents(
 
 ## Find differentially accessible peaks between clusters
 
-To find differentially accessible regions between clusters of cells, we can perform a differential accessibility (DA) test. We utilize logistic regression for DA, as suggested by [Ntranos et al. 2018](https://www.biorxiv.org/content/10.1101/258566v2) for scRNA-seq data, and add the total number of fragments as a latent variable to mitigate the effect of differential sequencing depth on the result. Here we will focus on comparing Naive CD4 cells and CD14 monocytes, but any groups of cells can be compared using these methods. We can also visualize these chromatin 'markers' on a violin plot, feature plot, dot plot, heat map, or any [visualization tool in Seurat](https://satijalab.org/seurat/v3.0/visualization_vignette.html).
+To find differentially accessible regions between clusters of cells, we can
+perform a differential accessibility (DA) test. We utilize logistic regression
+for DA, as suggested by [Ntranos et al. 2018](https://www.biorxiv.org/content/10.1101/258566v2)
+for scRNA-seq data, and add the total number of fragments as a latent variable
+to mitigate the effect of differential sequencing depth on the result. Here we
+will focus on comparing Naive CD4 cells and CD14 monocytes, but any groups of
+cells can be compared using these methods. We can also visualize these marker
+peaks on a violin plot, feature plot, dot plot, heat map, or any
+[visualization tool in Seurat](https://satijalab.org/seurat/v3.0/visualization_vignette.html).
 
 ```{r message=TRUE, warning=FALSE, cache=FALSE}
-# switch back to working with peaks instead of gene activities
+# change back to working with peaks instead of gene activities
 DefaultAssay(pbmc) <- 'peaks'
 
 da_peaks <- FindMarkers(
@@ -353,7 +379,16 @@ plot2 <- FeaturePlot(
 plot1 | plot2
 ```
 
-Peak coordinates can be difficult to interpret alone. We can find the closest gene to each of these peaks using the `ClosestFeature` function and providing an EnsDb annotation. If you explore the gene lists, you will see that peaks open in Naive T cells are close to genes such as BCL11B and GATA3 (key regulator of  T cell differentiation), while peaks open in monocytes are close to genes such as CEBPB (key regulator of monocyte differentiation). We could follow up this result further by doing gene ontology enrichment analysis on the gene sets returned by `ClosestFeature`, and there are many R packages that can do this (see the [`GOstats`](https://bioconductor.org/packages/release/bioc/html/GOstats.html) package for example).
+Peak coordinates can be difficult to interpret alone. We can find the closest
+gene to each of these peaks using the `ClosestFeature()` function. If you
+explore the gene lists, you will see that peaks open in Naive T cells are close
+to genes such as *BCL11B* and *GATA3* (key regulators of  T cell differentiation
+), while peaks open in monocytes are close to genes such as *CEBPB* (a key 
+regulator of monocyte differentiation). We could follow up this result further
+by doing gene ontology enrichment analysis on the gene sets returned by
+`ClosestFeature()`, and there are many R packages that can do this (see the
+[`GOstats`](https://bioconductor.org/packages/release/bioc/html/GOstats.html)
+package for example).
 
 ```{r, warning=FALSE, message=FALSE}
 open_cd4naive <- rownames(da_peaks[da_peaks$avg_logFC > 0.5, ])
@@ -387,20 +422,24 @@ levels(pbmc) <- c("CD4 Naive","CD4 Memory","CD8 Naive","CD8 Effector","DN T","NK
 CoveragePlot(
   object = pbmc,
   region = rownames(da_peaks)[1],
-  extend.upstream = 20000,
-  extend.downstream = 20000,
-  ncol = 1
+  extend.upstream = 40000,
+  extend.downstream = 20000
 )
 ```
 
 <details>
   <summary>**Working with datasets that were not quantified using CellRanger**</summary>
 
-The CellRanger software from 10x Genomics generates several useful QC metrics per-cell, as well as a peak/cell matrix and an indexed fragments file. In the above vignette, we utilize the CellRanger outputs, but provide alternative functions in Signac for many of the same purposes here.
+The CellRanger software from 10x Genomics generates several useful QC metrics
+per-cell, as well as a peak/cell matrix and an indexed fragments file. In the
+above vignette, we utilize the CellRanger outputs, but provide alternative
+functions in Signac for many of the same purposes here.
 
 ### Generating a peak/cell or bin/cell matrix
 
-The `FeatureMatrix` function can be used to generate a count matrix containing any set of genomic ranges in its rows. These regions could be a set of peaks, or bins that span the entire genome.
+The `FeatureMatrix` function can be used to generate a count matrix containing
+any set of genomic ranges in its rows. These regions could be a set of peaks, or
+bins that span the entire genome.
 
 ```{r, eval=FALSE}
 # not run
@@ -411,7 +450,9 @@ peak_matrix <- FeatureMatrix(
 )
 ```
 
-For convenience, we also include a `GenomeBinMatrix` function that will generate a set of genomic ranges spanning the entire genome for you, and run `FeatureMatrix` internally to produce a genome bin/cell matrix.
+For convenience, we also include a `GenomeBinMatrix()` function that will
+generate a set of genomic ranges spanning the entire genome for you, and run
+`FeatureMatrix()` internally to produce a genome bin/cell matrix.
 
 ```{r, eval=FALSE}
 # not run
@@ -424,7 +465,11 @@ bin_matrix <- GenomeBinMatrix(
 
 ### Counting fraction of reads in peaks
 
-The function `FRiP` will count the fraction of reads in peaks for each cell, given a peak/cell assay and a bin/cell assay. Note that this can be run on a subset of the genome, so that a bin/cell assay does not need to be computed for the whole genome. This will return a Seurat object will metadata added corresponding to the fraction of reads in peaks for each cell.
+The function `FRiP()` will count the fraction of reads in peaks for each cell,
+given a peak/cell assay and a bin/cell assay. Note that this can be run on a
+subset of the genome, so that a bin/cell assay does not need to be computed for
+the whole genome. This will return a Seurat object will metadata added
+corresponding to the fraction of reads in peaks for each cell.
 
 ```{r, eval=FALSE}
 # not run
@@ -437,7 +482,16 @@ pbmc <- FRiP(
 
 ### Counting fragments in genome blacklist regions
 
-The ratio of reads in genomic blacklist regions, that are known to artifactually accumulate reads in genome sequencing assays, can be diagnostic of low-quality cells. We provide blacklist region coordinates for several genomes (hg19, hg38, mm9, mm10, ce10, ce11, dm3, dm6) in the Signac package for convenience. These regions were provided by the ENCODE consortium, and we encourage users to cite their [paper](https://doi.org/10.1038/s41598-019-45839-z) if you use the regions in your analysis. The `FractionCountsInRegion` function can be used to calculate the fraction of all counts within a given set of regions per cell. We can use this function and the blacklist regions to find the fraction of blacklist counts per cell.
+The ratio of reads in genomic blacklist regions, that are known to artifactually
+accumulate reads in genome sequencing assays, can be diagnostic of low-quality
+cells. We provide blacklist region coordinates for several genomes (hg19, hg38,
+mm9, mm10, ce10, ce11, dm3, dm6) in the Signac package for convenience. These
+regions were provided by the ENCODE consortium, and we encourage users to cite
+their [paper](https://doi.org/10.1038/s41598-019-45839-z) if you use the regions
+in your analysis. The `FractionCountsInRegion()` function can be used to
+calculate the fraction of all counts within a given set of regions per cell.
+We can use this function and the blacklist regions to find the fraction of
+blacklist counts per cell.
 
 ```{r, eval=FALSE}
 # not run
