@@ -301,6 +301,7 @@ GeneActivity <- function(
   counts <- FeatureMatrix(
     fragments = Fragments(object = object[[assay]]),
     features = transcripts,
+    cells = colnames(x = object[[assay]]),
     verbose = verbose,
     ...
   )
