@@ -135,6 +135,10 @@ library(EnsDb.Hsapiens.v75)
 # convert EnsDb to GRanges
 gene.ranges <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
 
+# convert to UCSC style
+seqlevelsStyle(gene.ranges) <- "UCSC"
+genome(gene.ranges) <- "hg19"
+
 # set gene annotations
 Annotation(atac_small) <- gene.ranges
 
@@ -342,6 +346,12 @@ function. **Importantly**, this returns the cell names as they appear in the
 `ChromatinAssay`, rather than the as they appear in the fragment file itself.
 
 ```{r}
+fragments <- CreateFragmentObject(
+  path = frag.path,
+  cells = colnames(atac_small), 
+  validate.fragments = TRUE
+)
+
 cells <- Cells(fragments)
 head(cells)
 ```
