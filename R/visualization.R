@@ -391,6 +391,26 @@ SingleCoveragePlot <- function(
   return(p)
 }
 
+# CoverageBrowser <- function(object, region, ...) {
+#
+#   ui <- miniPage(
+#     gadgetTitleBar("Genome browser"),
+#     miniContentPanel(
+#       # TODO
+#     )
+#   )
+#
+#   server <- function(input, output, session) {
+#
+#     observeEvent(input$done, {
+#       returnValue <- ...
+#       stopApp(returnValue)
+#     })
+#   }
+#
+#   runGadget(ui, server)
+# }
+
 #' Plot Tn5 insertion frequency over a region
 #'
 #' Plot frequency of Tn5 insertion events for different groups of cells within
@@ -658,7 +678,7 @@ globalVariables(names = "norm.value", package = "Signac")
 #'
 #' @importFrom Seurat GetAssayData
 #' @importFrom Matrix colMeans
-#' @importFrom ggplot2 ggplot aes geom_line xlab ylab theme_minimal
+#' @importFrom ggplot2 ggplot aes geom_line xlab ylab theme_minimal ggtitle
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot2}} object
 #' @export
@@ -705,7 +725,8 @@ TSSPlot <- function(
     facet_wrap(facets = ~group) +
     xlab("Distance from TSS (bp)") +
     ylab(label = "Mean TSS enrichment score") +
-    theme_minimal()
+    theme_minimal() +
+    ggtitle("TSS enrichment")
   return(p)
 }
 
