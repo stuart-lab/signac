@@ -20,10 +20,10 @@ stem and progenitor cells published by Satpathy and Granja et al. (2019, Nature
 Biotechnology). The processed datasets are available on NCBI GEO here:
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE129785
 
-This is the same dataset we used in the [trajectory](https://satijalab.org/signac/articles/monocle.html)
+This is the same dataset we used in the [trajectory](monocle.html)
 vignette, and we'll start by loading the dataset that was created in that
-vignette. See the [trajectory](https://satijalab.org/signac/articles/monocle.html)
-vignette for the code used to create the object from raw data.
+vignette. See the [trajectory](monocle.html) vignette for the code used to
+create the object from raw data.
 
 First we will load their dataset and perform some standard preprocessing using
 Signac.
