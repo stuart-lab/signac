@@ -132,11 +132,8 @@ can use the `Annotation()` getter and `Annotation<-` setter functions:
 # first get some gene annotations for hg19
 library(EnsDb.Hsapiens.v75)
 
-gene.ranges <- genes(EnsDb.Hsapiens.v75)
-
-# change style to UCSC
-seqlevelsStyle(gene.ranges) <- "UCSC"
-genome(gene.ranges) <- "hg19"
+# convert EnsDb to GRanges
+gene.ranges <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
 
 # set gene annotations
 Annotation(atac_small) <- gene.ranges
