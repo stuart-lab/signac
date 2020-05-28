@@ -194,7 +194,7 @@ DimPlot(object = brain, label = TRUE) + NoLegend()
 
 ```{r, message=FALSE, warning=FALSE, cache=FALSE}
 # compute gene activities
-gene.activities <- GeneActivities(brain)
+gene.activities <- GeneActivity(brain)
 
 # add the gene activity matrix to the Seurat object as a new assay
 brain[['RNA']] <- CreateAssayObject(counts = gene.activities)
