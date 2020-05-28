@@ -19,23 +19,25 @@ navbar:
         - text: "Adult mouse brain"
           href: articles/mouse_brain_vignette.html
         - text: "Joint RNA and ATAC analysis"
-          href: articles/coassay.html
+          href: articles/snareseq.html
         - text: "Motif analysis"
           href: articles/motif_vignette.html
         - text: "scATAC-seq integration"
           href: articles/integration.html
-        - text: "Parallel computing"
-          href: articles/future.html
         - text: "Trajectory analysis"
           href: articles/monocle.html
         - text: "Finding co-accessible sites"
           href: articles/cicero.html
         - text: "Transcription factor footprinting"
           href: articles/footprint.html
+        - text: "Parallel computing"
+          href: articles/future.html
         - text: "Merging objects"
           href: articles/merging.html
         - text: "Data structures and object interaction"
           href: articles/data_structures.html
+        - text: "Storing and distributing data"
+          href: articles/disk_data.html
     - text: "Reference"
       href: reference/index.html
   right:
