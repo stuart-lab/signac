@@ -12,8 +12,12 @@ https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE126074
 
 As the fragment files for this dataset are not publicly available we have
 re-mapped the raw data to the mm10 genome and created a fragment file using
-[Sinto](https://timoast.github.io/sinto/). This fragment file can be downloaded
-here: 
+[Sinto](https://timoast.github.io/sinto/).
+
+The fragment file can be downloaded
+here: https://www.dropbox.com/s/se3uag0cvld4xqg/fragments.sort.bed.gz?dl=0
+The fragment file index can be downloaded here: https://www.dropbox.com/s/kvb8fiewkjz3kzf/fragments.sort.bed.gz.tbi?dl=0
+
 Code used to create the fragment file from raw data is available here:
 https://github.com/timoast/SNARE-seq 
 
@@ -32,11 +36,7 @@ set.seed(1234)
 # load processed data matrices for each assay
 rna <- Read10X("/home/stuartt/data/snare-seq/GSE126074_AdBrainCortex_rna/", gene.column = 1)
 atac <- Read10X("/home/stuartt/data/snare-seq/GSE126074_AdBrainCortex_atac/", gene.column = 1)
-fragments <- "/home/stuartt/data/snare-seq/fragments_AdBrain.bed.gz"
-
-# remove this once we have the proper fragment file made
-colnames(atac) <- substr(x = colnames(atac), start = 5, stop = 16)
-colnames(rna) <- substr(x = colnames(rna), start = 5, stop = 16)
+fragments <- "/home/stuartt/data/snare-seq/fragments.sort.bed.gz"
 
 # create a Seurat object and add the assays
 snare <- CreateSeuratObject(counts = rna)
