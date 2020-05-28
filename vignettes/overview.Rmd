@@ -109,10 +109,3 @@ perform common analysis tasks.
 This vignette demonstrates how to enable parallel computing in Signac and Seurat,
 and gives an example of the amount of speedup that might be expected from 
 enabling paralellization. 
-
-### [Storing and distributing data](disk_data.html)
-
-This vignette shows how to download pre-processed example datasets using the
-[SeuratData](https://github.com/satijalab/seurat-data) package, and how to save
-and load object from disk using [SeuratDisk](https://github.com/mojaveazure/seurat-disk).
-
