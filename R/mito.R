@@ -29,13 +29,13 @@ ReadMGATK <- function(dir, verbose = TRUE) {
   c.path <- list.files(path = dir, pattern = "*.C.txt.gz", full.names = TRUE)
   t.path <- list.files(path = dir, pattern = "*.T.txt.gz", full.names = TRUE)
   g.path <- list.files(path = dir, pattern = "*.G.txt.gz", full.names = TRUE)
-  
+
   refallele.path <- list.files(
     path = dir,
     pattern = "chrM_refAllele.txt*",
     full.names = TRUE
   )
-  
+
   # The depth file lists all barcodes that were genotyped
   depthfile.path <- list.files(
     path = dir,
@@ -100,7 +100,7 @@ ReadMGATK <- function(dir, verbose = TRUE) {
   if (verbose) {
     message("Building matrices")
   }
-  
+
   maxpos <- dim(refallele)[1]
   a.mat <- SparseMatrixFromBaseCounts(
     basecounts = a.counts, cells = cb.lookup, dna.base = "A", maxpos = maxpos
@@ -235,7 +235,7 @@ IdentifyVariants.Seurat <- function(
 #
 # @return Returns a list of two sparse matrices
 SparseMatrixFromBaseCounts <- function(basecounts, cells, dna.base, maxpos) {
-  
+
   # Vector addition guarantee correct dimension
   fwd.mat <- sparseMatrix(
     i = c(basecounts$pos,maxpos),
@@ -418,11 +418,6 @@ ProcessLetter <- function(
     row.names = variant_name
   )
   return(var_summary_df)
-}
-
-#' @importFrom Matrix rowMeans rowSums
-SparseRowVar <- function(x) {
-  return(rowSums(x = (x - rowMeans(x = x)) ^ 2) / (dim(x = x)[2] - 1))
 }
 
 # Extract mutation matrix
