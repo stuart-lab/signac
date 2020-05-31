@@ -8,23 +8,28 @@ Signac is an extension of [Seurat](https://github.com/satijalab/seurat) for the 
 
 ## Features
 
-Signac is currently focused on the analysis of single-cell ATAC-seq data, but new features will be added as experimental methods for measuring other chromatin-based modalities at single-cell resolution become more widespread. Signac supports the following features:
+Signac is designed for the analysis of single-cell chromatin data, including scATAC-seq and single-cell targeted tagmentation methods such as scCUT&Tag and scACT-seq.
 
+Signac currently supports the following features:
+
+* Quantifying per-cell counts in different genomic regions
 * Calculating single-cell QC metrics
 * Dimensional reduction, visualization, and clustering
-* Identifying cell type-specific peaks
+* Identifying cell-type-specific peaks
 * Visualizing 'pseudo-bulk' coverage tracks
-* Integration of multiple single-cell ATAC-seq datasets
+* Integration of multiple single-cell datasets
 * Integration with single-cell RNA-seq datasets
-* Motif enrichment analysis
+* Sequence motif enrichment analysis
+* Transcription factor footprinting analysis
+* Parallelization through the [future](https://cran.r-project.org/package=future) package
+* Seamless interface with [Seurat](https://satijalab.org/seurat), [SeuratWrappers](https://github.com/satijalab/seurat-wrappers), [SeuratDisk](https://github.com/mojaveazure/seurat-disk), and [SeuratData](https://github.com/satijalab/seurat-data) functionality
+* Interoperability with [Bioconductor](https://bioconductor.org/) tools
 
-Please see the Signac [vignettes](https://satijalab.org/signac/articles/) page for examples.
+Please see the Signac [vignettes](articles/overview.html) page for examples.
 
 ## Installation
 
 To use Signac first make sure Bioconductor is installed:
-
-
 
 ```r
 # Install bioconductor
@@ -33,15 +38,19 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 BiocManager::install()
 ```
 
-### Current release
+To automatically install Bioconductor dependencies when installing Signac, run:
 
+```r
+setRepositories(ind=1:2)
+```
+
+### Current release
 
 ```r
 install.packages("Signac")
 ```
 
 ### Development version
-
 
 ```r
 install.packages("devtools")
@@ -50,17 +59,28 @@ devtools::install_github("timoast/signac", ref = "develop")
 
 For information about installing Seurat, see the Seurat [website](https://satijalab.org/seurat/install.html)
 
-It can also be useful (but not essential) to install species-specific packages from Bioconductor:
+### Installing genome assembly and gene annotation packages
 
-#### Human 
+It can also be useful (but not essential) to install species-specific packages 
+containing genome and gene annotation information from Bioconductor.
 
+[This](https://useast.ensembl.org/info/website/archives/assembly.html) table
+from Ensembl provides a mapping of genome assembly to the corresponding gene
+annotation version.
+
+#### Human hg19
 
 ```r
 BiocManager::install(c('BSgenome.Hsapiens.UCSC.hg19', 'EnsDb.Hsapiens.v75'))
 ```
 
-#### Mouse
+#### Human hg38
 
+```r
+BiocManager::install(c('BSgenome.Hsapiens.UCSC.hg38', 'EnsDb.Hsapiens.v86'))
+```
+
+#### Mouse mm10
 
 ```r
 BiocManager::install(c('BSgenome.Mmusculus.UCSC.mm10', 'EnsDb.Mmusculus.v79'))

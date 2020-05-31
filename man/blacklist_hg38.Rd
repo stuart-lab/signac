@@ -18,4 +18,5 @@ blacklist_hg38
 \description{
 Genomic blacklist regions for Human GRCh38
 }
+\concept{data}
 \keyword{datasets}

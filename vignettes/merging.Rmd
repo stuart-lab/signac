@@ -1,0 +1,368 @@
+---
+title: "Merging objects"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this vignette we demonstrate how to merge multiple Seurat objects containing 
+single-cell chromatin data. To demonstrate, we will use four scATAC-seq PBMC
+datasets provided by 10x Genomics:
+
+* [500-cell PBMC](https://support.10xgenomics.com/single-cell-atac/datasets/1.1.0/atac_pbmc_500_nextgem)
+* [1k-cell PBMC](https://support.10xgenomics.com/single-cell-atac/datasets/1.1.0/atac_pbmc_1k_nextgem)
+* [5k-cell PBMC](https://support.10xgenomics.com/single-cell-atac/datasets/1.1.0/atac_pbmc_5k_nextgem)
+* [10k-cell PBMC](https://support.10xgenomics.com/single-cell-atac/datasets/1.1.0/atac_pbmc_10k_nextgem)
+
+When merging multiple single-cell chromatin datasets, it's important to be aware
+that if peak calling was performed on each dataset independently, the peaks are 
+unlikely to be exactly the same. We therefore need to create a common set of
+peaks across all the datasets to be merged.
+
+To create a unified set of peaks we can use functions from the
+[GenomicRanges](https://bioconductor.org/packages/GenomicRanges/) package.
+The `reduce` function from GenomicRanges will merge all intersecting peaks. 
+Another option is to use the `disjoin` function, that will
+create distinct non-overlapping sets of peaks. Here is a visual example to 
+illustrate the difference between `reduce` and `disjoin`:
+
+```{r, echo=FALSE, include=FALSE}
+library(GenomicRanges)
+library(ggplot2)
+library(ggbio)
+library(patchwork)
+```
+
+```{r}
+gr <- GRanges(seqnames = "chr1", ranges = IRanges(start = c(20, 70, 300), end = c(120, 200, 400)))
+gr
+```
+
+```{r fig.height=1, fig.width=6, echo=FALSE}
+ggplot(gr) + geom_segment(size = 5) + theme_classic() + ggtitle("Ranges") + ylab("")
+ggplot(reduce(gr)) + geom_segment(size = 5) + theme_classic() + ggtitle("Reduce") + ylab("")
+ggplot(disjoin(gr)) + geom_segment(size = 5) + theme_classic() + ggtitle("Disjoin") + ylab("")
+```
+
+## Creating a common peak set
+
+If the peaks were identified independently in each experiment then they will 
+likely not overlap perfectly. We can merge peaks from all the datasets to create
+a common peak set, and quantify this peak set in each experiment prior to merging
+the objects.
+
+First we'll load the peak coordinates for each experiment and convert them to
+genomic ranges, the use the `GenomicRanges::reduce` function to create a common
+set of peaks to quantify in each dataset.
+
+```{r message=FALSE, warning=FALSE}
+library(Signac)
+library(Seurat)
+library(GenomicRanges)
+library(future)
+
+plan("multiprocess", workers = 4)
+options(future.globals.maxSize = 50000 * 1024^2) # for 50 Gb RAM
+```
+
+```{r}
+# read in peak sets
+peaks.500 <- read.table(
+  file = "/home/stuartt/data/pbmc500/atac_pbmc_500_nextgem_peaks.bed",
+  col.names = c("chr", "start", "end")
+)
+peaks.1k <- read.table(
+  file = "/home/stuartt/data/pbmc1k/atac_pbmc_1k_nextgem_peaks.bed",
+  col.names = c("chr", "start", "end")
+)
+peaks.5k <- read.table(
+  file = "/home/stuartt/data/pbmc5k/atac_pbmc_5k_nextgem_peaks.bed",
+  col.names = c("chr", "start", "end")
+)
+peaks.10k <- read.table(
+  file = "/home/stuartt/data/pbmc10k/atac_pbmc_10k_nextgem_peaks.bed",
+  col.names = c("chr", "start", "end")
+)
+
+# convert to genomic ranges
+gr.500 <- makeGRangesFromDataFrame(peaks.500)
+gr.1k <- makeGRangesFromDataFrame(peaks.1k)
+gr.5k <- makeGRangesFromDataFrame(peaks.5k)
+gr.10k <- makeGRangesFromDataFrame(peaks.10k)
+
+# Create a unified set of peaks to quantify in each dataset
+combined.peaks <- reduce(x = c(gr.500, gr.1k, gr.5k, gr.10k))
+
+# Filter out bad peaks based on length
+peakwidths <- width(combined.peaks)
+combined.peaks <- combined.peaks[peakwidths  < 10000 & peakwidths > 20]
+combined.peaks
+```
+
+## Create Fragment objects
+
+To quantify our combined set of peaks we'll need to create a Fragment object for
+each experiment. The Fragment class is a specialized class defined in Signac to 
+hold all the information related to a single fragment file.
+
+First we'll load the cell metadata for each experiment so that we know what cell
+barcodes are contained in each file, then we can create Fragment objects using
+the `CreateFragmentObject` function. The `CreateFragmentObject` function 
+performs some checks to ensure that the file is present on disk and that it is
+compressed and indexed, computes the MD5 sum for the file and the tabix index so
+that we can tell if the file is modified at any point, and checks that the 
+expected cells are present in the file.
+
+```{r}
+# load metadata
+md.500 <- read.table(
+  file = "/home/stuartt/data/pbmc500/atac_pbmc_500_nextgem_singlecell.csv",
+  stringsAsFactors = FALSE,
+  sep = ",",
+  header = TRUE,
+  row.names = 1
+)[-1, ] # remove the first row
+
+md.1k <- read.table(
+  file = "/home/stuartt/data/pbmc1k/atac_pbmc_1k_nextgem_singlecell.csv",
+  stringsAsFactors = FALSE,
+  sep = ",",
+  header = TRUE,
+  row.names = 1
+)[-1, ]
+
+md.5k <- read.table(
+  file = "/home/stuartt/data/pbmc5k/atac_pbmc_5k_nextgem_singlecell.csv",
+  stringsAsFactors = FALSE,
+  sep = ",",
+  header = TRUE,
+  row.names = 1
+)[-1, ]
+
+md.10k <- read.table(
+  file = "/home/stuartt/data/pbmc10k/atac_pbmc_10k_nextgem_singlecell.csv",
+  stringsAsFactors = FALSE,
+  sep = ",",
+  header = TRUE,
+  row.names = 1
+)[-1, ]
+
+# perform an initial filtering of low count cells
+md.500 <- md.500[md.500$passed_filters > 500, ]
+md.1k <- md.1k[md.1k$passed_filters > 500, ]
+md.5k <- md.5k[md.5k$passed_filters > 500, ]
+md.10k <- md.10k[md.10k$passed_filters > 1000, ] # sequenced deeper so set higher cutoff
+
+# create fragment objects
+frags.500 <- CreateFragmentObject(
+  path = "/home/stuartt/data/pbmc500/atac_pbmc_500_nextgem_fragments.tsv.gz",
+  cells = rownames(md.500)
+)
+
+frags.1k <- CreateFragmentObject(
+  path = "/home/stuartt/data/pbmc1k/atac_pbmc_1k_nextgem_fragments.tsv.gz",
+  cells = rownames(md.1k)
+)
+
+frags.5k <- CreateFragmentObject(
+  path = "/home/stuartt/data/pbmc5k/atac_pbmc_5k_nextgem_fragments.tsv.gz",
+  cells = rownames(md.5k)
+)
+
+frags.10k <- CreateFragmentObject(
+  path = "/home/stuartt/data/pbmc10k/atac_pbmc_10k_nextgem_fragments.tsv.gz",
+  cells = rownames(md.10k)
+)
+```
+
+## Quantify peaks in each dataset
+
+We can now create a matrix of peaks x cell for each sample using the
+`FeatureMatrix` function. This function is parallelized using the
+[`future`](https://cran.r-project.org/package=future) package. See the 
+[parallelization](https://satijalab.org/signac/articles/future.html) vignette
+for more information about using `future`.
+
+```{r message=FALSE, warning=FALSE, cache=TRUE}
+pbmc500.counts <- FeatureMatrix(
+  fragments = frags.500,
+  features = combined.peaks,
+  cells = rownames(md.500)
+)
+
+pbmc1k.counts <- FeatureMatrix(
+  fragments = frags.1k,
+  features = combined.peaks,
+  cells = rownames(md.1k)
+)
+
+pbmc5k.counts <- FeatureMatrix(
+  fragments = frags.5k,
+  features = combined.peaks,
+  cells = rownames(md.5k)
+)
+
+pbmc10k.counts <- FeatureMatrix(
+  fragments = frags.10k,
+  features = combined.peaks,
+  cells = rownames(md.10k)
+)
+```
+
+## Create the objects
+
+We will now use the quantified matrices to create a Seurat object for each 
+dataset, storing the Fragment object for each dataset in the assay.
+
+```{r message=FALSE, warning=FALSE}
+pbmc500 <- CreateSignacObject(
+  counts = pbmc500.counts,
+  fragments = frags.500
+)
+
+pbmc1k <- CreateSignacObject(
+  counts = pbmc1k.counts,
+  fragments = frags.1k
+)
+
+pbmc5k <- CreateSignacObject(
+  counts = pbmc5k.counts,
+  fragments = frags.5k
+)
+
+pbmc10k <- CreateSignacObject(
+  counts = pbmc10k.counts,
+  fragments = frags.10k
+)
+```
+
+## Merge objects
+
+Now that the objects each contain an assay with the same set of features, we can
+use the standard `merge` function to merge the objects. This will also merge all
+the fragment objects so that we retain the fragment information for each cell in
+the final merged object.
+
+```{r}
+# add information to identify dataset of origin
+pbmc500$dataset <- 'pbmc500'
+pbmc1k$dataset <- 'pbmc1k'
+pbmc5k$dataset <- 'pbmc5k'
+pbmc10k$dataset <- 'pbmc10k'
+
+# merge all datasets, adding a cell ID to make sure cell names are unique
+combined <- merge(
+  x = pbmc500,
+  y = list(pbmc1k, pbmc5k, pbmc10k),
+  add.cell.ids = c("500", "1k", "5k", "10k")
+)
+combined[["ATAC"]]
+```
+
+```{r message=FALSE, warning=FALSE}
+combined <- RunTFIDF(combined)
+combined <- FindTopFeatures(combined, min.cutoff = 20)
+combined <- RunSVD(
+  combined,
+  reduction.key = 'LSI_',
+  reduction.name = 'lsi', 
+  irlba.work = 400
+)
+combined <- RunUMAP(combined, dims = 2:50, reduction = 'lsi')
+```
+
+```{r}
+DimPlot(combined, group.by = 'dataset', pt.size = 0.1)
+```
+
+The merged object contains all four fragment objects, and contains an internal 
+mapping of cell names in the object to the cell names in each fragment file so
+that we can retrieve information from the files without having to change the 
+cell names in each fragment file. We can check that functions that pull data 
+from the fragment files work as expected on the merged object by plotting a 
+region of the genome:
+
+```{r coverageplot, message=FALSE, warning=FALSE, cache=FALSE, out.width='90%', fig.height=4}
+CoveragePlot(
+  object = combined,
+  group.by = 'dataset',
+  region = "chr14-99700000-99760000"
+)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+saveRDS(object = combined, file = "../vignette_data/pbmc_combined.rds")
+```
+
+## Merging without a common feature set
+
+The above approach requires that we have access to a fragment file for each
+dataset. In some cases we may not have this data (although we can create a 
+fragment file from the BAM file using 
+[sinto](https://timoast.github.io/sinto/basic_usage.html#create-scatac-seq-fragments-file)).
+In these cases, we can still create a merged object, with the caveat that the
+resulting merged count matrix may not be as accurate.
+
+The `merge` function defined in Signac for `ChromatinAssay` objects will 
+consider overlapping peaks as equivalent, and adjust the genomic ranges spanned
+by the peak so that the features in each object being merged become equivalent.
+**Note that this can result in inaccuracies in the count matrix, as some peaks 
+will be extended to cover regions that were not originally quantified**. This is
+the best that can be done without re-quantification, and we recommend always 
+following the procedure outlined above for object merging whenever possible.
+
+Here we demonstrate merging the same four PBMC datasets without creating a 
+common feature set:
+
+```{r message=FALSE, warning=FALSE}
+# load the count matrix for each object that was generated by cellranger
+counts.500 <- Read10X_h5("/home/stuartt/data/pbmc500/atac_pbmc_500_nextgem_filtered_peak_bc_matrix.h5")
+counts.1k <- Read10X_h5("/home/stuartt/data/pbmc1k/atac_pbmc_1k_nextgem_filtered_peak_bc_matrix.h5")
+counts.5k <- Read10X_h5("/home/stuartt/data/pbmc5k/atac_pbmc_5k_nextgem_filtered_peak_bc_matrix.h5")
+counts.10k <- Read10X_h5("/home/stuartt/data/pbmc10k/atac_pbmc_10k_nextgem_filtered_peak_bc_matrix.h5")
+
+# create objects
+pbmc500 <- CreateSignacObject(counts = counts.500, sep = c(":", "-"), min.features = 500)
+pbmc1k <- CreateSignacObject(counts = counts.1k, sep = c(":", "-"), min.features = 500)
+pbmc5k <- CreateSignacObject(counts = counts.5k, sep = c(":", "-"), min.features = 500)
+pbmc10k <- CreateSignacObject(counts = counts.10k, sep = c(":", "-"), min.features = 1000)
+
+# add information to identify dataset of origin
+pbmc500$dataset <- 'pbmc500'
+pbmc1k$dataset <- 'pbmc1k'
+pbmc5k$dataset <- 'pbmc5k'
+pbmc10k$dataset <- 'pbmc10k'
+
+# merge
+combined <- merge(
+  x = pbmc500,
+  y = list(pbmc1k, pbmc5k, pbmc10k),
+  add.cell.ids = c("500", "1k", "5k", "10k")
+)
+
+# process 
+combined <- RunTFIDF(combined)
+combined <- FindTopFeatures(combined, min.cutoff = 20)
+combined <- RunSVD(
+  combined,
+  reduction.key = 'LSI_',
+  reduction.name = 'lsi', 
+  irlba.work = 400
+)
+combined <- RunUMAP(combined, dims = 2:50, reduction = 'lsi')
+```
+
+```{r}
+DimPlot(combined, group.by = 'dataset', pt.size = 0.1)
+```
+
+<details>
+  <summary>**Session Info**</summary>
+  
+```{r}
+sessionInfo()
+```
+
+</details>

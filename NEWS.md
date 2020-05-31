@@ -1,3 +1,30 @@
+# Signac 1.0.0
+
+The entire package has been updated to use a new `ChromatinAssay` class for the
+storage of single-cell chromatin data. This is an extension of the standard 
+Seurat `Assay` that adds additional slots needed for the analysis of chromatin 
+data, including genomic ranges, genome information, fragment file information,
+motifs, gene annotations, and links.
+
+In addition, we have defined a new `Fragment` class to store information 
+regarding the fragment file. This makes use of the fragment file more robust,
+as checks are now performed to verify that the expected cells are present in
+the fragment file, and that the fragment file or index are not modified on disk.
+
+Key new functionality:
+
+* **Store multiple fragment files**: you can now store as many fragment
+files as needed in a single object, and all functions that use the fragment file
+will pull data from each of the files. Cell barcodes in the fragment files do
+_not_ need to match the cell barcodes in the object.
+* **Transcription factor footprinting**: New `Footprint` and `PlotFootprint`
+functions for TF footprinting analysis.
+* **Bioconductor methods**: call `granges`, `findOverlaps`, `seqinfo`, and other
+Bioconductor generic functions directly on the `ChromatinAssay` or `Seurat`
+object.
+* **New visualization methods**: Jointly visualize RNA expression and chromatin
+accessibility in a single plot.
+
 # Signac 0.2.5
 
 * New `DepthCor` function to compute the correlation between sequencing depth and

@@ -18,6 +18,7 @@ NULL
 #' @return Returns a matrix
 #'
 #' @export
+#' @concept dimension_reduction
 #' @examples
 #' x <- matrix(data = sample(c(0, 1), size = 25, replace = TRUE), ncol = 5)
 #' Jaccard(x = x, y = x)
@@ -60,6 +61,7 @@ Jaccard <- function(x, y) {
 #'
 #' @rdname RunSVD
 #' @export
+#' @concept dimension_reduction
 #' @examples
 #' x <- matrix(data = rnorm(100), ncol = 10)
 #' RunSVD(x)
@@ -68,10 +70,10 @@ RunSVD.default <- function(
   assay = NULL,
   n = 50,
   scale.embeddings = TRUE,
-  reduction.key = 'SVD_',
+  reduction.key = "LSI_",
   scale.max = NULL,
   verbose = TRUE,
-  irlba.work = n + 50,
+  irlba.work = n * 3,
   ...
 ) {
   n <- min(n, (ncol(x = object) - 1))
@@ -84,7 +86,7 @@ RunSVD.default <- function(
   cell.embeddings <- components$u
   if (scale.embeddings) {
     if (verbose) {
-      message('Scaling cell embeddings')
+      message("Scaling cell embeddings")
     }
     embed.mean <- apply(X = cell.embeddings, MARGIN = 2, FUN = mean)
     embed.sd <- apply(X = cell.embeddings, MARGIN = 2, FUN = sd)
@@ -120,6 +122,7 @@ RunSVD.default <- function(
 #' @rdname RunSVD
 #' @importFrom Seurat VariableFeatures GetAssayData
 #' @export
+#' @concept dimension_reduction
 #' @method RunSVD Assay
 #' @examples
 #' RunSVD(atac_small[['peaks']])
@@ -128,7 +131,7 @@ RunSVD.Assay <- function(
   assay = NULL,
   features = NULL,
   n = 50,
-  reduction.key = 'SVD_',
+  reduction.key = "LSI_",
   scale.max = NULL,
   verbose = TRUE,
   ...
@@ -136,7 +139,7 @@ RunSVD.Assay <- function(
   features <- SetIfNull(x = features, y = VariableFeatures(object = object))
   data.use <- GetAssayData(
     object = object,
-    slot = 'data'
+    slot = "data"
   )[features, ]
   reduction.data <- RunSVD(
     object = data.use,
@@ -155,6 +158,7 @@ RunSVD.Assay <- function(
 #' Default 'svd'
 #' @rdname RunSVD
 #' @export
+#' @concept dimension_reduction
 #' @examples
 #' RunSVD(atac_small)
 #' @method RunSVD Seurat
@@ -163,8 +167,8 @@ RunSVD.Seurat <- function(
   assay = NULL,
   features = NULL,
   n = 50,
-  reduction.key = 'SVD_',
-  reduction.name = 'svd',
+  reduction.key = "LSI_",
+  reduction.name = "lsi",
   scale.max = NULL,
   verbose = TRUE,
   ...

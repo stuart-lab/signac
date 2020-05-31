@@ -6,7 +6,8 @@
 \usage{
 TSSEnrichment(
   object,
-  tss.positions,
+  tss.positions = NULL,
+  n = NULL,
   assay = NULL,
   cells = NULL,
   verbose = TRUE
@@ -15,7 +16,11 @@ TSSEnrichment(
 \arguments{
 \item{object}{A Seurat object}
 
-\item{tss.positions}{A GRanges object containing the TSS positions}
+\item{tss.positions}{A GRanges object containing the TSS positions. If NULL,
+use the genomic annotations stored in the assay.}
+
+\item{n}{Number of TSS positions to use. This will select the first _n_
+TSSs from the set. If NULL, use all TSSs (slower).}
 
 \item{assay}{Name of assay to use}
 
@@ -37,19 +42,12 @@ The computed score will be added to the object metadata as "TSS.enrichment".
 }
 \examples{
 \dontrun{
-library(EnsDb.Hsapiens.v75)
-gene.ranges <- genes(EnsDb.Hsapiens.v75)
-gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
-tss.ranges <- GRanges(
-  seqnames = seqnames(gene.ranges),
-  ranges = IRanges(start = start(gene.ranges), width = 2),
-  strand = strand(gene.ranges)
-)
-seqlevelsStyle(tss.ranges) <- 'UCSC'
-tss.ranges <- keepStandardChromosomes(tss.ranges, pruning.mode = 'coarse')
-
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-atac_small <- SetFragments(object = atac_small, file = fpath)
-TSSEnrichment(object = atac_small, tss.positions = tss.ranges[1:100])
+Fragments(atac_small) <- CreateFragmentObject(
+  path = fpath,
+  cells = colnames(atac_small)
+)
+TSSEnrichment(object = atac_small)
 }
 }
+\concept{qc}

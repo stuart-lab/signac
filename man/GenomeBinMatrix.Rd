@@ -2,7 +2,7 @@
 % Please edit documentation in R/preprocessing.R
 \name{GenomeBinMatrix}
 \alias{GenomeBinMatrix}
-\title{GenomeBinMatrix}
+\title{Genome bin matrix}
 \usage{
 GenomeBinMatrix(
   fragments,
@@ -47,13 +47,15 @@ This function bins the genome and calls \code{\link{FeatureMatrix}} to
 construct a bin x cell matrix.
 }
 \examples{
-gn <- 780007
-names(gn) <- 'chr1'
+genome <- 780007
+names(genome) <- 'chr1'
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fragments <- CreateFragmentObject(fpath)
 GenomeBinMatrix(
-  fragments = fpath,
-  genome = gn,
-  binsize = 1000,
-  chunk = 1
+  fragments = fragments,
+  genome = genome,
+  binsize = 1000
 )
 }
+\concept{preprocessing}
+\concept{utilities}

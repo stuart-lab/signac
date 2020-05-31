@@ -29,7 +29,7 @@ vector of strings. Default is human chromosome 1.}
 
 \item{verbose}{Display messages}
 
-\item{...}{Additional arguments passed to \code{\link{GetReadsInRegion}}}
+\item{...}{Arguments passed to other functions}
 }
 \value{
 Returns a \code{\link[Seurat]{Seurat}} object with
@@ -43,6 +43,10 @@ fragments < 147 bp (nucleosome-free)
 }
 \examples{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-atac_small <- SetFragments(object = atac_small, file = fpath)
+Fragments(atac_small) <- CreateFragmentObject(
+  path = fpath,
+  cells = colnames(atac_small)
+)
 NucleosomeSignal(object = atac_small)
 }
+\concept{qc}

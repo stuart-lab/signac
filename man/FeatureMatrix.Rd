@@ -2,7 +2,7 @@
 % Please edit documentation in R/preprocessing.R
 \name{FeatureMatrix}
 \alias{FeatureMatrix}
-\title{FeatureMatrix}
+\title{Feature Matrix}
 \usage{
 FeatureMatrix(
   fragments,
@@ -14,7 +14,7 @@ FeatureMatrix(
 )
 }
 \arguments{
-\item{fragments}{Path to tabix-indexed fragments file}
+\item{fragments}{A list of \code{\link{Fragment}} objects.}
 
 \item{features}{A GRanges object containing a set of genomic intervals.
 These will form the rows of the matrix, with each entry recording the number
@@ -41,8 +41,11 @@ Construct a feature x cell matrix from a genomic fragments file
 }
 \examples{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fragments <- CreateFragmentObject(fpath)
 FeatureMatrix(
-  fragments = fpath,
-  features = StringToGRanges(rownames(atac_small), sep = c(":", "-"))
+  fragments = fragments,
+  features = granges(atac_small)
 )
 }
+\concept{preprocessing}
+\concept{utilities}

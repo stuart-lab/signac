@@ -14,10 +14,10 @@ RunSVD(object, ...)
   assay = NULL,
   n = 50,
   scale.embeddings = TRUE,
-  reduction.key = "SVD_",
+  reduction.key = "LSI_",
   scale.max = NULL,
   verbose = TRUE,
-  irlba.work = n + 50,
+  irlba.work = n * 3,
   ...
 )
 
@@ -26,7 +26,7 @@ RunSVD(object, ...)
   assay = NULL,
   features = NULL,
   n = 50,
-  reduction.key = "SVD_",
+  reduction.key = "LSI_",
   scale.max = NULL,
   verbose = TRUE,
   ...
@@ -37,8 +37,8 @@ RunSVD(object, ...)
   assay = NULL,
   features = NULL,
   n = 50,
-  reduction.key = "SVD_",
-  reduction.name = "svd",
+  reduction.key = "LSI_",
+  reduction.name = "lsi",
   scale.max = NULL,
   verbose = TRUE,
   ...
@@ -84,3 +84,4 @@ RunSVD(x)
 RunSVD(atac_small[['peaks']])
 RunSVD(atac_small)
 }
+\concept{dimension_reduction}

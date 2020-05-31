@@ -2,19 +2,16 @@
 % Please edit documentation in R/utilities.R
 \name{FractionCountsInRegion}
 \alias{FractionCountsInRegion}
-\title{FractionCountsInRegion}
+\title{Fraction of counts in a genomic region}
 \usage{
-FractionCountsInRegion(object, assay, regions, sep = c("-", "-"), ...)
+FractionCountsInRegion(object, regions, assay = NULL, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
 
-\item{assay}{Name of assay to use}
-
 \item{regions}{A GRanges object containing a set of genomic regions}
 
-\item{sep}{The separator used to separate genomic coordinate information in
-the assay feature names}
+\item{assay}{Name of assay to use}
 
 \item{...}{Additional arguments passed to \code{\link{CountsInRegion}}}
 }
@@ -32,3 +29,4 @@ FractionCountsInRegion(
   regions = blacklist_hg19
 )
 }
+\concept{utilities}

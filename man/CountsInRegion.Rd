@@ -2,19 +2,16 @@
 % Please edit documentation in R/utilities.R
 \name{CountsInRegion}
 \alias{CountsInRegion}
-\title{CountsInRegion}
+\title{Counts in region}
 \usage{
-CountsInRegion(object, assay, regions, sep = c("-", "-"), ...)
+CountsInRegion(object, assay, regions, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
 
-\item{assay}{Name of assay in the object to use}
+\item{assay}{Name of a chromatin assay in the object to use}
 
 \item{regions}{A GRanges object}
-
-\item{sep}{Separator to use when extracting genomic coordinates from the
-Seurat object}
 
 \item{...}{Additional arguments passed to \code{\link[IRanges]{findOverlaps}}}
 }
@@ -33,3 +30,4 @@ CountsInRegion(
 )
 }
 }
+\concept{utilities}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{TSSPlot}
 \alias{TSSPlot}
-\title{Plot the enrichment around TSS}
+\title{Plot signal enrichment around TSSs}
 \usage{
 TSSPlot(object, assay = NULL, group.by = NULL, idents = NULL)
 }
@@ -10,8 +10,8 @@ TSSPlot(object, assay = NULL, group.by = NULL, idents = NULL)
 \item{object}{A Seurat object}
 
 \item{assay}{Name of the assay to use. Should have the TSS enrichment
-information for each cell already computed by running
-\code{\link{TSSEnrichment}}}
+information for each cell
+already computed by running \code{\link{TSSEnrichment}}}
 
 \item{group.by}{Set of identities to group cells by}
 
@@ -25,25 +25,5 @@ Plot the normalized TSS enrichment score at each position relative to the
 TSS. Requires that \code{\link{TSSEnrichment}} has already been run on the
 assay.
 }
-\examples{
-\dontrun{
-# create granges object with TSS positions
-library(EnsDb.Hsapiens.v75)
-gene.ranges <- genes(EnsDb.Hsapiens.v75)
-gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
-tss.ranges <- GRanges(
-  seqnames = seqnames(gene.ranges),
-  ranges = IRanges(start = start(gene.ranges), width = 2),
-  strand = strand(gene.ranges)
-)
-seqlevelsStyle(tss.ranges) <- 'UCSC'
-tss.ranges <- keepStandardChromosomes(tss.ranges, pruning.mode = 'coarse')
-
-# to save time use the first 2000 TSSs
-atac_small <- TSSEnrichment(
-object = atac_small,
-tss.positions = tss.ranges[1:2000]
-)
-TSSPlot(atac_small)
-}
-}
+\concept{qc}
+\concept{visualization}

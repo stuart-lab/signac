@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{GetCellsInRegion}
 \alias{GetCellsInRegion}
-\title{GetCellsInRegion}
+\title{Get cells in a region}
 \usage{
 GetCellsInRegion(tabix, region, sep = c("-", "-"), cells = NULL)
 }
@@ -27,3 +27,4 @@ Extract cell names containing reads mapped within a given genomic region
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 GetCellsInRegion(tabix = fpath, region = "chr1-10245-762629")
 }
+\concept{utilities}

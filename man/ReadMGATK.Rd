@@ -27,7 +27,7 @@ Read output files from MGATK (\url{https://github.com/caleblareau/mgatk}).
 }
 \examples{
 \dontrun{
-data.dir <- "path/to/data/directory"
+data.dir <- system.file("extdata", "test_mgatk", package="Signac")
 mgatk <- ReadMGATK(dir = data.dir)
 }
 }

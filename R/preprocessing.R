@@ -7,6 +7,7 @@ NULL
 #' @rdname BinarizeCounts
 #' @importFrom methods is slot "slot<-"
 #' @export
+#' @concept preprocessing
 #' @examples
 #' x <- matrix(data = sample(0:3, size = 25, replace = TRUE), ncol = 5)
 #' BinarizeCounts(x)
@@ -16,11 +17,11 @@ BinarizeCounts.default <- function(
   verbose = TRUE,
   ...
 ) {
-  if (inherits(x = object, what = 'dgCMatrix')) {
-    slot(object = object, name = 'x') <- rep.int(
+  if (inherits(x = object, what = "dgCMatrix")) {
+    slot(object = object, name = "x") <- rep.int(
       x = 1,
       times = length(
-        x = slot(object = object, name = 'x')
+        x = slot(object = object, name = "x")
         )
       )
   } else {
@@ -33,6 +34,7 @@ BinarizeCounts.default <- function(
 #' @method BinarizeCounts Assay
 #' @importFrom Seurat GetAssayData SetAssayData
 #' @export
+#' @concept preprocessing
 #' @examples
 #' BinarizeCounts(atac_small[['peaks']])
 BinarizeCounts.Assay <- function(
@@ -41,10 +43,10 @@ BinarizeCounts.Assay <- function(
   verbose = TRUE,
   ...
 ) {
-  data.matrix <- GetAssayData(object = object, slot = 'counts')
+  data.matrix <- GetAssayData(object = object, slot = "counts")
   object <- SetAssayData(
     object = object,
-    slot = 'counts',
+    slot = "counts",
     new.data = BinarizeCounts(
       object = data.matrix, assay = assay, verbose = verbose
     )
@@ -58,6 +60,7 @@ BinarizeCounts.Assay <- function(
 #' @method BinarizeCounts Seurat
 #' @importFrom Seurat GetAssay DefaultAssay
 #' @export
+#' @concept preprocessing
 #' @examples
 #' BinarizeCounts(atac_small)
 BinarizeCounts.Seurat <- function(
@@ -79,7 +82,7 @@ BinarizeCounts.Seurat <- function(
   return(object)
 }
 
-#' CreateMotifMatrix
+#' Create motif matrix
 #'
 #' Create a motif x feature matrix from a set of genomic ranges,
 #' the genome, and a set of position weight matrices.
@@ -104,6 +107,8 @@ BinarizeCounts.Seurat <- function(
 #'
 #' @return Returns a sparse matrix
 #' @export
+#' @concept motifs
+#' @concept preprocessing
 #' @examples
 #' \dontrun{
 #' library(JASPAR2018)
@@ -115,10 +120,9 @@ BinarizeCounts.Seurat <- function(
 #'   opts = list(species = 9606, all_versions = FALSE)
 #' )
 #' motif.matrix <- CreateMotifMatrix(
-#'   features = StringToGRanges(rownames(atac_small), sep = c(":", "-")),
+#'   features = granges(atac_small),
 #'   pwm = pwm,
-#'   genome = BSgenome.Hsapiens.UCSC.hg19,
-#'   sep = c(":", "-")
+#'   genome = BSgenome.Hsapiens.UCSC.hg19
 #' )
 #' }
 CreateMotifMatrix <- function(
@@ -130,7 +134,7 @@ CreateMotifMatrix <- function(
   sep = c("-", "-"),
   ...
 ) {
-  if (!requireNamespace('motifmatchr', quietly = TRUE)) {
+  if (!requireNamespace("motifmatchr", quietly = TRUE)) {
     stop("Please install motifmatchr.
          https://www.bioconductor.org/packages/motifmatchr/")
   }
@@ -148,14 +152,14 @@ CreateMotifMatrix <- function(
       motif.matrix <- motifmatchr::motifCounts(object = motif_ix)
     } else {
       motif.matrix <- motifmatchr::motifMatches(object = motif_ix)
-      motif.matrix <- as(Class = 'dgCMatrix', object = motif.matrix)
+      motif.matrix <- as(Class = "dgCMatrix", object = motif.matrix)
     }
   }
   rownames(motif.matrix) <- GRangesToString(grange = features, sep = sep)
   return(motif.matrix)
 }
 
-#' DownsampleFeatures
+#' Downsample Features
 #'
 #' Randomly downsample features and assign to VariableFeatures for the object.
 #' This will select n features at random.
@@ -168,6 +172,7 @@ CreateMotifMatrix <- function(
 #' @return Returns a \code{\link[Seurat]{Seurat}} object with
 #' \code{\link[Seurat]{VariableFeatures}} set to the randomly sampled features.
 #' @export
+#' @concept preprocessing
 #' @examples
 #' DownsampleFeatures(atac_small, n = 10)
 DownsampleFeatures <- function(
@@ -189,11 +194,11 @@ DownsampleFeatures <- function(
   return(object)
 }
 
-#' FeatureMatrix
+#' Feature Matrix
 #'
 #' Construct a feature x cell matrix from a genomic fragments file
 #'
-#' @param fragments Path to tabix-indexed fragments file
+#' @param fragments A list of \code{\link{Fragment}} objects.
 #' @param features A GRanges object containing a set of genomic intervals.
 #' These will form the rows of the matrix, with each entry recording the number
 #' of unique reads falling in the genomic region for each cell.
@@ -207,6 +212,64 @@ DownsampleFeatures <- function(
 #' separate start and end coordinates.
 #' @param verbose Display messages
 #'
+#' @export
+#' @concept preprocessing
+#' @concept utilities
+#' @return Returns a sparse matrix
+#' @examples
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fragments <- CreateFragmentObject(fpath)
+#' FeatureMatrix(
+#'   fragments = fragments,
+#'   features = granges(atac_small)
+#' )
+FeatureMatrix <- function(
+  fragments,
+  features,
+  cells = NULL,
+  chunk = 50,
+  sep = c("-", "-"),
+  verbose = TRUE
+) {
+  if (!inherits(x = fragments, what = "list")) {
+    if (inherits(x = fragments, what = "Fragment")) {
+      fragments <- list(fragments)
+    } else {
+      stop("fragments should be a list of Fragment objects")
+    }
+  }
+  # if cells is not NULL, iterate over all fragment objects
+  # and find which objects contain cells that are requested
+  if (!is.null(x = cells)) {
+    obj.use <- c()
+    for (i in seq_along(along.with = fragments)) {
+      if (any(cells %in% Cells(x = fragments[[i]]))) {
+        obj.use <- c(obj.use, i)
+      }
+    }
+  } else {
+    obj.use <- seq_along(along.with = fragments)
+  }
+  # create a matrix from each fragment file
+  mat.list <- sapply(
+    X = obj.use,
+    FUN = function(x) {
+      SingleFeatureMatrix(
+        fragment = fragments[[x]],
+        features = features,
+        cells = cells,
+        sep = sep,
+        verbose = verbose,
+        chunk = chunk
+      )
+    })
+  # cbind all the matrices
+  featmat <- do.call(what = cbind, args = mat.list)
+  return(featmat)
+}
+
+# Run FeatureMatrix on a single Fragment object
+# @inheritParams FeatureMatrix
 #' @importFrom GenomeInfoDb keepSeqlevels
 #' @importFrom future.apply future_lapply
 #' @importFrom future nbrOfWorkers
@@ -214,27 +277,25 @@ DownsampleFeatures <- function(
 #' @importFrom Matrix sparseMatrix
 #' @importMethodsFrom GenomicRanges intersect
 #' @importFrom Rsamtools TabixFile seqnamesTabix
-#' @export
-#' @return Returns a sparse matrix
-#' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' FeatureMatrix(
-#'   fragments = fpath,
-#'   features = StringToGRanges(rownames(atac_small), sep = c(":", "-"))
-#' )
-FeatureMatrix <- function(
-  fragments,
+SingleFeatureMatrix <- function(
+  fragment,
   features,
   cells = NULL,
   chunk = 50,
-  sep = c('-', '-'),
+  sep = c("-", "-"),
   verbose = TRUE
 ) {
-  tbx <- TabixFile(file = fragments)
+  fragment.path <- GetFragmentData(object = fragment, slot = "path")
+  if (!is.null(cells)) {
+    # only look for cells that are in the fragment file
+    cells <- intersect(x = cells, y = Cells(x = fragment))
+  }
+  tbx <- TabixFile(file = fragment.path)
   features <- keepSeqlevels(
     x = features,
     value = intersect(
-      x = seqnames(x = features), y = seqnamesTabix(file = tbx)
+      x = seqnames(x = features),
+      y = seqnamesTabix(file = tbx)
     ),
     pruning.mode = "coarse"
   )
@@ -243,7 +304,7 @@ FeatureMatrix <- function(
     nchunk = chunk
   )
   if (verbose) {
-    message('Extracting reads overlapping genomic regions')
+    message("Extracting reads overlapping genomic regions")
   }
   if (nbrOfWorkers() > 1) {
     mylapply <- future_lapply
@@ -275,9 +336,10 @@ FeatureMatrix <- function(
     j = matrix.cells,
     x = rep(x = 1, length(x = cell.vector))
   )
-  featmat <- as(Class = 'dgCMatrix', object = featmat)
+  featmat <- as(Class = "dgCMatrix", object = featmat)
   rownames(x = featmat) <- names(x = feature.lookup)
   colnames(x = featmat) <- names(x = cell.lookup)
+  # add zero columns for missing cells
   if (!is.null(x = cells)) {
     missing.cells <- setdiff(x = cells, y = colnames(x = featmat))
     if (!(length(x = missing.cells) == 0)) {
@@ -290,103 +352,23 @@ FeatureMatrix <- function(
       colnames(x = null.mat) <- missing.cells
       featmat <- cbind(featmat, null.mat)
     }
-    return(featmat[, cells])
-  } else {
-    return(featmat)
+    featmat <- featmat[, cells]
   }
+  # add zero rows for missing features
+  all.features <- GRangesToString(grange = features, sep = sep)
+  missing.features <- all.features[!(all.features %in% rownames(featmat))]
+  if (length(x = missing.features) > 0) {
+    null.mat <- sparseMatrix(
+      i = c(),
+      j = c(),
+      dims = c(length(x = missing.features), ncol(x = featmat))
+    )
+    rownames(x = null.mat) <- missing.features
+    featmat <- rbind(featmat, null.mat)
+  }
+  return(featmat)
 }
 
-globalVariables(names = c('chr', 'start'), package = 'Signac')
-#' FilterFragments
-#'
-#' Remove cells from a fragments file that are not present in a given list of
-#' cells. Note that this reads the whole fragments file into memory, so may
-#' require a lot of memory depending on the size of the fragments file.
-#'
-#' @param fragment.path Path to a tabix-indexed fragments file
-#' @param cells A vector of cells to retain
-#' @param output.path Name and path for output tabix file. A tabix index file
-#' will also be created in the same location, with the .tbi file extension.
-#' @param assume.sorted Assume sorted input and don't sort the filtered file.
-#' Can save a lot of time, but indexing will fail if assumption is wrong.
-#' @param compress Compress filtered fragments using bgzip (default TRUE)
-#' @param index Index the filtered tabix file (default TRUE)
-#' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{\link[data.table]{fread}}
-#'
-#' @importFrom data.table fread fwrite
-#' @importFrom Rsamtools indexTabix bgzip
-#' @export
-#' @return None
-#' @examples
-#' \donttest{
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' output.path = file.path(tempdir(), "filtered.tsv")
-#'
-#' FilterFragments(
-#'   fragment.path = fpath,
-#'   cells = colnames(atac_small),
-#'   output.path = output.path
-#' )
-#' }
-FilterFragments <- function(
-  fragment.path,
-  cells,
-  output.path,
-  assume.sorted = FALSE,
-  compress = TRUE,
-  index = TRUE,
-  verbose = TRUE,
-  ...
-) {
-  if (verbose) {
-    message("Retaining ", length(x = cells), " cells")
-    message("Reading fragments")
-  }
-  reads <- fread(
-    file = fragment.path,
-    col.names = c('chr', 'start', 'end', 'cell', 'count'),
-    showProgress = verbose,
-    ...
-  )
-  reads <- reads[reads$cell %in% cells, ]
-  if (!assume.sorted) {
-    if (verbose) {
-      message("Sorting fragments")
-    }
-    reads <- reads[with(data = reads, expr = order(chr, start)), ]
-  }
-  if (verbose) {
-    message("Writing output")
-  }
-  fwrite(
-    x = reads,
-    file = output.path,
-    row.names = FALSE,
-    quote = FALSE,
-    col.names = FALSE,
-    sep = '\t'
-  )
-  rm(reads)
-  invisible(x = gc())
-  if (compress) {
-    if (verbose) {
-      message("Compressing output")
-    }
-    outf <- bgzip(file = output.path)
-    if (file.exists(outf)) {
-      file.remove(output.path)
-    }
-    if (index) {
-      if (verbose) {
-        message("Building index")
-      }
-      index.file <- indexTabix(
-        file = paste0(outf), format = 'bed', zeroBased = TRUE
-      )
-    }
-  }
-}
 
 #' @param assay Name of assay to use
 #' @param min.cutoff Cutoff for feature to be included in the VariableFeatures
@@ -403,12 +385,13 @@ FilterFragments <- function(
 #' @importFrom stats ecdf
 #' @rdname FindTopFeatures
 #' @export
+#' @concept preprocessing
 #' @examples
 #' FindTopFeatures(object = atac_small[['peaks']][])
 FindTopFeatures.default <- function(
   object,
   assay = NULL,
-  min.cutoff = 'q5',
+  min.cutoff = "q5",
   verbose = TRUE,
   ...
 ) {
@@ -427,16 +410,17 @@ FindTopFeatures.default <- function(
 #' @importFrom Seurat GetAssayData VariableFeatures
 #' @export
 #' @method FindTopFeatures Assay
+#' @concept preprocessing
 #' @examples
 #' FindTopFeatures(object = atac_small[['peaks']])
 FindTopFeatures.Assay <- function(
   object,
   assay = NULL,
-  min.cutoff = 'q5',
+  min.cutoff = "q5",
   verbose = TRUE,
   ...
 ) {
-  data.use <- GetAssayData(object = object, slot = 'counts')
+  data.use <- GetAssayData(object = object, slot = "counts")
   hvf.info <- FindTopFeatures(
     object = data.use,
     assay = assay,
@@ -453,7 +437,7 @@ FindTopFeatures.Assay <- function(
     )
   } else {
     percentile.use <- as.numeric(
-      x = sub(pattern = "q",replacement = "", x = as.character(x = min.cutoff))
+      x = sub(pattern = "q", replacement = "", x = as.character(x = min.cutoff))
     ) / 100
     VariableFeatures(object = object) <- rownames(
       x = hvf.info[hvf.info$percentile > percentile.use, ]
@@ -465,13 +449,14 @@ FindTopFeatures.Assay <- function(
 #' @rdname FindTopFeatures
 #' @importFrom Seurat DefaultAssay GetAssay
 #' @export
+#' @concept preprocessing
 #' @method FindTopFeatures Seurat
 #' @examples
 #' FindTopFeatures(atac_small)
 FindTopFeatures.Seurat <- function(
   object,
   assay = NULL,
-  min.cutoff = 'q5',
+  min.cutoff = "q5",
   verbose = TRUE,
   ...
 ) {
@@ -501,6 +486,7 @@ FindTopFeatures.Seurat <- function(
 #' @importFrom Seurat GetAssayData AddMetaData
 #'
 #' @export
+#' @concept qc
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
 #' FRiP(object = atac_small, peak.assay = 'peaks', bin.assay = 'bins')
@@ -508,36 +494,36 @@ FRiP <- function(
   object,
   peak.assay,
   bin.assay,
-  chromosome = 'chr1',
+  chromosome = "chr1",
   verbose = TRUE
 ) {
   if (verbose) {
-    message('Calculating fraction of reads in peaks per cell')
+    message("Calculating fraction of reads in peaks per cell")
   }
   peak.data <- GetAssayData(
-    object = object, assay = peak.assay, slot = 'counts'
+    object = object, assay = peak.assay, slot = "counts"
   )
   bin.data <- GetAssayData(
-    object = object, assay = bin.assay, slot = 'counts'
+    object = object, assay = bin.assay, slot = "counts"
   )
   if (!is.null(x = chromosome)) {
     peak.data <- peak.data[grepl(
-      pattern = paste0('^', chromosome, '\\-|^', chromosome, ':'),
+      pattern = paste0("^", chromosome, "\\-|^", chromosome, ":"),
       x = rownames(x = peak.data)
     ), ]
     bin.data <- bin.data[grepl(
-      pattern = paste0('^', chromosome, '\\-|^', chromosome, ':'),
+      pattern = paste0("^", chromosome, "\\-|^", chromosome, ":"),
       x = rownames(x = bin.data)
     ), ]
   }
   peak.counts <- colSums(x = peak.data)
   bin.counts <- colSums(x = bin.data)
   frip <- peak.counts / bin.counts
-  object <- AddMetaData(object = object, metadata = frip, col.name = 'FRiP')
+  object <- AddMetaData(object = object, metadata = frip, col.name = "FRiP")
   return(object)
 }
 
-#' GenomeBinMatrix
+#' Genome bin matrix
 #'
 #' Construct a bin x cell matrix from a fragments file.
 #'
@@ -561,16 +547,18 @@ FRiP <- function(
 #'
 #' @importFrom GenomicRanges tileGenome
 #' @export
+#' @concept preprocessing
+#' @concept utilities
 #' @return Returns a sparse matrix
 #' @examples
-#' gn <- 780007
-#' names(gn) <- 'chr1'
+#' genome <- 780007
+#' names(genome) <- 'chr1'
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fragments <- CreateFragmentObject(fpath)
 #' GenomeBinMatrix(
-#'   fragments = fpath,
-#'   genome = gn,
-#'   binsize = 1000,
-#'   chunk = 1
+#'   fragments = fragments,
+#'   genome = genome,
+#'   binsize = 1000
 #' )
 GenomeBinMatrix <- function(
   fragments,
@@ -578,7 +566,7 @@ GenomeBinMatrix <- function(
   cells = NULL,
   binsize = 5000,
   chunk = 50,
-  sep = c('-', '-'),
+  sep = c("-", "-"),
   verbose = TRUE
 ) {
   tiles <- tileGenome(
@@ -597,7 +585,7 @@ GenomeBinMatrix <- function(
   return(binmat)
 }
 
-globalVariables(names = 'cell', package = 'Signac')
+globalVariables(names = "cell", package = "Signac")
 #' NucleosomeSignal
 #'
 #' Calculate the strength of the nucleosome signal per cell.
@@ -612,7 +600,7 @@ globalVariables(names = 'cell', package = 'Signac')
 #' @param min.threshold Lower bound for the mononucleosome size. Default is 147
 #' @param max.threshold Upper bound for the mononucleosome size. Default is 294
 #' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{\link{GetReadsInRegion}}
+#' @param ... Arguments passed to other functions
 #'
 #' @importFrom dplyr group_by summarize
 #' @importFrom stats ecdf
@@ -621,21 +609,30 @@ globalVariables(names = 'cell', package = 'Signac')
 #' added metadata for the ratio of mononucleosomal to nucleosome-free fragments
 #' per cell, and the percentile rank of each ratio.
 #' @export
+#' @concept qc
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' atac_small <- SetFragments(object = atac_small, file = fpath)
+#' Fragments(atac_small) <- CreateFragmentObject(
+#'   path = fpath,
+#'   cells = colnames(atac_small)
+#' )
 #' NucleosomeSignal(object = atac_small)
 NucleosomeSignal <- function(
   object,
   assay = NULL,
-  region = 'chr1-1-249250621',
+  region = "chr1-1-249250621",
   min.threshold = 147,
   max.threshold = 294,
   verbose = TRUE,
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  fragments.use <- GetReadsInRegion(
+  # first check that fragments are present
+  frags <- Fragments(object = object[[assay]])
+  if (length(x = frags) == 0) {
+    stop("No fragment files present in assay")
+  }
+  fragments.use <- MultiGetReadsInRegion(
     object = object,
     region = region,
     assay = assay,
@@ -651,7 +648,7 @@ NucleosomeSignal <- function(
   if (verbose) {
     message("Computing ratio of mononucleosomal to nucleosome-free fragments")
   }
-  fragments.use <- as.data.frame(x = fragments.use[, c('cell', 'length')])
+  fragments.use <- as.data.frame(x = fragments.use[, c("cell", "length")])
   fragments.use <- group_by(.data = fragments.use, cell)
   fragment.summary <- as.data.frame(
     x = summarize(
@@ -673,26 +670,22 @@ NucleosomeSignal <- function(
 
 #' @param genome A BSgenome object
 #' @param verbose Display messages
-#' @param sep A length-2 character vector containing the separators to be used
-#' when constructing genomic coordinates from the regions. The first element is
-#' used to separate the chromosome from the genomic coordinates, and the second
-#' element used to separate the start and end coordinates.
-#' @importFrom BiocGenerics width
+#'
 #' @importMethodsFrom GenomicRanges width
 #' @rdname RegionStats
 #' @export
+#' @concept motifs
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
-#' object = rownames(atac_small),
-#' genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
+#'   object = rownames(atac_small),
+#'   genome = BSgenome.Hsapiens.UCSC.hg19
 #' )
 #' }
 RegionStats.default <- function(
   object,
   genome,
-  sep = c('-', '-'),
   verbose = TRUE,
   ...
 ) {
@@ -702,9 +695,6 @@ RegionStats.default <- function(
   if (!requireNamespace('Biostrings', quietly = TRUE)) {
     stop("Please install Biostrings: BiocManager::install('Biostrings')")
   }
-  if (inherits(x = object, what = 'character')) {
-    object <- StringToGRanges(regions = object, sep = sep)
-  }
   sequence.length <- width(x = object)
   sequences <- BSgenome::getSeq(x = genome, names = object)
   gc <- Biostrings::letterFrequency(
@@ -713,41 +703,40 @@ RegionStats.default <- function(
   colnames(gc) <- 'GC.percent'
   dinuc <- Biostrings::dinucleotideFrequency(sequences)
   sequence.stats <- cbind(dinuc, gc, sequence.length)
-  rownames(sequence.stats) <- GRangesToString(grange = object, sep = sep)
   return(sequence.stats)
 }
 
 #' @rdname RegionStats
-#' @method RegionStats Assay
+#' @method RegionStats ChromatinAssay
 #' @importFrom methods slot
 #' @importFrom Seurat GetAssayData
 #' @export
+#' @concept motifs
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
-#' object = atac_small[['peaks']],
-#' genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
+#'   object = atac_small[['peaks']],
+#'   genome = BSgenome.Hsapiens.UCSC.hg19
 #' )
 #' }
-RegionStats.Assay <- function(
+RegionStats.ChromatinAssay <- function(
   object,
   genome,
-  sep = c('-', '-'),
   verbose = TRUE,
   ...
 ) {
-  regions <- rownames(x = object)
+  regions <- granges(x = object)
   feature.metadata <- RegionStats(
     object = regions,
     genome = genome,
-    sep = sep,
     verbose = verbose,
     ...
   )
-  meta.data <- GetAssayData(object = object, slot = 'meta.features')
+  rownames(x = feature.metadata) <- rownames(x = object)
+  meta.data <- GetAssayData(object = object, slot = "meta.features")
   meta.data <- cbind(meta.data, feature.metadata)
-  slot(object = object, name = 'meta.features') <- meta.data
+  slot(object = object, name = "meta.features") <- meta.data
   return(object)
 }
 
@@ -755,6 +744,7 @@ RegionStats.Assay <- function(
 #' @rdname RegionStats
 #' @method RegionStats Seurat
 #' @export
+#' @concept motifs
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
@@ -768,7 +758,6 @@ RegionStats.Seurat <- function(
   object,
   genome,
   assay = NULL,
-  sep = c('-', '-'),
   verbose = TRUE,
   ...
 ) {
@@ -777,7 +766,6 @@ RegionStats.Seurat <- function(
   assay.data <- RegionStats(
     object = assay.data,
     genome = genome,
-    sep = sep,
     verbose = verbose,
     ...
   )
@@ -787,12 +775,16 @@ RegionStats.Seurat <- function(
 
 #' @param method Which TF-IDF implementation to use. Choice of:
 #' \itemize{
-#'  \item{1}: The LSI implementation used by Stuart & Butler et al. 2019
-#'  (\url{https://doi.org/10.1101/460147}).
-#'  \item{2}: The standard LSI implementation used by Cusanovich & Hill
-#'  et al. 2018 (\url{https://doi.org/10.1016/j.cell.2018.06.052}).
-#'  \item{3}: The log-TF method
-#'  \item{4}: The 10x Genomics method (no TF normalization)
+#'  \item{1}: The TF-IDF implementation used by Stuart & Butler et al. 2019
+#'  (\url{https://doi.org/10.1101/460147}). This computes
+#'  \eqn{\log(TF \times IDF)}.
+#'  \item{2}: The TF-IDF implementation used by Cusanovich & Hill
+#'  et al. 2018 (\url{https://doi.org/10.1016/j.cell.2018.06.052}). This
+#'  computes \eqn{TF \times (\log(IDF))}.
+#'  \item{3}: The log-TF method used by Andrew Hill (\url{http://andrewjohnhill.com/blog/2019/05/06/dimensionality-reduction-for-scatac-data/}).
+#'  This computes \eqn{\log(TF) \times \log(IDF)}.
+#'  \item{4}: The 10x Genomics method (no TF normalization). This computes
+#'  \eqn{IDF}.
 #' }
 #' @param scale.factor Which scale factor to use. Default is 10000.
 #' @param verbose Print progress
@@ -800,6 +792,7 @@ RegionStats.Seurat <- function(
 #' @importFrom Matrix colSums rowSums Diagonal tcrossprod
 #' @importFrom methods is "slot<-" slot
 #' @export
+#' @concept preprocessing
 #' @examples
 #' mat <- matrix(data = rbinom(n = 25, size = 5, prob = 0.2), nrow = 5)
 #' RunTFIDF(object = mat)
@@ -821,34 +814,46 @@ RunTFIDF.default <- function(
     message("Performing TF-IDF normalization")
   }
   npeaks <- colSums(x = object)
+  if (any(npeaks == 0)) {
+    warning("Some cells contain 0 total counts")
+  }
   if (method == 4) {
     tf <- object
   } else {
     tf <- tcrossprod(x = object, y = Diagonal(x = 1 / npeaks))
   }
-  idf <- ncol(x = object) / rowSums(x = object)
+  rsums <- rowSums(x = object)
+  if (any(rsums == 0)) {
+    warning("Some features contain 0 total counts")
+  }
+  idf <- ncol(x = object) / rsums
   if (method == 2) {
     idf <- log(1 + idf)
   } else if (method == 3) {
-    slot(object = tf, name = 'x') <- log1p(
-      x = slot(object = tf, name = 'x') * scale.factor
+    slot(object = tf, name = "x") <- log1p(
+      x = slot(object = tf, name = "x") * scale.factor
     )
     idf <- log(1 + idf)
   }
   norm.data <- Diagonal(n = length(x = idf), x = idf) %*% tf
   if (method == 1) {
-    slot(object = norm.data, name = 'x') <- log1p(
-      x = slot(object = norm.data, name = 'x') * scale.factor
+    slot(object = norm.data, name = "x") <- log1p(
+      x = slot(object = norm.data, name = "x") * scale.factor
     )
   }
   colnames(x = norm.data) <- colnames(x = object)
   rownames(x = norm.data) <- rownames(x = object)
+  # set NA values to 0
+  vals <- slot(object = object, name = "x")
+  vals[is.na(x = vals)] <- 0
+  slot(object = object, name = "x") <- vals
   return(norm.data)
 }
 
 #' @rdname RunTFIDF
 #' @method RunTFIDF Assay
 #' @export
+#' @concept preprocessing
 #' @examples
 #' RunTFIDF(atac_small[['peaks']])
 RunTFIDF.Assay <- function(
@@ -860,17 +865,17 @@ RunTFIDF.Assay <- function(
   ...
 ) {
   new.data <- RunTFIDF(
-    object = GetAssayData(object = object, slot = 'counts'),
+    object = GetAssayData(object = object, slot = "counts"),
     method = method,
     assay = assay,
     scale.factor = scale.factor,
     verbose = verbose,
     ...
   )
-  new.data <- as(object = new.data, Class = 'dgCMatrix')
+  new.data <- as(object = new.data, Class = "dgCMatrix")
   object <- SetAssayData(
     object = object,
-    slot = 'data',
+    slot = "data",
     new.data = new.data
   )
   return(object)
@@ -880,6 +885,7 @@ RunTFIDF.Assay <- function(
 #' @rdname RunTFIDF
 #' @method RunTFIDF Seurat
 #' @export
+#' @concept preprocessing
 #' @examples
 #' RunTFIDF(object = atac_small)
 RunTFIDF.Seurat <- function(
@@ -914,46 +920,66 @@ RunTFIDF.Seurat <- function(
 #'
 #' @param object A Seurat object
 #' @param assay Name of assay to use
-#' @param tss.positions A GRanges object containing the TSS positions
+#' @param tss.positions A GRanges object containing the TSS positions. If NULL,
+#' use the genomic annotations stored in the assay.
+#' @param n Number of TSS positions to use. This will select the first _n_
+#' TSSs from the set. If NULL, use all TSSs (slower).
 #' @param cells A vector of cells to include. If NULL (default), use all cells
 #' in the object
 #' @param verbose Display messages
 #' @importFrom Matrix rowMeans
 #' @importFrom methods slot
 #' @importFrom stats ecdf
+#' @importFrom GenomeInfoDb seqnames
+#' @importFrom IRanges IRanges
+#' @importFrom GenomicRanges start width strand
 #'
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @export
+#' @concept qc
 #' @examples
 #' \dontrun{
-#' library(EnsDb.Hsapiens.v75)
-#' gene.ranges <- genes(EnsDb.Hsapiens.v75)
-#' gene.ranges <- gene.ranges[gene.ranges$gene_biotype == 'protein_coding', ]
-#' tss.ranges <- GRanges(
-#'   seqnames = seqnames(gene.ranges),
-#'   ranges = IRanges(start = start(gene.ranges), width = 2),
-#'   strand = strand(gene.ranges)
-#' )
-#' seqlevelsStyle(tss.ranges) <- 'UCSC'
-#' tss.ranges <- keepStandardChromosomes(tss.ranges, pruning.mode = 'coarse')
-#'
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' atac_small <- SetFragments(object = atac_small, file = fpath)
-#' TSSEnrichment(object = atac_small, tss.positions = tss.ranges[1:100])
+#' Fragments(atac_small) <- CreateFragmentObject(
+#'   path = fpath,
+#'   cells = colnames(atac_small)
+#' )
+#' TSSEnrichment(object = atac_small)
 #' }
 TSSEnrichment <- function(
   object,
-  tss.positions,
+  tss.positions = NULL,
+  n = NULL,
   assay = NULL,
   cells = NULL,
   verbose = TRUE
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  # first check that fragments are present
+  frags <- Fragments(object = object[[assay]])
+  if (length(x = frags) == 0) {
+    stop("No fragment files present in assay")
+  }
+  if (is.null(x = tss.positions)) {
+    # work out TSS positions from gene annotations
+    annotations <- Annotation(object = object[[assay]])
+    tss.positions <- GetTSSPositions(ranges = annotations)
+  }
+  if (!is.null(x = n)) {
+    if (n > length(x = tss.positions)) {
+      n <- length(x = tss.positions)
+    }
+    tss.positions <- tss.positions[1:n, ]
+  }
+  tss.positions <- Extend(
+    x = tss.positions,
+    upstream = 1000,
+    downstream = 1000,
+    from.midpoint = TRUE
+  )
   cutmatrix <- CreateRegionPileupMatrix(
     object = object,
     regions = tss.positions,
-    upstream = 1000,
-    downstream = 1000,
     assay = assay,
     cells = cells,
     verbose = verbose
@@ -987,12 +1013,33 @@ TSSEnrichment <- function(
     digits = 2
   )
 
-  # store the normalized TSS matrix. For now put it in misc
-  object <- AddToMisc(
+  # store expected as one additional row in the matrix
+  expected.insertions <- rep(1, ncol(x = cutmatrix))
+  expected.insertions <- t(x = as.matrix(x = expected.insertions))
+  rownames(x = expected.insertions) <- "expected"
+
+  # encode motif position as additional row in matrix
+  motif.vec <- t(x = matrix(
+    data = c(
+      rep(x = 0, 1000),
+      1,
+      rep(x = 0, 1000)
+    )
+  )
+  )
+  rownames(x = motif.vec) <- "motif"
+
+  # append
+  norm.matrix <- rbind(norm.matrix, expected.insertions)
+  norm.matrix <- rbind(norm.matrix, motif.vec)
+
+  # store the normalized TSS matrix
+  object <- suppressWarnings(SetAssayData(
     object = object,
     assay = assay,
+    slot = "positionEnrichment",
     new.data = norm.matrix,
-    save.as = 'TSS.enrichment.matrix'
-  )
+    key = "TSS"
+  ))
   return(object)
 }

@@ -4,12 +4,15 @@
 \alias{ClosestFeature}
 \title{Closest Feature}
 \usage{
-ClosestFeature(regions, annotation, ...)
+ClosestFeature(object, regions, annotation = NULL, ...)
 }
 \arguments{
+\item{object}{A Seurat object}
+
 \item{regions}{A set of genomic regions to query}
 
-\item{annotation}{A GRanges object containing annotation information.}
+\item{annotation}{A GRanges object containing annotation information. If
+NULL, use the annotations stored in the object.}
 
 \item{...}{Additional arguments passed to \code{\link{StringToGRanges}}}
 }
@@ -23,11 +26,9 @@ Find the closest feature to a given set of genomic regions
 \examples{
 \donttest{
 ClosestFeature(
-  regions = head(rownames(atac_small)),
-  annotation = StringToGRanges(
-  head(rownames(atac_small)),
-  sep = c(':', '-')),
-  sep = c(":", "-")
+  object = atac_small,
+  regions = head(granges(atac_small))
 )
 }
 }
+\concept{utilities}
