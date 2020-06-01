@@ -35,7 +35,17 @@ CoveragePlot(
 a string, or a vector of strings describing the genomic
 coordinates to plot.}
 
-\item{assay}{Name of the  assay to plot}
+\item{features}{A vector of features present in another assay to plot
+alongside accessibility tracks (for example, gene names).}
+
+\item{assay}{Name of the assay to plot}
+
+\item{expression.assay}{Name of the assay containing expression data to plot
+alongside accessibility tracks. Only needed if supplying \code{features}
+argument.}
+
+\item{expression.slot}{Name of slot to pull expression data from. Only needed
+if supplying the \code{features} argument.}
 
 \item{annotation}{Display gene annotations}
 

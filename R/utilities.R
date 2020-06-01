@@ -323,6 +323,7 @@ GeneActivity <- function(
 #'
 #' @param ensdb An EnsDb object
 #' @param standard.chromosomes Keep only standard chromosomes
+#' @param biotypes Biotypes to keep
 #' @param verbose Display messages
 #'
 #' @importFrom biovizBase crunch
