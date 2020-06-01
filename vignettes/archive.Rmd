@@ -1,0 +1,8 @@
+---
+title: "Archive"
+output: html_document
+---
+
+Past versions of the Signac documentation can be found here:
+
+#### [0.2](http://satijalab.org/signac/0.2)
