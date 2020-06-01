@@ -1,5 +1,6 @@
 ---
 title: "Data structures and object interaction"
+date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 output: html_document
 ---
 

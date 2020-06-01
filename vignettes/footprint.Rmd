@@ -1,5 +1,6 @@
 ---
 title: "Transcription factor footprinting"
+date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 output: html_document
 ---
 
