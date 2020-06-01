@@ -987,6 +987,7 @@ AnnotationPlot <- function(object, region) {
   return(p)
 }
 
+globalVariables(names = "gene", package = "Signac")
 #' Plot gene expression
 #'
 #' Display gene expression values for different groups of cells and different
