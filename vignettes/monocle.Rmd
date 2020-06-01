@@ -1,5 +1,6 @@
 ---
 title: "Building trajectories with Monocle 3"
+date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 output: html_document
 ---
 

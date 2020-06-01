@@ -1,5 +1,6 @@
 ---
 title: "Joint scATAC-seq and scRNA-seq analysis"
+date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 output: html_document
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: "Motif analysis with Signac"
+date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 output: html_document
 ---
 
