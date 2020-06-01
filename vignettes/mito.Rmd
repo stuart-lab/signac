@@ -1,0 +1,311 @@
+---
+title: "Joint single-cell mitochondrial DNA genotyping and DNA accessibility analysis"
+author: Caleb Lareau and Tim Stuart
+date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
+output: html_document
+---
+
+```{r packages, cache=FALSE, message=FALSE, warning = FALSE, echo = TRUE}
+library(Signac)
+library(Seurat)
+library(ggplot2)
+library(patchwork)
+library(EnsDb.Hsapiens.v75)
+```
+
+Here, we profiled a modest number (aimed for ~2,500) cells from a patient with a
+colorectal cancer (CRC) tumor.
+
+Data is available on XXX here: XXX
+
+## DNA accessibility data import
+
+First we load the scATAC-seq data and create a Seurat object.
+  
+```{r importData, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
+# load counts and metadata from cellranger-atac
+counts <- Read10X_h5(filename = "~/data/mito/crc/filtered_peak_bc_matrix.h5")
+metadata <- read.csv(
+  file = "~/data/mito/crc/singlecell.csv",
+  header = TRUE,
+  row.names = 1
+)
+
+# load annotations
+annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
+
+# change to UCSC style since the data was mapped to hg19
+seqlevelsStyle(annotations) <- 'UCSC'
+genome(annotations) <- "hg19"
+
+# create object
+crc <- CreateSignacObject(
+  counts = counts,
+  sep = c(":", "-"),
+  assay = 'peaks',
+  annotation = annotations,
+  min.cells = 10,
+  genome = "hg19",
+  fragments = '~/data/mito/crc/fragments.tsv.gz',
+  meta.data = metadata
+)
+
+crc[["peaks"]]
+```
+
+## Quality control
+
+```{r message=FALSE, warning=FALSE}
+# Augment QC
+crc$pct_reads_in_peaks <- crc$peak_region_fragments / crc$passed_filters * 100
+crc$pct_reads_in_DNase <- crc$DNase_sensitive_region_fragments / crc$passed_filters * 100
+crc$blacklist_ratio <- crc$blacklist_region_fragments / crc$peak_region_fragments
+
+# compute TSS enrichment score and nucleosome banding pattern
+crc <- TSSEnrichment(crc)
+crc <- NucleosomeSignal(crc)
+```
+
+
+```{r fig.width=12}
+VlnPlot(crc, c("TSS.enrichment", "nCount_peaks", "nucleosome_signal", "pct_reads_in_peaks", "pct_reads_in_DNase", "blacklist_ratio"), pt.size = 0, ncol = 6)
+```
+
+```{r}
+crc$tss.high <- ifelse(crc$TSS.enrichment > 3, "High", "Low")
+TSSPlot(crc, group.by = "tss.high")
+```
+
+```{r}
+crc <- subset(
+  x = crc,
+  subset = nCount_peaks > 1000 &
+    nCount_peaks < 50000 &
+    pct_reads_in_DNase > 40 &
+    blacklist_ratio < 0.05 &
+    TSS.enrichment > 3 & 
+    nucleosome_signal < 10
+)
+crc
+```
+
+## Add mtDNA data
+
+```{r process_mito, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
+# TODO need mgatk output for this dataset
+# replace the following with ReadMGATK and IdentifyVariants
+# mito <- ReadMGATK(dir = "~/data/mito/crc/")
+
+# load mitochondrial mutation data for each cell
+mgatk_se <- readRDS("~/data/mito/crc/CRC_mgatk.rds")
+
+# Subset to cell present in the scATAC-seq assat
+mgatk_se <- mgatk_se[, colnames(crc)]
+
+# add mitochondrial sequencing depth information to the Seurat object
+crc$mtDNA_depth <- mgatk_se$depth
+VlnPlot(crc, "mtDNA_depth", pt.size = 0.1) + scale_y_log10()
+```
+
+```{r}
+# filter cells based on mitochondrial depth
+crc <- subset(crc, mtDNA_depth >= 10)
+mgatk_se <- mgatk_se[, colnames(crc)]
+```
+
+Create a new assay to store the mitochondrial DNA data
+
+```{r}
+# TODO
+# crc[["mito"]] <- CreateAssayObject(counts = counts)
+```
+
+## Dimension reduction and clustering
+
+```{r message=FALSE, warning=FALSE}
+DefaultAssay(crc) <- "peaks"
+
+crc <- RunTFIDF(crc)
+crc <- FindTopFeatures(crc, min.cutoff = 10)
+crc <- RunSVD(crc)
+```
+
+```{r}
+# check correlation between sequencing depth and each component
+DepthCor(crc)
+```
+
+```{r message=FALSE, warning=FALSE}
+crc <- RunUMAP(crc, reduction = "lsi", dims = 2:50)
+crc <- FindNeighbors(crc, reduction = "lsi", dims = 2:50)
+crc <- FindClusters(crc, resolution = 0.5, algorithm = 3)
+```
+
+```{r}
+DimPlot(crc, label = TRUE) + NoLegend()
+```
+
+## Generate gene scores
+
+Here, we can see that some clusters have less mitochondrial DNA content as well
+as worse reads in DNase peaks than others. Let's define the cell states using
+marker genes to better understand this.
+
+```{r setup_gene_activity, cache=FALSE, message=FALSE, warning = FALSE, echo = TRUE}
+# compute gene accessibility
+gene.activities <- GeneActivity(crc)
+
+# add to the Seurat object as a new assay
+crc[['RNA']] <- CreateAssayObject(counts = gene.activities)
+
+crc <- NormalizeData(
+  object = crc,
+  assay = 'RNA',
+  normalization.method = 'LogNormalize',
+  scale.factor = median(crc$nCount_RNA)
+)
+```
+
+## Visualize interesting gene activity scores
+
+- EPCAM is a marker for epithelial cells
+- TREM1 is a meyloid marker
+- PTPRC = CD45 = Pan immune cell marker
+- IL1RL1 are basophil markers
+- GATA3 is a Treg marker
+- KIT is a Treg marker
+
+
+```{r viz_gene_activitites, cache=FALSE, message=FALSE, warning = FALSE, echo = TRUE}
+DefaultAssay(crc) <- 'RNA'
+
+FeaturePlot(
+  object = crc,
+  features = c('TREM1', 'EPCAM', "PTPRC", "IL1RL1","GATA3", "KIT"),
+  pt.size = 0.1,
+  max.cutoff = 'q95',
+  ncol = 2
+)
+```
+
+Using these gene score values, we can assign cluster identities: 
+
+```
+0 - epithelial cells
+1 - myeloid 1
+2 - basophils
+3 - Treg
+4 - myeloid 2
+5 - mast cells
+```
+
+## Look back at QC 
+
+Just to show why we were more inclusive during the cell filtering stage:
+
+```{r other_plots, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
+crc$log10_mtDNA_depth <- log10(crc$mtDNA_depth)
+FeaturePlot(crc, features = c("pct_reads_in_DNase", "log10_mtDNA_depth"))
+```
+
+Some other views:
+
+```{r cell_filtering_recap, message=FALSE, warning = FALSE, echo = TRUE}
+p1 <- FeatureScatter(crc, "mtDNA_depth", "pct_reads_in_peaks") + ggtitle("") + scale_x_log10()
+p2 <- FeatureScatter(crc, "mtDNA_depth", "nucleosome_signal") + ggtitle("") + scale_x_log10()
+
+p1 + p2 + plot_layout(guides = 'collect')
+```
+
+We can see that most of the low FRIP cells were the `myeloid 1` cluster. This is
+some sort of intra-tumor granulocyte that has relatively poor accessible
+chromatin enrichment. 
+
+## Find informative mtDNA variants
+
+Next we can identify sites in the mitochondrial genome that vary across cells, 
+and cluster the cells into clonotypes based on the frequency of these variants
+in the cells.
+
+```{r call_variants, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
+mut_se <- call_mutations_mgatk(mgatk_se)
+misc_df <- data.frame(rowData(mut_se))
+
+ggplot(misc_df %>% filter(n_cells_conf_detected >= 5), aes(x = strand_correlation, y = log10(vmr))) +
+  geom_point() +
+  labs(color = "HQ", x = "Pearson correlation (strand)", y = "log VMR") +
+  geom_vline(xintercept = 0.65, color = "black", linetype = 2) +
+  geom_hline(yintercept = -2, color = "black", linetype = 2) +
+  pretty_plot(fontsize = 12) + L_border() +
+  theme(legend.position = "bottom")
+
+# Establish a filtered data frame of variants based on this processing
+filter_df <- misc_df %>% dplyr::filter(n_cells_conf_detected >= 5 & strand_correlation >= 0.65 & log10(vmr) > -2)
+```
+
+Above, the plot is sort of the standard way to visualize potential variants that
+could be informative for subclustering. From this execution (which serves as
+pretty good defaults from my testing), we get 12 variants. Let's look more
+closely:
+
+```{r look_at_variants, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
+filter_df[,c(1,2,3,5)]
+```
+
+A few things stand out. First, 10 out of the 12 variants occur at less than 1% 
+allele frequency in the population. However, 16147C>T is present at about 62%.
+We'll see that this is a clonal variant marking the epithelial cells.
+Additionally, all of the called variants are transitions. This fits what
+
+## Visualize a subset of the called variants
+
+Currently, this is pretty messy, but I think that visualizing variants on the
+reduced dimension embedding is generally useful:
+
+```{r visualize variants, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE, fig.height = 8}
+library(cowplot)
+mito_df <- data.frame(
+  crc@meta.data,
+  crc@reductions$umap@cell.embeddings,
+  t(assays(mut_se)[["allele_frequency"]][as.character(filter_df$variant),]),
+  t(assays(mut_se)[["coverage"]][as.character(filter_df$variant),])
+)
+
+plot_mito_umap <- function(mito_df, variant){
+  
+  # Ugly name that comes from making it a column names
+  ugly_var <- paste0("X", gsub(">", ".", variant))
+  mito_df$variant_value <- mito_df[,ugly_var]*100
+  
+  ggplot(mito_df %>% arrange(variant_value), aes(x = UMAP_1, y = UMAP_2, color = variant_value)) +
+    geom_point() + theme_bw() +
+    scale_color_gradientn(colors = c("lightgrey", "firebrick")) +
+    labs(color = variant)
+}
+
+plot1 <- plot_mito_umap(mito_df, "16147C>T")
+plot2 <- plot_mito_umap(mito_df, "9728C>T")
+plot3 <- plot_mito_umap(mito_df, "1227G>A")
+plot4 <- plot_mito_umap(mito_df, "12889G>A")
+plot5 <- plot_mito_umap(mito_df, "3244G>A")
+plot6 <- plot_mito_umap(mito_df, "824T>C")
+
+
+cowplot::plot_grid(plot1, plot2, plot3, plot4, plot5, plot6, nrow = 3)
+
+```
+
+Here, we can see a few interesting patterns for the selected variants. 16147C>T
+is present in essentially all epithelial cells and almost exclusively in
+epithelial cells (the edge cases where this isn't true are also cases where the
+UMAP and clustering don't full agree). It is at 100% allele frequency-- strongly
+suggestive of whatever cell of origin of this tumor had the mutation at 100% and
+then expanded. 
+
+We then see at least 3 variants 9728C>T, 1227G>A, 12889G>A that are mostly
+present specifically in the epithelial cells that define subclones. It's not
+really enough cells to call subclones unfortunately. 
+
+The variants 824T>C and 3244G>A are found specifically in immune cell
+populations, suggesting that these arose from a common hematopoetic progenitor
+cell (probably in the bone marrow). 
