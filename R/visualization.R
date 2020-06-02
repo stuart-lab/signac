@@ -1067,7 +1067,7 @@ CoverageBrowser <- function(object, region, ...) {
   if (!requireNamespace("shiny", quietly = TRUE)) {
     stop("Please install shiny. https://shiny.rstudio.com/")
   }
-  if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+  if (!requireNamespace("miniUI", quietly = TRUE)) {
     stop("Please install miniUI. https://github.com/rstudio/miniUI")
   }
 
