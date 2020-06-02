@@ -322,23 +322,36 @@ SingleFeatureMatrix <- function(
     message("Constructing matrix")
   }
   cell.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 1))
-  feature.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 2))
-  all.cells <- unique(x = cell.vector)
-  all.features <- unique(x = feature.vector)
-  cell.lookup <- seq_along(along.with = all.cells)
-  feature.lookup <- seq_along(along.with = all.features)
-  names(x = cell.lookup) <- all.cells
-  names(x = feature.lookup) <- all.features
-  matrix.features <- feature.lookup[feature.vector]
-  matrix.cells <- cell.lookup[cell.vector]
-  featmat <- sparseMatrix(
-    i = matrix.features,
-    j = matrix.cells,
-    x = rep(x = 1, length(x = cell.vector))
-  )
-  featmat <- as(Class = "dgCMatrix", object = featmat)
-  rownames(x = featmat) <- names(x = feature.lookup)
-  colnames(x = featmat) <- names(x = cell.lookup)
+  if (is.null(x = cell.vector) & !is.null(x = cells)) {
+    # zero for everything
+    featmat <- sparseMatrix(
+      dims = c(length(x = features), length(x = cells)),
+      i = NULL,
+      j = NULL
+    )
+    rownames(x = featmat) <- GRangesToString(grange = features)
+    colnames(x = featmat) <- cells
+    return(featmat)
+  } else {
+    feature.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 2))
+    all.cells <- unique(x = cell.vector)
+    all.features <- unique(x = feature.vector)
+    cell.lookup <- seq_along(along.with = all.cells)
+    feature.lookup <- seq_along(along.with = all.features)
+    names(x = cell.lookup) <- all.cells
+    names(x = feature.lookup) <- all.features
+    matrix.features <- feature.lookup[feature.vector]
+    matrix.cells <- cell.lookup[cell.vector]
+    featmat <- sparseMatrix(
+      i = matrix.features,
+      j = matrix.cells,
+      x = rep(x = 1, length(x = cell.vector))
+    )
+    featmat <- as(Class = "dgCMatrix", object = featmat)
+    rownames(x = featmat) <- names(x = feature.lookup)
+    colnames(x = featmat) <- names(x = cell.lookup)
+  }
+
   # add zero columns for missing cells
   if (!is.null(x = cells)) {
     missing.cells <- setdiff(x = cells, y = colnames(x = featmat))

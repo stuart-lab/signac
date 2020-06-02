@@ -262,6 +262,13 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' @export
 #' @importFrom Seurat DefaultAssay
 #' @examples
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fragments <- CreateFragmentObject(
+#'   path = fpath,
+#'   cells = colnames(atac_small),
+#'   validate.fragments = FALSE
+#' )
+#' Fragments(atac_small) <- fragments
 #' GeneActivity(atac_small)
 GeneActivity <- function(
   object,
@@ -323,6 +330,7 @@ GeneActivity <- function(
 #'
 #' @param ensdb An EnsDb object
 #' @param standard.chromosomes Keep only standard chromosomes
+#' @param biotypes Biotypes to keep
 #' @param verbose Display messages
 #'
 #' @importFrom biovizBase crunch

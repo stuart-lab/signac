@@ -16,6 +16,8 @@ GetGRangesFromEnsDb(
 
 \item{standard.chromosomes}{Keep only standard chromosomes}
 
+\item{biotypes}{Biotypes to keep}
+
 \item{verbose}{Display messages}
 }
 \description{

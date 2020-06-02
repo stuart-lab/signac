@@ -391,26 +391,6 @@ SingleCoveragePlot <- function(
   return(p)
 }
 
-# CoverageBrowser <- function(object, region, ...) {
-#
-#   ui <- miniPage(
-#     gadgetTitleBar("Genome browser"),
-#     miniContentPanel(
-#       # TODO
-#     )
-#   )
-#
-#   server <- function(input, output, session) {
-#
-#     observeEvent(input$done, {
-#       returnValue <- ...
-#       stopApp(returnValue)
-#     })
-#   }
-#
-#   runGadget(ui, server)
-# }
-
 #' Plot Tn5 insertion frequency over a region
 #'
 #' Plot frequency of Tn5 insertion events for different groups of cells within
@@ -423,7 +403,14 @@ SingleCoveragePlot <- function(
 #' @param region A set of genomic coordinates to show. Can be a GRanges object,
 #' a string, or a vector of strings describing the genomic
 #' coordinates to plot.
-#' @param assay Name of the  assay to plot
+#' @param features A vector of features present in another assay to plot
+#' alongside accessibility tracks (for example, gene names).
+#' @param assay Name of the assay to plot
+#' @param expression.assay Name of the assay containing expression data to plot
+#' alongside accessibility tracks. Only needed if supplying \code{features}
+#' argument.
+#' @param expression.slot Name of slot to pull expression data from. Only needed
+#' if supplying the \code{features} argument.
 #' @param annotation Display gene annotations
 #' @param peaks Display peaks
 #' @param links Display links
@@ -980,6 +967,7 @@ AnnotationPlot <- function(object, region) {
   return(p)
 }
 
+globalVariables(names = "gene", package = "Signac")
 #' Plot gene expression
 #'
 #' Display gene expression values for different groups of cells and different
@@ -1004,7 +992,7 @@ AnnotationPlot <- function(object, region) {
 #' @export
 #' @concept visualization
 #' @examples
-#' ExpressionPlot(atac_small, features = "SAMD11", assay = "RNA")
+#' ExpressionPlot(atac_small, features = "TSPAN6", assay = "RNA")
 ExpressionPlot <- function(
   object,
   features,

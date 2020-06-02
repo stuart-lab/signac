@@ -37,6 +37,6 @@ and the plot will be able to be aligned with coverage tracks for the same
 groups of cells.
 }
 \examples{
-ExpressionPlot(atac_small, features = "SAMD11", assay = "RNA")
+ExpressionPlot(atac_small, features = "TSPAN6", assay = "RNA")
 }
 \concept{visualization}
