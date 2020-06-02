@@ -1053,3 +1053,81 @@ ExpressionPlot <- function(
                         as.character(x = ymax), ")"))
   return(p)
 }
+
+#' Genome browser
+#'
+#' Interactive version of the \code{\link{CoveragePlot}} function. Allows
+#' altering the genome position interactively.
+#'
+#' @param object A Seurat object
+#' @param region A set of genomic coordinates
+#' @param ... Parameters passed to \code{\link{CoveragePlot}}
+#' @export
+CoverageBrowser <- function(object, region, ...) {
+  if (!requireNamespace("shiny", quietly = TRUE)) {
+    stop("Please install shiny. https://shiny.rstudio.com/")
+  }
+  if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+    stop("Please install miniUI. https://github.com/rstudio/miniUI")
+  }
+
+  if (inherits(x = region, what = "character")) {
+    region <- StringToGRanges(regions = region, ...)
+  }
+  startpos <- start(x = region)
+  endpos <- end(x = region)
+  chrom <- seqnames(x = region)
+
+  ui <- miniUI::miniPage(
+    miniUI::gadgetTitleBar(
+      title = "Genome browser",
+      left = NULL
+    ),
+    miniUI::miniContentPanel(
+      shiny::plotOutput(outputId = "access", height = "100%")
+    ),
+    miniUI::miniButtonBlock(
+      shiny::textInput(
+        inputId = "chrom",
+        label = "Chromosome",
+        value = chrom
+      ),
+      shiny::numericInput(
+        inputId = "startpos",
+        label = "Start",
+        value = startpos,
+        step = 5000
+      ),
+      shiny::numericInput(
+        inputId = "endpos",
+        label = "End",
+        value = endpos,
+        step = 5000
+      ),
+      shiny::actionButton("go", "Go")
+    )
+  )
+
+  server <- function(input, output, session) {
+    current_region <- shiny::eventReactive(
+      eventExpr = input$go,
+      valueExpr = GRanges(
+        seqnames = input$chrom,
+        ranges = IRanges(start = input$startpos, end = input$endpos)
+      )
+    )
+    output$access <- shiny::renderPlot(expr = {
+      CoveragePlot(
+        object = object,
+        region = current_region(),
+        ...
+      )
+    })
+    shiny::observeEvent(
+      eventExpr = input$done,
+      handlerExpr = {
+        shiny::stopApp()
+      })
+  }
+  shiny::runGadget(app = ui, server = server)
+}

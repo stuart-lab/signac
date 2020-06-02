@@ -71,4 +71,6 @@ Suggests:
     SummarizedExperiment,
     TFBSTools,
     motifmatchr,
-    BSgenome
+    BSgenome,
+    shiny,
+    miniUI
