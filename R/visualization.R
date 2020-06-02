@@ -391,26 +391,6 @@ SingleCoveragePlot <- function(
   return(p)
 }
 
-# CoverageBrowser <- function(object, region, ...) {
-#
-#   ui <- miniPage(
-#     gadgetTitleBar("Genome browser"),
-#     miniContentPanel(
-#       # TODO
-#     )
-#   )
-#
-#   server <- function(input, output, session) {
-#
-#     observeEvent(input$done, {
-#       returnValue <- ...
-#       stopApp(returnValue)
-#     })
-#   }
-#
-#   runGadget(ui, server)
-# }
-
 #' Plot Tn5 insertion frequency over a region
 #'
 #' Plot frequency of Tn5 insertion events for different groups of cells within
