@@ -36,11 +36,10 @@ navbar:
           href: articles/merging.html
         - text: "Data structures and object interaction"
           href: articles/data_structures.html
-        - text: -------
-        - text: "Archive"
-          href: articles/archive.html
     - text: "Reference"
       href: reference/index.html
+    - text: "Archive"
+      href: articles/archive.html
   right:
     - icon: fa-github
       href: https://github.com/timoast/signac
