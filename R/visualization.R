@@ -587,8 +587,8 @@ globalVariables(names = "group", package = "Signac")
 #' @param log.scale Display Y-axis on log scale. Default is FALSE.
 #' @param ... Arguments passed to other functions
 #'
-#' @importFrom ggplot2 ggplot geom_histogram theme_bw aes facet_wrap xlim
-#' scale_y_log10
+#' @importFrom ggplot2 ggplot geom_histogram theme_classic aes facet_wrap xlim
+#' scale_y_log10 theme element_blank
 #'
 #' @export
 #' @concept visualization
@@ -633,16 +633,20 @@ FragmentHistogram <- function(
   reads$group <- groups[reads$cell]
   if (length(x = unique(x = reads$group)) == 1) {
     p <- ggplot(data = reads, aes(length)) +
-      geom_histogram(bins = 200) +
-      xlim(c(0, 800)) +
-      theme_bw()
+      geom_histogram(bins = 200)
   } else {
     p <- ggplot(data = reads, mapping = aes(x = length, fill = group)) +
       geom_histogram(bins = 200) +
-      facet_wrap(~group, scales = "free_y") +
-      xlim(c(0, 800)) +
-      theme_bw()
+      facet_wrap(~group, scales = "free_y")
   }
+  p <- p + xlim(c(0, 800)) +
+    theme_classic() +
+    theme(
+      legend.position = "none",
+      strip.background = element_blank()
+    ) +
+    xlab("Fragment length") +
+    ylab("Count")
   if (log.scale) {
     p <- p + scale_y_log10()
   }
@@ -665,7 +669,8 @@ globalVariables(names = "norm.value", package = "Signac")
 #'
 #' @importFrom Seurat GetAssayData
 #' @importFrom Matrix colMeans
-#' @importFrom ggplot2 ggplot aes geom_line xlab ylab theme_minimal ggtitle
+#' @importFrom ggplot2 ggplot aes geom_line xlab ylab theme_classic ggtitle
+#' theme element_blank
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot2}} object
 #' @export
@@ -712,7 +717,11 @@ TSSPlot <- function(
     facet_wrap(facets = ~group) +
     xlab("Distance from TSS (bp)") +
     ylab(label = "Mean TSS enrichment score") +
-    theme_minimal() +
+    theme_classic() +
+    theme(
+      legend.position = "none",
+      strip.background = element_blank()
+    ) +
     ggtitle("TSS enrichment")
   return(p)
 }
