@@ -16,7 +16,10 @@ library(EnsDb.Hsapiens.v75)
 Here, we profiled a modest number (aimed for ~2,500) cells from a patient with a
 colorectal cancer (CRC) tumor.
 
-Data is available on XXX here: XXX
+DNA accessibility data is available on NCBI GEO here: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE148509
+
+Mitochondrial variant data for each cell is available on XXX here:
+
 
 ## DNA accessibility data import
 
