@@ -86,6 +86,11 @@ reference:
   - contents:
     - has_concept("motifs")
 
+  - title: "Mitochondrial lineage tracing"
+    desc: "Functions for identifying cell lineages or clonotypes from mitochondrial mutations"
+  - contents:
+    - has_concept("mito")
+
   - title: "Fragments"
     desc: "Functions for working with fragment files"
   - contents:

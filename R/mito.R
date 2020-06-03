@@ -16,6 +16,7 @@
 #' position.
 #'
 #' @export
+#' @concept mito
 #' @examples
 #' \dontrun{
 #' data.dir <- system.file("extdata", "test_mgatk", package="Signac")
@@ -129,6 +130,7 @@ ReadMGATK <- function(dir, verbose = TRUE) {
 #'
 #' @return Returns a dataframe
 #' @export
+#' @concept mito
 #' @rdname IdentifyVariants
 #' @examples
 #' \dontrun{
@@ -190,6 +192,7 @@ IdentifyVariants.default <- function(
 #' @importFrom Seurat GetAssayData
 #' @rdname IdentifyVariants
 #' @method IdentifyVariants Assay
+#' @concept mito
 #' @export
 IdentifyVariants.Assay <- function(
   object,
@@ -204,6 +207,7 @@ IdentifyVariants.Assay <- function(
 #' @importFrom Seurat GetAssay DefaultAssay
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @rdname IdentifyVariants
+#' @concept mito
 #' @method IdentifyVariants Seurat
 #' @export
 IdentifyVariants.Seurat <- function(
