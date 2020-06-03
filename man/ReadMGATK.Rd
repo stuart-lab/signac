@@ -31,3 +31,4 @@ data.dir <- system.file("extdata", "test_mgatk", package="Signac")
 mgatk <- ReadMGATK(dir = data.dir)
 }
 }
+\concept{mito}
