@@ -197,7 +197,7 @@ IdentifyVariants.Assay <- function(
   ...
 ) {
   counts <- GetAssayData(object = object, slot = 'counts')
-  df <- IdentifyVariants(object = counts, ...)
+  df <- IdentifyVariants(object = counts, refallele = refallele, ...)
   return(df)
 }
 
@@ -214,7 +214,7 @@ IdentifyVariants.Seurat <- function(
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   assay.obj <- GetAssay(object = object, assay = assay)
-  df <- IdentifyVariants(object = assay.obj, ...)
+  df <- IdentifyVariants(object = assay.obj, refallele = refallele, ...)
   return(df)
 }
 
