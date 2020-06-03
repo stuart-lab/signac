@@ -92,50 +92,34 @@ crc
 ## Add mtDNA data
 
 ```{r process_mito, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
-# TODO need mgatk output for this dataset
-# replace the following with ReadMGATK and IdentifyVariants
-# mito <- ReadMGATK(dir = "~/data/mito/crc/")
+# load mGATK output
+mito.data <- ReadMGATK(dir = "~/data/mito/crc/mgatk_inputs/")
 
-# load mitochondrial mutation data for each cell
-mgatk_se <- readRDS("~/data/mito/crc/CRC_mgatk.rds")
+# create an assay
+mito <- CreateAssayObject(counts = mito.data$counts)
 
 # Subset to cell present in the scATAC-seq assat
-mgatk_se <- mgatk_se[, colnames(crc)]
+mito <- subset(mito, cells = colnames(crc))
 
-# add mitochondrial sequencing depth information to the Seurat object
-crc$mtDNA_depth <- mgatk_se$depth
+# add assay and metadata to the seurat object
+crc[["mito"]] <- mito
+crc <- AddMetaData(crc, metadata = mito.data$depth, col.name = "mtDNA_depth")
+
 VlnPlot(crc, "mtDNA_depth", pt.size = 0.1) + scale_y_log10()
 ```
 
 ```{r}
 # filter cells based on mitochondrial depth
 crc <- subset(crc, mtDNA_depth >= 10)
-mgatk_se <- mgatk_se[, colnames(crc)]
-```
-
-Create a new assay to store the mitochondrial DNA data
-
-```{r}
-# TODO
-# crc[["mito"]] <- CreateAssayObject(counts = counts)
+crc
 ```
 
 ## Dimension reduction and clustering
 
 ```{r message=FALSE, warning=FALSE}
-DefaultAssay(crc) <- "peaks"
-
 crc <- RunTFIDF(crc)
 crc <- FindTopFeatures(crc, min.cutoff = 10)
 crc <- RunSVD(crc)
-```
-
-```{r}
-# check correlation between sequencing depth and each component
-DepthCor(crc)
-```
-
-```{r message=FALSE, warning=FALSE}
 crc <- RunUMAP(crc, reduction = "lsi", dims = 2:50)
 crc <- FindNeighbors(crc, reduction = "lsi", dims = 2:50)
 crc <- FindClusters(crc, resolution = 0.5, algorithm = 3)
@@ -203,7 +187,7 @@ Using these gene score values, we can assign cluster identities:
 
 Just to show why we were more inclusive during the cell filtering stage:
 
-```{r other_plots, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
+```{r other_plots, message=FALSE, warning = FALSE, echo = TRUE}
 crc$log10_mtDNA_depth <- log10(crc$mtDNA_depth)
 FeaturePlot(crc, features = c("pct_reads_in_DNase", "log10_mtDNA_depth"))
 ```
@@ -228,19 +212,21 @@ and cluster the cells into clonotypes based on the frequency of these variants
 in the cells.
 
 ```{r call_variants, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
-mut_se <- call_mutations_mgatk(mgatk_se)
-misc_df <- data.frame(rowData(mut_se))
+variable.sites <- IdentifyVariants(crc, assay = "mito", refallele = mito.data$refallele)
 
-ggplot(misc_df %>% filter(n_cells_conf_detected >= 5), aes(x = strand_correlation, y = log10(vmr))) +
+high.conf <- variable.sites[variable.sites$n_cells_conf_detected >= 5, ]
+
+# TODO could add this as a function in Signac
+ggplot(high.conf, aes(x = strand_correlation, y = log10(vmr))) +
   geom_point() +
-  labs(color = "HQ", x = "Pearson correlation (strand)", y = "log VMR") +
+  labs(x = "Pearson correlation (strand)", y = "log VMR") +
   geom_vline(xintercept = 0.65, color = "black", linetype = 2) +
   geom_hline(yintercept = -2, color = "black", linetype = 2) +
-  pretty_plot(fontsize = 12) + L_border() +
-  theme(legend.position = "bottom")
+  theme_classic()
 
 # Establish a filtered data frame of variants based on this processing
-filter_df <- misc_df %>% dplyr::filter(n_cells_conf_detected >= 5 & strand_correlation >= 0.65 & log10(vmr) > -2)
+high.conf <- dplyr::filter(high.conf, n_cells_conf_detected >= 5 & strand_correlation >= 0.65 & log10(vmr) > -2)
+high.conf
 ```
 
 Above, the plot is sort of the standard way to visualize potential variants that
@@ -249,7 +235,7 @@ pretty good defaults from my testing), we get 12 variants. Let's look more
 closely:
 
 ```{r look_at_variants, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
-filter_df[,c(1,2,3,5)]
+high.conf[,c(1,2,3,5)]
 ```
 
 A few things stand out. First, 10 out of the 12 variants occur at less than 1% 
@@ -262,37 +248,8 @@ Additionally, all of the called variants are transitions. This fits what
 Currently, this is pretty messy, but I think that visualizing variants on the
 reduced dimension embedding is generally useful:
 
-```{r visualize variants, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE, fig.height = 8}
-library(cowplot)
-mito_df <- data.frame(
-  crc@meta.data,
-  crc@reductions$umap@cell.embeddings,
-  t(assays(mut_se)[["allele_frequency"]][as.character(filter_df$variant),]),
-  t(assays(mut_se)[["coverage"]][as.character(filter_df$variant),])
-)
-
-plot_mito_umap <- function(mito_df, variant){
-  
-  # Ugly name that comes from making it a column names
-  ugly_var <- paste0("X", gsub(">", ".", variant))
-  mito_df$variant_value <- mito_df[,ugly_var]*100
-  
-  ggplot(mito_df %>% arrange(variant_value), aes(x = UMAP_1, y = UMAP_2, color = variant_value)) +
-    geom_point() + theme_bw() +
-    scale_color_gradientn(colors = c("lightgrey", "firebrick")) +
-    labs(color = variant)
-}
-
-plot1 <- plot_mito_umap(mito_df, "16147C>T")
-plot2 <- plot_mito_umap(mito_df, "9728C>T")
-plot3 <- plot_mito_umap(mito_df, "1227G>A")
-plot4 <- plot_mito_umap(mito_df, "12889G>A")
-plot5 <- plot_mito_umap(mito_df, "3244G>A")
-plot6 <- plot_mito_umap(mito_df, "824T>C")
-
-
-cowplot::plot_grid(plot1, plot2, plot3, plot4, plot5, plot6, nrow = 3)
-
+```{r visualize variants, message=FALSE, warning = FALSE, echo = TRUE, fig.height = 8}
+# add featureplot visualization
 ```
 
 Here, we can see a few interesting patterns for the selected variants. 16147C>T
