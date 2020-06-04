@@ -246,13 +246,39 @@ allele frequency in the population. However, 16147C>T is present at about 62%.
 We'll see that this is a clonal variant marking the epithelial cells.
 Additionally, all of the called variants are transitions. This fits what
 
+## Compute variant allele frequency for each cell
+
+We currently have information for each strand stored in the mito assay to allow
+strand concordance to be assessed. Now that we have our set of high-confidence
+informative variants, we can create a new assay containing strand-collapsed
+allele frequency counts for each cell for these variants using the `AlleleFreq()`
+function.
+
+```{r}
+crc <- AlleleFreq(
+  object = crc,
+  variants = high.conf$variant,
+  assay = "mito"
+)
+crc[["alleles"]]
+```
+
 ## Visualize a subset of the called variants
 
 Currently, this is pretty messy, but I think that visualizing variants on the
 reduced dimension embedding is generally useful:
 
 ```{r visualize variants, message=FALSE, warning = FALSE, echo = TRUE, fig.height = 8}
-# add featureplot visualization
+DefaultAssay(crc) <- "alleles"
+FeaturePlot(
+  object = crc,
+  features = rownames(crc),
+  pt.size = 0.1,
+  order = TRUE,
+  cols = c("grey", "darkred"),
+  ncol = 3,
+  max.cutoff = 1
+) & NoLegend()
 ```
 
 Here, we can see a few interesting patterns for the selected variants. 16147C>T
