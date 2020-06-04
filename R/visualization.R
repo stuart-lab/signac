@@ -1140,3 +1140,46 @@ CoverageBrowser <- function(object, region, ...) {
   }
   shiny::runGadget(app = ui, server = server)
 }
+
+#' Plot strand concordance vs. VMR
+#'
+#' Plot the Pearson correlation between allele frequencies on each strand
+#' versus the log10 mean-variance ratio for the allele.
+#'
+#' @param variants A dataframe containing variant information. This should be
+#' computed using \code{\link{IdentifyVariants}}
+#' @param min.cells Minimum number of high-confidence cells detected with the
+#' variant for the variant to be displayed.
+#' @concept mito
+#' @concept visualization
+#' @export
+#' @importFrom ggplot2 ggplot aes_string geom_point labs scale_y_log10
+#' geom_vline geom_hline theme_classic scale_color_manual theme
+#' @importFrom scales comma
+VariantPlot <- function(
+  variants,
+  min.cells = 2,
+  concordance.threshold = 0.65,
+  vmr.threshold = 0.01
+) {
+  high.conf <- variants[variants$n_cells_conf_detected >= min.cells, ]
+  high.conf$pos <- high.conf$vmr > vmr.threshold &
+    high.conf$strand_correlation > concordance.threshold
+  p <- ggplot(
+    data = high.conf,
+    mapping = aes_string(x = "strand_correlation", y = "vmr", color = "pos")
+    ) +
+    geom_point() +
+    labs(x = "Strand concordance", y = "Variance-mean ratio") +
+    geom_vline(
+      xintercept = concordance.threshold, color = "black", linetype = 2
+      ) +
+    geom_hline(
+      yintercept = vmr.threshold, color = "black", linetype = 2
+      ) +
+    scale_color_manual(values = c("black", "firebrick")) +
+    scale_y_log10(labels = comma) +
+    theme_classic() +
+    theme(legend.position = "none")
+  return(p)
+}
