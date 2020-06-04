@@ -184,6 +184,17 @@ Links <- function(object, ...) {
   UseMethod(generic = "Links<-", object = object)
 }
 
+#' Identify mitochondrial variants
+#'
+#' Identify mitochondrial variants present in single cells.
+#' @param object A Seurat object
+#' @param ... Arguments passed to other methods
+#' @rdname IdentifyVariants
+#' @export IdentifyVariants
+IdentifyVariants <- function(object, ...) {
+  UseMethod(generic = "IdentifyVariants", object = object)
+}
+
 #' Compute base composition information for genomic ranges
 #'
 #' Compute the GC content, region lengths, and dinucleotide base frequencies

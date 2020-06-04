@@ -36,6 +36,17 @@ same mouse brain nuclei.
 knitr::include_graphics("./assets/snareseq.png")
 ```
 
+### [Joint single-cell mitochondrial DNA genotyping and DNA accessibility analysis](mito.html)
+
+In this tutorial we identify clonotypes using mitochondrial DNA mutations identified
+from scATAC-seq data, and jointly analyze clonal cellular relationships and DNA
+accessibility patterns in a human colorectal cancer sample.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/mito.png")
+```
+
+
 # How-to
 
 The following short vignettes demonstrate how to perform more specialized 

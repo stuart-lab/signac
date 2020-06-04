@@ -60,6 +60,7 @@ Collate:
     'genomeinfodb-methods.R'
     'granges-methods.R'
     'iranges-methods.R'
+    'mito.R'
     'motifs.R'
     'objects.R'
     'preprocessing.R'
