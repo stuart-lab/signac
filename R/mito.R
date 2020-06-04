@@ -1,3 +1,151 @@
+#' @rdname AlleleFreq
+#' @concept mito
+#' @importFrom stringi stri_split_fixed
+AlleleFreq.default <- function(object, variants, ...) {
+  # Access meta data for the counts
+  meta_row_mat <- as.data.frame(
+    x = stri_split_fixed(
+      str = rownames(x = object),
+      pattern = "-",
+      simplify = TRUE
+    ), stringsAsFactors = TRUE
+  )
+  colnames(meta_row_mat) = c("letter", "position", "strand")
+
+  # Access meta data for the variants
+  variant_df <- data.frame(
+    variant = variants,
+    position = factor(
+      x = substr(
+        x = variants,
+        start = 1,
+        stop = nchar(x = variants) - 3),
+      levels = levels(x = meta_row_mat$position)
+    ),
+    ref = factor(
+      x = substr(
+        x = variants,
+        start = nchar(x = variants) - 2,
+        stop = nchar(x = variants) - 2),
+      levels = levels(x = meta_row_mat$letter)
+    ),
+    alt = factor(
+      x = substr(
+        x = variants,
+        start = nchar(x = variants),
+        stop = nchar(x = variants)),
+      levels = levels(x = meta_row_mat$letter)
+    )
+  )
+
+  # Numerator counts
+  # Get the forward and reverse strands for the matching the position / letter
+  # for the alternate allele
+  # Utilize the fact that all of the fwds come first, then the reverse
+  ref_letter <-  paste0(meta_row_mat$position, meta_row_mat$letter)
+  alt_letter <- paste0(variant_df$position, variant_df$alt)
+  idx_numerator <- which(x = ref_letter %in% alt_letter)
+  fwd_half_idx <- idx_numerator[1:(length(x = idx_numerator) / 2)]
+  rev_half_idx <- idx_numerator[
+    (length(x = idx_numerator) / 2 + 1):length(x = idx_numerator)
+  ]
+
+  # Based on the object structure, use this feature to make fast subsetting
+  # But first verify that the object is behaving like we expect
+  if (!all.equal(
+    target = meta_row_mat[fwd_half_idx, 2],
+    current = meta_row_mat[rev_half_idx, 2]
+  )) {
+    stop("Variant count matrix does not have the required structure")
+  }
+  numerator_counts <- object[fwd_half_idx, ] + object[rev_half_idx, ]
+
+  # Same idea for the denominator but use a list since we have 8 things to think
+  # about
+  idx_denom <- which(x = meta_row_mat$position %in% variant_df$position)
+
+  # splits into a list of length # variants
+  list_idx_denom <- split(
+    x = idx_denom, f = rep(1:8, each = length(x = variants))
+  )
+
+  # Verify positions when split behave as expected
+  matrix_positions <- sapply(
+    X = list_idx_denom, FUN = function(idx) meta_row_mat$position[idx]
+  )
+  all.valid <- apply(
+    X = matrix_positions,
+    MARGIN = 1,
+    FUN = function(x) {
+      length(x = unique(x = x)) == 1
+      }
+    )
+  if (!all(all.valid)) {
+    stop("Invalid variant positions")
+  }
+
+  # Now sum into a denominator matrix
+  denominator_counts <- Reduce(
+    f = `+`,
+    x = lapply(
+      X = list_idx_denom,
+      FUN = function(idx) {
+          object[idx,]
+        }
+      )
+    )
+
+  # Prepare final allele frequency matrix to be returned
+  allele_freq_matrix <- numerator_counts / denominator_counts
+  colnames(x = allele_freq_matrix) <- colnames(x = object)
+
+  # The row names may not be in order as specified, so manually establish
+  vars_in_order <- paste0(
+    meta_row_mat$position, meta_row_mat$letter
+  )[fwd_half_idx]
+  rownames(x = allele_freq_matrix) <- sapply(
+    X = vars_in_order,
+    FUN = function(s){
+      as.character(x = variant_df$variant[
+        match(x = s, table = paste0(variant_df$position, variant_df$alt))
+        ])
+      }
+    )
+  return(allele_freq_matrix)
+}
+
+#' @rdname AlleleFreq
+#' @importFrom Seurat CreateAssayObject GetAssayData
+#' @concept mito
+AlleleFreq.Assay <- function(object, variants, ...) {
+  mat <- GetAssayData(object = object, slot = "counts")
+  allele.freq <- AlleleFreq(object = mat, variants = variants, ...)
+  allele.assay <- CreateAssayObject(counts = allele.freq)
+  return(allele.assay)
+}
+
+#' @param Assay Name of assay to use
+#' @param new.assay.name Name of new assay to store variant data in
+#' @rdname AlleleFreq
+#' @importFrom Seurat DefaultAssay
+#' @concept mito
+AlleleFreq.Seurat <- function(
+  object,
+  variants,
+  assay = NULL,
+  new.assay.name = "alleles",
+  ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  allele.assay <- AlleleFreq(
+    object = object[[assay]],
+    variants = variants,
+    ...
+  )
+  object[[new.assay.name]] <- allele.assay
+  return(object)
+}
+
 #' Read MGATK output
 #'
 #' Read output files from MGATK (\url{https://github.com/caleblareau/mgatk}).

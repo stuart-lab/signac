@@ -7,6 +7,22 @@ as.ChromatinAssay <- function(x, ...) {
   UseMethod(generic = "as.ChromatinAssay", object = x)
 }
 
+#' Compute allele frequencies per cell
+#'
+#' Collapses allele counts for each strand and normalize by the total number of
+#' counts at each nucleotide position.
+#'
+#' @param object A Seurat object, Assay, or matrix
+#' @param variants A character vector of informative variants to keep. For
+#' example, \code{c("627G>A","709G>A","1045G>A","1793G>A")}.
+#'
+#' @export
+#' @return Returns a \code{\link[Seurat]{Seurat}} object with a new assay
+#' containing the allele frequencies for the informative variants.
+AlleleFreq <- function(object, ...) {
+  UseMethod(generic = "AlleleFreq", object = object)
+}
+
 #' Annotation
 #'
 #' Get the annotation from a ChromatinAssay
