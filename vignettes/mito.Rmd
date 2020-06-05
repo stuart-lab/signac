@@ -309,3 +309,12 @@ are mostly present specifically in the epithelial cells that define subclones.
 The variants 824T>C and 3244G>A are found specifically in immune cell
 populations, suggesting that these arose from a common hematopoetic progenitor
 cell (probably in the bone marrow). 
+
+<details>
+  <summary>**Session Info**</summary>
+  
+```{r}
+sessionInfo()
+```
+
+</details>
