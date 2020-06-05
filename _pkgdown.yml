@@ -20,6 +20,8 @@ navbar:
           href: articles/mouse_brain_vignette.html
         - text: "Joint RNA and ATAC analysis"
           href: articles/snareseq.html
+        - text: "Mitochondrial genotyping"
+          href: articles/mito.html
         - text: "Motif analysis"
           href: articles/motif_vignette.html
         - text: "scATAC-seq integration"
