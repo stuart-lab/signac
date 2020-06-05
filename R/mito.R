@@ -151,6 +151,87 @@ AlleleFreq.Seurat <- function(
   return(object)
 }
 
+#' Find relationships between clonotypes
+#'
+#' Perform hierarchical clustering on clonotype data
+#'
+#' @param object A Seurat object
+#' @param assay Name of assay to use
+#' @param group.by Grouping variable for cells
+#'
+#' @importFrom Seurat Idents
+#' @importFrom lda cosine
+#' @importFrom Matrix rowMeans
+#' @importFrom stats dist hclust
+#' @export
+#' @return Returns an object of class \code{\link[stats]{hclust}}
+#' @concept mito
+ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
+  if (is.null(x = group.by)) {
+    object$allele_ident_stash_clon <- Idents(object = object)
+  } else {
+    object$allele_ident_stash_clon <- object[[]][[group.by]]
+  }
+  # find mean allele frequency of each variant in each clonotype
+  md <- object[[]]
+  matty <- sapply(X = unique(x = group.by), FUN = function(x) {
+    cells <- rownames(x = md[md$allele_ident_stash_clon == x, ])
+    return(rowMeans(x = sqrt(x = mat[, cells])))
+  })
+  object$allele_ident_stash_clon <- NULL
+  # cluster
+  hv <- hclust(d = dist(x = cosine(x = matty)))
+  return(hv)
+}
+
+#' Find clonotypes
+#'
+#' Identify groups of related cells from allele frequency data
+#'
+#' @param object A Seurat object
+#' @param assay Name of assay to use
+#' @param features Features to include when constructing neighbor graph
+#' @param metric Distance metric to use
+#' @param resolution Clustering resolution to use. See
+#' \code{\link[Seurat]{FindClusters}}
+#' @param k Passed to \code{k.param} argument in
+#' \code{\link[Seurat]{FindNeighbors}}
+#' @param algorithm Community detection algorithm to use. See
+#' \code{\link[Seurat]{FindClusters}}
+#' @export
+#' @concept mito
+#' @importFrom Seurat DefaultAssay GetAssayData FindNeighbors FindClusters
+FindClonotypes <- function(
+  object,
+  assay = NULL,
+  features = NULL,
+  metric = "cosine",
+  resolution = 1,
+  k = 10,
+  algorithm = 3,
+  ...
+) {
+  # get allele matrix
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  features <- SetIfNull(x = features, y = rownames(x = object[[assay]]))
+  mat <- GetAssayData(object = object, assay = assay, slot = "data")[features, ]
+  mat <- sqrt(x = t(x = mat))
+
+  # construct neighbor graph
+  graph <- FindNeighbors(object = mat, k.param = k, annoy.metric = metric)
+  object[[paste0(assay, "_nn")]] <- graph$nn
+  object[[paste0(assay, "_snn")]] <- graph$snn
+
+  # cluster
+  object <- FindClusters(
+    object = object,
+    graph.name = paste0(assay, "_snn"),
+    resolution = resolution,
+    algorithm = algorithm
+  )
+  return(object)
+}
+
 #' Read MGATK output
 #'
 #' Read output files from MGATK (\url{https://github.com/caleblareau/mgatk}).
