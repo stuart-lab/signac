@@ -1,5 +1,6 @@
 #' @rdname AlleleFreq
 #' @concept mito
+#' @export
 #' @importFrom stringi stri_split_fixed
 AlleleFreq.default <- function(object, variants, ...) {
   # Access meta data for the counts
@@ -117,6 +118,8 @@ AlleleFreq.default <- function(object, variants, ...) {
 #' @rdname AlleleFreq
 #' @importFrom Seurat CreateAssayObject GetAssayData
 #' @concept mito
+#' @export
+#' @method AlleleFreq Assay
 AlleleFreq.Assay <- function(object, variants, ...) {
   mat <- GetAssayData(object = object, slot = "counts")
   allele.freq <- AlleleFreq(object = mat, variants = variants, ...)
@@ -128,7 +131,9 @@ AlleleFreq.Assay <- function(object, variants, ...) {
 #' @param new.assay.name Name of new assay to store variant data in
 #' @rdname AlleleFreq
 #' @importFrom Seurat DefaultAssay
+#' @method AlleleFreq Seurat
 #' @concept mito
+#' @export
 AlleleFreq.Seurat <- function(
   object,
   variants,
