@@ -2,7 +2,9 @@
 title: "Joint single-cell mitochondrial DNA genotyping and DNA accessibility analysis"
 author: Caleb Lareau and Tim Stuart
 date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
-output: html_document
+output:
+  html_document:
+    self_contained: True
 ---
 
 ```{r packages, cache=FALSE, message=FALSE, warning = FALSE, echo = TRUE}
@@ -13,19 +15,21 @@ library(patchwork)
 library(EnsDb.Hsapiens.v75)
 ```
 
-Here, we profiled a modest number (aimed for ~2,500) cells from a patient with a
-colorectal cancer (CRC) tumor.
+Here, we analyze a dataset containing both DNA accessibility measurements and
+mitochondrial mutation data in the same cells, sampled from a patient with 
+a colorectal cancer (CRC) tumor. This data was produced by Lareau and Ludwig et
+al. (2020), and you can read the original paper here: XXX
 
 DNA accessibility data is available on NCBI GEO here: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE148509
 
 Mitochondrial variant data for each cell is available on XXX here:
 
+## Loading the DNA accessibility data
 
-## DNA accessibility data import
-
-First we load the scATAC-seq data and create a Seurat object.
+First we load the scATAC-seq data and create a Seurat object following the 
+standard workflow for scATAC-seq data.
   
-```{r importData, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
+```{r importData, message=FALSE, warning = FALSE}
 # load counts and metadata from cellranger-atac
 counts <- Read10X_h5(filename = "~/data/mito/crc/filtered_peak_bc_matrix.h5")
 metadata <- read.csv(
@@ -34,7 +38,7 @@ metadata <- read.csv(
   row.names = 1
 )
 
-# load annotations
+# load gene annotations from Ensembl
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
 
 # change to UCSC style since the data was mapped to hg19
@@ -58,8 +62,11 @@ crc[["peaks"]]
 
 ## Quality control
 
+We can compute the standard quality control metrics for scATAC-seq and filter
+out low-quality cells based on these metrics.
+
 ```{r message=FALSE, warning=FALSE}
-# Augment QC
+# Augment QC metrics that were computed by cellranger-atac
 crc$pct_reads_in_peaks <- crc$peak_region_fragments / crc$passed_filters * 100
 crc$pct_reads_in_DNase <- crc$DNase_sensitive_region_fragments / crc$passed_filters * 100
 crc$blacklist_ratio <- crc$blacklist_region_fragments / crc$peak_region_fragments
@@ -69,9 +76,9 @@ crc <- TSSEnrichment(crc)
 crc <- NucleosomeSignal(crc)
 ```
 
-
-```{r fig.width=12}
-VlnPlot(crc, c("TSS.enrichment", "nCount_peaks", "nucleosome_signal", "pct_reads_in_peaks", "pct_reads_in_DNase", "blacklist_ratio"), pt.size = 0, ncol = 6)
+```{r fig.width=8}
+# visualize QC metrics for each cell
+VlnPlot(crc, c("TSS.enrichment", "nCount_peaks", "nucleosome_signal", "pct_reads_in_peaks", "pct_reads_in_DNase", "blacklist_ratio"), pt.size = 0, ncol = 3)
 ```
 
 ```{r}
@@ -80,6 +87,7 @@ TSSPlot(crc, group.by = "tss.high")
 ```
 
 ```{r}
+# remove low-quality cells
 crc <- subset(
   x = crc,
   subset = nCount_peaks > 1000 &
@@ -92,7 +100,13 @@ crc <- subset(
 crc
 ```
 
-## Add mtDNA data
+## Loading the mitochondrial variant data
+
+Next we can load the mitochondrial DNA variant data for these cells that was 
+quantified using [mGATK](https://github.com/caleblareau/mgatk). The `ReadMGATK()`
+function in Signac allows the output from mGATK to be read directly into R in a
+convenient format for downstream analysis with Signac. Here we load the data
+and add it to the Seurat object as a new assay.
 
 ```{r process_mito, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
 # load mGATK output
@@ -107,7 +121,12 @@ mito <- subset(mito, cells = colnames(crc))
 # add assay and metadata to the seurat object
 crc[["mito"]] <- mito
 crc <- AddMetaData(crc, metadata = mito.data$depth, col.name = "mtDNA_depth")
+```
 
+We can look at the mitochondrial sequencing depth for each cell, and further
+subset the cells based on mitochondrial sequencing depth.
+
+```{r}
 VlnPlot(crc, "mtDNA_depth", pt.size = 0.1) + scale_y_log10()
 ```
 
@@ -119,6 +138,9 @@ crc
 
 ## Dimension reduction and clustering
 
+Next we can run a standard dimension reduction and clustering workflow using the
+scATAC-seq data to identify cell clusters.
+
 ```{r message=FALSE, warning=FALSE}
 crc <- RunTFIDF(crc)
 crc <- FindTopFeatures(crc, min.cutoff = 10)
@@ -128,15 +150,15 @@ crc <- FindNeighbors(crc, reduction = "lsi", dims = 2:50)
 crc <- FindClusters(crc, resolution = 0.5, algorithm = 3)
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 DimPlot(crc, label = TRUE) + NoLegend()
 ```
 
 ## Generate gene scores
 
-Here, we can see that some clusters have less mitochondrial DNA content as well
-as worse reads in DNase peaks than others. Let's define the cell states using
-marker genes to better understand this.
+To help interpret these clusters of cells, and assign a cell type label, we'll
+estimate gene activities by summing the DNA accessibility in the gene body and
+promoter region.
 
 ```{r setup_gene_activity, cache=FALSE, message=FALSE, warning = FALSE, echo = TRUE}
 # compute gene accessibility
@@ -162,8 +184,7 @@ crc <- NormalizeData(
 - GATA3 is a Treg marker
 - KIT is a Treg marker
 
-
-```{r viz_gene_activitites, cache=FALSE, message=FALSE, warning = FALSE, echo = TRUE}
+```{r viz_gene_activitites, message=FALSE, warning = FALSE}
 DefaultAssay(crc) <- 'RNA'
 
 FeaturePlot(
@@ -177,27 +198,23 @@ FeaturePlot(
 
 Using these gene score values, we can assign cluster identities: 
 
-```
-0 - epithelial cells
-1 - myeloid 1
-2 - basophils
-3 - Treg
-4 - myeloid 2
-5 - mast cells
-```
-
-## Look back at QC 
-
-Just to show why we were more inclusive during the cell filtering stage:
-
-```{r other_plots, message=FALSE, warning = FALSE, echo = TRUE}
-crc$log10_mtDNA_depth <- log10(crc$mtDNA_depth)
-FeaturePlot(crc, features = c("pct_reads_in_DNase", "log10_mtDNA_depth"))
+```{r}
+crc <- RenameIdents(
+  object = crc,
+  '0' = 'Epithelial',
+  '1' = 'Epithelial',
+  '2' = 'Basophil',
+  '3' = 'Myeloid_1',
+  '4' = 'Myeloid_2',
+  '5' = 'Treg'
+)
 ```
 
-Some other views:
+One of the myeloid clusters has a lower percentage of fragments in peaks, as
+well as a lower overall mitochondrial sequencing depth and a different
+nucleosome banding pattern.
 
-```{r cell_filtering_recap, message=FALSE, warning = FALSE, echo = TRUE}
+```{r cell_filtering_recap, message=FALSE, warning = FALSE}
 p1 <- FeatureScatter(crc, "mtDNA_depth", "pct_reads_in_peaks") + ggtitle("") + scale_x_log10()
 p2 <- FeatureScatter(crc, "mtDNA_depth", "nucleosome_signal") + ggtitle("") + scale_x_log10()
 
@@ -206,7 +223,7 @@ p1 + p2 + plot_layout(guides = 'collect')
 
 We can see that most of the low FRIP cells were the `myeloid 1` cluster. This is
 some sort of intra-tumor granulocyte that has relatively poor accessible
-chromatin enrichment. 
+chromatin enrichment.
 
 ## Find informative mtDNA variants
 
@@ -216,37 +233,32 @@ in the cells.
 
 ```{r call_variants, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
 variable.sites <- IdentifyVariants(crc, assay = "mito", refallele = mito.data$refallele)
-
-high.conf <- variable.sites[variable.sites$n_cells_conf_detected >= 5, ]
-
-# TODO could add this as a function in Signac
-ggplot(high.conf, aes(x = strand_correlation, y = log10(vmr))) +
-  geom_point() +
-  labs(x = "Pearson correlation (strand)", y = "log VMR") +
-  geom_vline(xintercept = 0.65, color = "black", linetype = 2) +
-  geom_hline(yintercept = -2, color = "black", linetype = 2) +
-  theme_classic()
-
-# Establish a filtered data frame of variants based on this processing
-high.conf <- dplyr::filter(high.conf, n_cells_conf_detected >= 5 & strand_correlation >= 0.65 & log10(vmr) > -2)
-high.conf
+VariantPlot(variants = variable.sites)
 ```
 
-Above, the plot is sort of the standard way to visualize potential variants that
-could be informative for subclustering. From this execution (which serves as
-pretty good defaults from my testing), we get 12 variants. Let's look more
-closely:
+The plot above clearly shows a group of variants with a higher VMR and strand
+concordance. Based on these thresholds, we can filter out a set of informative
+mitochondrial variants that differ across the cells.
 
-```{r look_at_variants, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
+```{r look_at_variants, message=FALSE, warning = FALSE}
+# Establish a filtered data frame of variants based on this processing
+high.conf <- subset(
+  variable.sites, subset = n_cells_conf_detected >= 5 &
+    strand_correlation >= 0.65 &
+    vmr > 0.01
+)
+
 high.conf[,c(1,2,3,5)]
 ```
 
 A few things stand out. First, 10 out of the 12 variants occur at less than 1% 
 allele frequency in the population. However, 16147C>T is present at about 62%.
 We'll see that this is a clonal variant marking the epithelial cells.
-Additionally, all of the called variants are transitions. This fits what
+Additionally, all of the called variants are transitions (A - G or C - T) rather
+than transversion mutations (A - T or C - G). This fits what we know about how
+these mutations arise in the genome (TODO add link/citation).
 
-## Compute variant allele frequency for each cell
+## Compute the variant allele frequency for each cell
 
 We currently have information for each strand stored in the mito assay to allow
 strand concordance to be assessed. Now that we have our set of high-confidence
@@ -263,22 +275,28 @@ crc <- AlleleFreq(
 crc[["alleles"]]
 ```
 
-## Visualize a subset of the called variants
+## Visualize the variants
 
-Currently, this is pretty messy, but I think that visualizing variants on the
-reduced dimension embedding is generally useful:
+Now that the allele frequencies are stored as an additional assay, we can use
+the standard functions in Seurat to visualize how these allele frequencies are
+distributed across the cells. Here we visualize a subset of the variants using 
+`FeaturePlot()` and `DoHeatmap()`.
 
-```{r visualize variants, message=FALSE, warning = FALSE, echo = TRUE, fig.height = 8}
+```{r visualize variants, message=FALSE, warning = FALSE}
 DefaultAssay(crc) <- "alleles"
+alleles.view <- c("12889G>A", "16147C>T", "3244G>A", "9804G>A")
 FeaturePlot(
   object = crc,
-  features = rownames(crc),
-  pt.size = 0.1,
+  features = alleles.view,
   order = TRUE,
   cols = c("grey", "darkred"),
-  ncol = 3,
-  max.cutoff = 1
+  ncol = 4
 ) & NoLegend()
+```
+
+```{r message=FALSE, warning=FALSE}
+DoHeatmap(crc, features = rownames(crc), slot = "data", disp.max = 1) +
+  scale_fill_viridis_c()
 ```
 
 Here, we can see a few interesting patterns for the selected variants. 16147C>T
@@ -286,12 +304,8 @@ is present in essentially all epithelial cells and almost exclusively in
 epithelial cells (the edge cases where this isn't true are also cases where the
 UMAP and clustering don't full agree). It is at 100% allele frequency-- strongly
 suggestive of whatever cell of origin of this tumor had the mutation at 100% and
-then expanded. 
-
-We then see at least 3 variants 9728C>T, 1227G>A, 12889G>A that are mostly
-present specifically in the epithelial cells that define subclones. It's not
-really enough cells to call subclones unfortunately. 
-
+then expanded. We then see at least 3 variants 9728C>T, 1227G>A, 12889G>A that
+are mostly present specifically in the epithelial cells that define subclones. 
 The variants 824T>C and 3244G>A are found specifically in immune cell
 populations, suggesting that these arose from a common hematopoetic progenitor
 cell (probably in the bone marrow). 
