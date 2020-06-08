@@ -534,6 +534,9 @@ ComputeTotalCoverage <- function(object, verbose = TRUE) {
   return(coverage)
 }
 
+globalVariables(
+  names = c("forward", "reverse", ".", "variant"), package = "Signac"
+)
 # Process mutation for one DNA base
 #
 # @param object A matrix containing nucleotide counts for each base and strand
