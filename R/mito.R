@@ -127,7 +127,7 @@ AlleleFreq.Assay <- function(object, variants, ...) {
   return(allele.assay)
 }
 
-#' @param Assay Name of assay to use
+#' @param assay Name of assay to use
 #' @param new.assay.name Name of new assay to store variant data in
 #' @rdname AlleleFreq
 #' @importFrom Seurat DefaultAssay
@@ -174,6 +174,8 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
   }
   # find mean allele frequency of each variant in each clonotype
   md <- object[[]]
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  mat <- GetAssayData(object = object, assay = assay, slot = "data")
   matty <- sapply(X = unique(x = group.by), FUN = function(x) {
     cells <- rownames(x = md[md$allele_ident_stash_clon == x, ])
     return(rowMeans(x = sqrt(x = mat[, cells])))
@@ -198,6 +200,7 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
 #' \code{\link[Seurat]{FindNeighbors}}
 #' @param algorithm Community detection algorithm to use. See
 #' \code{\link[Seurat]{FindClusters}}
+#'
 #' @export
 #' @concept mito
 #' @importFrom Seurat DefaultAssay GetAssayData FindNeighbors FindClusters
@@ -208,8 +211,7 @@ FindClonotypes <- function(
   metric = "cosine",
   resolution = 1,
   k = 10,
-  algorithm = 3,
-  ...
+  algorithm = 3
 ) {
   # get allele matrix
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
@@ -358,8 +360,8 @@ ReadMGATK <- function(dir, verbose = TRUE) {
 
 #' @param refallele A dataframe containing reference alleles for the
 #' mitochondrial genome.
-#' @param stabilize.variance Stabilize variance
-#' @param low.coverage.threshold Low coverage threshold
+#' @param stabilize_variance Stabilize variance
+#' @param low_coverage_threshold Low coverage threshold
 #' @param verbose Display messages
 #'
 #' @return Returns a dataframe
