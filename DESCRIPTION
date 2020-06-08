@@ -38,7 +38,6 @@ Imports:
     irlba,
     pbapply,
     tidyr,
-    zoo,
     patchwork,
     grid,
     stats,
@@ -52,7 +51,8 @@ Imports:
     biovizBase,
     AnnotationFilter,
     fastmatch,
-    lsa
+    lsa,
+    RcppRoll
 Collate: 
     'data.R'
     'generics.R'
