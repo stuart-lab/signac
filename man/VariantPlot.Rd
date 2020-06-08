@@ -17,6 +17,10 @@ computed using \code{\link{IdentifyVariants}}}
 
 \item{min.cells}{Minimum number of high-confidence cells detected with the
 variant for the variant to be displayed.}
+
+\item{concordance.threshold}{Strand concordance threshold}
+
+\item{vmr.threshold}{Mean-variance ratio threshold}
 }
 \description{
 Plot the Pearson correlation between allele frequencies on each strand

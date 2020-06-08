@@ -8,7 +8,7 @@ FeatureMatrix(
   fragments,
   features,
   cells = NULL,
-  chunk = 50,
+  process_n = 2000,
   sep = c("-", "-"),
   verbose = TRUE
 )
@@ -23,9 +23,8 @@ of unique reads falling in the genomic region for each cell.}
 \item{cells}{Vector of cells to include. If NULL, include all cells found
 in the fragments file}
 
-\item{chunk}{Number of chunks to use when processing the fragments file.
-Fewer chunks may enable faster processing,
- but will use more memory.}
+\item{process_n}{Number of regions to load into memory at a time, per thread.
+Processing more regions at once can be faster but uses more memory.}
 
 \item{sep}{Vector of separators to use for genomic string. First element is
 used to separate chromosome and coordinates, second separator is used to

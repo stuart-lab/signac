@@ -18,12 +18,14 @@ AlleleFreq(object, ...)
 \arguments{
 \item{object}{A Seurat object, Assay, or matrix}
 
+\item{...}{Arguments passed to other methods}
+
 \item{variants}{A character vector of informative variants to keep. For
 example, \code{c("627G>A","709G>A","1045G>A","1793G>A")}.}
 
-\item{new.assay.name}{Name of new assay to store variant data in}
+\item{assay}{Name of assay to use}
 
-\item{Assay}{Name of assay to use}
+\item{new.assay.name}{Name of new assay to store variant data in}
 }
 \value{
 Returns a \code{\link[Seurat]{Seurat}} object with a new assay

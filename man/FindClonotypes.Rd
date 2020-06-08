@@ -11,8 +11,7 @@ FindClonotypes(
   metric = "cosine",
   resolution = 1,
   k = 10,
-  algorithm = 3,
-  ...
+  algorithm = 3
 )
 }
 \arguments{

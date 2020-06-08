@@ -30,13 +30,13 @@ IdentifyVariants(object, ...)
 \item{refallele}{A dataframe containing reference alleles for the
 mitochondrial genome.}
 
+\item{stabilize_variance}{Stabilize variance}
+
+\item{low_coverage_threshold}{Low coverage threshold}
+
 \item{verbose}{Display messages}
 
 \item{assay}{Name of assay to use. If NULL, use the default assay.}
-
-\item{stabilize.variance}{Stabilize variance}
-
-\item{low.coverage.threshold}{Low coverage threshold}
 }
 \value{
 Returns a dataframe
