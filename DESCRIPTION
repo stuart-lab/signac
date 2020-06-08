@@ -51,7 +51,8 @@ Imports:
     ggbio,
     biovizBase,
     AnnotationFilter,
-    fastmatch
+    fastmatch,
+    lsa
 Collate: 
     'data.R'
     'generics.R'
