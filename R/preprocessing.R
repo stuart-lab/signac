@@ -204,9 +204,8 @@ DownsampleFeatures <- function(
 #' of unique reads falling in the genomic region for each cell.
 #' @param cells Vector of cells to include. If NULL, include all cells found
 #' in the fragments file
-#' @param chunk Number of chunks to use when processing the fragments file.
-#' Fewer chunks may enable faster processing,
-#'  but will use more memory.
+#' @param process_n Number of regions to load into memory at a time, per thread.
+#' Processing more regions at once can be faster but uses more memory.
 #' @param sep Vector of separators to use for genomic string. First element is
 #' used to separate chromosome and coordinates, second separator is used to
 #' separate start and end coordinates.
@@ -227,7 +226,7 @@ FeatureMatrix <- function(
   fragments,
   features,
   cells = NULL,
-  chunk = 50,
+  process_n = 2000,
   sep = c("-", "-"),
   verbose = TRUE
 ) {
@@ -260,7 +259,7 @@ FeatureMatrix <- function(
         cells = cells,
         sep = sep,
         verbose = verbose,
-        chunk = chunk
+        process_n = process_n
       )
     })
   # cbind all the matrices
@@ -281,7 +280,7 @@ SingleFeatureMatrix <- function(
   fragment,
   features,
   cells = NULL,
-  chunk = 50,
+  process_n = 2000,
   sep = c("-", "-"),
   verbose = TRUE
 ) {
@@ -299,9 +298,10 @@ SingleFeatureMatrix <- function(
     ),
     pruning.mode = "coarse"
   )
+
   feature.list <- ChunkGRanges(
     granges = features,
-    nchunk = chunk
+    nchunk = ceiling(x = length(x = features) / process_n)
   )
   if (verbose) {
     message("Extracting reads overlapping genomic regions")
@@ -318,6 +318,19 @@ SingleFeatureMatrix <- function(
     cells = cells,
     sep = sep
   )
+  # remove any that are NULL (no fragments for any cells in the region)
+  null.parts <- sapply(X = matrix.parts, FUN = is.null)
+  matrix.parts <- matrix.parts[!null.parts]
+  if (is.null(x = cells)) {
+    all.cells <- unique(
+      x = unlist(x = lapply(X = matrix.parts, FUN = colnames))
+    )
+    matrix.parts <- lapply(
+      X = matrix.parts,
+      FUN = AddMissingCells,
+      cells = all.cells
+    )
+  }
   featmat <- Reduce(f = rbind, x = matrix.parts)
   return(featmat)
 }
