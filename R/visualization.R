@@ -229,8 +229,8 @@ globalVariables(
 #' @importFrom Matrix colSums
 #' @importFrom methods is
 #' @importFrom stats median
-#' @importFrom dplyr mutate group_by ungroup
-#' @importFrom zoo rollapply
+#' @importFrom dplyr mutate group_by ungroup sample_frac
+#' @importFrom RcppRoll roll_mean
 SingleCoveragePlot <- function(
   object,
   region,
@@ -304,12 +304,8 @@ SingleCoveragePlot <- function(
   )
   if (!is.na(x = window)) {
     coverages <- group_by(.data = coverages, group)
-    coverages <- mutate(.data = coverages, coverage = rollapply(
-      data = norm.value,
-      width = window,
-      FUN = mean,
-      align = "center",
-      fill = NA
+    coverages <- mutate(.data = coverages, coverage = roll_mean(
+      x = norm.value, n = window, fill = NA, align = "center"
     ))
     coverages <- ungroup(x = coverages)
   } else {
@@ -318,16 +314,19 @@ SingleCoveragePlot <- function(
   chromosome <- as.character(x = seqnames(x = region))
   start.pos <- start(x = region)
   end.pos <- end(x = region)
-  stepsize <- 1 / downsample
-  retain_positions <- seq(from = start.pos, to = end.pos, by = stepsize)
-  downsampled_coverage <- coverages[coverages$position %in% retain_positions, ]
+  # remove positions where 0 coverage for all groups
+  coverages <- coverages[!is.na(x = coverages$coverage), ]
+  coverages <- coverages[coverages$coverage > 0, ]
+  coverages <- group_by(.data = coverages, group)
+  downsampled_coverage <- sample_frac(tbl = coverages, size = downsample)
+
   ymax <- SetIfNull(x = ymax, y = signif(
     x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
   )
   ymin <- 0
-  downsampled_coverage <- downsampled_coverage[!is.na(
-    x = downsampled_coverage$coverage
-  ), ]
+  # downsampled_coverage <- downsampled_coverage[!is.na(
+  #   x = downsampled_coverage$coverage
+  # ), ]
 
   gr <- GRanges(
     seqnames = chromosome,
@@ -418,7 +417,8 @@ SingleCoveragePlot <- function(
 #' @param idents Which identities to include in the plot. Default is all
 #' identities.
 #' @param window Smoothing window size
-#' @param downsample Fraction of positions to retain in the plot.
+#' @param downsample Fraction of non-zero positions to retain in the plot.
+#' Applied separately for each group.
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
 #' @param ymax Maximum value for Y axis. If NULL (default) set to the highest
