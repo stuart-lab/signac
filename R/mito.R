@@ -160,7 +160,7 @@ AlleleFreq.Seurat <- function(
 #' @param group.by Grouping variable for cells
 #'
 #' @importFrom Seurat Idents
-#' @importFrom lda cosine
+#' @importFrom lsa cosine
 #' @importFrom Matrix rowMeans
 #' @importFrom stats dist hclust
 #' @export
