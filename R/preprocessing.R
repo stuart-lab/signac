@@ -311,77 +311,16 @@ SingleFeatureMatrix <- function(
   } else {
     mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
   }
-  cells.in.regions <- mylapply(
+  matrix.parts <- mylapply(
     X = feature.list,
-    FUN = GetCellsInRegion,
+    FUN = PartialMatrix,
     tabix = tbx,
     cells = cells,
     sep = sep
   )
-  if (verbose) {
-    message("Constructing matrix")
-  }
-  cell.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 1))
-  if (is.null(x = cell.vector) & !is.null(x = cells)) {
-    # zero for everything
-    featmat <- sparseMatrix(
-      dims = c(length(x = features), length(x = cells)),
-      i = NULL,
-      j = NULL
-    )
-    rownames(x = featmat) <- GRangesToString(grange = features)
-    colnames(x = featmat) <- cells
-    return(featmat)
-  } else {
-    feature.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 2))
-    all.cells <- unique(x = cell.vector)
-    all.features <- unique(x = feature.vector)
-    cell.lookup <- seq_along(along.with = all.cells)
-    feature.lookup <- seq_along(along.with = all.features)
-    names(x = cell.lookup) <- all.cells
-    names(x = feature.lookup) <- all.features
-    matrix.features <- feature.lookup[feature.vector]
-    matrix.cells <- cell.lookup[cell.vector]
-    featmat <- sparseMatrix(
-      i = matrix.features,
-      j = matrix.cells,
-      x = rep(x = 1, length(x = cell.vector))
-    )
-    featmat <- as(Class = "dgCMatrix", object = featmat)
-    rownames(x = featmat) <- names(x = feature.lookup)
-    colnames(x = featmat) <- names(x = cell.lookup)
-  }
-
-  # add zero columns for missing cells
-  if (!is.null(x = cells)) {
-    missing.cells <- setdiff(x = cells, y = colnames(x = featmat))
-    if (!(length(x = missing.cells) == 0)) {
-      null.mat <- sparseMatrix(
-        i = c(),
-        j = c(),
-        dims = c(nrow(x = featmat), length(missing.cells))
-      )
-      rownames(x = null.mat) <- rownames(x = featmat)
-      colnames(x = null.mat) <- missing.cells
-      featmat <- cbind(featmat, null.mat)
-    }
-    featmat <- featmat[, cells]
-  }
-  # add zero rows for missing features
-  all.features <- GRangesToString(grange = features, sep = sep)
-  missing.features <- all.features[!(all.features %in% rownames(featmat))]
-  if (length(x = missing.features) > 0) {
-    null.mat <- sparseMatrix(
-      i = c(),
-      j = c(),
-      dims = c(length(x = missing.features), ncol(x = featmat))
-    )
-    rownames(x = null.mat) <- missing.features
-    featmat <- rbind(featmat, null.mat)
-  }
+  featmat <- Reduce(f = rbind, x = matrix.parts)
   return(featmat)
 }
-
 
 #' @param assay Name of assay to use
 #' @param min.cutoff Cutoff for feature to be included in the VariableFeatures
