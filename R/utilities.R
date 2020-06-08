@@ -890,6 +890,24 @@ SubsetMatrix <- function(
 
 #### Not exported ####
 
+#' @importFrom Matrix sparseMatrix
+AddMissingCells <- function(x, cells) {
+  # add columns with zeros for cells not in matrix
+  missing.cells <- setdiff(x = cells, y = colnames(x = x))
+  if (!(length(x = missing.cells) == 0)) {
+    null.mat <- sparseMatrix(
+      i = c(),
+      j = c(),
+      dims = c(nrow(x = x), length(x = missing.cells))
+    )
+    rownames(x = null.mat) <- rownames(x = x)
+    colnames(x = null.mat) <- missing.cells
+    x <- cbind(x, null.mat)
+  }
+  x <- x[, cells]
+  return(x)
+}
+
 # Calculate nCount and nFeature
 #
 # From Seurat
@@ -1391,6 +1409,7 @@ ApplyMatrixByGroup <- function(
       stop("If normalizing counts, supply group scale factors")
     }
   }
+  browser()
   results <- list()
   all.groups <- unique(x = groups)
   # first do NA if it exists
@@ -1708,7 +1727,6 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
     cells = cells,
     sep = sep
   )
-
   if (is.null(x = cells.in.regions$cells) & !is.null(x = cells)) {
     # zero for everything
     featmat <- sparseMatrix(
@@ -1719,8 +1737,16 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
     rownames(x = featmat) <- GRangesToString(grange = regions)
     colnames(x = featmat) <- cells
     return(featmat)
+  } else if (is.null(x = cells.in.regions$cells)) {
+    # no fragments, no cells
+    featmat <- sparseMatrix(
+      dims = c(length(x = regions), 0),
+      i = NULL,
+      j = NULL
+    )
+    rownames(x = featmat) <- GRangesToString(grange = regions)
+    return(featmat)
   } else {
-    feature.vector <- unlist(x = lapply(X = cells.in.regions, FUN = `[[`, 2))
     all.cells <- unique(x = cells.in.regions$cells)
     all.features <- unique(x = cells.in.regions$region)
     cell.lookup <- seq_along(along.with = all.cells)
@@ -1743,18 +1769,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
 
   # add zero columns for missing cells
   if (!is.null(x = cells)) {
-    missing.cells <- setdiff(x = cells, y = colnames(x = featmat))
-    if (!(length(x = missing.cells) == 0)) {
-      null.mat <- sparseMatrix(
-        i = c(),
-        j = c(),
-        dims = c(nrow(x = featmat), length(x = missing.cells))
-      )
-      rownames(x = null.mat) <- rownames(x = featmat)
-      colnames(x = null.mat) <- missing.cells
-      featmat <- cbind(featmat, null.mat)
-    }
-    featmat <- featmat[, cells]
+    featmat <- AddMissingCells(x = featmat, cells = cells)
   }
   # add zero rows for missing features
   all.features <- GRangesToString(grange = regions, sep = sep)
