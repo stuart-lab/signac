@@ -1409,7 +1409,6 @@ ApplyMatrixByGroup <- function(
       stop("If normalizing counts, supply group scale factors")
     }
   }
-  browser()
   results <- list()
   all.groups <- unique(x = groups)
   # first do NA if it exists
