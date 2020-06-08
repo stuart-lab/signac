@@ -1150,6 +1150,9 @@ CoverageBrowser <- function(object, region, ...) {
 #' computed using \code{\link{IdentifyVariants}}
 #' @param min.cells Minimum number of high-confidence cells detected with the
 #' variant for the variant to be displayed.
+#' @param concordance.threshold Strand concordance threshold
+#' @param vmr.threshold Mean-variance ratio threshold
+#'
 #' @concept mito
 #' @concept visualization
 #' @export
