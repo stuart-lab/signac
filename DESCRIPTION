@@ -50,7 +50,8 @@ Imports:
     stringi,
     ggbio,
     biovizBase,
-    AnnotationFilter
+    AnnotationFilter,
+    fastmatch
 Collate: 
     'data.R'
     'generics.R'

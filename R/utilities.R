@@ -564,6 +564,7 @@ Extend <- function(
 #'
 #' @importFrom Rsamtools TabixFile scanTabix
 #' @importFrom methods is
+#' @importFrom fastmatch fmatch
 #' @export
 #' @concept utilities
 #' @return Returns a list
@@ -578,7 +579,7 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
   reads <- sapply(X = bin.reads, FUN = ExtractCell, simplify = FALSE)
   if (!is.null(x = cells)) {
     reads <- sapply(X = reads, FUN = function(x) {
-      x <- x[x %in% cells]
+      x <- x[fmatch(x = x, table = cells, nomatch = 0L) > 0L]
       if (length(x = x) == 0) {
         return(NULL)
       } else {
