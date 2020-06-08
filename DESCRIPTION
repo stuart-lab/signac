@@ -52,7 +52,8 @@ Imports:
     AnnotationFilter,
     fastmatch,
     lsa,
-    RcppRoll
+    RcppRoll,
+    scales
 Collate: 
     'data.R'
     'generics.R'
