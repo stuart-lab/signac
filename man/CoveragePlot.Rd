@@ -61,7 +61,8 @@ cells by. Default is the current cell identities}
 
 \item{window}{Smoothing window size}
 
-\item{downsample}{Fraction of positions to retain in the plot.}
+\item{downsample}{Fraction of non-zero positions to retain in the plot.
+Applied separately for each group.}
 
 \item{extend.upstream}{Number of bases to extend the region upstream.}
 
