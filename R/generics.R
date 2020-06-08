@@ -15,6 +15,7 @@ as.ChromatinAssay <- function(x, ...) {
 #' @param object A Seurat object, Assay, or matrix
 #' @param variants A character vector of informative variants to keep. For
 #' example, \code{c("627G>A","709G>A","1045G>A","1793G>A")}.
+#' @param ... Arguments passed to other methods
 #'
 #' @export
 #' @return Returns a \code{\link[Seurat]{Seurat}} object with a new assay
