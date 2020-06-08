@@ -503,8 +503,8 @@ FRiP <- function(
 #' @param cells Vector of cells to include. If NULL, include all cells found
 #' in the fragments file
 #' @param binsize Size of the genome bins to use
-#' @param chunk Number of chunks to use when processing the fragments file.
-#' Fewer chunks may enable faster processing, but will use more memory.
+#' @param process_n Number of regions to load into memory at a time, per thread.
+#' Processing more regions at once can be faster but uses more memory.
 #' @param sep Vector of separators to use for genomic string. First element is
 #' used to separate chromosome and coordinates, second separator is used to
 #' separate start and end coordinates.
@@ -530,7 +530,7 @@ GenomeBinMatrix <- function(
   genome,
   cells = NULL,
   binsize = 5000,
-  chunk = 50,
+  process_n = 2000,
   sep = c("-", "-"),
   verbose = TRUE
 ) {
@@ -543,7 +543,7 @@ GenomeBinMatrix <- function(
     fragments = fragments,
     features = tiles,
     cells = cells,
-    chunk = chunk,
+    process_n = process_n,
     sep = sep,
     verbose = verbose
   )
