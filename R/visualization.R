@@ -318,22 +318,20 @@ SingleCoveragePlot <- function(
   coverages <- coverages[!is.na(x = coverages$coverage), ]
   coverages <- coverages[coverages$coverage > 0, ]
   coverages <- group_by(.data = coverages, group)
-  downsampled_coverage <- sample_frac(tbl = coverages, size = downsample)
+
+  coverages <- sample_frac(tbl = coverages, size = downsample)
 
   ymax <- SetIfNull(x = ymax, y = signif(
-    x = max(downsampled_coverage$coverage, na.rm = TRUE), digits = 2)
+    x = max(coverages$coverage, na.rm = TRUE), digits = 2)
   )
   ymin <- 0
-  # downsampled_coverage <- downsampled_coverage[!is.na(
-  #   x = downsampled_coverage$coverage
-  # ), ]
 
   gr <- GRanges(
     seqnames = chromosome,
     IRanges(start = start.pos, end = end.pos)
   )
   p <- ggplot(
-    data = downsampled_coverage,
+    data = coverages,
     mapping = aes(x = position, y = coverage, fill = group)
     ) +
     geom_area(stat = "identity") +
@@ -1127,19 +1125,21 @@ CoverageBrowser <- function(object, region, ...) {
       valueExpr = GRanges(
         seqnames = input$chrom,
         ranges = IRanges(start = input$startpos, end = input$endpos)
-      )
+      ),
+      ignoreNULL = FALSE
     )
     output$access <- shiny::renderPlot(expr = {
-      CoveragePlot(
+      p <- CoveragePlot(
         object = object,
         region = current_region(),
         ...
       )
+      p
     })
     shiny::observeEvent(
       eventExpr = input$done,
       handlerExpr = {
-        shiny::stopApp()
+        shiny::stopApp(returnValue = p)
       })
   }
   shiny::runGadget(app = ui, server = server)
