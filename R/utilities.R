@@ -11,8 +11,8 @@ globalVariables(names = c("group", "readcount"), package = "Signac")
 #' @param assay Name of assay to use. Default is the active assay
 #' @param group.by Grouping variable to use. Default is the active identities
 #' @param verbose Display messages
+#'
 #' @importFrom Seurat DefaultAssay Idents GetAssayData
-#' @importFrom Matrix colSums
 #' @importFrom dplyr group_by summarize
 #' @export
 #' @concept utilities
@@ -31,16 +31,11 @@ AverageCounts <- function(
   } else {
     group.by <- object[[group.by, drop = TRUE]]
   }
-  counts <- GetAssayData(object = object, assay = assay, slot = "counts")
-  if (verbose) {
-    message("Summing counts per cell")
-  }
-  totals <- colSums(x = counts)
-  total.df <- data.frame(
-    cell = names(x = totals),
-    readcount = totals,
-    stringsAsFactors = FALSE
-  )
+  # pull nCount_ column
+  col.use <- paste0("nCount_", assay)
+  total.df <- object[[col.use]]
+  colnames(x = total.df) <- "readcount"
+  total.df$cell <- rownames(x = total.df)
   total.df$group <- group.by[total.df$cell]
   total.df <- group_by(total.df, group)
   if (verbose) {
@@ -1409,46 +1404,40 @@ ApplyMatrixByGroup <- function(
       stop("If normalizing counts, supply group scale factors")
     }
   }
-  results <- list()
-  all.groups <- unique(x = groups)
-  # first do NA if it exists
+  all.groups <- as.character(x = unique(x = groups))
   if (any(is.na(x = groups))) {
-    pos.cells <- names(x = groups)[is.na(x = groups)]
-    if (length(x = pos.cells) > 1) {
-      totals <- fun(x = mat[pos.cells, ])
-    } else {
-      totals <- mat[pos.cells, ]
-    }
-    results[[1]] <- data.frame(
-      group = NA,
-      count = totals,
-      position = as.numeric(colnames(x = mat)),
-      stringsAsFactors = FALSE
-    )
-    startpos <- 1
-    # remove NAs
-    groups <- groups[!is.na(groups)]
-    all.groups <- all.groups[!is.na(all.groups)]
-  } else {
-    startpos <- 0
+    all.groups <- c(all.groups, NA)
   }
-  for (i in seq_along(along.with = all.groups)) {
-    pos.cells <- names(x = groups)[groups == all.groups[[i]]]
-    if (length(x = pos.cells) > 1) {
-      totals <- fun(x = mat[pos.cells, ])
-    } else {
-      totals <- mat[pos.cells, ]
-    }
-    results[[i + startpos]] <- data.frame(
-      group = all.groups[[i]],
-      count = totals,
-      position = as.numeric(colnames(x = mat)),
-      stringsAsFactors = FALSE
-    )
-  }
-  coverages <- as.data.frame(
-    x = do.call(what = rbind, args = results), stringsAsFactors = FALSE
+  ngroup <- length(x = all.groups)
+  npos <- ncol(x = mat)
+
+  group <- unlist(
+    x = lapply(X = all.groups, FUN = function(x) rep(x, npos))
   )
+  position <- rep(x = as.numeric(x = colnames(x = mat)), ngroup)
+  count <- vector(mode = "numeric", length = npos * ngroup)
+
+  for (i in seq_along(along.with = all.groups)) {
+    grp <- all.groups[[i]]
+    if (is.na(x = grp)) {
+      pos.cells <- names(x = groups)[is.na(x = groups)]
+    } else {
+      pos.cells <- names(x = groups)[groups == all.groups[[i]]]
+    }
+    if (length(x = pos.cells) > 1) {
+      totals <- fun(x = mat[pos.cells, ])
+    } else {
+      totals <- mat[pos.cells, ]
+    }
+    count[((i - 1) * npos + 1):((i * npos))] <- totals
+  }
+
+  # construct dataframe
+  coverages <- data.frame(
+    "group" = group, "position" = position, "count" = count,
+    stringsAsFactors = FALSE
+  )
+
   if (normalize) {
     scale.factor <- SetIfNull(
       x = scale.factor, y = median(x = group.scale.factors)
