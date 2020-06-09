@@ -230,8 +230,8 @@ CreateChromatinAssayObject <- function(
   seurat.assay <- CreateAssayObject(
     counts = counts,
     data = data,
-    min.cells = 0,
-    min.features = 0
+    min.cells = min.cells,
+    min.features = min.features
   )
   if (inherits(x = fragments, what = "list")) {
     # check each object in the list is a fragment object
