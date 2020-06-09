@@ -1094,47 +1094,157 @@ CoverageBrowser <- function(object, region, ...) {
   chrom <- seqnames(x = region)
 
   ui <- miniUI::miniPage(
-    miniUI::gadgetTitleBar(
-      title = "Genome browser",
-      left = NULL
-    ),
-    miniUI::miniContentPanel(
-      shiny::plotOutput(outputId = "access", height = "100%")
-    ),
-    miniUI::miniButtonBlock(
 
-      shiny::actionButton(
-        inputId = "up_large",
-        label = "",
-        icon = shiny::icon(name = "angle-double-left")
+    miniUI::miniTabstripPanel(
+
+      miniUI::miniTabPanel(
+
+        title = "View",
+        icon = shiny::icon("area-chart"),
+
+        miniUI::miniButtonBlock(
+
+          shiny::actionButton(
+            inputId = "up_large",
+            label = "",
+            icon = shiny::icon(name = "angle-double-left")
+          ),
+
+          shiny::actionButton(
+            inputId = "up_small",
+            label = "",
+            icon = shiny::icon(name = "angle-left")
+          ),
+
+          shiny::actionButton(
+            inputId = "minus",
+            label = "-"
+          ),
+
+          shiny::actionButton(
+            inputId = "plus",
+            label = "+"
+          ),
+
+          shiny::actionButton(
+            inputId = "down_small",
+            label = "",
+            icon = shiny::icon(name = "angle-right")
+          ),
+
+          shiny::actionButton(
+            inputId = "down_large",
+            label = "",
+            icon = shiny::icon(name = "angle-double-right")
+          ),
+
+          shiny::actionButton(
+            inputId = "done",
+            label = "Done",
+            style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
+          ),
+
+          border = "bottom"
+        ),
+
+        miniUI::miniContentPanel(
+          shiny::plotOutput(outputId = "access", height = "100%")
+        )
       ),
 
-      shiny::actionButton(
-        inputId = "up_small",
-        label = "",
-        icon = shiny::icon(name = "angle-left")
-      ),
+      miniUI::miniTabPanel(
 
-      shiny::actionButton(
-        inputId = "minus",
-        label = "-"
-      ),
+        title = "Parameters",
+        icon = shiny::icon(name = "sliders"),
 
-      shiny::actionButton(
-        inputId = "plus",
-        label = "+"
-      ),
+        miniUI::miniContentPanel(
 
-      shiny::actionButton(
-        inputId = "down_small",
-        label = "",
-        icon = shiny::icon(name = "angle-right")
-      ),
+          # shiny::fillCol(
+          #   shiny::actionButton(
+          #     inputId = "go",
+          #     label = "Go",
+          #     style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
+          #   ),
 
-      shiny::actionButton(
-        inputId = "down_large",
-        label = "",
-        icon = shiny::icon(name = "angle-double-right")
+          shiny::fillRow(
+            shiny::fillCol(
+              flex = c(1, 4),
+
+              shiny::titlePanel(title = "Navigation"),
+
+              shiny::wellPanel(
+                shiny::textInput(
+                  inputId = "chrom",
+                  label = "Chromosome",
+                  value = chrom
+                ),
+
+                shiny::numericInput(
+                  inputId = "startpos",
+                  label = "Start",
+                  value = startpos,
+                  step = 5000
+                ),
+
+                shiny::numericInput(
+                  inputId = "endpos",
+                  label = "End",
+                  value = endpos,
+                  step = 5000
+                ),
+
+                shiny::textInput(
+                  inputId = "gene_lookup",
+                  label = "Gene",
+                  value = NULL
+                )
+              )
+            ),
+
+          shiny::fillCol(
+            flex = c(1, 4),
+
+            shiny::titlePanel(title = "Tracks"),
+
+            shiny::wellPanel(
+              shiny::checkboxGroupInput(
+                inputId = "tracks",
+                label = "Display",
+                choices = c("Annotations" = "genes",
+                            "Peaks" = "peaks",
+                            "Links" = "links"),
+                selected = c("genes", "peaks", "links")
+              )
+            )
+          ),
+
+          shiny::fillCol(
+            flex = c(1, 4),
+
+            shiny::titlePanel(title = "Gene expression"),
+
+            shiny::wellPanel(
+              shiny::textInput(
+                inputId = "gene",
+                label = "Gene",
+                value = NULL
+              ),
+
+              shiny::textInput(
+                inputId = "expression_assay",
+                label = "Assay",
+                value = NULL
+              ),
+
+              shiny::selectInput(
+                inputId = "expression_slot",
+                label = "Slot",
+                choices = c("data", "scale.data", "counts")
+                )
+            )
+            )
+          )
+        )
       )
     )
   )
@@ -1149,7 +1259,8 @@ CoverageBrowser <- function(object, region, ...) {
         input$minus,
         input$plus,
         input$down_small,
-        input$down_large
+        input$down_large,
+        input$go
       )
     })
 
