@@ -1068,11 +1068,14 @@ ExpressionPlot <- function(
 #' Genome browser
 #'
 #' Interactive version of the \code{\link{CoveragePlot}} function. Allows
-#' altering the genome position interactively.
+#' altering the genome position interactively. Upon ending the browser session,
+#' the current view will be returned as a \code{\link[ggplot2]{ggplot}} object.
 #'
 #' @param object A Seurat object
 #' @param region A set of genomic coordinates
 #' @param ... Parameters passed to \code{\link{CoveragePlot}}
+#' @return Returns a ggplot object
+#'
 #' @export
 CoverageBrowser <- function(object, region, ...) {
   if (!requireNamespace("shiny", quietly = TRUE)) {
@@ -1083,8 +1086,9 @@ CoverageBrowser <- function(object, region, ...) {
   }
 
   if (inherits(x = region, what = "character")) {
-    region <- StringToGRanges(regions = region, ...)
+    region <- StringToGRanges(regions = region)
   }
+
   startpos <- start(x = region)
   endpos <- end(x = region)
   chrom <- seqnames(x = region)
@@ -1098,51 +1102,151 @@ CoverageBrowser <- function(object, region, ...) {
       shiny::plotOutput(outputId = "access", height = "100%")
     ),
     miniUI::miniButtonBlock(
-      shiny::textInput(
-        inputId = "chrom",
-        label = "Chromosome",
-        value = chrom
+
+      shiny::actionButton(
+        inputId = "up_large",
+        label = "",
+        icon = shiny::icon(name = "angle-double-left")
       ),
-      shiny::numericInput(
-        inputId = "startpos",
-        label = "Start",
-        value = startpos,
-        step = 5000
+
+      shiny::actionButton(
+        inputId = "up_small",
+        label = "",
+        icon = shiny::icon(name = "angle-left")
       ),
-      shiny::numericInput(
-        inputId = "endpos",
-        label = "End",
-        value = endpos,
-        step = 5000
+
+      shiny::actionButton(
+        inputId = "minus",
+        label = "-"
       ),
-      shiny::actionButton("go", "Go")
+
+      shiny::actionButton(
+        inputId = "plus",
+        label = "+"
+      ),
+
+      shiny::actionButton(
+        inputId = "down_small",
+        label = "",
+        icon = shiny::icon(name = "angle-right")
+      ),
+
+      shiny::actionButton(
+        inputId = "down_large",
+        label = "",
+        icon = shiny::icon(name = "angle-double-right")
+      )
     )
   )
 
   server <- function(input, output, session) {
+
+    # listen for change in any of the inputs
+    changed <- reactive({
+      paste(
+        input$up_small,
+        input$up_large,
+        input$minus,
+        input$plus,
+        input$down_small,
+        input$down_large
+      )
+    })
+
+    # list of reactive values for storing and modifying current coordinates
+    coords <- shiny::reactiveValues(
+      chromosome = chrom,
+      startpos = startpos,
+      endpos = endpos,
+      width = endpos - startpos
+    )
+
+    # scroll upstream
+    shiny::observeEvent(
+      eventExpr = input$up_large,
+      handlerExpr = {
+        coords$startpos <- coords$startpos - coords$width
+        coords$endpos <- coords$endpos - coords$width
+        coords$width <- coords$endpos - coords$startpos
+      }
+    )
+    shiny::observeEvent(
+      eventExpr = input$up_small,
+      handlerExpr = {
+        coords$startpos <- coords$startpos - (coords$width / 2)
+        coords$endpos <- coords$endpos - (coords$width / 2)
+        coords$width <- coords$endpos - coords$startpos
+      }
+    )
+
+    # scroll downstream
+    shiny::observeEvent(
+      eventExpr = input$down_large,
+      handlerExpr = {
+        coords$startpos <- coords$startpos + coords$width
+        coords$endpos <- coords$endpos + coords$width
+        coords$width <- coords$endpos - coords$startpos
+      }
+    )
+    shiny::observeEvent(
+      eventExpr = input$down_small,
+      handlerExpr = {
+        coords$startpos <- coords$startpos + (coords$width / 2)
+        coords$endpos <- coords$endpos + (coords$width / 2)
+        coords$width <- coords$endpos - coords$startpos
+      }
+    )
+
+    # zoom
+    shiny::observeEvent(
+      eventExpr = input$minus,
+      handlerExpr = {
+        coords$startpos <- coords$startpos - (coords$width / 4)
+        coords$endpos <- coords$endpos + (coords$width / 4)
+        coords$width <- coords$endpos - coords$startpos
+      }
+    )
+    shiny::observeEvent(
+      eventExpr = input$plus,
+      handlerExpr = {
+        coords$startpos <- coords$startpos + (coords$width / 4)
+        coords$endpos <- coords$endpos - (coords$width / 4)
+        coords$width <- coords$endpos - coords$startpos
+      }
+    )
+
+    # update current region
     current_region <- shiny::eventReactive(
-      eventExpr = input$go,
+        eventExpr = changed(),
       valueExpr = GRanges(
-        seqnames = input$chrom,
-        ranges = IRanges(start = input$startpos, end = input$endpos)
+        seqnames = coords$chromosome,
+        ranges = IRanges(start = coords$startpos, end = coords$endpos)
       ),
       ignoreNULL = FALSE
     )
+
     output$access <- shiny::renderPlot(expr = {
-      p <- CoveragePlot(
+      CoveragePlot(
         object = object,
         region = current_region(),
         ...
       )
-      p
     })
+
     shiny::observeEvent(
       eventExpr = input$done,
       handlerExpr = {
-        shiny::stopApp(returnValue = p)
+        shiny::stopApp()
       })
   }
-  shiny::runGadget(app = ui, server = server)
+
+  shiny::runGadget(
+    app = ui,
+    server = server
+    # viewer = shiny::dialogViewer(
+    #   dialogName = "browser", width = 1200, height = 600
+    # )
+  )
 }
 
 #' Plot strand concordance vs. VMR
