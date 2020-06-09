@@ -1001,8 +1001,8 @@ ExtractCell <- function(x) {
   if (length(x = x) == 0) {
     return(NULL)
   } else {
-    tmp <- stri_split_fixed(str = x, pattern = "\t")
-    return(unlist(x = tmp)[5 * (seq_along(along.with = tmp)) - 1])
+    x <- stri_split_fixed(str = x, pattern = "\t")
+    return(unlist(x = x)[5 * (seq_along(along.with = x)) - 1])
   }
 }
 
