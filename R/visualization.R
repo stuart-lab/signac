@@ -809,7 +809,8 @@ CombineTracks <- function(
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
 #' @concept visualization
-#' @importFrom GenomicRanges start end intersect
+#' @importFrom GenomicRanges start end
+#' @importFrom IRanges subsetByOverlaps
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom ggplot2 ggplot aes geom_segment theme_classic element_blank
 #' theme xlab ylab scale_color_identity
@@ -822,7 +823,7 @@ PeakPlot <- function(object, region) {
   # get ranges from object
   peaks <- granges(x = object)
   # subset to covered range
-  peak.intersect <- intersect(x = peaks, y = region)
+  peak.intersect <- subsetByOverlaps(x = peaks, ranges = region)
   peak.df <- as.data.frame(x = peak.intersect)
   start.pos <- start(x = region)
   end.pos <- end(x = region)
@@ -923,6 +924,7 @@ LinkPlot <- function(object, region) {
 #' @importFrom S4Vectors split
 #' @importFrom ggbio autoplot
 #' @importFrom AnnotationFilter GRangesFilter
+#' @importFrom fastmatch fmatch
 #' @concept visualization
 AnnotationPlot <- function(object, region) {
   annotation <- Annotation(object = object)
@@ -940,7 +942,9 @@ AnnotationPlot <- function(object, region) {
   # genes. This avoids truncating the gene if it runs outside the region
   annotation.subset <- subsetByOverlaps(x = annotation, ranges = region)
   genes.keep <- unique(x = annotation.subset$gene_name)
-  annotation.subset <- annotation[annotation$gene_name %in% genes.keep]
+  annotation.subset <- annotation[
+    fmatch(x = annotation$gene_name, table = genes.keep, nomatch = 0L) > 0L
+  ]
 
   if (length(x = annotation.subset) == 0) {
     # make empty plot
