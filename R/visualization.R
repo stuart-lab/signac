@@ -1264,6 +1264,22 @@ CoverageBrowser <- function(object, region, ...) {
       )
     })
 
+    # determine which tracks to show
+    tracks <- shiny::reactiveValues(
+      annotation = TRUE,
+      peaks = TRUE,
+      links = TRUE
+    )
+
+    shiny::observeEvent(
+      eventExpr = input$tracks,
+      handlerExpr = {
+        tracks$annotation <- "genes" %in% input$tracks
+        tracks$peaks <- "peaks" %in% input$tracks
+        tracks$links <- "links" %in% input$tracks
+      }
+    )
+
     # list of reactive values for storing and modifying current coordinates
     coords <- shiny::reactiveValues(
       chromosome = chrom,
@@ -1340,6 +1356,9 @@ CoverageBrowser <- function(object, region, ...) {
       CoveragePlot(
         object = object,
         region = current_region(),
+        annotation = tracks$annotation,
+        peaks = tracks$peaks,
+        links = tracks$links,
         ...
       )
     })
