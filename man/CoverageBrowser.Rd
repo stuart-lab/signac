@@ -13,7 +13,12 @@ CoverageBrowser(object, region, ...)
 
 \item{...}{Parameters passed to \code{\link{CoveragePlot}}}
 }
+\value{
+Returns a ggplot object
+}
 \description{
 Interactive version of the \code{\link{CoveragePlot}} function. Allows
-altering the genome position interactively.
+altering the genome position interactively. Upon ending the browser session,
+the current view will be returned as a \code{\link[ggplot2]{ggplot}} object.
 }
+\concept{visualization}

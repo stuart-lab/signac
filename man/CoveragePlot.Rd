@@ -17,7 +17,6 @@ CoveragePlot(
   heights = NULL,
   group.by = NULL,
   window = 100,
-  downsample = 0.1,
   extend.upstream = 0,
   extend.downstream = 0,
   scale.factor = NULL,
@@ -60,9 +59,6 @@ annotations, peaks, links).}
 cells by. Default is the current cell identities}
 
 \item{window}{Smoothing window size}
-
-\item{downsample}{Fraction of non-zero positions to retain in the plot.
-Applied separately for each group.}
 
 \item{extend.upstream}{Number of bases to extend the region upstream.}
 
