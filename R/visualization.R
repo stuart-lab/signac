@@ -1158,13 +1158,14 @@ CoverageBrowser <- function(object, region, ...) {
         icon = shiny::icon(name = "sliders"),
 
         miniUI::miniContentPanel(
-
-          # shiny::fillCol(
-          #   shiny::actionButton(
-          #     inputId = "go",
-          #     label = "Go",
-          #     style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
-          #   ),
+          shiny::fillCol(
+            flex = c(NA, 1), height = "10%",
+            shiny::actionButton(
+              inputId = "go",
+              label = "Update plot",
+              style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
+            )
+          ),
 
           shiny::fillRow(
             shiny::fillCol(
@@ -1191,13 +1192,14 @@ CoverageBrowser <- function(object, region, ...) {
                   label = "End",
                   value = endpos,
                   step = 5000
-                ),
-
-                shiny::textInput(
-                  inputId = "gene_lookup",
-                  label = "Gene",
-                  value = NULL
                 )
+                # ,
+                #
+                # shiny::textInput(
+                #   inputId = "gene_lookup",
+                #   label = "Gene",
+                #   value = NULL
+                # )
               )
             ),
 
@@ -1233,7 +1235,7 @@ CoverageBrowser <- function(object, region, ...) {
               shiny::textInput(
                 inputId = "expression_assay",
                 label = "Assay",
-                value = NULL
+                value = "RNA"
               ),
 
               shiny::selectInput(
@@ -1260,9 +1262,7 @@ CoverageBrowser <- function(object, region, ...) {
         input$plus,
         input$down_small,
         input$down_large,
-        input$chrom,
-        input$startpos,
-        input$endpos
+        input$go
       )
     })
 
@@ -1309,6 +1309,37 @@ CoverageBrowser <- function(object, region, ...) {
       handlerExpr = {
         coords$endpos <- input$endpos
         coords$width <- coords$endpos - coords$startpos
+      }
+    )
+
+    # set gene expression panel
+    gene_expression <- reactiveValues(
+      genes = NULL,
+      assay = "RNA",
+      slot = "data"
+    )
+    shiny::observeEvent(
+      eventExpr = input$gene,
+      handlerExpr = {
+        if (is.null(x = input$gene)) {
+          gene_expression$genes <- NULL
+        } else if (nchar(x = input$gene) == 0) {
+          gene_expression$genes <- NULL
+        } else {
+          gene_expression$genes <- unlist(x = strsplit(x = input$gene, split = ", "))
+        }
+      }
+    )
+    shiny::observeEvent(
+      eventExpr = input$expression_assay,
+      handlerExpr = {
+        gene_expression$assay <- input$expression_assay
+      }
+    )
+    shiny::observeEvent(
+      eventExpr = input$expression_slot,
+      handlerExpr = {
+        gene_expression$slot <- input$expression_slot
       }
     )
 
@@ -1376,30 +1407,40 @@ CoverageBrowser <- function(object, region, ...) {
       ignoreNULL = FALSE
     )
 
+    current_plot <- reactiveVal(value = NULL)
+
+    shiny::observeEvent(
+      eventExpr = changed(),
+      handlerExpr = {
+        p <- CoveragePlot(
+          object = object,
+          region = current_region(),
+          annotation = tracks$annotation,
+          peaks = tracks$peaks,
+          links = tracks$links,
+          features = gene_expression$genes,
+          expression.slot = gene_expression$slot,
+          expression.assay = gene_expression$assay,
+          ...
+        )
+        current_plot(p)
+      }
+    )
+
     output$access <- shiny::renderPlot(expr = {
-      CoveragePlot(
-        object = object,
-        region = current_region(),
-        annotation = tracks$annotation,
-        peaks = tracks$peaks,
-        links = tracks$links,
-        ...
-      )
+      current_plot()
     })
 
     shiny::observeEvent(
       eventExpr = input$done,
       handlerExpr = {
-        shiny::stopApp()
+        shiny::stopApp(returnValue = current_plot())
       })
   }
 
   shiny::runGadget(
     app = ui,
     server = server
-    # viewer = shiny::dialogViewer(
-    #   dialogName = "browser", width = 1200, height = 600
-    # )
   )
 }
 
