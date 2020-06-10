@@ -749,11 +749,15 @@ IntersectMatrix <- function(
 LookupGeneCoords <- function(object, gene, assay = NULL) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   annotations <- Annotation(object = object[[assay]])
-  annot.sub <- annotations[annotations$gene_name == gene]
-  gr <- GRanges(seqnames = as.character(x = seqnames(x = annot.sub))[[1]],
-                ranges = IRanges(start = min(start(x = annot.sub)),
-                                 end = max(end(x = annot.sub))))
-  return(gr)
+  if (length(x = annotations) == 0) {
+    return(NULL)
+  } else {
+    annot.sub <- annotations[annotations$gene_name == gene]
+    gr <- GRanges(seqnames = as.character(x = seqnames(x = annot.sub))[[1]],
+                  ranges = IRanges(start = min(start(x = annot.sub)),
+                                   end = max(end(x = annot.sub))))
+    return(gr)
+  }
 }
 
 #' Match DNA sequence characteristics
