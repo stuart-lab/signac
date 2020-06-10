@@ -302,6 +302,7 @@ SingleCoveragePlot <- function(
     group.by = group.by,
     idents = idents
   )
+  levels.stash <- levels(x = obj.groups)
   coverages <- ApplyMatrixByGroup(
     mat = cutmat,
     fun = colSums,
@@ -327,6 +328,8 @@ SingleCoveragePlot <- function(
   sampling <- min(max.downsample, window.size * downsample.rate)
   coverages <- slice_sample(.data = coverages, n = sampling)
 
+  # restore factor levels
+  coverages$group <- factor(x = coverages$group, levels = levels.stash)
   ymax <- SetIfNull(x = ymax, y = signif(
     x = max(coverages$coverage, na.rm = TRUE), digits = 2)
   )
@@ -1016,6 +1019,9 @@ globalVariables(names = "gene", package = "Signac")
 #' @importFrom Seurat GetAssayData DefaultAssay
 #' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic theme
 #' element_blank ylab scale_x_discrete scale_y_continuous
+#' @importFrom GenomeInfoDb seqnames
+#' @importFrom IRanges start end
+#'
 #' @export
 #' @concept visualization
 #' @examples
@@ -1029,6 +1035,7 @@ ExpressionPlot <- function(
   slot = "data"
 ) {
   # get data
+  browser()
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   data.plot <- GetAssayData(
     object = object,
@@ -1213,14 +1220,13 @@ CoverageBrowser <- function(object, region, ...) {
                   label = "End",
                   value = endpos,
                   step = 5000
+                ),
+
+                shiny::textInput(
+                  inputId = "gene_lookup",
+                  label = "Gene",
+                  value = NULL
                 )
-                # ,
-                #
-                # shiny::textInput(
-                #   inputId = "gene_lookup",
-                #   label = "Gene",
-                #   value = NULL
-                # )
               )
             ),
 
@@ -1334,6 +1340,24 @@ CoverageBrowser <- function(object, region, ...) {
       }
     )
 
+    # set coordinates based on gene name
+    shiny::observeEvent(
+      eventExpr = input$go,
+      handlerExpr = {
+        if (input$gene_lookup != "") {
+          region <- LookupGeneCoords(
+            object = object,
+            assay = assay,
+            gene = input$gene_lookup
+          )
+          coords$chromosome <- seqnames(x = region)
+          coords$startpos <- start(x = region)
+          coords$endpos <- end(x = region)
+          coords$width <- coords$endpos - coords$startpos
+        }
+      }
+    )
+
     # set gene expression panel
     gene_expression <- reactiveValues(
       genes = NULL,
@@ -1341,7 +1365,7 @@ CoverageBrowser <- function(object, region, ...) {
       slot = "data"
     )
     shiny::observeEvent(
-      eventExpr = input$gene,
+      eventExpr = input$go,
       handlerExpr = {
         if (is.null(x = input$gene)) {
           gene_expression$genes <- NULL
