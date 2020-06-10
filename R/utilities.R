@@ -731,6 +731,31 @@ IntersectMatrix <- function(
   return(matrix)
 }
 
+#' Get gene coordinates
+#'
+#' Extract the coordinates of the longest transcript for a gene stored in the
+#' annotations within an object.
+#'
+#' @param object A Seurat object
+#' @param gene Name of a gene to extract
+#' @param assay Name of assay to use
+#'
+#' @importFrom Seurat DefaultAssay
+#' @importFrom GenomicRanges GRanges
+#' @importFrom IRanges IRanges start end
+#' @importFrom GenomeInfoDb seqnames
+#' @export
+#' @concept utilities
+LookupGeneCoords <- function(object, gene, assay = NULL) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  annotations <- Annotation(object = object[[assay]])
+  annot.sub <- annotations[annotations$gene_name == gene]
+  gr <- GRanges(seqnames = as.character(x = seqnames(x = annot.sub))[[1]],
+                ranges = IRanges(start = min(start(x = annot.sub)),
+                                 end = max(end(x = annot.sub))))
+  return(gr)
+}
+
 #' Match DNA sequence characteristics
 #'
 #' Return a vector if genomic regions that match the distribution of a set of
