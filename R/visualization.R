@@ -267,6 +267,9 @@ SingleCoveragePlot <- function(
       region <- StringToGRanges(regions = region, sep = sep)
     } else {
       region <- LookupGeneCoords(object = object, assay = assay, gene = region)
+      if (is.null(x = region)) {
+        stop("Gene not found")
+      }
     }
   }
   region <- suppressWarnings(expr = Extend(
@@ -1349,10 +1352,12 @@ CoverageBrowser <- function(object, region, ...) {
             assay = assay,
             gene = input$gene_lookup
           )
-          coords$chromosome <- seqnames(x = region)
-          coords$startpos <- start(x = region)
-          coords$endpos <- end(x = region)
-          coords$width <- coords$endpos - coords$startpos
+          if (!is.null(x = region)) {
+            coords$chromosome <- seqnames(x = region)
+            coords$startpos <- start(x = region)
+            coords$endpos <- end(x = region)
+            coords$width <- coords$endpos - coords$startpos
+          }
         }
       }
     )
