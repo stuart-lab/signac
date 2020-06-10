@@ -1035,7 +1035,6 @@ ExpressionPlot <- function(
   slot = "data"
 ) {
   # get data
-  browser()
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   data.plot <- GetAssayData(
     object = object,
