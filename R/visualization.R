@@ -1260,7 +1260,9 @@ CoverageBrowser <- function(object, region, ...) {
         input$plus,
         input$down_small,
         input$down_large,
-        input$go
+        input$chrom,
+        input$startpos,
+        input$endpos
       )
     })
 
@@ -1286,6 +1288,28 @@ CoverageBrowser <- function(object, region, ...) {
       startpos = startpos,
       endpos = endpos,
       width = endpos - startpos
+    )
+
+    # manually set coordinates
+    shiny::observeEvent(
+      eventExpr = input$chrom,
+      handlerExpr = {
+        coords$chromosome <- input$chrom
+      }
+    )
+    shiny::observeEvent(
+      eventExpr = input$startpos,
+      handlerExpr = {
+        coords$startpos <- input$startpos
+        coords$width <- coords$endpos - coords$startpos
+      }
+    )
+    shiny::observeEvent(
+      eventExpr = input$endpos,
+      handlerExpr = {
+        coords$endpos <- input$endpos
+        coords$width <- coords$endpos - coords$startpos
+      }
     )
 
     # scroll upstream
