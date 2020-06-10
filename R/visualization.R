@@ -250,7 +250,9 @@ SingleCoveragePlot <- function(
   cells = NULL,
   idents = NULL,
   sep = c("-", "-"),
-  heights = NULL
+  heights = NULL,
+  max.downsample = 3000,
+  downsample.rate = 0.1
 ) {
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
@@ -316,7 +318,7 @@ SingleCoveragePlot <- function(
   end.pos <- end(x = region)
   coverages <- coverages[!is.na(x = coverages$coverage), ]
   coverages <- group_by(.data = coverages, group)
-  sampling <- min(2500, window.size / 10)
+  sampling <- min(max.downsample, window.size * downsample.rate)
   coverages <- slice_sample(.data = coverages, n = sampling)
 
   ymax <- SetIfNull(x = ymax, y = signif(
@@ -427,6 +429,14 @@ SingleCoveragePlot <- function(
 #' element is used to separate the start from end coordinate.
 #' @param heights Relative heights for each track (accessibility, gene
 #' annotations, peaks, links).
+#' @param max.downsample Minimum number of positions kept when downsampling.
+#' Downsampling rate is adaptive to the window size, but this parameter will set
+#' the minimum possible number of positions to include so that plots do not
+#' become too sparse when the window size is small.
+#' @param downsample.rate Fraction of positions to retain when downsampling.
+#' Retaining more positions can give a higher-resolution plot but can make the
+#' number of points large, resulting in larger file sizes when saving the plot
+#' and a longer period of time needed to draw the plot.
 #' @param ... Additional arguments passed to \code{\link[patchwork]{wrap_plots}}
 #'
 #' @importFrom patchwork wrap_plots
@@ -464,6 +474,8 @@ CoveragePlot <- function(
   cells = NULL,
   idents = NULL,
   sep = c("-", "-"),
+  max.downsample = 3000,
+  downsample.rate = 0.1,
   ...
 ) {
   if (length(x = region) > 1) {
@@ -482,7 +494,6 @@ CoveragePlot <- function(
           links = links,
           group.by = group.by,
           window = window,
-          downsample = downsample,
           ymax = ymax,
           scale.factor = scale.factor,
           extend.upstream = extend.upstream,
@@ -490,7 +501,9 @@ CoveragePlot <- function(
           cells = cells,
           idents = idents,
           sep = sep,
-          heights = heights
+          heights = heights,
+          max.downsample = max.downsample,
+          downsample.rate = downsample.rate
         )
       }
     )
@@ -508,7 +521,6 @@ CoveragePlot <- function(
       links = links,
       group.by = group.by,
       window = window,
-      downsample = downsample,
       extend.upstream = extend.upstream,
       extend.downstream = extend.downstream,
       ymax = ymax,
@@ -516,7 +528,9 @@ CoveragePlot <- function(
       cells = cells,
       idents = idents,
       sep = sep,
-      heights = heights
+      heights = heights,
+      max.downsample = max.downsample,
+      downsample.rate = downsample.rate
     ))
   }
 }
@@ -1418,6 +1432,8 @@ CoverageBrowser <- function(object, region, ...) {
           features = gene_expression$genes,
           expression.slot = gene_expression$slot,
           expression.assay = gene_expression$assay,
+          max.downsample = 2000,
+          downsample.rate = 0.02,
           ...
         )
         current_plot(p)
