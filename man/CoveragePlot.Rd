@@ -24,6 +24,8 @@ CoveragePlot(
   cells = NULL,
   idents = NULL,
   sep = c("-", "-"),
+  max.downsample = 3000,
+  downsample.rate = 0.1,
   ...
 )
 }
@@ -31,8 +33,9 @@ CoveragePlot(
 \item{object}{A Seurat object}
 
 \item{region}{A set of genomic coordinates to show. Can be a GRanges object,
-a string, or a vector of strings describing the genomic
-coordinates to plot.}
+a string encoding a genomic position, a gene name, or a vector of strings
+describing the genomic coordinates or gene names to plot. If a gene name is
+supplied, annotations must be present in the assay.}
 
 \item{features}{A vector of features present in another assay to plot
 alongside accessibility tracks (for example, gene names).}
@@ -79,6 +82,16 @@ identities.}
 \item{sep}{Separators to use for strings encoding genomic coordinates. First
 element is used to separate the chromosome from the coordinates, second
 element is used to separate the start from end coordinate.}
+
+\item{max.downsample}{Minimum number of positions kept when downsampling.
+Downsampling rate is adaptive to the window size, but this parameter will set
+the minimum possible number of positions to include so that plots do not
+become too sparse when the window size is small.}
+
+\item{downsample.rate}{Fraction of positions to retain when downsampling.
+Retaining more positions can give a higher-resolution plot but can make the
+number of points large, resulting in larger file sizes when saving the plot
+and a longer period of time needed to draw the plot.}
 
 \item{...}{Additional arguments passed to \code{\link[patchwork]{wrap_plots}}}
 }
