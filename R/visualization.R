@@ -261,7 +261,13 @@ SingleCoveragePlot <- function(
     cells <- intersect(x = cells, y = ident.cells)
   }
   if (!is(object = region, class2 = "GRanges")) {
-    region <- StringToGRanges(regions = region, sep = sep)
+    # if separators are present in the string and we can convert the
+    # start to a number, assume we're using genomic coordinates
+    if (all(sapply(X = sep, FUN = grepl, x = region))) {
+      region <- StringToGRanges(regions = region, sep = sep)
+    } else {
+      region <- LookupGeneCoords(object = object, assay = assay, gene = region)
+    }
   }
   region <- suppressWarnings(expr = Extend(
     x = region,
@@ -398,8 +404,9 @@ SingleCoveragePlot <- function(
 #'
 #' @param object A Seurat object
 #' @param region A set of genomic coordinates to show. Can be a GRanges object,
-#' a string, or a vector of strings describing the genomic
-#' coordinates to plot.
+#' a string encoding a genomic position, a gene name, or a vector of strings
+#' describing the genomic coordinates or gene names to plot. If a gene name is
+#' supplied, annotations must be present in the assay.
 #' @param features A vector of features present in another assay to plot
 #' alongside accessibility tracks (for example, gene names).
 #' @param assay Name of the assay to plot
@@ -1095,8 +1102,12 @@ CoverageBrowser <- function(object, region, ...) {
     stop("Please install miniUI. https://github.com/rstudio/miniUI")
   }
 
-  if (inherits(x = region, what = "character")) {
-    region <- StringToGRanges(regions = region)
+  if (!is(object = region, class2 = "GRanges")) {
+    if (all(sapply(X = sep, FUN = grepl, x = region))) {
+      region <- StringToGRanges(regions = region, sep = sep)
+    } else {
+      region <- LookupGeneCoords(object = object, assay = assay, gene = region)
+    }
   }
 
   startpos <- start(x = region)
