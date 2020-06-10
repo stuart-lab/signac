@@ -332,7 +332,9 @@ SingleCoveragePlot <- function(
   coverages <- slice_sample(.data = coverages, n = sampling)
 
   # restore factor levels
-  coverages$group <- factor(x = coverages$group, levels = levels.stash)
+  if (!is.null(x = levels.stash)) {
+    coverages$group <- factor(x = coverages$group, levels = levels.stash)
+  }
   ymax <- SetIfNull(x = ymax, y = signif(
     x = max(coverages$coverage, na.rm = TRUE), digits = 2)
   )
@@ -1119,6 +1121,14 @@ CoverageBrowser <- function(object, region, ...) {
     }
   }
 
+  # work out group_by options
+  grouping_options <- object[[]]
+  group_types <- sapply(X = grouping_options, FUN = class)
+  grouping_options <- colnames(x = grouping_options)[
+    group_types %in% c("factor", "character")
+  ]
+  grouping_options <- c("Idents", grouping_options)
+
   startpos <- start(x = region)
   endpos <- end(x = region)
   chrom <- seqnames(x = region)
@@ -1245,8 +1255,15 @@ CoverageBrowser <- function(object, region, ...) {
                             "Peaks" = "peaks",
                             "Links" = "links"),
                 selected = c("genes", "peaks", "links")
+              ),
+
+              shiny::selectInput(
+                inputId = "group_by",
+                label = "Group by",
+                choices = grouping_options,
+                selected = NULL
               )
-              # TODO add grouping variable option here
+
             )
           ),
 
@@ -1457,7 +1474,20 @@ CoverageBrowser <- function(object, region, ...) {
       ignoreNULL = FALSE
     )
 
-    current_plot <- reactiveVal(value = NULL)
+    # grouping
+    group_by <- shiny::reactiveVal(value = NULL)
+    shiny::observeEvent(
+      eventExpr = input$go,
+      handlerExpr = {
+        if (input$group_by == "Idents") {
+          group_by(NULL)
+        } else {
+          group_by(input$group_by)
+        }
+      }
+    )
+
+    current_plot <- shiny::reactiveVal(value = NULL)
 
     shiny::observeEvent(
       eventExpr = changed(),
@@ -1465,6 +1495,7 @@ CoverageBrowser <- function(object, region, ...) {
         p <- CoveragePlot(
           object = object,
           region = current_region(),
+          group.by = group_by(),
           annotation = tracks$annotation,
           peaks = tracks$peaks,
           links = tracks$links,
