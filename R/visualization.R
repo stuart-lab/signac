@@ -222,15 +222,15 @@ globalVariables(
 #' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic
 #' aes ylim theme element_blank element_text geom_segment scale_color_identity
 #' @importFrom GenomicRanges GRanges
-#' @importFrom IRanges IRanges subsetByOverlaps
+#' @importFrom IRanges IRanges subsetByOverlaps width
 #' @importFrom GenomeInfoDb seqnames
 #' @importMethodsFrom GenomicRanges start end
 #' @importFrom Seurat WhichCells Idents DefaultAssay
 #' @importFrom Matrix colSums
 #' @importFrom methods is
 #' @importFrom stats median
-#' @importFrom dplyr mutate group_by ungroup sample_frac
-#' @importFrom RcppRoll roll_mean
+#' @importFrom dplyr mutate group_by ungroup slice_sample
+#' @importFrom RcppRoll roll_sum
 SingleCoveragePlot <- function(
   object,
   region,
@@ -243,7 +243,6 @@ SingleCoveragePlot <- function(
   links = TRUE,
   group.by = NULL,
   window = 100,
-  downsample = 1/100,
   extend.upstream = 0,
   extend.downstream = 0,
   ymax = NULL,
@@ -268,6 +267,7 @@ SingleCoveragePlot <- function(
     downstream = extend.downstream
   )
   )
+  window.size <- width(x = region)
   reads.per.group <- AverageCounts(
     object = object,
     group.by = group.by,
@@ -304,7 +304,7 @@ SingleCoveragePlot <- function(
   )
   if (!is.na(x = window)) {
     coverages <- group_by(.data = coverages, group)
-    coverages <- mutate(.data = coverages, coverage = roll_mean(
+    coverages <- mutate(.data = coverages, coverage = roll_sum(
       x = norm.value, n = window, fill = NA, align = "center"
     ))
     coverages <- ungroup(x = coverages)
@@ -314,12 +314,10 @@ SingleCoveragePlot <- function(
   chromosome <- as.character(x = seqnames(x = region))
   start.pos <- start(x = region)
   end.pos <- end(x = region)
-  # remove positions where 0 coverage for all groups
   coverages <- coverages[!is.na(x = coverages$coverage), ]
-  coverages <- coverages[coverages$coverage > 0, ]
   coverages <- group_by(.data = coverages, group)
-
-  coverages <- sample_frac(tbl = coverages, size = downsample)
+  sampling <- min(2500, window.size / 10)
+  coverages <- slice_sample(.data = coverages, n = sampling)
 
   ymax <- SetIfNull(x = ymax, y = signif(
     x = max(coverages$coverage, na.rm = TRUE), digits = 2)
@@ -415,8 +413,6 @@ SingleCoveragePlot <- function(
 #' @param idents Which identities to include in the plot. Default is all
 #' identities.
 #' @param window Smoothing window size
-#' @param downsample Fraction of non-zero positions to retain in the plot.
-#' Applied separately for each group.
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
 #' @param ymax Maximum value for Y axis. If NULL (default) set to the highest
@@ -461,7 +457,6 @@ CoveragePlot <- function(
   heights = NULL,
   group.by = NULL,
   window = 100,
-  downsample = 0.1,
   extend.upstream = 0,
   extend.downstream = 0,
   scale.factor = NULL,
@@ -1077,6 +1072,7 @@ ExpressionPlot <- function(
 #' @return Returns a ggplot object
 #'
 #' @export
+#' @concept visualization
 CoverageBrowser <- function(object, region, ...) {
   if (!requireNamespace("shiny", quietly = TRUE)) {
     stop("Please install shiny. https://shiny.rstudio.com/")
@@ -1217,6 +1213,7 @@ CoverageBrowser <- function(object, region, ...) {
                             "Links" = "links"),
                 selected = c("genes", "peaks", "links")
               )
+              # TODO add grouping variable option here
             )
           ),
 
