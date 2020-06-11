@@ -17,13 +17,18 @@ Key new functionality:
 files as needed in a single object, and all functions that use the fragment file
 will pull data from each of the files. Cell barcodes in the fragment files do
 _not_ need to match the cell barcodes in the object.
+* **Use remote fragment files**: you can now use all the same functionality with
+fragment files hosted on remote servers accessible through `http` or `ftp`.
 * **Transcription factor footprinting**: New `Footprint` and `PlotFootprint`
 functions for TF footprinting analysis.
-* **Bioconductor methods**: call `granges`, `findOverlaps`, `seqinfo`, and other
-Bioconductor generic functions directly on the `ChromatinAssay` or `Seurat`
-object.
+* **Bioconductor methods**: call `granges()`, `findOverlaps()`, `seqinfo()`, and
+other Bioconductor generic functions directly on the `ChromatinAssay` or
+`Seurat` object.
 * **New visualization methods**: Jointly visualize RNA expression and chromatin
-accessibility in a single plot.
+accessibility in a single plot; interactively browse the genome using the new
+`CoverageBrowser()` function.
+* **Mitochondrial lineage tracing**: New functions to identify clonotypes and
+cell lineage relationships using mitochondrial mutations.
 
 # Signac 0.2.5
 
