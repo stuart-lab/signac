@@ -185,7 +185,7 @@ FindMotifs <- function(
   percent.observed <- query.counts / length(x = features) * 100
   percent.background <- background.counts / length(x = background) * 100
   fold.enrichment <- percent.observed / percent.background
-  p.list <- c()
+  p.list <- vector(mode = "numeric")
   for (i in seq_along(along.with = query.counts)) {
     p.list[[i]] <- phyper(
       q = query.counts[[i]] - 1,
