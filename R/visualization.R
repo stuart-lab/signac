@@ -1100,12 +1100,21 @@ ExpressionPlot <- function(
 #'
 #' @param object A Seurat object
 #' @param region A set of genomic coordinates
+#' @param assay Name of assay to use
+#' @param sep Separators for genomic coordinates if region supplied as a string
+#' rather than GRanges object
 #' @param ... Parameters passed to \code{\link{CoveragePlot}}
 #' @return Returns a ggplot object
 #'
 #' @export
 #' @concept visualization
-CoverageBrowser <- function(object, region, ...) {
+CoverageBrowser <- function(
+  object,
+  region,
+  assay = NULL,
+  sep = c("-", "-"),
+  ...
+) {
   if (!requireNamespace("shiny", quietly = TRUE)) {
     stop("Please install shiny. https://shiny.rstudio.com/")
   }
@@ -1301,7 +1310,7 @@ CoverageBrowser <- function(object, region, ...) {
   server <- function(input, output, session) {
 
     # listen for change in any of the inputs
-    changed <- reactive({
+    changed <- shiny::reactive({
       paste(
         input$up_small,
         input$up_large,
@@ -1380,7 +1389,7 @@ CoverageBrowser <- function(object, region, ...) {
     )
 
     # set gene expression panel
-    gene_expression <- reactiveValues(
+    gene_expression <- shiny::reactiveValues(
       genes = NULL,
       assay = "RNA",
       slot = "data"
