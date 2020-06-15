@@ -4,12 +4,17 @@
 \alias{CoverageBrowser}
 \title{Genome browser}
 \usage{
-CoverageBrowser(object, region, ...)
+CoverageBrowser(object, region, assay = NULL, sep = c("-", "-"), ...)
 }
 \arguments{
 \item{object}{A Seurat object}
 
 \item{region}{A set of genomic coordinates}
+
+\item{assay}{Name of assay to use}
+
+\item{sep}{Separators for genomic coordinates if region supplied as a string
+rather than GRanges object}
 
 \item{...}{Parameters passed to \code{\link{CoveragePlot}}}
 }
