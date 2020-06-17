@@ -1,5 +1,3 @@
-// [[Rcpp::depends(BH)]]
-
 #include <Rcpp.h>
 #include <zlib.h>
 #include <string.h>

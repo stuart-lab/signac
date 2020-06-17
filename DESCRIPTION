@@ -55,7 +55,6 @@ Imports:
     lsa,
     RcppRoll,
     scales,
-    BH,
     Rcpp
 Collate: 
     'RcppExports.R'
