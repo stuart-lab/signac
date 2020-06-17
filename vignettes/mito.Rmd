@@ -15,14 +15,21 @@ library(patchwork)
 library(EnsDb.Hsapiens.v75)
 ```
 
-Here, we analyze a dataset containing both DNA accessibility measurements and
-mitochondrial mutation data in the same cells, sampled from a patient with 
-a colorectal cancer (CRC) tumor. This data was produced by Lareau and Ludwig et
-al. (2020), and you can read the original paper here: XXX
+Here, we take a look at two different datasets containing both DNA accessibility
+measurements and mitochondrial mutation data in the same cells. One was sampled
+from a patient with a colorectal cancer (CRC) tumor, and the other is from a TF1
+cell line. This data was produced by Lareau and Ludwig et al. (2020), and you
+can read the original paper here: XXX
 
-DNA accessibility data is available on NCBI GEO here: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE148509
+DNA accessibility data for the CRC dataset is available on NCBI GEO here: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE148509
 
-Mitochondrial variant data for each cell is available on XXX here:
+Mitochondrial variant data for the CRC dataset is available on XXX here:
+
+Raw sequencing data and DNA accessibility processed files for the TF1 dataset
+are available on NCBI GEO here:
+https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE148509
+
+# Colorectal cancer dataset
 
 ## Loading the DNA accessibility data
 
@@ -310,6 +317,70 @@ The variants 824T>C and 3244G>A are found specifically in immune cell
 populations, suggesting that these arose from a common hematopoetic progenitor
 cell (probably in the bone marrow). 
 
+# TF1 cell line dataset
+
+Next we'll demonstrate a similar workflow to identify cell clones in a different
+dataset, this time generated from a TF1 cell line. This dataset contains a bit
+more clonal structure, and we'll demonstrate how to identify groups of related
+cells (clones) by clustering the allele frequency data.
+
+## Data loading
+
+```{r}
+# read the mitochondrial data
+tf1.data <- ReadMGATK(dir = "~/data/mito/tf1/tf1-mgatk-data/")
+
+# create a Seurat object
+tf1 <- CreateSeuratObject(
+  counts = tf1.data$counts,
+  meta.data = tf1.data$depth,
+  assay = "mito"
+)
+```
+
+## Identifying variants
+
+```{r}
+variants <- IdentifyVariants(tf1, refallele = tf1.data$refallele)
+VariantPlot(variants)
+```
+
+```{r}
+high.conf <- subset(
+  variants, subset = n_cells_conf_detected >= 5 &
+    strand_correlation >= 0.65 &
+    vmr > 0.01
+)
+```
+
+```{r}
+tf1 <- AlleleFreq(tf1, variants = high.conf$variant, assay = "mito")
+tf1[["alleles"]]
+```
+
+## Identifying clones
+
+```{r}
+DefaultAssay(tf1) <- "alleles"
+tf1 <- FindClonotypes(tf1)
+```
+
+```{r}
+table(Idents(tf1))
+```
+
+Here we see that the clonal clustering has identified 12 different clones in the
+TF1 dataset. We can further visualize these clones using `DoHeatmap()`. The 
+`FindClonotypes()` function also performs hierarchical clustering on both the 
+clonotypes and the alleles, and sets the factor levels for the clonotypes based
+on the hierarchical clustering order, and the order of variable features based
+on the hierarchical feature clustering. This allows us to get a decent ordering
+of both features and clones automatically:
+
+```{r}
+DoHeatmap(tf1, features = VariableFeatures(tf1), slot = "data", disp.max = 0.1) +
+  scale_fill_viridis_c()
+```
 <details>
   <summary>**Session Info**</summary>
   
