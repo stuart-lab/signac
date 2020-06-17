@@ -32,6 +32,9 @@ FindClonotypes(
 \item{algorithm}{Community detection algorithm to use. See
 \code{\link[Seurat]{FindClusters}}}
 }
+\value{
+Returns a \code{\link[Seurat]{Seurat}} object
+}
 \description{
 Identify groups of related cells from allele frequency data
 }
