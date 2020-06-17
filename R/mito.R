@@ -163,8 +163,12 @@ AlleleFreq.Seurat <- function(
 #' @importFrom lsa cosine
 #' @importFrom Matrix rowMeans
 #' @importFrom stats dist hclust
+#'
 #' @export
-#' @return Returns an object of class \code{\link[stats]{hclust}}
+#' @return Returns a list containing two objects of class
+#' \code{\link[stats]{hclust}}, one for the cell clustering and one for the
+#' feature (allele) clustering
+#'
 #' @concept mito
 ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
   if (is.null(x = group.by)) {
@@ -176,14 +180,17 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
   md <- object[[]]
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   mat <- GetAssayData(object = object, assay = assay, slot = "data")
-  matty <- sapply(X = unique(x = group.by), FUN = function(x) {
-    cells <- rownames(x = md[md$allele_ident_stash_clon == x, ])
-    return(rowMeans(x = sqrt(x = mat[, cells])))
+  matty <- sapply(
+    X = unique(x = object$allele_ident_stash_clon),
+    FUN = function(x) {
+      cells <- rownames(x = md[md$allele_ident_stash_clon == x, ])
+      return(rowMeans(x = sqrt(x = mat[, cells])))
   })
   object$allele_ident_stash_clon <- NULL
   # cluster
-  hv <- hclust(d = dist(x = cosine(x = matty)))
-  return(hv)
+  hc <- hclust(d = dist(x = cosine(x = matty)))
+  hf <- hclust(d = dist(x = cosine(x = t(x = matty))))
+  return(list("cells" = hc, "features" = hf))
 }
 
 #' Find clonotypes
@@ -201,9 +208,12 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
 #' @param algorithm Community detection algorithm to use. See
 #' \code{\link[Seurat]{FindClusters}}
 #'
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
+#'
 #' @export
 #' @concept mito
 #' @importFrom Seurat DefaultAssay GetAssayData FindNeighbors FindClusters
+#' VariableFeatures
 FindClonotypes <- function(
   object,
   assay = NULL,
@@ -231,6 +241,12 @@ FindClonotypes <- function(
     resolution = resolution,
     algorithm = algorithm
   )
+
+  # set levels based on hierarchical clustering
+  hc <- ClusterClonotypes(object = object, assay = assay, group.by = NULL)
+  features <- as.character(rownames(x = object[[assay]])[hc$features$order])
+  VariableFeatures(object = object, assay = assay) <- features
+  levels(x = object) <- hc$cells$order - 1
   return(object)
 }
 
