@@ -2,6 +2,26 @@
 #'
 NULL
 
+#' Count fragments
+#'
+#' Count total fragments per cell barcode present in a fragment file.
+#'
+#' @param fragments Path to a fragment file
+#'
+#' @rdname CountFragments
+#' @export
+#' @concept fragments
+#' @return Returns a data.frame
+#' @examples
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' counts <- CountFragments(fragments = fpath)
+CountFragments <- function(fragments, outfile, column = 4L) {
+  fragments <- normalizePath(path = fragments, mustWork = TRUE)
+  counts <- groupCommand(fragments = fragments)
+  return(counts)
+}
+
+
 #' Create a Fragment object
 #'
 #' Create a \code{Fragment} object to store fragment file information.
