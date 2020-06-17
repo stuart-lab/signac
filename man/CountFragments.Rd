@@ -4,7 +4,7 @@
 \alias{CountFragments}
 \title{Count fragments}
 \usage{
-CountFragments(fragments, outfile, column = 4L)
+CountFragments(fragments)
 }
 \arguments{
 \item{fragments}{Path to a fragment file}

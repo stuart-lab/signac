@@ -15,7 +15,7 @@ NULL
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' counts <- CountFragments(fragments = fpath)
-CountFragments <- function(fragments, outfile, column = 4L) {
+CountFragments <- function(fragments) {
   fragments <- normalizePath(path = fragments, mustWork = TRUE)
   counts <- groupCommand(fragments = fragments)
   return(counts)
