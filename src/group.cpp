@@ -85,8 +85,8 @@ SEXP groupCommand(
       }
     }
 
-    uint8_t mono_inc = end-start < 147 ? 1: 0;
-    uint8_t nuc_free_inc = (end-start > 147) and (end-start < 294) ? 1: 0;
+    uint8_t nuc_free_inc = end-start < 147 ? 1: 0;
+    uint8_t mono_inc = (end-start > 147) and (end-start < 294) ? 1: 0;
 
     // index of the cellular barcode
     size_t cb_idx = index_hash.size();
