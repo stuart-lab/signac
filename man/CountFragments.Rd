@@ -13,6 +13,8 @@ CountFragments(fragments, cells = NULL, max_lines = NULL, verbose = TRUE)
 
 \item{max_lines}{Maximum number of lines to read from the fragment file. If
 NULL, read all lines in the file.}
+
+\item{verbose}{Display messages}
 }
 \value{
 Returns a data.frame

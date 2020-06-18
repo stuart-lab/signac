@@ -10,6 +10,7 @@ NULL
 #' @param cells Cells to include. If NULL, include all cells
 #' @param max_lines Maximum number of lines to read from the fragment file. If
 #' NULL, read all lines in the file.
+#' @param verbose Display messages
 #'
 #' @rdname CountFragments
 #' @export
