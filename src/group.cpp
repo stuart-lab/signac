@@ -5,7 +5,8 @@
 SEXP groupCommand(
     std::string fragments,
     Rcpp::Nullable<Rcpp::StringVector> some_whitelist_cells = R_NilValue,
-    std::size_t max_lines = 0
+    std::size_t max_lines = 0,
+    bool verbose = true
 ) {
   // opening gzipped compressed stream
   gzFile fileHandler = gzopen(fragments.c_str(), "rb");
@@ -41,9 +42,11 @@ SEXP groupCommand(
     }
 
     num_whitelist_cells = index_hash.size();
-    Rcpp::Rcerr << "Found " << num_whitelist_cells
-                << " Cellular barcodes"
-                << std::endl << std::flush;
+    if (verbose) {
+      Rcpp::Rcerr << "Found " << num_whitelist_cells
+                  << " cell barcodes"
+                  << std::endl << std::flush;
+    }
   }
 
   // char * to string extraction
@@ -120,13 +123,15 @@ SEXP groupCommand(
       }
     }
 
-    if (line_counter % 10000000 == 0) {
-      Rcpp::Rcerr << "\r                                                  ";
-    }
+    if (verbose) {
+      if (line_counter % 10000000 == 0) {
+        Rcpp::Rcerr << "\r                                                  ";
+      }
 
-    if (line_counter % 1000000 == 0) {
-      Rcpp::Rcerr << "\rDone Processing " << line_counter / 1000000
-                  << " million lines";
+      if (line_counter % 1000000 == 0) {
+        Rcpp::Rcerr << "\rDone Processing " << line_counter / 1000000
+                    << " million lines";
+      }
     }
   }
 

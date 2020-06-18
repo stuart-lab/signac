@@ -597,11 +597,13 @@ NucleosomeSignal <- function(
   if (length(x = frags) == 0) {
     stop("No fragment files present in assay")
   }
+  verbose <- as.logical(x = verbose)
   af <- list()
   for (i in seq_along(along.with = frags)) {
     counts <- ExtractFragments(
       fragments = frags[[i]],
-      n = n
+      n = n,
+      verbose = verbose
     )
     cells.keep <- fmatch(
       x = counts$CB, table = colnames(x = object), nomatch = 0L

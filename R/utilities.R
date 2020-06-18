@@ -1045,9 +1045,10 @@ ExtractCell <- function(x) {
 #
 # @param fragments A Fragment object
 # @param n Number of lines to read from the beginning of the fragment file
+# @param verbose Display messages
 #
 # @return Returns a data.frame
-ExtractFragments <- function(fragments, n = NULL) {
+ExtractFragments <- function(fragments, n = NULL, verbose = TRUE) {
   fpath <- GetFragmentData(object = fragments, slot = "path")
   fpath <- normalizePath(path = fpath, mustWork = TRUE)
   cells <- GetFragmentData(object = fragments, slot = "cells")
@@ -1056,12 +1057,14 @@ ExtractFragments <- function(fragments, n = NULL) {
   } else {
     cells.use <- NULL
   }
+  verbose <- as.logical(x = verbose)
   n <- SetIfNull(x = n, y = 0)
   n <- as.integer(x = n)
   counts <- groupCommand(
     fragments = fpath,
     some_whitelist_cells = cells.use,
-    max_lines = n
+    max_lines = n,
+    verbose = verbose
   )
   # convert cell names
   if (!is.null(x = cells)) {

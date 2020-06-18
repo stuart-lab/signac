@@ -18,13 +18,20 @@ NULL
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' counts <- CountFragments(fragments = fpath)
-CountFragments <- function(fragments, cells = NULL, max_lines = NULL) {
+CountFragments <- function(
+  fragments,
+  cells = NULL,
+  max_lines = NULL,
+  verbose = TRUE
+) {
   fragments <- normalizePath(path = fragments, mustWork = TRUE)
   max_lines <- SetIfNull(x = max_lines, y = 0)
+  verbose = as.logical(x = verbose)
   counts <- groupCommand(
     fragments = fragments,
     some_whitelist_cells = cells,
-    max_lines = max_lines
+    max_lines = max_lines,
+    verbose = verbose
   )
   return(counts)
 }
