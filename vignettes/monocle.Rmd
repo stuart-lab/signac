@@ -139,13 +139,13 @@ DepthCor(bone)
 bone <- RunUMAP(
   bone,
   reduction = "lsi",
-  dims = 2:60,
+  dims = 2:100,
   reduction.name = "UMAP"
 )
 ```
 
 ```{r message=FALSE, warning=FALSE}
-bone <- FindNeighbors(bone, dims = 2:60, reduction = "lsi")
+bone <- FindNeighbors(bone, dims = 2:100, reduction = "lsi")
 bone <- FindClusters(bone, resolution = 0.8, algorithm = 3)
 ```
 
