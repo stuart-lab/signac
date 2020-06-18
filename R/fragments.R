@@ -8,6 +8,8 @@ NULL
 #'
 #' @param fragments Path to a fragment file
 #' @param cells Cells to include. If NULL, include all cells
+#' @param max_lines Maximum number of lines to read from the fragment file. If
+#' NULL, read all lines in the file.
 #'
 #' @rdname CountFragments
 #' @export
@@ -16,9 +18,14 @@ NULL
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' counts <- CountFragments(fragments = fpath)
-CountFragments <- function(fragments, cells = NULL) {
+CountFragments <- function(fragments, cells = NULL, max_lines = NULL) {
   fragments <- normalizePath(path = fragments, mustWork = TRUE)
-  counts <- groupCommand(fragments = fragments, some_whitelist_cells = cells)
+  max_lines <- SetIfNull(x = max_lines, y = 0)
+  counts <- groupCommand(
+    fragments = fragments,
+    some_whitelist_cells = cells,
+    max_lines = max_lines
+  )
   return(counts)
 }
 

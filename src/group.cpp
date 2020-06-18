@@ -4,10 +4,17 @@
 // [[Rcpp::export]]
 SEXP groupCommand(
     std::string fragments,
-    Rcpp::Nullable<Rcpp::StringVector> some_whitelist_cells = R_NilValue
+    Rcpp::Nullable<Rcpp::StringVector> some_whitelist_cells = R_NilValue,
+    std::size_t max_lines = 0
 ) {
   // opening gzipped compressed stream
   gzFile fileHandler = gzopen(fragments.c_str(), "rb");
+
+  // determine if we read the whole file or the first n lines
+  bool read_part {false};
+  if (max_lines > 0) {
+    read_part = true;
+  }
 
   // return empty list if it can't find the file
   if (fileHandler == NULL) {
@@ -17,7 +24,7 @@ SEXP groupCommand(
 
   // C based buffered string parsing
   char* cb_char;
-  size_t line_counter {0};
+  size_t line_counter {1};
   uint32_t buffer_length = 256;
   char *buffer = new char[buffer_length];
 
@@ -107,6 +114,12 @@ SEXP groupCommand(
     }
 
     line_counter += 1;
+    if (read_part) {
+      if (line_counter > max_lines) {
+        break;
+      }
+    }
+
     if (line_counter % 10000000 == 0) {
       Rcpp::Rcerr << "\r                                                  ";
     }

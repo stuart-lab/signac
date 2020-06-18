@@ -4,12 +4,15 @@
 \alias{CountFragments}
 \title{Count fragments}
 \usage{
-CountFragments(fragments, cells = NULL)
+CountFragments(fragments, cells = NULL, max_lines = NULL)
 }
 \arguments{
 \item{fragments}{Path to a fragment file}
 
 \item{cells}{Cells to include. If NULL, include all cells}
+
+\item{max_lines}{Maximum number of lines to read from the fragment file. If
+NULL, read all lines in the file.}
 }
 \value{
 Returns a data.frame
