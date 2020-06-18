@@ -7,6 +7,7 @@ NULL
 #' Count total fragments per cell barcode present in a fragment file.
 #'
 #' @param fragments Path to a fragment file
+#' @param cells Cells to include. If NULL, include all cells
 #'
 #' @rdname CountFragments
 #' @export
@@ -15,9 +16,9 @@ NULL
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' counts <- CountFragments(fragments = fpath)
-CountFragments <- function(fragments) {
+CountFragments <- function(fragments, cells = NULL) {
   fragments <- normalizePath(path = fragments, mustWork = TRUE)
-  counts <- groupCommand(fragments = fragments)
+  counts <- groupCommand(fragments = fragments, some_whitelist_cells = cells)
   return(counts)
 }
 

@@ -4,10 +4,12 @@
 \alias{CountFragments}
 \title{Count fragments}
 \usage{
-CountFragments(fragments)
+CountFragments(fragments, cells = NULL)
 }
 \arguments{
 \item{fragments}{Path to a fragment file}
+
+\item{cells}{Cells to include. If NULL, include all cells}
 }
 \value{
 Returns a data.frame

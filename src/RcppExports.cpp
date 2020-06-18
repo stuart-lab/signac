@@ -6,19 +6,20 @@
 using namespace Rcpp;
 
 // groupCommand
-SEXP groupCommand(std::string fragments);
-RcppExport SEXP _Signac_groupCommand(SEXP fragmentsSEXP) {
+SEXP groupCommand(std::string fragments, Rcpp::Nullable<Rcpp::StringVector> some_whitelist_cells);
+RcppExport SEXP _Signac_groupCommand(SEXP fragmentsSEXP, SEXP some_whitelist_cellsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type fragments(fragmentsSEXP);
-    rcpp_result_gen = Rcpp::wrap(groupCommand(fragments));
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::StringVector> >::type some_whitelist_cells(some_whitelist_cellsSEXP);
+    rcpp_result_gen = Rcpp::wrap(groupCommand(fragments, some_whitelist_cells));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_Signac_groupCommand", (DL_FUNC) &_Signac_groupCommand, 1},
+    {"_Signac_groupCommand", (DL_FUNC) &_Signac_groupCommand, 2},
     {NULL, NULL, 0}
 };
 
