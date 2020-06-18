@@ -2,6 +2,42 @@
 #'
 NULL
 
+#' Count fragments
+#'
+#' Count total fragments per cell barcode present in a fragment file.
+#'
+#' @param fragments Path to a fragment file
+#' @param cells Cells to include. If NULL, include all cells
+#' @param max_lines Maximum number of lines to read from the fragment file. If
+#' NULL, read all lines in the file.
+#' @param verbose Display messages
+#'
+#' @rdname CountFragments
+#' @export
+#' @concept fragments
+#' @return Returns a data.frame
+#' @examples
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' counts <- CountFragments(fragments = fpath)
+CountFragments <- function(
+  fragments,
+  cells = NULL,
+  max_lines = NULL,
+  verbose = TRUE
+) {
+  fragments <- normalizePath(path = fragments, mustWork = TRUE)
+  max_lines <- SetIfNull(x = max_lines, y = 0)
+  verbose = as.logical(x = verbose)
+  counts <- groupCommand(
+    fragments = fragments,
+    some_whitelist_cells = cells,
+    max_lines = max_lines,
+    verbose = verbose
+  )
+  return(counts)
+}
+
+
 #' Create a Fragment object
 #'
 #' Create a \code{Fragment} object to store fragment file information.

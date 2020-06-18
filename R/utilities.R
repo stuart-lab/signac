@@ -1035,6 +1035,47 @@ ExtractCell <- function(x) {
   }
 }
 
+# Run groupCommand for the first n lines, convert the cell barcodes in the file
+# to the cell names that appear in the fragment object, and subset the output to
+# cells present in the fragment object
+#
+# Every cell in the fragment file will be present in the output dataframe. If
+# the cell information is not set, every cell barcode that appears in the first
+# n lines will be present.
+#
+# @param fragments A Fragment object
+# @param n Number of lines to read from the beginning of the fragment file
+# @param verbose Display messages
+#
+# @return Returns a data.frame
+ExtractFragments <- function(fragments, n = NULL, verbose = TRUE) {
+  fpath <- GetFragmentData(object = fragments, slot = "path")
+  fpath <- normalizePath(path = fpath, mustWork = TRUE)
+  cells <- GetFragmentData(object = fragments, slot = "cells")
+  if (!is.null(x = cells)) {
+    cells.use <- as.character(x = cells)
+  } else {
+    cells.use <- NULL
+  }
+  verbose <- as.logical(x = verbose)
+  n <- SetIfNull(x = n, y = 0)
+  n <- as.integer(x = n)
+  counts <- groupCommand(
+    fragments = fpath,
+    some_whitelist_cells = cells.use,
+    max_lines = n,
+    verbose = verbose
+  )
+  # convert cell names
+  if (!is.null(x = cells)) {
+    # every cell will be present in the output, even if 0 counts
+    converter <- names(x = cells)
+    names(x = converter) <- cells
+    counts$CB <- converter[counts$CB]
+  }
+  return(counts)
+}
+
 # GetReadsInRegion
 #
 # Extract reads for each cell within a given genomic region or set of regions
