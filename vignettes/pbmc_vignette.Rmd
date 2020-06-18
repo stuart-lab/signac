@@ -427,6 +427,14 @@ CoveragePlot(
 )
 ```
 
+We can also create interactive plots using the `CoverageBrowser()` function.
+Here is a recorded demonstration showing how we can use `CoverageBrowser()` to
+browser the genome, adjust plotting parameters interactively, and return a plot
+that we can save or modify further.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/sr3xfZrHWtU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+
 <details>
   <summary>**Working with datasets that were not quantified using CellRanger**</summary>
 
