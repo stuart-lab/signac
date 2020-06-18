@@ -560,10 +560,8 @@ globalVariables(names = "cell", package = "Signac")
 #' @param object A Seurat object
 #' @param assay Name of assay to use. Only required if a fragment path is not
 #' provided. If NULL, use the active assay.
-#' @param region Which region to use. Can be a GRanges region, a string, or a
-#' vector of strings. Default is human chromosome 1.
-#' @param min.threshold Lower bound for the mononucleosome size. Default is 147
-#' @param max.threshold Upper bound for the mononucleosome size. Default is 294
+#' @param n Number of lines to read from the fragment file. If NULL, read all
+#' lines. Default scales with the number of cells in the object.
 #' @param verbose Display messages
 #' @param ... Arguments passed to other functions
 #'
@@ -575,6 +573,10 @@ globalVariables(names = "cell", package = "Signac")
 #' per cell, and the percentile rank of each ratio.
 #' @export
 #' @concept qc
+#' @importFrom fastmatch fmatch
+#' @importFrom Seurat AddMetaData
+#' @importFrom stats ecdf
+#'
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' Fragments(atac_small) <- CreateFragmentObject(
@@ -585,9 +587,7 @@ globalVariables(names = "cell", package = "Signac")
 NucleosomeSignal <- function(
   object,
   assay = NULL,
-  region = "chr1-1-249250621",
-  min.threshold = 147,
-  max.threshold = 294,
+  n = ncol(object) * 1e4,
   verbose = TRUE,
   ...
 ) {
@@ -597,38 +597,30 @@ NucleosomeSignal <- function(
   if (length(x = frags) == 0) {
     stop("No fragment files present in assay")
   }
-  fragments.use <- MultiGetReadsInRegion(
-    object = object,
-    region = region,
-    assay = assay,
-    cells = colnames(x = object),
-    verbose = verbose,
-    ...
-  )
-  mn_ratio <- function(x) {
-    mononucleosome <- sum(x[x > min.threshold & x < max.threshold])
-    nucleosome_free <- sum(x[x <= min.threshold])
-    return(mononucleosome / nucleosome_free)
-  }
-  if (verbose) {
-    message("Computing ratio of mononucleosomal to nucleosome-free fragments")
-  }
-  fragments.use <- as.data.frame(x = fragments.use[, c("cell", "length")])
-  fragments.use <- group_by(.data = fragments.use, cell)
-  fragment.summary <- as.data.frame(
-    x = summarize(
-      .data = fragments.use,
-      nucleosome_signal = mn_ratio(x = length)
+  af <- list()
+  for (i in seq_along(along.with = frags)) {
+    counts <- ExtractFragments(
+      fragments = frags[[i]],
+      n = n
     )
-  )
-  rownames(x = fragment.summary) <- fragment.summary$cell
-  fragment.summary$cell <- NULL
-  e.dist <- ecdf(x = fragment.summary$nucleosome_signal)
-  fragment.summary$nucleosome_percentile <- round(
-    x = e.dist(fragment.summary$nucleosome_signal),
+    cells.keep <- fmatch(
+      x = counts$CB, table = colnames(x = object), nomatch = 0L
+    )
+    rownames(x = counts) <- counts$CB
+    counts <- counts[
+      cells.keep > 0, c("mononucleosomal", "nucleosome_free")
+    ]
+    af[[i]] <- counts
+  }
+  af <- do.call(what = rbind, args = af)
+  af$nucleosome_signal <- af$mononucleosomal / af$nucleosome_free
+  e.dist <- ecdf(x = af$nucleosome_signal)
+  af$nucleosome_percentile <- round(
+    x = e.dist(af$nucleosome_signal),
     digits = 2
   )
-  object <- AddMetaData(object = object, metadata = fragment.summary)
+  af <- af[, c("nucleosome_signal", "nucleosome_percentile")]
+  object <- AddMetaData(object = object, metadata = af)
   return(object)
 }
 
