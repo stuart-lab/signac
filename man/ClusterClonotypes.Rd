@@ -14,7 +14,9 @@ ClusterClonotypes(object, assay = NULL, group.by = NULL)
 \item{group.by}{Grouping variable for cells}
 }
 \value{
-Returns an object of class \code{\link[stats]{hclust}}
+Returns a list containing two objects of class
+\code{\link[stats]{hclust}}, one for the cell clustering and one for the
+feature (allele) clustering
 }
 \description{
 Perform hierarchical clustering on clonotype data
