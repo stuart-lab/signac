@@ -83,7 +83,7 @@ crc <- TSSEnrichment(crc)
 crc <- NucleosomeSignal(crc)
 ```
 
-```{r fig.width=8}
+```{r fig.width=8, fig.height = 8, message=FALSE, warning=FALSE}
 # visualize QC metrics for each cell
 VlnPlot(crc, c("TSS.enrichment", "nCount_peaks", "nucleosome_signal", "pct_reads_in_peaks", "pct_reads_in_DNase", "blacklist_ratio"), pt.size = 0, ncol = 3)
 ```
@@ -133,7 +133,7 @@ crc <- AddMetaData(crc, metadata = mito.data$depth, col.name = "mtDNA_depth")
 We can look at the mitochondrial sequencing depth for each cell, and further
 subset the cells based on mitochondrial sequencing depth.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 VlnPlot(crc, "mtDNA_depth", pt.size = 0.1) + scale_y_log10()
 ```
 
@@ -191,7 +191,7 @@ crc <- NormalizeData(
 - GATA3 is a Treg marker
 - KIT is a Treg marker
 
-```{r viz_gene_activitites, message=FALSE, warning = FALSE}
+```{r viz_gene_activitites, message=FALSE, warning = FALSE, fig.width=8, fig.height=8}
 DefaultAssay(crc) <- 'RNA'
 
 FeaturePlot(
@@ -377,7 +377,7 @@ on the hierarchical clustering order, and the order of variable features based
 on the hierarchical feature clustering. This allows us to get a decent ordering
 of both features and clones automatically:
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 DoHeatmap(tf1, features = VariableFeatures(tf1), slot = "data", disp.max = 0.1) +
   scale_fill_viridis_c()
 ```
