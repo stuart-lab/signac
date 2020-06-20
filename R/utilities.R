@@ -1540,8 +1540,12 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
     text = reads,
     sep = "\t",
     header = FALSE,
-    col.names = c("chr", "start", "end", "cell", "count")
+    col.names = c("chr", "start", "end", "cell", "count"),
+    fill = TRUE
   )
+  if (nrow(x = df) != length(x = reads)) {
+    df <- df[!is.na(x = df$start), ]
+  }
   if (record.ident) {
     df$ident <- rep(x = seq_along(along.with = nrep), nrep)
   }
