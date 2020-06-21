@@ -100,7 +100,7 @@ element is used to separate the start from end coordinate.}
 \item{add_tile}{If TRUE plot the presence of Tn5 cuts in smoothing windows
 (with size = \code{window}) across single cells. Default: FALSE.}
 
-\item{n_cells_per_group}{Random number of cells per group as defined 
+\item{n_cells_per_group}{Random number of cells per group as defined
 in \code{group.by}. Only used when \code{add_tile} is TRUE. Default: 150.}
 
 \item{...}{Additional arguments passed to \code{\link[patchwork]{wrap_plots}}}

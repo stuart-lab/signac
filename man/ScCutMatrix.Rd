@@ -37,6 +37,6 @@ cells in the object}
 A matrix.
 }
 \description{
-Generates a cell-by-position matrix of Tn5 integration sites in 
+Generates a cell-by-position matrix of Tn5 integration sites in
 sliding windows.
 }
