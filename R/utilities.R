@@ -1330,9 +1330,9 @@ SubsetMatrix <- function(
 
 #' Generate a matrix of integration sites in sliding windows
 #'
-#' Generates a cell-by-position matrix of Tn5 integration sites in 
+#' Generates a cell-by-position matrix of Tn5 integration sites in
 #' sliding windows.
-#' 
+#'
 #' @param object A Seurat object
 #' @param region A GRanges object containing the region of interest
 #' @param tabix.file A TabixFile object. If NULL, the file specified in
@@ -1344,37 +1344,35 @@ SubsetMatrix <- function(
 #' cells in the object
 #' @param window_size The sliding window size. Default: 100.
 #' @param verbose Default: TRUE
-#' 
+#'
 #' @import GenomicRanges IRanges
 #' @importFrom Matrix rowSums
 #'
 #' @return A matrix.
-#'
-#' @examples
 ScCutMatrix <- function(
-  object, region, tabix.file=NULL, assay=NULL, cells=NULL, 
+  object, region, tabix.file=NULL, assay=NULL, cells=NULL,
   window_size=100, verbose=TRUE){
   # [-------------------]: cells x 1_big_region_of_interest.
   # [-----][-----][-----]: cells x 3_sliding_windows
   # [  o      o      o  ]: cells x 3_values
   region_sw <- unlist(slidingWindows(region, window_size, window_size))
   if (verbose) {message(length(region_sw), ' sliding windows.')}
-  
-  cutmat <- CutMatrix(object=object, region=region, 
+
+  cutmat <- CutMatrix(object=object, region=region,
                       tabix.file=tabix.file, assay=assay,
                       cells=cells, verbose=verbose)
-  
+
   chrom_str <- as.character(seqnames(region))
   region_nt <- GRanges(
-    seqnames = chrom_str, 
-    IRanges(start = as.numeric(colnames(cutmat)), 
+    seqnames = chrom_str,
+    IRanges(start = as.numeric(colnames(cutmat)),
             end = as.numeric(colnames(cutmat))))
   ovp <- findOverlaps(query = region_nt, subject = region_sw)
   region_nt_widx <- subjectHits(ovp)
   cutmat_sw <- sapply(unique(region_nt_widx), function(j){
     rowSums(cutmat[, region_nt_widx==j, drop=F])
   })
-  
+
   rownames(cutmat_sw) <- cells
   colnames(cutmat_sw) <- as.character(start(resize(region_sw, width = 1, fix = 'center')))
   return(cutmat_sw)
@@ -1386,30 +1384,27 @@ ScCutMatrix <- function(
 #' @param mat A matrix returned by \code{\link{ScCutMatrix}}
 #' @param gloc_lim Genomic location to focus on.
 #' @param cells_group A named character vector to group cell names.
-#' 
-#' @importFrom tibble as_tibble
-#' @importFrom reshape2 melt
+#'
 #' @importFrom dplyr filter
-#' @importFrom  ggplot2 geom_tile scale_fill_manual aes_string xlim facet_wrap theme_classic labs theme_classic theme element_blank element_rect element_text
-#' 
+#' @importFrom tidyr gather
+#' @importFrom ggplot2 geom_tile scale_fill_manual aes_string xlim facet_wrap theme_classic labs theme_classic theme element_blank element_rect element_text
+#'
 #' @return ggplot
 ScCutTilePlot <- function(
   mat, gloc_lim, cells_group=NULL){
-  
-  cutmat_sw_wide <- as_tibble(mat)
+
+  cutmat_sw_wide <- as.data.frame(mat)
   cnames_use <- rownames(mat)
-  
+
   cutmat_sw_wide$cname <- cnames_use
-  cutmat_sw_long <- melt(cutmat_sw_wide, 
-                         id.vars='cname', 
-                         variable.name='gloc', 
-                         value.name='count') %>%
+  cutmat_sw_long <- gather(cutmat_sw_wide,
+                           key='gloc', value='count', -cname) %>%
     filter(count>0)
   cutmat_sw_long$gloc <- as.numeric(as.character(cutmat_sw_long$gloc))
   cutmat_sw_long$cidx <- match(cutmat_sw_long$cname, cnames_use)
-  
+
   cutmat_sw_long$count_binary <- cutmat_sw_long$count > 0
-  
+
   if (is.null(cells_group)){
     tile.plot <- ggplot(
       cutmat_sw_long, aes_string(x='gloc', y='cidx')) +
@@ -1421,14 +1416,14 @@ ScCutTilePlot <- function(
     tile.plot <- ggplot(
       cutmat_sw_long, aes_string(x='gloc', y='cidx')) +
       geom_tile(aes_string(fill='cells_group')) +
-      facet_wrap(facets = ~cells_group, strip.position = 'right', 
+      facet_wrap(facets = ~cells_group, strip.position = 'right',
                  ncol = 1, scales='free_y')
   }
-  
-  tile.plot <- tile.plot + theme_classic() + 
-    labs(y=sprintf('Cells\n(%d)', length(cnames_use))) + 
+
+  tile.plot <- tile.plot + theme_classic() +
+    labs(y=sprintf('Cells\n(%d)', length(cnames_use))) +
     xlim(gloc_lim)
-  
+
   tile.plot <- tile.plot + theme(
     axis.title.x = element_blank(),
     # axis.text.x = element_blank(), # Check if the genomic postions are aligned

@@ -62,7 +62,6 @@ globalVariables(
 #' @importFrom methods is
 #' @importFrom stats median
 #' @importFrom dplyr mutate group_by ungroup group_by_at sample_n select_at
-#' @importFrom tibble rownames_to_column deframe
 #' @importFrom zoo rollapply
 #' @importFrom grid unit
 #' @importFrom gggenes geom_gene_arrow geom_gene_label
@@ -184,9 +183,9 @@ SingleCoveragePlot <- function(
       legend.position = 'none',
       strip.text.y = element_text(angle = 0)
     )
-  
+
   cov.plot <- p
-  
+
   peak.plot <- NULL
   if (!is.null(x = peaks)) {
     # subset to covered range
@@ -217,19 +216,22 @@ SingleCoveragePlot <- function(
   tile.plot <- NULL
   if (add_tile){
     viz_sc2grp <- object[[]][cells, group.by, drop=FALSE] %>%
-      rownames_to_column(var='cname') %>%
+      mutate(cname=cells) %>%
       group_by_at(group.by) %>%
       sample_n(n_cells_per_group) %>%
-      select_at(c('cname', group.by)) %>%
-      deframe()
+      ungroup() %>%
+      select_at(c('cname', group.by))
+    viz_sc2grp <- structure(
+      viz_sc2grp[[group.by]], names=viz_sc2grp$cname
+    )
     sc_cutmat <- ScCutMatrix(
-      object, region = region, cells = names(viz_sc2grp), 
+      object, region = region, cells = names(viz_sc2grp),
       window_size = window, verbose = FALSE)
     tile.plot <- ScCutTilePlot(
       sc_cutmat, gloc_lim = c(start.pos, end.pos),
       cells_group = viz_sc2grp)
   }
-  
+
   gene.plot <- NULL
   if (!is.null(x = annotation)) {
     if (!inherits(x = annotation, what = 'GRanges')) {
@@ -308,7 +310,7 @@ SingleCoveragePlot <- function(
         plot_layout(ncol = 1, heights = c(height.tracks, 1))
     }
   }
-  
+
   if (!(is.null(peak.plot) & is.null(tile.plot) & is.null(gene.plot))){
     # Remove axis from coverage plot because peak/tile/gene plot will follow
     cov.plot <- cov.plot + theme(
@@ -316,16 +318,16 @@ SingleCoveragePlot <- function(
       axis.text.x = element_blank(),
       axis.line.x.bottom = element_blank(),
       axis.ticks.x.bottom = element_blank())
-    p_layout <- c(height.tracks, 
+    p_layout <- c(height.tracks,
                   rep(1, sum(c(!is.null(peak.plot), !is.null(gene.plot)))))
     if (!is.null(tile.plot)){
-      p_layout <- c(height.tracks, height.tracks/2, 
+      p_layout <- c(height.tracks, height.tracks/2,
                     rep(1, sum(c(!is.null(peak.plot), !is.null(gene.plot)))))
     }
     p <- cov.plot + tile.plot + peak.plot + gene.plot +
       plot_layout(ncol=1, heights = p_layout)
   }
-  
+
   return(p)
 }
 
@@ -368,7 +370,7 @@ SingleCoveragePlot <- function(
 #' element is used to separate the start from end coordinate.
 #' @param add_tile If TRUE plot the presence of Tn5 cuts in smoothing windows
 #' (with size = \code{window}) across single cells. Default: FALSE.
-#' @param n_cells_per_group Random number of cells per group as defined 
+#' @param n_cells_per_group Random number of cells per group as defined
 #' in \code{group.by}. Only used when \code{add_tile} is TRUE. Default: 150.
 #' @param ... Additional arguments passed to \code{\link[patchwork]{wrap_plots}}
 #'
