@@ -1093,6 +1093,7 @@ ExtractFragments <- function(fragments, n = NULL, verbose = TRUE) {
 #
 #' @importFrom Rsamtools TabixFile scanTabix
 #' @importFrom Seurat Idents
+#' @importFrom fastmatch fmatch
 #
 # @return Returns a data frame
 GetReadsInRegion <- function(
@@ -1114,7 +1115,9 @@ GetReadsInRegion <- function(
   }
   reads <- scanTabix(file = tabix.file, param = region)
   reads <- TabixOutputToDataFrame(reads = reads)
-  reads <- reads[reads$cell %in% cellmap, ]
+  reads <- reads[
+    fmatch(x = reads$cell, table = cellmap, nomatch = 0L) > 0,
+  ]
   # convert cell names to match names in object
   reads$cell <- file.to.object[reads$cell]
   if (!is.null(x = cells)) {
