@@ -11,6 +11,7 @@ TSSEnrichment(
   fast = TRUE,
   assay = NULL,
   cells = NULL,
+  process_n = 2000,
   verbose = TRUE
 )
 }
@@ -32,6 +33,9 @@ accessibility profile at the TSS.}
 
 \item{cells}{A vector of cells to include. If NULL (default), use all cells
 in the object}
+
+\item{process_n}{Number of regions to process at a time if using \code{fast}
+option.}
 
 \item{verbose}{Display messages}
 }
