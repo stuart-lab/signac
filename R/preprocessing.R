@@ -889,6 +889,8 @@ RunTFIDF.Seurat <- function(
 #' base-resolution matrix of integration counts at each site. This reduces the
 #' memory required to store the object but does not allow plotting the
 #' accessibility profile at the TSS.
+#' @param process_n Number of regions to process at a time if using \code{fast}
+#' option.
 #' @param verbose Display messages
 #'
 #' @importFrom Matrix rowMeans
@@ -897,6 +899,7 @@ RunTFIDF.Seurat <- function(
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom IRanges IRanges
 #' @importFrom GenomicRanges start width strand
+#' @importFrom Seurat DefaultAssay
 #'
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @export
@@ -917,6 +920,7 @@ TSSEnrichment <- function(
   fast = TRUE,
   assay = NULL,
   cells = NULL,
+  process_n = 2000,
   verbose = TRUE
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
@@ -950,7 +954,7 @@ TSSEnrichment <- function(
       object = object,
       assay = assay,
       tss.positions = tss.positions,
-      process_n = 2000,
+      process_n = process_n,
       verbose = verbose
     )
     return(object)
@@ -1034,6 +1038,7 @@ TSSEnrichment <- function(
 #' @importFrom GenomeInfoDb seqlevels keepSeqlevels
 #' @importFrom stats ecdf
 #' @importFrom Matrix rowSums
+#' @importFrom Seurat DefaultAssay
 TSSFast <- function(
   object,
   tss.positions,
@@ -1094,6 +1099,12 @@ TSSFast <- function(
   # iterate over fragment files and parts of region
   if (verbose) {
     message("Extracting fragments at TSSs")
+    pb <- txtProgressBar(
+      min = 1,
+      max = length(x = centers),
+      style = 3,
+      file = stderr()
+    )
   }
   for (i in seq_along(along.with = frags)) {
     # open fragment file
@@ -1132,38 +1143,35 @@ TSSFast <- function(
         region = centers.use,
         verbose = FALSE
       )
-      cuts.center <- rowSums(x = cuts.center)
-      cuts.upstream <- SingleFileCutMatrix(
+      counts.center <- rowSums(x = cuts.center)
+
+      cuts.flank <- SingleFileCutMatrix(
         cellmap = cellmap,
         tabix.file = tbx,
-        region = uflanks.use,
+        region = c(uflanks.use, dflanks.use),
         verbose = FALSE
       )
-      cuts.upstream <- rowSums(x = cuts.upstream)
-      cuts.downstream <- SingleFileCutMatrix(
-        cellmap = cellmap,
-        tabix.file = tbx,
-        region = dflanks.use,
-        verbose = FALSE
-      )
-      cuts.downstream <- rowSums(x = cuts.downstream)
+      counts.flank <- rowSums(x = cuts.flank)
 
       # increment count vectors
-      center.counts[names(x = cuts.center)] <-
-        center.counts + as.vector(x = cuts.center)
-      flank.counts[names(x = cuts.upstream)] <-
-        flank.counts + as.vector(x = cuts.upstream)
-      flank.counts[names(x = cuts.downstream)] <-
-        flank.counts + as.vector(x = cuts.downstream)
+      center.counts[names(x = counts.center)] <-
+        center.counts + as.vector(x = counts.center)
+      flank.counts[names(x = counts.flank)] <-
+        flank.counts + as.vector(x = counts.flank)
+
+      if (verbose) {
+        setTxtProgressBar(pb = pb, value = j)
+      }
     }
+    close(con = tbx)
   }
 
   if (verbose) {
-    message("Computing TSS enrichment score")
+    message("\nComputing TSS enrichment score")
   }
 
   # take mean accessibility per base
-  flank.mean <- flank.counts / 202
+  flank.mean <- flank.counts / 200
   flank.mean[flank.counts == 0] <- mean(x = flank.mean, na.rm = TRUE)
 
   center.norm <- center.counts / flank.mean
