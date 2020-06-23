@@ -885,7 +885,12 @@ RunTFIDF.Seurat <- function(
 #' TSSs from the set. If NULL, use all TSSs (slower).
 #' @param cells A vector of cells to include. If NULL (default), use all cells
 #' in the object
+#' @param fast Just compute the TSS enrichment score, without storing the
+#' base-resolution matrix of integration counts at each site. This reduces the
+#' memory required to store the object but does not allow plotting the
+#' accessibility profile at the TSS.
 #' @param verbose Display messages
+#'
 #' @importFrom Matrix rowMeans
 #' @importFrom methods slot
 #' @importFrom stats ecdf
@@ -909,6 +914,7 @@ TSSEnrichment <- function(
   object,
   tss.positions = NULL,
   n = NULL,
+  fast = TRUE,
   assay = NULL,
   cells = NULL,
   verbose = TRUE
@@ -920,6 +926,9 @@ TSSEnrichment <- function(
     stop("No fragment files present in assay")
   }
   if (is.null(x = tss.positions)) {
+    if (verbose) {
+      message("Extracting TSS positions")
+    }
     # work out TSS positions from gene annotations
     annotations <- Annotation(object = object[[assay]])
     tss.positions <- GetTSSPositions(ranges = annotations)
@@ -930,6 +939,23 @@ TSSEnrichment <- function(
     }
     tss.positions <- tss.positions[1:n, ]
   }
+
+  # exclude chrM
+  sn <- seqnames(x = tss.positions)
+  tss.positions <- tss.positions[!as.character(sn) %in% c("chrM", "Mt")]
+
+  if (fast) {
+    # just compute the TSS enrichment score without storing the full matrix
+    object <- TSSFast(
+      object = object,
+      assay = assay,
+      tss.positions = tss.positions,
+      process_n = 2000,
+      verbose = verbose
+    )
+    return(object)
+  }
+
   tss.positions <- Extend(
     x = tss.positions,
     upstream = 1000,
@@ -944,12 +970,12 @@ TSSEnrichment <- function(
     verbose = verbose
   )
 
-  # compute mean read counts in 100 bp at eack flank for each cell
+  # compute mean read counts in 100 bp at each flank for each cell
   # (200 bp total averaged)
   if (verbose) {
     message("Computing mean insertion frequency in flanking regions")
   }
-  flanking.mean <- rowMeans(x = cutmatrix[, c(1:100, 1901:2001)])
+  flanking.mean <- rowMeans(x = cutmatrix[, c(1:100, 1902:2001)])
 
   # if the flanking mean is 0 for any cells, the enrichment score will be zero.
   # instead replace with the mean from the whole population
@@ -961,11 +987,12 @@ TSSEnrichment <- function(
   if (verbose) {
     message("Normalizing TSS score")
   }
+
   norm.matrix <- cutmatrix / flanking.mean
 
   # Take signal value at center of distribution after normalization as
   # TSS enrichment score, average the 1000 bases at the center
-  object$TSS.enrichment <- rowMeans(x = norm.matrix[, 501:1500], na.rm = TRUE)
+  object$TSS.enrichment <- rowMeans(x = norm.matrix[, 500:1500], na.rm = TRUE)
   e.dist <- ecdf(x = object$TSS.enrichment)
   object$TSS.percentile <- round(
     x = e.dist(object$TSS.enrichment),
@@ -1000,5 +1027,153 @@ TSSEnrichment <- function(
     new.data = norm.matrix,
     key = "TSS"
   ))
+  return(object)
+}
+
+#' @importFrom Rsamtools TabixFile
+#' @importFrom GenomeInfoDb seqlevels keepSeqlevels
+#' @importFrom stats ecdf
+#' @importFrom Matrix rowSums
+TSSFast <- function(
+  object,
+  tss.positions,
+  assay = NULL,
+  process_n = 2000,
+  verbose = TRUE
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+
+  # extract fragments
+  frags <- Fragments(object = object[[assay]])
+  if (length(x = frags) == 0) {
+    stop("Fragments file not set for assay ", assay)
+  }
+
+  # get regions
+  upstream.flank <- Extend(
+    x = tss.positions,
+    upstream = 1000,
+    downstream = -901,
+    from.midpoint = TRUE
+  )
+  downstream.flank <- Extend(
+    x = tss.positions,
+    upstream = -901,
+    downstream = 1000,
+    from.midpoint = TRUE
+  )
+  centers <- Extend(
+    x = tss.positions,
+    upstream = 500,
+    downstream = 500,
+    from.midpoint = TRUE
+  )
+
+  # chunk ranges
+  process_n <- SetIfNull(x = process_n, y = length(x = centers))
+  nchunk <- ceiling(x = length(x = upstream.flank) / process_n)
+  upstream.flank <- ChunkGRanges(
+    granges = upstream.flank,
+    nchunk = nchunk
+  )
+  downstream.flank <- ChunkGRanges(
+    granges = downstream.flank,
+    nchunk = nchunk
+  )
+  centers <- ChunkGRanges(
+    granges = centers,
+    nchunk = nchunk
+  )
+
+  # initialize vectors
+  flank.counts <- vector(mode = "numeric", length = ncol(x = object))
+  names(x = flank.counts) <- colnames(x = object)
+  center.counts <- vector(mode = "numeric", length = ncol(x = object))
+  names(x = center.counts) <- colnames(x = object)
+
+  # iterate over fragment files and parts of region
+  if (verbose) {
+    message("Extracting fragments at TSSs")
+  }
+  for (i in seq_along(along.with = frags)) {
+    # open fragment file
+    tbx.path <- GetFragmentData(object = frags[[i]], slot = "path")
+    cellmap <- GetFragmentData(object = frags[[i]], slot = "cells")
+    cellmap <- cellmap[intersect(names(x = cellmap), colnames(x = object))]
+    tbx <- TabixFile(file = tbx.path)
+    open(con = tbx)
+    # iterate over chunked ranges
+    for (j in seq_along(along.with = centers)) {
+      # remove seqlevels not present in fragment file
+      common.seqlevels <- intersect(
+        x = seqlevels(x = centers[[j]]),
+        y = seqnamesTabix(file = tbx)
+      )
+      uflanks.use <- keepSeqlevels(
+        x = upstream.flank[[j]],
+        value = common.seqlevels,
+        pruning.mode = "coarse"
+      )
+      dflanks.use <- keepSeqlevels(
+        x = downstream.flank[[j]],
+        value = common.seqlevels,
+        pruning.mode = "coarse"
+      )
+      centers.use <- keepSeqlevels(
+        x = centers[[j]],
+        value = common.seqlevels,
+        pruning.mode = "coarse"
+      )
+
+      # count integration events
+      cuts.center <- SingleFileCutMatrix(
+        cellmap = cellmap,
+        tabix.file = tbx,
+        region = centers.use,
+        verbose = FALSE
+      )
+      cuts.center <- rowSums(x = cuts.center)
+      cuts.upstream <- SingleFileCutMatrix(
+        cellmap = cellmap,
+        tabix.file = tbx,
+        region = uflanks.use,
+        verbose = FALSE
+      )
+      cuts.upstream <- rowSums(x = cuts.upstream)
+      cuts.downstream <- SingleFileCutMatrix(
+        cellmap = cellmap,
+        tabix.file = tbx,
+        region = dflanks.use,
+        verbose = FALSE
+      )
+      cuts.downstream <- rowSums(x = cuts.downstream)
+
+      # increment count vectors
+      center.counts[names(x = cuts.center)] <-
+        center.counts + as.vector(x = cuts.center)
+      flank.counts[names(x = cuts.upstream)] <-
+        flank.counts + as.vector(x = cuts.upstream)
+      flank.counts[names(x = cuts.downstream)] <-
+        flank.counts + as.vector(x = cuts.downstream)
+    }
+  }
+
+  if (verbose) {
+    message("Computing TSS enrichment score")
+  }
+
+  # take mean accessibility per base
+  flank.mean <- flank.counts / 202
+  flank.mean[flank.counts == 0] <- mean(x = flank.mean, na.rm = TRUE)
+
+  center.norm <- center.counts / flank.mean
+
+  # compute TSS enrichment score and add to object
+  object$TSS.enrichment <- center.norm / 1001
+  e.dist <- ecdf(x = object$TSS.enrichment)
+  object$TSS.percentile <- round(
+    x = e.dist(object$TSS.enrichment),
+    digits = 2
+  )
   return(object)
 }

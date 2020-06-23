@@ -8,6 +8,7 @@ TSSEnrichment(
   object,
   tss.positions = NULL,
   n = NULL,
+  fast = TRUE,
   assay = NULL,
   cells = NULL,
   verbose = TRUE
@@ -21,6 +22,11 @@ use the genomic annotations stored in the assay.}
 
 \item{n}{Number of TSS positions to use. This will select the first _n_
 TSSs from the set. If NULL, use all TSSs (slower).}
+
+\item{fast}{Just compute the TSS enrichment score, without storing the
+base-resolution matrix of integration counts at each site. This reduces the
+memory required to store the object but does not allow plotting the
+accessibility profile at the TSS.}
 
 \item{assay}{Name of assay to use}
 
