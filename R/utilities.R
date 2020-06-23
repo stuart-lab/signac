@@ -1163,6 +1163,7 @@ GetGroups <- function(
 # @param assay Name of assay to use if supplying a Seurat object
 #' @importFrom Seurat DefaultAssay
 #' @importFrom Rsamtools TabixFile
+#' @importFrom GenomeInfoDb keepSeqlevels
 MultiGetReadsInRegion <- function(
   object,
   region,
@@ -1185,9 +1186,19 @@ MultiGetReadsInRegion <- function(
     cellmap <- GetFragmentData(object = fragment.list[[i]], slot = "cells")
     tabix.file <- TabixFile(file = tbx.path)
     open(con = tabix.file)
+    # remove regions that aren't in the fragment file
+    common.seqlevels <- intersect(
+      x = seqlevels(x = region),
+      y = seqnamesTabix(file = tabix.file)
+    )
+    region.use <- keepSeqlevels(
+      x = region,
+      value = common.seqlevels,
+      pruning.mode = "coarse"
+    )
     reads <- GetReadsInRegion(
       cellmap = cellmap,
-      region = region,
+      region = region.use,
       tabix.file = tabix.file,
       ...
     )
@@ -1211,7 +1222,6 @@ MultiGetReadsInRegion <- function(
 # @param cells Which cells to include in the matrix. If NULL, use all cells in
 # the cellmap
 # @param tabix.file A \code{\link[Rsamtools]{TabixFile}} object.
-# @param group.by Grouping variable
 # @param verbose Display messages
 #' @importFrom Matrix sparseMatrix
 #' @importFrom Rsamtools TabixFile
@@ -1222,7 +1232,6 @@ SingleFileCutMatrix <- function(
   region,
   cells = NULL,
   tabix.file,
-  group.by = NULL,
   verbose = TRUE
 ) {
   # if multiple regions supplied, must be the same width
@@ -1376,7 +1385,6 @@ MultiRegionCutMatrix <- function(
       pruning.mode = "coarse"
     )
     cm <- SingleFileCutMatrix(
-      group.by = group.by,
       cellmap = cellmap,
       tabix.file = tabix.file,
       region = regions,
