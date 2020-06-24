@@ -90,7 +90,7 @@ banding patterns. The remaining cells exhibit a pattern that is typical for a
 successful ATAC-seq experiment.
 
 ```{r nucleosome_plot, message=FALSE, warning=FALSE, cache=FALSE}
-brain$nucleosome_group <- ifelse(brain$nucleosome_signal > 10, 'NS > 10', 'NS < 10')
+brain$nucleosome_group <- ifelse(brain$nucleosome_signal > 4, 'NS > 4', 'NS < 4')
 FragmentHistogram(object = brain, group.by = 'nucleosome_group', region = 'chr1-1-10000000')
 ```
 
@@ -104,7 +104,7 @@ information about the TSS enrichment score
 enrichment score for each cell using the `TSSEnrichment()` function in Signac.
 
 ```{r tss_score, message=FALSE, warning=FALSE, cache=FALSE}
-brain <- TSSEnrichment(object = brain)
+brain <- TSSEnrichment(object = brain, fast = FALSE)
 ```
 
 ```{r tss_plot, message=FALSE, warning=FALSE, cache=FALSE}
@@ -134,7 +134,7 @@ brain <- subset(
     peak_region_fragments < 100000 &
     pct_reads_in_peaks > 40 &
     blacklist_ratio < 0.025 &
-    nucleosome_signal < 10 &
+    nucleosome_signal < 4 &
     TSS.enrichment > 2
 )
 brain
@@ -362,12 +362,9 @@ accessibility in a region.
 # set plotting order
 levels(brain) <- c("L2/3 IT","L4","L5 IT","L5 PT","L6 CT", "L6 IT","NP","Sst","Pvalb","Vip","Lamp5","Meis2","Oligo","Astro","Endo","VLMC","Macrophage")
 
-region1 <- rownames(da_peaks)[1]
-region2 <- "chr2-22620000-22670000"
-
 CoveragePlot(
   object = brain,
-  region = c(region1, region2),
+  region = c("Neurod6", "Gad2"),
   extend.upstream = 5000,
   extend.downstream = 5000,
   ncol = 1
