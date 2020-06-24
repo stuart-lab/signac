@@ -952,40 +952,33 @@ CalcN <- function(object) {
   ))
 }
 
-#' @importFrom S4Vectors split
-#' @importFrom GenomicRanges start end strand GRanges
-#' @importFrom IRanges IRanges
-#' @importFrom GenomeInfoDb seqnames
+globalVariables(
+  names = c("start", "end", "seqnames", "strand", "gene_biotype"),
+  package = "Signac"
+)
+#' @importFrom GenomicRanges makeGRangesFromDataFrame
+#' @import data.table
 CollapseToLongestTranscript <- function(ranges) {
-  # split by gene name
-  ranges.split <- split(x = ranges, f = ranges$gene_id, drop = TRUE)
-
-  # iterate over elements and get start/end/strand for whole gene
-  strands <- strand(x = ranges.split)
-  starts <- start(x = ranges.split)
-  ends <- end(x = ranges.split)
-  chrom <- seqnames(x = ranges.split)
-
-  strands <- sapply(X = strands, FUN = function(x) as.vector(x = x)[[1]])
-  starts <- sapply(X = starts, FUN = min)
-  ends <- sapply(X = ends, FUN = max)
-  chrom <- sapply(X = chrom, FUN = function(x) as.vector(x = x)[[1]])
-
-  # add gene name and biotype
-  bt <- vector(mode = "character", length = length(x = chrom))
-  gn <- vector(mode = "character", length = length(x = chrom))
-  for (i in seq_along(ranges.split)) {
-    bt[i] <- ranges.split[[i]]$gene_biotype[[1]]
-    gn[i] <- ranges.split[[i]]$gene_name[[1]]
-  }
-
-  # construct granges object
-  gene.ranges <- GRanges(
-    seqnames = chrom,
-    ranges = IRanges(start = starts, end = ends),
-    strand = strands,
-    gene_biotype = bt,
-    gene_name = gn
+  range.df <- as.data.table(x = ranges)
+  range.df$strand <- ifelse(
+    test = range.df$strand == "*",
+    yes = "+",
+    no = range.df$strand
+  )
+  collapsed <- range.df[
+    , .(unique(seqnames),
+        min(start),
+        max(end),
+        strand[[1]],
+        gene_biotype[[1]]),
+    "gene_name"
+  ]
+  colnames(x = collapsed) <- c(
+    "gene_name", "seqnames", "start", "end", "strand", "gene_biotype"
+  )
+  gene.ranges <- makeGRangesFromDataFrame(
+    df = collapsed,
+    keep.extra.columns = TRUE
   )
 }
 
