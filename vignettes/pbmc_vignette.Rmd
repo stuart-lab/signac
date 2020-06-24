@@ -133,7 +133,7 @@ TSSPlot(pbmc, group.by = 'high.tss') + NoLegend()
 We can also look at the fragment length periodicity for all the cells, and group by cells with high or low nucleosomal signal strength. You can see that cells which are outliers for the mononucleosomal/ nucleosome-free ratio (based off the plots above) have different banding patterns. The remaining cells exhibit a pattern that is typical for a successful ATAC-seq experiment.
 
 ```{r nucleosome_plot, message=FALSE, warning=FALSE, cache=FALSE}
-pbmc$nucleosome_group <- ifelse(pbmc$nucleosome_signal > 10, 'NS > 10', 'NS < 10')
+pbmc$nucleosome_group <- ifelse(pbmc$nucleosome_signal > 4, 'NS > 4', 'NS < 4')
 FragmentHistogram(object = pbmc, group.by = 'nucleosome_group')
 ```
 
@@ -156,7 +156,7 @@ pbmc <- subset(
     peak_region_fragments < 20000 &
     pct_reads_in_peaks > 15 &
     blacklist_ratio < 0.05 &
-    nucleosome_signal < 10 &
+    nucleosome_signal < 4 &
     TSS.enrichment > 2
 )
 pbmc
@@ -187,7 +187,7 @@ Here we see there is a very strong correlation between the first LSI component a
 
 ## Non-linear dimension reduction and clustering
 
-Now that the cells are embedded in a low-dimensional space, we can use methods commonly applied for the analysis of scRNA-seq data to perform graph-based clustering, and non-linear dimension reduction for visualization. The functions `RunUMAP`, `FindNeighbors`, and `FindClusters` all come from the Seurat package.
+Now that the cells are embedded in a low-dimensional space, we can use methods commonly applied for the analysis of scRNA-seq data to perform graph-based clustering, and non-linear dimension reduction for visualization. The functions `RunUMAP()`, `FindNeighbors()`, and `FindClusters()` all come from the Seurat package.
 
 ```{r nncluster, cache=FALSE, message=FALSE, warning=FALSE}
 pbmc <- RunUMAP(object = pbmc, reduction = 'lsi', dims = 2:30)
