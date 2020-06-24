@@ -1026,6 +1026,7 @@ globalVariables(names = "gene", package = "Signac")
 #' element_blank ylab scale_x_discrete scale_y_continuous
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom IRanges start end
+#' @importFrom patchwork wrap_plots
 #'
 #' @export
 #' @concept visualization
@@ -1069,26 +1070,26 @@ ExpressionPlot <- function(
       df <- rbind(df, df.1)
     }
   }
-  ymin <- round(x = min(df$expression))
-  ymax <- round(x = max(df$expression))
-  p <- ggplot(data = df, aes(x = gene, y = expression, fill = group)) +
-    geom_violin(size = 1/4) +
-    facet_wrap(~group, ncol = 1, strip.position = "right") +
-    theme_classic() +
-    scale_x_discrete(position = "top") +
-    scale_y_continuous(position = "right") +
-    theme(
-      axis.text.y = element_blank(),
-      axis.text.x = element_text(size = 8),
-      axis.title.x = element_blank(),
-      strip.background = element_blank(),
-      strip.text.x = element_blank(),
-      strip.text.y = element_blank(),
-      legend.position = "none"
-    ) +
-    ylab(label = paste0("Expression (range ",
-                        as.character(x = ymin), " - ",
-                        as.character(x = ymax), ")"))
+  p.list <- list()
+  for (i in seq_along(along.with = features)) {
+    df.use <- df[df$gene == features[[i]], ]
+    p <- ggplot(data = df.use, aes(x = expression, y = gene, fill = group)) +
+      geom_violin(size = 1/4) +
+      facet_wrap(~group, ncol = 1, strip.position = "right") +
+      theme_classic() +
+      scale_y_discrete(position = "top") +
+      scale_x_continuous(position = "bottom", limits = c(0, NA)) +
+      theme(
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(size = 8),
+        axis.title.x = element_blank(),
+        strip.background = element_blank(),
+        strip.text.y = element_blank(),
+        legend.position = "none"
+      )
+    p.list[[i]] <- p
+  }
+  p <- wrap_plots(p.list, ncol = length(x = p.list))
   return(p)
 }
 
