@@ -1108,6 +1108,16 @@ GetReadsInRegion <- function(
   if (!is(object = region, class2 = "GRanges")) {
     region <- StringToGRanges(regions = region, ...)
   }
+  # remove regions that aren't in the fragment file
+  common.seqlevels <- intersect(
+    x = seqlevels(x = region),
+    y = seqnamesTabix(file = tabix.file)
+  )
+  region <- keepSeqlevels(
+    x = region,
+    value = common.seqlevels,
+    pruning.mode = "coarse"
+  )
   reads <- scanTabix(file = tabix.file, param = region)
   reads <- TabixOutputToDataFrame(reads = reads)
   reads <- reads[
@@ -1181,19 +1191,9 @@ MultiGetReadsInRegion <- function(
     cellmap <- GetFragmentData(object = fragment.list[[i]], slot = "cells")
     tabix.file <- TabixFile(file = tbx.path)
     open(con = tabix.file)
-    # remove regions that aren't in the fragment file
-    common.seqlevels <- intersect(
-      x = seqlevels(x = region),
-      y = seqnamesTabix(file = tabix.file)
-    )
-    region.use <- keepSeqlevels(
-      x = region,
-      value = common.seqlevels,
-      pruning.mode = "coarse"
-    )
     reads <- GetReadsInRegion(
       cellmap = cellmap,
-      region = region.use,
+      region = region,
       tabix.file = tabix.file,
       ...
     )
