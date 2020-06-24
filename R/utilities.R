@@ -960,6 +960,7 @@ globalVariables(
 #' @import data.table
 CollapseToLongestTranscript <- function(ranges) {
   range.df <- as.data.table(x = ranges)
+  range.df$strand <- as.character(x = range.df$strand)
   range.df$strand <- ifelse(
     test = range.df$strand == "*",
     yes = "+",
@@ -980,6 +981,7 @@ CollapseToLongestTranscript <- function(ranges) {
     df = collapsed,
     keep.extra.columns = TRUE
   )
+  return(gene.ranges)
 }
 
 # Chunk GRanges
