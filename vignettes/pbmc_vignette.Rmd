@@ -113,7 +113,7 @@ Note that the last three metrics can be obtained from the output of CellRanger (
 pbmc <- NucleosomeSignal(object = pbmc)
 
 # compute TSS enrichment score per cell
-pbmc <- TSSEnrichment(object = pbmc)
+pbmc <- TSSEnrichment(object = pbmc, fast = FALSE)
 
 # add blacklist ratio and fraction of reads in peaks
 pbmc$pct_reads_in_peaks <- pbmc$peak_region_fragments / pbmc$passed_filters * 100
@@ -121,7 +121,9 @@ pbmc$blacklist_ratio <- pbmc$blacklist_region_fragments / pbmc$peak_region_fragm
 ```
 
 We can inspect the TSS enrichment scores by grouping the cells based on the
-score and plotting the accessibility signal over all TSS sites:
+score and plotting the accessibility signal over all TSS sites. Setting the 
+`fast=TRUE` option in `TSSEnrichment()` will only compute the TSS enrichment
+score without storing the 
 
 ```{r tss_plot, message=FALSE, warning=FALSE, cache=FALSE}
 pbmc$high.tss <- ifelse(pbmc$TSS.enrichment > 2, 'High', 'Low')
