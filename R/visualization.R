@@ -1096,8 +1096,10 @@ ExpressionPlot <- function(
 #' Genome browser
 #'
 #' Interactive version of the \code{\link{CoveragePlot}} function. Allows
-#' altering the genome position interactively. Upon ending the browser session,
-#' the current view will be returned as a \code{\link[ggplot2]{ggplot}} object.
+#' altering the genome position interactively. The current view at any time can
+#' be saved to a list of \code{\link[ggplot2]{ggplot}} objects using the "Save
+#' plot" button, and this list of plots will be returned after ending the
+#' browser by pressing the "Done" button.
 #'
 #' @param object A Seurat object
 #' @param region A set of genomic coordinates
@@ -1105,7 +1107,8 @@ ExpressionPlot <- function(
 #' @param sep Separators for genomic coordinates if region supplied as a string
 #' rather than GRanges object
 #' @param ... Parameters passed to \code{\link{CoveragePlot}}
-#' @return Returns a ggplot object
+#'
+#' @return Returns a list of ggplot objects
 #'
 #' @export
 #' @concept visualization
@@ -1153,6 +1156,12 @@ CoverageBrowser <- function(
         icon = shiny::icon("area-chart"),
 
         miniUI::miniButtonBlock(
+
+          shiny::actionButton(
+            inputId = "save",
+            label = "Save plot",
+            style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"
+          ),
 
           shiny::actionButton(
             inputId = "up_large",
@@ -1498,6 +1507,17 @@ CoverageBrowser <- function(
     )
 
     current_plot <- shiny::reactiveVal(value = NULL)
+    plot_list <- shiny::reactiveVal(value = list())
+
+    shiny::observeEvent(
+      eventExpr = input$save,
+      handlerExpr = {
+        n <- length(x = plot_list()) + 1
+        p.list <- plot_list()
+        p.list[[n]] <- current_plot()
+        plot_list(p.list)
+      }
+    )
 
     shiny::observeEvent(
       eventExpr = changed(),
@@ -1527,7 +1547,7 @@ CoverageBrowser <- function(
     shiny::observeEvent(
       eventExpr = input$done,
       handlerExpr = {
-        shiny::stopApp(returnValue = current_plot())
+        shiny::stopApp(returnValue = plot_list())
       })
   }
 

@@ -19,11 +19,13 @@ rather than GRanges object}
 \item{...}{Parameters passed to \code{\link{CoveragePlot}}}
 }
 \value{
-Returns a ggplot object
+Returns a list of ggplot objects
 }
 \description{
 Interactive version of the \code{\link{CoveragePlot}} function. Allows
-altering the genome position interactively. Upon ending the browser session,
-the current view will be returned as a \code{\link[ggplot2]{ggplot}} object.
+altering the genome position interactively. The current view at any time can
+be saved to a list of \code{\link[ggplot2]{ggplot}} objects using the "Save
+plot" button, and this list of plots will be returned after ending the
+browser by pressing the "Done" button.
 }
 \concept{visualization}
