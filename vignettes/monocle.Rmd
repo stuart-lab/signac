@@ -119,7 +119,6 @@ VlnPlot(
 ```{r}
 bone <- bone[, (bone$nCount_ATAC < 50000) &
                (bone$TSS.enrichment > 2) & 
-               (bone$nucleosome_signal > 1) &
                (bone$nucleosome_signal < 5)]
 ```
 
