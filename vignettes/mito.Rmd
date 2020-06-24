@@ -89,11 +89,6 @@ VlnPlot(crc, c("TSS.enrichment", "nCount_peaks", "nucleosome_signal", "pct_reads
 ```
 
 ```{r}
-crc$tss.high <- ifelse(crc$TSS.enrichment > 3, "High", "Low")
-TSSPlot(crc, group.by = "tss.high")
-```
-
-```{r}
 # remove low-quality cells
 crc <- subset(
   x = crc,
@@ -102,7 +97,7 @@ crc <- subset(
     pct_reads_in_DNase > 40 &
     blacklist_ratio < 0.05 &
     TSS.enrichment > 3 & 
-    nucleosome_signal < 10
+    nucleosome_signal < 4
 )
 crc
 ```
@@ -255,7 +250,7 @@ high.conf <- subset(
     vmr > 0.01
 )
 
-high.conf[,c(1,2,3,5)]
+high.conf[,c(1,2,5)]
 ```
 
 A few things stand out. First, 10 out of the 12 variants occur at less than 1% 
@@ -360,7 +355,12 @@ tf1[["alleles"]]
 
 ## Identifying clones
 
-```{r}
+Now that we've identified a set of variable alleles, we can cluster the cells
+based on the frequency of each of these alleles using the `FindClonotypes()`
+function. This uses the Louvain community detection algorithm implemented in 
+Seurat.
+
+```{r message=FALSE, warning=FALSE}
 DefaultAssay(tf1) <- "alleles"
 tf1 <- FindClonotypes(tf1)
 ```
@@ -370,12 +370,12 @@ table(Idents(tf1))
 ```
 
 Here we see that the clonal clustering has identified 12 different clones in the
-TF1 dataset. We can further visualize these clones using `DoHeatmap()`. The 
-`FindClonotypes()` function also performs hierarchical clustering on both the 
-clonotypes and the alleles, and sets the factor levels for the clonotypes based
-on the hierarchical clustering order, and the order of variable features based
-on the hierarchical feature clustering. This allows us to get a decent ordering
-of both features and clones automatically:
+TF1 dataset. We can further visualize the frequency of alleles in these clones
+using `DoHeatmap()`. The `FindClonotypes()` function also performs hierarchical
+clustering on both the clonotypes and the alleles, and sets the factor levels
+for the clonotypes based on the hierarchical clustering order, and the order of
+variable features based on the hierarchical feature clustering. This allows us
+to get a decent ordering of both features and clones automatically:
 
 ```{r message=FALSE, warning=FALSE}
 DoHeatmap(tf1, features = VariableFeatures(tf1), slot = "data", disp.max = 0.1) +
