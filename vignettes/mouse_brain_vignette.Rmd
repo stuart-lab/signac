@@ -365,8 +365,8 @@ levels(brain) <- c("L2/3 IT","L4","L5 IT","L5 PT","L6 CT", "L6 IT","NP","Sst","P
 CoveragePlot(
   object = brain,
   region = c("Neurod6", "Gad2"),
-  extend.upstream = 5000,
-  extend.downstream = 5000,
+  extend.upstream = 1000,
+  extend.downstream = 1000,
   ncol = 1
 )
 ```
