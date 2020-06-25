@@ -1023,7 +1023,7 @@ globalVariables(names = "gene", package = "Signac")
 #'
 #' @importFrom Seurat GetAssayData DefaultAssay
 #' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic theme
-#' element_blank ylab scale_x_discrete scale_y_continuous
+#' element_blank scale_y_discrete scale_x_continuous
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom IRanges start end
 #' @importFrom patchwork wrap_plots
