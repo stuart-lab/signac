@@ -42,7 +42,7 @@ In this tutorial we identify clonotypes using mitochondrial DNA mutations identi
 from scATAC-seq data, and jointly analyze clonal cellular relationships and DNA
 accessibility patterns in a human colorectal cancer sample.
 
-```{r echo=FALSE, out.height="30%"}
+```{r echo=FALSE, out.width="50%"}
 knitr::include_graphics("./assets/mito.png")
 ```
 
