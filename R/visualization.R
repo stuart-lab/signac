@@ -61,7 +61,7 @@ globalVariables(
 #' @importFrom Matrix colSums
 #' @importFrom methods is
 #' @importFrom stats median
-#' @importFrom dplyr mutate group_by ungroup group_by_at sample_n select_at
+#' @importFrom dplyr mutate group_by ungroup group_by_at slice_sample select_at
 #' @importFrom zoo rollapply
 #' @importFrom grid unit
 #' @importFrom gggenes geom_gene_arrow geom_gene_label
@@ -215,21 +215,33 @@ SingleCoveragePlot <- function(
 
   tile.plot <- NULL
   if (add_tile){
-    viz_sc2grp <- object[[]][cells, group.by, drop=FALSE] %>%
-      mutate(cname=cells) %>%
-      group_by_at(group.by) %>%
-      sample_n(n_cells_per_group) %>%
-      ungroup() %>%
-      select_at(c('cname', group.by))
+    viz_sc2grp <- object[[]][cells, group.by, drop=FALSE]
+    viz_sc2grp$cname <- cells
+    viz_sc2grp <- group_by_at(.tbl = viz_sc2grp, .vars = group.by)
+    viz_sc2grp <- slice_sample(.data = viz_sc2grp, n = n_cells_per_group)
+    viz_sc2grp <- ungroup(x = viz_sc2grp)
+    viz_sc2grp <- select_at(.tbl = viz_sc2grp, c('cname', group.by))
     viz_sc2grp <- structure(
-      viz_sc2grp[[group.by]], names=viz_sc2grp$cname
+      .Data = viz_sc2grp[[group.by]], names = viz_sc2grp$cname
     )
     sc_cutmat <- ScCutMatrix(
-      object, region = region, cells = names(viz_sc2grp),
-      window_size = window, verbose = FALSE)
+      object = object,
+      region = region,
+      cells = names(x = viz_sc2grp),
+      window_size = window,
+      verbose = FALSE
+    )
     tile.plot <- ScCutTilePlot(
-      sc_cutmat, gloc_lim = c(start.pos, end.pos),
-      cells_group = viz_sc2grp)
+      mat = sc_cutmat,
+      gloc_lim = c(start.pos, end.pos),
+      cells_group = viz_sc2grp
+    )
+    tile.plot <- tile.plot + theme(
+      axis.title.x = element_blank(),
+      axis.text.x = element_blank(),
+      axis.line.x.bottom = element_blank(),
+      axis.ticks.x.bottom = element_blank()
+    )
   }
 
   gene.plot <- NULL
