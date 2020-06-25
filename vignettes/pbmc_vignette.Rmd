@@ -177,7 +177,7 @@ pbmc <- RunSVD(pbmc)
 ```
 
 The first LSI component often captures sequencing depth (technical variation) rather than biological variation. If this is the case, the component should be removed from downstream analysis. We
-can assess the correlation between each LSI component and sequencing depth using the `DepthCor` function:
+can assess the correlation between each LSI component and sequencing depth using the `DepthCor()` function:
 
 ```{r}
 DepthCor(pbmc)
