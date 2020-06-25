@@ -194,7 +194,7 @@ erythroid.cds <- cluster_cells(cds = erythroid.cds, reduction_method = "UMAP")
 erythroid.cds <- learn_graph(erythroid.cds, use_partition = TRUE)
 
 lymphoid.cds <- as.cell_data_set(lymphoid)
-lymphoid.cds <- cluster_cells(cds = lymphoid.cds, reduction_method = "UMAP", resolution = 0.0002)
+lymphoid.cds <- cluster_cells(cds = lymphoid.cds, reduction_method = "UMAP")
 lymphoid.cds <- learn_graph(lymphoid.cds, use_partition = TRUE)
 ```
 
