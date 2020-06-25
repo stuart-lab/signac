@@ -61,7 +61,7 @@ globalVariables(
 #' @importFrom Matrix colSums
 #' @importFrom methods is
 #' @importFrom stats median
-#' @importFrom dplyr mutate group_by ungroup
+#' @importFrom dplyr mutate group_by ungroup group_by_at slice_sample select_at
 #' @importFrom zoo rollapply
 #' @importFrom grid unit
 #' @importFrom gggenes geom_gene_arrow geom_gene_label
@@ -83,7 +83,9 @@ SingleCoveragePlot <- function(
   scale.factor = NULL,
   cells = NULL,
   idents = NULL,
-  sep = c("-", "-")
+  sep = c("-", "-"),
+  add_tile = FALSE,
+  n_cells_per_group = 150
 ) {
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   if (!is.null(x = idents)) {
@@ -181,6 +183,10 @@ SingleCoveragePlot <- function(
       legend.position = 'none',
       strip.text.y = element_text(angle = 0)
     )
+
+  cov.plot <- p
+
+  peak.plot <- NULL
   if (!is.null(x = peaks)) {
     # subset to covered range
     peak.intersect <- subsetByOverlaps(x = peaks, ranges = gr)
@@ -206,6 +212,39 @@ SingleCoveragePlot <- function(
   } else {
     peak.plot <- NULL
   }
+
+  tile.plot <- NULL
+  if (add_tile){
+    viz_sc2grp <- object[[]][cells, group.by, drop=FALSE]
+    viz_sc2grp$cname <- cells
+    viz_sc2grp <- group_by_at(.tbl = viz_sc2grp, .vars = group.by)
+    viz_sc2grp <- slice_sample(.data = viz_sc2grp, n = n_cells_per_group)
+    viz_sc2grp <- ungroup(x = viz_sc2grp)
+    viz_sc2grp <- select_at(.tbl = viz_sc2grp, c('cname', group.by))
+    viz_sc2grp <- structure(
+      .Data = viz_sc2grp[[group.by]], names = viz_sc2grp$cname
+    )
+    sc_cutmat <- ScCutMatrix(
+      object = object,
+      region = region,
+      cells = names(x = viz_sc2grp),
+      window_size = window,
+      verbose = FALSE
+    )
+    tile.plot <- ScCutTilePlot(
+      mat = sc_cutmat,
+      gloc_lim = c(start.pos, end.pos),
+      cells_group = viz_sc2grp
+    )
+    tile.plot <- tile.plot + theme(
+      axis.title.x = element_blank(),
+      axis.text.x = element_blank(),
+      axis.line.x.bottom = element_blank(),
+      axis.ticks.x.bottom = element_blank()
+    )
+  }
+
+  gene.plot <- NULL
   if (!is.null(x = annotation)) {
     if (!inherits(x = annotation, what = 'GRanges')) {
       stop("Annotation must be a GRanges object or EnsDb object.")
@@ -283,6 +322,24 @@ SingleCoveragePlot <- function(
         plot_layout(ncol = 1, heights = c(height.tracks, 1))
     }
   }
+
+  if (!(is.null(peak.plot) & is.null(tile.plot) & is.null(gene.plot))){
+    # Remove axis from coverage plot because peak/tile/gene plot will follow
+    cov.plot <- cov.plot + theme(
+      axis.title.x = element_blank(),
+      axis.text.x = element_blank(),
+      axis.line.x.bottom = element_blank(),
+      axis.ticks.x.bottom = element_blank())
+    p_layout <- c(height.tracks,
+                  rep(1, sum(c(!is.null(peak.plot), !is.null(gene.plot)))))
+    if (!is.null(tile.plot)){
+      p_layout <- c(height.tracks, height.tracks/2,
+                    rep(1, sum(c(!is.null(peak.plot), !is.null(gene.plot)))))
+    }
+    p <- cov.plot + tile.plot + peak.plot + gene.plot +
+      plot_layout(ncol=1, heights = p_layout)
+  }
+
   return(p)
 }
 
@@ -323,6 +380,10 @@ SingleCoveragePlot <- function(
 #' @param sep Separators to use for strings encoding genomic coordinates. First
 #' element is used to separate the chromosome from the coordinates, second
 #' element is used to separate the start from end coordinate.
+#' @param add_tile If TRUE plot the presence of Tn5 cuts in smoothing windows
+#' (with size = \code{window}) across single cells. Default: FALSE.
+#' @param n_cells_per_group Random number of cells per group as defined
+#' in \code{group.by}. Only used when \code{add_tile} is TRUE. Default: 150.
 #' @param ... Additional arguments passed to \code{\link[patchwork]{wrap_plots}}
 #'
 #' @importFrom patchwork wrap_plots
@@ -352,6 +413,8 @@ CoveragePlot <- function(
   cells = NULL,
   idents = NULL,
   sep = c("-", "-"),
+  add_tile = FALSE,
+  n_cells_per_group = 150,
   ...
 ) {
   if (length(x = region) > 1) {
@@ -374,7 +437,9 @@ CoveragePlot <- function(
           extend.downstream = extend.downstream,
           cells = cells,
           idents = idents,
-          sep = sep
+          sep = sep,
+          add_tile = add_tile,
+          n_cells_per_group = n_cells_per_group
         )
       }
     )
@@ -397,7 +462,9 @@ CoveragePlot <- function(
       scale.factor = scale.factor,
       cells = cells,
       idents = idents,
-      sep = sep
+      sep = sep,
+      add_tile = add_tile,
+      n_cells_per_group = n_cells_per_group
     ))
   }
 }
