@@ -128,12 +128,12 @@ write.table(
 
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
 library(ggplot2)
-results <- read.table("/home/stuartt/github/chrom/bldignore/timings_2020-06-18.tsv", header = TRUE)
+results <- read.table("/home/stuartt/github/chrom/bldignore/timings_2020-06-24.tsv", header = TRUE)
 results$cores <- factor(results$cores, levels = c("1", "4", "10"))
 
 p <- ggplot(results, aes(x = cores, y = time/60, color = cores)) +
   geom_jitter(width = 1/10) +
-  ylim(c(0, 10)) +
+  ylim(c(0, 11)) +
   ylab("Time (min)") +
   xlab("Number of cores") +
   theme_bw() +
