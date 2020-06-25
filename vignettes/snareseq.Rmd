@@ -73,11 +73,6 @@ snare$blacklist_fraction <- FractionCountsInRegion(
 )
 ```
 
-```{r}
-snare$high.tss <- ifelse(snare$TSS.enrichment > 3, 'High', 'Low')
-TSSPlot(snare, group.by = 'high.tss')
-```
-
 ```{r message=FALSE, warning=FALSE}
 Idents(snare) <- "all"  # group all cells together, rather than by replicate
 VlnPlot(
