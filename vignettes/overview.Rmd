@@ -8,7 +8,7 @@ output: html_document
 The following guided analyses demonstrate a standard end-to-end analysis 
 pipeline for different types of single-cell chromatin data.
 
-### [Human peripheral blood mononuclear cells](pbmc_vignette.html)
+## [Human peripheral blood mononuclear cells](pbmc_vignette.html)
 
 In this tutorial we analyze a human peripheral blood mononuclear cell (PBMC)
 dataset of ~7,000 cells.
@@ -17,7 +17,7 @@ dataset of ~7,000 cells.
 knitr::include_graphics("./assets/pbmc.png")
 ```
 
-### [Mouse cortical brain cells](mouse_brain_vignette.html)
+## [Mouse cortical brain cells](mouse_brain_vignette.html)
 
 In this tutorial we analyze a dataset of ~3,500 cortical neurons from the adult mouse
 brain.
@@ -26,7 +26,7 @@ brain.
 knitr::include_graphics("./assets/mouse.png")
 ```
 
-### [Joint scRNA-seq and scATAC-seq analysis](snareseq.html)
+## [Joint scRNA-seq and scATAC-seq analysis](snareseq.html)
 
 In this tutorial we demonstrate strategies to analyze a SNARE-seq dataset where
 we have paired measurements of gene expression and DNA accessibility from the 
@@ -36,7 +36,7 @@ same mouse brain nuclei.
 knitr::include_graphics("./assets/snareseq.png")
 ```
 
-### [Joint single-cell mitochondrial DNA genotyping and DNA accessibility analysis](mito.html)
+## [Joint single-cell mitochondrial DNA genotyping and DNA accessibility analysis](mito.html)
 
 In this tutorial we identify clonotypes using mitochondrial DNA mutations identified
 from scATAC-seq data, and jointly analyze clonal cellular relationships and DNA
