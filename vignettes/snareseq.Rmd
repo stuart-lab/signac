@@ -73,16 +73,16 @@ snare$blacklist_fraction <- FractionCountsInRegion(
 )
 ```
 
-```{r message=FALSE, warning=FALSE}
+```{r fig.width=12, message=FALSE, warning=FALSE}
 Idents(snare) <- "all"  # group all cells together, rather than by replicate
 VlnPlot(
   snare,
   features = c("nCount_RNA", "nCount_ATAC", "TSS.enrichment",
                "nucleosome_signal", "blacklist_fraction"),
-  pt.size = 0.1, ncol = 5
+  pt.size = 0.1,
+  ncol = 5
 )
 ```
-
 
 ```{r}
 snare <- subset(
