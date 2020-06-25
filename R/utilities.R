@@ -263,6 +263,9 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #'
 #' @return Returns a data.frame
 #' @export
+#' @examples
+#' fc <- FoldChange(object = atac_small, ident.1 = 0)
+#' head(fc)
 FoldChange <- function(
   object,
   ident.1,

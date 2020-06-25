@@ -42,3 +42,7 @@ Returns a data.frame
 Computes the fold change or log2 fold change (if \code{log=TRUE}) in average
 counts between two groups of cells.
 }
+\examples{
+fc <- FoldChange(object = atac_small, ident.1 = 0)
+head(fc)
+}
