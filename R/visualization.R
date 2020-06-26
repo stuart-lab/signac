@@ -786,6 +786,10 @@ TSSPlot <- function(
 #' @importFrom ggplot2 theme element_blank
 #' @importFrom patchwork wrap_plots plot_spacer plot_layout
 #' @concept visualization
+#' @examples
+#' p1 <- PeakPlot(atac_small, region = "chr1-29554-39554")
+#' p2 <- AnnotationPlot(atac_small, region = "chr1-29554-39554")
+#' CombineTracks(plotlist = list(p1, p2), heights = c(1, 1))
 CombineTracks <- function(
   plotlist,
   expression.plot = NULL,
@@ -965,6 +969,8 @@ LinkPlot <- function(object, region) {
 #' @importFrom AnnotationFilter GRangesFilter
 #' @importFrom fastmatch fmatch
 #' @concept visualization
+#' @examples
+#' AnnotationPlot(object = atac_small, region = c("chr1-29554-39554"))
 AnnotationPlot <- function(object, region) {
   annotation <- Annotation(object = object)
   if (is.null(x = annotation)) {
@@ -1668,6 +1674,15 @@ VariantPlot <- function(
 #'
 #' @export
 #' @concept visualization
+#' @examples
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fragments <- CreateFragmentObject(
+#'   path = fpath,
+#'   cells = colnames(atac_small),
+#'   validate.fragments = FALSE
+#' )
+#' Fragments(atac_small) <- fragments
+#' TilePlot(object = atac_small, region = c("chr1-713500-714500"))
 TilePlot <- function(
   object,
   region,
@@ -1823,6 +1838,8 @@ CreateTilePlot <- function(df, n, legend = TRUE) {
 #' @importFrom ggplot2 theme theme_classic element_blank element_text
 #' @export
 #' @concept visualization
+#' @examples
+#' PeakPlot(atac_small, region = "chr1-710000-715000") + theme_browser()
 theme_browser <- function(..., legend = TRUE) {
   browser.theme <- theme_classic() +
     theme(

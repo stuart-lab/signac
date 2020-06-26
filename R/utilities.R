@@ -824,6 +824,8 @@ IntersectMatrix <- function(
 #' @importFrom GenomeInfoDb seqnames
 #' @export
 #' @concept utilities
+#' @examples
+#' LookupGeneCoords(atac_small, gene = "MIR1302-10")
 LookupGeneCoords <- function(object, gene, assay = NULL) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   annotations <- Annotation(object = object[[assay]])

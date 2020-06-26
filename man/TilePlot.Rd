@@ -61,4 +61,14 @@ Returns a \code{\link[ggplot2]{ggplot}} object
 Plots the presence/absence of Tn5 integration sites for each cell
 within a genomic region.
 }
+\examples{
+fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fragments <- CreateFragmentObject(
+  path = fpath,
+  cells = colnames(atac_small),
+  validate.fragments = FALSE
+)
+Fragments(atac_small) <- fragments
+TilePlot(object = atac_small, region = c("chr1-713500-714500"))
+}
 \concept{visualization}
