@@ -46,3 +46,4 @@ counts between two groups of cells.
 fc <- FoldChange(object = atac_small, ident.1 = 0)
 head(fc)
 }
+\concept{utilities}
