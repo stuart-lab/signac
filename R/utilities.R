@@ -227,8 +227,7 @@ GetIntersectingFeatures <- function(
 #'
 #' @param object A Seurat object
 #' @param file Path to indexed fragment file.
-#' See \url{https://support.10xgenomics.com/single-cell-atac/software/
-#' pipelines/latest/output/fragments}
+#' See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
 #' @param assay Assay used to generate the fragments.
 #' If NULL, use the active assay.
 #'
@@ -323,6 +322,9 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
 # @examples
 # ChunkGRanges(blacklist_hg19, n = 10)
 ChunkGRanges <- function(granges, nchunk) {
+  if (length(x = granges) < nchunk) {
+    nchunk <- length(x = granges)
+  }
   chunksize <- as.integer(x = (length(granges) / nchunk))
   range.list <- sapply(X = seq_len(length.out = nchunk), FUN = function(x) {
     chunkupper <- (x * chunksize)
@@ -412,7 +414,7 @@ CutMatrix <- function(
       stringsAsFactors = FALSE
     )
     cut.df <- cut.df[
-      cut.df$position > 0 & cut.df$position <= width(x = region),
+      (cut.df$position > 0) & (cut.df$position <= width(x = region)),
     ]
     cell.vector <- seq_along(along.with = all.cells)
     names(x = cell.vector) <- all.cells
@@ -442,6 +444,7 @@ CutMatrix <- function(
 #' respectively.
 #'
 #' @importFrom GenomicRanges trim
+#' @importFrom BiocGenerics start strand end width
 #' @importMethodsFrom GenomicRanges strand start end width
 #' @importFrom IRanges ranges IRanges "ranges<-"
 #' @export

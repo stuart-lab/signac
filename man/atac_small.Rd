@@ -14,8 +14,7 @@ A Seurat object with the following assays
 }
 }
 \source{
-\url{https://support.10xgenomics.com/single-cell-atac/
-datasets/1.1.0/atac_v1_pbmc_10k}
+\url{https://support.10xgenomics.com/single-cell-atac/datasets/1.1.0/atac_v1_pbmc_10k}
 }
 \usage{
 atac_small

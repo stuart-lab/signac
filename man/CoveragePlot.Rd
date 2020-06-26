@@ -104,8 +104,7 @@ for groups of cells.
 }
 \details{
 Thanks to Andrew Hill for providing an early version of this function
- \url{http://andrewjohnhill.com/blog/2019/04/12/
- streamlining-scatac-seq-visualization-and-analysis/}
+\url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
 }
 \examples{
 \donttest{
