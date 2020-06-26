@@ -1381,6 +1381,7 @@ CoverageBrowser <- function(
         tracks$annotation <- "genes" %in% input$tracks
         tracks$peaks <- "peaks" %in% input$tracks
         tracks$links <- "links" %in% input$tracks
+        tracks$tile <- "tile" %in% input$tracks
       }
     )
 
