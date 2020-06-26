@@ -1040,6 +1040,7 @@ globalVariables(names = "gene", package = "Signac")
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom IRanges start end
 #' @importFrom patchwork wrap_plots
+#' @importFrom fastmatch fmatch
 #'
 #' @export
 #' @concept visualization
@@ -1082,6 +1083,10 @@ ExpressionPlot <- function(
       )
       df <- rbind(df, df.1)
     }
+  }
+  # subset idents
+  if (!is.null(x = idents)) {
+    df <- df[fmatch(x = df$group, table = idents, nomatch = 0L) > 0, ]
   }
   p.list <- list()
   for (i in seq_along(along.with = features)) {
@@ -1285,7 +1290,8 @@ CoverageBrowser <- function(
                 label = "Display",
                 choices = c("Annotations" = "genes",
                             "Peaks" = "peaks",
-                            "Links" = "links"),
+                            "Links" = "links",
+                            "Tile" = "tile"),
                 selected = c("genes", "peaks", "links")
               ),
 
@@ -1542,6 +1548,7 @@ CoverageBrowser <- function(
           annotation = tracks$annotation,
           peaks = tracks$peaks,
           links = tracks$links,
+          tile = tracks$tile,
           features = gene_expression$genes,
           expression.slot = gene_expression$slot,
           expression.assay = gene_expression$assay,
