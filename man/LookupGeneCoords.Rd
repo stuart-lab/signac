@@ -17,4 +17,7 @@ LookupGeneCoords(object, gene, assay = NULL)
 Extract the coordinates of the longest transcript for a gene stored in the
 annotations within an object.
 }
+\examples{
+LookupGeneCoords(atac_small, gene = "MIR1302-10")
+}
 \concept{utilities}
