@@ -50,6 +50,8 @@ will compute the TSS enrichment score per cell without storing the entire
 cell by TSS position matrix. This can significantly reduce memory requirements
 for large datasets, but does not allow subsequent plotting of the TSS signal
 for different groups of cells.
+* New `TilePlot()` function and `tile` parameter for `CoveragePlot()` to plot
+Tn5 integration events in a genomic region for individual cells.
 * Performance improvements for `FeatureMatrix()`, `CoveragePlot()`, and
 `TSSEnrichment()`
 
