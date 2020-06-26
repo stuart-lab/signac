@@ -388,7 +388,11 @@ SingleCoveragePlot <- function(
       n = tile.cells,
       order = "total"
     )
-    tile.plot <- CreateTilePlot(df = tile.df, n = tile.cells)
+    tile.plot <- CreateTilePlot(
+      df = tile.df,
+      n = tile.cells,
+      legend = is.null(x = features)
+    )
   } else {
     tile.plot <- NULL
   }
@@ -1064,8 +1068,19 @@ ExpressionPlot <- function(
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
-    idents = idents
+    idents = NULL
   )
+  if (!is.null(x = idents)) {
+    cells.keep <- names(x = obj.groups)[
+      fmatch(x = obj.groups, table = idents, nomatch = 0L) > 0
+    ]
+    if (length(x = features) > 1) {
+      data.plot <- data.plot[, cells.keep]
+    } else {
+      data.plot <- data.plot[cells.keep]
+    }
+    obj.groups <- obj.groups[cells.keep]
+  }
   # construct data frame
   if (length(x = features) == 1) {
     df <- data.frame(
@@ -1083,10 +1098,6 @@ ExpressionPlot <- function(
       )
       df <- rbind(df, df.1)
     }
-  }
-  # subset idents
-  if (!is.null(x = idents)) {
-    df <- df[fmatch(x = df$group, table = idents, nomatch = 0L) > 0, ]
   }
   p.list <- list()
   for (i in seq_along(along.with = features)) {
@@ -1774,7 +1785,7 @@ ComputeTile <- function(
 
 #' @importFrom ggplot2 ggplot aes_string geom_raster ylab scale_fill_gradient
 #' scale_y_reverse guides guide_legend
-CreateTilePlot <- function(df, n) {
+CreateTilePlot <- function(df, n, legend = TRUE) {
   # create plot
   p <- ggplot(
     data = df,
@@ -1786,11 +1797,19 @@ CreateTilePlot <- function(df, n) {
       strip.position = "left"
     ) +
     geom_raster() +
-    theme_browser() +
+    theme_browser(legend = legend) +
     ylab(paste0("Fragments (", n, " cells)")) +
     scale_fill_gradient(low = "white", high = "darkred") +
     scale_y_reverse() +
-    guides(fill = guide_legend(title = "Fragment count"))
+    guides(fill = guide_legend(
+      title = "Fragment\ncount",
+      keywidth = 1/2, keyheight = 1
+      )
+    ) +
+    theme(
+      legend.title = element_text(size = 8),
+      legend.text = element_text(size = 8)
+    )
   return(p)
 }
 
