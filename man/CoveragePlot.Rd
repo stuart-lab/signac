@@ -14,6 +14,9 @@ CoveragePlot(
   annotation = TRUE,
   peaks = TRUE,
   links = TRUE,
+  tile = FALSE,
+  tile.size = 100,
+  tile.cells = 100,
   heights = NULL,
   group.by = NULL,
   window = 100,
@@ -54,6 +57,13 @@ if supplying the \code{features} argument.}
 \item{peaks}{Display peaks}
 
 \item{links}{Display links}
+
+\item{tile}{Display per-cell fragment information in sliding windows.}
+
+\item{tile.size}{Size of the sliding window for per-cell fragment tile plot}
+
+\item{tile.cells}{Number of cells to display fragment information for in tile
+plot.}
 
 \item{heights}{Relative heights for each track (accessibility, gene
 annotations, peaks, links).}

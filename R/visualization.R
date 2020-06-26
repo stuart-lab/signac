@@ -241,6 +241,9 @@ SingleCoveragePlot <- function(
   annotation = TRUE,
   peaks = TRUE,
   links = TRUE,
+  tile = FALSE,
+  tile.size = 100,
+  tile.cells = 100,
   group.by = NULL,
   window = 100,
   extend.upstream = 0,
@@ -260,23 +263,13 @@ SingleCoveragePlot <- function(
     ident.cells <- WhichCells(object = object, idents = idents)
     cells <- intersect(x = cells, y = ident.cells)
   }
-  if (!is(object = region, class2 = "GRanges")) {
-    # if separators are present in the string and we can convert the
-    # start to a number, assume we're using genomic coordinates
-    if (all(sapply(X = sep, FUN = grepl, x = region))) {
-      region <- StringToGRanges(regions = region, sep = sep)
-    } else {
-      region <- LookupGeneCoords(object = object, assay = assay, gene = region)
-      if (is.null(x = region)) {
-        stop("Gene not found")
-      }
-    }
-  }
-  region <- suppressWarnings(expr = Extend(
-    x = region,
-    upstream = extend.upstream,
-    downstream = extend.downstream
-  )
+  region <- FindRegion(
+    object = object,
+    region = region,
+    sep = sep,
+    assay = assay,
+    extend.upstream = extend.upstream,
+    extend.downstream = extend.downstream
   )
   window.size <- width(x = region)
   reads.per.group <- AverageCounts(
@@ -356,13 +349,7 @@ SingleCoveragePlot <- function(
                         as.character(x = ymin), " - ",
                         as.character(x = ymax), ")")) +
     ylim(c(ymin, ymax)) +
-    theme_classic() +
-    theme(
-      axis.text.y = element_blank(),
-      legend.position = "none",
-      strip.background = element_blank(),
-      strip.text.y.left = element_text(angle = 0)
-    )
+    theme_browser(legend = FALSE)
   if (!is.null(x = features)) {
     ex.plot <- ExpressionPlot(
       object = object,
@@ -392,9 +379,22 @@ SingleCoveragePlot <- function(
   } else {
     peak.plot <- NULL
   }
-  heights <- SetIfNull(x = heights, y = c(10, 2, 1, 3))
+  if (tile) {
+    # reuse cut matrix
+    tile.df <- ComputeTile(
+      cutmatrix = cutmat,
+      groups = obj.groups,
+      window = tile.size,
+      n = tile.cells,
+      order = "total"
+    )
+    tile.plot <- CreateTilePlot(df = tile.df, n = tile.cells)
+  } else {
+    tile.plot <- NULL
+  }
+  heights <- SetIfNull(x = heights, y = c(10, 10, 2, 1, 3))
   p <- CombineTracks(
-    plotlist = list(p, gene.plot, peak.plot, link.plot),
+    plotlist = list(p, tile.plot, gene.plot, peak.plot, link.plot),
     expression.plot = ex.plot,
     heights = heights,
     widths = widths
@@ -426,6 +426,10 @@ SingleCoveragePlot <- function(
 #' @param annotation Display gene annotations
 #' @param peaks Display peaks
 #' @param links Display links
+#' @param tile Display per-cell fragment information in sliding windows.
+#' @param tile.size Size of the sliding window for per-cell fragment tile plot
+#' @param tile.cells Number of cells to display fragment information for in tile
+#' plot.
 #' @param cells Which cells to plot. Default all cells
 #' @param idents Which identities to include in the plot. Default is all
 #' identities.
@@ -479,6 +483,9 @@ CoveragePlot <- function(
   annotation = TRUE,
   peaks = TRUE,
   links = TRUE,
+  tile = FALSE,
+  tile.size = 100,
+  tile.cells = 100,
   heights = NULL,
   group.by = NULL,
   window = 100,
@@ -507,6 +514,9 @@ CoveragePlot <- function(
           peaks = peaks,
           assay = assay,
           links = links,
+          tile = tile,
+          tile.size = tile.size,
+          tile.cells = tile.cells,
           group.by = group.by,
           window = window,
           ymax = ymax,
@@ -534,6 +544,9 @@ CoveragePlot <- function(
       peaks = peaks,
       assay = assay,
       links = links,
+      tile = tile,
+      tile.size = tile.size,
+      tile.cells = tile.cells,
       group.by = group.by,
       window = window,
       extend.upstream = extend.upstream,
@@ -1601,4 +1614,201 @@ VariantPlot <- function(
     theme_classic() +
     theme(legend.position = "none")
   return(p)
+}
+
+
+#' Plot integration sites per cell
+#'
+#' Plots the presence/absence of Tn5 integration sites for each cell
+#' within a genomic region.
+#'
+#' @param object A Seurat object
+#' @param region A set of genomic coordinates to show. Can be a GRanges object,
+#' a string encoding a genomic position, a gene name, or a vector of strings
+#' describing the genomic coordinates or gene names to plot. If a gene name is
+#' supplied, annotations must be present in the assay.
+#' @param assay Name of assay to use
+#' @param group.by Name of grouping variable to group cells by. If NULL, use the
+#' current cell identities
+#' @param idents List of cell identities to include in the plot. If NULL, use
+#' all identities.
+#' @param sep Separators to use for strings encoding genomic coordinates. First
+#' element is used to separate the chromosome from the coordinates, second
+#' element is used to separate the start from end coordinate.
+#' @param tile.size Size of the sliding window for per-cell fragment tile plot
+#' @param tile.cells Number of cells to display fragment information for in tile
+#' plot.
+#' @param extend.upstream Number of bases to extend the region upstream.
+#' @param extend.downstream Number of bases to extend the region downstream.
+#' @param order.by Option for determining how cells are chosen from each group.
+#' Options are "total" or "random". "total" will select the top cells based on
+#' total number of fragments in the region, "random" will select randomly.
+#' @param cells Which cells to plot. Default all cells
+#'
+#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @importFrom Seurat DefaultAssay
+#'
+#' @export
+#' @concept visualization
+TilePlot <- function(
+  object,
+  region,
+  sep = c("-", "-"),
+  tile.size = 100,
+  tile.cells = 100,
+  extend.upstream = 0,
+  extend.downstream = 0,
+  assay = NULL,
+  cells = NULL,
+  group.by = NULL,
+  order.by = "total",
+  idents = NULL
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  region <- FindRegion(
+    object = object,
+    region = region,
+    sep = sep,
+    assay = assay,
+    extend.upstream = extend.upstream,
+    extend.downstream = extend.downstream
+  )
+  obj.groups <- GetGroups(
+    object = object,
+    group.by = group.by,
+    idents = idents
+  )
+  cutmat <- CutMatrix(
+    object = object,
+    region = region,
+    assay = assay,
+    cells = cells,
+    verbose = FALSE
+  )
+  colnames(cutmat) <- start(x = region):end(x = region)
+  tile.df <- ComputeTile(
+    cutmatrix = cutmat,
+    groups = obj.groups,
+    window = tile.size,
+    n = tile.cells,
+    order = order.by
+  )
+  tile.plot <- CreateTilePlot(df = tile.df, n = tile.cells)
+  return(tile.plot)
+}
+
+# Create tile plot for a region, given a pre-computed cutmatrix
+# this is designed for use inside the main CoveragePlot function,
+# avoids re-computing the cut matrix
+#
+# @param cutmatrix A sparse matrix of Tn5 integration sites per cell
+# @param groups A grouping vector describing the group that each cell belong to
+# @param idents Identities to include. If NULL, use all groups
+# @param order Option for determining how cells are chosen from each group.
+# Options are "total" or "random". "total" will select the top cells based on
+# total number of fragments in the region, "random" will select randomly.
+# @param n Number of cells to choose from each group
+# @param window Size of sliding window. Integration events are summed within
+# each window.
+#
+# @return Returns a ggplot2 object
+#
+#' @importFrom RcppRoll roll_sum
+#' @importFrom Matrix rowSums
+#' @importFrom tidyr pivot_longer
+#' @importFrom utils head
+ComputeTile <- function(
+  cutmatrix,
+  groups,
+  window = 200,
+  n = 100,
+  idents = NULL,
+  order = "total"
+) {
+  # for each group, choose n cells based on total counts
+  totals <- rowSums(x = cutmatrix)
+  unique.groups <- unique(x = groups)
+  cells.use <- vector(mode = "character")
+  for (i in seq_along(along.with = unique.groups)) {
+    tot.use <- totals[names(x = groups[groups == unique.groups[[i]]])]
+    cells.use <- c(
+      cells.use, names(x = head(x = sort(x = tot.use, decreasing = TRUE), n))
+    )
+  }
+  cutmatrix <- cutmatrix[cells.use, ]
+
+  # create sliding window sum of integration sites using RcppRoll
+  # note that this coerces to a dense matrix
+  smoothed <- apply(
+    X = cutmatrix,
+    MARGIN = 1,
+    FUN = roll_sum,
+    n = window,
+    by = window
+  )
+
+  # create dataframe
+  smoothed <- as.data.frame(x = smoothed)
+
+  # add extra column as bin ID
+  smoothed$bin <- seq_len(length.out = nrow(x = smoothed))
+  smoothed <- pivot_longer(
+    data = smoothed,
+    cols = cells.use
+  )
+
+  # add group information and cell index
+  smoothed$group <- groups[smoothed$name]
+  cell.lookup <- seq_along(along.with = cells.use)
+  names(x = cell.lookup) <- cells.use
+  smoothed$idx <- cell.lookup[smoothed$name]
+  return(smoothed)
+}
+
+#' @importFrom ggplot2 ggplot aes_string geom_raster ylab scale_fill_gradient
+#' scale_y_reverse guides guide_legend
+CreateTilePlot <- function(df, n) {
+  # create plot
+  p <- ggplot(
+    data = df,
+    aes_string(x = "bin", y = "idx", fill = "value")) +
+    facet_wrap(
+      facets = ~group,
+      scales = "free_y",
+      ncol = 1,
+      strip.position = "left"
+    ) +
+    geom_raster() +
+    theme_browser() +
+    ylab(paste0("Fragments (", n, " cells)")) +
+    scale_fill_gradient(low = "white", high = "darkred") +
+    scale_y_reverse() +
+    guides(fill = guide_legend(title = "Fragment count"))
+  return(p)
+}
+
+#' Genome browser theme
+#'
+#' Theme applied to panels in the \code{\link{CoveragePlot}} function.
+#'
+#' @param ... Additional arguments
+#' @param legend Display plot legend
+#'
+#' @importFrom ggplot2 theme theme_classic element_blank element_text
+#' @export
+#' @concept visualization
+theme_browser <- function(..., legend = TRUE) {
+  browser.theme <- theme_classic() +
+    theme(
+      axis.text.y = element_blank(),
+      strip.background = element_blank(),
+      strip.text.y.left = element_text(angle = 0)
+    )
+  if (!legend) {
+    browser.theme <- browser.theme +
+      theme(
+        legend.position = "none"
+      )
+  }
+  return(browser.theme)
 }
