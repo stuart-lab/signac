@@ -20,7 +20,7 @@ plan()
 ```
 
 By default the plan is set to sequential processing (no parallelization). We can change this
-to `multicore`, `multiprocessor`, or `multisession` to get parallel processing, and set the 
+to `multicore`, `multiprocessor`, or `multisession` to get asynchronous processing, and set the 
 number of workers to change the number of cores used.
 
 ```{r, warning=FALSE, message=FALSE}
@@ -28,10 +28,10 @@ plan("multiprocess", workers = 10)
 plan()
 ```
 
-You may also need to increase the maximum memory usage:
+You might also need to increase the maximum memory usage:
 
 ```{r}
-options(future.globals.maxSize = 50000 * 1024^2) # for 50 Gb RAM
+options(future.globals.maxSize = 50 * 1024 ^ 3) # for 50 Gb RAM
 ```
 
 Note that as of `future` version [1.14.0](https://cran.r-project.org/web/packages/future/NEWS), forked processing is disabled when running in RStudio. To enable parallel computing in RStudio, you will need to select the "multisession" option.
@@ -57,15 +57,18 @@ peaks.10k <- read.table(
 peaks <- GenomicRanges::makeGRangesFromDataFrame(peaks.10k)
 cells <- readLines("/home/stuartt/data/pbmc10k/cells.txt")
 
+fragments <- CreateFragmentObject(path = fragments, cells = cells, validate.fragments = FALSE)
+
 # set number of replicates
 nrep <- 5
 results <- data.frame()
+process_n <- 2000
 
 # run sequentially
 timing.sequential <- c()
 for (i in seq_len(nrep)) {
   start <- Sys.time()
-  fmat <- FeatureMatrix(fragments = fragments, features = peaks, cells = cells)
+  fmat <- FeatureMatrix(fragments = fragments, features = peaks, cells = cells, process_n = process_n)
   timing.sequential <- c(timing.sequential, as.numeric(Sys.time() - start, units = "secs"))
 }
 res <- data.frame(
@@ -84,7 +87,7 @@ options(future.globals.maxSize = 100000 * 1024^2)
 timing.4core <- c()
 for (i in seq_len(nrep)) {
   start <- Sys.time()
-  fmat <- FeatureMatrix(fragments = fragments, features = peaks, cells = cells)
+  fmat <- FeatureMatrix(fragments = fragments, features = peaks, cells = cells, process_n = process_n)
   timing.4core <- c(timing.4core, as.numeric(Sys.time() - start, units = "secs"))
 }
 res <- data.frame(
@@ -101,7 +104,7 @@ plan("multiprocess", workers = 10)
 timing.10core <- c()
 for (i in seq_len(nrep)) {
   start <- Sys.time()
-  fmat <- FeatureMatrix(fragments = fragments, features = peaks, cells = cells)
+  fmat <- FeatureMatrix(fragments = fragments, features = peaks, cells = cells, process_n = process_n)
   timing.10core <- c(timing.10core, as.numeric(Sys.time() - start, units = "secs"))
 }
 res <- data.frame(
@@ -115,7 +118,7 @@ results <- rbind(results, res)
 # save results
 write.table(
   x = results,
-  file = "timings.tsv",
+  file = paste0("/home/stuartt/github/chrom/bldignore/timings_", Sys.date(), ".tsv"),
   quote = FALSE,
   row.names = FALSE
 )
@@ -125,17 +128,17 @@ write.table(
 
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
 library(ggplot2)
-results <- read.table("/home/stuartt/github/chrom/bldignore/timings.tsv", header = TRUE)
+results <- read.table("/home/stuartt/github/chrom/bldignore/timings_2020-06-24.tsv", header = TRUE)
 results$cores <- factor(results$cores, levels = c("1", "4", "10"))
 
 p <- ggplot(results, aes(x = cores, y = time/60, color = cores)) +
   geom_jitter(width = 1/10) +
-  ylim(c(0, 15)) +
+  ylim(c(0, 11)) +
   ylab("Time (min)") +
   xlab("Number of cores") +
   theme_bw() +
   theme(legend.position = "none") +
-  ggtitle("FeatureMatrix")
+  ggtitle("FeatureMatrix runtime")
 p
 ```
 

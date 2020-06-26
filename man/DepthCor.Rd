@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{DepthCor}
 \alias{DepthCor}
-\title{Sequencing depth correlation}
+\title{Plot sequencing depth correlation}
 \usage{
 DepthCor(object, assay = NULL, reduction = "lsi", n = 10, ...)
 }
@@ -29,3 +29,4 @@ dimension component.
 \examples{
 DepthCor(object = atac_small)
 }
+\concept{visualization}

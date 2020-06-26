@@ -18,4 +18,5 @@ blacklist_ce11
 \description{
 Genomic blacklist regions for C. elegans ce11
 }
+\concept{data}
 \keyword{datasets}

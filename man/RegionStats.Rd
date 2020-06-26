@@ -3,24 +3,17 @@
 \name{RegionStats}
 \alias{RegionStats}
 \alias{RegionStats.default}
-\alias{RegionStats.Assay}
+\alias{RegionStats.ChromatinAssay}
 \alias{RegionStats.Seurat}
 \title{Compute base composition information for genomic ranges}
 \usage{
 RegionStats(object, ...)
 
-\method{RegionStats}{default}(object, genome, sep = c("-", "-"), verbose = TRUE, ...)
+\method{RegionStats}{default}(object, genome, verbose = TRUE, ...)
 
-\method{RegionStats}{Assay}(object, genome, sep = c("-", "-"), verbose = TRUE, ...)
+\method{RegionStats}{ChromatinAssay}(object, genome, verbose = TRUE, ...)
 
-\method{RegionStats}{Seurat}(
-  object,
-  genome,
-  assay = NULL,
-  sep = c("-", "-"),
-  verbose = TRUE,
-  ...
-)
+\method{RegionStats}{Seurat}(object, genome, assay = NULL, verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{A Seurat object, Assay object, or set of genomic ranges}
@@ -28,11 +21,6 @@ RegionStats(object, ...)
 \item{...}{Arguments passed to other methods}
 
 \item{genome}{A BSgenome object}
-
-\item{sep}{A length-2 character vector containing the separators to be used
-when constructing genomic coordinates from the regions. The first element is
-used to separate the chromosome from the genomic coordinates, and the second
-element used to separate the start and end coordinates.}
 
 \item{verbose}{Display messages}
 
@@ -49,15 +37,15 @@ for regions in the assay and add to the feature metadata.
 \dontrun{
 library(BSgenome.Hsapiens.UCSC.hg19)
 RegionStats(
-object = rownames(atac_small),
-genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
+  object = rownames(atac_small),
+  genome = BSgenome.Hsapiens.UCSC.hg19
 )
 }
 \dontrun{
 library(BSgenome.Hsapiens.UCSC.hg19)
 RegionStats(
-object = atac_small[['peaks']],
-genome = BSgenome.Hsapiens.UCSC.hg19, sep = c(":", "-")
+  object = atac_small[['peaks']],
+  genome = BSgenome.Hsapiens.UCSC.hg19
 )
 }
 \dontrun{
@@ -69,3 +57,4 @@ RegionStats(
 )
 }
 }
+\concept{motifs}

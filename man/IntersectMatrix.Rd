@@ -45,3 +45,4 @@ rownames(counts) <- c("chr1-565107-565550","chr1-569174-569639",
 "chr1-762106-763359","chr1-779589-780271")
 IntersectMatrix(matrix = counts, regions = blacklist_hg19)
 }
+\concept{utilities}

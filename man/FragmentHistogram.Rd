@@ -30,18 +30,25 @@ cells by. Default is the current cell identities}
 
 \item{log.scale}{Display Y-axis on log scale. Default is FALSE.}
 
-\item{...}{Additional arguments passed to \code{\link{GetReadsInRegion}}}
+\item{...}{Arguments passed to other functions}
 }
 \value{
 Returns a \code{\link[ggplot2]{ggplot}} object
 }
 \description{
-Plot fragment length histogram
+Plot the frequency that fragments of different lengths are present for
+different groups of cells.
 }
 \examples{
 \donttest{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-atac_small <- SetFragments(atac_small, file = fpath)
+Fragments(atac_small) <- CreateFragmentObject(
+  path = fpath,
+  cells = colnames(atac_small),
+  validate.fragments = FALSE
+)
 FragmentHistogram(object = atac_small, region = "chr1-10245-780007")
 }
 }
+\concept{qc}
+\concept{visualization}

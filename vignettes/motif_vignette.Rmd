@@ -1,5 +1,6 @@
 ---
 title: "Motif analysis with Signac"
+date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 output: html_document
 ---
 
@@ -20,7 +21,6 @@ library(BSgenome.Mmusculus.UCSC.mm10)
 library(patchwork)
 set.seed(1234)
 ```
-
 
 ```{r message=FALSE, warning=FALSE}
 mouse_brain <- readRDS("../vignette_data/adult_mouse_brain.rds")
@@ -45,10 +45,9 @@ pfm <- getMatrixSet(
 
 # Scan the DNA sequence of each peak for the presence of each motif
 motif.matrix <- CreateMotifMatrix(
-  features = StringToGRanges(rownames(mouse_brain), sep = c(":", "-")),
+  features = granges(mouse_brain),
   pwm = pfm,
   genome = 'mm10',
-  sep = c(":", "-"),
   use.counts = FALSE
 )
 
@@ -59,21 +58,20 @@ motif <- CreateMotifObject(
 )
 
 # Add the Motif object to the assay
-mouse_brain[['peaks']] <- AddMotifObject(
-  object = mouse_brain[['peaks']],
-  motif.object = motif
+mouse_brain <- SetAssayData(
+  object = mouse_brain,
+  assay = 'peaks',
+  slot = 'motifs',
+  new.data = motif
 )
+mouse_brain[["peaks"]]
 ```
 
 In order to test for overrepresented motifs, we also need to compute some sequence characteristics of the peaks, such as GC content, sequence length, and dinucleotide frequency.
 The `RegionStats` function computes this information for us and stores the results in the feature metadata in the Seurat object.
 
 ```{r message=FALSE, warning=FALSE}
-mouse_brain <- RegionStats(
-  object = mouse_brain,
-  genome = BSgenome.Mmusculus.UCSC.mm10,
-  sep = c(":", "-")
-)
+mouse_brain <- RegionStats(object = mouse_brain, genome = BSgenome.Mmusculus.UCSC.mm10)
 ```
 
 ## Finding overrepresented motifs
@@ -93,17 +91,52 @@ da_peaks <- FindMarkers(
   latent.vars = 'nCount_peaks'
 )
 
-# Test the differentially accessible peaks for overrepresented motifs
+# get top differentially accessible peaks
+top.da.peak <- rownames(da_peaks[da_peaks$p_val < 0.005, ])
+```
+
+<details>
+  <summary>**Optional: choosing a set of background peaks**</summary>
+  
+Matching the set of background peaks is essential when finding enriched DNA
+sequence motifs. By default, we choose a set of peaks matched for GC content,
+but it can be sometimes be beneficial to further restrict the background peaks
+to those that are accessible in the groups of cells compared when finding
+differentially accessible peaks.
+
+The `AccessiblePeaks()` function can be used to find a set of peaks that are 
+open in a subset of cells. We can use this function to first restrict the set
+of possible background peaks to those peaks that were open in the set of cells
+compared in `FindMarkers()`, and then create a GC-content-matched set of peaks
+from this larger set using `MatchRegionStats()`.
+
+```{r}
+# find peaks open in Pvalb or Sst cells
+open.peaks <- AccessiblePeaks(mouse_brain, idents = c("Pvalb", "Sst"))
+
+# match the overall GC content in the peak set
+peaks.matched <- MatchRegionStats(
+  meta.feature = GetAssayData(mouse_brain, assay = "peaks", slot = "meta.features")[open.peaks, ],
+  regions = top.da.peak,
+  n = 50000
+)
+```
+
+`peaks.matched` can then be used as the background peak set by setting
+`background=peaks.matched` in `FindMotifs()`.
+
+</details>
+
+```{r}
+# test enrichment
 enriched.motifs <- FindMotifs(
   object = mouse_brain,
-  features = head(rownames(da_peaks), 1000)
+  features = top.da.peak
 )
-# sort by p-value and fold change
-enriched.motifs <- enriched.motifs[order(enriched.motifs[, 7], -enriched.motifs[, 6]), ]
 ```
 
 ```{r}
-head(enriched.motifs)
+knitr::kable(head(enriched.motifs))
 ```
 
 We can also plot the position weight matrices for the motifs, so we can visualize the different motif sequences.
@@ -135,10 +168,10 @@ mouse_brain <- RunChromVAR(
 
 DefaultAssay(mouse_brain) <- 'chromvar'
 
-# look at the activity of Mef2c, the top hit from the overrepresentation testing
+# look at the activity of Mef2c
 p2 <- FeaturePlot(
   object = mouse_brain,
-  features = rownames(enriched.motifs)[[1]],
+  features = "MA0497.1",
   min.cutoff = 'q10',
   max.cutoff = 'q90',
   pt.size = 0.1

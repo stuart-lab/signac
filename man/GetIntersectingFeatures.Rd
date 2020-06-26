@@ -10,8 +10,6 @@ GetIntersectingFeatures(
   assay.1 = NULL,
   assay.2 = NULL,
   distance = 0,
-  sep.1 = c("-", "-"),
-  sep.2 = c("-", "-"),
   verbose = TRUE
 )
 }
@@ -27,11 +25,7 @@ the default assay}
 the default assay}
 
 \item{distance}{Maximum distance between regions allowed for an intersection
-to be recorded.}
-
-\item{sep.1}{Genomic coordinate separators to use for the first object}
-
-\item{sep.2}{Genomic coordinate separators to use for the second object}
+to be recorded. Default is 0.}
 
 \item{verbose}{Display messages}
 }
@@ -53,8 +47,7 @@ GetIntersectingFeatures(
   object.1 = atac_small,
   object.2 = atac_small,
   assay.1 = 'peaks',
-  assay.2 = 'bins',
-  sep.1 = c(":", "-"),
-  sep.2 = c("-", "-")
+  assay.2 = 'bins'
 )
 }
+\concept{utilities}
