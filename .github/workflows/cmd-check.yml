@@ -2,7 +2,7 @@ on:
   push:
     branches:
       - master
-      - develop
+      # - develop
   pull_request:
     branches:
       - master
@@ -12,7 +12,7 @@ name: R-CMD-check
 
 jobs:
   R-CMD-check:
-    
+
     if: "!contains(github.event.head_commit.message, 'ci-skip')"
 
     runs-on: ${{ matrix.config.os }}
@@ -27,16 +27,16 @@ jobs:
           - {os: windows-latest, r: '3.6', bioc: '3.10'}
             #- {os: macOS-latest, r: 'devel', bioc: 'devel'}
           - {os: ubuntu-16.04, r: '3.6', bioc: '3.10', rspm: "https://demo.rstudiopm.com/all/__linux__/xenial/latest"}
-    
+
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       RSPM: ${{ matrix.config.rspm }}
-    
+
     steps:
       - uses: actions/checkout@v2
 
       - uses: r-lib/actions/setup-r@master
-        with: 
+        with:
           r-version: ${{ matrix.config.r }}
 
       - name: Query dependencies
@@ -53,7 +53,7 @@ jobs:
           path: ${{ env.R_LIBS_USER }}
           key: ${{ runner.os }}-r-${{ matrix.config.r }}-${{ hashFiles('depends.Rds') }}
           restore-keys: ${{ runner.os }}-r-${{ matrix.config.r }}-
-      
+
       - name: Install system dependencies
         if: runner.os == 'Linux'
         env:
