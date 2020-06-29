@@ -20,6 +20,21 @@
 #' @source \url{https://doi.org/10.1038/s41598-019-45839-z}
 "blacklist_hg38"
 
+#' Unified genomic blacklist regions for Human GRCh38
+#'
+#' Manually curated genomic blacklist regions for the hg38 genome by Anshul
+#' Kundaje and Anna Shcherbina. See
+#' \url{https://www.encodeproject.org/files/ENCFF356LFX/} for a description of
+#' how this blacklist was curated.
+#'
+#' @concept data
+#' @author Anshul Kundaje
+#' @author Anna Shcherbina
+#' @format A GRanges object
+#' @source \url{https://www.encodeproject.org/files/ENCFF356LFX/}
+#' @source \url{https://doi.org/10.1038/s41598-019-45839-z}
+"blacklist_hg38_unified"
+
 #' Genomic blacklist regions for Human hg19
 #' @concept data
 #' @format A GRanges object

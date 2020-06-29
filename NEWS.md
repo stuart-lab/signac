@@ -54,6 +54,9 @@ for different groups of cells.
 Tn5 integration events in a genomic region for individual cells.
 * Performance improvements for `FeatureMatrix()`, `CoveragePlot()`, and
 `TSSEnrichment()`
+* Added the manually curated hg38 genomic blacklist regions curated by Anshul
+Kundaje and Anna Shcherbina. These are available as the `blacklist_hg38_unified`
+object.
 
 # Signac 0.2.5
 
