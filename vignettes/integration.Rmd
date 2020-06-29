@@ -83,13 +83,19 @@ sci.counts <- sci.counts[names(sci_peaks_mm10), ]
 rownames(sci.counts) <- GRangesToString(grange = sci_peaks_mm10)
 
 # create object and perform some basic QC filtering
-sci <- CreateSignacObject(
+sci_assay <- CreateChromatinAssay(
   counts = sci.counts,
-  meta.data = sci.metadata,
   assay = 'sci',
   genome = "mm10",
   ranges = sci_peaks_mm10,
   project = 'sci'
+)
+
+sci <- CreateSeuratObject(
+  counts = sci_assay,
+  meta.data = sci.metadata,
+  project = "sci",
+  assay = "sci"
 )
 
 sci <- sci[, sci$nFeature_sci > 2000 &
@@ -132,7 +138,7 @@ sci_peaks_tenx <- FeatureMatrix(
 )
 
 # create a new assay and add it to the 10x dataset
-tenx[['sciPeaks']] <- CreateChromatinAssayObject(
+tenx[['sciPeaks']] <- CreateChromatinAssay(
   counts = sci_peaks_tenx,
   min.cells = 1,
   ranges = peaks.use,
@@ -158,7 +164,7 @@ used. This effect can be removed using the integration methods in
 # create a new assay in the sci-ATAC-seq dataset containing the common peaks
 peaknames <- GRangesToString(grange = peaks.use)
 
-sci[['sciPeaks']] <- CreateChromatinAssayObject(
+sci[['sciPeaks']] <- CreateChromatinAssay(
   counts <- GetAssayData(sci, assay = "sci", slot = "counts")[peaknames, ],
   ranges = peaks.use,
   genome = "mm10"

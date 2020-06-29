@@ -218,25 +218,17 @@ We will now use the quantified matrices to create a Seurat object for each
 dataset, storing the Fragment object for each dataset in the assay.
 
 ```{r message=FALSE, warning=FALSE}
-pbmc500 <- CreateSignacObject(
-  counts = pbmc500.counts,
-  fragments = frags.500
-)
+pbm500_assay <- CreateChromatinAssay(pbmc500.counts, fragments = frags.500)
+pbmc500 <- CreateSeuratObject(pbmc500_assay, assay = "peaks")
 
-pbmc1k <- CreateSignacObject(
-  counts = pbmc1k.counts,
-  fragments = frags.1k
-)
+pbm1k_assay <- CreateChromatinAssay(pbmc1k.counts, fragments = frags.1k)
+pbmc1k <- CreateSeuratObject(pbmc1k_assay, assay = "peaks")
 
-pbmc5k <- CreateSignacObject(
-  counts = pbmc5k.counts,
-  fragments = frags.5k
-)
+pbm5k_assay <- CreateChromatinAssay(pbmc5k.counts, fragments = frags.5k)
+pbmc5k <- CreateSeuratObject(pbmc5k_assay, assay = "peaks")
 
-pbmc10k <- CreateSignacObject(
-  counts = pbmc10k.counts,
-  fragments = frags.10k
-)
+pbm10k_assay <- CreateChromatinAssay(pbmc10k.counts, fragments = frags.10k)
+pbmc10k <- CreateSeuratObject(pbmc10k_assay, assay = "peaks")
 ```
 
 ## Merge objects
@@ -325,10 +317,14 @@ counts.5k <- Read10X_h5("/home/stuartt/data/pbmc5k/atac_pbmc_5k_nextgem_filtered
 counts.10k <- Read10X_h5("/home/stuartt/data/pbmc10k/atac_pbmc_10k_nextgem_filtered_peak_bc_matrix.h5")
 
 # create objects
-pbmc500 <- CreateSignacObject(counts = counts.500, sep = c(":", "-"), min.features = 500)
-pbmc1k <- CreateSignacObject(counts = counts.1k, sep = c(":", "-"), min.features = 500)
-pbmc5k <- CreateSignacObject(counts = counts.5k, sep = c(":", "-"), min.features = 500)
-pbmc10k <- CreateSignacObject(counts = counts.10k, sep = c(":", "-"), min.features = 1000)
+pbmc500_assay <- CreateChromatinAssay(counts = counts.500, sep = c(":", "-"), min.features = 500)
+pbmc500 <- CreateSeuratObject(pbmc500_assay, assay = "peaks")
+pbmc1k_assay <- CreateChromatinAssay(counts = counts.1k, sep = c(":", "-"), min.features = 500)
+pbmc1k <- CreateSeuratObject(pbmc1k_assay, assay = "peaks")
+pbmc5k_assay <- CreateChromatinAssay(counts = counts.5k, sep = c(":", "-"), min.features = 500)
+pbmc5k <- CreateSeuratObject(pbmc5k_assay, assay = "peaks")
+pbmc10k_assay <- CreateChromatinAssay(counts = counts.10k, sep = c(":", "-"), min.features = 1000)
+pbmc10k <- CreateSeuratObject(pbmc10k_assay, assay = "peaks")
 
 # add information to identify dataset of origin
 pbmc500$dataset <- 'pbmc500'

@@ -51,13 +51,18 @@ rownames(mtx) <- peaks$Feature
 ```
 
 ```{r message=FALSE, warning=FALSE}
-bone <- CreateSignacObject(
+bone_assay <- CreateChromatinAssay(
   counts = mtx,
   min.cells = 5,
   meta.data = cells,
   fragments = "~/data/satpathy19/GSE129785/GSM3722029_CD34_Progenitors_Rep1_fragments.tsv.gz",
   sep = c("_", "_"),
   genome = "hg19"
+)
+bone <- CreateSeuratObject(
+  counts = bone_assay,
+  meta.data = cells,
+  assay = "peaks"
 )
 
 # The dataset contains multiple cell types

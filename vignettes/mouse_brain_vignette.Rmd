@@ -39,7 +39,7 @@ set.seed(1234)
 
 ## Pre-processing workflow
   
-```{r setup2, cache=FALSE}
+```{r}
 counts <- Read10X_h5("/home/stuartt/github/chrom/vignette_data/atac_v1_adult_brain_fresh_5k_filtered_peak_bc_matrix.h5")
 metadata <- read.csv(
   file = "/home/stuartt/github/chrom/vignette_data/atac_v1_adult_brain_fresh_5k_singlecell.csv",
@@ -47,14 +47,17 @@ metadata <- read.csv(
   row.names = 1
 )
 
-brain <- CreateSignacObject(
+brain_assay <- CreateChromatinAssay(
   counts = counts,
-  assay = 'peaks',
-  project = 'ATAC',
   sep = c(":", "-"),
   genome = "mm10",
   fragments = '/home/stuartt/github/chrom/vignette_data/atac_v1_adult_brain_fresh_5k_fragments.tsv.gz',
-  min.cells = 1,
+  min.cells = 1
+)
+brain <- CreateSeuratObject(
+  counts = brain_assay,
+  assay = 'peaks',
+  project = 'ATAC',
   meta.data = metadata
 )
 ```
@@ -63,7 +66,7 @@ We can also add gene annotations to the `brain` object for the mouse genome.
 This will allow downstream functions to pull the gene annotation information
 directly from the object.
 
-```{r annotations, message=FALSE, warning=FALSE, cache=FALSE}
+```{r message=FALSE, warning=FALSE}
 # extract gene annotations from EnsDb
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Mmusculus.v79)
 
@@ -79,7 +82,7 @@ Annotation(brain) <- annotations
 
 Next we compute some useful per-cell QC metrics.
 
-```{r calcnucleosome, cache=FALSE ,message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 brain <- NucleosomeSignal(object = brain)
 ```
 
@@ -89,7 +92,7 @@ are outliers for the  mononucleosomal/ nucleosome-free ratio have different
 banding patterns. The remaining cells exhibit a pattern that is typical for a
 successful ATAC-seq experiment.
 
-```{r nucleosome_plot, message=FALSE, warning=FALSE, cache=FALSE}
+```{r message=FALSE, warning=FALSE}
 brain$nucleosome_group <- ifelse(brain$nucleosome_signal > 4, 'NS > 4', 'NS < 4')
 FragmentHistogram(object = brain, group.by = 'nucleosome_group', region = 'chr1-1-10000000')
 ```
@@ -103,16 +106,16 @@ information about the TSS enrichment score
 (https://www.encodeproject.org/data-standards/terms/). We can calculate the TSS
 enrichment score for each cell using the `TSSEnrichment()` function in Signac.
 
-```{r tss_score, message=FALSE, warning=FALSE, cache=FALSE}
-brain <- TSSEnrichment(object = brain, fast = FALSE)
+```{r message=FALSE, warning=FALSE}
+brain <- TSSEnrichment(brain, fast = FALSE)
 ```
 
-```{r tss_plot, message=FALSE, warning=FALSE, cache=FALSE}
+```{r message=FALSE, warning=FALSE}
 brain$high.tss <- ifelse(brain$TSS.enrichment > 2, 'High', 'Low')
 TSSPlot(brain, group.by = 'high.tss') + NoLegend()
 ```
 
-```{r calcqc, cache=FALSE, message=FALSE, warning=FALSE, fig.width=12, fig.height=6}
+```{r message=FALSE, warning=FALSE, fig.width=12, fig.height=6}
 brain$pct_reads_in_peaks <- brain$peak_region_fragments / brain$passed_filters * 100
 brain$blacklist_ratio <- brain$blacklist_region_fragments / brain$peak_region_fragments
 
@@ -142,7 +145,7 @@ brain
 
 ## Normalization and linear dimensional reduction
 
-```{r tfidf, cache=FALSE, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 brain <- RunTFIDF(brain)
 brain <- FindTopFeatures(brain, min.cutoff = 'q0')
 brain <- RunSVD(object = brain)
@@ -169,7 +172,7 @@ clustering, and non-linear dimension reduction for visualization. The functions
 `RunUMAP()`, `FindNeighbors()`, and `FindClusters()` all come from the Seurat
 package.
 
-```{r nncluster, cache=FALSE, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 brain <- RunUMAP(
   object = brain,
   reduction = 'lsi',
@@ -192,7 +195,7 @@ DimPlot(object = brain, label = TRUE) + NoLegend()
 
 ## Create a gene activity matrix
 
-```{r, message=FALSE, warning=FALSE, cache=FALSE}
+```{r, message=FALSE, warning=FALSE}
 # compute gene activities
 gene.activities <- GeneActivity(brain)
 
@@ -232,7 +235,7 @@ and view the code used to construct this object on
 Alternatively, you can download the pre-processed Seurat object
 [here](https://www.dropbox.com/s/kqsy9tvsklbu7c4/allen_brain.rds?dl=0).
 
-```{r, cache=FALSE, warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE}
 # Load the pre-processed scRNA-seq data
 allen_rna <- readRDS("/home/stuartt/github/chrom/vignette_data/allen_brain.rds")
 allen_rna <- FindVariableFeatures(
@@ -258,7 +261,7 @@ brain <- AddMetaData(object = brain, metadata = predicted.labels)
 ```
 
 
-```{r, cache=FALSE, fig.width=12}
+```{r fig.width=12}
 plot1 <- DimPlot(allen_rna, group.by = 'subclass', label = TRUE, repel = TRUE) + NoLegend() + ggtitle('scRNA-seq')
 plot2 <- DimPlot(brain, group.by = 'predicted.id', label = TRUE, repel = TRUE) + NoLegend() + ggtitle('scATAC-seq')
 plot1 + plot2
@@ -292,7 +295,7 @@ represent subdivisions of the scRNA-seq labels. Try transferring the cluster
 label (which shows finer distinctions) from the allen scRNA-seq dataset,
 to annotate them!
 
-```{r, cache=FALSE}
+```{r}
 # replace each label with its most likely prediction
 for(i in levels(brain)) {
   cells_to_reid <- WhichCells(brain, idents = i)
@@ -306,7 +309,7 @@ for(i in levels(brain)) {
 Here, we find differentially accessible regions between excitatory neurons in
 different layers of the cortex.
 
-```{r message=TRUE, warning=FALSE, cache=FALSE}
+```{r message=TRUE, warning=FALSE}
 #switch back to working with peaks instead of gene activities
 DefaultAssay(brain) <- 'peaks'
 
@@ -322,7 +325,7 @@ da_peaks <- FindMarkers(
 head(da_peaks)
 ```
 
-```{r, cache=FALSE, fig.width=12}
+```{r fig.width=12}
 plot1 <- VlnPlot(
   object = brain,
   features = rownames(da_peaks)[1],
@@ -358,7 +361,7 @@ function. These represent pseudo-bulk accessibility tracks, where signal from
 all cells within a group have been averaged together to visualize the DNA 
 accessibility in a region.
 
-```{r coverageplot, message=FALSE, warning=FALSE, cache=FALSE, out.width='90%', fig.height=10}
+```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=10}
 # set plotting order
 levels(brain) <- c("L2/3 IT","L4","L5 IT","L5 PT","L6 CT", "L6 IT","NP","Sst","Pvalb","Vip","Lamp5","Meis2","Oligo","Astro","Endo","VLMC","Macrophage")
 

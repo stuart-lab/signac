@@ -42,7 +42,7 @@ fragments <- "/home/stuartt/data/snare-seq/fragments.sort.bed.gz"
 
 # create a Seurat object and add the assays
 snare <- CreateSeuratObject(counts = rna)
-snare[['ATAC']] <- CreateChromatinAssayObject(
+snare[['ATAC']] <- CreateChromatinAssay(
   counts = atac,
   sep = c(":", "-"),
   genome = "mm10",

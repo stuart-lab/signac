@@ -62,7 +62,7 @@ library(Signac)
 ### Constructing the `ChromatinAssay`
 
 A `ChromatinAssay` object can be constructed using the
-`CreateChromatinAssayObject()` function.
+`CreateChromatinAssay()` function.
 
 ```{r}
 # get some data to use in the following examples
@@ -71,21 +71,20 @@ counts <- GetAssayData(atac_small, slot = "counts")
 
 ```{r}
 # create a standalone ChromatinAssay object
-chromatinassay <- CreateChromatinAssayObject(counts = counts, genome = "hg19")
+chromatinassay <- CreateChromatinAssay(counts = counts, genome = "hg19")
 ```
 
 Here the `genome` parameter can be used to set the `seqinfo` slot. We can pass
 the name of a genome present in UCSC (e.g., "hg19" or "mm10"), or we can pass
 a `Seqinfo`-class object.
 
-To create a Seurat object from scratch that contains a `ChromatinAssay` rather 
-than a standard `Assay`, we use the `CreateSignacObject()` function. This is
-similar to the `CreateSeuratObject()` function defined in Seurat, but adds
-additional parameters to initialize the `ChromatinAssay` object.
+To create a Seurat object that contains a `ChromatinAssay` rather than a
+standard `Assay`, we can initialize the object using the `ChromatinAssay` rather
+than a count matrix. Note that this feature was added in Seurat 3.2.
 
 ```{r}
 # create a Seurat object containing a ChromatinAssay
-object <- CreateSignacObject(counts = counts, genome = "hg19")
+object <- CreateSeuratObject(counts = chromatinassay)
 ```
 
 ### Adding a `ChromatinAssay` to a `Seurat` object
@@ -96,7 +95,7 @@ other data types to the Seurat object.
 
 ```{r}
 # create a chromatin assay and add it to an existing Seurat object
-object[["peaks"]] <- CreateChromatinAssayObject(counts = counts, genome = "hg19")
+object[["peaks"]] <- CreateChromatinAssay(counts = counts, genome = "hg19")
 ```
 
 ### Getting and setting `ChromatinAssay` data
@@ -308,15 +307,22 @@ fragments
 
 Alternatively, we can initialize the `ChromatinAssay` with a `Fragment` object
 in a couple of ways. We can either pass a vector of `Fragment` objects to the
-`fragments` parameter in `CreateChromatinAssayObject()`, or pass the path to a
+`fragments` parameter in `CreateChromatinAssay()`, or pass the path to a
 single fragment file. If we pass the path to a fragment file we assume that the
 file contains fragments for all cells in the `ChromatinAssay` and that the cell
 names are the same in the fragment file on disk and in the `ChromatinAssay`.
-These parameters are also exposed in the `CreateSignacObject()` function.
 For example:
 
 ```{r}
-object <- CreateSignacObject(counts = counts, genome = "hg19", fragments = frag.path)
+chrom_assay <- CreateChromatinAssay(
+  counts = counts,
+  genome = "hg19",
+  fragments = frag.path
+)
+object <- CreateSeuratObject(
+  counts = chrom_assay,
+  assay = "peaks"
+)
 ```
 
 This will create a Seurat object containing a `ChromatinAssay`, with a single

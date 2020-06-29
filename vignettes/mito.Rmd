@@ -53,14 +53,17 @@ seqlevelsStyle(annotations) <- 'UCSC'
 genome(annotations) <- "hg19"
 
 # create object
-crc <- CreateSignacObject(
+crc_assay <- CreateChromatinAssay(
   counts = counts,
   sep = c(":", "-"),
-  assay = 'peaks',
   annotation = annotations,
   min.cells = 10,
   genome = "hg19",
-  fragments = '~/data/mito/crc/fragments.tsv.gz',
+  fragments = '~/data/mito/crc/fragments.tsv.gz'
+)
+crc <- CreateSeuratObject(
+  counts = crc_assay,
+  assay = 'peaks',
   meta.data = metadata
 )
 
