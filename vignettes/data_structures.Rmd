@@ -54,7 +54,7 @@ different TF motifs)
 object describing linked genomic positions, such as co-accessible sites or
 enhancer-gene regulatory relationships.
 
-```{r include=FALSE}
+```{r message=FALSE, warning=FALSE}
 library(Seurat)
 library(Signac)
 ```
