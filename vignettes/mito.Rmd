@@ -258,7 +258,7 @@ allele frequency in the population. However, 16147C>T is present at about 62%.
 We'll see that this is a clonal variant marking the epithelial cells.
 Additionally, all of the called variants are transitions (A - G or C - T) rather
 than transversion mutations (A - T or C - G). This fits what we know about how
-these mutations arise in the genome (TODO add link/citation).
+these mutations arise in the genome.
 
 ## Compute the variant allele frequency for each cell
 

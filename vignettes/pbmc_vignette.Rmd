@@ -477,7 +477,7 @@ important information including gene annotation, peak coordinates, and genomic
 links (if they're stored in the object). See the
 [visualization vignette](visualization.html) for more information.
 
-```{r message=FALSE, warning=FALSE out.width='90%', fig.height=6}
+```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=6}
 # set plotting order
 levels(pbmc) <- c("CD4 Naive","CD4 Memory","CD8 Naive","CD8 Effector","DN T","NK CD56bright","NK CD56Dim","pre-B",'pro-B',"pDC","DC","CD14 Mono",'CD16 Mono')
 
@@ -489,16 +489,15 @@ CoveragePlot(
 )
 ```
 
-We can also create and interactive version of these plots using the
+We can also create an interactive version of these plots using the
 `CoverageBrowser()` function. Here is a recorded demonstration showing how we
-can use `CoverageBrowser()` to browser the genome, adjust plotting parameters
+can use `CoverageBrowser()` to browser the genome and adjust plotting parameters
 interactively. The "Save plot" button in `CoverageBrowser()` will add the
 current plot to a list of `ggplot` objects that is returned when the browser
 session is ended by pressing the "Done" button, allowing interesting views
 to be saved during an interactive session.
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/S9b5rN32IC8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
 
 <details>
   <summary>**Working with datasets that were not quantified using CellRanger**</summary>

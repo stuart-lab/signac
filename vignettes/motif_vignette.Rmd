@@ -8,9 +8,15 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-In this tutorial, we will perform DNA sequence motif analysis in Signac. We will explore two complementary options for performing motif analysis: one by finding overrepresented motifs in a set of differentially accessible peaks, one method performing differential motif activity analysis between groups of cells.
+In this tutorial, we will perform DNA sequence motif analysis in Signac. We will
+explore two complementary options for performing motif analysis: one by finding
+overrepresented motifs in a set of differentially accessible peaks, one method
+performing differential motif activity analysis between groups of cells.
 
-In this demonstration we use data from the adult mouse brain. See our [vignette](https://satijalab.org/signac/articles/mouse_brain_vignette.html) for the code used to generate this object, and links to the raw data. First, load the required packages and the pre-computed Seurat object:
+In this demonstration we use data from the adult mouse brain. See our
+[vignette](mouse_brain_vignette.html) for the code used to generate this object,
+and links to the raw data. First, load the required packages and the
+pre-computed Seurat object:
 
 ```{r message=FALSE, warning=FALSE}
 library(Signac)
@@ -34,7 +40,13 @@ p1
 
 ## The Motif class
 
-To facilitate motif analysis in Signac, we have create the `Motif` class to store all the required information, including a list of position weight matrices (PWMs) or position frequency matrices (PFMs) and a motif occurrence matrix. Here, we construct a `Motif` object and add it to our mouse brain dataset. A motif object can be added to any Seurat assay using the `AddMotifObject` function:
+To facilitate motif analysis in Signac, we have create the `Motif` class to
+store all the required information, including a list of position weight matrices
+(PWMs) or position frequency matrices (PFMs) and a motif occurrence matrix.
+Here, we construct a `Motif` object and add it to our mouse brain dataset. A
+motif object can be added to any Seurat assay using the `SetAssayData()`
+function. See the [object interaction vignette](data_structures.html) for
+more information.
 
 ```{r message=FALSE, warning=FALSE}
 # Get a list of motif position frequency matrices from the JASPAR database
@@ -67,8 +79,10 @@ mouse_brain <- SetAssayData(
 mouse_brain[["peaks"]]
 ```
 
-In order to test for overrepresented motifs, we also need to compute some sequence characteristics of the peaks, such as GC content, sequence length, and dinucleotide frequency.
-The `RegionStats` function computes this information for us and stores the results in the feature metadata in the Seurat object.
+In order to test for overrepresented motifs, we also need to compute some
+sequence characteristics of the peaks, such as GC content, sequence length, and
+dinucleotide frequency. The `RegionStats()` function computes this information
+for us and stores the results in the feature metadata in the Seurat object.
 
 ```{r message=FALSE, warning=FALSE}
 mouse_brain <- RegionStats(object = mouse_brain, genome = BSgenome.Mmusculus.UCSC.mm10)
@@ -76,10 +90,14 @@ mouse_brain <- RegionStats(object = mouse_brain, genome = BSgenome.Mmusculus.UCS
 
 ## Finding overrepresented motifs
 
-To identify potentially important cell-type-specific regulatory sequences, we can search for DNA motifs that are overrepresented in a set of peaks that are differentially accessible between cell types.
+To identify potentially important cell-type-specific regulatory sequences, we
+can search for DNA motifs that are overrepresented in a set of peaks that are
+differentially accessible between cell types.
 
-Here, we find differentially accessible peaks between Pvalb and Sst inhibitory interneurons. We then perform a hypergeometric test to test the probability of observing the motif at 
-the given frequency by chance, comparing with a background set of peaks matched for GC content. 
+Here, we find differentially accessible peaks between Pvalb and Sst inhibitory
+interneurons. We then perform a hypergeometric test to test the probability of
+observing the motif at the given frequency by chance, comparing with a
+background set of peaks matched for GC content. 
 
 ```{r message=FALSE, warning=FALSE}
 da_peaks <- FindMarkers(
@@ -139,7 +157,8 @@ enriched.motifs <- FindMotifs(
 knitr::kable(head(enriched.motifs))
 ```
 
-We can also plot the position weight matrices for the motifs, so we can visualize the different motif sequences.
+We can also plot the position weight matrices for the motifs, so we can
+visualize the different motif sequences.
 
 ```{r}
 MotifPlot(
@@ -148,17 +167,25 @@ MotifPlot(
 )
 ```
 
-We and others have previously shown that Mef-family motifs, particularly *Mef2c*, are enriched in Pvalb-specific peaks in scATAC-seq data
+We and others have previously shown that Mef-family motifs, particularly
+*Mef2c*, are enriched in Pvalb-specific peaks in scATAC-seq data
 (https://doi.org/10.1016/j.cell.2019.05.031; https://doi.org/10.1101/615179),
-and further shown that *Mef2c* is required for the development of Pvalb interneurons (https://www.nature.com/articles/nature25999).
-Here our results are consistent with these findings, and we observe a strong enrichment of Mef-family motifs in the top results from `FindMotifs`.
+and further shown that *Mef2c* is required for the development of Pvalb
+interneurons (https://www.nature.com/articles/nature25999). Here our results are 
+consistent with these findings, and we observe a strong enrichment of Mef-family
+motifs in the top results from `FindMotifs()`.
 
 ## Computing motif activities
 
-We can also compute a per-cell motif activity score by running [chromVAR](https://greenleaflab.github.io/chromVAR/index.html). This allows us to visualize motif activities per cell, and also provides an alternative method of identifying differentially-active motifs between cell types.
+We can also compute a per-cell motif activity score by running 
+[chromVAR](https://greenleaflab.github.io/chromVAR/index.html). This allows us
+to visualize motif activities per cell, and also provides an alternative method
+of identifying differentially-active motifs between cell types.
 
-ChromVAR identifies motifs associated with variability in chromatin accessibility between cells.
-See the chromVAR [paper](https://www.nature.com/articles/nmeth.4401) for a complete description of the method.
+ChromVAR identifies motifs associated with variability in chromatin
+accessibility between cells. See the chromVAR
+[paper](https://www.nature.com/articles/nmeth.4401) for a complete description
+of the method.
 
 ```{r message=FALSE, warning=FALSE, fig.width=12}
 mouse_brain <- RunChromVAR(
@@ -179,7 +206,9 @@ p2 <- FeaturePlot(
 p1 + p2
 ```
 
-We can also directly test for differential activity scores between cell types. This tends to give similar results as performing an enrichment test on differentially accessible peaks between the cell types (shown above)
+We can also directly test for differential activity scores between cell types.
+This tends to give similar results as performing an enrichment test on
+differentially accessible peaks between the cell types (shown above).
 
 ```{r message=FALSE, warning=FALSE}
 differential.activity <- FindMarkers(

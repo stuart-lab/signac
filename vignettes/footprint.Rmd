@@ -12,7 +12,7 @@ library(Seurat)
 ## Data loading
 
 For this vignette we'll use the dataset introduced and pre-processed in the
-[trajectory building vignette](https://satijalab.org/signac/articles/monocle.html).
+[trajectory building vignette](monocle.html).
 
 ```{r}
 bone <- readRDS("../vignette_data/cd34.rds")
