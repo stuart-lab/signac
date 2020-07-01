@@ -218,17 +218,17 @@ We will now use the quantified matrices to create a Seurat object for each
 dataset, storing the Fragment object for each dataset in the assay.
 
 ```{r message=FALSE, warning=FALSE}
-pbm500_assay <- CreateChromatinAssay(pbmc500.counts, fragments = frags.500)
-pbmc500 <- CreateSeuratObject(pbmc500_assay, assay = "peaks")
+pbmc500_assay <- CreateChromatinAssay(pbmc500.counts, fragments = frags.500)
+pbmc500 <- CreateSeuratObject(pbmc500_assay, assay = "ATAC")
 
-pbm1k_assay <- CreateChromatinAssay(pbmc1k.counts, fragments = frags.1k)
-pbmc1k <- CreateSeuratObject(pbmc1k_assay, assay = "peaks")
+pbmc1k_assay <- CreateChromatinAssay(pbmc1k.counts, fragments = frags.1k)
+pbmc1k <- CreateSeuratObject(pbmc1k_assay, assay = "ATAC")
 
-pbm5k_assay <- CreateChromatinAssay(pbmc5k.counts, fragments = frags.5k)
-pbmc5k <- CreateSeuratObject(pbmc5k_assay, assay = "peaks")
+pbmc5k_assay <- CreateChromatinAssay(pbmc5k.counts, fragments = frags.5k)
+pbmc5k <- CreateSeuratObject(pbmc5k_assay, assay = "ATAC")
 
-pbm10k_assay <- CreateChromatinAssay(pbmc10k.counts, fragments = frags.10k)
-pbmc10k <- CreateSeuratObject(pbmc10k_assay, assay = "peaks")
+pbmc10k_assay <- CreateChromatinAssay(pbmc10k.counts, fragments = frags.10k)
+pbmc10k <- CreateSeuratObject(pbmc10k_assay, assay = "ATAC")
 ```
 
 ## Merge objects
