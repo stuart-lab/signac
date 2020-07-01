@@ -95,7 +95,9 @@ CreateFragmentObject <- function(
   if (verbose) {
     message("Computing hash")
   }
-  path <- normalizePath(path = path, mustWork = TRUE)
+  if (!is.remote) {
+    path <- normalizePath(path = path, mustWork = TRUE)
+  }
   # will be NA if file remote
   hashes <- md5sum(files = c(path, index.file))
   # create object
