@@ -1672,6 +1672,8 @@ VariantPlot <- function(
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @importFrom Seurat DefaultAssay
+#' @importFrom ggplot2 xlab
+#' @importFrom GenomeInfoDb seqnames
 #'
 #' @export
 #' @concept visualization
@@ -1728,6 +1730,8 @@ TilePlot <- function(
     order = order.by
   )
   tile.plot <- CreateTilePlot(df = tile.df, n = tile.cells)
+  tile.plot <- tile.plot +
+    xlab(label = paste0(seqnames(x = region), " position (bp)"))
   return(tile.plot)
 }
 
@@ -1763,12 +1767,14 @@ ComputeTile <- function(
   totals <- rowSums(x = cutmatrix)
   unique.groups <- unique(x = groups)
   cells.use <- vector(mode = "character")
+  cell.idx <- vector(mode = "numeric")
   for (i in seq_along(along.with = unique.groups)) {
     tot.use <- totals[names(x = groups[groups == unique.groups[[i]]])]
-    cells.use <- c(
-      cells.use, names(x = head(x = sort(x = tot.use, decreasing = TRUE), n))
-    )
+    cell.keep <- names(x = head(x = sort(x = tot.use, decreasing = TRUE), n))
+    cell.idx <- c(cell.idx, seq_along(along.with = cell.keep))
+    cells.use <- c(cells.use, cell.keep)
   }
+  names(x = cell.idx) <- cells.use
   cutmatrix <- cutmatrix[cells.use, ]
 
   # create sliding window sum of integration sites using RcppRoll
@@ -1791,16 +1797,14 @@ ComputeTile <- function(
     cols = cells.use
   )
 
-  # add group information and cell index
   smoothed$group <- groups[smoothed$name]
-  cell.lookup <- seq_along(along.with = cells.use)
-  names(x = cell.lookup) <- cells.use
-  smoothed$idx <- cell.lookup[smoothed$name]
+  smoothed$idx <- cell.idx[smoothed$name]
+  smoothed$bin <- smoothed$bin + as.numeric(x = colnames(x = cutmatrix)[[1]])
   return(smoothed)
 }
 
 #' @importFrom ggplot2 ggplot aes_string geom_raster ylab scale_fill_gradient
-#' scale_y_reverse guides guide_legend
+#' scale_y_reverse guides guide_legend geom_hline
 CreateTilePlot <- function(df, n, legend = TRUE) {
   # create plot
   p <- ggplot(
@@ -1814,6 +1818,7 @@ CreateTilePlot <- function(df, n, legend = TRUE) {
     ) +
     geom_raster() +
     theme_browser(legend = legend) +
+    geom_hline(yintercept = c(0, n), size = 0.1) +
     ylab(paste0("Fragments (", n, " cells)")) +
     scale_fill_gradient(low = "white", high = "darkred") +
     scale_y_reverse() +
