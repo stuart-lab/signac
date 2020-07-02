@@ -257,12 +257,7 @@ combined[["ATAC"]]
 ```{r message=FALSE, warning=FALSE}
 combined <- RunTFIDF(combined)
 combined <- FindTopFeatures(combined, min.cutoff = 20)
-combined <- RunSVD(
-  combined,
-  reduction.key = 'LSI_',
-  reduction.name = 'lsi', 
-  irlba.work = 400
-)
+combined <- RunSVD(combined)
 combined <- RunUMAP(combined, dims = 2:50, reduction = 'lsi')
 ```
 
@@ -342,12 +337,7 @@ combined <- merge(
 # process 
 combined <- RunTFIDF(combined)
 combined <- FindTopFeatures(combined, min.cutoff = 20)
-combined <- RunSVD(
-  combined,
-  reduction.key = 'LSI_',
-  reduction.name = 'lsi', 
-  irlba.work = 400
-)
+combined <- RunSVD(combined)
 combined <- RunUMAP(combined, dims = 2:50, reduction = 'lsi')
 ```
 
