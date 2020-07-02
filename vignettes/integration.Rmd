@@ -105,7 +105,7 @@ sci <- sci[, sci$nFeature_sci > 2000 &
 sci$tech <- 'sciATAC'
 sci <- RunTFIDF(sci)
 sci <- FindTopFeatures(sci, min.cutoff = 50)
-sci <- RunSVD(sci, n = 30, reduction.name = 'lsi', reduction.key = 'LSI_')
+sci <- RunSVD(sci)
 sci <- RunUMAP(sci, reduction = 'lsi', dims = 2:30)
 sci
 ```
@@ -177,7 +177,7 @@ unintegrated <- merge(sci, tenx)
 DefaultAssay(unintegrated) <- "sciPeaks"
 unintegrated <- RunTFIDF(unintegrated)
 unintegrated <- FindTopFeatures(unintegrated, min.cutoff = 50)
-unintegrated <- RunSVD(unintegrated, n = 30, reduction.name = 'lsi', reduction.key = 'LSI_')
+unintegrated <- RunSVD(unintegrated)
 unintegrated <- RunUMAP(unintegrated, reduction = 'lsi', dims = 2:30)
 p1 <- DimPlot(unintegrated, group.by = 'tech', pt.size = 0.1) + ggplot2::ggtitle("Unintegrated")
 
