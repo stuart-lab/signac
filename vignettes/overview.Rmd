@@ -98,6 +98,15 @@ Cicero package and coversion functions present in SeuratWrappers.
 knitr::include_graphics("./assets/cicero.png")
 ```
 
+## [Data visualization](visualization.html)
+
+Here we demonstrate how to create genome browser-style plots using single-cell
+chromatin data.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/viz.png")
+```
+
 # Object interaction
 
 The following vignettes demonstrate how to interact with the Seurat object and 

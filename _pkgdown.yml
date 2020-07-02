@@ -32,6 +32,8 @@ navbar:
           href: articles/cicero.html
         - text: "Transcription factor footprinting"
           href: articles/footprint.html
+        - text: "Data visualization"
+          href: articles/visualization.html
         - text: "Parallel computing"
           href: articles/future.html
         - text: "Merging objects"
