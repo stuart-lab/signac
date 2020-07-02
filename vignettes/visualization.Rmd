@@ -231,3 +231,13 @@ interactive session is ended. Here's a recorded demonstration of the
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/S9b5rN32IC8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
+<details>
+  <summary>**Session Info**</summary>
+  
+```{r}
+sessionInfo()
+```
+
+</details>
+
+
