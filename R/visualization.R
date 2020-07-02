@@ -390,8 +390,7 @@ SingleCoveragePlot <- function(
     )
     tile.plot <- CreateTilePlot(
       df = tile.df,
-      n = tile.cells,
-      legend = is.null(x = features)
+      n = tile.cells
     )
   } else {
     tile.plot <- NULL
@@ -784,7 +783,7 @@ TSSPlot <- function(
 #' @return Returns a patchworked ggplot2 object
 #' @export
 #' @importFrom ggplot2 theme element_blank
-#' @importFrom patchwork wrap_plots plot_spacer plot_layout
+#' @importFrom patchwork wrap_plots plot_layout guide_area
 #' @concept visualization
 #' @examples
 #' p1 <- PeakPlot(atac_small, region = "chr1-29554-39554")
@@ -834,8 +833,9 @@ CombineTracks <- function(
     heights.2 <- heights[2:n]
     p2 <- wrap_plots(plotlist[2:n], ncol = 1, heights = heights.2)
 
-    p <- p + p2 + plot_spacer() + plot_layout(
-      ncol = 2, heights = c(heights[[1]], sum(heights.2)))
+    p <- p + p2 + guide_area() + plot_layout(
+      ncol = 2, heights = c(heights[[1]], sum(heights.2)),
+      guides = "collect")
   } else {
     p <- wrap_plots(plotlist, ncol = 1, heights = heights)
   }
