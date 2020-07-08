@@ -133,7 +133,7 @@ SEXP groupCommand(
                     << " million lines";
       }
     }
-    if (line_counter % 2000000) {
+    if (line_counter % 2000000 == 0) {
       Rcpp::checkUserInterrupt();
     }
   }
