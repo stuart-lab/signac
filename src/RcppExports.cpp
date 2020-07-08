@@ -5,6 +5,20 @@
 
 using namespace Rcpp;
 
+// filterCells
+int filterCells(std::string fragments, std::string outfile, Rcpp::Nullable<Rcpp::StringVector> keep_cells, bool verbose);
+RcppExport SEXP _Signac_filterCells(SEXP fragmentsSEXP, SEXP outfileSEXP, SEXP keep_cellsSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type fragments(fragmentsSEXP);
+    Rcpp::traits::input_parameter< std::string >::type outfile(outfileSEXP);
+    Rcpp::traits::input_parameter< Rcpp::Nullable<Rcpp::StringVector> >::type keep_cells(keep_cellsSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(filterCells(fragments, outfile, keep_cells, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 // groupCommand
 SEXP groupCommand(std::string fragments, Rcpp::Nullable<Rcpp::StringVector> some_whitelist_cells, std::size_t max_lines, bool verbose);
 RcppExport SEXP _Signac_groupCommand(SEXP fragmentsSEXP, SEXP some_whitelist_cellsSEXP, SEXP max_linesSEXP, SEXP verboseSEXP) {
@@ -21,6 +35,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_Signac_filterCells", (DL_FUNC) &_Signac_filterCells, 4},
     {"_Signac_groupCommand", (DL_FUNC) &_Signac_groupCommand, 4},
     {NULL, NULL, 0}
 };

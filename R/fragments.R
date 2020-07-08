@@ -37,6 +37,34 @@ CountFragments <- function(
   return(counts)
 }
 
+#' Filter cells from fragment file
+#'
+#' Remove all fragments that are not from an allowed set of cell barcodes from
+#' the fragment file. This will create a new file on disk that only contains
+#' fragments from cells specified in the \code{cells} argument.
+#'
+#' @param fragments Path to a fragment file
+#' @param cells A vector of cells to keep
+#' @param outfile Name for output file
+#' @param verbose Display messages
+FilterCells <- function(
+  fragments, cells, outfile = NULL, verbose = TRUE
+) {
+  fragments <- normalizePath(path = fragments, mustWork = TRUE)
+  if (is.null(x = outfile)) {
+    outfile = paste0(fragments, ".filtered")
+  }
+  verbose = as.logical(x = verbose)
+  filtered <- filterCells(
+    fragments = fragments,
+    keep_cells = cells,
+    outfile = outfile,
+    verbose = verbose
+  )
+  if (filtered == 1) {
+    stop("Error: cannot open requested file")
+  }
+}
 
 #' Create a Fragment object
 #'
