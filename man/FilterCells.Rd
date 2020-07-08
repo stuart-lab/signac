@@ -4,7 +4,13 @@
 \alias{FilterCells}
 \title{Filter cells from fragment file}
 \usage{
-FilterCells(fragments, cells, outfile = NULL, verbose = TRUE)
+FilterCells(
+  fragments,
+  cells,
+  outfile = NULL,
+  buffer_length = 256L,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{fragments}{Path to a fragment file}
@@ -12,6 +18,9 @@ FilterCells(fragments, cells, outfile = NULL, verbose = TRUE)
 \item{cells}{A vector of cells to keep}
 
 \item{outfile}{Name for output file}
+
+\item{buffer_length}{Size of buffer to be read from the fragment file. This
+must be longer than the longest line in the file.}
 
 \item{verbose}{Display messages}
 }

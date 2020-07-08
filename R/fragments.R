@@ -46,7 +46,10 @@ CountFragments <- function(
 #' @param fragments Path to a fragment file
 #' @param cells A vector of cells to keep
 #' @param outfile Name for output file
+#' @param buffer_length Size of buffer to be read from the fragment file. This
+#' must be longer than the longest line in the file.
 #' @param verbose Display messages
+#'
 #' @export
 #' @concept fragments
 #' @examples
@@ -57,17 +60,19 @@ CountFragments <- function(
 #'   outfile = "/dev/null"
 #' )
 FilterCells <- function(
-  fragments, cells, outfile = NULL, verbose = TRUE
+  fragments, cells, outfile = NULL, buffer_length = 256L, verbose = TRUE
 ) {
   fragments <- normalizePath(path = fragments, mustWork = TRUE)
   if (is.null(x = outfile)) {
-    outfile = paste0(fragments, ".filtered")
+    outfile <- paste0(fragments, ".filtered")
   }
-  verbose = as.logical(x = verbose)
+  verbose <- as.logical(x = verbose)
+  buffer_length <- as.integer(x = buffer_length)
   filtered <- filterCells(
     fragments = fragments,
     keep_cells = cells,
     outfile = outfile,
+    buffer_length = buffer_length,
     verbose = verbose
   )
   if (filtered == 1) {
