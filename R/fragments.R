@@ -47,6 +47,15 @@ CountFragments <- function(
 #' @param cells A vector of cells to keep
 #' @param outfile Name for output file
 #' @param verbose Display messages
+#' @export
+#' @concept fragments
+#' @examples
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' FilterCells(
+#'   fragments = fpath,
+#'   cells = head(colnames(atac_small)),
+#'   outfile = "/dev/null"
+#' )
 FilterCells <- function(
   fragments, cells, outfile = NULL, verbose = TRUE
 ) {
