@@ -131,8 +131,10 @@ SEXP groupCommand(
       if (line_counter % 1000000 == 0) {
         Rcpp::Rcerr << "\rDone Processing " << line_counter / 1000000
                     << " million lines";
-        Rcpp::checkUserInterrupt();
       }
+    }
+    if (line_counter % 2000000) {
+      Rcpp::checkUserInterrupt();
     }
   }
 
