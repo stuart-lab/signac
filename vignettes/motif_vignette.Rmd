@@ -21,7 +21,7 @@ pre-computed Seurat object:
 ```{r message=FALSE, warning=FALSE}
 library(Signac)
 library(Seurat)
-library(JASPAR2018)
+library(JASPAR2020)
 library(TFBSTools)
 library(BSgenome.Mmusculus.UCSC.mm10)
 library(patchwork)
@@ -51,7 +51,7 @@ more information.
 ```{r message=FALSE, warning=FALSE}
 # Get a list of motif position frequency matrices from the JASPAR database
 pfm <- getMatrixSet(
-  x = JASPAR2018,
+  x = JASPAR2020,
   opts = list(species = 9606, all_versions = FALSE)
 )
 
