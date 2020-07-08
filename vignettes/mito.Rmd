@@ -58,7 +58,7 @@ crc_assay <- CreateChromatinAssay(
   sep = c(":", "-"),
   annotation = annotations,
   min.cells = 10,
-  genome = "hg19",
+  # genome = "hg19",
   fragments = '~/data/mito/crc/fragments.tsv.gz'
 )
 crc <- CreateSeuratObject(
@@ -334,11 +334,69 @@ tf1 <- CreateSeuratObject(
   meta.data = tf1.data$depth,
   assay = "mito"
 )
+
+# load the peak set
+peaks <- read.table(
+  file = "~/data/mito/tf1/TF1.filtered.narrowPeak.gz",
+  sep = "\t",
+  col.names = c("chrom", "start", "end", "peak", "width", "strand", "x", "y", "z", "w")
+)
+peaks <- makeGRangesFromDataFrame(peaks)
+
+# create fragment object
+frags <- CreateFragmentObject(
+  path = "~/data/mito/tf1/TF1.filtered.fragments.tsv.gz",
+  cells = colnames(tf1)
+)
+
+# quantify the DNA accessibility data
+counts <- FeatureMatrix(
+  fragments = frags,
+  features = peaks,
+  cells = colnames(tf1)
+)
+
+# create assay with accessibility data and add it to the Seurat object
+tf1[["peaks"]] <- CreateChromatinAssay(
+  counts = counts,
+  fragments = frags
+)
+```
+
+## Quality control
+
+```{r message=FALSE, warning=FALSE}
+# add annotations
+annot <- GetGRangesFromEnsDb(EnsDb.Hsapiens.v75)
+seqlevelsStyle(annot) <- "UCSC"
+genome(annot) <- "hg19"
+Annotation(tf1[["peaks"]]) <- annot
+```
+
+```{r message=FALSE, warning=FALSE}
+DefaultAssay(tf1) <- "peaks"
+
+tf1 <- NucleosomeSignal(tf1)
+tf1 <- TSSEnrichment(tf1)
+```
+
+```{r}
+VlnPlot(tf1, c("nCount_peaks", "nucleosome_signal", "TSS.enrichment"), pt.size = 0.1)
+```
+```{r}
+tf1 <- subset(
+  x = tf1,
+  subset = nCount_peaks > 500 &
+    nucleosome_signal < 2 &
+    TSS.enrichment > 2.5
+)
+tf1
 ```
 
 ## Identifying variants
 
 ```{r}
+DefaultAssay(tf1) <- "mito"
 variants <- IdentifyVariants(tf1, refallele = tf1.data$refallele)
 VariantPlot(variants)
 ```
@@ -383,6 +441,29 @@ to get a decent ordering of both features and clones automatically:
 ```{r message=FALSE, warning=FALSE}
 DoHeatmap(tf1, features = VariableFeatures(tf1), slot = "data", disp.max = 0.1) +
   scale_fill_viridis_c()
+```
+## Find differentially accessible peaks between clones
+
+Next we can use the clonal information derived from the mitochondrial assay
+to find peaks that are differentially accessible between clones.
+
+```{r message=FALSE, warning=FALSE}
+DefaultAssay(tf1) <- "peaks"
+
+# find peaks specific to one clone
+markers.fast <- FoldChange(tf1, ident.1 = 2)
+head(markers.fast)
+```
+We can the DNA accessibility in these regions for each clone using the `CoveragePlot()`
+function. As you can see, the peaks identified are highly specific to one clone.
+
+```{r}
+CoveragePlot(
+  object = tf1,
+  region = rownames(markers.fast)[1],
+  extend.upstream = 2000,
+  extend.downstream = 2000
+)
 ```
 <details>
   <summary>**Session Info**</summary>
