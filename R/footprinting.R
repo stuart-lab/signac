@@ -37,6 +37,7 @@ GetFootprintData <- function(
     group.by = group.by,
     idents = idents
   )
+  levels.stash <- levels(x = obj.groups)
   all.groups <- unique(x = obj.groups)
   plot.data <- lapply(X = features, FUN = function(x) {
     if (!(x %in% names(x = positionEnrichment))) {
@@ -78,6 +79,7 @@ GetFootprintData <- function(
     }
   })
   plot.data <- do.call(what = rbind, args = plot.data)
+  plot.data$group <- factor(x = plot.data$group, levels = levels.stash)
   return(plot.data)
 }
 
