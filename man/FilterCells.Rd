@@ -27,14 +27,17 @@ must be longer than the longest line in the file.}
 \description{
 Remove all fragments that are not from an allowed set of cell barcodes from
 the fragment file. This will create a new file on disk that only contains
-fragments from cells specified in the \code{cells} argument.
+fragments from cells specified in the \code{cells} argument. The output file
+is block gzip-compressed and indexed, ready for use with Signac functions.
 }
 \examples{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+tmpf <- tempfile(fileext = ".gz")
 FilterCells(
   fragments = fpath,
   cells = head(colnames(atac_small)),
-  outfile = "/dev/null"
+  outfile = tmpf
 )
+file.remove(tmpf)
 }
 \concept{fragments}

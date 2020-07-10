@@ -41,7 +41,8 @@ CountFragments <- function(
 #'
 #' Remove all fragments that are not from an allowed set of cell barcodes from
 #' the fragment file. This will create a new file on disk that only contains
-#' fragments from cells specified in the \code{cells} argument.
+#' fragments from cells specified in the \code{cells} argument. The output file
+#' is block gzip-compressed and indexed, ready for use with Signac functions.
 #'
 #' @param fragments Path to a fragment file
 #' @param cells A vector of cells to keep
@@ -50,34 +51,57 @@ CountFragments <- function(
 #' must be longer than the longest line in the file.
 #' @param verbose Display messages
 #'
+#' @importFrom Rsamtools bgzip indexTabix
+#'
 #' @export
 #' @concept fragments
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' tmpf <- tempfile(fileext = ".gz")
 #' FilterCells(
 #'   fragments = fpath,
 #'   cells = head(colnames(atac_small)),
-#'   outfile = "/dev/null"
+#'   outfile = tmpf
 #' )
+#' file.remove(tmpf)
 FilterCells <- function(
-  fragments, cells, outfile = NULL, buffer_length = 256L, verbose = TRUE
+  fragments,
+  cells,
+  outfile = NULL,
+  buffer_length = 256L,
+  verbose = TRUE
 ) {
   fragments <- normalizePath(path = fragments, mustWork = TRUE)
   if (is.null(x = outfile)) {
     outfile <- paste0(fragments, ".filtered")
   }
+  if (file.exists(outfile)) {
+    warning("Output file already exists, file will be overwritten",
+            immediate. = TRUE)
+  }
   verbose <- as.logical(x = verbose)
+  tf <- tempfile(pattern = "filtercells", tmpdir = tempdir(), fileext = "")
   buffer_length <- as.integer(x = buffer_length)
   filtered <- filterCells(
     fragments = fragments,
     keep_cells = cells,
-    outfile = outfile,
+    outfile = tf,
     buffer_length = buffer_length,
     verbose = verbose
   )
   if (filtered == 1) {
     stop("Error: cannot open requested file")
   }
+  # bgzip and index output
+  if (verbose) {
+    message("\nCompressing filtered file")
+  }
+  bgzip(file = tf, dest = outfile, overwrite = TRUE)
+  file.remove(tf)
+  if (verbose) {
+    message("Indexing fragment file")
+  }
+  idx <- indexTabix(file = outfile, format = "bed")
 }
 
 #' Create a Fragment object
