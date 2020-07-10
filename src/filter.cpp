@@ -14,10 +14,11 @@ int filterCells(
 ) {
   // opening gzipped compressed stream
   gzFile ifileHandler = gzopen(fragments.c_str(), "rb");
-  gzFile ofileHandler = gzopen(outfile.c_str(), "wb");
+  std::ofstream ofileHandler;
+  ofileHandler.open(outfile.c_str());
 
   // return 1 if it can't find the file
-  if (ifileHandler == NULL || ofileHandler == NULL) {
+  if (ifileHandler == NULL) {
     Rcpp::Rcerr << "can't open file" << std::flush;
     return 1;
   }
@@ -59,13 +60,8 @@ int filterCells(
       if(i == 3) {
         cb_seq.clear();
         cb_seq.append(cb_char);
-        if (index_hash.find(cb_seq) != index_hash.end()) {
-          bool write_ok = gzputs(ofileHandler, line_seq.c_str());
-          if (write_ok <= 0) {
-            Rcpp::Rcerr << "Can't write into the output file"
-                        << std::endl << std::flush;
-            return 1;
-          }
+        if (index_hash.count(cb_seq) > 0) {
+          ofileHandler << line_seq.c_str();
         }
       }
     }
@@ -90,7 +86,7 @@ int filterCells(
 
   //Cleanup
   gzclose(ifileHandler);
-  gzclose(ofileHandler);
+  ofileHandler.close();
 
   return 0;
 }
