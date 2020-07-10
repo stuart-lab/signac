@@ -28,13 +28,10 @@ int filterCells(
   char *buffer = new char[buffer_length];
 
   // Hash Map storing the barcodes to keep
-  std::unordered_map<std::string, size_t> index_hash;
+  std::unordered_set<std::string> index_hash(keep_cells.begin(), keep_cells.end());
 
   size_t num_whitelist_cells {0};
   {
-    for (size_t i=0; i<keep_cells.size(); i++) {
-      index_hash[keep_cells[i]] = i;
-    }
 
     if (verbose) {
       num_whitelist_cells = index_hash.size();
