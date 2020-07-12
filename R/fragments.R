@@ -327,14 +327,18 @@ readchunk <- function(filepath, x, chunksize) {
 #' @param x A Fragment object
 #' @param ... Arguments passed to other methods
 #' @rdname Cells
-#' @export
 #' @concept fragments
 #' @method Cells Fragment
 #' @importFrom Seurat Cells
+#' @export
 Cells.Fragment <- function(x, ...) {
   cells <- slot(object = x, name = "cells")
   return(names(x = cells))
 }
+
+# Re-export Seurat generic
+#' @export
+Seurat::Cells
 
 #' @param value A vector of cell names to store in the \code{\link{Fragment}}
 #' object
