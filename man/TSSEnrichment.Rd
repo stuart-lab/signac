@@ -55,7 +55,8 @@ The computed score will be added to the object metadata as "TSS.enrichment".
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 Fragments(atac_small) <- CreateFragmentObject(
   path = fpath,
-  cells = colnames(atac_small)
+  cells = colnames(atac_small),
+  tolerance = 0.5
 )
 TSSEnrichment(object = atac_small)
 }

@@ -127,9 +127,16 @@ FilterCells <- function(
 #' fragment file.
 #' @param verbose Display messages
 #' @param ... Additional arguments passed to \code{ValidateCells}
+#'
 #' @importFrom tools md5sum file_ext
 #' @export
 #' @concept fragments
+#'
+#' @examples
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' cells <- colnames(x = atac_small)
+#' names(x = cells) <- paste0("test_", cells)
+#' frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)
 CreateFragmentObject <- function(
   path,
   cells = NULL,

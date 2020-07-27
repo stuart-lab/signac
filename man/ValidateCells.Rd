@@ -7,7 +7,7 @@
 ValidateCells(
   object,
   cells = NULL,
-  tolerance = 0.2,
+  tolerance = 0.4,
   max.lines = 5e+07,
   verbose = TRUE
 )
