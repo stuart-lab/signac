@@ -87,7 +87,13 @@ test_that("ValidateCells works", {
     verbose = FALSE,
     tolerance = 0.5
   )
+  invalid <- Signac:::ValidateCells(
+    object = frags,
+    verbose = FALSE,
+    tolerance = 0
+  )
   expect_true(object = valid)
+  expect_false(object = invalid)
 })
 
 test_that("ValidateHash works", {
