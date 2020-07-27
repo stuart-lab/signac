@@ -80,7 +80,7 @@ test_that("FeatureMatrix works", {
   expect_identical(object = fm, expected = computed_fmat)
 })
 
-test_that("NucleosomeSignac works", {
+test_that("NucleosomeSignal works", {
   fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
   fragments <- CreateFragmentObject(
     path = fpath,
