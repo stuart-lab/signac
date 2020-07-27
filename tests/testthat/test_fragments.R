@@ -44,7 +44,7 @@ test_that("ExtractFragments works", {
   fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
   cells <- colnames(x = atac_small)
   names(x = cells) <- paste0("test_", cells)
-  frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE)
+  frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)
   counts <- ExtractFragments(fragments = frags, verbose = FALSE)
 
   expect_equal(
@@ -70,4 +70,39 @@ test_that("ExtractFragments works", {
     object = head(x = counts$reads_count),
     expected = c(0, 0, 4, 13, 0, 0)
   )
+})
+
+test_that("ValidateCells works", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+  cells <- colnames(x = atac_small)
+  names(x = cells) <- paste0("test_", cells)
+  frags <- CreateFragmentObject(
+    path = fpath,
+    cells = cells,
+    verbose = FALSE,
+    validate = FALSE
+  )
+  valid <- Signac:::ValidateCells(
+    object = frags,
+    verbose = FALSE,
+    tolerance = 0.5
+  )
+  expect_true(object = valid)
+})
+
+test_that("ValidateHash works", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+  cells <- colnames(x = atac_small)
+  names(x = cells) <- paste0("test_", cells)
+  frags <- CreateFragmentObject(
+    path = fpath,
+    cells = cells,
+    verbose = FALSE,
+    validate = FALSE
+  )
+  valid <- Signac:::ValidateHash(
+    object = frags,
+    verbose = FALSE
+  )
+  expect_true(object = valid)
 })
