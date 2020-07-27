@@ -194,13 +194,12 @@ CreateFragmentObject <- function(
 #' @param object A \code{\link{Fragment}} object
 #' @param cells A character vector containing cell barcodes to search for.
 #' If NULL, use the cells stored in the Fragment object.
-#' @param chunksize Number of fragments to read at each iteration.
 #' @param tolerance Fraction of input cells that can be unseen before returning
 #' TRUE. For example, \code{tolerance = 0.01} will return TRUE when 99% of cells
 #' have observed fragments in the file. This can be useful if there are cells
 #' present that have much fewer total counts, and would require extensive
 #' searching before a fragment from those cells are found.
-#' @param max.iter Maximum number of chunks to read in without finding the
+#' @param max.lines Maximum number of lines to read in without finding the
 #' required number of cells before returning FALSE. Setting this value avoids
 #' having to search the whole file if it becomes clear that the expected cells
 #' are not present. Setting this value to NULL will enable an exhaustive search
@@ -212,9 +211,8 @@ CreateFragmentObject <- function(
 ValidateCells <- function(
   object,
   cells = NULL,
-  chunksize = 1e7,
   tolerance = 0.2,
-  max.iter = 5,
+  max.lines = 5e7,
   verbose = TRUE
 ) {
   cell_barcodes <- GetFragmentData(object = object, slot = "cells")
@@ -223,31 +221,23 @@ ValidateCells <- function(
     warning("No cells stored in object")
     return(TRUE)
   }
+  max.lines <- SetIfNull(x = max.lines, y = 0)
   filepath <- GetFragmentData(object = object, slot = "path")
+  filepath <- normalizePath(path = filepath, mustWork = TRUE)
   is.remote <- grepl(pattern = "^http|^ftp", x = filepath)
+  percent_found <- (1 - tolerance) * 100
   # if remote, return TRUE
   if (is.remote) {
     return(TRUE)
   }
-  x <- 0
-  min.cells <- length(x = cells) - round(x = tolerance * length(x = cells))
-  while (TRUE) {
-    if (verbose) {
-      message("Reading ", chunksize, " fragments")
-    }
-    chunk <- readchunk(filepath = filepath, x = x, chunksize = chunksize)
-    if (isFALSE(x = chunk) | (nrow(x = chunk) == 0)) {
-      return(FALSE)
-    }
-    cells <- setdiff(x = cells, y = unique(x = chunk$cell))
-    if (length(x = cells) <= min.cells) {
-      return(TRUE)
-    }
-    if ((!is.null(x = max.iter)) & (x >= max.iter)) {
-      return(FALSE)
-    }
-    x <- x + 1
-  }
+  valid <- validateCells(
+    fragments = filepath,
+    cells = cells,
+    percent_found = percent_found,
+    max_lines = max.lines,
+    verbose = verbose
+  )
+  return(valid)
 }
 
 #' Validate hashes for Fragment object
@@ -295,22 +285,6 @@ ValidateFragments <- function(
   valid.cells <- ValidateCells(object = object, verbose = verbose, ...)
   valid.hash <- ValidateHash(object = object, verbose = verbose, ...)
   return(valid.cells & valid.hash)
-}
-
-# Read chunk of a file, return FALSE if reading gives an error,
-# otherwise return the chunk of file
-#' @importFrom future nbrOfWorkers
-readchunk <- function(filepath, x, chunksize) {
-  tryCatch(
-    expr = fread(
-      file = filepath,
-      skip = x * chunksize,
-      nrows = chunksize,
-      col.names = c("chr", "start", "end", "cell", "count"),
-      nThread = nbrOfWorkers()
-    ),
-    error = function(x) return(FALSE)
-  )
 }
 
 #' Set and get cell barcode information for a \code{\link{Fragment}} object

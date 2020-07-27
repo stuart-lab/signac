@@ -34,10 +34,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// validateCells
+bool validateCells(std::string fragments, std::vector<std::string> cells, std::size_t percent_found, std::size_t max_lines, bool verbose);
+RcppExport SEXP _Signac_validateCells(SEXP fragmentsSEXP, SEXP cellsSEXP, SEXP percent_foundSEXP, SEXP max_linesSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type fragments(fragmentsSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type cells(cellsSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type percent_found(percent_foundSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type max_lines(max_linesSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(validateCells(fragments, cells, percent_found, max_lines, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_Signac_filterCells", (DL_FUNC) &_Signac_filterCells, 5},
     {"_Signac_groupCommand", (DL_FUNC) &_Signac_groupCommand, 4},
+    {"_Signac_validateCells", (DL_FUNC) &_Signac_validateCells, 5},
     {NULL, NULL, 0}
 };
 

@@ -9,3 +9,7 @@ groupCommand <- function(fragments, some_whitelist_cells = NULL, max_lines = 0L,
     .Call('_Signac_groupCommand', PACKAGE = 'Signac', fragments, some_whitelist_cells, max_lines, verbose)
 }
 
+validateCells <- function(fragments, cells, percent_found = 80L, max_lines = 0L, verbose = TRUE) {
+    .Call('_Signac_validateCells', PACKAGE = 'Signac', fragments, cells, percent_found, max_lines, verbose)
+}
+
