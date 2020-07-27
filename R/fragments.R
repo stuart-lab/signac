@@ -154,10 +154,6 @@ CreateFragmentObject <- function(
   if (!file.exists(index.file) & !is.remote) {
     stop("Fragment file is not indexed.")
   }
-  # file must end in gz otherwise data.table::fread fails
-  if (file_ext(x = path) != "gz") {
-    stop("File must end in .gz")
-  }
   if (!is.null(x = cells)) {
     if (is.null(names(x = cells))) {
       # assume cells are as they appear in the assay
