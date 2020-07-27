@@ -21,6 +21,7 @@ bool validateCells(
   // return false it can't find the file
   if (fileHandler == NULL) {
     Rcpp::Rcerr << "can't open file" << std::flush;
+    gzclose(fileHandler);
     return (false);
   }
 
@@ -67,12 +68,14 @@ bool validateCells(
     }
 
     if (total_seen >= find_n) {
+      gzclose(fileHandler);
       return(true);
     }
 
     line_counter += 1;
     if (read_part) {
       if (line_counter > max_lines) {
+        gzclose(fileHandler);
         return(false);
       }
     }
