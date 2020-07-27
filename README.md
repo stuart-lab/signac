@@ -15,7 +15,9 @@ Documentation can be found at https://satijalab.org/signac/
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install()
+setRepositories(ind=1:2)
 
+# To install the current release
 install.packages("Signac")
 
 # To install the development version
