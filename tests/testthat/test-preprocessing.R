@@ -62,3 +62,36 @@ test_that("FRiP works", {
     tolerance = 1 / 100000
   )
 })
+
+test_that("FeatureMatrix works", {
+  computed_fmat <- readRDS("../testdata/featurematrix.rds")
+  fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+  fragments <- CreateFragmentObject(
+    path = fpath,
+    cells = colnames(x = atac_small),
+    tolerance = 0.5,
+    verbose = FALSE
+  )
+  fm <- FeatureMatrix(
+    fragments = fragments,
+    features = granges(atac_small),
+    verbose = FALSE
+  )
+  expect_identical(object = fm, expected = computed_fmat)
+})
+
+test_that("NucleosomeSignac works", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+  fragments <- CreateFragmentObject(
+    path = fpath,
+    cells = colnames(x = atac_small),
+    tolerance = 0.5,
+    verbose = FALSE
+  )
+  Fragments(object = atac_small) <- fragments
+  ns <- NucleosomeSignal(object = atac_small, verbose = FALSE)
+  expect_equal(
+    object = as.numeric(x = head(x = ns$nucleosome_signal)),
+    expected = c(NaN, NaN, 0.0, 2.5, NaN, NaN)
+  )
+})
