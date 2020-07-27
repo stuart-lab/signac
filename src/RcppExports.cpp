@@ -35,17 +35,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // validateCells
-bool validateCells(std::string fragments, std::vector<std::string> cells, std::size_t percent_found, std::size_t max_lines, bool verbose);
-RcppExport SEXP _Signac_validateCells(SEXP fragmentsSEXP, SEXP cellsSEXP, SEXP percent_foundSEXP, SEXP max_linesSEXP, SEXP verboseSEXP) {
+bool validateCells(std::string fragments, std::vector<std::string> cells, std::size_t find_n, std::size_t max_lines, bool verbose);
+RcppExport SEXP _Signac_validateCells(SEXP fragmentsSEXP, SEXP cellsSEXP, SEXP find_nSEXP, SEXP max_linesSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< std::string >::type fragments(fragmentsSEXP);
     Rcpp::traits::input_parameter< std::vector<std::string> >::type cells(cellsSEXP);
-    Rcpp::traits::input_parameter< std::size_t >::type percent_found(percent_foundSEXP);
+    Rcpp::traits::input_parameter< std::size_t >::type find_n(find_nSEXP);
     Rcpp::traits::input_parameter< std::size_t >::type max_lines(max_linesSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(validateCells(fragments, cells, percent_found, max_lines, verbose));
+    rcpp_result_gen = Rcpp::wrap(validateCells(fragments, cells, find_n, max_lines, verbose));
     return rcpp_result_gen;
 END_RCPP
 }

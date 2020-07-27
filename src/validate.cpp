@@ -5,7 +5,7 @@
 bool validateCells(
     std::string fragments,
     std::vector<std::string> cells,
-    std::size_t percent_found = 80,
+    std::size_t find_n,
     std::size_t max_lines = 0,
     bool verbose = true
 ) {
@@ -44,8 +44,6 @@ bool validateCells(
     }
   }
 
-  size_t goal = ncell * (percent_found / 100);
-
   // char * to string extraction
   std::string cb_seq;
   cb_seq.reserve(32);
@@ -68,7 +66,7 @@ bool validateCells(
       }
     }
 
-    if (total_seen > goal) {
+    if (total_seen >= find_n) {
       return(true);
     }
 

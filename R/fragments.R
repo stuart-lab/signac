@@ -211,7 +211,7 @@ CreateFragmentObject <- function(
 ValidateCells <- function(
   object,
   cells = NULL,
-  tolerance = 0.2,
+  tolerance = 0.4,
   max.lines = 5e7,
   verbose = TRUE
 ) {
@@ -225,7 +225,7 @@ ValidateCells <- function(
   filepath <- GetFragmentData(object = object, slot = "path")
   filepath <- normalizePath(path = filepath, mustWork = TRUE)
   is.remote <- grepl(pattern = "^http|^ftp", x = filepath)
-  percent_found <- (1 - tolerance) * 100
+  find_n <- as.integer(x = length(x = cells) * (1 - tolerance))
   # if remote, return TRUE
   if (is.remote) {
     return(TRUE)
@@ -233,7 +233,7 @@ ValidateCells <- function(
   valid <- validateCells(
     fragments = filepath,
     cells = cells,
-    percent_found = percent_found,
+    find_n = find_n,
     max_lines = max.lines,
     verbose = verbose
   )
