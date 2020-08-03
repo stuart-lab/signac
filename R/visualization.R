@@ -62,10 +62,12 @@ globalVariables(
 #' main footprint plot
 #' @param normalization Method to normalize for Tn5 DNA sequence bias. Options
 #' are "subtract", "divide", or NULL to perform no bias correction.
-#' @param label Label groups
+#' @param label TRUE/FALSE value to control whether groups are labelled.
 #' @param repel Repel labels from each other
 #' @param label.top Number of groups to label based on highest accessibility
 #' in motif flanking region.
+#' @param label.idents Vector of identities to label. If supplied,
+#' \code{label.top} will be ignored.
 #' @export
 #' @concept visualization
 #' @concept footprinting
@@ -85,7 +87,8 @@ PlotFootprint <- function(
   repel = TRUE,
   show.expected = TRUE,
   normalization = "subtract",
-  label.top = 3
+  label.top = 3,
+  label.idents = NULL
 ) {
   # TODO add option to show variance among cells
   plot.data <- GetFootprintData(
@@ -145,9 +148,15 @@ PlotFootprint <- function(
 
   # make df for labels
   label.df <- data.frame()
-  sub <- obs[obs$position == 50, ]
+  sub <- obs[obs$position == 75, ]
   for (i in seq_along(along.with = features)) {
-    groups.use <- topmean[topmean$feature == features[[i]], ]$group
+    if (is.null(x = label.idents)) {
+      # determine which idents to label based on flanking accessibility
+      groups.use <- topmean[topmean$feature == features[[i]], ]$group
+    } else {
+      # supplied list of idents to label
+      groups.use <- label.idents
+    }
     df.sub <- sub[
       (sub$feature == features[[i]]) &
         (sub$group %in% groups.use), ]
