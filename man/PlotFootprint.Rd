@@ -14,7 +14,8 @@ PlotFootprint(
   repel = TRUE,
   show.expected = TRUE,
   normalization = "subtract",
-  label.top = 3
+  label.top = 3,
+  label.idents = NULL
 )
 }
 \arguments{
@@ -28,7 +29,7 @@ PlotFootprint(
 
 \item{idents}{Set of identities to include in the plot}
 
-\item{label}{Label groups}
+\item{label}{TRUE/FALSE value to control whether groups are labelled.}
 
 \item{repel}{Repel labels from each other}
 
@@ -40,6 +41,9 @@ are "subtract", "divide", or NULL to perform no bias correction.}
 
 \item{label.top}{Number of groups to label based on highest accessibility
 in motif flanking region.}
+
+\item{label.idents}{Vector of identities to label. If supplied,
+\code{label.top} will be ignored.}
 }
 \description{
 Plot motif footprinting results

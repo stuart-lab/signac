@@ -36,6 +36,11 @@ FindClonotypes(
 Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
-Identify groups of related cells from allele frequency data
+Identify groups of related cells from allele frequency data. This will
+cluster the cells based on their allele frequencies, reorder the factor
+levels for the cluster identities by heirarchically clustering the collapsed
+(pseudobulk) cluster allele frequencies, and set the variable features for
+the allele frequency assay to the order of features defined by heirarchal
+clustering.
 }
 \concept{mito}
