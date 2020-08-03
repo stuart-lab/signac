@@ -95,10 +95,23 @@ AlleleFreq.default <- function(object, variants, ...) {
         }
       )
     )
+  denominator_counts <- as.matrix(x = denominator_counts)
+
+  numerator_ix <- sapply(
+    X = rownames(x = numerator_counts),
+    FUN = function(x) {
+      a <- unlist(
+        x = strsplit(x = x, split = "-", fixed = TRUE), use.names = FALSE
+        )[[2]]
+      return(as.numeric(x = a))
+    })
 
   # Prepare final allele frequency matrix to be returned
-  allele_freq_matrix <- numerator_counts / denominator_counts
+  allele_freq_matrix <- numerator_counts[order(numerator_ix), ] / denominator_counts
   colnames(x = allele_freq_matrix) <- colnames(x = object)
+
+  # Set NaN value due to 0 total counts to 0
+  allele_freq_matrix@x[is.nan(x = allele_freq_matrix@x)] <- 0
 
   # The row names may not be in order as specified, so manually establish
   vars_in_order <- paste0(
@@ -195,7 +208,12 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
 
 #' Find clonotypes
 #'
-#' Identify groups of related cells from allele frequency data
+#' Identify groups of related cells from allele frequency data. This will
+#' cluster the cells based on their allele frequencies, reorder the factor
+#' levels for the cluster identities by heirarchically clustering the collapsed
+#' (pseudobulk) cluster allele frequencies, and set the variable features for
+#' the allele frequency assay to the order of features defined by heirarchal
+#' clustering.
 #'
 #' @param object A Seurat object
 #' @param assay Name of assay to use
