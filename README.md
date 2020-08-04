@@ -10,7 +10,7 @@ Documentation can be found at https://satijalab.org/signac/
 
 ## Install
 
-```{r}
+```r
 # Install Bioconductor
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
