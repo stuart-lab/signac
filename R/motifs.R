@@ -131,6 +131,7 @@ globalVariables(names = "pvalue", package = "Signac")
 #' @importFrom Matrix colSums
 #' @importFrom stats phyper
 #' @importFrom methods is
+#' @importFrom qvalue qvalue
 #'
 #' @export
 #' @concept motifs
@@ -195,6 +196,7 @@ FindMotifs <- function(
       lower.tail = FALSE
     )
   }
+  qv <- qvalue(p = p.list)
   results <- data.frame(
     motif = names(x = query.counts),
     observed = query.counts,
@@ -203,6 +205,7 @@ FindMotifs <- function(
     percent.background = percent.background,
     fold.enrichment = fold.enrichment,
     pvalue = p.list,
+    qvalue = qv$qvalues,
     motif.name = as.vector(
       x = unlist(x = motif.names[names(x = query.counts)])
     ),
