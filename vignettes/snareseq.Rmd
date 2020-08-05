@@ -28,6 +28,10 @@ https://github.com/timoast/SNARE-seq
 First we create a Seurat object containing two different assays, one containing
 the gene expression data and one containing the DNA accessibility data.
 
+To load the count data, we can use the `Read10X()` function from Seurat by first
+placing the `barcodes.tsv.gz`, `matrix.mtx.gz`, and `features.tsv.gz` files into
+a separate folder.
+
 ```{r message=FALSE, warning=FALSE}
 library(Signac)
 library(Seurat)
