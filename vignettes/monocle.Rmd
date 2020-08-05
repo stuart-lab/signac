@@ -23,7 +23,12 @@ stem and progenitor cells published by
 The processed dataset is available on NCBI GEO here:
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE129785
 
-First we will load their dataset and perform some standard preprocessing using
+Note that the fragment file is present inside the `GSE129785_RAW.tar` archive,
+and the index for the fragment file is not supplied. You can index the file
+yourself using [tabix](https://www.htslib.org/doc/tabix.html), for example:
+`tabix -p bed <fragment_file>`.
+
+First we will load the dataset and perform some standard preprocessing using
 Signac.
 
 ```{r message=FALSE, warning=FALSE}
@@ -209,7 +214,7 @@ these cells as the root of the trajectory. Monocle 3 includes an interactive
 function to select cells as the root nodes in the graph. This function will be 
 launched if calling `order_cells()` without specifying the `root_cells` parameter.
 Here we've pre-selected some cells as the root, and saved these to a file for 
-reproducibility.
+reproducibility. This file can be downloaded [here](https://www.dropbox.com/s/w5jbokcj9u6iq04/hsc_cells.txt).
 
 ```{r}
 # load the pre-selected HSCs
