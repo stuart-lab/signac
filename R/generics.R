@@ -226,6 +226,32 @@ RegionStats <- function(object, ...) {
   UseMethod(generic = "RegionStats", object = object)
 }
 
+#' Run chromVAR
+#'
+#' Wrapper to run \code{\link[chromVAR]{chromVAR}} on an assay with a motif
+#' object present. Will return a new Seurat assay with the motif activities
+#' (the deviations in chromatin accessibility across the set of regions) as
+#' a new assay.
+#'
+#' See the chromVAR documentation for more information:
+#' \url{https://greenleaflab.github.io/chromVAR/index.html}
+#'
+#' See the chromVAR paper: \url{https://www.nature.com/articles/nmeth.4401}
+#'
+#' @param object A Seurat object
+#' @param genome A BSgenome object
+#' @param motif.matrix A peak x motif matrix. If NULL, pull the peak x motif
+#' matrix from a Motif object stored in the assay.
+#' @param verbose Display messages
+#' @param ... Additional arguments passed to
+#' \code{\link[chromVAR]{getBackgroundPeaks}}
+#' @return Returns a \code{\link[Seurat]{Seurat}} object with a new assay
+#' @rdname RunChromVAR
+#' @export RunChromVAR
+RunChromVAR <- function(object, ...) {
+  UseMethod(generic = "RunChromVAR", object = object)
+}
+
 #' Run singular value decomposition
 #'
 #' Run partial singular value decomposition using \code{\link[irlba]{irlba}}

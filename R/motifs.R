@@ -2,50 +2,21 @@
 #'
 NULL
 
-#' Run chromVAR
-#'
-#' Wrapper to run \code{\link[chromVAR]{chromVAR}} on an assay with a motif
-#' object present. Will return a new Seurat assay with the motif activities
-#' (the deviations in chromatin accessibility across the set of regions) as
-#' a new assay.
-#'
-#' See the chromVAR documentation for more information:
-#' \url{https://greenleaflab.github.io/chromVAR/index.html}
-#'
-#' See the chromVAR paper: \url{https://www.nature.com/articles/nmeth.4401}
-#'
-#' @param object A Seurat object
-#' @param genome A BSgenome object
-#' @param assay Name of assay to use
-#' @param new.assay.name Name of new assay used to store the chromVAR results.
-#' Default is "chromvar".
-#' @param motif.matrix A peak x motif matrix. If NULL, pull the peak x motif
-#' matrix from a Motif object stored in the assay.
-#' @param sep A length-2 character vector containing the separators passed to
-#' \code{\link{StringToGRanges}}.
-#' @param verbose Display messages
-#' @param ... Additional arguments passed to
-#' \code{\link[chromVAR]{getBackgroundPeaks}}
-#'
-#' @importFrom Seurat GetAssayData DefaultAssay CreateAssayObject
+#' @importFrom Seurat GetAssayData CreateAssayObject
 #' @importFrom Matrix rowSums
 #'
-#' @return Returns a \code{\link[Seurat]{Seurat}} object with a new assay
-#'
-#' @export
 #' @concept motifs
+#' @method RunChromVAR ChromatinAssay
+#' @rdname RunChromVAR
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
-#' RunChromVAR(object = atac_small, genome = BSgenome.Hsapiens.UCSC.hg19)
+#' RunChromVAR(object = atac_small[["peaks"]], genome = BSgenome.Hsapiens.UCSC.hg19)
 #' }
-RunChromVAR <- function(
+RunChromVAR.ChromatinAssay <- function(
   object,
   genome,
-  new.assay.name = "chromvar",
   motif.matrix = NULL,
-  assay = NULL,
-  sep = c(":", "-"),
   verbose = TRUE,
   ...
 ) {
@@ -55,12 +26,11 @@ RunChromVAR <- function(
   if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
     stop("Please install SummarizedExperiment")
   }
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   motif.matrix <- SetIfNull(
     x = motif.matrix,
-    y = GetMotifData(object = object, assay = assay, slot = "data")
+    y = GetMotifData(object = object, slot = "data")
   )
-  peak.matrix <- GetAssayData(object = object, assay = assay, slot = "counts")
+  peak.matrix <- GetAssayData(object = object, slot = "counts")
   if (!(all(peak.matrix@x == floor(peak.matrix@x)))) {
     warning("Count matrix contains non-integer values.
             ChromVAR should only be run on integer counts.")
@@ -101,7 +71,44 @@ RunChromVAR <- function(
   if (verbose) {
     message("Constructing chromVAR assay")
   }
-  object[["chromvar"]] <- CreateAssayObject(data = chromvar.z)
+  obj <- CreateAssayObject(data = chromvar.z)
+  return(obj)
+}
+
+#' @param assay Name of assay to use
+#' @param new.assay.name Name of new assay used to store the chromVAR results.
+#' Default is "chromvar".
+#' @method RunChromVAR Seurat
+#' @rdname RunChromVAR
+#' @importFrom Seurat DefaultAssay
+#' @concept motifs
+#' @examples
+#' \dontrun{
+#' library(BSgenome.Hsapiens.UCSC.hg19)
+#' RunChromVAR(object = atac_small, genome = BSgenome.Hsapiens.UCSC.hg19)
+#' }
+RunChromVAR.Seurat <- function(
+  object,
+  genome,
+  motif.matrix = NULL,
+  assay = NULL,
+  new.assay.name = "chromvar",
+  ...
+) {
+  if (!requireNamespace("chromVAR", quietly = TRUE)) {
+    stop("Please install chromVAR. https://greenleaflab.github.io/chromVAR/")
+  }
+  if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+    stop("Please install SummarizedExperiment")
+  }
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  chromvar.assay <- RunChromVAR(
+    object = object[[assay]],
+    genome = genome,
+    motif.matrix = motif.matrix,
+    ...
+  )
+  object[[new.assay.name]] <- chromvar.assay
   return(object)
 }
 
