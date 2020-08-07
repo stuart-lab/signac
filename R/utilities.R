@@ -2,6 +2,75 @@
 #' @importFrom utils globalVariables
 NULL
 
+
+#' Add chromatin module
+#'
+#' Compute chromVAR deviations for groups of peaks. The goal of this function is
+#' similar to that of \code{\link[Seurat]{AddModuleScore}} except that it is
+#' designed for single-cell chromatin data. The chromVAR deviations for each
+#' group of peaks will be added to the object metadata.
+#'
+#' @param object A Seurat object
+#' @param features A named list of features to include in each module. The name
+#' of each element in the list will be used to name the modules computed, which
+#' will be stored in the object metadata.
+#' @param genome A BSgenome object
+#' @param assay Name of assay to use. If NULL, use the default assay.
+#' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{RunChromVAR}
+#'
+#' @return Returns a Seurat object
+#'
+#' @importFrom fastmatch fmatch
+#' @importFrom Matrix sparseMatrix
+#' @importFrom Seurat DefaultAssay GetAssayData AddMetaData
+#'
+#' @export
+#' @concept utilities
+AddChromatinModule <- function(
+  object,
+  features,
+  genome,
+  assay = NULL,
+  verbose = TRUE,
+  ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+
+  # first find index of each feature
+  feat.idx <- sapply(X = features, FUN = fmatch, rownames(x = object[[assay]]))
+  j <- sapply(X = seq_along(along.with = features), FUN = function(x) {
+    rep(x = x, length(x = features[[x]]))
+  })
+
+  # construct sparse matrix with features
+  mat <- sparseMatrix(
+    i = unlist(x = feat.idx, use.names = FALSE),
+    j = unlist(x = j, use.names = FALSE),
+    x = 1,
+    dims = c(nrow(x = object[[assay]]), length(x = features))
+  )
+  rownames(x = mat) <- rownames(x = object[[assay]])
+  colnames(x = mat) <- names(x = features)
+
+  # run chromVAR
+  cv <- RunChromVAR(
+    object = object[[assay]],
+    motif.matrix = mat,
+    genome = genome,
+    verbose = verbose,
+    ...
+  )
+
+  # add module scores to metadata
+  chromvar.data <- GetAssayData(object = cv, slot = "data")
+  object <- AddMetaData(
+    object = object,
+    metadata = as.data.frame(x = t(x = chromvar.data))
+  )
+  return(object)
+}
+
 globalVariables(names = c("group", "readcount"), package = "Signac")
 #' Average Counts
 #'
