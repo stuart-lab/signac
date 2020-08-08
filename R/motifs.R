@@ -38,7 +38,7 @@ RunChromVAR.ChromatinAssay <- function(
   idx.keep <- rowSums(x = peak.matrix) > 0
   peak.matrix <- peak.matrix[idx.keep, ]
   motif.matrix <- motif.matrix[idx.keep, ]
-  peak.ranges <- granges(x = object[[assay]])
+  peak.ranges <- granges(x = object)
   peak.ranges <- peak.ranges[idx.keep]
   chromvar.obj <- SummarizedExperiment::SummarizedExperiment(
     assays = list(counts = peak.matrix),
@@ -59,7 +59,7 @@ RunChromVAR.ChromatinAssay <- function(
     ...
   )
   if (verbose) {
-    message("Computing motif deviations from background")
+    message("Computing deviations from background")
   }
   dev <- chromVAR::computeDeviations(
     object = chromvar.obj,
