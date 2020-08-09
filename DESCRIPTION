@@ -14,7 +14,7 @@ Description: A framework for the analysis and exploration of single-cell chromat
     and normalization, visualization, and DNA sequence motif analysis.
     Reference: Stuart and Butler et al. (2019) <doi:10.1016/j.cell.2019.05.031>.
 Depends:
-    R (>= 3.4.0),
+    R (>= 3.6.0),
     methods
 License: MIT + file LICENSE
 Encoding: UTF-8
