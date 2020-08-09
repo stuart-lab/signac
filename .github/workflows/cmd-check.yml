@@ -70,7 +70,8 @@ jobs:
               install.packages("RCurl", type = "binary")
           }
           install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
-          install.packages(c("BiocManager", "glue", "XML"), Ncpu = 2L)
+          install.packages("XML", repos="http://www.omegahat.org/R", type="source")
+          install.packages(c("BiocManager", "glue", Ncpu = 2L)
           BiocManager::install(version = '${{ matrix.config.bioc }}')
           BiocManager::install(c("GenomeInfoDbData", "GO.db", "GenomicAlignments", "ggbio", "biovizBase"), Ncpu = 2L)
           setRepositories(ind=1:2)
