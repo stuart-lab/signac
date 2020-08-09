@@ -70,9 +70,9 @@ jobs:
               install.packages("RCurl", type = "binary")
           }
           install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
-          install.packages(c("BiocManager", "glue"), Ncpu = 2L)
+          install.packages(c("BiocManager", "glue", "XML"), Ncpu = 2L)
           BiocManager::install(version = '${{ matrix.config.bioc }}')
-          BiocManager::install(c("GenomeInfoDbData", "GO.db", "GenomicAlignments"), Ncpu = 2L)
+          BiocManager::install(c("GenomeInfoDbData", "GO.db", "GenomicAlignments", "ggbio", "biovizBase"), Ncpu = 2L)
           setRepositories(ind=1:2)
           remotes::install_deps(dependencies = TRUE, repos = getOption('repos'), Ncpu = 2L)
           remotes::install_cran("rcmdcheck", Ncpu = 2L)
