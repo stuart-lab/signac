@@ -68,9 +68,11 @@ jobs:
         run: |
           if (Sys.info()['sysname'] == "Windows") {
               install.packages("RCurl", type = "binary")
+              install.packages("https://cran-archive.r-project.org/bin/windows/contrib/3.1/XML_3.98-1.4.zip", type = "binary")
+          } else {
+              install.packages("https://cran.r-project.org/src/contrib/Archive/XML/XML_3.98-1.20.tar.gz", repos=NULL, type="source")
           }
           install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
-          install.packages("https://cran.r-project.org/src/contrib/Archive/XML/XML_3.98-1.20.tar.gz", repos=NULL, type="source")
           install.packages(c("BiocManager", "glue"), Ncpu = 2L)
           BiocManager::install(version = '${{ matrix.config.bioc }}')
           BiocManager::install(c("GenomeInfoDbData", "GO.db", "GenomicAlignments", "ggbio", "biovizBase"), Ncpu = 2L)
