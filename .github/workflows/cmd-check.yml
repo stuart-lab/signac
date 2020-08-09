@@ -70,7 +70,7 @@ jobs:
               install.packages("RCurl", type = "binary")
           }
           install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
-          install.packages("https://cran.r-project.org/src/contrib/Archive/XML/XML_3.98-1.20.tar.gz", repos=NULL type="source")
+          install.packages("https://cran.r-project.org/src/contrib/Archive/XML/XML_3.98-1.20.tar.gz", repos=NULL, type="source")
           install.packages(c("BiocManager", "glue"), Ncpu = 2L)
           BiocManager::install(version = '${{ matrix.config.bioc }}')
           BiocManager::install(c("GenomeInfoDbData", "GO.db", "GenomicAlignments", "ggbio", "biovizBase"), Ncpu = 2L)
