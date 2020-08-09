@@ -27,61 +27,6 @@ Signac currently supports the following features:
 
 Please see the Signac [vignettes](articles/overview.html) page for examples.
 
-## Installation
+For installation instructions see the [install](articles/install.html) page.
 
-To use Signac first make sure Bioconductor is installed:
 
-```r
-# Install bioconductor
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-BiocManager::install()
-```
-
-To automatically install Bioconductor dependencies when installing Signac, run:
-
-```r
-setRepositories(ind=1:2)
-```
-
-### Current release
-
-```r
-install.packages("Signac")
-```
-
-### Development version
-
-```r
-install.packages("devtools")
-devtools::install_github("timoast/signac", ref = "develop")
-```
-
-For information about installing Seurat, see the Seurat [website](https://satijalab.org/seurat/install.html)
-
-### Installing genome assembly and gene annotation packages
-
-It can also be useful (but not essential) to install species-specific packages 
-containing genome and gene annotation information from Bioconductor.
-
-[This](https://useast.ensembl.org/info/website/archives/assembly.html) table
-from Ensembl provides a mapping of genome assembly to the corresponding gene
-annotation version.
-
-#### Human hg19
-
-```r
-BiocManager::install(c('BSgenome.Hsapiens.UCSC.hg19', 'EnsDb.Hsapiens.v75'))
-```
-
-#### Human hg38
-
-```r
-BiocManager::install(c('BSgenome.Hsapiens.UCSC.hg38', 'EnsDb.Hsapiens.v86'))
-```
-
-#### Mouse mm10
-
-```r
-BiocManager::install(c('BSgenome.Mmusculus.UCSC.mm10', 'EnsDb.Mmusculus.v79'))
-```
