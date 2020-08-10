@@ -17,19 +17,24 @@ library(EnsDb.Hsapiens.v75)
 
 Here, we take a look at two different datasets containing both DNA accessibility
 measurements and mitochondrial mutation data in the same cells. One was sampled
-from a patient with a colorectal cancer (CRC) tumor, and the other is from a TF1
-cell line. This data was produced by Lareau and Ludwig et al. (2020), and you
-can read the original paper here: XXX
+from a patient with a colorectal cancer (CRC) tumor, and the other is from a 
+polyclonal TF1 cell line. This data was produced by Lareau and Ludwig
+et al. (2020), and you can read the original paper
+here: https://doi.org/10.1038/s41587-020-0645-6.
 
-DNA accessibility data for the CRC dataset is available on NCBI GEO here: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE148509
+Processed data files, including mitochondrial variant data for the CRC and TF1
+dataset is available on Zenodo here: https://zenodo.org/record/3977808
 
-Mitochondrial variant data for the CRC dataset is available on XXX here:
-
-Raw sequencing data and DNA accessibility processed files for the TF1 dataset
+Raw sequencing data and DNA accessibility processed files for the these datasets
 are available on NCBI GEO here:
-https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE148509
+https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE142745
 
 # Colorectal cancer dataset
+
+To demonstrate combined analyses of mitochondrial DNA variants and accessible
+chromatin, we'll walk through a vignette analyzing cells from a primary
+colorectal adenocarcinoma. The sample contains a mixture of malignant
+epithelial cells and tumor infiltrating immune cells. 
 
 ## Loading the DNA accessibility data
 
@@ -108,13 +113,13 @@ crc
 ## Loading the mitochondrial variant data
 
 Next we can load the mitochondrial DNA variant data for these cells that was 
-quantified using [mGATK](https://github.com/caleblareau/mgatk). The `ReadMGATK()`
-function in Signac allows the output from mGATK to be read directly into R in a
-convenient format for downstream analysis with Signac. Here we load the data
+quantified using [mgatk](https://github.com/caleblareau/mgatk). The `ReadMGATK()`
+function in Signac allows the output from `mgatk` to be read directly into R in
+a convenient format for downstream analysis with Signac. Here, we load the data
 and add it to the Seurat object as a new assay.
 
 ```{r process_mito, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
-# load mGATK output
+# load mgatk output
 mito.data <- ReadMGATK(dir = "~/data/mito/crc/mgatk_inputs/")
 
 # create an assay
@@ -182,12 +187,13 @@ crc <- NormalizeData(
 
 ## Visualize interesting gene activity scores
 
+We note the fol
+
 - EPCAM is a marker for epithelial cells
 - TREM1 is a meyloid marker
-- PTPRC = CD45 = Pan immune cell marker
-- IL1RL1 are basophil markers
-- GATA3 is a Treg marker
-- KIT is a Treg marker
+- PTPRC = CD45 is a pan-immune cell marker
+- IL1RL1 is a basophil marker
+- GATA3 is a Tcell maker
 
 ```{r viz_gene_activitites, message=FALSE, warning = FALSE, fig.width=8, fig.height=8}
 DefaultAssay(crc) <- 'RNA'
@@ -211,7 +217,7 @@ crc <- RenameIdents(
   '2' = 'Basophil',
   '3' = 'Myeloid_1',
   '4' = 'Myeloid_2',
-  '5' = 'Treg'
+  '5' = 'Tcell'
 )
 ```
 
@@ -227,14 +233,16 @@ p1 + p2 + plot_layout(guides = 'collect')
 ```
 
 We can see that most of the low FRIP cells were the `myeloid 1` cluster. This is
-some sort of intra-tumor granulocyte that has relatively poor accessible
-chromatin enrichment.
+most likely an intra-tumor granulocyte that has relatively poor accessible
+chromatin enrichment. Similarly, the unusual nuclear chromatin packaging of this
+cell type yields slightly reduced mtDNA coverage compared to 
 
 ## Find informative mtDNA variants
 
-Next we can identify sites in the mitochondrial genome that vary across cells, 
+Next, we can identify sites in the mitochondrial genome that vary across cells, 
 and cluster the cells into clonotypes based on the frequency of these variants
-in the cells.
+in the cells. Signac utilizes the principles established in the original
+mtscATAC-seq work of identifying high-quality variants.  
 
 ```{r call_variants, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
 variable.sites <- IdentifyVariants(crc, assay = "mito", refallele = mito.data$refallele)
@@ -242,7 +250,20 @@ VariantPlot(variants = variable.sites)
 ```
 
 The plot above clearly shows a group of variants with a higher VMR and strand
-concordance. Based on these thresholds, we can filter out a set of informative
+concordance. In principle, a high strand concordance reduces the likelihood of
+the allele frequency being driven by sequencing error (which predominately
+occurson one but not the other strand. This is due to the preceding nucleotide 
+content and a common error in mtDNA genotyping). On the other hand, variants
+that have a high VMR are more likely to be clonal variants as the alternate
+alleles tend to aggregate in certain cells rather than be equivalently
+dispersed about all cells, which would be indicative of some other artifact. 
+
+We note that variants that have a very low VMR and and very high strand
+concordance are homoplasmic variants for this sample. While these may be
+interesting in some settings (e.g. donor demultiplexing), for inferring
+subclones, these are not particularly useful. 
+
+Based on these thresholds, we can filter out a set of informative
 mitochondrial variants that differ across the cells.
 
 ```{r look_at_variants, message=FALSE, warning = FALSE}
@@ -261,7 +282,10 @@ allele frequency in the population. However, 16147C>T is present at about 62%.
 We'll see that this is a clonal variant marking the epithelial cells.
 Additionally, all of the called variants are transitions (A - G or C - T) rather
 than transversion mutations (A - T or C - G). This fits what we know about how
-these mutations arise in the genome.
+these mutations arise in the mitochondrial genome. 
+
+Depending on your analytical question, these thresholds can be adjusted to
+identify variants that are more prevalent in other cells. 
 
 ## Compute the variant allele frequency for each cell
 
@@ -315,12 +339,16 @@ The variants 824T>C and 3244G>A are found specifically in immune cell
 populations, suggesting that these arose from a common hematopoetic progenitor
 cell (probably in the bone marrow). 
 
+
 # TF1 cell line dataset
 
 Next we'll demonstrate a similar workflow to identify cell clones in a different
-dataset, this time generated from a TF1 cell line. This dataset contains a bit
-more clonal structure, and we'll demonstrate how to identify groups of related
-cells (clones) by clustering the allele frequency data.
+dataset, this time generated from a TF1 cell line. This dataset contains more
+clones present at a higher proportion, based on the experimental design.
+
+We'll demonstrate how to identify groups of related cells (clones) by clustering
+the allele frequency data and how to relate these clonal groups to 
+accessibility differences utilizing the multi-modal capabilities of Signac. 
 
 ## Data loading
 
@@ -442,6 +470,7 @@ to get a decent ordering of both features and clones automatically:
 DoHeatmap(tf1, features = VariableFeatures(tf1), slot = "data", disp.max = 0.1) +
   scale_fill_viridis_c()
 ```
+
 ## Find differentially accessible peaks between clones
 
 Next we can use the clonal information derived from the mitochondrial assay
@@ -454,8 +483,10 @@ DefaultAssay(tf1) <- "peaks"
 markers.fast <- FoldChange(tf1, ident.1 = 2)
 head(markers.fast)
 ```
-We can the DNA accessibility in these regions for each clone using the `CoveragePlot()`
-function. As you can see, the peaks identified are highly specific to one clone.
+
+We can the DNA accessibility in these regions for each clone using
+the `CoveragePlot()` function. As you can see, the peaks identified are highly
+specific to one clone.
 
 ```{r}
 CoveragePlot(
