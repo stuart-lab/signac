@@ -2,19 +2,19 @@
 % Please edit documentation in R/preprocessing.R
 \name{FeatureMatrix}
 \alias{FeatureMatrix}
-\title{FeatureMatrix}
+\title{Feature Matrix}
 \usage{
 FeatureMatrix(
   fragments,
   features,
   cells = NULL,
-  chunk = 50,
+  process_n = 2000,
   sep = c("-", "-"),
   verbose = TRUE
 )
 }
 \arguments{
-\item{fragments}{Path to tabix-indexed fragments file}
+\item{fragments}{A list of \code{\link{Fragment}} objects.}
 
 \item{features}{A GRanges object containing a set of genomic intervals.
 These will form the rows of the matrix, with each entry recording the number
@@ -23,9 +23,8 @@ of unique reads falling in the genomic region for each cell.}
 \item{cells}{Vector of cells to include. If NULL, include all cells found
 in the fragments file}
 
-\item{chunk}{Number of chunks to use when processing the fragments file.
-Fewer chunks may enable faster processing,
- but will use more memory.}
+\item{process_n}{Number of regions to load into memory at a time, per thread.
+Processing more regions at once can be faster but uses more memory.}
 
 \item{sep}{Vector of separators to use for genomic string. First element is
 used to separate chromosome and coordinates, second separator is used to
@@ -41,8 +40,11 @@ Construct a feature x cell matrix from a genomic fragments file
 }
 \examples{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fragments <- CreateFragmentObject(fpath)
 FeatureMatrix(
-  fragments = fpath,
-  features = StringToGRanges(rownames(atac_small), sep = c(":", "-"))
+  fragments = fragments,
+  features = granges(atac_small)
 )
 }
+\concept{preprocessing}
+\concept{utilities}

@@ -1,0 +1,90 @@
+---
+title: "Transcription factor footprinting"
+date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
+output: html_document
+---
+
+```{r message=FALSE, warning=FALSE}
+library(Signac)
+library(Seurat)
+```
+
+## Data loading
+
+For this vignette we'll use the dataset introduced and pre-processed in the
+[trajectory building vignette](monocle.html).
+
+```{r}
+bone <- readRDS("../vignette_data/cd34.rds")
+DimPlot(bone, label = TRUE)
+```
+
+To perform a footprinting analysis we first need to add motif information to the
+object, including the exact positions of each motif. This can be done using 
+functions from the \code{motifmatchr} and \code{TFBSTools} packages.
+
+```{r message=FALSE, warning=FALSE}
+library(motifmatchr)
+library(JASPAR2018)
+library(TFBSTools)
+
+# extract position frequency matrices for the motifs
+pwm <- getMatrixSet(
+  x = JASPAR2018,
+  opts = list(species = 9606, all_versions = FALSE)
+)
+
+# scan the genome and record the position of each motif using motifmatchr
+motif.positions <- matchMotifs(
+  pwms = pwm,
+  subject = granges(bone),
+  out = 'positions',
+  genome = 'hg19'
+)
+
+# create a Motif object and add it to the assay
+motif <- CreateMotifObject(
+  positions = motif.positions,
+  pwm = pwm
+)
+
+bone <- SetAssayData(
+  object = bone,
+  slot = 'motifs',
+  new.data = motif
+)
+```
+
+## Motif footprinting
+
+Now we can footprint any motif that we have positional information for. By
+default, this includes every instance of the motif in the genome. We can instead
+use the `in.peaks = TRUE` parameter to include only those motifs that fall
+inside a peak in the assay. The `Footprint()` function gathers all the required
+data and stores it in the assay. We can then plot the footprinted motifs using
+the `PlotFootprint()` function.
+
+```{r message=FALSE, warning=FALSE}
+# gather the footprinting information for sets of motifs
+bone <- Footprint(
+  object = bone,
+  motif.name = c("GATA2", "CEBPA", "EBF1"),
+  genome = BSgenome.Hsapiens.UCSC.hg19
+)
+
+# plot the footprint data for each group of cells
+p2 <- PlotFootprint(bone, features = c("GATA2", "CEBPA", "EBF1"))
+```
+
+```{r fig.height=12, message=FALSE, warning=FALSE}
+p2 + patchwork::plot_layout(ncol = 1)
+```
+
+<details>
+  <summary>**Session Info**</summary>
+  
+```{r}
+sessionInfo()
+```
+
+</details>

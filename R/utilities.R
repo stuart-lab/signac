@@ -2,38 +2,76 @@
 #' @importFrom utils globalVariables
 NULL
 
-# Set a default value if an object is null
-#
-# @param x An object to set if it's null
-# @param y The value to provide if x is null
-# @return Returns y if x is null, otherwise returns x.
-SetIfNull <- function(x, y) {
-  if (is.null(x = x)) {
-    return(y)
-  } else {
-    return(x)
-  }
-}
 
-#' @importFrom Seurat DefaultAssay Misc
-AddToMisc <- function(
+#' Add chromatin module
+#'
+#' Compute chromVAR deviations for groups of peaks. The goal of this function is
+#' similar to that of \code{\link[Seurat]{AddModuleScore}} except that it is
+#' designed for single-cell chromatin data. The chromVAR deviations for each
+#' group of peaks will be added to the object metadata.
+#'
+#' @param object A Seurat object
+#' @param features A named list of features to include in each module. The name
+#' of each element in the list will be used to name the modules computed, which
+#' will be stored in the object metadata.
+#' @param genome A BSgenome object
+#' @param assay Name of assay to use. If NULL, use the default assay.
+#' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{RunChromVAR}
+#'
+#' @return Returns a Seurat object
+#'
+#' @importFrom fastmatch fmatch
+#' @importFrom Matrix sparseMatrix
+#' @importFrom Seurat DefaultAssay GetAssayData AddMetaData
+#'
+#' @export
+#' @concept utilities
+AddChromatinModule <- function(
   object,
-  new.data,
-  save.as,
-  assay = NULL
+  features,
+  genome,
+  assay = NULL,
+  verbose = TRUE,
+  ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  misc.slot <- SetIfNull(x = Misc(object = object[[assay]]), y = list())
-  if (!inherits(x = misc.slot, what = 'list')) {
-    warning("Misc slot already occupied")
-  } else{
-    misc.slot[[save.as]] <- new.data
-    object[[assay]]@misc <- misc.slot
-  }
+
+  # first find index of each feature
+  feat.idx <- sapply(X = features, FUN = fmatch, rownames(x = object[[assay]]))
+  j <- sapply(X = seq_along(along.with = features), FUN = function(x) {
+    rep(x = x, length(x = features[[x]]))
+  })
+
+  # construct sparse matrix with features
+  mat <- sparseMatrix(
+    i = unlist(x = feat.idx, use.names = FALSE),
+    j = unlist(x = j, use.names = FALSE),
+    x = 1,
+    dims = c(nrow(x = object[[assay]]), length(x = features))
+  )
+  rownames(x = mat) <- rownames(x = object[[assay]])
+  colnames(x = mat) <- names(x = features)
+
+  # run chromVAR
+  cv <- RunChromVAR(
+    object = object[[assay]],
+    motif.matrix = mat,
+    genome = genome,
+    verbose = verbose,
+    ...
+  )
+
+  # add module scores to metadata
+  chromvar.data <- GetAssayData(object = cv, slot = "data")
+  object <- AddMetaData(
+    object = object,
+    metadata = as.data.frame(x = t(x = chromvar.data))
+  )
   return(object)
 }
 
-globalVariables(names = c('group', 'readcount'), package = 'Signac')
+globalVariables(names = c("group", "readcount"), package = "Signac")
 #' Average Counts
 #'
 #' Compute the mean counts per group of cells for a given assay
@@ -42,10 +80,11 @@ globalVariables(names = c('group', 'readcount'), package = 'Signac')
 #' @param assay Name of assay to use. Default is the active assay
 #' @param group.by Grouping variable to use. Default is the active identities
 #' @param verbose Display messages
+#'
 #' @importFrom Seurat DefaultAssay Idents GetAssayData
-#' @importFrom Matrix colSums
 #' @importFrom dplyr group_by summarize
 #' @export
+#' @concept utilities
 #' @return Returns a dataframe
 #' @examples
 #' AverageCounts(atac_small)
@@ -61,25 +100,53 @@ AverageCounts <- function(
   } else {
     group.by <- object[[group.by, drop = TRUE]]
   }
-  counts <- GetAssayData(object = object, assay = assay, slot = 'counts')
-  if (verbose) {
-    message('Summing counts per cell')
-  }
-  totals <- colSums(x = counts)
-  total.df <- data.frame(
-    cell = names(x = totals),
-    readcount = totals,
-    stringsAsFactors = FALSE
-  )
+  # pull nCount_ column
+  col.use <- paste0("nCount_", assay)
+  total.df <- object[[col.use]]
+  colnames(x = total.df) <- "readcount"
+  total.df$cell <- rownames(x = total.df)
   total.df$group <- group.by[total.df$cell]
   total.df <- group_by(total.df, group)
   if (verbose) {
-    message('Computing average counts per group')
+    message("Computing average counts per group")
   }
   group.means <- summarize(.data = total.df, mn = mean(x = readcount))
   results <- group.means$mn
   names(x = results) <- group.means$group
   return(results)
+}
+
+#' Accessible peaks
+#'
+#' Find accessible peaks in a set of cells
+#'
+#' @param object A Seurat object
+#' @param assay Name of assay to use
+#' @param idents A set of identity classes to find accessible peaks for
+#' @param cells A vector of cells to find accessible peaks for
+#' @param min.cells Minimum number of cells with the peak accessible (>0 counts)
+#' for the peak to be called accessible
+#' @export
+#' @concept utilities
+#' @importFrom Seurat WhichCells DefaultAssay GetAssayData
+#' @importFrom Matrix rowSums
+#' @return Returns a vector of peak names
+AccessiblePeaks <- function(
+  object,
+  assay = NULL,
+  idents = NULL,
+  cells = NULL,
+  min.cells = 10
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  cells <- SetIfNull(x = cells, y = WhichCells(object, idents = idents))
+  open.peaks <- GetAssayData(
+    object = object,
+    assay = assay,
+    slot = "counts"
+  )[, cells]
+  peaks <- names(x = which(x = rowSums(x = open.peaks > 0) > min.cells))
+  return(peaks)
 }
 
 #' Cells per group
@@ -90,6 +157,7 @@ AverageCounts <- function(
 #' @param group.by A grouping variable. Default is the active identities
 #' @importFrom Seurat Idents
 #' @export
+#' @concept utilities
 #' @return Returns a vector
 #' @examples
 #' CellsPerGroup(atac_small)
@@ -103,7 +171,7 @@ CellsPerGroup <- function(
     meta.data <- object[[]]
     cellgroups <- meta.data[[group.by]]
   }
-  cells.per.group <- table(cellgroups)
+  cells.per.group <- table(cellgroups, useNA = "always")
   lut <- as.vector(x = cells.per.group)
   names(x = lut) <- names(x = cells.per.group)
   return(lut)
@@ -113,8 +181,10 @@ CellsPerGroup <- function(
 #'
 #' Find the closest feature to a given set of genomic regions
 #'
+#' @param object A Seurat object
 #' @param regions A set of genomic regions to query
-#' @param annotation A GRanges object containing annotation information.
+#' @param annotation A GRanges object containing annotation information. If
+#' NULL, use the annotations stored in the object.
 #' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #'
 #' @importMethodsFrom GenomicRanges distanceToNearest
@@ -123,24 +193,24 @@ CellsPerGroup <- function(
 #' @return Returns a dataframe with the name of each region, the closest feature
 #' in the annotation, and the distance to the feature.
 #' @export
+#' @concept utilities
 #' @examples
 #' \donttest{
 #' ClosestFeature(
-#'   regions = head(rownames(atac_small)),
-#'   annotation = StringToGRanges(
-#'   head(rownames(atac_small)),
-#'   sep = c(':', '-')),
-#'   sep = c(":", "-")
+#'   object = atac_small,
+#'   regions = head(granges(atac_small))
 #' )
 #' }
 ClosestFeature <- function(
+  object,
   regions,
-  annotation,
+  annotation = NULL,
   ...
 ) {
   if (!is(object = regions, class2 = 'GRanges')) {
     regions <- StringToGRanges(regions = regions, ...)
   }
+  annotation <- SetIfNull(x = annotation, y = Annotation(object = object))
   nearest_feature <- distanceToNearest(x = regions, subject = annotation)
   feature_hits <- annotation[subjectHits(x = nearest_feature)]
   df <- as.data.frame(x = mcols(x = feature_hits))
@@ -148,6 +218,317 @@ ClosestFeature <- function(
   df$query_region <- GRangesToString(grange = regions, ...)
   df$distance <- mcols(x = nearest_feature)$distance
   return(df)
+}
+
+#' Cicero connections to links
+#'
+#' Convert the output of Cicero connections to a set of genomic ranges where
+#' the start and end coordinates of the range are the midpoints of the linked
+#' elements. Only elements on the same chromosome are included in the output.
+#'
+#' @param conns A dataframe containing co-accessible elements. This would
+#' usually be the output of \code{\link[cicero]{run_cicero}} or
+#' \code{\link[cicero]{assemble_connections}}. Specifically, this should be a
+#' dataframe where the first column contains the genomic coordinates of the
+#' first element in the linked pair of elements, with chromosome, start, end
+#' coordinates separated by "-" characters. The second column should be the
+#' second element in the linked pair, formatted in the same way as the first
+#' column. A third column should contain the co-accessibility scores.
+#' @param ccans This is optional, but if supplied should be a dataframe
+#' containing the cis-co-accessibility network (CCAN) information generated
+#' by \code{\link[cicero]{generate_ccans}}. Specifically, this should be a
+#' dataframe containing the name of the peak in the first column, and the
+#' CCAN that it belongs to in the second column.
+#' @param threshold Threshold for retaining a coaccessible site. Links with
+#' a value less than or equal to this threshold will be discarded.
+#'
+#' @export
+#' @importFrom GenomicRanges start end makeGRangesFromDataFrame
+#' @importFrom GenomeInfoDb seqnames
+#' @importFrom stringi stri_split_fixed
+#'
+#' @concept links
+#' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
+ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
+  # add chromosome information
+  chr1 <- stri_split_fixed(str = conns$Peak1, pattern = "-")
+  conns$chr1 <- unlist(x = chr1)[3 * (seq_along(along.with = chr1)) - 2]
+  chr2 <- stri_split_fixed(str = conns$Peak2, pattern = "-")
+  conns$chr2 <- unlist(x = chr2)[3 * (seq_along(along.with = chr2)) - 2]
+
+  # filter out trans-chr links
+  conns <- conns[conns$chr1 == conns$chr2, ]
+
+  # filter based on threshold
+  conns <- conns[!is.na(conns$coaccess), ]
+  conns <- conns[conns$coaccess > threshold, ]
+
+  # add group information
+  if (!is.null(x = ccans)) {
+    ccan.lookup <- ccans$CCAN
+    names(x = ccan.lookup) <- ccans$Peak
+    groups <- as.vector(x = ifelse(
+      test = is.na(x = ccan.lookup[conns$Peak1]),
+      yes = ccan.lookup[conns$Peak2],
+      no = ccan.lookup[conns$Peak1]
+      )
+    )
+    conns$group <- groups
+  } else {
+    conns$group <- NA
+  }
+
+  # extract genomic regions
+  coords.1 <- StringToGRanges(regions = conns$Peak1, sep = c("-", "-"))
+  coords.2 <- StringToGRanges(regions = conns$Peak2, sep = c("-", "-"))
+  chr <- seqnames(x = coords.1)
+
+  # find midpoints
+  midpoints.1 <- start(x = coords.1) + (width(x = coords.1) / 2)
+  midpoints.2 <- start(x = coords.2) + (width(x = coords.2) / 2)
+
+  startpos <- ifelse(
+    test = midpoints.1 > midpoints.2,
+    yes = midpoints.2,
+    no = midpoints.1
+  )
+  endpos <- ifelse(
+    test = midpoints.1 > midpoints.2,
+    yes = midpoints.1,
+    no = midpoints.2
+  )
+
+  link.df <- data.frame(chromosome = chr,
+                        start = startpos,
+                        end = endpos,
+                        score = conns$coaccess,
+                        group = conns$group)
+
+  # convert to genomic ranges
+  links <- makeGRangesFromDataFrame(df = link.df, keep.extra.columns = TRUE)
+  return(links)
+}
+
+#' Compute fold change between two groups of cells
+#'
+#' Computes the fold change or log2 fold change (if \code{log=TRUE}) in average
+#' counts between two groups of cells.
+#'
+#' @param object A Seurat object
+#' @param assay Name of assay to use. If NULL, use the default assay.
+#' @param group.by Grouping variable to use. If NULL, use the current cell
+#' identities.
+#' @param ident.1 Identities of first group of cells to compare.
+#' @param ident.2 Identities of second group of cells to compare. If NULL,
+#' compare cells in the first group to all other cells.
+#' @param cutoff Mean count cutoff for classifying as "open". Only used for
+#' ordering results. Results will be ordered first by whether the average counts
+#' in ident.1 is greater than the cutoff value, then by fold change with respect
+#' to ident.2. This prevents very lowly detected peaks from being pushed to the
+#' top of the results due to high fold change values.
+#' @param verbose Display messages
+#'
+#' @importFrom Seurat Idents Idents<- AverageExpression DefaultAssay
+#'
+#' @return Returns a data.frame
+#' @export
+#' @concept utilities
+#' @examples
+#' fc <- FoldChange(object = atac_small, ident.1 = 0)
+#' head(fc)
+FoldChange <- function(
+  object,
+  ident.1,
+  ident.2 = NULL,
+  group.by = NULL,
+  cutoff = 0.5,
+  assay = NULL,
+  verbose = TRUE
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (is.null(x = group.by)) {
+    # stash current idents
+    object$fc_tmp_group_var <- Idents(object = object)
+  } else {
+    # create temp grouping variable
+    object$fc_tmp_group_var <- object[[group.by]]
+  }
+  if (is.null(x = ident.2)) {
+    # if ident.2 is NULL create a new grouping variable
+    # that separates ident.1 from all other cells
+    ident.2 <- "all_other"
+    object$fc_tmp_group_var <- ifelse(
+      test = object$fc_tmp_group_var == ident.1,
+      yes = as.character(x = object$fc_tmp_group_var),
+      no = ident.2
+    )
+  }
+  ident.stash <- Idents(object = object)
+  Idents(object = object) <- "fc_tmp_group_var"
+  # compute average counts for each group
+  avg <- AverageExpression(
+    object = object,
+    assays = assay,
+    slot = "counts",
+    verbose = verbose
+  )[[assay]]
+  Idents(object = object) <- ident.stash
+  # compute fold change
+  colnames(x = avg) <- paste0("mean_", colnames(x = avg))
+  avg$fold_change <- avg[[paste0("mean_", ident.1)]] /
+    avg[[paste0("mean_", ident.2)]]
+  avg$log2_fold_change <- log2(x = avg$fold_change)
+  # add open/closed
+  avg$open <- avg[[paste0("mean_", ident.1)]] > cutoff
+  # sort by fold change
+  avg <- avg[order(-avg$open, -avg$fold_change), ]
+  # wipe temporary metadata
+  object$fc_tmp_group_var <- NULL
+  return(avg)
+}
+
+#' Create gene activity matrix
+#'
+#' Compute counts per cell in gene body and promoter region.
+#'
+#' @param object A Seurat object
+#' @param assay Name of assay to use. If NULL, use the default assay
+#' @param features Genes to include. If NULL, use all protein-coding genes in
+#' the annotations stored in the object
+#' @param extend.upstream Number of bases to extend upstream of the TSS
+#' @param extend.downstream Number of bases to extend downstream of the TTS
+#' @param verbose Display messages
+#' @param ... Additional options passed to \code{\link{FeatureMatrix}}
+#'
+#' @concept utilities
+#' @export
+#' @importFrom Seurat DefaultAssay
+#' @examples
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fragments <- CreateFragmentObject(
+#'   path = fpath,
+#'   cells = colnames(atac_small),
+#'   validate.fragments = FALSE
+#' )
+#' Fragments(atac_small) <- fragments
+#' GeneActivity(atac_small)
+GeneActivity <- function(
+  object,
+  assay = NULL,
+  features = NULL,
+  extend.upstream = 2000,
+  extend.downstream = 0,
+  verbose = TRUE,
+  ...
+) {
+  # collapse to longest protein coding transcript
+  annotation <- Annotation(object = object)
+  if (length(x = annotation) == 0) {
+    stop("No gene annotations present in object")
+  }
+  if (verbose) {
+    message("Extracting gene coordinates")
+  }
+  transcripts <- CollapseToLongestTranscript(ranges = annotation)
+  transcripts <- transcripts[transcripts$gene_biotype == "protein_coding"]
+
+  # filter genes if provided
+  if (!is.null(x = features)) {
+    transcripts <- transcripts[transcripts$gene_name %in% features]
+  }
+
+  # extend to include promoters
+  transcripts <- Extend(
+    x = transcripts,
+    upstream = extend.upstream,
+    downstream = extend.downstream
+  )
+
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+
+  # quantify
+  counts <- FeatureMatrix(
+    fragments = Fragments(object = object[[assay]]),
+    features = transcripts,
+    cells = colnames(x = object[[assay]]),
+    verbose = verbose,
+    ...
+  )
+
+  # set row names
+  gene.key <- transcripts$gene_name
+  names(x = gene.key) <- GRangesToString(grange = transcripts)
+  rownames(x = counts) <- as.vector(x = gene.key[rownames(x = counts)])
+  counts <- counts[rownames(x = counts) != "", ]
+
+  return(counts)
+}
+
+#' Extract genomic ranges from EnsDb object
+#'
+#' Pulls the transcript information for all chromosomes from an EnsDb object.
+#' This wraps \code{\link[biovizBase]{crunch}} and applies the extractor
+#' function to all chromosomes present in the EnsDb object.
+#'
+#' @param ensdb An EnsDb object
+#' @param standard.chromosomes Keep only standard chromosomes
+#' @param biotypes Biotypes to keep
+#' @param verbose Display messages
+#'
+#' @importFrom biovizBase crunch
+#' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo
+#' @concept utilities
+#' @export
+GetGRangesFromEnsDb <- function(
+  ensdb,
+  standard.chromosomes = TRUE,
+  biotypes = c("protein_coding", "lincRNA", "rRNA", "processed_transcript"),
+  verbose = TRUE
+) {
+  # convert seqinfo to granges
+  whole.genome <-  as(object = seqinfo(x = ensdb), Class = "GRanges")
+  whole.genome <- keepStandardChromosomes(whole.genome, pruning.mode = "coarse")
+
+  # extract genes from each chromosome
+  if (verbose) {
+    tx <- sapply(X = seq_along(whole.genome), FUN = function(x){
+      crunch(
+        obj = ensdb,
+        which = whole.genome[x],
+        columns = c("tx_id", "gene_name", "gene_id", "gene_biotype"))
+    })
+  } else {
+    tx <- sapply(X = seq_along(whole.genome), FUN = function(x){
+      suppressMessages(expr = crunch(
+        obj = ensdb,
+        which = whole.genome[x],
+        columns = c("tx_id", "gene_name", "gene_id", "gene_biotype")))
+    })
+  }
+
+  # combine
+  tx <- do.call(what = c, args = tx)
+  tx <- tx[tx$gene_biotype %in% biotypes]
+  return(tx)
+}
+
+#' Find transcriptional start sites
+#'
+#' Get the TSS positions from a set of genomic ranges containing gene positions.
+#' Ranges can contain exons, introns, UTRs, etc, rather than the whole
+#' transcript. Only protein coding gene biotypes are included in output.
+#'
+#' @param ranges A GRanges object containing gene annotations.
+#' @importFrom GenomicRanges resize
+#' @export
+#' @concept utilities
+GetTSSPositions <- function(ranges) {
+  # get protein coding genes
+  ranges <- ranges[ranges$gene_biotype == "protein_coding"]
+  gene.ranges <- CollapseToLongestTranscript(ranges = ranges)
+  # shrink to TSS position
+  tss <- resize(gene.ranges, width = 1, fix = 'start')
+  return(tss)
 }
 
 #' Find interesecting regions between two objects
@@ -166,16 +547,15 @@ ClosestFeature <- function(
 #' the default assay
 #' @param assay.2 Name of the assay to use in the second object. If NULL, use
 #' the default assay
-#' @param sep.1 Genomic coordinate separators to use for the first object
-#' @param sep.2 Genomic coordinate separators to use for the second object
 #' @param distance Maximum distance between regions allowed for an intersection
-#' to be recorded.
+#' to be recorded. Default is 0.
 #' @param verbose Display messages
 #'
 #' @importMethodsFrom GenomicRanges distanceToNearest
 #' @importFrom S4Vectors subjectHits queryHits mcols
 #' @importFrom Seurat DefaultAssay
 #' @export
+#' @concept utilities
 #' @return Returns a list of two character vectors containing the row names
 #' in each object that overlap each other.
 #' @examples
@@ -183,9 +563,7 @@ ClosestFeature <- function(
 #'   object.1 = atac_small,
 #'   object.2 = atac_small,
 #'   assay.1 = 'peaks',
-#'   assay.2 = 'bins',
-#'   sep.1 = c(":", "-"),
-#'   sep.2 = c("-", "-")
+#'   assay.2 = 'bins'
 #' )
 GetIntersectingFeatures <- function(
   object.1,
@@ -193,69 +571,19 @@ GetIntersectingFeatures <- function(
   assay.1 = NULL,
   assay.2 = NULL,
   distance = 0,
-  sep.1 = c("-", "-"),
-  sep.2 = c("-", "-"),
   verbose = TRUE
 ) {
-  assay.1 <- SetIfNull(x = assay.1, y = DefaultAssay(object = object.1))
-  assay.2 <- SetIfNull(x = assay.2, y = DefaultAssay(object = object.2))
-  regions.1 <- StringToGRanges(
-    regions = rownames(x = object.1[[assay.1]]), sep = sep.1
-  )
-  regions.2 <- StringToGRanges(
-    regions = rownames(x = object.2[[assay.2]]), sep = sep.2
-  )
+  regions.1 <- GetAssayData(object = object.1, assay = assay.1, slot = "ranges")
+  regions.2 <- GetAssayData(object = object.2, assay = assay.2, slot = "ranges")
   if (verbose) {
     message("Intersecting regions across objects")
   }
   region.intersections <- distanceToNearest(x = regions.1, subject = regions.2)
   keep.intersections <- mcols(x = region.intersections)$distance <= distance
   region.intersections <- region.intersections[keep.intersections, ]
-  intersect.object1 <- regions.1[queryHits(x = region.intersections)]
-  intersect.object2 <- regions.2[subjectHits(x = region.intersections)]
-  regions.obj1 <- GRangesToString(grange = intersect.object1, sep = sep.1)
-  regions.obj2 <- GRangesToString(grange = intersect.object2, sep = sep.2)
-  return(list(regions.obj1, regions.obj2))
-}
-
-#' Set the fragments file path for creating plots
-#'
-#' Give path of indexed fragments file that goes with data in the object.
-#' Checks for a valid path and an index file with the same name (.tbi) at the
-#' same path. Stores the path under the tools slot for access by visualization
-#' functions. One fragments file can be stored for each assay.
-#'
-#' @param object A Seurat object
-#' @param file Path to indexed fragment file.
-#' See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
-#' @param assay Assay used to generate the fragments.
-#' If NULL, use the active assay.
-#'
-#' @importFrom methods "slot<-" slot is
-#' @export
-#' @return Returns a Seurat object
-#' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' SetFragments(object = atac_small, file = fpath)
-SetFragments <- function(
-  object,
-  file,
-  assay = NULL
-) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!(assay %in% names(x = slot(object = object, name = 'assays')))) {
-    stop('Requested assay not present in object')
-  }
-  index.file <- paste0(file, '.tbi')
-  if (all(file.exists(file, index.file))) {
-    file <- normalizePath(path = file)
-    current.tools <- slot(object = object, name = 'tools')
-    current.tools$fragments[[assay]] <- file
-    slot(object = object, name = 'tools') <- current.tools
-    return(object)
-  } else {
-    stop('Requested file does not exist or is not indexed')
-  }
+  intersect.object1 <- queryHits(x = region.intersections)
+  intersect.object2 <- subjectHits(x = region.intersections)
+  return(list(intersect.object1, intersect.object2))
 }
 
 #' String to GRanges
@@ -275,13 +603,14 @@ SetFragments <- function(
 #' regions <- c('chr1-1-10', 'chr2-12-3121')
 #' StringToGRanges(regions = regions)
 #' @export
+#' @concept utilities
 StringToGRanges <- function(regions, sep = c("-", "-"), ...) {
   ranges.df <- data.frame(ranges = regions)
   ranges.df <- separate(
     data = ranges.df,
-    col = 'ranges',
+    col = "ranges",
     sep = paste0(sep[[1]], "|", sep[[2]]),
-    into = c('chr', 'start', 'end')
+    into = c("chr", "start", "end")
   )
   granges <- makeGRangesFromDataFrame(df = ranges.df, ...)
   return(granges)
@@ -300,6 +629,7 @@ StringToGRanges <- function(regions, sep = c("-", "-"), ...) {
 #' GRangesToString(grange = blacklist_hg19)
 #' @return Returns a character vector
 #' @export
+#' @concept utilities
 GRangesToString <- function(grange, sep = c("-", "-")) {
   regions <- paste0(
     as.character(x = seqnames(x = grange)),
@@ -309,126 +639,6 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
     end(x = grange)
   )
   return(regions)
-}
-
-# Chunk GRanges
-#
-# Split a genomic ranges object into evenly sized chunks
-#
-# @param granges A GRanges object
-# @param nchunk Number of chunks to split into
-#
-# @return Returns a list of GRanges objects
-# @examples
-# ChunkGRanges(blacklist_hg19, n = 10)
-ChunkGRanges <- function(granges, nchunk) {
-  if (length(x = granges) < nchunk) {
-    nchunk <- length(x = granges)
-  }
-  chunksize <- as.integer(x = (length(granges) / nchunk))
-  range.list <- sapply(X = seq_len(length.out = nchunk), FUN = function(x) {
-    chunkupper <- (x * chunksize)
-    if (x == 1) {
-      chunklower <- 1
-    } else {
-      chunklower <- ((x - 1) * chunksize) + 1
-    }
-    if (x == nchunk) {
-      chunkupper <- length(x = granges)
-    }
-    return(granges[chunklower:chunkupper])
-  })
-  return(range.list)
-}
-
-#' Generate matrix of integration sites
-#'
-#' Generates a cell-by-position matrix of Tn5 integration sites
-#' centered on a given region (usually a DNA sequence motif). This
-#' matrix can be used for downstream footprinting analysis.
-#'
-#' @param object A Seurat object
-#' @param region A GRanges object containing the region of interest
-#' @param assay Name of the assay to use
-#' @param cells Which cells to include in the matrix. If NULL (default), use all
-#' cells in the object
-#' @param tabix.file A TabixFile object. If NULL, the file specified in
-#' \code{fragment.path} will be opened and closed after the function completes.
-#' If iterating over many regions, providing an open TabixFile is much faster
-#' as it avoids opening and closing the connection each time.
-#' @param verbose Display messages
-#' @importFrom Matrix sparseMatrix
-#' @importFrom Rsamtools TabixFile
-#' @importMethodsFrom GenomicRanges width start end
-#' @return Returns a sparse matrix
-#' @export
-#' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' atac_small <- SetFragments(atac_small, file = fpath)
-#' CutMatrix(
-#'  object = atac_small,
-#'  region = StringToGRanges("chr1-10245-762629")
-#' )
-CutMatrix <- function(
-  object,
-  region,
-  tabix.file = NULL,
-  assay = NULL,
-  cells = NULL,
-  verbose = TRUE
-) {
-  if (!inherits(x = region, what = 'GRanges')) {
-    stop("Region is not a GRanges object.")
-  }
-  all.cells <- SetIfNull(x = cells, y = colnames(x = object))
-  closefile <- FALSE
-  if (is.null(x = tabix.file)) {
-    fragment.path <- GetFragments(object = object, assay = assay)
-    tabix.file <- TabixFile(file = fragment.path)
-    open(con = tabix.file)
-    closefile <- TRUE
-  }
-  fragments <- GetReadsInRegion(
-    object = object,
-    assay = assay,
-    region = region,
-    cells = cells,
-    tabix.file = tabix.file,
-    verbose = verbose
-  )
-  if (closefile) {
-    close(con = tabix.file)
-  }
-  # if there are no reads in the region
-  # create an empty matrix of the correct dimension
-  if (nrow(x = fragments) == 0) {
-    cut.matrix <- sparseMatrix(
-      i = NULL,
-      j = NULL,
-      dims = c(length(x = all.cells), width(x = region))
-    )
-  } else {
-    cut.df <- data.frame(
-      position = c(fragments$start, fragments$end) - start(x = region) + 1,
-      cell = c(fragments$cell, fragments$cell),
-      stringsAsFactors = FALSE
-    )
-    cut.df <- cut.df[
-      (cut.df$position > 0) & (cut.df$position <= width(x = region)),
-    ]
-    cell.vector <- seq_along(along.with = all.cells)
-    names(x = cell.vector) <- all.cells
-    cell.matrix.info <- cell.vector[cut.df$cell]
-    cut.matrix <- sparseMatrix(
-      i = cell.matrix.info,
-      j = cut.df$position,
-      x = 1,
-      dims = c(length(x = all.cells), width(x = region))
-    )
-  }
-  rownames(x = cut.matrix) <- all.cells
-  colnames(x = cut.matrix) <- start(region):end(region)
-  return(cut.matrix)
 }
 
 #' Extend
@@ -448,6 +658,7 @@ CutMatrix <- function(
 #' @importMethodsFrom GenomicRanges strand start end width
 #' @importFrom IRanges ranges IRanges "ranges<-"
 #' @export
+#' @concept utilities
 #' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
 #' @examples
 #' Extend(x = blacklist_hg19, upstream = 100, downstream = 100)
@@ -482,7 +693,7 @@ Extend <- function(
   return(x)
 }
 
-#' GetCellsInRegion
+#' Get cells in a region
 #'
 #' Extract cell names containing reads mapped within a given genomic region
 #'
@@ -495,20 +706,23 @@ Extend <- function(
 #'
 #' @importFrom Rsamtools TabixFile scanTabix
 #' @importFrom methods is
+#' @importFrom fastmatch fmatch
+#' @importFrom S4Vectors elementNROWS
 #' @export
+#' @concept utilities
 #' @return Returns a list
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' GetCellsInRegion(tabix = fpath, region = "chr1-10245-762629")
 GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
-  if (!is(object = region, class2 = 'GRanges')) {
+  if (!is(object = region, class2 = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
-  bin.reads <- scanTabix(file = tabix, param = region)
-  reads <- sapply(X = bin.reads, FUN = ExtractCell, simplify = FALSE)
+  reads <- scanTabix(file = tabix, param = region)
+  reads <- sapply(X = reads, FUN = ExtractCell, simplify = FALSE)
   if (!is.null(x = cells)) {
     reads <- sapply(X = reads, FUN = function(x) {
-      x <- x[x %in% cells]
+      x <- x[fmatch(x = x, table = cells, nomatch = 0L) > 0L]
       if (length(x = x) == 0) {
         return(NULL)
       } else {
@@ -516,144 +730,30 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
       }
     })
   }
-  nrep <- sapply(X = reads, FUN = length)
+  nrep <- elementNROWS(x = reads)
   regions <- rep(x = names(x = reads), nrep)
+  cellnames <- unlist(x = reads, use.names = FALSE)
   regions <- gsub(pattern = ":", replacement = sep[[1]], x = regions)
   regions <- gsub(pattern = "-", replacement = sep[[2]], x = regions)
-  cellnames <- as.vector(x = unlist(x = reads))
   return(list(cells = cellnames, region = regions))
 }
 
-#' GetReadsInRegion
-#'
-#' Extract reads for each cell within a given genomic region or set of regions
-#'
-#' @param object A Seurat object
-#' @param region A genomic region, specified as a string in the format
-#' 'chr:start-end'. Can be a vector of regions.
-#' @param assay Name of assay to use
-#' @param tabix.file A TabixFile object. If NULL, the file specified in
-#' \code{fragment.path} will be opened and closed after the function completes.
-#' If iterating over many regions, providing an open TabixFile is much faster
-#' as it avoids opening and closing the connection each time.
-#' @param group.by Cell grouping information to add
-#' @param cells Cells to include. Default is all cells present in the object.
-#' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
-#'
-#' @importFrom Rsamtools TabixFile scanTabix
-#' @importFrom Seurat Idents DefaultAssay
-#'
-#' @return Returns a data frame
-#' @export
-#' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' atac_small <- SetFragments(object = atac_small, file = fpath)
-#' region <- StringToGRanges(regions = "chr1-10245-762629")
-#' GetReadsInRegion(object = atac_small, region = region)
-GetReadsInRegion <- function(
-  object,
-  region,
-  assay = NULL,
-  tabix.file = NULL,
-  group.by = NULL,
-  cells = NULL,
-  verbose = TRUE,
-  ...
-) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (is.null(x = group.by)) {
-    group.by <- Idents(object = object)
-  } else {
-    meta.data <- object[[]]
-    group.by <- meta.data[[group.by]]
-    names(x = group.by) <- rownames(x = meta.data)
-  }
-  if (verbose) {
-    message('Extracting reads in requested region')
-  }
-  if (!is(object = region, class2 = 'GRanges')) {
-    region <- StringToGRanges(regions = region, ...)
-  }
-  if (is.null(x = tabix.file)) {
-    fragment.path <- GetFragments(object = object, assay = assay)
-    tabix.file <- TabixFile(file = fragment.path)
-    open(con = tabix.file)
-    close.file <- TRUE
-  } else {
-    close.file <- FALSE
-  }
-  reads <- scanTabix(file = tabix.file, param = region)
-  if (close.file) {
-    close(con = tabix.file)
-  }
-  reads <- TabixOutputToDataFrame(reads = reads)
-  reads <- reads[reads$cell %in% names(group.by), ]
-  if (!is.null(x = cells)) {
-    reads <- reads[reads$cell %in% cells, ]
-  }
-  if (nrow(reads) == 0) {
-    return(reads)
-  }
-  reads$length <- reads$end - reads$start
-  reads$group <- group.by[reads$cell]
-  return(reads)
-}
-
-#' GetFragments
-#'
-#' Retrieve path to fragments file from assay object, and checks that the file
-#' exists and is indexed before returning the file path.
-#'
-#' @param object A Seurat object
-#' @param assay Name of the assay use to store the fragments file path
-#' @importFrom methods slot
-#' @importFrom Seurat DefaultAssay
-#' @return Returns the path to a fragments file stored in the Assay if present
-#' @export
-#' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' atac_small <- SetFragments(object = atac_small, file = fpath)
-#' GetFragments(object = atac_small)
-GetFragments <- function(
-  object,
-  assay = NULL
-) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  tools <- slot(object = object, name = 'tools')
-  if ('fragments' %in% names(x = tools)) {
-    if (assay %in% names(x = tools$fragments)) {
-      fragment.path <- tools$fragments[[assay]]
-    } else {
-      stop('Fragment file not supplied for the requested assay')
-    }
-  } else {
-    stop('Fragment file not set.
-         Run SetFragments to set the fragment file path.')
-  }
-  if (!(all(file.exists(fragment.path, paste0(fragment.path, '.tbi'))))) {
-    stop('Requested file does not exist or is not indexed')
-  } else {
-    return(fragment.path)
-  }
-}
-
-#' CountsInRegion
+#' Counts in region
 #'
 #' Count reads per cell overlapping a given set of regions
 #'
 #' @param object A Seurat object
-#' @param assay Name of assay in the object to use
+#' @param assay Name of a chromatin assay in the object to use
 #' @param regions A GRanges object
-#' @param sep Separator to use when extracting genomic coordinates from the
-#' Seurat object
 #' @param ... Additional arguments passed to \code{\link[IRanges]{findOverlaps}}
 #'
 #' @importFrom IRanges findOverlaps
 #' @importFrom S4Vectors queryHits
 #' @importFrom Matrix colSums
+#' @importFrom Seurat GetAssayData
 #'
 #' @export
+#' @concept utilities
 #' @return Returns a numeric vector
 #' @examples
 #' \donttest{
@@ -667,41 +767,21 @@ CountsInRegion <- function(
   object,
   assay,
   regions,
-  sep = c("-", '-'),
   ...
 ) {
-  obj.regions <- rownames(x = object[[assay]])
-  obj.granges <- StringToGRanges(regions = obj.regions, sep = sep)
+  if (!is(object = object[[assay]], class2 = "ChromatinAssay")) {
+    stop("Must supply a ChromatinAssay")
+  }
+  obj.granges <- GetAssayData(object = object, assay = assay, slot = "ranges")
   overlaps <- findOverlaps(query = obj.granges, subject = regions, ...)
-  hit.regions <- GRangesToString(
-    grange = obj.granges[queryHits(x = overlaps)], sep = sep
-  )
+  hit.regions <- queryHits(x = overlaps)
   data.matrix <- GetAssayData(
-    object = object, assay = assay, slot = 'counts'
+    object = object, assay = assay, slot = "counts"
   )[hit.regions, ]
   return(colSums(data.matrix))
 }
 
-#' ExtractCell
-#'
-#' Extract cell barcode from list of tab delimited character
-#' vectors (output of \code{\link{scanTabix}})
-#'
-#' @param x List of character vectors
-#' @export
-#' @return Returns a string
-#' @examples
-#' ExtractCell(x = "chr1\t1\t10\tatcg\t1")
-ExtractCell <- function(x) {
-  if (length(x = x) == 0) {
-    return(NULL)
-  } else {
-    tmp <- strsplit(x = x, split = "\t")
-    return(unlist(x = tmp)[5 * (seq_along(along.with = tmp)) - 1])
-  }
-}
-
-#' FractionCountsInRegion
+#' Fraction of counts in a genomic region
 #'
 #' Find the fraction of counts per cell that overlap a given set of genomic
 #' ranges
@@ -709,13 +789,12 @@ ExtractCell <- function(x) {
 #' @param object A Seurat object
 #' @param assay Name of assay to use
 #' @param regions A GRanges object containing a set of genomic regions
-#' @param sep The separator used to separate genomic coordinate information in
-#' the assay feature names
 #' @param ... Additional arguments passed to \code{\link{CountsInRegion}}
 #' @importFrom Matrix colSums
-#' @importFrom Seurat GetAssayData
+#' @importFrom Seurat GetAssayData DefaultAssay
 #'
 #' @export
+#' @concept utilities
 #' @return Returns a numeric vector
 #' @examples
 #' FractionCountsInRegion(
@@ -725,46 +804,21 @@ ExtractCell <- function(x) {
 #' )
 FractionCountsInRegion <- function(
   object,
-  assay,
   regions,
-  sep = c("-", "-"),
+  assay = NULL,
   ...
 ) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   reads.in.region <- CountsInRegion(
     object = object,
     regions = regions,
     assay = assay,
-    sep = sep,
     ...
   )
   total.reads <- colSums(x = GetAssayData(
-    object = object, assay = assay, slot = 'counts'
+    object = object, assay = assay, slot = "counts"
   ))
   return(reads.in.region / total.reads)
-}
-
-# Get vector of cell names and associated identity
-# @param object A Seurat object
-# @param group.by Identity class to group cells by
-# @param idents which identities to include
-# @return Returns a named vector
-#' @importFrom Seurat Idents
-GetGroups <- function(
-  object,
-  group.by,
-  idents
-) {
-  if (is.null(x = group.by)) {
-    obj.groups <- Idents(object = object)
-  } else {
-    obj.md <- object[[group.by]]
-    obj.groups <- obj.md[, 1]
-    names(obj.groups) <- rownames(x = obj.md)
-  }
-  if (!is.null(idents)) {
-    obj.groups <- obj.groups[obj.groups %in% idents]
-  }
-  return(obj.groups)
 }
 
 #' Intersect genomic coordinates with matrix rows
@@ -788,6 +842,7 @@ GetGroups <- function(
 #' @importFrom S4Vectors queryHits
 #'
 #' @export
+#' @concept utilities
 #' @return Returns a sparse matrix
 #' @examples
 #' counts <- matrix(data = rep(0, 12), ncol = 2)
@@ -803,7 +858,7 @@ IntersectMatrix <- function(
   verbose = TRUE,
   ...
 ) {
-  if (is(object = regions, class2 = 'character')) {
+  if (is(object = regions, class2 = "character")) {
     regions <- StringToGRanges(regions = regions, sep = sep)
   }
   rowranges <- StringToGRanges(regions = rownames(x = matrix), sep = sep)
@@ -821,6 +876,37 @@ IntersectMatrix <- function(
   }
   matrix <- matrix[keep.rows, ]
   return(matrix)
+}
+
+#' Get gene coordinates
+#'
+#' Extract the coordinates of the longest transcript for a gene stored in the
+#' annotations within an object.
+#'
+#' @param object A Seurat object
+#' @param gene Name of a gene to extract
+#' @param assay Name of assay to use
+#'
+#' @importFrom Seurat DefaultAssay
+#' @importFrom GenomicRanges GRanges
+#' @importFrom IRanges IRanges start end
+#' @importFrom GenomeInfoDb seqnames
+#' @export
+#' @concept utilities
+#' @examples
+#' LookupGeneCoords(atac_small, gene = "MIR1302-10")
+LookupGeneCoords <- function(object, gene, assay = NULL) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  annotations <- Annotation(object = object[[assay]])
+  annot.sub <- annotations[annotations$gene_name == gene]
+  if (length(x = annot.sub) == 0) {
+    return(NULL)
+  } else {
+    gr <- GRanges(seqnames = as.character(x = seqnames(x = annot.sub))[[1]],
+                  ranges = IRanges(start = min(start(x = annot.sub)),
+                                   end = max(end(x = annot.sub))))
+    return(gr)
+  }
 }
 
 #' Match DNA sequence characteristics
@@ -841,6 +927,8 @@ IntersectMatrix <- function(
 #'
 #' @importFrom stats density approx
 #' @export
+#' @concept utilities
+#' @concept motifs
 #' @examples
 #' metafeatures <- Seurat::GetAssayData(
 #'   object = atac_small[['peaks']], slot = 'meta.features'
@@ -854,7 +942,7 @@ IntersectMatrix <- function(
 MatchRegionStats <- function(
   meta.feature,
   regions,
-  features.match = c('GC.percent'),
+  features.match = c("GC.percent"),
   n = 10000,
   verbose = TRUE,
   ...
@@ -895,141 +983,532 @@ MatchRegionStats <- function(
   return(feature.select)
 }
 
-#' Region-aware object merging
+#' Unify genomic ranges
 #'
-#' This will find intersecting regions in both objects and rename the
-#' overlapping features with the region coordinates of the first object
-#' (by default; this can be changed with the regions.use parameter).
+#' Create a unified set of non-overlapping genomic ranges
+#' from multiple Seurat objects containing single-cell
+#' chromatin data.
 #'
-#' This allows a merged object to be constructed with common feature names.
-#'
-#' @param object.1 The first Seurat object
-#' @param object.2 The second Seurat object
-#' @param assay.1 Name of the assay to use in the first object. If NULL, use
-#' the default assay
-#' @param assay.2 Name of the assay to use in the second object. If NULL, use
-#' the default assay
-#' @param sep.1 Genomic coordinate separators to use for the first object
-#' @param sep.2 Genomic coordinate separators to use for the second object
-#' @param regions.use Which regions to use when naming regions in the merged
-#' object. Options are:
-#' \itemize{
-#'  \item{1}: Use the region coordinates from the first object
-#'  \item{2}: Use the region coordinates from the second object
-#' }
-#' @param distance Maximum distance between regions allowed for an intersection
-#' to be recorded. Default is 0.
-#' @param new.assay.name Name for the merged assay. Default is 'peaks'
-#' @param project Project name for the new object
-#' @param verbose Display messages
-#' @param ... Additional arguments passed to
-#' \code{\link[Seurat]{CreateAssayObject}}
-#'
-#' @importFrom Seurat DefaultAssay CreateAssayObject GetAssayData
-#' @importFrom utils packageVersion
-#'
+#' @param object.list A list of Seurat objects or ChromatinAssay objects
+#' @param mode Function to use when combining genomic ranges. Can be "reduce"
+#' (default) or "disjoin".
+#' See \code{\link[GenomicRanges]{reduce}}
+#' and \code{\link[GenomicRanges]{disjoin}}
+#' for more information on these functions.
+#' @importFrom GenomicRanges reduce disjoin
 #' @export
-#' @return Returns a \code{\link[Seurat]{Seurat}} object
+#' @concept utilities
+#' @concept preprocessing
+#' @return Returns a GRanges object
 #' @examples
-#' MergeWithRegions(
-#'   object.1 = atac_small,
-#'   object.2 = atac_small,
-#'   assay.1 = 'peaks',
-#'   assay.2 = 'bins',
-#'   sep.1 = c(":","-"),
-#'   sep.2 = c("-","-")
-#' )
-MergeWithRegions <- function(
-  object.1,
-  object.2,
-  assay.1 = NULL,
-  assay.2 = NULL,
-  sep.1 = c("-", "-"),
-  sep.2 = c("-", "-"),
-  regions.use = 1,
-  distance = 0,
-  new.assay.name = 'peaks',
-  project = 'SeuratProject',
+#' UnifyPeaks(object.list = list(atac_small, atac_small))
+UnifyPeaks <- function(object.list, mode = "reduce") {
+  peak.ranges <- list()
+  for (i in seq_along(along.with = object.list)) {
+    peak.ranges[[i]] <- granges(x = object.list[[i]])
+  }
+  peak.ranges <- Reduce(f = c, x = peak.ranges)
+  if (mode == "reduce") {
+    return(reduce(x = peak.ranges))
+  } else if (mode == "disjoin") {
+    return(disjoin(x = peak.ranges))
+  } else {
+    stop("Unknown mode requested")
+  }
+}
+
+#' Subset matrix rows and columns
+#'
+#' Subset the rows and columns of a matrix by removing
+#' rows and columns with less than the specified number of
+#' non-zero elements.
+#'
+#' @param mat A matrix
+#' @param min.rows Minimum number of non-zero elements for
+#' the row to be retained
+#' @param min.cols Minimum number of non-zero elements for
+#' the column to be retained
+#' @param max.row.val Maximum allowed value in a row for the
+#' row to be retained. If NULL, don't set any limit.
+#' @param max.col.val Maximum allowed value in a column for
+#' the column to be retained. If NULL, don't set any limit.
+#'
+#' @return Returns a matrix
+#' @export
+#' @concept utilities
+#' @importFrom Matrix colSums rowSums
+#' @examples
+#' SubsetMatrix(mat = volcano)
+SubsetMatrix <- function(
+  mat,
+  min.rows = 1,
+  min.cols = 1,
+  max.row.val = 10,
+  max.col.val = NULL
+) {
+  rowcount <- rowSums(mat > 0)
+  colcount <- colSums(mat > 0)
+  keeprows <- rowcount > min.rows
+  keepcols <- colcount > min.cols
+  if (!is.null(x = max.row.val)) {
+    rowmax <- apply(X = mat, MARGIN = 1, FUN = max)
+    keeprows <- keeprows & (rowmax < max.row.val)
+  }
+  if (!is.null(x = max.col.val)) {
+    colmax <- apply(X = mat, MARGIN = 2, FUN = max)
+    keepcols <- keepcols & (colmax < max.col.val)
+  }
+  return(mat[keeprows, keepcols])
+}
+
+#### Not exported ####
+
+#' @importFrom Matrix sparseMatrix
+AddMissingCells <- function(x, cells) {
+  # add columns with zeros for cells not in matrix
+  missing.cells <- setdiff(x = cells, y = colnames(x = x))
+  if (!(length(x = missing.cells) == 0)) {
+    null.mat <- sparseMatrix(
+      i = c(),
+      j = c(),
+      dims = c(nrow(x = x), length(x = missing.cells))
+    )
+    rownames(x = null.mat) <- rownames(x = x)
+    colnames(x = null.mat) <- missing.cells
+    x <- cbind(x, null.mat)
+  }
+  x <- x[, cells]
+  return(x)
+}
+
+# Calculate nCount and nFeature
+#
+# From Seurat
+#
+# @param object An Assay object
+#
+# @return A named list with nCount and nFeature
+#
+#' @importFrom Matrix colSums
+#
+CalcN <- function(object) {
+  if (IsMatrixEmpty(x = GetAssayData(object = object, slot = "counts"))) {
+    return(NULL)
+  }
+  return(list(
+    nCount = colSums(x = object, slot = "counts"),
+    nFeature = colSums(x = GetAssayData(object = object, slot = "counts") > 0)
+  ))
+}
+
+globalVariables(
+  names = c("start", "end", "seqnames", "strand", "gene_biotype"),
+  package = "Signac"
+)
+#' @importFrom GenomicRanges makeGRangesFromDataFrame
+#' @import data.table
+CollapseToLongestTranscript <- function(ranges) {
+  range.df <- as.data.table(x = ranges)
+  range.df$strand <- as.character(x = range.df$strand)
+  range.df$strand <- ifelse(
+    test = range.df$strand == "*",
+    yes = "+",
+    no = range.df$strand
+  )
+  collapsed <- range.df[
+    , .(unique(seqnames),
+        min(start),
+        max(end),
+        strand[[1]],
+        gene_biotype[[1]]),
+    "gene_name"
+  ]
+  colnames(x = collapsed) <- c(
+    "gene_name", "seqnames", "start", "end", "strand", "gene_biotype"
+  )
+  gene.ranges <- makeGRangesFromDataFrame(
+    df = collapsed,
+    keep.extra.columns = TRUE
+  )
+  return(gene.ranges)
+}
+
+# Chunk GRanges
+#
+# Split a genomic ranges object into evenly sized chunks
+# @param granges A GRanges object
+# @param nchunk Number of chunks to split into
+#
+# @return Returns a list of GRanges objects
+# @examples
+# ChunkGRanges(blacklist_hg19, n = 10)
+ChunkGRanges <- function(granges, nchunk) {
+  if (length(x = granges) < nchunk) {
+    nchunk <- length(x = granges)
+  }
+  chunksize <- as.integer(x = (length(granges) / nchunk))
+  range.list <- sapply(X = seq_len(length.out = nchunk), FUN = function(x) {
+    chunkupper <- (x * chunksize)
+    if (x == 1) {
+      chunklower <- 1
+    } else {
+      chunklower <- ((x - 1) * chunksize) + 1
+    }
+    if (x == nchunk) {
+      chunkupper <- length(x = granges)
+    }
+    return(granges[chunklower:chunkupper])
+  })
+  return(range.list)
+}
+
+# Extract cell
+#
+# Extract cell barcode from list of tab delimited character
+# vectors (output of \code{\link{scanTabix}})
+#
+# @param x List of character vectors
+# @return Returns a string
+#' @importFrom stringi stri_split_fixed
+ExtractCell <- function(x) {
+  if (length(x = x) == 0) {
+    return(NULL)
+  } else {
+    x <- stri_split_fixed(str = x, pattern = "\t")
+    return(unlist(x = x)[5 * (seq_along(along.with = x)) - 1])
+  }
+}
+
+# Run groupCommand for the first n lines, convert the cell barcodes in the file
+# to the cell names that appear in the fragment object, and subset the output to
+# cells present in the fragment object
+#
+# Every cell in the fragment file will be present in the output dataframe. If
+# the cell information is not set, every cell barcode that appears in the first
+# n lines will be present.
+#
+# @param fragments A Fragment object
+# @param n Number of lines to read from the beginning of the fragment file
+# @param verbose Display messages
+#
+# @return Returns a data.frame
+ExtractFragments <- function(fragments, n = NULL, verbose = TRUE) {
+  fpath <- GetFragmentData(object = fragments, slot = "path")
+  fpath <- normalizePath(path = fpath, mustWork = TRUE)
+  cells <- GetFragmentData(object = fragments, slot = "cells")
+  if (!is.null(x = cells)) {
+    cells.use <- as.character(x = cells)
+  } else {
+    cells.use <- NULL
+  }
+  verbose <- as.logical(x = verbose)
+  n <- SetIfNull(x = n, y = 0)
+  n <- as.integer(x = n)
+  counts <- groupCommand(
+    fragments = fpath,
+    some_whitelist_cells = cells.use,
+    max_lines = n,
+    verbose = verbose
+  )
+  # convert cell names
+  if (!is.null(x = cells)) {
+    # every cell will be present in the output, even if 0 counts
+    converter <- names(x = cells)
+    names(x = converter) <- cells
+    counts$CB <- converter[counts$CB]
+  }
+  return(counts)
+}
+
+# convert region argument to genomic coordinates
+# region can be a string, name of a gene, or GRanges object
+FindRegion <- function(
+  object,
+  region,
+  sep = c("-", "-"),
+  assay = NULL,
+  extend.upstream = 0,
+  extend.downstream = 0
+) {
+  if (!is(object = region, class2 = "GRanges")) {
+    # if separators are present in the string and we can convert the
+    # start to a number, assume we're using genomic coordinates
+    if (all(sapply(X = sep, FUN = grepl, x = region))) {
+      region <- StringToGRanges(regions = region, sep = sep)
+    } else {
+      region <- LookupGeneCoords(object = object, assay = assay, gene = region)
+      if (is.null(x = region)) {
+        stop("Gene not found")
+      }
+    }
+  }
+  region <- suppressWarnings(expr = Extend(
+    x = region,
+    upstream = extend.upstream,
+    downstream = extend.downstream
+  )
+  )
+  return(region)
+}
+
+# GetReadsInRegion
+#
+# Extract reads for each cell within a given genomic region or set of regions
+#
+# @param cellmap A mapping of cell names in the fragment file to cell names in
+# the Seurat object. Should be a named vector where each element is a cell name
+# that appears in the fragment file and the name of each element is the
+# name of the cell in the Seurat object.
+# @param region A genomic region, specified as a string in the format
+# 'chr:start-end'. Can be a vector of regions.
+# @param tabix.file A TabixFile object.
+# @param cells Cells to include. Default is all cells present in the object.
+# @param verbose Display messages
+# @param ... Additional arguments passed to \code{\link{StringToGRanges}}
+#
+#' @importFrom Rsamtools TabixFile scanTabix
+#' @importFrom Seurat Idents
+#' @importFrom fastmatch fmatch
+#
+# @return Returns a data frame
+GetReadsInRegion <- function(
+  cellmap,
+  region,
+  tabix.file,
+  cells = NULL,
   verbose = TRUE,
   ...
 ) {
-  assay.1 <- SetIfNull(x = assay.1, y = DefaultAssay(object = object.1))
-  assay.2 <- SetIfNull(x = assay.2, y = DefaultAssay(object = object.2))
-  intersecting.regions <- GetIntersectingFeatures(
-    object.1 = object.1,
-    object.2 = object.2,
-    assay.1 = assay.1,
-    assay.2 = assay.2,
-    sep.1 = sep.1,
-    sep.2 = sep.2,
-    distance = distance,
+  file.to.object <- names(x = cellmap)
+  names(x = file.to.object) <- cellmap
+
+  if (verbose) {
+    message("Extracting reads in requested region")
+  }
+  if (!is(object = region, class2 = "GRanges")) {
+    region <- StringToGRanges(regions = region, ...)
+  }
+  # remove regions that aren't in the fragment file
+  common.seqlevels <- intersect(
+    x = seqlevels(x = region),
+    y = seqnamesTabix(file = tabix.file)
+  )
+  region <- keepSeqlevels(
+    x = region,
+    value = common.seqlevels,
+    pruning.mode = "coarse"
+  )
+  reads <- scanTabix(file = tabix.file, param = region)
+  reads <- TabixOutputToDataFrame(reads = reads)
+  reads <- reads[
+    fmatch(x = reads$cell, table = cellmap, nomatch = 0L) > 0,
+  ]
+  # convert cell names to match names in object
+  reads$cell <- file.to.object[reads$cell]
+  if (!is.null(x = cells)) {
+    reads <- reads[reads$cell %in% cells, ]
+  }
+  if (nrow(reads) == 0) {
+    return(reads)
+  }
+  reads$length <- reads$end - reads$start
+  return(reads)
+}
+
+# Get vector of cell names and associated identity
+# @param object A Seurat object
+# @param group.by Identity class to group cells by
+# @param idents which identities to include
+# @return Returns a named vector
+#' @importFrom Seurat Idents
+GetGroups <- function(
+  object,
+  group.by,
+  idents
+) {
+  if (is.null(x = group.by)) {
+    obj.groups <- Idents(object = object)
+  } else {
+    obj.md <- object[[group.by]]
+    obj.groups <- obj.md[, 1]
+    names(obj.groups) <- rownames(x = obj.md)
+  }
+  if (!is.null(idents)) {
+    obj.groups <- obj.groups[obj.groups %in% idents]
+  }
+  return(obj.groups)
+}
+
+# Run GetReadsInRegion for a list of Fragment objects
+# concatenate the output dataframes and return
+# @param object A Seurat or ChromatinAssay object
+# @param region Genomic region to extract fragments for
+# @param fragment.list A list of Fragment objects. If NULL, pull them from the
+# object
+# @param assay Name of assay to use if supplying a Seurat object
+#' @importFrom Seurat DefaultAssay
+#' @importFrom Rsamtools TabixFile
+#' @importFrom GenomeInfoDb keepSeqlevels
+MultiGetReadsInRegion <- function(
+  object,
+  region,
+  fragment.list = NULL,
+  assay = NULL,
+  ...
+) {
+  if (inherits(x = object, what = "Seurat")) {
+    # pull the assay
+    assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+    object <- object[[assay]]
+  }
+  fragment.list <- SetIfNull(
+    x = fragment.list,
+    y = Fragments(object = object)
+  )
+  res <- data.frame()
+  for (i in seq_along(along.with = fragment.list)) {
+    tbx.path <- GetFragmentData(object = fragment.list[[i]], slot = "path")
+    cellmap <- GetFragmentData(object = fragment.list[[i]], slot = "cells")
+    tabix.file <- TabixFile(file = tbx.path)
+    open(con = tabix.file)
+    reads <- GetReadsInRegion(
+      cellmap = cellmap,
+      region = region,
+      tabix.file = tabix.file,
+      ...
+    )
+    res <- rbind(res, reads)
+    close(con = tabix.file)
+  }
+  return(res)
+}
+
+# Generate matrix of integration sites
+#
+# Generates a cell-by-position matrix of Tn5 integration sites
+# centered on a given region (usually a DNA sequence motif). This
+# matrix can be used for downstream footprinting analysis.
+#
+# @param cellmap A mapping of cell names in the fragment file to cell names in
+# the Seurat object. Should be a named vector where each element is a cell name
+# that appears in the fragment file and the name of each element is the
+# name of the cell in the Seurat object.
+# @param region A set of GRanges containing the regions of interest
+# @param cells Which cells to include in the matrix. If NULL, use all cells in
+# the cellmap
+# @param tabix.file A \code{\link[Rsamtools]{TabixFile}} object.
+# @param verbose Display messages
+#' @importFrom Matrix sparseMatrix
+#' @importFrom Rsamtools TabixFile
+#' @importMethodsFrom GenomicRanges width start end
+# @return Returns a sparse matrix
+SingleFileCutMatrix <- function(
+  cellmap,
+  region,
+  cells = NULL,
+  tabix.file,
+  verbose = TRUE
+) {
+  # if multiple regions supplied, must be the same width
+  cells <- SetIfNull(x = cells, y = names(x = cellmap))
+  fragments <- GetReadsInRegion(
+    region = region,
+    cellmap = cellmap,
+    cells = cells,
+    tabix.file = tabix.file,
     verbose = verbose
   )
-  regions.obj1 <- intersecting.regions[[1]]
-  regions.obj2 <- intersecting.regions[[2]]
-  # TODO add option to keep non-overlapping regions
-  if (regions.use == 1) {
-    region.names <- regions.obj1
-  } else if (regions.use == 2) {
-    region.names <- regions.obj2
+  start.lookup <- start(x = region)
+  names(start.lookup) <- seq_along(region)
+  # if there are no reads in the region
+  # create an empty matrix of the correct dimension
+  if (nrow(x = fragments) == 0) {
+    cut.matrix <- sparseMatrix(
+      i = NULL,
+      j = NULL,
+      dims = c(length(x = cells), width(x = region))
+    )
   } else {
-    # TODO add option to rename regions as coordinate merge
-    # TODO add option to rename regions as coordinate intersect
-    stop("Choose either 1 or 2 for regions.use")
+    fragstarts <- start.lookup[fragments$ident] + 1
+    cut.df <- data.frame(
+      position = c(fragments$start, fragments$end) - fragstarts,
+      cell = c(fragments$cell, fragments$cell),
+      stringsAsFactors = FALSE
+    )
+    cut.df <- cut.df[
+      (cut.df$position > 0) & (cut.df$position <= width(x = region)[[1]]),
+      ]
+    cell.vector <- seq_along(along.with = cells)
+    names(x = cell.vector) <- cells
+    cell.matrix.info <- cell.vector[cut.df$cell]
+    cut.matrix <- sparseMatrix(
+      i = cell.matrix.info,
+      j = cut.df$position,
+      x = 1,
+      dims = c(length(x = cells), width(x = region)[[1]])
+    )
   }
-  combined.meta.data <- data.frame(
-    row.names = c(colnames(object.1, colnames(object.2)))
-  )
-  new.idents <- c()
-  for (object in c(object.1, object.2)) {
-    old.meta.data <- object[[]]
-    if (
-      any(!colnames(x = old.meta.data) %in% colnames(x = combined.meta.data))
-    ) {
-      cols.to.add <- colnames(
-        x = old.meta.data
-      )[!colnames(x = old.meta.data) %in% colnames(x = combined.meta.data)]
-      combined.meta.data[, cols.to.add] <- NA
-    }
-    i <- sapply(X = old.meta.data, FUN = is.factor)
-    old.meta.data[i] <- lapply(X = old.meta.data[i], FUN = as.vector)
-    combined.meta.data[
-      rownames(x = old.meta.data),
-      colnames(x = old.meta.data)
-    ] <- old.meta.data
-    new.idents <- c(new.idents, as.vector(Idents(object = object)))
+  rownames(x = cut.matrix) <- cells
+  colnames(x = cut.matrix) <- seq_len(width(x = region)[[1]])
+  return(cut.matrix)
+}
+
+# Generate matrix of integration sites
+#
+# Generates a cell-by-position matrix of Tn5 integration sites.
+#
+# @param object A Seurat object
+# @param region A GRanges object containing the region of interest
+# @param assay A name of assay to use. Must be a \code{\link{ChromatinAssay}}
+# containing a list of \code{\link{Fragment}} objects.
+# @param cells Which cells to include in the matrix. If NULL (default), use all
+# cells in the object
+# @param group.by Name of grouping variable to use
+# @param verbose Display messages
+# @return Returns a sparse matrix
+#' @importFrom Seurat DefaultAssay
+#' @importFrom Rsamtools TabixFile seqnamesTabix
+#' @importFrom GenomeInfoDb keepSeqlevels
+CutMatrix <- function(
+  object,
+  region,
+  group.by = NULL,
+  assay = NULL,
+  cells = NULL,
+  verbose = TRUE
+) {
+  # run SingleFileCutMatrix for each fragment file and combine results
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  cells <- SetIfNull(x = cells, y = colnames(x = object))
+  fragments <- Fragments(object = object[[assay]])
+  res <- list()
+  for (i in seq_along(along.with = fragments)) {
+    fragment.path <- GetFragmentData(object = fragments[[i]], slot = "path")
+    cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
+    tabix.file <- TabixFile(file = fragment.path)
+    open(con = tabix.file)
+    # remove regions that aren't in the fragment file
+    seqnames.in.both <- intersect(
+      x = seqnames(x = region),
+      y = seqnamesTabix(file = tabix.file)
+    )
+    region <- keepSeqlevels(
+      x = region,
+      value = seqnames.in.both,
+      pruning.mode = "coarse"
+    )
+    cm <- SingleFileCutMatrix(
+      region = region,
+      cellmap = cellmap,
+      tabix.file = tabix.file,
+      cells = cells,
+      verbose = FALSE
+    )
+    close(con = tabix.file)
+    res[[i]] <- cm
   }
-  names(x = new.idents) <- rownames(x = combined.meta.data)
-  new.idents <- factor(x = new.idents)
-  if (verbose) {
-    message("Constructing merged object")
-  }
-  counts.1 <- GetAssayData(
-    object = object.1,
-    assay = assay.1,
-    slot = 'counts'
-  )[regions.obj1, ]
-  counts.2 <- GetAssayData(
-    object = object.2,
-    assay = assay.2,
-    slot = 'counts'
-  )[regions.obj2, ]
-  rownames(counts.1) <- region.names
-  rownames(counts.2) <- region.names
-  allcounts <- cbind(counts.1, counts.2)
-  assays <- list()
-  new.assay <- CreateAssayObject(counts = allcounts, ...)
-  assays[[new.assay.name]] <- new.assay
-  merged.object <- new(
-    Class = 'Seurat',
-    assays = assays,
-    meta.data = combined.meta.data,
-    active.assay = new.assay.name,
-    active.ident = new.idents,
-    project.name = project,
-    version = packageVersion(pkg = 'Seurat')
-  )
-  return(merged.object)
+  res <- Reduce(f = `+`, x = res)
+  return(res)
 }
 
 # Generate cut matrix for many regions
@@ -1039,35 +1518,60 @@ MergeWithRegions <- function(
 #
 # @param object A Seurat object
 # @param regions A set of GRanges
+# @param group.by Name of grouping variable to use
+# @param fragments A list of Fragment objects
 # @param assay Name of the assay to use
 # @param cells Vector of cells to include
 # @param verbose Display messages
-#' @importFrom Rsamtools TabixFile
+#' @importFrom Rsamtools TabixFile seqnamesTabix
+#' @importFrom Seurat DefaultAssay
+#' @importFrom GenomeInfoDb keepSeqlevels
 MultiRegionCutMatrix <- function(
   object,
   regions,
+  group.by = NULL,
+  fragments = NULL,
   assay = NULL,
   cells = NULL,
   verbose = FALSE
 ) {
-  fragment.path <- GetFragments(object = object, assay = assay)
-  tabix.file <- TabixFile(file = fragment.path)
-  open(con = tabix.file)
-  cm.list <- lapply(
-    X = seq_along(along.with = regions),
-    FUN = function(x) {
-      CutMatrix(
-        object = object,
-        assay = assay,
-        tabix.file = tabix.file,
-        region = regions[x, ],
-        verbose = verbose
-      )
-    }
-  )
-  cm <- Reduce(f = `+`, x = cm.list)
-  close(con = tabix.file)
-  return(cm)
+  if (inherits(x = object, what = "Seurat")) {
+    assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+    object <- object[[assay]]
+  }
+  fragments <- SetIfNull(x = fragments, y = Fragments(object = object))
+  res <- list()
+  if (length(x = fragments) == 0) {
+    stop("No fragment files present in assay")
+  }
+  for (i in seq_along(along.with = fragments)) {
+    frag.path <- GetFragmentData(object = fragments[[i]], slot = "path")
+    cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
+    tabix.file <- TabixFile(file = frag.path)
+    open(con = tabix.file)
+    # remove regions that aren't in the fragment file
+    common.seqlevels <- intersect(
+      x = seqlevels(x = regions),
+      y = seqnamesTabix(file = tabix.file)
+    )
+    regions <- keepSeqlevels(
+      x = regions,
+      value = common.seqlevels,
+      pruning.mode = "coarse"
+    )
+    cm <- SingleFileCutMatrix(
+      cellmap = cellmap,
+      tabix.file = tabix.file,
+      region = regions,
+      verbose = verbose
+    )
+    close(con = tabix.file)
+    res[[i]] <- cm
+  }
+  # each matrix contains data for different cells at same positions
+  # bind all matrices together
+  res <- do.call(what = rbind, args = res)
+  return(res)
 }
 
 # Create cut site pileup matrix
@@ -1077,8 +1581,6 @@ MultiRegionCutMatrix <- function(
 #
 # @param object A Seurat object
 # @param regions A GRanges object
-# @param upstream Number of bases to extend upstream
-# @param downstream Number of bases to extend downstream
 # @param assay Name of the assay to use
 # @param cells Which cells to include. If NULL, use all cells
 # @param verbose Display messages
@@ -1086,19 +1588,10 @@ MultiRegionCutMatrix <- function(
 CreateRegionPileupMatrix <- function(
   object,
   regions,
-  upstream = 1000,
-  downstream = 1000,
   assay = NULL,
   cells = NULL,
   verbose = TRUE
 ) {
-  # extend upstream and downstream from midpoint
-  regions <- Extend(
-    x = regions,
-    upstream = upstream,
-    downstream = downstream,
-    from.midpoint = TRUE
-  )
   # split into strands
   on_plus <- strand(x = regions) == "+" | strand(x = regions) == "*"
   plus.strand <- regions[on_plus, ]
@@ -1130,7 +1623,10 @@ CreateRegionPileupMatrix <- function(
   full.matrix <- cut.matrix.plus + cut.matrix.minus[, rev(
     x = colnames(x = cut.matrix.minus)
   )]
-  colnames(full.matrix) <- -upstream:downstream
+  # rename so 0 is center
+  region.width <- width(x = regions)[[1]]
+  midpoint <- round(x = (region.width / 2))
+  colnames(full.matrix) <- seq_len(length.out = region.width) - midpoint
   return(full.matrix)
 }
 
@@ -1164,25 +1660,40 @@ ApplyMatrixByGroup <- function(
       stop("If normalizing counts, supply group scale factors")
     }
   }
-  results <- list()
-  all.groups <- unique(x = groups)
+  all.groups <- as.character(x = unique(x = groups))
+  if (any(is.na(x = groups))) {
+    all.groups <- c(all.groups, NA)
+  }
+  ngroup <- length(x = all.groups)
+  npos <- ncol(x = mat)
+
+  group <- unlist(
+    x = lapply(X = all.groups, FUN = function(x) rep(x, npos))
+  )
+  position <- rep(x = as.numeric(x = colnames(x = mat)), ngroup)
+  count <- vector(mode = "numeric", length = npos * ngroup)
+
   for (i in seq_along(along.with = all.groups)) {
-    pos.cells <- names(x = groups)[groups == all.groups[[i]]]
+    grp <- all.groups[[i]]
+    if (is.na(x = grp)) {
+      pos.cells <- names(x = groups)[is.na(x = groups)]
+    } else {
+      pos.cells <- names(x = groups)[groups == all.groups[[i]]]
+    }
     if (length(x = pos.cells) > 1) {
       totals <- fun(x = mat[pos.cells, ])
     } else {
       totals <- mat[pos.cells, ]
     }
-    results[[i]] <- data.frame(
-      group = all.groups[[i]],
-      count = totals,
-      position = as.numeric(colnames(x = mat)),
-      stringsAsFactors = FALSE
-    )
+    count[((i - 1) * npos + 1):((i * npos))] <- totals
   }
-  coverages <- as.data.frame(
-    x = do.call(what = rbind, args = results), stringsAsFactors = FALSE
+
+  # construct dataframe
+  coverages <- data.frame(
+    "group" = group, "position" = position, "count" = count,
+    stringsAsFactors = FALSE
   )
+
   if (normalize) {
     scale.factor <- SetIfNull(
       x = scale.factor, y = median(x = group.scale.factors)
@@ -1202,35 +1713,331 @@ ApplyMatrixByGroup <- function(
 # @param reads List of character vectors (the output of \code{\link{scanTabix}})
 # @param record.ident Add a column recording which region the reads overlapped
 # with
-#' @importFrom data.table rbindlist
+#' @importFrom data.table rbindlist fread
 #' @importFrom utils read.table
+#' @importFrom S4Vectors elementNROWS
 # @return Returns a data.frame
 TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
-  # TODO rewrite this without rbindlist
-  df.list <- lapply(X = seq_along(along.with = reads), FUN = function(x) {
-    if (length(x = reads[[x]]) == 0) {
-      return(NULL)
-    }
-    df <- read.table(
-      file = textConnection(object = reads[[x]]),
-      header = FALSE,
-      sep = "\t",
-      stringsAsFactors = FALSE,
-      comment.char = ""
+  if (record.ident) {
+    nrep <- elementNROWS(x = reads)
+  }
+  reads <- unlist(x = reads, use.names = FALSE)
+  df <- fread(
+    text = reads,
+    sep = "\t",
+    header = FALSE,
+    col.names = c("chr", "start", "end", "cell", "count"),
+    fill = TRUE
+  )
+  if (nrow(x = df) != length(x = reads)) {
+    df <- df[!is.na(x = df$start), ]
+  }
+  if (record.ident) {
+    df$ident <- rep(x = seq_along(along.with = nrep), nrep)
+  }
+  return(df)
+}
+
+# Extract delimiter information from a string.
+#
+# From Seurat
+#
+# Parses a string (usually a cell name) and extracts fields based on a delimiter
+#
+# @param string String to parse.
+# @param field Integer(s) indicating which field(s) to extract. Can be a vector
+# multiple numbers.
+# @param delim Delimiter to use, set to underscore by default.
+#
+# @return A new string, that parses out the requested fields, and (if multiple),
+# rejoins them with the same delimiter
+#' @importFrom stringi stri_split_fixed
+#
+ExtractField <- function(string, field = 1, delim = "_") {
+  fields <- as.numeric(
+    x = unlist(x = stri_split_fixed(
+      str = as.character(x = field), pattern = ",")
     )
-    colnames(x = df) <- c('chr', 'start', 'end', 'cell', 'count')
-    if (record.ident) {
-      df$ident <- x
+  )
+  if (length(x = fields) == 1) {
+    return(stri_split_fixed(str = string, pattern = delim)[[1]][field])
+  }
+  return(paste(
+    stri_split_fixed(str = string, pattern = delim)[[1]][fields],
+    collapse = delim))
+}
+
+# Set a default value if an object is null
+#
+# @param x An object to set if it's null
+# @param y The value to provide if x is null
+# @return Returns y if x is null, otherwise returns x.
+SetIfNull <- function(x, y) {
+  if (is.null(x = x)) {
+    return(y)
+  } else {
+    return(x)
+  }
+}
+
+# Check if a matrix is empty
+#
+# From Seurat
+#
+# Takes a matrix and asks if it's empty (either 0x0 or 1x1 with a value of NA)
+#
+# @param x A matrix
+#
+# @return Whether or not \code{x} is empty
+#
+IsMatrixEmpty <- function(x) {
+  matrix.dims <- dim(x = x)
+  matrix.na <- all(matrix.dims == 1) && all(is.na(x = x))
+  return(all(matrix.dims == 0) || matrix.na)
+}
+
+# Find matrix indices corresponding to overlapping genomic ranges
+# @param assay.list A list of ChromatinAssay objects
+# @param all.ranges Combined genomic ranges for all objects. This should be the
+# set of ranges that \code{reduce} was run on to get \code{reduced.ranges}
+# @param reduced.ranges A set of reduced genomic ranges containing the rev.map
+# information
+GetRowsToMerge <- function(assay.list, all.ranges, reduced.ranges) {
+  revmap <- as.vector(x = reduced.ranges$revmap)
+
+  # get indices of ranges that changed
+  revmap.lengths <- sapply(X = revmap, FUN = length)
+  changed.ranges <- which(x = revmap.lengths > 1)
+  grange.string <- GRangesToString(grange = reduced.ranges[changed.ranges])
+
+  # preallocate
+  offsets <- list()
+  results <- list()
+  matrix.indices <- vector(
+    mode = "numeric",
+    length = length(x = changed.ranges) * 2
+  )
+  granges <- vector(
+    mode = "character",
+    length = length(x = changed.ranges) * 2
+  )
+  for (i in seq_along(along.with = assay.list)) {
+    indices <- which(x = all.ranges$dataset == i)
+    offsets[[i]] <- min(indices) - 1
+    offsets[[i]][[2]] <- max(indices) + 1
+    results[['matrix']][[i]] <- matrix.indices
+    results[['grange']][[i]] <- granges
+  }
+
+  # find sets of ranges for each dataset
+  counter <- vector(mode = "numeric", length = length(x = assay.list))
+  for (x in seq_along(along.with = changed.ranges)) {
+    idx <- changed.ranges[[x]]
+    all.assay <- revmap[[idx]]
+    for (i in seq_along(along.with = assay.list)) {
+      this.assay <- all.assay[
+        (all.assay > offsets[[i]][1]) & (all.assay < offsets[[i]][2])
+      ]
+      mat.idx <- this.assay - offsets[[i]][1]
+      mat.idx <- mat.idx[mat.idx < offsets[[i]][2] & mat.idx > 0]
+      for (y in seq_along(along.with = mat.idx)) {
+        counter[i] <- counter[i] + 1
+        results[['matrix']][[i]][[counter[i]]] <- mat.idx[[y]]
+        results[['grange']][[i]][[counter[i]]] <- grange.string[[x]]
+      }
     }
-    return(df)
-  })
-  return(rbindlist(l = df.list))
+  }
+  # remove trailing extra values in each vector
+  for (i in seq_along(along.with = assay.list)) {
+    results$matrix[[i]] <- results$matrix[[i]][1:counter[i]]
+    results$grange[[i]] <- results$grange[[i]][1:counter[i]]
+  }
+  return(results)
+}
+
+# Merge rows of count matrices with overlapping genomic ranges
+# @param mergeinfo The output of GetRowsToMerge: a list of matrix indices
+#  and matrix rownames to be merged for each assay
+# @param assay.list List of assays
+# @param verbose Display messages
+#' @importFrom utils txtProgressBar setTxtProgressBar
+#' @importFrom Matrix rowSums
+#' @importMethodsFrom Matrix t
+MergeOverlappingRows <- function(mergeinfo, assay.list, verbose = TRUE) {
+  merge.counts <- list()
+  for (i in seq_along(along.with = assay.list)) {
+    # get count matrix
+    counts <- GetAssayData(object = assay.list[[i]], slot = "counts")
+
+    # transpose for faster access since matrix is column major
+    counts <- t(x = counts)
+
+    # get rows to merge
+    mrows <- mergeinfo$matrix[[i]]
+    new.rownames <- mergeinfo$grange[[i]]
+    nrep <- rle(x = new.rownames)
+
+    # allocate
+    todelete <- c()
+    newmat <- vector(
+      mode = "list",
+      length = length(new.rownames)
+    )
+    newmat.names <- vector(
+      mode = "character",
+      length = length(x = new.rownames)
+    )
+    x <- 1  # row index for matrix
+    y <- 1  # counter for list index
+    if (verbose & length(x = nrep$lengths) > 1) {
+      pb <- txtProgressBar(
+        min = 1,
+        max = length(x = nrep$lengths),
+        style = 3,
+        file = stderr()
+      )
+    }
+    to.rename.idx <- vector(
+      mode = "numeric", length = length(x = nrep$lengths)
+    )
+    to.rename.names <- vector(
+      mode = "character", length = length(x = nrep$lengths)
+    )
+    idx.counter <- 0
+    for (j in seq_along(along.with = nrep$lengths)) {
+      rowrun <- nrep$lengths[[j]]
+      new.feature.name <- nrep$values[[j]]
+      index.range <- x:(x + rowrun - 1)
+      matrix.index <- mrows[index.range]
+      if (rowrun < 2) {
+        idx.counter <- idx.counter + 1
+        # no merge needed, just rename row in-place
+        # store row indices and names to do the change in one step at the end
+        to.rename.idx[idx.counter] <- matrix.index
+        to.rename.names[idx.counter] <- new.feature.name
+      } else {
+        # merge multiple rows and add to list
+        newmat[[y]] <- rowSums(x = counts[, matrix.index])
+        # mark merged row for deletion
+        todelete <- c(todelete, matrix.index)
+        # add row names
+        newmat.names[y] <- new.feature.name
+        y <- y + 1
+      }
+      if (verbose & length(x = nrep$lengths) > 1) {
+        setTxtProgressBar(pb = pb, value = j)
+      }
+      x <- x + rowrun
+    }
+    # remove extra elements in vectors
+    to.rename.idx <- to.rename.idx[1:idx.counter]
+    to.rename.names <- to.rename.names[1:idx.counter]
+    newmat <- newmat[1:(y - 1)]
+    newmat.names <- newmat.names[1:(y - 1)]
+
+    # transpose back
+    counts <- t(x = counts)
+
+    # rename matrix rows that weren't merged
+    rownames(counts)[to.rename.idx] <- to.rename.names
+
+    if (y == 1) {
+      # no rows were merged, can return counts
+      merge.counts[[i]] <- counts
+    } else {
+      # construct sparse matrix
+      if (verbose) {
+        message("\nBinding matrix rows")
+      }
+      merged.mat <- Reduce(f = rbind, x = newmat)
+      rownames(merged.mat) <- newmat.names
+      merged.mat <- as(object = merged.mat, Class = "dgCMatrix")
+
+      # remove rows from count matrix that were merged
+      mat.rows <- seq_len(length.out = nrow(x = counts))
+      tokeep <- setdiff(mat.rows, todelete)
+      counts <- counts[tokeep, ]
+
+      # add new merged rows to counts
+      counts <- rbind(counts, merged.mat)
+      merge.counts[[i]] <- counts
+    }
+  }
+  return(merge.counts)
+}
+
+#' @importFrom Matrix sparseMatrix
+PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
+  # construct sparse matrix for one set of regions
+  cells.in.regions <- GetCellsInRegion(
+    tabix = tabix,
+    region = regions,
+    cells = cells,
+    sep = sep
+  )
+  if (is.null(x = cells.in.regions$cells) & !is.null(x = cells)) {
+    # zero for everything
+    featmat <- sparseMatrix(
+      dims = c(length(x = regions), length(x = cells)),
+      i = NULL,
+      j = NULL
+    )
+    rownames(x = featmat) <- GRangesToString(grange = regions)
+    colnames(x = featmat) <- cells
+    return(featmat)
+  } else if (is.null(x = cells.in.regions$cells)) {
+    # no fragments, no cells
+    featmat <- sparseMatrix(
+      dims = c(length(x = regions), 0),
+      i = NULL,
+      j = NULL
+    )
+    rownames(x = featmat) <- GRangesToString(grange = regions)
+    return(featmat)
+  } else {
+    all.cells <- unique(x = cells.in.regions$cells)
+    all.features <- unique(x = cells.in.regions$region)
+    cell.lookup <- seq_along(along.with = all.cells)
+    feature.lookup <- seq_along(along.with = all.features)
+    names(x = cell.lookup) <- all.cells
+    names(x = feature.lookup) <- all.features
+    matrix.features <- feature.lookup[cells.in.regions$region]
+    matrix.cells <- cell.lookup[cells.in.regions$cells]
+    nrep <- length(x = cells.in.regions$cells)
+    rm(cells.in.regions)
+    featmat <- sparseMatrix(
+      i = matrix.features,
+      j = matrix.cells,
+      x = rep(x = 1, nrep)
+    )
+    featmat <- as(Class = "dgCMatrix", object = featmat)
+    rownames(x = featmat) <- names(x = feature.lookup)
+    colnames(x = featmat) <- names(x = cell.lookup)
+  }
+
+  # add zero columns for missing cells
+  if (!is.null(x = cells)) {
+    featmat <- AddMissingCells(x = featmat, cells = cells)
+  }
+  # add zero rows for missing features
+  all.features <- GRangesToString(grange = regions, sep = sep)
+  missing.features <- all.features[!(all.features %in% rownames(x = featmat))]
+  if (length(x = missing.features) > 0) {
+    null.mat <- sparseMatrix(
+      i = c(),
+      j = c(),
+      dims = c(length(x = missing.features), ncol(x = featmat))
+    )
+    rownames(x = null.mat) <- missing.features
+    featmat <- rbind(featmat, null.mat)
+  }
+  return(featmat)
 }
 
 # Convert PFMMatrix to
 # @param x A PFMatrix
 PFMatrixToList <- function(x) {
-  if (!requireNamespace('TFBSTools', quietly = TRUE)) {
+  if (!requireNamespace("TFBSTools", quietly = TRUE)) {
     stop("Please install TFBSTools.
          https://www.bioconductor.org/packages/TFBSTools/")
   }
@@ -1239,90 +2046,12 @@ PFMatrixToList <- function(x) {
   return(list("matrix" = position.matrix, "name" = name.use))
 }
 
-#' Unify genomic ranges
-#'
-#' Create a unified set of non-overlapping genomic ranges
-#' from multiple Seurat objects containing single-cell
-#' chromatin data.
-#'
-#' @param object.list A list of Seurat objects
-#' @param mode Function to use when combining genomic ranges. Can be "reduce"
-#' (default) or "disjoin".
-#' See \code{\link[GenomicRanges]{reduce}}
-#' and \code{\link[GenomicRanges]{disjoin}}
-#' for more information on these functions.
-#' @param sep Separators to use to extract genomic ranges from object row names.
-#' To specify different separators for different objects, pass a list of length
-#' equal to the length of \code{object.list}.
-#'
-#' @importFrom GenomicRanges reduce disjoin
-#' @export
-#' @return Returns a GRanges object
-#' @examples
-#' UnifyPeaks(object.list = list(atac_small, atac_small))
-UnifyPeaks <- function(object.list, mode = 'reduce', sep = c(":", "-")) {
-  if (inherits(x = sep, what = "list")) {
-    if (length(x = sep) != length(x = object.list)) {
-      stop("Must specify separators for each object in the input list")
-    }
-  } else {
-    sep <- rep(x = list(sep), length(x = object.list))
-  }
-  peak.ranges <- list()
-  for (i in seq_along(along.with = object.list)) {
-    peak.ranges[[i]] <- StringToGRanges(
-      regions = rownames(object.list[[i]]), sep = sep[[i]]
-    )
-  }
-  peak.ranges <- Reduce(f = c, x = peak.ranges)
-  if (mode == 'reduce') {
-    return(reduce(x = peak.ranges))
-  } else if (mode == 'disjoin') {
-    return(disjoin(x = peak.ranges))
-  } else {
-    stop("Unknown mode requested")
-  }
+#' @importFrom Matrix rowMeans rowSums
+SparseRowVar <- function(x) {
+  return(rowSums(x = (x - rowMeans(x = x)) ^ 2) / (dim(x = x)[2] - 1))
 }
 
-#' Subset matrix rows and columns
-#'
-#' Subset the rows and columns of a matrix by removing
-#' rows and columns with less than the specified number of
-#' non-zero elements.
-#'
-#' @param mat A matrix
-#' @param min.rows Minimum number of non-zero elements for
-#' the row to be retained
-#' @param min.cols Minimum number of non-zero elements for
-#' the column to be retained
-#' @param max.row.val Maximum allowed value in a row for the
-#' row to be retained. If NULL, don't set any limit.
-#' @param max.col.val Maximum allowed value in a column for
-#' the column to be retained. If NULL, don't set any limit.
-#'
-#' @return Returns a matrix
-#' @export
-#' @importFrom Matrix colSums rowSums
-#' @examples
-#' SubsetMatrix(mat = volcano)
-SubsetMatrix <- function(
-  mat,
-  min.rows = 1,
-  min.cols = 1,
-  max.row.val = 10,
-  max.col.val = NULL
-) {
-  rowcount <- rowSums(mat > 0)
-  colcount <- colSums(mat > 0)
-  keeprows <- rowcount > min.rows
-  keepcols <- colcount > min.cols
-  if (!is.null(x = max.row.val)) {
-    rowmax <- apply(X = mat, MARGIN = 1, FUN = max)
-    keeprows <- keeprows & (rowmax < max.row.val)
-  }
-  if (!is.null(x = max.col.val)) {
-    colmax <- apply(X = mat, MARGIN = 2, FUN = max)
-    keepcols <- keepcols & (colmax < max.col.val)
-  }
-  return(mat[keeprows, keepcols])
+#' @importMethodsFrom Matrix t
+SparseColVar <- function(x) {
+  return(SparseRowVar(x = t(x = x)))
 }

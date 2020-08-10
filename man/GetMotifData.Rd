@@ -3,7 +3,7 @@
 \name{GetMotifData}
 \alias{GetMotifData}
 \alias{GetMotifData.Motif}
-\alias{GetMotifData.Assay}
+\alias{GetMotifData.ChromatinAssay}
 \alias{GetMotifData.Seurat}
 \title{Retrieve a motif matrix}
 \usage{
@@ -11,7 +11,7 @@ GetMotifData(object, ...)
 
 \method{GetMotifData}{Motif}(object, slot = "data", ...)
 
-\method{GetMotifData}{Assay}(object, slot = "data", ...)
+\method{GetMotifData}{ChromatinAssay}(object, slot = "data", ...)
 
 \method{GetMotifData}{Seurat}(object, assay = NULL, slot = "data", ...)
 }
@@ -31,8 +31,10 @@ Returns a \code{\link[Seurat]{Seurat}} object
 Get motif matrix for given assay
 }
 \examples{
-motif.obj <- GetMotifObject(object = atac_small[['peaks']])
+motif.obj <- Seurat::GetAssayData(
+  object = atac_small[['peaks']], slot = "motifs"
+)
 GetMotifData(object = motif.obj)
-GetMotifData(object = atac_small[['peaks']])
 GetMotifData(object = atac_small)
 }
+\concept{motifs}

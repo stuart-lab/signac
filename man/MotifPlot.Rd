@@ -2,7 +2,7 @@
 % Please edit documentation in R/visualization.R
 \name{MotifPlot}
 \alias{MotifPlot}
-\title{MotifPlot}
+\title{Plot DNA sequence motif}
 \usage{
 MotifPlot(object, motifs, assay = NULL, use.names = TRUE, ...)
 }
@@ -21,11 +21,14 @@ MotifPlot(object, motifs, assay = NULL, use.names = TRUE, ...)
 Returns a \code{\link[ggplot2]{ggplot}} object
 }
 \description{
-Plot motifs
+Plot position weight matrix or position frequency matrix for different DNA
+sequence motifs.
 }
 \examples{
 \donttest{
-motif.obj <- GetMotifObject(atac_small)
+motif.obj <- Seurat::GetAssayData(atac_small, slot = "motifs")
 MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
 }
 }
+\concept{motifs}
+\concept{visualization}

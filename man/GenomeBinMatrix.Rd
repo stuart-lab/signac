@@ -2,14 +2,14 @@
 % Please edit documentation in R/preprocessing.R
 \name{GenomeBinMatrix}
 \alias{GenomeBinMatrix}
-\title{GenomeBinMatrix}
+\title{Genome bin matrix}
 \usage{
 GenomeBinMatrix(
   fragments,
   genome,
   cells = NULL,
   binsize = 5000,
-  chunk = 50,
+  process_n = 2000,
   sep = c("-", "-"),
   verbose = TRUE
 )
@@ -27,8 +27,8 @@ in the fragments file}
 
 \item{binsize}{Size of the genome bins to use}
 
-\item{chunk}{Number of chunks to use when processing the fragments file.
-Fewer chunks may enable faster processing, but will use more memory.}
+\item{process_n}{Number of regions to load into memory at a time, per thread.
+Processing more regions at once can be faster but uses more memory.}
 
 \item{sep}{Vector of separators to use for genomic string. First element is
 used to separate chromosome and coordinates, second separator is used to
@@ -47,13 +47,15 @@ This function bins the genome and calls \code{\link{FeatureMatrix}} to
 construct a bin x cell matrix.
 }
 \examples{
-gn <- 780007
-names(gn) <- 'chr1'
+genome <- 780007
+names(genome) <- 'chr1'
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fragments <- CreateFragmentObject(fpath)
 GenomeBinMatrix(
-  fragments = fpath,
-  genome = gn,
-  binsize = 1000,
-  chunk = 1
+  fragments = fragments,
+  genome = genome,
+  binsize = 1000
 )
 }
+\concept{preprocessing}
+\concept{utilities}

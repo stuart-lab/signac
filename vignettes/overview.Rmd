@@ -1,0 +1,131 @@
+---
+title: "Vignettes overview"
+output: html_document
+---
+
+# Guided analyses
+
+The following guided analyses demonstrate a standard end-to-end analysis 
+pipeline for different types of single-cell chromatin data.
+
+## [Human peripheral blood mononuclear cells](pbmc_vignette.html)
+
+In this tutorial we analyze a human peripheral blood mononuclear cell (PBMC)
+dataset of ~7,000 cells.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/pbmc.png")
+```
+
+## [Mouse cortical brain cells](mouse_brain_vignette.html)
+
+In this tutorial we analyze a dataset of ~3,500 cortical neurons from the adult mouse
+brain.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/mouse.png")
+```
+
+## [Joint scRNA-seq and scATAC-seq analysis](snareseq.html)
+
+In this tutorial we demonstrate strategies to analyze a SNARE-seq dataset where
+we have paired measurements of gene expression and DNA accessibility from the 
+same mouse brain nuclei.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/snareseq.png")
+```
+
+## [Joint single-cell mitochondrial DNA genotyping and DNA accessibility analysis](mito.html)
+
+In this tutorial we identify clonotypes using mitochondrial DNA mutations identified
+from scATAC-seq data, and jointly analyze clonal cellular relationships and DNA
+accessibility patterns in a human colorectal cancer sample.
+
+```{r echo=FALSE, out.width="50%"}
+knitr::include_graphics("./assets/mito.png")
+```
+
+
+# How-to
+
+The following short vignettes demonstrate how to perform more specialized 
+analysis tasks.
+
+## [Integration and label transfer](integration.html)
+
+Here we demonstrate two different approaches for the integration of multiple 
+scATAC-seq datasets, as well as label transfer from a reference scATAC-seq
+dataset to an unlabelled query dataset.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/integration.png")
+```
+
+## [DNA sequence motif enrichment analysis](motif_vignette.html)
+
+In this vignette we demonstrate how to perform DNA sequence motif enrichment
+analysis using Signac.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/motifs.png")
+```
+
+## [Transcription factor footprinting analysis](footprint.html)
+
+In this vignette we demonstrate how to perform motif footprinting analysis,
+using a human hematopoietic stem cell dataset as an example.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/footprint.png")
+```
+
+## [Building trajectories with Monocle 3](monocle.html)
+
+Here we demonstrate how to build trajectories using scATAC-seq data with the 
+Monocle 3 package and conversion functions present in SeuratWrappers.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/monocle.png")
+```
+
+## [Finding co-accessible sites with Cicero](cicero.html)
+
+Here we demonstrate how to find co-accessible peaks in scATAC-seq data using the
+Cicero package and coversion functions present in SeuratWrappers.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/cicero.png")
+```
+
+## [Data visualization](visualization.html)
+
+Here we demonstrate how to create genome browser-style plots using single-cell
+chromatin data.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/viz.png")
+```
+
+# Object interaction
+
+The following vignettes demonstrate how to interact with the Seurat object and 
+object classes defined in the Signac package.
+
+## [Merging datasets](merging.html)
+
+This vignette outlines strategies for merging different single-cell chromatin
+datasets together. For information about data integration methods, see the 
+integration vignette instead.
+
+## [Data structures and object interaction](data_structures.html)
+
+This vignette details each class defined in Signac, the methods that operate on
+each class, and provides some examples of how to interact with these objects to
+perform common analysis tasks.
+
+## [Parallel and distributed computing](future.html)
+
+This vignette demonstrates how to enable parallel computing in Signac and Seurat,
+and gives an example of the amount of speedup that might be expected from 
+enabling paralellization. 

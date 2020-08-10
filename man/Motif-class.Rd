@@ -6,7 +6,8 @@
 \alias{Motif}
 \title{The Motif class}
 \description{
-The Motif class stores DNA motif information
+The Motif class is designed to store DNA sequence motif information,
+including motif PWMs or PFMs, motif positions, and metadata.
 }
 \section{Slots}{
 
@@ -20,8 +21,12 @@ genomic feature contains the motif, and 0 otherwise.}
 
 \item{\code{motif.names}}{A list containing the name of each motif}
 
+\item{\code{positions}}{A \code{\link[GenomicRanges]{GRangesList}} object containing
+exact positions of each motif.}
+
 \item{\code{meta.data}}{A dataframe for storage of additional
 information related to each motif. This could include the
 names of proteins that bind the motif.}
 }}
 
+\concept{motifs}

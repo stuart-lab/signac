@@ -4,20 +4,16 @@
 \alias{UnifyPeaks}
 \title{Unify genomic ranges}
 \usage{
-UnifyPeaks(object.list, mode = "reduce", sep = c(":", "-"))
+UnifyPeaks(object.list, mode = "reduce")
 }
 \arguments{
-\item{object.list}{A list of Seurat objects}
+\item{object.list}{A list of Seurat objects or ChromatinAssay objects}
 
 \item{mode}{Function to use when combining genomic ranges. Can be "reduce"
 (default) or "disjoin".
 See \code{\link[GenomicRanges]{reduce}}
 and \code{\link[GenomicRanges]{disjoin}}
 for more information on these functions.}
-
-\item{sep}{Separators to use to extract genomic ranges from object row names.
-To specify different separators for different objects, pass a list of length
-equal to the length of \code{object.list}.}
 }
 \value{
 Returns a GRanges object
@@ -30,3 +26,5 @@ chromatin data.
 \examples{
 UnifyPeaks(object.list = list(atac_small, atac_small))
 }
+\concept{preprocessing}
+\concept{utilities}

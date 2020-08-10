@@ -1,12 +1,52 @@
+#' Convert objects to a ChromatinAssay
+#' @param x An object to convert to class \code{\link{ChromatinAssay}}
+#' @param ... Arguments passed to other methods
+#' @rdname as.ChromatinAssay
+#' @export as.ChromatinAssay
+as.ChromatinAssay <- function(x, ...) {
+  UseMethod(generic = "as.ChromatinAssay", object = x)
+}
 
-#' Add a Motif object to a Seurat object
+#' Compute allele frequencies per cell
 #'
-#' @param object A Seurat object
-#' @rdname AddMotifObject
-#' @return Returns a \code{\link[Seurat]{Seurat}} object
+#' Collapses allele counts for each strand and normalize by the total number of
+#' counts at each nucleotide position.
+#'
+#' @param object A Seurat object, Assay, or matrix
+#' @param variants A character vector of informative variants to keep. For
+#' example, \code{c("627G>A","709G>A","1045G>A","1793G>A")}.
+#' @param ... Arguments passed to other methods
+#'
 #' @export
-AddMotifObject <- function(object, ...) {
-  UseMethod(generic = 'AddMotifObject', object = object)
+#' @return Returns a \code{\link[Seurat]{Seurat}} object with a new assay
+#' containing the allele frequencies for the informative variants.
+AlleleFreq <- function(object, ...) {
+  UseMethod(generic = "AlleleFreq", object = object)
+}
+
+#' Annotation
+#'
+#' Get the annotation from a ChromatinAssay
+#'
+#' @param ... Arguments passed to other methods
+#' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
+#' if the annotation data is present, otherwise returns NULL
+#' @rdname Annotation
+#' @export Annotation
+Annotation <- function(object, ...) {
+  UseMethod(generic = "Annotation", object = object)
+}
+
+#' @param value A value to set. Can be NULL, to remove the current annotation
+#' information, or a \code{\link[GenomicRanges]{GRanges}} object. If a
+#' \code{GRanges} object is supplied and the genome information is stored in the
+#' assay, the genome of the new annotations must match the genome of the assay.
+#'
+#' @rdname Annotation
+#' @export Annotation<-
+#'
+"Annotation<-" <- function(object, ..., value) {
+  UseMethod(generic = 'Annotation<-', object = object)
 }
 
 #' Binarize counts
@@ -19,7 +59,36 @@ AddMotifObject <- function(object, ...) {
 #' @rdname BinarizeCounts
 #' @export BinarizeCounts
 BinarizeCounts <- function(object, ...) {
-  UseMethod(generic = 'BinarizeCounts', object = object)
+  UseMethod(generic = "BinarizeCounts", object = object)
+}
+
+#' Set and get cell barcode information for a Fragment object
+#'
+#' @param x A Seurat object
+#' @param value A character vector of cell barcodes
+#' @param ... Arguments passed to other methods
+#' @export Cells<-
+"Cells<-" <- function(x, ..., value) {
+  UseMethod(generic = "Cells<-", object = x)
+}
+
+#' Convert between motif name and motif ID
+#'
+#' Converts from motif name to motif ID or vice versa. To convert common names
+#' to IDs, use the \code{name} parameter. To convert IDs to common names, use
+#' the \code{id} parameter.
+#'
+#' @param object A Seurat, ChromatinAssay, or Motif object
+#' @param ... Arguments passed to other methods
+#'
+#' @return Returns a character vector with the same length and order as the
+#' input. Any names or IDs that were not found will be stored as \code{NA}.
+#'
+#' @rdname ConvertMotifID
+#' @export ConvertMotifID
+#'
+ConvertMotifID <- function(object, ...) {
+  UseMethod(generic = "ConvertMotifID", object = object)
 }
 
 #' Find most frequently observed features
@@ -34,7 +103,53 @@ BinarizeCounts <- function(object, ...) {
 #' @rdname FindTopFeatures
 #' @export FindTopFeatures
 FindTopFeatures <- function(object, ...) {
-  UseMethod(generic = 'FindTopFeatures', object = object)
+  UseMethod(generic = "FindTopFeatures", object = object)
+}
+
+#' Transcription factor footprinting analysis
+#'
+#' Compute the normalized observed/expected Tn5 insertion frequency
+#' for each position surrounding a set of motif instances.
+#'
+#' @param object A Seurat or ChromatinAssay object
+#' @param ... Arguments passed to other methods
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
+#' @rdname Footprint
+#' @export Footprint
+Footprint <- function(object, ...) {
+  UseMethod(generic = "Footprint", object = object)
+}
+
+#' Get the Fragment objects
+#'
+#' @param ... Arguments passed to other methods
+#' @return Returns a list of \code{\link{Fragment}} objects. If there are
+#' no Fragment objects present, returns an empty list.
+#' @rdname Fragments
+#' @export Fragments
+Fragments <- function(object, ...) {
+  UseMethod(generic = "Fragments", object = object)
+}
+
+#' @param value A \code{\link{Fragment}} object or list of Fragment objects
+#'
+#' @rdname Fragments
+#' @export Fragments<-
+#'
+"Fragments<-" <- function(object, ..., value) {
+  UseMethod(generic = 'Fragments<-', object = object)
+}
+
+#' Compute Tn5 insertion bias
+#'
+#' Counts the Tn5 insertion frequency for each DNA hexamer.
+#' @param object A Seurat or ChromatinAssay object
+#' @param ... Arguments passed to other methods
+#' @return Returns a Seurat object
+#' @rdname InsertionBias
+#' @export InsertionBias
+InsertionBias <- function(object, ...) {
+  UseMethod(generic = "InsertionBias", object = object)
 }
 
 #' Retrieve a motif matrix
@@ -47,20 +162,54 @@ FindTopFeatures <- function(object, ...) {
 #' @rdname GetMotifData
 #' @export GetMotifData
 GetMotifData <- function(object, ...) {
-  UseMethod(generic = 'GetMotifData', object = object)
+  UseMethod(generic = "GetMotifData", object = object)
 }
 
-#' Retrieve a Motif object
+#' Get or set a motif information
 #'
-#' Get motif object from given assay
+#' Get or set the Motif object for a Seurat object or ChromatinAssay.
 #'
+#' @param ... Arguments passed to other methods
+#' @rdname Motifs
+#' @export Motifs
+Motifs <- function(object, ...) {
+  UseMethod(generic = "Motifs", object = object)
+}
+
+#' @param value A \code{\link{Motif}} object
+#' @rdname Motifs
+#' @export Motifs<-
+"Motifs<-" <- function(object, ..., value) {
+  UseMethod(generic = 'Motifs<-', object = object)
+}
+
+#' Get or set links information
+#'
+#' Get or set the genomic link information for a Seurat object or ChromatinAssay
+#'
+#' @param ... Arguments passed to other methods
+#' @rdname Links
+#' @export Links
+Links <- function(object, ...) {
+  UseMethod(generic = "Links", object = object)
+}
+
+#' @param value A \code{\link[GenomicRanges]{GRanges}} object
+#' @rdname Links
+#' @export Links<-
+"Links<-" <- function(object, ..., value) {
+  UseMethod(generic = "Links<-", object = object)
+}
+
+#' Identify mitochondrial variants
+#'
+#' Identify mitochondrial variants present in single cells.
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
-#' @return Returns a \code{\link{Motif}} object
-#' @rdname GetMotifObject
-#' @export GetMotifObject
-GetMotifObject <- function(object, ...) {
-  UseMethod(generic = 'GetMotifObject', object = object)
+#' @rdname IdentifyVariants
+#' @export IdentifyVariants
+IdentifyVariants <- function(object, ...) {
+  UseMethod(generic = "IdentifyVariants", object = object)
 }
 
 #' Compute base composition information for genomic ranges
@@ -74,7 +223,33 @@ GetMotifObject <- function(object, ...) {
 #' @rdname RegionStats
 #' @export RegionStats
 RegionStats <- function(object, ...) {
-  UseMethod(generic = 'RegionStats', object = object)
+  UseMethod(generic = "RegionStats", object = object)
+}
+
+#' Run chromVAR
+#'
+#' Wrapper to run \code{\link[chromVAR]{chromVAR}} on an assay with a motif
+#' object present. Will return a new Seurat assay with the motif activities
+#' (the deviations in chromatin accessibility across the set of regions) as
+#' a new assay.
+#'
+#' See the chromVAR documentation for more information:
+#' \url{https://greenleaflab.github.io/chromVAR/index.html}
+#'
+#' See the chromVAR paper: \url{https://www.nature.com/articles/nmeth.4401}
+#'
+#' @param object A Seurat object
+#' @param genome A BSgenome object
+#' @param motif.matrix A peak x motif matrix. If NULL, pull the peak x motif
+#' matrix from a Motif object stored in the assay.
+#' @param verbose Display messages
+#' @param ... Additional arguments passed to
+#' \code{\link[chromVAR]{getBackgroundPeaks}}
+#' @return Returns a \code{\link[Seurat]{Seurat}} object with a new assay
+#' @rdname RunChromVAR
+#' @export RunChromVAR
+RunChromVAR <- function(object, ...) {
+  UseMethod(generic = "RunChromVAR", object = object)
 }
 
 #' Run singular value decomposition
@@ -87,20 +262,25 @@ RegionStats <- function(object, ...) {
 #' @rdname RunSVD
 #' @export RunSVD
 RunSVD <- function(object, ...) {
-  UseMethod(generic = 'RunSVD', object = object)
+  UseMethod(generic = "RunSVD", object = object)
 }
 
 #' Compute the term-frequency inverse-document-frequency
 #'
-#' Run term frequency inverse document frequency (TF-IDF) normalization
+#' Run term frequency inverse document frequency (TF-IDF) normalization on a
+#' matrix.
+#'
+#' Four different TF-IDF methods are implemented. We recommend using method 1
+#' (the default).
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @rdname RunTFIDF
 #' @export RunTFIDF
+#' @references \url{https://en.wikipedia.org/wiki/Latent_semantic_analysis#Latent_semantic_indexing}
 RunTFIDF <- function(object, ...) {
-  UseMethod(generic = 'RunTFIDF', object = object)
+  UseMethod(generic = "RunTFIDF", object = object)
 }
 
 #' Set motif data
@@ -113,5 +293,5 @@ RunTFIDF <- function(object, ...) {
 #' @rdname SetMotifData
 #' @export SetMotifData
 SetMotifData <- function(object, ...) {
-  UseMethod(generic = 'SetMotifData', object = object)
+  UseMethod(generic = "SetMotifData", object = object)
 }

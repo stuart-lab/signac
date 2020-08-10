@@ -1,0 +1,209 @@
+---
+title: "Joint scATAC-seq and scRNA-seq analysis"
+date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
+output: html_document
+---
+
+In this vignette we will analyse a single-cell co-assay dataset measuring gene
+expression and DNA accessibility in the same cells. This dataset was published
+by [Chen, Lake, and Zhang (2019)](https://www.nature.com/articles/s41587-019-0290-0)
+and uses a technology called SNARE-seq. We will look at a dataset from the adult
+mouse brain, and the raw data can be downloaded from NCBI GEO here:
+https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE126074 
+
+As the fragment files for this dataset are not publicly available we have
+re-mapped the raw data to the mm10 genome and created a fragment file using
+[Sinto](https://timoast.github.io/sinto/).
+
+The fragment file can be downloaded
+here: https://www.dropbox.com/s/se3uag0cvld4xqg/fragments.sort.bed.gz?dl=0
+
+The fragment file index can be downloaded here: https://www.dropbox.com/s/kvb8fiewkjz3kzf/fragments.sort.bed.gz.tbi?dl=0
+
+Code used to create the fragment file from raw data is available here:
+https://github.com/timoast/SNARE-seq 
+
+## Data loading
+
+First we create a Seurat object containing two different assays, one containing
+the gene expression data and one containing the DNA accessibility data.
+
+To load the count data, we can use the `Read10X()` function from Seurat by first
+placing the `barcodes.tsv.gz`, `matrix.mtx.gz`, and `features.tsv.gz` files into
+a separate folder.
+
+```{r message=FALSE, warning=FALSE}
+library(Signac)
+library(Seurat)
+library(ggplot2)
+library(EnsDb.Mmusculus.v79)
+set.seed(1234)
+
+# load processed data matrices for each assay
+rna <- Read10X("/home/stuartt/data/snare-seq/GSE126074_AdBrainCortex_rna/", gene.column = 1)
+atac <- Read10X("/home/stuartt/data/snare-seq/GSE126074_AdBrainCortex_atac/", gene.column = 1)
+fragments <- "/home/stuartt/data/snare-seq/fragments.sort.bed.gz"
+
+# create a Seurat object and add the assays
+snare <- CreateSeuratObject(counts = rna)
+snare[['ATAC']] <- CreateChromatinAssay(
+  counts = atac,
+  sep = c(":", "-"),
+  genome = "mm10",
+  fragments = fragments
+)
+
+# extract gene annotations from EnsDb
+annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Mmusculus.v79)
+
+# change to UCSC style since the data was mapped to hg19
+seqlevelsStyle(annotations) <- 'UCSC'
+genome(annotations) <- "mm10"
+
+# add the gene information to the object
+Annotation(snare[["ATAC"]]) <- annotations
+```
+
+## Quality control
+
+```{r message=FALSE, warning=FALSE}
+DefaultAssay(snare) <- "ATAC"
+snare <- TSSEnrichment(snare)
+snare <- NucleosomeSignal(snare)
+snare$blacklist_fraction <- FractionCountsInRegion(
+  object = snare,
+  assay = 'ATAC',
+  regions = blacklist_mm10
+)
+```
+
+```{r fig.width=12, message=FALSE, warning=FALSE}
+Idents(snare) <- "all"  # group all cells together, rather than by replicate
+VlnPlot(
+  snare,
+  features = c("nCount_RNA", "nCount_ATAC", "TSS.enrichment",
+               "nucleosome_signal", "blacklist_fraction"),
+  pt.size = 0.1,
+  ncol = 5
+)
+```
+
+```{r}
+snare <- subset(
+  x = snare,
+  subset = blacklist_fraction < 0.03 &
+    TSS.enrichment < 20 &
+    nCount_RNA > 800 &
+    nCount_ATAC > 500
+)
+snare
+```
+
+## Gene expression data processing
+
+Process gene expression data using Seurat
+
+```{r message=FALSE, warning=FALSE}
+DefaultAssay(snare) <- "RNA"
+
+snare <- FindVariableFeatures(snare, nfeatures = 3000)
+snare <- NormalizeData(snare)
+snare <- ScaleData(snare)
+snare <- RunPCA(snare, npcs = 30)
+snare <- RunUMAP(snare, dims = 1:30, reduction.name = "umap.rna")
+snare <- FindNeighbors(snare, dims = 1:30)
+snare <- FindClusters(snare, resolution = 0.5, algorithm = 3)
+p1 <- DimPlot(snare, label = TRUE) + NoLegend() + ggtitle("RNA UMAP")
+```
+
+## DNA accessibility data processing
+
+Process the DNA accessibility data using Signac
+
+```{r message=FALSE, warning=FALSE}
+DefaultAssay(snare) <- 'ATAC'
+
+snare <- FindTopFeatures(snare, min.cutoff = 10)
+snare <- RunTFIDF(snare)
+snare <- RunSVD(snare)
+snare <- RunUMAP(snare, reduction = 'lsi', dims = 2:30, reduction.name = 'umap.atac')
+p2 <- DimPlot(snare, reduction = 'umap.atac', label = TRUE) + NoLegend() + ggtitle("ATAC UMAP")
+```
+
+```{r fig.width=12, message=FALSE, warning=FALSE}
+p1 + p2
+```
+
+## Integration with scRNA-seq data
+
+Next we can annotate cell types in the dataset by transfering labels from an
+existing scRNA-seq dataset for the adult mouse brain, produced by the Allen
+Institute.
+
+```{r message=FALSE, warning=FALSE}
+# label transfer from Allen brain
+allen <- readRDS("/home/stuartt/github/chrom/vignette_data/allen_brain.rds")
+
+# use the RNA assay in the SNARE-seq data for integration with scRNA-seq
+DefaultAssay(snare) <- 'RNA'
+
+transfer.anchors <- FindTransferAnchors(
+  reference = allen,
+  query = snare,
+  dims = 1:30,
+  reduction = 'cca'
+)
+
+predicted.labels <- TransferData(
+  anchorset = transfer.anchors,
+  refdata = allen$subclass,
+  weight.reduction = snare[['pca']]
+)
+
+snare <- AddMetaData(object = snare, metadata = predicted.labels)
+```
+
+```{r}
+# label clusters based on predicted ID
+new.cluster.ids <- c(
+  "L2/3 IT",
+  "L4",
+  "L6 IT",
+  "L5 CT",
+  "L4",
+  "L5 PT",
+  "Pvalb",
+  "Sst",
+  "Astro",
+  "Oligo",
+  "Vip/Lamp5",
+  "L6 IT.2",
+  "L6b",
+  "NP"
+)
+names(x = new.cluster.ids) <- levels(x = snare)
+snare <- RenameIdents(object = snare, new.cluster.ids)
+snare$celltype <- Idents(snare)
+DimPlot(snare, group.by = 'celltype', label = TRUE, reduction = 'umap.rna')
+```
+
+## Jointly visualizing gene expression and DNA accessibility
+
+We can visualize both the gene expression and DNA accessibility information at
+the same time using the `CoveragePlot()` function. This makes it easy to compare
+DNA accessibility in a given region for different cell types and overlay gene 
+expression information for different genes.
+
+```{r message=FALSE, warning=FALSE, fig.width=12, fig.height=8}
+DefaultAssay(snare) <- "ATAC"
+CoveragePlot(snare, region = "chr2-22620000-22660000", features = "Gad2")
+```
+
+<details>
+  <summary>**Session Info**</summary>
+  
+```{r}
+sessionInfo()
+```
+
+</details>

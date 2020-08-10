@@ -1,0 +1,153 @@
+---
+title: "Finding co-accessible networks with Cicero"
+date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
+output: html_document
+---
+
+In this vignette we will demonstrate how to find cis-co-accessible networks with 
+Cicero using single-cell ATAC-seq data. Please see the
+Cicero [website](https://cole-trapnell-lab.github.io/cicero-release/docs_m3/)
+for information about Cicero.
+
+To facilitate conversion between the Seurat (used by Signac) and CellDataSet
+(used by Cicero) formats, we will use a conversion function in the 
+[SeuratWrappers](https://github.com/satijalab/seurat-wrappers) package available
+on GitHub.
+
+## Data loading
+
+We will use a single-cell ATAC-seq dataset containing human CD34+ hematopoietic
+stem and progenitor cells published by Satpathy and Granja et al. (2019, Nature
+Biotechnology). The processed datasets are available on NCBI GEO here:
+https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE129785
+
+This is the same dataset we used in the [trajectory](monocle.html)
+vignette, and we'll start by loading the dataset that was created in that
+vignette. See the [trajectory](monocle.html) vignette for the code used to
+create the object from raw data.
+
+First we will load their dataset and perform some standard preprocessing using
+Signac.
+
+```{r message=FALSE, warning=FALSE}
+library(Signac)
+library(Seurat)
+library(SeuratWrappers)
+library(ggplot2)
+library(patchwork)
+```
+
+```{r}
+# load the object created in the Monocle 3 vignette
+bone <- readRDS("../vignette_data/cd34.rds")
+```
+
+## Create the Cicero object
+
+We can find cis-co-accessible networks (CCANs) using [Cicero](https://cole-trapnell-lab.github.io/cicero-release/docs_m3/).
+
+The Cicero developers have developed a separate branch of the package that works
+with a Monocle 3 `CellDataSet` object. We will first make sure this branch is
+installed, then convert our `Seurat` object for the whole bone marrow dataset to
+`CellDataSet` format.
+
+```{r, eval=FALSE}
+# Install Cicero
+if (!requireNamespace("remotes", quietly = TRUE))
+    install.packages("remotes")
+remotes::install_github("cole-trapnell-lab/cicero-release", ref = "monocle3")
+```
+
+```{r message=FALSE, warning=FALSE}
+library(cicero)
+```
+
+```{r message=FALSE, warning=FALSE}
+# convert to CellDataSet format and make the cicero object
+bone.cds <- as.cell_data_set(x = bone)
+bone.cicero <- make_cicero_cds(bone.cds, reduced_coordinates = reducedDims(bone.cds)$UMAP)
+```
+
+## Find Cicero connections
+
+We'll demonstrate running Cicero here using just one chromosome to save some time,
+but the same workflow can be applied to find CCANs for the whole genome.
+
+Here we demonstrate the most basic workflow for running Cicero. This workflow
+can be broken down into several steps, each with parameters that can be changed
+from their defaults to fine-tune the Cicero algorithm depending on your data.
+We highly recommend that you explore the [Cicero website](https://cole-trapnell-lab.github.io/cicero-release/docs_m3/),
+[paper](https://doi.org/10.1016/j.molcel.2018.06.044), and documentation for
+more information.
+
+```{r, cache=TRUE}
+# get the chromosome sizes from the Seurat object
+genome <- seqlengths(bone)
+
+# use chromosome 1 to save some time
+# omit this step to run on the whole genome
+genome <- genome[1]
+
+# convert chromosome sizes to a dataframe
+genome.df <- data.frame("chr" = names(genome), "length" = genome)
+
+# run cicero
+conns <- run_cicero(bone.cicero, genomic_coords = genome.df, sample_num = 100)
+```
+
+```{r}
+head(conns)
+```
+
+## Find cis-co-accessible networks (CCANs)
+
+Now that we've found pairwise co-accessibility scores for each peak, we can now
+group these pairwise connections into larger co-accessible networks using the
+`generate_ccans()` function from Cicero.
+
+```{r}
+ccans <- generate_ccans(conns)
+```
+
+```{r}
+head(ccans)
+```
+
+## Add links to a Seurat object
+
+We can add the co-accessible links found by Cicero to the `ChromatinAssay`
+object in Seurat. Using the `ConnectionsToLinks()` function in Signac we can
+convert the outputs of Cicero to the format needed to store in the `links` slot
+in the `ChromatinAssay`, and add this to the object using the `Links<-`
+assignment function.
+
+```{r}
+links <- ConnectionsToLinks(conns = conns, ccans = ccans)
+Links(bone) <- links
+```
+
+We can now visualize these links along with DNA accessibility information by
+running `CoveragePlot()` for a region:
+
+```{r fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
+CoveragePlot(bone, region = "chr1-40189344-40252549")
+```
+
+```{r include=FALSE}
+saveRDS(object = bone, file = "../vignette_data/cd34.rds")
+```
+
+## Acknowledgements
+
+Thanks to the developers of Cicero, especially Cole Trapnell, Hannah Pliner, and
+members of the [Trapnell lab](https://cole-trapnell-lab.github.io/). If you use
+Cicero please cite the [Cicero paper](https://doi.org/10.1016/j.molcel.2018.06.044).
+
+<details>
+  <summary>**Session Info**</summary>
+  
+```{r}
+sessionInfo()
+```
+
+</details>

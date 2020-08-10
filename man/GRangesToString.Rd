@@ -22,3 +22,4 @@ Convert GRanges object to a vector of strings
 \examples{
 GRangesToString(grange = blacklist_hg19)
 }
+\concept{utilities}

@@ -7,9 +7,7 @@
 NucleosomeSignal(
   object,
   assay = NULL,
-  region = "chr1-1-249250621",
-  min.threshold = 147,
-  max.threshold = 294,
+  n = ncol(object) * 10000,
   verbose = TRUE,
   ...
 )
@@ -20,16 +18,12 @@ NucleosomeSignal(
 \item{assay}{Name of assay to use. Only required if a fragment path is not
 provided. If NULL, use the active assay.}
 
-\item{region}{Which region to use. Can be a GRanges region, a string, or a
-vector of strings. Default is human chromosome 1.}
-
-\item{min.threshold}{Lower bound for the mononucleosome size. Default is 147}
-
-\item{max.threshold}{Upper bound for the mononucleosome size. Default is 294}
+\item{n}{Number of lines to read from the fragment file. If NULL, read all
+lines. Default scales with the number of cells in the object.}
 
 \item{verbose}{Display messages}
 
-\item{...}{Additional arguments passed to \code{\link{GetReadsInRegion}}}
+\item{...}{Arguments passed to other functions}
 }
 \value{
 Returns a \code{\link[Seurat]{Seurat}} object with
@@ -43,6 +37,11 @@ fragments < 147 bp (nucleosome-free)
 }
 \examples{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-atac_small <- SetFragments(object = atac_small, file = fpath)
+Fragments(atac_small) <- CreateFragmentObject(
+  path = fpath,
+  cells = colnames(atac_small),
+  tolerance = 0.5
+)
 NucleosomeSignal(object = atac_small)
 }
+\concept{qc}

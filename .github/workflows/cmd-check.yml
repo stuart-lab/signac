@@ -12,7 +12,7 @@ name: R-CMD-check
 
 jobs:
   R-CMD-check:
-    
+
     if: "!contains(github.event.head_commit.message, 'ci-skip')"
 
     runs-on: ${{ matrix.config.os }}
@@ -24,19 +24,19 @@ jobs:
       matrix:
         config:
           - {os: macOS-latest, r: '3.6', bioc: '3.10'}
-          - {os: windows-latest, r: '3.6', bioc: '3.10'}
-            #- {os: macOS-latest, r: 'devel', bioc: 'devel'}
+          # - {os: windows-latest, r: '3.6', bioc: '3.10'}
+          # - {os: macOS-latest, r: 'devel', bioc: 'devel'}
           - {os: ubuntu-16.04, r: '3.6', bioc: '3.10', rspm: "https://demo.rstudiopm.com/all/__linux__/xenial/latest"}
-    
+
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       RSPM: ${{ matrix.config.rspm }}
-    
+
     steps:
       - uses: actions/checkout@v2
 
       - uses: r-lib/actions/setup-r@master
-        with: 
+        with:
           r-version: ${{ matrix.config.r }}
 
       - name: Query dependencies
@@ -53,7 +53,7 @@ jobs:
           path: ${{ env.R_LIBS_USER }}
           key: ${{ runner.os }}-r-${{ matrix.config.r }}-${{ hashFiles('depends.Rds') }}
           restore-keys: ${{ runner.os }}-r-${{ matrix.config.r }}-
-      
+
       - name: Install system dependencies
         if: runner.os == 'Linux'
         env:
@@ -70,9 +70,10 @@ jobs:
               install.packages("RCurl", type = "binary")
           }
           install.packages("Rcpp", repos="https://RcppCore.github.io/drat")
+          install.packages("https://cran.r-project.org/src/contrib/Archive/XML/XML_3.98-1.20.tar.gz", repos=NULL, type="source")
           install.packages(c("BiocManager", "glue"), Ncpu = 2L)
           BiocManager::install(version = '${{ matrix.config.bioc }}')
-          BiocManager::install(c("GenomeInfoDbData", "GO.db", "GenomicAlignments"), Ncpu = 2L)
+          BiocManager::install(c("GenomeInfoDbData", "GO.db", "GenomicAlignments", "ggbio", "biovizBase"), Ncpu = 2L)
           setRepositories(ind=1:2)
           remotes::install_deps(dependencies = TRUE, repos = getOption('repos'), Ncpu = 2L)
           remotes::install_cran("rcmdcheck", Ncpu = 2L)

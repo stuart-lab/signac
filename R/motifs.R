@@ -2,68 +2,44 @@
 #'
 NULL
 
-#' Run chromVAR
-#'
-#' Wrapper to run \code{\link[chromVAR]{chromVAR}} on an assay with a motif
-#' object present. Will return a new Seurat assay with the motif activities
-#' (the deviations in chromatin accessibility across the set of regions) as
-#' a new assay.
-#'
-#' See the chromVAR documentation for more information:
-#' \url{https://greenleaflab.github.io/chromVAR/index.html}
-#'
-#' See the chromVAR paper: \url{https://www.nature.com/articles/nmeth.4401}
-#'
-#' @param object A Seurat object
-#' @param genome A BSgenome object
-#' @param assay Name of assay to use
-#' @param new.assay.name Name of new assay used to store the chromVAR results.
-#' Default is "chromvar".
-#' @param motif.matrix A peak x motif matrix. If NULL, pull the peak x motif
-#' matrix from a Motif object stored in the assay.
-#' @param sep A length-2 character vector containing the separators passed to
-#' \code{\link{StringToGRanges}}.
-#' @param verbose Display messages
-#' @param ... Additional arguments passed to
-#' \code{\link[chromVAR]{getBackgroundPeaks}}
-#'
-#' @importFrom Seurat GetAssayData DefaultAssay CreateAssayObject
+#' @importFrom Seurat GetAssayData CreateAssayObject
 #' @importFrom Matrix rowSums
 #'
-#' @return Returns a \code{\link[Seurat]{Seurat}} object with a new assay
-#'
-#' @export
+#' @concept motifs
+#' @method RunChromVAR ChromatinAssay
+#' @rdname RunChromVAR
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
-#' RunChromVAR(object = atac_small, genome = BSgenome.Hsapiens.UCSC.hg19)
+#' RunChromVAR(object = atac_small[["peaks"]], genome = BSgenome.Hsapiens.UCSC.hg19)
 #' }
-RunChromVAR <- function(
+RunChromVAR.ChromatinAssay <- function(
   object,
   genome,
-  new.assay.name = 'chromvar',
   motif.matrix = NULL,
-  assay = NULL,
-  sep = c(":", "-"),
   verbose = TRUE,
   ...
 ) {
-  if (!requireNamespace('chromVAR', quietly = TRUE)) {
+  if (!requireNamespace("chromVAR", quietly = TRUE)) {
     stop("Please install chromVAR. https://greenleaflab.github.io/chromVAR/")
   }
-  if (!requireNamespace('SummarizedExperiment', quietly = TRUE)) {
+  if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
     stop("Please install SummarizedExperiment")
   }
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   motif.matrix <- SetIfNull(
     x = motif.matrix,
-    y = GetMotifData(object = object, assay = assay, slot = 'data')
+    y = GetMotifData(object = object, slot = "data")
   )
-  peak.matrix <- GetAssayData(object = object, assay = assay, slot = 'counts')
-  peak.matrix <- peak.matrix[rowSums(x = peak.matrix) > 0, ]
-  motif.matrix <- motif.matrix[rownames(x = peak.matrix), ]
-  peak.ranges <- StringToGRanges(regions = rownames(peak.matrix), sep = sep)
-
+  peak.matrix <- GetAssayData(object = object, slot = "counts")
+  if (!(all(peak.matrix@x == floor(peak.matrix@x)))) {
+    warning("Count matrix contains non-integer values.
+            ChromVAR should only be run on integer counts.")
+  }
+  idx.keep <- rowSums(x = peak.matrix) > 0
+  peak.matrix <- peak.matrix[idx.keep, ]
+  motif.matrix <- motif.matrix[idx.keep, ]
+  peak.ranges <- granges(x = object)
+  peak.ranges <- peak.ranges[idx.keep]
   chromvar.obj <- SummarizedExperiment::SummarizedExperiment(
     assays = list(counts = peak.matrix),
     rowRanges = peak.ranges
@@ -83,7 +59,7 @@ RunChromVAR <- function(
     ...
   )
   if (verbose) {
-    message("Computing motif deviations from background")
+    message("Computing deviations from background")
   }
   dev <- chromVAR::computeDeviations(
     object = chromvar.obj,
@@ -95,11 +71,48 @@ RunChromVAR <- function(
   if (verbose) {
     message("Constructing chromVAR assay")
   }
-  object[['chromvar']] <- CreateAssayObject(data = chromvar.z)
+  obj <- CreateAssayObject(data = chromvar.z)
+  return(obj)
+}
+
+#' @param assay Name of assay to use
+#' @param new.assay.name Name of new assay used to store the chromVAR results.
+#' Default is "chromvar".
+#' @method RunChromVAR Seurat
+#' @rdname RunChromVAR
+#' @importFrom Seurat DefaultAssay
+#' @concept motifs
+#' @examples
+#' \dontrun{
+#' library(BSgenome.Hsapiens.UCSC.hg19)
+#' RunChromVAR(object = atac_small, genome = BSgenome.Hsapiens.UCSC.hg19)
+#' }
+RunChromVAR.Seurat <- function(
+  object,
+  genome,
+  motif.matrix = NULL,
+  assay = NULL,
+  new.assay.name = "chromvar",
+  ...
+) {
+  if (!requireNamespace("chromVAR", quietly = TRUE)) {
+    stop("Please install chromVAR. https://greenleaflab.github.io/chromVAR/")
+  }
+  if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+    stop("Please install SummarizedExperiment")
+  }
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  chromvar.assay <- RunChromVAR(
+    object = object[[assay]],
+    genome = genome,
+    motif.matrix = motif.matrix,
+    ...
+  )
+  object[[new.assay.name]] <- chromvar.assay
   return(object)
 }
 
-globalVariables(names = 'pvalue', package = 'Signac')
+globalVariables(names = "pvalue", package = "Signac")
 #' FindMotifs
 #'
 #' Find motifs overrepresented in a given set of genomic features.
@@ -125,15 +138,17 @@ globalVariables(names = 'pvalue', package = 'Signac')
 #' @importFrom Matrix colSums
 #' @importFrom stats phyper
 #' @importFrom methods is
+#' @importFrom qvalue qvalue
 #'
 #' @export
+#' @concept motifs
 #' @examples
 #' de.motif <- head(rownames(atac_small))
 #' bg.peaks <- tail(rownames(atac_small))
 #' FindMotifs(
-#' object = atac_small,
-#' features = de.motif,
-#' background = bg.peaks
+#'   object = atac_small,
+#'   features = de.motif,
+#'   background = bg.peaks
 #' )
 FindMotifs <- function(
   object,
@@ -145,7 +160,7 @@ FindMotifs <- function(
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   background <- SetIfNull(x = background, y = rownames(x = object))
-  if (is(object = background, class2 = 'numeric')) {
+  if (is(object = background, class2 = "numeric")) {
     if (verbose) {
       message("Selecting background regions to match input
               sequence characteristics")
@@ -154,7 +169,7 @@ FindMotifs <- function(
       meta.feature = GetAssayData(
         object = object,
         assay = assay,
-        slot = 'meta.features'
+        slot = "meta.features"
       ),
       regions = features,
       n = background,
@@ -163,13 +178,13 @@ FindMotifs <- function(
     )
   }
   if (verbose) {
-    message('Testing motif enrichment in ', length(x = features), ' regions')
+    message("Testing motif enrichment in ", length(x = features), " regions")
   }
   motif.all <- GetMotifData(
-    object = object, assay = assay, slot = 'data'
+    object = object, assay = assay, slot = "data"
   )
   motif.names <- GetMotifData(
-    object = object, assay = assay, slot = 'motif.names'
+    object = object, assay = assay, slot = "motif.names"
   )
   query.motifs <- motif.all[features, ]
   background.motifs <- motif.all[background, ]
@@ -178,7 +193,7 @@ FindMotifs <- function(
   percent.observed <- query.counts / length(x = features) * 100
   percent.background <- background.counts / length(x = background) * 100
   fold.enrichment <- percent.observed / percent.background
-  p.list <- c()
+  p.list <- vector(mode = "numeric")
   for (i in seq_along(along.with = query.counts)) {
     p.list[[i]] <- phyper(
       q = query.counts[[i]] - 1,
@@ -188,6 +203,7 @@ FindMotifs <- function(
       lower.tail = FALSE
     )
   }
+  qv <- qvalue(p = p.list)
   results <- data.frame(
     motif = names(x = query.counts),
     observed = query.counts,
@@ -196,6 +212,7 @@ FindMotifs <- function(
     percent.background = percent.background,
     fold.enrichment = fold.enrichment,
     pvalue = p.list,
+    qvalue = qv$qvalues,
     motif.name = as.vector(
       x = unlist(x = motif.names[names(x = query.counts)])
     ),
@@ -204,6 +221,68 @@ FindMotifs <- function(
   if (nrow(x = results) == 0) {
     return(results)
   } else {
-    return(results[order(-results[, 7], -results[, 6]), ])
+    return(results[order(results[, 7], -results[, 6]), ])
   }
+}
+
+#' @param name A vector of motif names
+#' @param id A vector of motif IDs. Only one of \code{name} and \code{id} should
+#' be supplied
+#' @rdname ConvertMotifID
+#' @concept motifs
+#' @importFrom methods hasArg
+#' @export
+ConvertMotifID.default <- function(object, name, id, ...) {
+  if (hasArg(name = name) & hasArg(name = id)) {
+    stop("Supply either name or ID, not both")
+  } else if (!hasArg(name = name) & !(hasArg(name = id))) {
+    stop("Supply vector of names or IDs to convert")
+  } else {
+    if (hasArg(name = name)) {
+      # convert name to ID
+      # construct a new vector for conversion
+      name.to.id <- names(x = object)
+      names(x = name.to.id) <- object
+      converted.names <- as.vector(x = name.to.id[name])
+    } else {
+      # convert ID to name
+      tmp <- object[id]
+      # for missing motif, change from NULL to NA
+      tmp[is.na(x = names(x = tmp))] <- NA
+      converted.names <- unlist(x = tmp, use.names = FALSE)
+    }
+    return(converted.names)
+  }
+}
+
+#' @method ConvertMotifID Motif
+#' @rdname ConvertMotifID
+#' @concept motifs
+#' @export
+ConvertMotifID.Motif <- function(object, ...) {
+  motif.names <- GetMotifData(object = object, slot = "motif.names")
+  return(ConvertMotifID(object = motif.names, ...))
+}
+
+#' @method ConvertMotifID ChromatinAssay
+#' @rdname ConvertMotifID
+#' @concept motifs
+#' @export
+ConvertMotifID.ChromatinAssay <- function(object, ...) {
+  motifs <- Motifs(object = object)
+  return(ConvertMotifID(object = motifs, ...))
+}
+
+#' @param assay For \code{Seurat} objectd. Name of assay to use.
+#' If NULL, use the default assay
+#'
+#' @importFrom Seurat DefaultAssay
+#'
+#' @method ConvertMotifID Seurat
+#' @rdname ConvertMotifID
+#' @concept motifs
+#' @export
+ConvertMotifID.Seurat <- function(object, assay = NULL, ...) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  return(ConvertMotifID(object = object[[assay]], ...))
 }

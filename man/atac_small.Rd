@@ -6,7 +6,6 @@
 \title{A small example scATAC-seq dataset}
 \format{
 A Seurat object with the following assays
-
 \describe{
   \item{peaks}{A peak x cell dataset}
   \item{bins}{A 5 kb genome bin x cell dataset}
@@ -22,4 +21,5 @@ atac_small
 \description{
 A subsetted version of 10x Genomics 10k human (hg19) PBMC scATAC-seq dataset
 }
+\concept{data}
 \keyword{datasets}

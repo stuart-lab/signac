@@ -1,0 +1,84 @@
+---
+title: "Installation"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+To use Signac first make sure Bioconductor is installed:
+
+```{r}
+# Install bioconductor
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install()
+
+# To automatically install Bioconductor dependencies
+setRepositories(ind=1:2)
+```
+
+## Current release
+
+```{r}
+install.packages("Signac")
+```
+
+## Development version
+
+Unreleased versions of Signac can be installed from the GitHub repository using
+the devtools package:
+
+```{r}
+if (!requireNamespace("devtools", quietly = TRUE))
+    install.packages("devtools")
+devtools::install_github("timoast/signac", ref = "develop")
+```
+
+## Old versions
+
+Older Signac releases can be installed from the CRAN archive using devtools:
+
+```{r}
+if (!requireNamespace("devtools", quietly = TRUE))
+    install.packages("devtools")
+
+# replace "0.2.5" with the version that you want to install
+devtools::install_version(package = 'Signac', version = package_version('0.2.5'))
+```
+
+## Docker
+
+We provide docker images for Signac via [github packages](https://github.com/timoast/signac/packages).
+
+```{bash}
+docker pull docker.pkg.github.com/timoast/signac/signac:latest
+```
+
+## Installing genome assembly and gene annotation packages
+
+It can also be useful (but not essential) to install species-specific packages 
+containing genome and gene annotation information from Bioconductor.
+
+[This](https://useast.ensembl.org/info/website/archives/assembly.html) table
+from Ensembl provides a mapping of genome assembly to the corresponding gene
+annotation version.
+
+### Human hg19
+
+```{r}
+BiocManager::install(c('BSgenome.Hsapiens.UCSC.hg19', 'EnsDb.Hsapiens.v75'))
+```
+
+### Human hg38
+
+```{r}
+BiocManager::install(c('BSgenome.Hsapiens.UCSC.hg38', 'EnsDb.Hsapiens.v86'))
+```
+
+### Mouse mm10
+
+```{r}
+BiocManager::install(c('BSgenome.Mmusculus.UCSC.mm10', 'EnsDb.Mmusculus.v79'))
+```

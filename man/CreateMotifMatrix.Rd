@@ -2,7 +2,7 @@
 % Please edit documentation in R/preprocessing.R
 \name{CreateMotifMatrix}
 \alias{CreateMotifMatrix}
-\title{CreateMotifMatrix}
+\title{Create motif matrix}
 \usage{
 CreateMotifMatrix(
   features,
@@ -58,10 +58,11 @@ pwm <- getMatrixSet(
   opts = list(species = 9606, all_versions = FALSE)
 )
 motif.matrix <- CreateMotifMatrix(
-  features = StringToGRanges(rownames(atac_small), sep = c(":", "-")),
+  features = granges(atac_small),
   pwm = pwm,
-  genome = BSgenome.Hsapiens.UCSC.hg19,
-  sep = c(":", "-")
+  genome = BSgenome.Hsapiens.UCSC.hg19
 )
 }
 }
+\concept{motifs}
+\concept{preprocessing}

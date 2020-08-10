@@ -27,3 +27,4 @@ Calculate fraction of reads in peaks per cell
 \examples{
 FRiP(object = atac_small, peak.assay = 'peaks', bin.assay = 'bins')
 }
+\concept{qc}

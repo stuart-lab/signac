@@ -3,8 +3,8 @@ url: https://satijalab.org/signac
 navbar:
   title: "Signac"
   left:
-    - text: "Functions"
-      href: reference/index.html
+    - text: "Install"
+      href: articles/install.html
     - text: "News"
       href: news/index.html
     - text: "Get started"
@@ -13,23 +13,137 @@ navbar:
       href: articles/faq.html
     - text: "Vignettes"
       menu:
+        - text: "Vignettes overview"
+          href: articles/overview.html
+        - text: -------
         - text: "Human PBMCs"
           href: articles/pbmc_vignette.html
         - text: "Adult mouse brain"
           href: articles/mouse_brain_vignette.html
+        - text: "Joint RNA and ATAC analysis"
+          href: articles/snareseq.html
+        - text: "Mitochondrial genotyping"
+          href: articles/mito.html
         - text: "Motif analysis"
           href: articles/motif_vignette.html
         - text: "scATAC-seq integration"
           href: articles/integration.html
+        - text: "Trajectory analysis"
+          href: articles/monocle.html
+        - text: "Finding co-accessible sites"
+          href: articles/cicero.html
+        - text: "Transcription factor footprinting"
+          href: articles/footprint.html
+        - text: "Data visualization"
+          href: articles/visualization.html
+        - text: "Parallel computing"
+          href: articles/future.html
         - text: "Merging objects"
           href: articles/merging.html
+        - text: "Data structures and object interaction"
+          href: articles/data_structures.html
+    - text: "Reference"
+      href: reference/index.html
+    - text: "Archive"
+      href: articles/archive.html
   right:
     - icon: fa-github
       href: https://github.com/timoast/signac
 
+reference:
+  - title: "Object interaction"
+    desc: "Functions for interacting with a Signac classes"
+  - contents:
+    - has_concept("assay")
+
+  - title: "Preprocessing"
+    desc: "Functions for preprocessing single-cell data"
+  - contents:
+    - has_concept("preprocessing")
+
+  - title: "Quality control"
+    desc: "Functions for performing quality control"
+  - contents:
+    - has_concept("qc")
+
+  - title: "Dimension reduction"
+    desc: "Functions for reducing dimensions"
+  - contents:
+    - has_concept("dimension_reduction")
+
+  - title: "Visualization"
+    desc: "Functions for visualizing single-cell data"
+  - contents:
+    - has_concept("visualization")
+
+  - title: "Utilities"
+    desc: "Utility functions for working with single-cell data"
+  - contents:
+    - has_concept("utilities")
+
+  - title: "Footprinting"
+    desc: "Functions for performing TF footprinting"
+  - contents:
+    - has_concept("footprinting")
+
+  - title: "Motif analysis"
+    desc: "Functions for performing DNA sequence motif analysis"
+  - contents:
+    - has_concept("motifs")
+
+  - title: "Mitochondrial lineage tracing"
+    desc: "Functions for identifying cell lineages or clonotypes from mitochondrial mutations"
+  - contents:
+    - has_concept("mito")
+
+  - title: "Fragments"
+    desc: "Functions for working with fragment files"
+  - contents:
+    - has_concept("fragments")
+
+  - title: "Links"
+    desc: "Functions for working with genomic links"
+  - contents:
+    - has_concept("links")
+
+  - title: "Nearest methods"
+    desc: "Nearest genomic range methods for Signac-defined classes"
+  - contents:
+    - has_concept("nearest")
+
+  - title: "Inter-range methods"
+    desc: "Inter-range methods for Signac-defined classes"
+  - contents:
+    - has_concept("inter_range")
+
+  - title: "Overlap methods"
+    desc: "Overlap-range methods for Signac-defined classes"
+  - contents:
+    - has_concept("overlaps")
+
+  - title: "Coverage methods"
+    desc: "Genomic range coverage methods for Signac-defined classes"
+  - contents:
+    - has_concept("coverage")
+
+  - title: "Genomic range methods"
+    desc: "Genomic ranges methods for Signac-defined classes"
+  - contents:
+    - has_concept("granges")
+
+  - title: "Seqinfo methods"
+    desc: "Seqinfo methods for Signac-defined classes"
+  - contents:
+    - has_concept("seqinfo")
+
+  - title: "Data"
+    desc: "Datasets included in Signac"
+  - contents:
+    - has_concept("data")
+
 template:
   params:
-    bootswatch: readable
+    bootswatch: cosmo
     ganalytics: UA-144505535-1
     docsearch:
       api_key: 6f41d2052819b9deda704726769f8647
