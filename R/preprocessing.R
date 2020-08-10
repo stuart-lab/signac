@@ -441,10 +441,11 @@ FindTopFeatures.Seurat <- function(
 #' Calculate fraction of reads in peaks per cell
 #'
 #' @param object A Seurat object
-#' @param peak.assay Name of the assay containing a peak x cell matrix
-#' @param bin.assay Name of the assay containing a bin x cell matrix
-#' @param chromosome Which chromosome to use. Default is chromosome 1 ('chr1').
-#' If NULL, use the whole genome.
+#' @param assay Name of the assay containing a peak x cell matrix
+#' @param total.fragments Name of a metadata column containing the total number
+#' of sequenced fragments for each cell. This can be computed using the
+#' \code{\link{CountFragments}} function.
+#' @param col.name Name of column in metadata to store the FRiP information.
 #' @param verbose Display messages
 #'
 #' @importFrom Matrix colSums
@@ -454,37 +455,22 @@ FindTopFeatures.Seurat <- function(
 #' @concept qc
 #' @return Returns a \code{\link[Seurat]{Seurat}} object
 #' @examples
-#' FRiP(object = atac_small, peak.assay = 'peaks', bin.assay = 'bins')
+#' FRiP(object = atac_small, assay = 'peaks', total.fragments = "fragments")
 FRiP <- function(
   object,
-  peak.assay,
-  bin.assay,
-  chromosome = "chr1",
+  assay,
+  total.fragments,
+  col.name = "FRiP",
   verbose = TRUE
 ) {
   if (verbose) {
     message("Calculating fraction of reads in peaks per cell")
   }
-  peak.data <- GetAssayData(
-    object = object, assay = peak.assay, slot = "counts"
-  )
-  bin.data <- GetAssayData(
-    object = object, assay = bin.assay, slot = "counts"
-  )
-  if (!is.null(x = chromosome)) {
-    peak.data <- peak.data[grepl(
-      pattern = paste0("^", chromosome, "\\-|^", chromosome, ":"),
-      x = rownames(x = peak.data)
-    ), ]
-    bin.data <- bin.data[grepl(
-      pattern = paste0("^", chromosome, "\\-|^", chromosome, ":"),
-      x = rownames(x = bin.data)
-    ), ]
-  }
+  peak.data <- GetAssayData(object = object, assay = assay, slot = "counts")
+  total_fragments_cell <- object[[]][[total.fragments]]
   peak.counts <- colSums(x = peak.data)
-  bin.counts <- colSums(x = bin.data)
-  frip <- peak.counts / bin.counts
-  object <- AddMetaData(object = object, metadata = frip, col.name = "FRiP")
+  frip <- peak.counts / total_fragments_cell
+  object <- AddMetaData(object = object, metadata = frip, col.name = col.name)
   return(object)
 }
 
