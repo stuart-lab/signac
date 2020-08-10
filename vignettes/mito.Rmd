@@ -193,7 +193,7 @@ We note the fol
 - TREM1 is a meyloid marker
 - PTPRC = CD45 is a pan-immune cell marker
 - IL1RL1 is a basophil marker
-- GATA3 and KIT is a TReg markers in this dataset. 
+- GATA3 is a Tcell maker
 
 ```{r viz_gene_activitites, message=FALSE, warning = FALSE, fig.width=8, fig.height=8}
 DefaultAssay(crc) <- 'RNA'
@@ -217,7 +217,7 @@ crc <- RenameIdents(
   '2' = 'Basophil',
   '3' = 'Myeloid_1',
   '4' = 'Myeloid_2',
-  '5' = 'Treg'
+  '5' = 'Tcell'
 )
 ```
 
