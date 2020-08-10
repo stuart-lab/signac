@@ -57,6 +57,8 @@ Tn5 integration events in a genomic region for individual cells.
 * Added the manually curated hg38 genomic blacklist regions curated by Anshul
 Kundaje and Anna Shcherbina. These are available as the `blacklist_hg38_unified`
 object.
+* Updated the `FRiP()` function to use total fragment counts per cell stored
+in object metadata.
 
 # Signac 0.2.5
 
