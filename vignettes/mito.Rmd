@@ -43,9 +43,9 @@ standard workflow for scATAC-seq data.
   
 ```{r importData, message=FALSE, warning = FALSE}
 # load counts and metadata from cellranger-atac
-counts <- Read10X_h5(filename = "~/data/mito/crc/filtered_peak_bc_matrix.h5")
+counts <- Read10X_h5(filename = "../vignette_data/mito/CRC_v12-mtMask_mgatk.filtered_peak_bc_matrix.h5")
 metadata <- read.csv(
-  file = "~/data/mito/crc/singlecell.csv",
+  file = "../vignette_data/mito/CRC_v12-mtMask_mgatk.singlecell.csv",
   header = TRUE,
   row.names = 1
 )
@@ -63,8 +63,8 @@ crc_assay <- CreateChromatinAssay(
   sep = c(":", "-"),
   annotation = annotations,
   min.cells = 10,
-  # genome = "hg19",
-  fragments = '~/data/mito/crc/fragments.tsv.gz'
+  genome = "hg19",
+  fragments = '../vignette_data/mito/CRC_v12-mtMask_mgatk.fragments.tsv.gz'
 )
 crc <- CreateSeuratObject(
   counts = crc_assay,
@@ -120,7 +120,7 @@ and add it to the Seurat object as a new assay.
 
 ```{r process_mito, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
 # load mgatk output
-mito.data <- ReadMGATK(dir = "~/data/mito/crc/mgatk_inputs/")
+mito.data <- ReadMGATK(dir = "../vignette_data/mito/crc/")
 
 # create an assay
 mito <- CreateAssayObject(counts = mito.data$counts)
@@ -187,7 +187,7 @@ crc <- NormalizeData(
 
 ## Visualize interesting gene activity scores
 
-We note the fol
+We note the following markers for different cell types in the CRC dataset:
 
 - EPCAM is a marker for epithelial cells
 - TREM1 is a meyloid marker
@@ -235,7 +235,8 @@ p1 + p2 + plot_layout(guides = 'collect')
 We can see that most of the low FRIP cells were the `myeloid 1` cluster. This is
 most likely an intra-tumor granulocyte that has relatively poor accessible
 chromatin enrichment. Similarly, the unusual nuclear chromatin packaging of this
-cell type yields slightly reduced mtDNA coverage compared to 
+cell type yields slightly reduced mtDNA coverage compared to the `myeloid 2`
+cluster.
 
 ## Find informative mtDNA variants
 
@@ -337,8 +338,7 @@ then expanded. We then see at least 3 variants 9728C>T, 1227G>A, 12889G>A that
 are mostly present specifically in the epithelial cells that define subclones. 
 The variants 824T>C and 3244G>A are found specifically in immune cell
 populations, suggesting that these arose from a common hematopoetic progenitor
-cell (probably in the bone marrow). 
-
+cell (probably in the bone marrow).
 
 # TF1 cell line dataset
 
@@ -354,7 +354,7 @@ accessibility differences utilizing the multi-modal capabilities of Signac.
 
 ```{r}
 # read the mitochondrial data
-tf1.data <- ReadMGATK(dir = "~/data/mito/tf1/tf1-mgatk-data/")
+tf1.data <- ReadMGATK(dir = "../vignette_data/mito/tf1/")
 
 # create a Seurat object
 tf1 <- CreateSeuratObject(
@@ -365,7 +365,7 @@ tf1 <- CreateSeuratObject(
 
 # load the peak set
 peaks <- read.table(
-  file = "~/data/mito/tf1/TF1.filtered.narrowPeak.gz",
+  file = "../vignette_data/mito/TF1.filtered.narrowPeak.gz",
   sep = "\t",
   col.names = c("chrom", "start", "end", "peak", "width", "strand", "x", "y", "z", "w")
 )
@@ -373,7 +373,7 @@ peaks <- makeGRangesFromDataFrame(peaks)
 
 # create fragment object
 frags <- CreateFragmentObject(
-  path = "~/data/mito/tf1/TF1.filtered.fragments.tsv.gz",
+  path = "../vignette_data/mito/TF1.filtered.fragments.tsv.gz",
   cells = colnames(tf1)
 )
 
@@ -395,10 +395,7 @@ tf1[["peaks"]] <- CreateChromatinAssay(
 
 ```{r message=FALSE, warning=FALSE}
 # add annotations
-annot <- GetGRangesFromEnsDb(EnsDb.Hsapiens.v75)
-seqlevelsStyle(annot) <- "UCSC"
-genome(annot) <- "hg19"
-Annotation(tf1[["peaks"]]) <- annot
+Annotation(tf1[["peaks"]]) <- annotations
 ```
 
 ```{r message=FALSE, warning=FALSE}
