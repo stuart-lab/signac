@@ -692,7 +692,7 @@ FragmentHistogram <- function(
       legend.position = "none",
       strip.background = element_blank()
     ) +
-    xlab("Fragment length") +
+    xlab("Fragment length (bp)") +
     ylab("Count")
   if (log.scale) {
     p <- p + scale_y_log10()
