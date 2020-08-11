@@ -8,6 +8,7 @@ NULL
 #' @concept motifs
 #' @method RunChromVAR ChromatinAssay
 #' @rdname RunChromVAR
+#' @export
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
@@ -80,6 +81,7 @@ RunChromVAR.ChromatinAssay <- function(
 #' Default is "chromvar".
 #' @method RunChromVAR Seurat
 #' @rdname RunChromVAR
+#' @export
 #' @importFrom Seurat DefaultAssay
 #' @concept motifs
 #' @examples
