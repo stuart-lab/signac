@@ -52,10 +52,6 @@ devtools::install_version(package = 'Signac', version = package_version('0.2.5')
 
 We provide docker images for Signac via [github packages](https://github.com/timoast/signac/packages).
 
-```{bash}
-docker pull docker.pkg.github.com/timoast/signac/signac:latest
-```
-
 ## Installing genome assembly and gene annotation packages
 
 It can also be useful (but not essential) to install species-specific packages 
