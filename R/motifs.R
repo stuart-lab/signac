@@ -37,8 +37,8 @@ RunChromVAR.ChromatinAssay <- function(
             ChromVAR should only be run on integer counts.")
   }
   idx.keep <- rowSums(x = peak.matrix) > 0
-  peak.matrix <- peak.matrix[idx.keep, ]
-  motif.matrix <- motif.matrix[idx.keep, ]
+  peak.matrix <- peak.matrix[idx.keep, , drop = FALSE]
+  motif.matrix <- motif.matrix[idx.keep, , drop = FALSE]
   peak.ranges <- granges(x = object)
   peak.ranges <- peak.ranges[idx.keep]
   chromvar.obj <- SummarizedExperiment::SummarizedExperiment(
