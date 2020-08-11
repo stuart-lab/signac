@@ -334,11 +334,11 @@ is present in essentially all epithelial cells and almost exclusively in
 epithelial cells (the edge cases where this isn't true are also cases where the
 UMAP and clustering don't full agree). It is at 100% allele frequency-- strongly
 suggestive of whatever cell of origin of this tumor had the mutation at 100% and
-then expanded. We then see at least 3 variants 9728C>T, 1227G>A, 12889G>A that
+then expanded. We then see at least 3 variants 824T>C, 3244G>A, and 16093T>C that
 are mostly present specifically in the epithelial cells that define subclones. 
-The variants 824T>C and 3244G>A are found specifically in immune cell
-populations, suggesting that these arose from a common hematopoetic progenitor
-cell (probably in the bone marrow).
+Other variants including 9728C>T, 1227G>A, and 6081G>A are found specifically
+in immune cell populations, suggesting that these arose from a common hematopoetic
+progenitor cell (probably in the bone marrow).
 
 # TF1 cell line dataset
 
@@ -348,7 +348,7 @@ clones present at a higher proportion, based on the experimental design.
 
 We'll demonstrate how to identify groups of related cells (clones) by clustering
 the allele frequency data and how to relate these clonal groups to 
-accessibility differences utilizing the multi-modal capabilities of Signac. 
+accessibility differences utilizing the multimodal capabilities of Signac. 
 
 ## Data loading
 
