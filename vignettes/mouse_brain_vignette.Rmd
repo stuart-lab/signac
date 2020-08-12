@@ -29,7 +29,6 @@ analyzing mouse data.
 ```{r setup, message=FALSE}
 library(Signac)
 library(Seurat)
-library(S4Vectors)
 library(GenomeInfoDb)
 library(EnsDb.Mmusculus.v79)
 library(ggplot2)
