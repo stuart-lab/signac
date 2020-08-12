@@ -660,6 +660,7 @@ FragmentHistogram <- function(
   log.scale = FALSE,
   ...
 ) {
+  cells <- SetIfNull(x = cells, y = colnames(x = object))
   reads <- MultiGetReadsInRegion(
     object = object,
     assay = assay,
