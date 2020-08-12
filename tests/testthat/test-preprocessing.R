@@ -50,14 +50,14 @@ test_that("FindTopFeatures works", {
 test_that("FRiP works", {
   atac_small <- FRiP(
     object = atac_small,
-    bin.assay = "bins",
-    peak.assay = "peaks",
-    chromosome = NULL
+    assay = "peaks",
+    total.fragments = "fragments"
   )
   expect_equal(
     object = as.vector(x = head(atac_small$FRiP)),
     expected = c(
-      2.9200000, 2.9090909, 2.1980198, 2.2282454, 2.2333333, 0.3478261
+      0.0069896591, 0.0086400864, 0.0102987567,
+      0.0093475841, 0.0081182600, 0.0001859341
     ),
     tolerance = 1 / 100000
   )

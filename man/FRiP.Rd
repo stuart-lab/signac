@@ -4,17 +4,18 @@
 \alias{FRiP}
 \title{Calculate fraction of reads in peaks per cell}
 \usage{
-FRiP(object, peak.assay, bin.assay, chromosome = "chr1", verbose = TRUE)
+FRiP(object, assay, total.fragments, col.name = "FRiP", verbose = TRUE)
 }
 \arguments{
 \item{object}{A Seurat object}
 
-\item{peak.assay}{Name of the assay containing a peak x cell matrix}
+\item{assay}{Name of the assay containing a peak x cell matrix}
 
-\item{bin.assay}{Name of the assay containing a bin x cell matrix}
+\item{total.fragments}{Name of a metadata column containing the total number
+of sequenced fragments for each cell. This can be computed using the
+\code{\link{CountFragments}} function.}
 
-\item{chromosome}{Which chromosome to use. Default is chromosome 1 ('chr1').
-If NULL, use the whole genome.}
+\item{col.name}{Name of column in metadata to store the FRiP information.}
 
 \item{verbose}{Display messages}
 }
@@ -25,6 +26,6 @@ Returns a \code{\link[Seurat]{Seurat}} object
 Calculate fraction of reads in peaks per cell
 }
 \examples{
-FRiP(object = atac_small, peak.assay = 'peaks', bin.assay = 'bins')
+FRiP(object = atac_small, assay = 'peaks', total.fragments = "fragments")
 }
 \concept{qc}

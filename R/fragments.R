@@ -214,7 +214,7 @@ CreateFragmentObject <- function(
 ValidateCells <- function(
   object,
   cells = NULL,
-  tolerance = 0.4,
+  tolerance = 0.5,
   max.lines = 5e7,
   verbose = TRUE
 ) {

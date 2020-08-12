@@ -8,4 +8,4 @@ To install past versions of Signac see the
 
 Past versions of the Signac documentation can be found here:
 
-#### [0.2](http://satijalab.org/signac/0.2)
+#### [0.2](../0.2/index.html)

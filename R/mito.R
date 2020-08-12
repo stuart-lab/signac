@@ -303,7 +303,7 @@ ReadMGATK <- function(dir, verbose = TRUE) {
 
   refallele.path <- list.files(
     path = dir,
-    pattern = "chrM_refAllele.txt*",
+    pattern = "*_refAllele.txt*", # valid mtDNA contigs include chrM and MT
     full.names = TRUE
   )
 

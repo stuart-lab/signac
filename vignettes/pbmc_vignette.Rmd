@@ -429,9 +429,9 @@ plot1 | plot2
 
 Another way to find DA regions between two groups of cells is to look at the
 fold change accessibility between two groups of cells. This can be much faster
-than running the of sophisticated DA tests, but is not able to account for
+than running more sophisticated DA tests, but is not able to account for
 latent variables such as differences in the total sequencing depth between
-cells, and does not include any statistical test. However, this can still be a
+cells, and does not perform any statistical test. However, this can still be a
 useful way to quickly explore data, and can be performed using the `FoldChange()`
 function in Signac.
 
@@ -548,10 +548,13 @@ corresponding to the fraction of reads in peaks for each cell.
 
 ```{r, eval=FALSE}
 # not run
+total_fragments <- CountFragments("'/home/stuartt/github/chrom/vignette_data/atac_v1_pbmc_10k_fragments.tsv.gz'")
+pbmc$fragments <- total_fragments[colnames(pbmc), "frequency_count"]
+
 pbmc <- FRiP(
   object = pbmc,
-  peak.assay = 'peaks',
-  bin.assay = 'bins'
+  assay = 'peaks',
+  total.fragments = 'fragments'
 )
 ```
 
