@@ -334,8 +334,10 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' @export
 #' @concept utilities
 #' @examples
+#' \donttest{
 #' fc <- FoldChange(object = atac_small, ident.1 = 0)
 #' head(fc)
+#' }
 FoldChange <- function(
   object,
   ident.1,
