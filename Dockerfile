@@ -1,9 +1,8 @@
-# Dockerfile for use with the CI of seurat-wrappers
 FROM satijalab/seurat:latest
 
 # Install system dependencies
-RUN apt-get install -y software-properties-common
 RUN apt-get update
+RUN apt-get install -y software-properties-common
 RUN add-apt-repository -y ppa:git-core/ppa
 RUN apt-get update
 RUN apt-get install -y git
