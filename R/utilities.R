@@ -1367,6 +1367,10 @@ MultiGetReadsInRegion <- function(
     x = fragment.list,
     y = Fragments(object = object)
   )
+  if (length(x = fragment.list) == 0) {
+    # no fragments set
+    stop("No fragment files found")
+  }
   res <- data.frame()
   for (i in seq_along(along.with = fragment.list)) {
     tbx.path <- GetFragmentData(object = fragment.list[[i]], slot = "path")
