@@ -18,6 +18,8 @@ Returns a \code{\link[ggplot2]{ggplot}} object
 Display gene annotations in a given region of the genome.
 }
 \examples{
+\donttest{
 AnnotationPlot(object = atac_small, region = c("chr1-29554-39554"))
+}
 }
 \concept{visualization}

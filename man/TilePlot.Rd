@@ -62,6 +62,7 @@ Plots the presence/absence of Tn5 integration sites for each cell
 within a genomic region.
 }
 \examples{
+\donttest{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 fragments <- CreateFragmentObject(
   path = fpath,
@@ -70,5 +71,6 @@ fragments <- CreateFragmentObject(
 )
 Fragments(atac_small) <- fragments
 TilePlot(object = atac_small, region = c("chr1-713500-714500"))
+}
 }
 \concept{visualization}

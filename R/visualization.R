@@ -660,6 +660,7 @@ FragmentHistogram <- function(
   log.scale = FALSE,
   ...
 ) {
+  cells <- SetIfNull(x = cells, y = colnames(x = object))
   reads <- MultiGetReadsInRegion(
     object = object,
     assay = assay,
@@ -795,9 +796,11 @@ TSSPlot <- function(
 #' @importFrom patchwork wrap_plots plot_layout guide_area
 #' @concept visualization
 #' @examples
+#' \donttest{
 #' p1 <- PeakPlot(atac_small, region = "chr1-29554-39554")
 #' p2 <- AnnotationPlot(atac_small, region = "chr1-29554-39554")
 #' CombineTracks(plotlist = list(p1, p2), heights = c(1, 1))
+#' }
 CombineTracks <- function(
   plotlist,
   expression.plot = NULL,
@@ -979,7 +982,9 @@ LinkPlot <- function(object, region) {
 #' @importFrom fastmatch fmatch
 #' @concept visualization
 #' @examples
+#' \donttest{
 #' AnnotationPlot(object = atac_small, region = c("chr1-29554-39554"))
+#' }
 AnnotationPlot <- function(object, region) {
   annotation <- Annotation(object = object)
   if (is.null(x = annotation)) {
@@ -1687,6 +1692,7 @@ VariantPlot <- function(
 #' @export
 #' @concept visualization
 #' @examples
+#' \donttest{
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' fragments <- CreateFragmentObject(
 #'   path = fpath,
@@ -1695,6 +1701,7 @@ VariantPlot <- function(
 #' )
 #' Fragments(atac_small) <- fragments
 #' TilePlot(object = atac_small, region = c("chr1-713500-714500"))
+#' }
 TilePlot <- function(
   object,
   region,

@@ -47,6 +47,7 @@ This function bins the genome and calls \code{\link{FeatureMatrix}} to
 construct a bin x cell matrix.
 }
 \examples{
+\donttest{
 genome <- 780007
 names(genome) <- 'chr1'
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
@@ -56,6 +57,7 @@ GenomeBinMatrix(
   genome = genome,
   binsize = 1000
 )
+}
 }
 \concept{preprocessing}
 \concept{utilities}

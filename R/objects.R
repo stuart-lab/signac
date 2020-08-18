@@ -1332,7 +1332,9 @@ setMethod(
 #' @export
 #' @concept assay
 #' @examples
+#' \donttest{
 #' Annotation(atac_small[["peaks"]])
+#' }
 Annotation.ChromatinAssay <- function(object, ...) {
   return(slot(object = object, name = "annotation"))
 }
@@ -1344,7 +1346,9 @@ Annotation.ChromatinAssay <- function(object, ...) {
 #' @export
 #' @concept assay
 #' @examples
+#' \donttest{
 #' Annotation(atac_small)
+#' }
 Annotation.Seurat <- function(object, ...) {
   assay <- DefaultAssay(object = object)
   return(Annotation(object = object[[assay]]))

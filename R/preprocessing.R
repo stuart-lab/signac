@@ -502,6 +502,7 @@ FRiP <- function(
 #' @concept utilities
 #' @return Returns a sparse matrix
 #' @examples
+#' \donttest{
 #' genome <- 780007
 #' names(genome) <- 'chr1'
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
@@ -511,6 +512,7 @@ FRiP <- function(
 #'   genome = genome,
 #'   binsize = 1000
 #' )
+#' }
 GenomeBinMatrix <- function(
   fragments,
   genome,

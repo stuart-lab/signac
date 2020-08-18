@@ -39,8 +39,12 @@ if the annotation data is present, otherwise returns NULL
 Get the annotation from a ChromatinAssay
 }
 \examples{
+\donttest{
 Annotation(atac_small[["peaks"]])
+}
+\donttest{
 Annotation(atac_small)
+}
 genes <- Annotation(atac_small)
 Annotation(atac_small[["peaks"]]) <- genes
 genes <- Annotation(atac_small)
