@@ -7,11 +7,12 @@
 TopLinks(links, cutoff = 0.25)
 }
 \arguments{
-\item{links}{A sparse matrix containing genes in the rows and enhancers in the columns.
+\item{links}{A sparse matrix containing genes in the rows and enhancers in
+the columns.
 Values correspond to the link score.}
 
-\item{cutoff}{Percentile cutoff for retaining links. 0.50 (default) retains the
-top 50\% of links.}
+\item{cutoff}{Percentile cutoff for retaining links. 0.50 (default) retains
+the top 50\% of links.}
 }
 \value{
 Returns a sparse matrix

@@ -11,7 +11,8 @@ DistanceToGene(peaks, genes, distance = 2e+05, sep = c("-", "-"))
 
 \item{genes}{A GRanges object containing gene coordinates}
 
-\item{distance}{Distance threshold. Peaks within this distance from the gene will be recorded.}
+\item{distance}{Distance threshold. Peaks within this distance from the gene
+will be recorded.}
 
 \item{sep}{Separator for peak names when creating results matrix}
 }

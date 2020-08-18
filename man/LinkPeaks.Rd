@@ -8,8 +8,7 @@ LinkPeaks(
   object,
   peak.assay,
   expression.assay,
-  gene.coords,
-  sep = c("-", "-"),
+  gene.coords = NULL,
   binary = TRUE,
   alpha = 0.95,
   distance = 5e+05,
@@ -27,24 +26,27 @@ LinkPeaks(
 
 \item{expression.assay}{Name of assay containing gene expression information}
 
-\item{gene.coords}{GRanges object containing coordinates of genes in the expression assay}
-
-\item{sep}{Separators to use to extract peak coordinates from peak assay row names}
+\item{gene.coords}{GRanges object containing coordinates of genes in the
+expression assay. If NULL, extract from gene annotations stored in the assay.}
 
 \item{binary}{Binarize the peak counts (default TRUE)}
 
-\item{alpha}{Alpha parameter for elastic net regularization. Controls balance between LASSO (alpha=1) and ridge (alpha=0) regression.}
+\item{alpha}{Alpha parameter for elastic net regularization. Controls balance
+between LASSO (alpha=1) and ridge (alpha=0) regression.}
 
 \item{distance}{Distance threshold for peaks to include in regression model}
 
-\item{min.cells}{Minimum number of cells positive for the peak and gene needed to include in the results.}
+\item{min.cells}{Minimum number of cells positive for the peak and gene
+needed to include in the results.}
 
-\item{expression.threshold}{Minimum value for a gene to be classified as expressed. Only used for filtering genes from regression.}
+\item{expression.threshold}{Minimum value for a gene to be classified as
+expressed. Only used for filtering genes from regression.}
 
 \item{genes.use}{Genes to test. If NULL, determine from expression assay.}
 
-\item{keep.all}{Retain all peaks in the output. Useful for knowing what peaks had 0 coefficient and what were not tested due to
-expression or accessibility thresholds.}
+\item{keep.all}{Retain all peaks in the output. Useful for knowing what peaks
+had 0 coefficient and what were not tested due to expression or accessibility
+thresholds.}
 
 \item{verbose}{Display messages}
 }
@@ -52,8 +54,9 @@ expression or accessibility thresholds.}
 Returns a sparse matrix
 }
 \description{
-Find peaks that are predictive of gene expression. Fits a regression model with elastic net regularization between peak
-accessibility and gene expression, for all peaks within a given distance threshold (default 200 kb).
-Returns a peak x gene sparse matrix, with each entry being the correlation coefficient between the
-accessibility of the peak and expression of the gene.
+Find peaks that are predictive of gene expression. Fits a generalized linear
+model with elastic net regularization between peak accessibility and gene
+expression, for all peaks within a given distance threshold (default 200 kb).
+Returns a peak x gene sparse matrix, with each entry being the correlation
+coefficient between the accessibility of the peak and expression of the gene.
 }
