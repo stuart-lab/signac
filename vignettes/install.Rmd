@@ -50,7 +50,19 @@ devtools::install_version(package = 'Signac', version = package_version('0.2.5')
 
 ## Docker
 
-We provide docker images for Signac via [github packages](https://github.com/timoast/signac/packages).
+We provide docker images for Signac via [dockerhub](https://hub.docker.com/r/timoast/signac).
+
+To pull the latest image from the command line:
+
+```sh
+docker pull timoast/signac:latest
+```
+
+To use as a base image in a new Dockerfile:
+
+```sh
+FROM timoast/signac:latest
+```
 
 ## Installing genome assembly and gene annotation packages
 
