@@ -918,7 +918,7 @@ globalVariables(names = "score", package = "Signac")
 #' @importFrom GenomicRanges start end
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom ggplot2 ggplot geom_hline geom_curve aes theme_classic ylim xlim
-#' ylab theme element_blank
+#' ylab theme element_blank scale_color_gradient2
 #' @concept visualization
 #' @concept links
 LinkPlot <- function(object, region) {
@@ -942,14 +942,17 @@ LinkPlot <- function(object, region) {
   link.df <- as.data.frame(x = links.keep)
   link.df$group <- as.factor(link.df$group)
 
+  # add point in midpoint for the apex of the curve
+  # TODO
+
   # plot
   if (nrow(x = link.df) > 0) {
     p <- ggplot(data = link.df) +
       geom_hline(yintercept = 0, color = 'grey') +
       geom_curve(
-        mapping = aes(x = start, y = 0, xend = end, yend = 0, alpha = score),
-        curvature = 1/2
-      )
+        mapping = aes(x = start, y = 0, xend = end, yend = 0, color = score)
+      ) +
+      scale_color_gradient2(low = "red", mid = "grey", high = "blue")
   } else {
     p <- ggplot(data = link.df)
   }
