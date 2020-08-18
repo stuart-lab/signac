@@ -2,6 +2,95 @@
 #'
 NULL
 
+#' Cicero connections to links
+#'
+#' Convert the output of Cicero connections to a set of genomic ranges where
+#' the start and end coordinates of the range are the midpoints of the linked
+#' elements. Only elements on the same chromosome are included in the output.
+#'
+#' @param conns A dataframe containing co-accessible elements. This would
+#' usually be the output of \code{\link[cicero]{run_cicero}} or
+#' \code{\link[cicero]{assemble_connections}}. Specifically, this should be a
+#' dataframe where the first column contains the genomic coordinates of the
+#' first element in the linked pair of elements, with chromosome, start, end
+#' coordinates separated by "-" characters. The second column should be the
+#' second element in the linked pair, formatted in the same way as the first
+#' column. A third column should contain the co-accessibility scores.
+#' @param ccans This is optional, but if supplied should be a dataframe
+#' containing the cis-co-accessibility network (CCAN) information generated
+#' by \code{\link[cicero]{generate_ccans}}. Specifically, this should be a
+#' dataframe containing the name of the peak in the first column, and the
+#' CCAN that it belongs to in the second column.
+#' @param threshold Threshold for retaining a coaccessible site. Links with
+#' a value less than or equal to this threshold will be discarded.
+#'
+#' @export
+#' @importFrom GenomicRanges start end makeGRangesFromDataFrame
+#' @importFrom GenomeInfoDb seqnames
+#' @importFrom stringi stri_split_fixed
+#'
+#' @concept links
+#' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
+ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
+  # add chromosome information
+  chr1 <- stri_split_fixed(str = conns$Peak1, pattern = "-")
+  conns$chr1 <- unlist(x = chr1)[3 * (seq_along(along.with = chr1)) - 2]
+  chr2 <- stri_split_fixed(str = conns$Peak2, pattern = "-")
+  conns$chr2 <- unlist(x = chr2)[3 * (seq_along(along.with = chr2)) - 2]
+
+  # filter out trans-chr links
+  conns <- conns[conns$chr1 == conns$chr2, ]
+
+  # filter based on threshold
+  conns <- conns[!is.na(conns$coaccess), ]
+  conns <- conns[conns$coaccess > threshold, ]
+
+  # add group information
+  if (!is.null(x = ccans)) {
+    ccan.lookup <- ccans$CCAN
+    names(x = ccan.lookup) <- ccans$Peak
+    groups <- as.vector(x = ifelse(
+      test = is.na(x = ccan.lookup[conns$Peak1]),
+      yes = ccan.lookup[conns$Peak2],
+      no = ccan.lookup[conns$Peak1]
+    )
+    )
+    conns$group <- groups
+  } else {
+    conns$group <- NA
+  }
+
+  # extract genomic regions
+  coords.1 <- StringToGRanges(regions = conns$Peak1, sep = c("-", "-"))
+  coords.2 <- StringToGRanges(regions = conns$Peak2, sep = c("-", "-"))
+  chr <- seqnames(x = coords.1)
+
+  # find midpoints
+  midpoints.1 <- start(x = coords.1) + (width(x = coords.1) / 2)
+  midpoints.2 <- start(x = coords.2) + (width(x = coords.2) / 2)
+
+  startpos <- ifelse(
+    test = midpoints.1 > midpoints.2,
+    yes = midpoints.2,
+    no = midpoints.1
+  )
+  endpos <- ifelse(
+    test = midpoints.1 > midpoints.2,
+    yes = midpoints.1,
+    no = midpoints.2
+  )
+
+  link.df <- data.frame(chromosome = chr,
+                        start = startpos,
+                        end = endpos,
+                        score = conns$coaccess,
+                        group = conns$group)
+
+  # convert to genomic ranges
+  links <- makeGRangesFromDataFrame(df = link.df, keep.extra.columns = TRUE)
+  return(links)
+}
+
 #' Link peaks to genes
 #'
 #' Find peaks that are predictive of gene expression. Fits a generalized linear
@@ -38,8 +127,9 @@ NULL
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
 #'
-#' @return Returns a sparse matrix
+#' @return Returns a Seurat object with links stored in the peak assay
 #' @export
+#' @concept links
 LinkPeaks <- function(
   object,
   peak.assay,
@@ -177,25 +267,107 @@ LinkPeaks <- function(
   )
   rownames(x = coef.matrix) <- genes.use
   colnames(x = coef.matrix) <- names(x = peak.key)
-  return(coef.matrix)
+
+  # create links granges and add to assay
+  links <- LinksToGRanges(linkmat = coef.matrix, gene.coords = gene.coords.use)
+  Links(object = object[[peak.assay]]) <- links
+  return(object)
 }
 
-#' Find peaks near genes
+#' Find top links
 #'
-#' Find peaks that are within a given distance threshold to each gene
+#' Filter a set of promoter-enhancer links and retain the top X\%
+#' based on correlation score. Links below the percentile cutoff
+#' will be set to zero. Note that the cutoff is defined across
+#' all genes, so some genes may have no links after filtering.
+#' The cutoff value is determined considering non-zero link
+#' scores only (eg, top 50\% among non-zero scores).
 #'
-#' @param peaks A GRanges object containing peak coordinates
-#' @param genes A GRanges object containing gene coordinates
-#' @param distance Distance threshold. Peaks within this distance from the gene
-#' will be recorded.
-#' @param sep Separator for peak names when creating results matrix
-#'
+#' @param links A sparse matrix containing genes in the rows and enhancers in
+#' the columns.
+#' Values correspond to the link score.
+#' @param cutoff Percentile cutoff for retaining links. 0.50 (default) retains
+#' the top 50\% of links.
+#' @return Returns a sparse matrix
+#' @export
+#' @concept links
+TopLinks <- function(links, cutoff = 0.25) {
+  nonzero.values <- abs(x = links@x)
+  cutoff.value <- quantile(x = nonzero.values, 1 - cutoff)
+  links[abs(links) < cutoff.value] <- 0
+  return(links)
+}
+
+
+### Not exported ###
+
+# Link matrix to granges
+#
+# Create set of genomic ranges from a sparse matrix containing links
+#
+# @param linkmat A sparse matrix with genes in the rows and peaks in the
+# columns
+# @param gene.coords Genomic coordinates for each gene
+# @return Returns a GRanges object
+#' @importFrom GenomicRanges resize start width GRanges makeGRangesFromDataFrame
+#' @importFrom IRanges IRanges
+LinksToGRanges <- function(linkmat, gene.coords, sep = c("-", "-")) {
+  # get TSS for each gene
+  tss <- resize(gene.coords, width = 1, fix = 'start')
+  gene.idx <- sapply(
+    X = rownames(x = linkmat),
+    FUN = function(x) {
+      which(x = x == tss$gene_name)
+    }
+  )
+  tss <- tss[gene.idx]
+
+  # get midpoint of each peak
+  peak.ranges <- StringToGRanges(
+    regions = colnames(x = linkmat),
+    sep = sep
+  )
+  midpoints <- start(x = peak.ranges) + (width(x = peak.ranges) / 2)
+
+  # convert to triplet form
+  dgtm <- as(object = linkmat, Class = "dgTMatrix")
+
+  # create dataframe
+  df <- data.frame(
+    chromosome = as.character(x = seqnames(x = peak.ranges)[dgtm@j + 1]),
+    tss = start(x = tss)[dgtm@i + 1],
+    peak = midpoints[dgtm@j + 1],
+    score = dgtm@x,
+    group = 1
+  )
+
+  # work out start and end coords
+  df$start <- ifelse(test = df$tss < df$peak, yes = df$tss, no = df$peak)
+  df$end <- ifelse(test = df$tss < df$peak, yes = df$peak, no = df$tss)
+  df$tss <- NULL
+  df$peak <- NULL
+
+  # convert to granges
+  gr.use <- makeGRangesFromDataFrame(df = df, keep.extra.columns = TRUE)
+  return(gr.use)
+}
+
+
+# Find peaks near genes
+#
+# Find peaks that are within a given distance threshold to each gene
+#
+# @param peaks A GRanges object containing peak coordinates
+# @param genes A GRanges object containing gene coordinates
+# @param distance Distance threshold. Peaks within this distance from the gene
+# will be recorded.
+# @param sep Separator for peak names when creating results matrix
+#
 #' @importFrom GenomicRanges findOverlaps
 #' @importFrom S4Vectors queryHits subjectHits
 #' @importFrom Matrix sparseMatrix
-#'
-#' @return Returns a sparse matrix
-#'
+#
+# @return Returns a sparse matrix
 DistanceToGene <- function(peaks, genes, distance = 200000, sep = c("-", "-")) {
   genes.extended <- suppressWarnings(
     expr = Extend(
@@ -217,29 +389,6 @@ DistanceToGene <- function(peaks, genes, distance = 200000, sep = c("-", "-")) {
   rownames(x = hit_matrix) <- GRangesToString(grange = peaks, sep = sep)
   colnames(x = hit_matrix) <- genes.extended$gene_name
   return(hit_matrix)
-}
-
-#' Find top links
-#'
-#' Filter a set of promoter-enhancer links and retain the top X\%
-#' based on correlation score. Links below the percentile cutoff
-#' will be set to zero. Note that the cutoff is defined across
-#' all genes, so some genes may have no links after filtering.
-#' The cutoff value is determined considering non-zero link
-#' scores only (eg, top 50\% among non-zero scores).
-#'
-#' @param links A sparse matrix containing genes in the rows and enhancers in
-#' the columns.
-#' Values correspond to the link score.
-#' @param cutoff Percentile cutoff for retaining links. 0.50 (default) retains
-#' the top 50\% of links.
-#' @return Returns a sparse matrix
-#' @export
-TopLinks <- function(links, cutoff = 0.25) {
-  nonzero.values <- abs(x = links@x)
-  cutoff.value <- quantile(x = nonzero.values, 1 - cutoff)
-  links[abs(links) < cutoff.value] <- 0
-  return(links)
 }
 
 # Return names of nonzero elements for each matrix row

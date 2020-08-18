@@ -9,7 +9,7 @@ LinkPeaks(
   peak.assay,
   expression.assay,
   gene.coords = NULL,
-  binary = TRUE,
+  binary = FALSE,
   alpha = 0.95,
   distance = 5e+05,
   min.cells = 10,
@@ -29,7 +29,7 @@ LinkPeaks(
 \item{gene.coords}{GRanges object containing coordinates of genes in the
 expression assay. If NULL, extract from gene annotations stored in the assay.}
 
-\item{binary}{Binarize the peak counts (default TRUE)}
+\item{binary}{Binarize the peak counts (default FALSE)}
 
 \item{alpha}{Alpha parameter for elastic net regularization. Controls balance
 between LASSO (alpha=1) and ridge (alpha=0) regression.}
@@ -51,7 +51,7 @@ thresholds.}
 \item{verbose}{Display messages}
 }
 \value{
-Returns a sparse matrix
+Returns a Seurat object with links stored in the peak assay
 }
 \description{
 Find peaks that are predictive of gene expression. Fits a generalized linear
@@ -60,3 +60,4 @@ expression, for all peaks within a given distance threshold (default 200 kb).
 Returns a peak x gene sparse matrix, with each entry being the correlation
 coefficient between the accessibility of the peak and expression of the gene.
 }
+\concept{links}
