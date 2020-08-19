@@ -1,3 +1,8 @@
+# Unreleased
+
+* Fixed bug in `AlleleFreq()` ([#196](https://github.com/timoast/signac/issues/196))
+
+
 # Signac 1.0.0
 
 This release includes major updates to the Signac package, including new
