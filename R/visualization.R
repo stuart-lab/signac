@@ -383,10 +383,14 @@ SingleCoveragePlot <- function(
   } else {
     link.plot <- NULL
   }
-  if (peaks) {
-    peak.plot <- PeakPlot(object = object, region = region)
+  if (!is.logical(x = peaks)) {
+    peak.plot <- PeakPlot(object = object, region = region, peaks = peaks)
   } else {
-    peak.plot <- NULL
+    if (peaks) {
+      peak.plot <- PeakPlot(object = object, region = region)
+    } else {
+      peak.plot <- NULL
+    }
   }
   if (tile) {
     # reuse cut matrix
@@ -861,6 +865,9 @@ CombineTracks <- function(
 #'
 #' @param object A \code{\link[Seurat]{Seurat}} object
 #' @param region A genomic region to plot
+#' @param peaks A GRanges object containing peak coordinates. If NULL, use
+#' coordinates stored in the Seurat object.
+#'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
 #' @concept visualization
@@ -871,12 +878,12 @@ CombineTracks <- function(
 #' theme xlab ylab scale_color_identity
 #' @examples
 #' PeakPlot(atac_small, region = "chr1-710000-715000")
-PeakPlot <- function(object, region) {
+PeakPlot <- function(object, region, peaks = NULL) {
   if (!inherits(x = region, what = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
   # get ranges from object
-  peaks <- granges(x = object)
+  peaks <- SetIfNull(x = peaks, y = granges(x = object))
   # subset to covered range
   peak.intersect <- subsetByOverlaps(x = peaks, ranges = region)
   peak.df <- as.data.frame(x = peak.intersect)
@@ -912,6 +919,8 @@ globalVariables(names = "score", package = "Signac")
 #'
 #' @param object A \code{\link[Seurat]{Seurat}} object
 #' @param region A genomic region to plot
+#' @param min.cutoff Minimum absolute score for link to be plotted.
+#'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
 #' @importFrom IRanges subsetByOverlaps
@@ -921,7 +930,7 @@ globalVariables(names = "score", package = "Signac")
 #' ylab theme element_blank scale_color_gradient2
 #' @concept visualization
 #' @concept links
-LinkPlot <- function(object, region) {
+LinkPlot <- function(object, region, min.cutoff = 0.05) {
   if (!inherits(x = region, what = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
@@ -940,7 +949,12 @@ LinkPlot <- function(object, region) {
 
   # convert to dataframe
   link.df <- as.data.frame(x = links.keep)
-  link.df$group <- as.factor(link.df$group)
+
+  # add point in midpoint for the apex of the curve
+  # TODO
+
+  # filter out links below threshold
+  link.df <- link.df[abs(x = link.df$score) > min.cutoff, ]
 
   # add point in midpoint for the apex of the curve
   # TODO
