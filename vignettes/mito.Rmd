@@ -334,9 +334,9 @@ is present in essentially all epithelial cells and almost exclusively in
 epithelial cells (the edge cases where this isn't true are also cases where the
 UMAP and clustering don't full agree). It is at 100% allele frequency-- strongly
 suggestive of whatever cell of origin of this tumor had the mutation at 100% and
-then expanded. We then see at least 3 variants 824T>C, 3244G>A, and 16093T>C that
+then expanded. We then see at least 3 variants 1227G>A, 12889G>A, and 9728C>T that
 are mostly present specifically in the epithelial cells that define subclones. 
-Other variants including 9728C>T, 1227G>A, and 6081G>A are found specifically
+Other variants including 3244G>A, 9804G>A, and 824T>C are found specifically
 in immune cell populations, suggesting that these arose from a common hematopoetic
 progenitor cell (probably in the bone marrow).
 
