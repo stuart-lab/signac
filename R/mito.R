@@ -116,7 +116,7 @@ AlleleFreq.default <- function(object, variants, ...) {
   # The row names may not be in order as specified, so manually establish
   vars_in_order <- paste0(
     meta_row_mat$position, meta_row_mat$letter
-  )[fwd_half_idx]
+  )[fwd_half_idx][order(numerator_ix)]
   rownames(x = allele_freq_matrix) <- sapply(
     X = vars_in_order,
     FUN = function(s){
@@ -125,7 +125,7 @@ AlleleFreq.default <- function(object, variants, ...) {
         ])
       }
     )
-  return(allele_freq_matrix)
+  return(allele_freq_matrix[variants, ])
 }
 
 #' @rdname AlleleFreq
