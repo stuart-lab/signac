@@ -215,7 +215,7 @@ LinkPeaks <- function(
       if (sum(peak.use) < 2) {
         # no peaks close to gene
         if (verbose) setTxtProgressBar(pb = pb, value = i)
-        next
+        return(list("gene" = NULL, "coef" = NULL))
       } else {
         peak.access <- t(x = peak.data[peak.use, ])
         cvfit <- cv.glmnet(
@@ -235,7 +235,7 @@ LinkPeaks <- function(
         }
         if (length(x = coef.results.filtered) == 0) {
           if (verbose) setTxtProgressBar(pb = pb, value = i)
-          next
+          return(list("gene" = NULL, "coef" = NULL))
         } else {
           gene.vec <- c(gene.vec, rep(i, length(x = coef.results.filtered)))
           coef.vec <- c(coef.vec, coef.results.filtered)
