@@ -159,7 +159,7 @@ ChromatinAssay <- setClass(
 #' @param ... Additional arguments passed to \code{\link{CreateFragmentObject}}
 #'
 #' @importFrom Seurat CreateAssayObject
-#' @importFrom Matrix rowSums
+#' @importFrom Matrix rowSums colSums
 #' @importFrom GenomicRanges isDisjoint
 #' @concept assay
 #'
@@ -205,7 +205,11 @@ CreateChromatinAssay <- function(
   if (!is.null(x = annotation) & !inherits(x = annotation, what = "GRanges")) {
     stop("Annotation must be a GRanges object.")
   }
-  ncell.feature <- rowSums(data.use > 0)
+  # remove low-count cells
+  ncount.cell <- colSums(x = data.use)
+  data.use <- data.use[, ncount.cell > min.features]
+
+  ncell.feature <- rowSums(x = data.use > 0)
   if (!is.null(x = max.cells)) {
     if (is(object = max.cells, class2 = "character")) {
       percent.cutoff <- as.numeric(
