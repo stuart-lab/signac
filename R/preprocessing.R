@@ -1113,7 +1113,12 @@ TSSFast <- function(
     # open fragment file
     tbx.path <- GetFragmentData(object = frags[[i]], slot = "path")
     cellmap <- GetFragmentData(object = frags[[i]], slot = "cells")
-    cellmap <- cellmap[intersect(names(x = cellmap), colnames(x = object))]
+    if (is.null(x = cellmap)) {
+      cellmap <- colnames(x = object)
+      names(x = cellmap) <- cellmap
+    } else {
+      cellmap <- cellmap[intersect(names(x = cellmap), colnames(x = object))]
+    }
     tbx <- TabixFile(file = tbx.path)
     open(con = tbx)
     # iterate over chunked ranges
