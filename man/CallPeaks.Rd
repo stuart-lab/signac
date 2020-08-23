@@ -10,7 +10,11 @@ CallPeaks(
   macs2.path = NULL,
   outpath = tempdir(),
   effective.genome.size = 2.7e+09,
-  extsize = 200
+  extsize = 200,
+  additional.args = NULL,
+  name = Project(object),
+  cleanup = TRUE,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -18,20 +22,35 @@ CallPeaks(
 
 \item{assay}{Name of assay to use}
 
-\item{macs2.path}{Path to MACS2 program. If NULL, try to find MACS2
+\item{macs2.path}{Path to MACS program. If NULL, try to find MACS
 automatically.}
 
 \item{outpath}{Path for output files. If NULL, use temp directory and remove
 files after peak calling.}
 
-\item{effective.genome.size}{Effective genome size parameter for MACS2
+\item{effective.genome.size}{Effective genome size parameter for MACS
 (\code{-g}). Default is the human effective genome size (2.7e9).}
 
-\item{extsize}{\code{extsize} parameter for MACS2.}
+\item{extsize}{\code{extsize} parameter for MACS.}
+
+\item{additional.args}{Additional arguments passed to MACS. This should be a
+single character string}
+
+\item{name}{Name for output MACS files}
+
+\item{cleanup}{Remove MACS output files}
+
+\item{verbose}{Display messages}
 }
 \value{
 Returns a \code{\link[GenomicRanges]{GRanges}} object
 }
 \description{
-Call peaks using MACS2
+Call peaks using MACS. Fragment files linked to the specified assay will be
+used to call peaks. If multiple fragment files are present, all will be used
+in a single MACS invocation. Returns the \code{.narrowPeak} MACS output as a
+\code{GRanges} object.
+}
+\details{
+See \url{https://macs3-project.github.io/MACS/} for MACS documentation.
 }
