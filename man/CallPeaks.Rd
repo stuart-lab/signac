@@ -8,7 +8,7 @@ CallPeaks(
   object,
   assay = NULL,
   macs2.path = NULL,
-  outpath = tempdir(),
+  outdir = tempdir(),
   effective.genome.size = 2.7e+09,
   extsize = 200,
   additional.args = NULL,
@@ -25,8 +25,7 @@ CallPeaks(
 \item{macs2.path}{Path to MACS program. If NULL, try to find MACS
 automatically.}
 
-\item{outpath}{Path for output files. If NULL, use temp directory and remove
-files after peak calling.}
+\item{outdir}{Path for output files}
 
 \item{effective.genome.size}{Effective genome size parameter for MACS
 (\code{-g}). Default is the human effective genome size (2.7e9).}
@@ -36,7 +35,8 @@ files after peak calling.}
 \item{additional.args}{Additional arguments passed to MACS. This should be a
 single character string}
 
-\item{name}{Name for output MACS files}
+\item{name}{Name for output MACS files. This will also be placed in the
+\code{name} field in the GRanges output.}
 
 \item{cleanup}{Remove MACS output files}
 

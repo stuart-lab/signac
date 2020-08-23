@@ -12,14 +12,14 @@
 #' @param assay Name of assay to use
 #' @param macs2.path Path to MACS program. If NULL, try to find MACS
 #' automatically.
-#' @param outpath Path for output files. If NULL, use temp directory and remove
-#' files after peak calling.
+#' @param outdir Path for output files
 #' @param effective.genome.size Effective genome size parameter for MACS
 #' (\code{-g}). Default is the human effective genome size (2.7e9).
 #' @param extsize \code{extsize} parameter for MACS.
 #' @param additional.args Additional arguments passed to MACS. This should be a
 #' single character string
-#' @param name Name for output MACS files
+#' @param name Name for output MACS files. This will also be placed in the
+#' \code{name} field in the GRanges output.
 #' @param cleanup Remove MACS output files
 #' @param verbose Display messages
 #'
@@ -33,7 +33,7 @@ CallPeaks <- function(
   object,
   assay = NULL,
   macs2.path = NULL,
-  outpath = tempdir(),
+  outdir = tempdir(),
   effective.genome.size = 2.7e9,
   extsize = 200,
   additional.args = NULL,
@@ -68,7 +68,7 @@ CallPeaks <- function(
     " -n ",
     as.character(x = name),
     " --outdir ",
-    outpath,
+    outdir,
     " ",
     additional.args
   )
@@ -83,7 +83,7 @@ CallPeaks <- function(
 
   # read in narrowpeak file and create granges
   df <- read.table(
-    file = paste0(outpath, "/", name, "_peaks.narrowPeak"),
+    file = paste0(outdir, "/", name, "_peaks.narrowPeak"),
     col.names = c("chr", "start", "end", "name",
                   "score", "strand", "fold_change",
                   "neg_log10pvalue_summit", "neg_log10qvalue_summit",
@@ -93,7 +93,7 @@ CallPeaks <- function(
   if (cleanup) {
     files.to.remove <- paste0(
       name,
-      c("_peaks.narrowPeak", "_peaks.xls", "_summits.bed"
+      c("_peaks.narrowPeak", "_peaks.xls", "_summits.bed")
     )
     files.to.remove <- paste0(outdir, "/", files.to.remove)
     for (i in files.to.remove) {
