@@ -1,13 +1,7 @@
+#' @include generics.R
+#'
+NULL
 
-#' Call peaks
-#'
-#' Call peaks using MACS. Fragment files linked to the specified assay will be
-#' used to call peaks. If multiple fragment files are present, all will be used
-#' in a single MACS invocation. Returns the \code{.narrowPeak} MACS output as a
-#' \code{GRanges} object.
-#'
-#' See \url{https://macs3-project.github.io/MACS/} for MACS documentation.
-#'
 #' @param object A Seurat object
 #' @param assay Name of assay to use
 #' @param macs2.path Path to MACS program. If NULL, try to find MACS
@@ -22,14 +16,16 @@
 #' \code{name} field in the GRanges output.
 #' @param cleanup Remove MACS output files
 #' @param verbose Display messages
+#' @param ... Arguments passed to other methods
 #'
-#' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
+#' @method CallPeaks Seurat
+#' @rdname CallPeaks
 #'
 #' @importFrom Seurat DefaultAssay
-#' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @importFrom Seurat Project
 #'
-CallPeaks <- function(
+#' @export
+CallPeaks.Seurat <- function(
   object,
   assay = NULL,
   macs2.path = NULL,
@@ -39,7 +35,75 @@ CallPeaks <- function(
   additional.args = NULL,
   name = Project(object),
   cleanup = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  gr <- CallPeaks(
+    object = object[[assay]],
+    macs2.path = macs2.path,
+    outdir = outdir,
+    effective.genome.size = effective.genome.size,
+    extsize = extsize,
+    additional.args = additional.args,
+    name = name,
+    cleanup = cleanup,
+    verbose = verbose,
+    ...
+  )
+  return(gr)
+}
+
+#' @method CallPeaks ChromatinAssay
+#' @rdname CallPeaks
+#' @export
+CallPeaks.ChromatinAssay <- function(
+  object,
+  macs2.path = NULL,
+  outdir = tempdir(),
+  effective.genome.size = 2.7e9,
+  extsize = 200,
+  additional.args = NULL,
+  name = "macs2",
+  cleanup = TRUE,
+  verbose = TRUE,
+  ...
+) {
+  # get fragment files
+  frags <- Fragments(object = object)
+  # get all fragment file paths
+  allfragpaths <- sapply(X = frags, FUN = GetFragmentData, slot = "path")
+  allfragpaths <- Reduce(f = paste, x = allfragpaths)
+  gr <- CallPeaks(
+    object = allfragpaths,
+    macs2.path = macs2.path,
+    outdir = outdir,
+    effective.genome.size = effective.genome.size,
+    extsize = extsize,
+    additional.args = additional.args,
+    name = name,
+    cleanup = cleanup,
+    verbose = verbose,
+    ...
+  )
+  return(gr)
+}
+
+#' @importFrom GenomicRanges makeGRangesFromDataFrame
+#' @method CallPeaks default
+#' @rdname CallPeaks
+#' @export
+CallPeaks.default <- function(
+  object,
+  macs2.path = NULL,
+  outdir = tempdir(),
+  effective.genome.size = 2.7e9,
+  extsize = 200,
+  additional.args = NULL,
+  name = "macs2",
+  cleanup = TRUE,
+  verbose = TRUE,
+  ...
 ) {
   # find macs2
   macs2.path <- SetIfNull(
@@ -50,17 +114,11 @@ CallPeaks <- function(
     stop("MACS2 not found. Please install MACS:",
          "https://macs3-project.github.io/MACS/")
   }
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  # get fragment files
-  frags <- Fragments(object = object[[assay]])
-  # get all fragment file paths
-  allfragpaths <- sapply(X = frags, FUN = GetFragmentData, slot = "path")
-  allfragpaths <- Reduce(f = paste, x = allfragpaths)
 
   cmd <- paste0(
     macs2.path,
     " callpeak -t ",
-    allfragpaths,
+    object,
     " -g ",
     as.character(x = effective.genome.size),
     " -f BED --nomodel --extsize ",
