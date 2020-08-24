@@ -4,6 +4,7 @@
 \alias{CallPeaks}
 \alias{CallPeaks.Seurat}
 \alias{CallPeaks.ChromatinAssay}
+\alias{CallPeaks.Fragment}
 \alias{CallPeaks.default}
 \title{Call peaks}
 \usage{
@@ -36,6 +37,19 @@ CallPeaks(object, ...)
   ...
 )
 
+\method{CallPeaks}{Fragment}(
+  object,
+  macs2.path = NULL,
+  outdir = tempdir(),
+  effective.genome.size = 2.7e+09,
+  extsize = 200,
+  additional.args = NULL,
+  name = "macs2",
+  cleanup = TRUE,
+  verbose = TRUE,
+  ...
+)
+
 \method{CallPeaks}{default}(
   object,
   macs2.path = NULL,
@@ -50,7 +64,8 @@ CallPeaks(object, ...)
 )
 }
 \arguments{
-\item{object}{A Seurat object}
+\item{object}{A Seurat object, ChromatinAssay object, Fragment object, or the
+path to fragment file/s.}
 
 \item{...}{Arguments passed to other methods}
 
