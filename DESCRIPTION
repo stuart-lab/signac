@@ -32,7 +32,7 @@ Imports:
     S4Vectors,
     Seurat (>= 3.2.0),
     data.table,
-    dplyr,
+    dplyr (>= 1.0.0),
     future,
     future.apply,
     ggplot2,
