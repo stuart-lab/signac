@@ -1,6 +1,10 @@
 # Unreleased
 
+* Added `ranges` parameter to `CoveragePlot()` to plot addition sets of genomic ranges
 * Fixed bug in `AlleleFreq()` ([#196](https://github.com/timoast/signac/issues/196))
+* Fixed bug in `FeatureMatrix()` ([#205](https://github.com/timoast/signac/issues/205))
+* Fixed bug in `CreateChromatinAssay()` when setting `min.features` argument ([#194](https://github.com/timoast/signac/issues/194))
+* Fixed bug in `TSSEnrichment()` when cell information not set for fragment files ([#203](https://github.com/timoast/signac/issues/203))
 
 
 # Signac 1.0.0
