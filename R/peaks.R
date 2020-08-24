@@ -2,7 +2,8 @@
 #'
 NULL
 
-#' @param object A Seurat object
+#' @param object A Seurat object, ChromatinAssay object, Fragment object, or the
+#' path to fragment file/s.
 #' @param assay Name of assay to use
 #' @param macs2.path Path to MACS program. If NULL, try to find MACS
 #' automatically.
@@ -89,6 +90,37 @@ CallPeaks.ChromatinAssay <- function(
   return(gr)
 }
 
+#' @method CallPeaks Fragment
+#' @rdname CallPeaks
+#' @export
+CallPeaks.Fragment <- function(
+  object,
+  macs2.path = NULL,
+  outdir = tempdir(),
+  effective.genome.size = 2.7e9,
+  extsize = 200,
+  additional.args = NULL,
+  name = "macs2",
+  cleanup = TRUE,
+  verbose = TRUE,
+  ...
+) {
+  fragpath <- GetFragmentData(object = object, slot = "path")
+  gr <- CallPeaks(
+    object = fragpath,
+    macs2.path = macs2.path,
+    outdir = outdir,
+    effective.genome.size = effective.genome.size,
+    extsize = extsize,
+    additional.args = additional.args,
+    name = name,
+    cleanup = cleanup,
+    verbose = verbose,
+    ...
+  )
+  return(gr)
+}
+
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @method CallPeaks default
 #' @rdname CallPeaks
@@ -113,6 +145,11 @@ CallPeaks.default <- function(
   if (nchar(x = macs2.path) == 0) {
     stop("MACS2 not found. Please install MACS:",
          "https://macs3-project.github.io/MACS/")
+  }
+
+  # if list of paths given, collapse to a single space-separated string
+  if (length(x = object) > 1) {
+    object <- Reduce(f = paste, x = object)
   }
 
   cmd <- paste0(
