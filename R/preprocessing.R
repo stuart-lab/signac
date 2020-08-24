@@ -276,6 +276,7 @@ FeatureMatrix <- function(
 #' @importFrom Matrix sparseMatrix
 #' @importMethodsFrom GenomicRanges intersect
 #' @importFrom Rsamtools TabixFile seqnamesTabix
+#' @importFrom fastmatch fmatch
 SingleFeatureMatrix <- function(
   fragment,
   features,
@@ -287,7 +288,13 @@ SingleFeatureMatrix <- function(
   fragment.path <- GetFragmentData(object = fragment, slot = "path")
   if (!is.null(cells)) {
     # only look for cells that are in the fragment file
-    cells <- intersect(x = cells, y = Cells(x = fragment))
+    frag.cells <- GetFragmentData(object = fragment, slot = "cells")
+    cell.idx <- fmatch(
+      x = cells,
+      table = names(x = frag.cells),
+      nomatch = 0L
+    ) > 0
+    cells <- frag.cells[cell.idx]
   }
   tbx <- TabixFile(file = fragment.path)
   features <- keepSeqlevels(
@@ -332,6 +339,12 @@ SingleFeatureMatrix <- function(
     )
   }
   featmat <- Reduce(f = rbind, x = matrix.parts)
+  if (!is.null(x = cells)) {
+    # cells supplied, rename with cell name from object rather than file
+    cell.convert <- names(x = cells)
+    names(x = cell.convert) <- cells
+    colnames(x = featmat) <- unname(obj = cell.convert[colnames(x = featmat)])
+  }
   return(featmat)
 }
 
@@ -1100,7 +1113,12 @@ TSSFast <- function(
     # open fragment file
     tbx.path <- GetFragmentData(object = frags[[i]], slot = "path")
     cellmap <- GetFragmentData(object = frags[[i]], slot = "cells")
-    cellmap <- cellmap[intersect(names(x = cellmap), colnames(x = object))]
+    if (is.null(x = cellmap)) {
+      cellmap <- colnames(x = object)
+      names(x = cellmap) <- cellmap
+    } else {
+      cellmap <- cellmap[intersect(names(x = cellmap), colnames(x = object))]
+    }
     tbx <- TabixFile(file = tbx.path)
     open(con = tbx)
     # iterate over chunked ranges

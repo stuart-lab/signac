@@ -1464,6 +1464,10 @@ MultiRegionCutMatrix <- function(
   for (i in seq_along(along.with = fragments)) {
     frag.path <- GetFragmentData(object = fragments[[i]], slot = "path")
     cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
+    if (is.null(x = cellmap)) {
+      cellmap <- colnames(x = object)
+      names(x = cellmap) <- cellmap
+    }
     tabix.file <- TabixFile(file = frag.path)
     open(con = tabix.file)
     # remove regions that aren't in the fragment file
