@@ -62,6 +62,25 @@ BinarizeCounts <- function(object, ...) {
   UseMethod(generic = "BinarizeCounts", object = object)
 }
 
+#' Call peaks
+#'
+#' Call peaks using MACS. Fragment files linked to the specified assay will be
+#' used to call peaks. If multiple fragment files are present, all will be used
+#' in a single MACS invocation. Returns the \code{.narrowPeak} MACS output as a
+#' \code{GRanges} object.
+#'
+#' See \url{https://macs3-project.github.io/MACS/} for MACS documentation.
+#'
+#' @param object A Seurat object
+#' @param ... Arguments passed to other methods
+#'
+#' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
+#' @rdname CallPeaks
+#' @export CallPeaks
+CallPeaks <- function(object, ...) {
+  UseMethod(generic = "CallPeaks", object = object)
+}
+
 #' Set and get cell barcode information for a Fragment object
 #'
 #' @param x A Seurat object
