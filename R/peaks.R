@@ -11,6 +11,7 @@ NULL
 #' @param effective.genome.size Effective genome size parameter for MACS
 #' (\code{-g}). Default is the human effective genome size (2.7e9).
 #' @param extsize \code{extsize} parameter for MACS.
+#' @param shift \code{shift} parameter for MACS.
 #' @param additional.args Additional arguments passed to MACS. This should be a
 #' single character string
 #' @param name Name for output MACS files. This will also be placed in the
@@ -33,6 +34,7 @@ CallPeaks.Seurat <- function(
   outdir = tempdir(),
   effective.genome.size = 2.7e9,
   extsize = 200,
+  shift = -extsize/2,
   additional.args = NULL,
   name = Project(object),
   cleanup = TRUE,
@@ -46,6 +48,7 @@ CallPeaks.Seurat <- function(
     outdir = outdir,
     effective.genome.size = effective.genome.size,
     extsize = extsize,
+    shift = shift,
     additional.args = additional.args,
     name = name,
     cleanup = cleanup,
@@ -64,6 +67,7 @@ CallPeaks.ChromatinAssay <- function(
   outdir = tempdir(),
   effective.genome.size = 2.7e9,
   extsize = 200,
+  shift = -extsize/2,
   additional.args = NULL,
   name = "macs2",
   cleanup = TRUE,
@@ -81,6 +85,7 @@ CallPeaks.ChromatinAssay <- function(
     outdir = outdir,
     effective.genome.size = effective.genome.size,
     extsize = extsize,
+    shift = shift,
     additional.args = additional.args,
     name = name,
     cleanup = cleanup,
@@ -99,6 +104,7 @@ CallPeaks.Fragment <- function(
   outdir = tempdir(),
   effective.genome.size = 2.7e9,
   extsize = 200,
+  shift = -extsize/2,
   additional.args = NULL,
   name = "macs2",
   cleanup = TRUE,
@@ -112,6 +118,7 @@ CallPeaks.Fragment <- function(
     outdir = outdir,
     effective.genome.size = effective.genome.size,
     extsize = extsize,
+    shift = shift,
     additional.args = additional.args,
     name = name,
     cleanup = cleanup,
@@ -131,6 +138,7 @@ CallPeaks.default <- function(
   outdir = tempdir(),
   effective.genome.size = 2.7e9,
   extsize = 200,
+  shift = -extsize/2,
   additional.args = NULL,
   name = "macs2",
   cleanup = TRUE,
@@ -160,6 +168,8 @@ CallPeaks.default <- function(
     as.character(x = effective.genome.size),
     " -f BED --nomodel --extsize ",
     as.character(x = extsize),
+    " --shift ",
+    as.character(x = shift),
     " -n ",
     as.character(x = name),
     " --outdir ",
