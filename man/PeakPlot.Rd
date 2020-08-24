@@ -4,7 +4,7 @@
 \alias{PeakPlot}
 \title{Plot peaks in a genomic region}
 \usage{
-PeakPlot(object, region, peaks = NULL)
+PeakPlot(object, region, peaks = NULL, color = "dimgrey")
 }
 \arguments{
 \item{object}{A \code{\link[Seurat]{Seurat}} object}
@@ -13,6 +13,8 @@ PeakPlot(object, region, peaks = NULL)
 
 \item{peaks}{A GRanges object containing peak coordinates. If NULL, use
 coordinates stored in the Seurat object.}
+
+\item{color}{Fill color for plotted ranges}
 }
 \value{
 Returns a \code{\link[ggplot2]{ggplot}} object
