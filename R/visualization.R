@@ -249,6 +249,7 @@ SingleCoveragePlot <- function(
   expression.slot = "data",
   annotation = TRUE,
   peaks = TRUE,
+  ranges = NULL,
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -383,14 +384,20 @@ SingleCoveragePlot <- function(
   } else {
     link.plot <- NULL
   }
-  if (!is.logical(x = peaks)) {
-    peak.plot <- PeakPlot(object = object, region = region, peaks = peaks)
+  if (peaks) {
+    peak.plot <- PeakPlot(object = object, region = region)
   } else {
-    if (peaks) {
-      peak.plot <- PeakPlot(object = object, region = region)
-    } else {
-      peak.plot <- NULL
-    }
+    peak.plot <- NULL
+  }
+  if (!is.null(x = ranges)) {
+    range.plot <- PeakPlot(
+      object = object,
+      region = region,
+      peaks = ranges,
+      color = "brown3") +
+      ylab("Ranges")
+  } else {
+    range.plot <- NULL
   }
   if (tile) {
     # reuse cut matrix
@@ -408,9 +415,9 @@ SingleCoveragePlot <- function(
   } else {
     tile.plot <- NULL
   }
-  heights <- SetIfNull(x = heights, y = c(10, 10, 2, 1, 3))
+  heights <- SetIfNull(x = heights, y = c(10, 10, 2, 1, 1, 3))
   p <- CombineTracks(
-    plotlist = list(p, tile.plot, gene.plot, peak.plot, link.plot),
+    plotlist = list(p, tile.plot, gene.plot, peak.plot, range.plot, link.plot),
     expression.plot = ex.plot,
     heights = heights,
     widths = widths
@@ -441,6 +448,7 @@ SingleCoveragePlot <- function(
 #' if supplying the \code{features} argument.
 #' @param annotation Display gene annotations
 #' @param peaks Display peaks
+#' @param ranges Additional genomic ranges to plot
 #' @param links Display links
 #' @param tile Display per-cell fragment information in sliding windows.
 #' @param tile.size Size of the sliding window for per-cell fragment tile plot
@@ -498,6 +506,7 @@ CoveragePlot <- function(
   expression.slot = "data",
   annotation = TRUE,
   peaks = TRUE,
+  ranges = NULL,
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -528,6 +537,7 @@ CoveragePlot <- function(
           expression.slot = expression.slot,
           annotation = annotation,
           peaks = peaks,
+          ranges = ranges,
           assay = assay,
           links = links,
           tile = tile,
@@ -558,6 +568,7 @@ CoveragePlot <- function(
       expression.assay = expression.assay,
       expression.slot = expression.slot,
       peaks = peaks,
+      ranges = ranges,
       assay = assay,
       links = links,
       tile = tile,
@@ -867,6 +878,7 @@ CombineTracks <- function(
 #' @param region A genomic region to plot
 #' @param peaks A GRanges object containing peak coordinates. If NULL, use
 #' coordinates stored in the Seurat object.
+#' @param color Fill color for plotted ranges
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
@@ -878,7 +890,7 @@ CombineTracks <- function(
 #' theme xlab ylab scale_color_identity
 #' @examples
 #' PeakPlot(atac_small, region = "chr1-710000-715000")
-PeakPlot <- function(object, region, peaks = NULL) {
+PeakPlot <- function(object, region, peaks = NULL, color = "dimgrey") {
   if (!inherits(x = region, what = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
@@ -892,7 +904,7 @@ PeakPlot <- function(object, region, peaks = NULL) {
   chromosome <- seqnames(x = region)
 
   if (nrow(x = peak.df) > 0) {
-    peak.plot <- ggplot(data = peak.df, mapping = aes(color = "dimgrey")) +
+    peak.plot <- ggplot(data = peak.df, mapping = aes(color = color)) +
       geom_segment(aes(x = start, y = 0, xend = end, yend = 0),
                    size = 2,
                    data = peak.df)

@@ -13,6 +13,7 @@ CoveragePlot(
   expression.slot = "data",
   annotation = TRUE,
   peaks = TRUE,
+  ranges = NULL,
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -55,6 +56,8 @@ if supplying the \code{features} argument.}
 \item{annotation}{Display gene annotations}
 
 \item{peaks}{Display peaks}
+
+\item{ranges}{Additional genomic ranges to plot}
 
 \item{links}{Display links}
 
