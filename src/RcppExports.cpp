@@ -34,6 +34,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// splitFragments
+int splitFragments(std::string fragments, std::vector<std::string> cells, std::vector<std::string> idents, std::vector<std::string> unique_idents, int buffer_length, bool verbose);
+RcppExport SEXP _Signac_splitFragments(SEXP fragmentsSEXP, SEXP cellsSEXP, SEXP identsSEXP, SEXP unique_identsSEXP, SEXP buffer_lengthSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string >::type fragments(fragmentsSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type cells(cellsSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type idents(identsSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::string> >::type unique_idents(unique_identsSEXP);
+    Rcpp::traits::input_parameter< int >::type buffer_length(buffer_lengthSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(splitFragments(fragments, cells, idents, unique_idents, buffer_length, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 // validateCells
 bool validateCells(std::string fragments, std::vector<std::string> cells, std::size_t find_n, std::size_t max_lines, bool verbose);
 RcppExport SEXP _Signac_validateCells(SEXP fragmentsSEXP, SEXP cellsSEXP, SEXP find_nSEXP, SEXP max_linesSEXP, SEXP verboseSEXP) {
@@ -53,6 +69,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_Signac_filterCells", (DL_FUNC) &_Signac_filterCells, 5},
     {"_Signac_groupCommand", (DL_FUNC) &_Signac_groupCommand, 4},
+    {"_Signac_splitFragments", (DL_FUNC) &_Signac_splitFragments, 6},
     {"_Signac_validateCells", (DL_FUNC) &_Signac_validateCells, 5},
     {NULL, NULL, 0}
 };

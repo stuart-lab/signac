@@ -104,6 +104,49 @@ FilterCells <- function(
   idx <- indexTabix(file = outfile, format = "bed")
 }
 
+#' Split fragment file by cell identities
+#'
+#' Splits a fragment file into separate files for each group of cells.
+#'
+#' @param object A Seurat object
+#' @param group.by Name of grouping variable to group cells by
+#' @param idents List of identities to include
+#' @param buffer_length Size of buffer to be read from the fragment file. This
+#' must be longer than the longest line in the file.
+#' @param verbose Display messages
+#'
+#' @importFrom Seurat DefaultAssay
+#' @concept fragments
+#'
+#' @export
+SplitFragments <- function(
+  object,
+  group.by = NULL,
+  idents = NULL,
+  buffer_length = 256L,
+  verbose = TRUE
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  frags <- Fragments(object = object[[assay]])[[1]] # test with one file
+  groups <- GetGroups(
+    object = object,
+    group.by = group.by,
+    idents = idents
+  )
+  buffer_length <- as.integer(x = buffer_length)
+  splitfiles <- splitFragments(
+    fragments = fragments,
+    cells = names(x = groups),
+    idents = unname(x = groups),
+    unique_idents = as.character(x = unique(x = groups)),
+    buffer_length = buffer_length,
+    verbose = verbose
+  )
+  if (splitfiles == 1) {
+    stop("Error: cannot open requested file")
+  }
+}
+
 #' Create a Fragment object
 #'
 #' Create a \code{Fragment} object to store fragment file information.
