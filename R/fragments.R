@@ -137,7 +137,6 @@ SplitFragments <- function(
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   frags <- Fragments(object = object[[assay]])
-  fragpaths <- sapply(X = frags, FUN = GetFragmentData, slot = "path")
   groups <- GetGroups(
     object = object,
     group.by = group.by,
@@ -145,25 +144,39 @@ SplitFragments <- function(
   )
   buffer_length <- as.integer(x = buffer_length)
   cells <- names(x = groups)
-  idents <- as.character(x = unname(obj = groups))
   file.suffix <- as.character(x = file.suffix)
+  idents <- as.character(x = unname(obj = groups))
   unique_idents <- unique(x = idents)
   outdir <- normalizePath(path = outdir, mustWork = TRUE)
 
   # split cells from each fragment file
-  # append suffix when there's more than 1 fragment file
-  for (i in seq_along(along.with = fragpaths)) {
+  # append to existing file when more than one fragment file used
+  for (i in seq_along(along.with = frags)) {
+    fragpath <- GetFragmentData(object = frags[[i]], slot = "path")
+    # convert cell names
+    cellmap <- GetFragmentData(object = frags[[i]], slot = "cells")
+    cell.in.frag <- cells %in% names(x = cellmap)
+    cells.use <- cellmap[cells[cell.in.frag]]
+    idents.use <- as.character(x = unname(obj = groups[names(x = cells.use)]))
+    frag.cell.name <- as.character(x = unname(obj = cells.use))
+
+    if (verbose) {
+      message("Processing file ", fragpath)
+    }
     splitfiles <- splitFragments(
-      fragments = fragpaths[[i]],
+      fragments = fragpath,
       outdir = paste0(outdir, .Platform$file.sep),
       suffix = file.suffix,
       append = i > 1,
-      cells = cells,
-      idents = idents,
+      cells = frag.cell.name,
+      idents = idents.use,
       unique_idents = unique_idents,
       buffer_length = buffer_length,
       verbose = verbose
     )
+    if (verbose) {
+      message("\n")
+    }
     if (splitfiles == 1) {
       stop("Error: cannot open requested file")
     }
