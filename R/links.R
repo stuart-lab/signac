@@ -288,6 +288,7 @@ LinkPeaks <- function(
 # @return Returns a GRanges object
 #' @importFrom GenomicRanges resize start width GRanges makeGRangesFromDataFrame
 #' @importFrom IRanges IRanges
+#' @importFrom BiocGenerics sort
 LinksToGRanges <- function(linkmat, gene.coords, sep = c("-", "-")) {
   # get TSS for each gene
   tss <- resize(gene.coords, width = 1, fix = 'start')
@@ -315,7 +316,6 @@ LinksToGRanges <- function(linkmat, gene.coords, sep = c("-", "-")) {
     tss = start(x = tss)[dgtm@i + 1],
     pk = midpoints[dgtm@j + 1],
     score = dgtm@x,
-    group = 1,
     gene = rownames(x = linkmat)[dgtm@i + 1],
     peak = colnames(x = linkmat)[dgtm@j + 1]
   )
@@ -328,7 +328,7 @@ LinksToGRanges <- function(linkmat, gene.coords, sep = c("-", "-")) {
 
   # convert to granges
   gr.use <- makeGRangesFromDataFrame(df = df, keep.extra.columns = TRUE)
-  return(gr.use)
+  return(sort(x = gr.use))
 }
 
 
