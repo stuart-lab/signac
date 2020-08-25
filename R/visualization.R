@@ -228,23 +228,15 @@ globalVariables(
   names = c("position", "coverage", "group", "gene_name", "direction"),
   package = "Signac"
 )
-#' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic
-#' aes ylim theme element_blank element_text geom_segment scale_color_identity
-#' @importFrom GenomicRanges GRanges
-#' @importFrom IRanges IRanges subsetByOverlaps width
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom ggplot2 ylab scale_fill_manual
 #' @importMethodsFrom GenomicRanges start end
 #' @importFrom Seurat WhichCells Idents DefaultAssay
-#' @importFrom Matrix colSums
-#' @importFrom methods is
-#' @importFrom stats median
-#' @importFrom dplyr mutate group_by ungroup slice_sample
-#' @importFrom RcppRoll roll_sum
 SingleCoveragePlot <- function(
   object,
   region,
   features = NULL,
   assay = NULL,
+  show.bulk = FALSE,
   expression.assay = NULL,
   expression.slot = "data",
   annotation = TRUE,
@@ -269,6 +261,9 @@ SingleCoveragePlot <- function(
 ) {
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!is.null(x = group.by)) {
+    Idents(object = object) <- group.by
+  }
   if (!is.null(x = idents)) {
     ident.cells <- WhichCells(object = object, idents = idents)
     cells <- intersect(x = cells, y = ident.cells)
@@ -281,7 +276,6 @@ SingleCoveragePlot <- function(
     extend.upstream = extend.upstream,
     extend.downstream = extend.downstream
   )
-  window.size <- width(x = region)
   reads.per.group <- AverageCounts(
     object = object,
     group.by = group.by,
@@ -308,58 +302,17 @@ SingleCoveragePlot <- function(
     group.by = group.by,
     idents = idents
   )
-  levels.stash <- levels(x = obj.groups)
-  coverages <- ApplyMatrixByGroup(
-    mat = cutmat,
-    fun = colSums,
-    groups = obj.groups,
+  p <- CoverageTrack(
+    cutmat = cutmat,
+    region = region,
     group.scale.factors = group.scale.factors,
     scale.factor = scale.factor,
-    normalize = TRUE
+    window = window,
+    ymax = ymax,
+    obj.groups = obj.groups,
+    downsample.rate = downsample.rate,
+    max.downsample = max.downsample
   )
-  if (!is.na(x = window)) {
-    coverages <- group_by(.data = coverages, group)
-    coverages <- mutate(.data = coverages, coverage = roll_sum(
-      x = norm.value, n = window, fill = NA, align = "center"
-    ))
-    coverages <- ungroup(x = coverages)
-  } else {
-    coverages$coverage <- coverages$norm.value
-  }
-  chromosome <- as.character(x = seqnames(x = region))
-  start.pos <- start(x = region)
-  end.pos <- end(x = region)
-  coverages <- coverages[!is.na(x = coverages$coverage), ]
-  coverages <- group_by(.data = coverages, group)
-  sampling <- min(max.downsample, window.size * downsample.rate)
-  coverages <- slice_sample(.data = coverages, n = sampling)
-
-  # restore factor levels
-  if (!is.null(x = levels.stash)) {
-    coverages$group <- factor(x = coverages$group, levels = levels.stash)
-  }
-  ymax <- SetIfNull(x = ymax, y = signif(
-    x = max(coverages$coverage, na.rm = TRUE), digits = 2)
-  )
-  ymin <- 0
-
-  gr <- GRanges(
-    seqnames = chromosome,
-    IRanges(start = start.pos, end = end.pos)
-  )
-  p <- ggplot(
-    data = coverages,
-    mapping = aes(x = position, y = coverage, fill = group)
-    ) +
-    geom_area(stat = "identity") +
-    geom_hline(yintercept = 0, size = 0.1) +
-    facet_wrap(facets = ~group, strip.position = "left", ncol = 1) +
-    xlab(label = paste0(chromosome, " position (bp)")) +
-    ylab(label = paste0("Normalized accessibility \n(range ",
-                        as.character(x = ymin), " - ",
-                        as.character(x = ymax), ")")) +
-    ylim(c(ymin, ymax)) +
-    theme_browser(legend = FALSE)
   if (!is.null(x = features)) {
     ex.plot <- ExpressionPlot(
       object = object,
@@ -415,13 +368,128 @@ SingleCoveragePlot <- function(
   } else {
     tile.plot <- NULL
   }
-  heights <- SetIfNull(x = heights, y = c(10, 10, 2, 1, 1, 3))
+  if (show.bulk) {
+    object$bulk <- "All cells"
+    reads.per.group <- AverageCounts(
+      object = object,
+      group.by = "bulk",
+      verbose = FALSE
+    )
+    cells.per.group <- CellsPerGroup(
+      object = object,
+      group.by = "bulk"
+    )
+    bulk.scale.factor <- suppressWarnings(reads.per.group * cells.per.group)
+    bulk.groups <- rep(x = "All cells", length(x = obj.groups))
+    names(x = bulk.groups) <- names(x = obj.groups)
+
+    bulk.plot <- CoverageTrack(
+      cutmat = cutmat,
+      region = region,
+      group.scale.factors = bulk.scale.factor,
+      scale.factor = scale.factor,
+      window = window,
+      ymax = ymax,
+      obj.groups = bulk.groups,
+      downsample.rate = downsample.rate,
+      max.downsample = max.downsample
+    ) +
+      scale_fill_manual(values = "grey") +
+      ylab("")
+  } else {
+    bulk.plot <- NULL
+  }
+  nident <- length(x = unique(x = obj.groups))
+  heights <- SetIfNull(
+    x = heights, y = c(10, (1 / nident) * 10, 10, 2, 1, 1, 3)
+  )
   p <- CombineTracks(
-    plotlist = list(p, tile.plot, gene.plot, peak.plot, range.plot, link.plot),
+    plotlist = list(p, bulk.plot, tile.plot, gene.plot,
+                    peak.plot, range.plot, link.plot),
     expression.plot = ex.plot,
     heights = heights,
     widths = widths
   )
+  return(p)
+}
+
+# Coverage Track
+#
+#' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic
+#' aes ylim theme element_blank element_text geom_segment scale_color_identity
+#' @importFrom IRanges IRanges width
+#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Matrix colSums
+#' @importFrom stats median
+#' @importFrom dplyr mutate group_by ungroup slice_sample
+#' @importFrom RcppRoll roll_sum
+#' @importFrom methods is
+#' @importFrom GenomicRanges GRanges
+#' @importMethodsFrom GenomicRanges start end
+CoverageTrack <- function(
+  cutmat,
+  region,
+  group.scale.factors,
+  scale.factor,
+  obj.groups,
+  ymax,
+  downsample.rate,
+  window = 100,
+  max.downsample = 3000
+) {
+  window.size <- width(x = region)
+  levels.use <- levels(x = obj.groups)
+  coverages <- ApplyMatrixByGroup(
+    mat = cutmat,
+    fun = colSums,
+    groups = obj.groups,
+    group.scale.factors = group.scale.factors,
+    scale.factor = scale.factor,
+    normalize = TRUE
+  )
+  if (!is.na(x = window)) {
+    coverages <- group_by(.data = coverages, group)
+    coverages <- mutate(.data = coverages, coverage = roll_sum(
+      x = norm.value, n = window, fill = NA, align = "center"
+    ))
+    coverages <- ungroup(x = coverages)
+  } else {
+    coverages$coverage <- coverages$norm.value
+  }
+  chromosome <- as.character(x = seqnames(x = region))
+  start.pos <- start(x = region)
+  end.pos <- end(x = region)
+  coverages <- coverages[!is.na(x = coverages$coverage), ]
+  coverages <- group_by(.data = coverages, group)
+  sampling <- min(max.downsample, window.size * downsample.rate)
+  coverages <- slice_sample(.data = coverages, n = sampling)
+
+  # restore factor levels
+  if (!is.null(x = levels.use)) {
+    coverages$group <- factor(x = coverages$group, levels = levels.use)
+  }
+  ymax <- SetIfNull(x = ymax, y = signif(
+    x = max(coverages$coverage, na.rm = TRUE), digits = 2)
+  )
+  ymin <- 0
+
+  gr <- GRanges(
+    seqnames = chromosome,
+    IRanges(start = start.pos, end = end.pos)
+  )
+  p <- ggplot(
+    data = coverages,
+    mapping = aes(x = position, y = coverage, fill = group)
+  ) +
+    geom_area(stat = "identity") +
+    geom_hline(yintercept = 0, size = 0.1) +
+    facet_wrap(facets = ~group, strip.position = "left", ncol = 1) +
+    xlab(label = paste0(chromosome, " position (bp)")) +
+    ylab(label = paste0("Normalized accessibility \n(range ",
+                        as.character(x = ymin), " - ",
+                        as.character(x = ymax), ")")) +
+    ylim(c(ymin, ymax)) +
+    theme_browser(legend = FALSE)
   return(p)
 }
 
@@ -441,6 +509,9 @@ SingleCoveragePlot <- function(
 #' @param features A vector of features present in another assay to plot
 #' alongside accessibility tracks (for example, gene names).
 #' @param assay Name of the assay to plot
+#' @param show.bulk Include coverage track for all cells combined (pseudo-bulk).
+#' Note that this will plot the combined accessibility for all cells included in
+#' the plot (rather than all cells in the object).
 #' @param expression.assay Name of the assay containing expression data to plot
 #' alongside accessibility tracks. Only needed if supplying \code{features}
 #' argument.
@@ -502,6 +573,7 @@ CoveragePlot <- function(
   region,
   features = NULL,
   assay = NULL,
+  show.bulk = FALSE,
   expression.assay = "RNA",
   expression.slot = "data",
   annotation = TRUE,
@@ -535,6 +607,7 @@ CoveragePlot <- function(
           features = features,
           expression.assay = expression.assay,
           expression.slot = expression.slot,
+          show.bulk = show.bulk,
           annotation = annotation,
           peaks = peaks,
           ranges = ranges,
@@ -567,6 +640,7 @@ CoveragePlot <- function(
       features = features,
       expression.assay = expression.assay,
       expression.slot = expression.slot,
+      show.bulk = show.bulk,
       peaks = peaks,
       ranges = ranges,
       assay = assay,

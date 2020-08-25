@@ -9,6 +9,7 @@ CoveragePlot(
   region,
   features = NULL,
   assay = NULL,
+  show.bulk = FALSE,
   expression.assay = "RNA",
   expression.slot = "data",
   annotation = TRUE,
@@ -45,6 +46,8 @@ supplied, annotations must be present in the assay.}
 alongside accessibility tracks (for example, gene names).}
 
 \item{assay}{Name of the assay to plot}
+
+\item{show.bulk}{Include coverage track for all cells combined (pseudo-bulk)}
 
 \item{expression.assay}{Name of the assay containing expression data to plot
 alongside accessibility tracks. Only needed if supplying \code{features}
