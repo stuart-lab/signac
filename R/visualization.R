@@ -228,27 +228,20 @@ globalVariables(
   names = c("position", "coverage", "group", "gene_name", "direction"),
   package = "Signac"
 )
-#' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic
-#' aes ylim theme element_blank element_text geom_segment scale_color_identity
-#' @importFrom GenomicRanges GRanges
-#' @importFrom IRanges IRanges subsetByOverlaps width
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom ggplot2 ylab scale_fill_manual
 #' @importMethodsFrom GenomicRanges start end
 #' @importFrom Seurat WhichCells Idents DefaultAssay
-#' @importFrom Matrix colSums
-#' @importFrom methods is
-#' @importFrom stats median
-#' @importFrom dplyr mutate group_by ungroup slice_sample
-#' @importFrom RcppRoll roll_sum
 SingleCoveragePlot <- function(
   object,
   region,
   features = NULL,
   assay = NULL,
+  show.bulk = FALSE,
   expression.assay = NULL,
   expression.slot = "data",
   annotation = TRUE,
   peaks = TRUE,
+  ranges = NULL,
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -268,6 +261,9 @@ SingleCoveragePlot <- function(
 ) {
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!is.null(x = group.by)) {
+    Idents(object = object) <- group.by
+  }
   if (!is.null(x = idents)) {
     ident.cells <- WhichCells(object = object, idents = idents)
     cells <- intersect(x = cells, y = ident.cells)
@@ -280,7 +276,6 @@ SingleCoveragePlot <- function(
     extend.upstream = extend.upstream,
     extend.downstream = extend.downstream
   )
-  window.size <- width(x = region)
   reads.per.group <- AverageCounts(
     object = object,
     group.by = group.by,
@@ -307,7 +302,143 @@ SingleCoveragePlot <- function(
     group.by = group.by,
     idents = idents
   )
-  levels.stash <- levels(x = obj.groups)
+  p <- CoverageTrack(
+    cutmat = cutmat,
+    region = region,
+    group.scale.factors = group.scale.factors,
+    scale.factor = scale.factor,
+    window = window,
+    ymax = ymax,
+    obj.groups = obj.groups,
+    downsample.rate = downsample.rate,
+    max.downsample = max.downsample
+  )
+  if (!is.null(x = features)) {
+    ex.plot <- ExpressionPlot(
+      object = object,
+      features = features,
+      assay = expression.assay,
+      idents = idents,
+      group.by = group.by,
+      slot = expression.slot
+    )
+    widths <- c(10, length(x = features))
+  } else {
+    ex.plot <- NULL
+    widths <- NULL
+  }
+  if (annotation) {
+    gene.plot <- AnnotationPlot(object = object, region = region)
+  } else {
+    gene.plot <- NULL
+  }
+  if (links) {
+    link.plot <- LinkPlot(object = object, region = region)
+  } else {
+    link.plot <- NULL
+  }
+  if (peaks) {
+    peak.plot <- PeakPlot(object = object, region = region)
+  } else {
+    peak.plot <- NULL
+  }
+  if (!is.null(x = ranges)) {
+    range.plot <- PeakPlot(
+      object = object,
+      region = region,
+      peaks = ranges,
+      color = "brown3") +
+      ylab("Ranges")
+  } else {
+    range.plot <- NULL
+  }
+  if (tile) {
+    # reuse cut matrix
+    tile.df <- ComputeTile(
+      cutmatrix = cutmat,
+      groups = obj.groups,
+      window = tile.size,
+      n = tile.cells,
+      order = "total"
+    )
+    tile.plot <- CreateTilePlot(
+      df = tile.df,
+      n = tile.cells
+    )
+  } else {
+    tile.plot <- NULL
+  }
+  if (show.bulk) {
+    object$bulk <- "All cells"
+    reads.per.group <- AverageCounts(
+      object = object,
+      group.by = "bulk",
+      verbose = FALSE
+    )
+    cells.per.group <- CellsPerGroup(
+      object = object,
+      group.by = "bulk"
+    )
+    bulk.scale.factor <- suppressWarnings(reads.per.group * cells.per.group)
+    bulk.groups <- rep(x = "All cells", length(x = obj.groups))
+    names(x = bulk.groups) <- names(x = obj.groups)
+
+    bulk.plot <- CoverageTrack(
+      cutmat = cutmat,
+      region = region,
+      group.scale.factors = bulk.scale.factor,
+      scale.factor = scale.factor,
+      window = window,
+      ymax = ymax,
+      obj.groups = bulk.groups,
+      downsample.rate = downsample.rate,
+      max.downsample = max.downsample
+    ) +
+      scale_fill_manual(values = "grey") +
+      ylab("")
+  } else {
+    bulk.plot <- NULL
+  }
+  nident <- length(x = unique(x = obj.groups))
+  heights <- SetIfNull(
+    x = heights, y = c(10, (1 / nident) * 10, 10, 2, 1, 1, 3)
+  )
+  p <- CombineTracks(
+    plotlist = list(p, bulk.plot, tile.plot, gene.plot,
+                    peak.plot, range.plot, link.plot),
+    expression.plot = ex.plot,
+    heights = heights,
+    widths = widths
+  )
+  return(p)
+}
+
+# Coverage Track
+#
+#' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic
+#' aes ylim theme element_blank element_text geom_segment scale_color_identity
+#' @importFrom IRanges IRanges width
+#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Matrix colSums
+#' @importFrom stats median
+#' @importFrom dplyr mutate group_by ungroup slice_sample
+#' @importFrom RcppRoll roll_sum
+#' @importFrom methods is
+#' @importFrom GenomicRanges GRanges
+#' @importMethodsFrom GenomicRanges start end
+CoverageTrack <- function(
+  cutmat,
+  region,
+  group.scale.factors,
+  scale.factor,
+  obj.groups,
+  ymax,
+  downsample.rate,
+  window = 100,
+  max.downsample = 3000
+) {
+  window.size <- width(x = region)
+  levels.use <- levels(x = obj.groups)
   coverages <- ApplyMatrixByGroup(
     mat = cutmat,
     fun = colSums,
@@ -334,8 +465,8 @@ SingleCoveragePlot <- function(
   coverages <- slice_sample(.data = coverages, n = sampling)
 
   # restore factor levels
-  if (!is.null(x = levels.stash)) {
-    coverages$group <- factor(x = coverages$group, levels = levels.stash)
+  if (!is.null(x = levels.use)) {
+    coverages$group <- factor(x = coverages$group, levels = levels.use)
   }
   ymax <- SetIfNull(x = ymax, y = signif(
     x = max(coverages$coverage, na.rm = TRUE), digits = 2)
@@ -349,7 +480,7 @@ SingleCoveragePlot <- function(
   p <- ggplot(
     data = coverages,
     mapping = aes(x = position, y = coverage, fill = group)
-    ) +
+  ) +
     geom_area(stat = "identity") +
     geom_hline(yintercept = 0, size = 0.1) +
     facet_wrap(facets = ~group, strip.position = "left", ncol = 1) +
@@ -359,62 +490,6 @@ SingleCoveragePlot <- function(
                         as.character(x = ymax), ")")) +
     ylim(c(ymin, ymax)) +
     theme_browser(legend = FALSE)
-  if (!is.null(x = features)) {
-    ex.plot <- ExpressionPlot(
-      object = object,
-      features = features,
-      assay = expression.assay,
-      idents = idents,
-      group.by = group.by,
-      slot = expression.slot
-    )
-    widths <- c(10, length(x = features))
-  } else {
-    ex.plot <- NULL
-    widths <- NULL
-  }
-  if (annotation) {
-    gene.plot <- AnnotationPlot(object = object, region = region)
-  } else {
-    gene.plot <- NULL
-  }
-  if (links) {
-    link.plot <- LinkPlot(object = object, region = region)
-  } else {
-    link.plot <- NULL
-  }
-  if (!is.logical(x = peaks)) {
-    peak.plot <- PeakPlot(object = object, region = region, peaks = peaks)
-  } else {
-    if (peaks) {
-      peak.plot <- PeakPlot(object = object, region = region)
-    } else {
-      peak.plot <- NULL
-    }
-  }
-  if (tile) {
-    # reuse cut matrix
-    tile.df <- ComputeTile(
-      cutmatrix = cutmat,
-      groups = obj.groups,
-      window = tile.size,
-      n = tile.cells,
-      order = "total"
-    )
-    tile.plot <- CreateTilePlot(
-      df = tile.df,
-      n = tile.cells
-    )
-  } else {
-    tile.plot <- NULL
-  }
-  heights <- SetIfNull(x = heights, y = c(10, 10, 2, 1, 3))
-  p <- CombineTracks(
-    plotlist = list(p, tile.plot, gene.plot, peak.plot, link.plot),
-    expression.plot = ex.plot,
-    heights = heights,
-    widths = widths
-  )
   return(p)
 }
 
@@ -434,6 +509,9 @@ SingleCoveragePlot <- function(
 #' @param features A vector of features present in another assay to plot
 #' alongside accessibility tracks (for example, gene names).
 #' @param assay Name of the assay to plot
+#' @param show.bulk Include coverage track for all cells combined (pseudo-bulk).
+#' Note that this will plot the combined accessibility for all cells included in
+#' the plot (rather than all cells in the object).
 #' @param expression.assay Name of the assay containing expression data to plot
 #' alongside accessibility tracks. Only needed if supplying \code{features}
 #' argument.
@@ -441,6 +519,7 @@ SingleCoveragePlot <- function(
 #' if supplying the \code{features} argument.
 #' @param annotation Display gene annotations
 #' @param peaks Display peaks
+#' @param ranges Additional genomic ranges to plot
 #' @param links Display links
 #' @param tile Display per-cell fragment information in sliding windows.
 #' @param tile.size Size of the sliding window for per-cell fragment tile plot
@@ -494,10 +573,12 @@ CoveragePlot <- function(
   region,
   features = NULL,
   assay = NULL,
+  show.bulk = FALSE,
   expression.assay = "RNA",
   expression.slot = "data",
   annotation = TRUE,
   peaks = TRUE,
+  ranges = NULL,
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -526,8 +607,10 @@ CoveragePlot <- function(
           features = features,
           expression.assay = expression.assay,
           expression.slot = expression.slot,
+          show.bulk = show.bulk,
           annotation = annotation,
           peaks = peaks,
+          ranges = ranges,
           assay = assay,
           links = links,
           tile = tile,
@@ -557,7 +640,9 @@ CoveragePlot <- function(
       features = features,
       expression.assay = expression.assay,
       expression.slot = expression.slot,
+      show.bulk = show.bulk,
       peaks = peaks,
+      ranges = ranges,
       assay = assay,
       links = links,
       tile = tile,
@@ -867,6 +952,7 @@ CombineTracks <- function(
 #' @param region A genomic region to plot
 #' @param peaks A GRanges object containing peak coordinates. If NULL, use
 #' coordinates stored in the Seurat object.
+#' @param color Fill color for plotted ranges
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
@@ -878,7 +964,7 @@ CombineTracks <- function(
 #' theme xlab ylab scale_color_identity
 #' @examples
 #' PeakPlot(atac_small, region = "chr1-710000-715000")
-PeakPlot <- function(object, region, peaks = NULL) {
+PeakPlot <- function(object, region, peaks = NULL, color = "dimgrey") {
   if (!inherits(x = region, what = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
@@ -892,7 +978,7 @@ PeakPlot <- function(object, region, peaks = NULL) {
   chromosome <- seqnames(x = region)
 
   if (nrow(x = peak.df) > 0) {
-    peak.plot <- ggplot(data = peak.df, mapping = aes(color = "dimgrey")) +
+    peak.plot <- ggplot(data = peak.df, mapping = aes(color = color)) +
       geom_segment(aes(x = start, y = 0, xend = end, yend = 0),
                    size = 2,
                    data = peak.df)

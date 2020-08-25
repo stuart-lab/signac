@@ -9,10 +9,12 @@ CoveragePlot(
   region,
   features = NULL,
   assay = NULL,
+  show.bulk = FALSE,
   expression.assay = "RNA",
   expression.slot = "data",
   annotation = TRUE,
   peaks = TRUE,
+  ranges = NULL,
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -45,6 +47,8 @@ alongside accessibility tracks (for example, gene names).}
 
 \item{assay}{Name of the assay to plot}
 
+\item{show.bulk}{Include coverage track for all cells combined (pseudo-bulk)}
+
 \item{expression.assay}{Name of the assay containing expression data to plot
 alongside accessibility tracks. Only needed if supplying \code{features}
 argument.}
@@ -55,6 +59,8 @@ if supplying the \code{features} argument.}
 \item{annotation}{Display gene annotations}
 
 \item{peaks}{Display peaks}
+
+\item{ranges}{Additional genomic ranges to plot}
 
 \item{links}{Display links}
 
