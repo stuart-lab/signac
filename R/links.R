@@ -253,7 +253,7 @@ LinkPeaks <- function(
     if (verbose) {
       message("No significant links found")
     }
-    return(NULL)
+    return(object)
   }
   peak.key <- seq_along(
     along.with = unique(x = names(x = coef.vec))
@@ -336,16 +336,18 @@ LinksToGRanges <- function(linkmat, gene.coords, sep = c("-", "-")) {
   df <- data.frame(
     chromosome = as.character(x = seqnames(x = peak.ranges)[dgtm@j + 1]),
     tss = start(x = tss)[dgtm@i + 1],
-    peak = midpoints[dgtm@j + 1],
+    pk = midpoints[dgtm@j + 1],
     score = dgtm@x,
-    group = 1
+    group = 1,
+    gene = rownames(x = linkmat)[dgtm@i + 1],
+    peak = colnames(x = linkmat)[dgtm@j + 1]
   )
 
   # work out start and end coords
-  df$start <- ifelse(test = df$tss < df$peak, yes = df$tss, no = df$peak)
-  df$end <- ifelse(test = df$tss < df$peak, yes = df$peak, no = df$tss)
+  df$start <- ifelse(test = df$tss < df$pk, yes = df$tss, no = df$pk)
+  df$end <- ifelse(test = df$tss < df$pk, yes = df$pk, no = df$tss)
   df$tss <- NULL
-  df$peak <- NULL
+  df$pk <- NULL
 
   # convert to granges
   gr.use <- makeGRangesFromDataFrame(df = df, keep.extra.columns = TRUE)
