@@ -10,7 +10,10 @@ int splitFragments(
     std::vector<std::string> cells,
     std::vector<std::string> idents,
     std::vector<std::string> unique_idents,
+    std::string outdir,
+    std::string suffix,
     int buffer_length,
+    bool append = false,
     bool verbose = true
 ) {
   // cells and idents should be the same length and order
@@ -31,8 +34,12 @@ int splitFragments(
   // open one output file for each unique ident
   std::vector<std::ofstream> streams;
   for (size_t i = 0; i < unique_idents.size(); i++) {
-    std::string fileName = unique_idents[i] + ".bed";
-    streams.emplace_back(std::ofstream{ fileName });
+    std::string fileName = outdir + unique_idents[i] + suffix + ".bed";
+    if (append) {
+      streams.emplace_back(std::ofstream{ fileName, std::ios_base::app});
+    } else {
+      streams.emplace_back(std::ofstream{ fileName });
+    }
   }
 
   // return 1 if it can't find the file
@@ -86,7 +93,7 @@ int splitFragments(
           std::string cellident = it->second;
 
           // find which file to write to
-          std::vector<std::string>::iterator iter = std::find(unique_idents.begin(), unique_idents.end(), it);
+          std::vector<std::string>::iterator iter = std::find(unique_idents.begin(), unique_idents.end(), cellident);
           int index = std::distance(unique_idents.begin(), iter);
 
           // write to correct stream for given ident

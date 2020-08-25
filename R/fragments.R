@@ -106,13 +106,19 @@ FilterCells <- function(
 
 #' Split fragment file by cell identities
 #'
-#' Splits a fragment file into separate files for each group of cells.
+#' Splits a fragment file into separate files for each group of cells. If
+#' splitting multiple fragment files containing common cell types, fragments
+#' originating from different files will be appended to the same file for one
+#' group of cell identities.
 #'
 #' @param object A Seurat object
+#' @param assay Name of assay to use
 #' @param group.by Name of grouping variable to group cells by
 #' @param idents List of identities to include
 #' @param buffer_length Size of buffer to be read from the fragment file. This
 #' must be longer than the longest line in the file.
+#' @param outdir Directory to write output files
+#' @param file.suffix Suffix to add to all file names (before file extension)
 #' @param verbose Display messages
 #'
 #' @importFrom Seurat DefaultAssay
@@ -121,29 +127,46 @@ FilterCells <- function(
 #' @export
 SplitFragments <- function(
   object,
+  assay = NULL,
   group.by = NULL,
   idents = NULL,
+  outdir = getwd(),
+  file.suffix = "",
   buffer_length = 256L,
   verbose = TRUE
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  frags <- Fragments(object = object[[assay]])[[1]] # test with one file
+  frags <- Fragments(object = object[[assay]])
+  fragpaths <- sapply(X = frags, FUN = GetFragmentData, slot = "path")
   groups <- GetGroups(
     object = object,
     group.by = group.by,
     idents = idents
   )
   buffer_length <- as.integer(x = buffer_length)
-  splitfiles <- splitFragments(
-    fragments = fragments,
-    cells = names(x = groups),
-    idents = unname(x = groups),
-    unique_idents = as.character(x = unique(x = groups)),
-    buffer_length = buffer_length,
-    verbose = verbose
-  )
-  if (splitfiles == 1) {
-    stop("Error: cannot open requested file")
+  cells <- names(x = groups)
+  idents <- as.character(x = unname(obj = groups))
+  file.suffix <- as.character(x = file.suffix)
+  unique_idents <- unique(x = idents)
+  outdir <- normalizePath(path = outdir, mustWork = TRUE)
+
+  # split cells from each fragment file
+  # append suffix when there's more than 1 fragment file
+  for (i in seq_along(along.with = fragpaths)) {
+    splitfiles <- splitFragments(
+      fragments = fragpaths[[i]],
+      outdir = paste0(outdir, .Platform$file.sep),
+      suffix = file.suffix,
+      append = i > 1,
+      cells = cells,
+      idents = idents,
+      unique_idents = unique_idents,
+      buffer_length = buffer_length,
+      verbose = verbose
+    )
+    if (splitfiles == 1) {
+      stop("Error: cannot open requested file")
+    }
   }
 }
 
