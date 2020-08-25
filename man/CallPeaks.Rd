@@ -17,6 +17,7 @@ CallPeaks(object, ...)
   outdir = tempdir(),
   effective.genome.size = 2.7e+09,
   extsize = 200,
+  shift = -extsize/2,
   additional.args = NULL,
   name = Project(object),
   cleanup = TRUE,
@@ -30,6 +31,7 @@ CallPeaks(object, ...)
   outdir = tempdir(),
   effective.genome.size = 2.7e+09,
   extsize = 200,
+  shift = -extsize/2,
   additional.args = NULL,
   name = "macs2",
   cleanup = TRUE,
@@ -43,6 +45,7 @@ CallPeaks(object, ...)
   outdir = tempdir(),
   effective.genome.size = 2.7e+09,
   extsize = 200,
+  shift = -extsize/2,
   additional.args = NULL,
   name = "macs2",
   cleanup = TRUE,
@@ -56,6 +59,7 @@ CallPeaks(object, ...)
   outdir = tempdir(),
   effective.genome.size = 2.7e+09,
   extsize = 200,
+  shift = -extsize/2,
   additional.args = NULL,
   name = "macs2",
   cleanup = TRUE,
@@ -81,6 +85,8 @@ automatically.}
 
 \item{extsize}{\code{extsize} parameter for MACS.}
 
+\item{shift}{\code{shift} parameter for MACS.}
+
 \item{additional.args}{Additional arguments passed to MACS. This should be a
 single character string}
 
@@ -102,4 +108,7 @@ in a single MACS invocation. Returns the \code{.narrowPeak} MACS output as a
 }
 \details{
 See \url{https://macs3-project.github.io/MACS/} for MACS documentation.
+
+If you call peaks using MACS2 please cite:
+\url{https://doi.org/10.1186/gb-2008-9-9-r137}
 }
