@@ -121,7 +121,6 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' @importFrom glmnet cv.glmnet
 #' @importFrom stats coef
 #' @importFrom Matrix sparseMatrix rowSums
-#' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom future.apply future_lapply
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
@@ -194,14 +193,6 @@ LinkPeaks <- function(
   genes.use <- colnames(x = peak_distance_matrix)
   coef.vec <- c()
   gene.vec <- c()
-  if (verbose) {
-    pb <- txtProgressBar(
-      min = 1,
-      max = length(x = genes.use),
-      style = 3,
-      file = stderr()
-    )
-  }
   if (nbrOfWorkers() > 1) {
     mylapply <- future_lapply
   } else {
@@ -216,7 +207,6 @@ LinkPeaks <- function(
       gene.expression <- expression.data[genes.use[[i]], ]
       if (sum(peak.use) < 2) {
         # no peaks close to gene
-        if (verbose) setTxtProgressBar(pb = pb, value = i)
         return(list("gene" = NULL, "coef" = NULL))
       } else {
         peak.access <- t(x = peak.data[peak.use, ])
@@ -236,12 +226,10 @@ LinkPeaks <- function(
           coef.results.filtered <- coef.results[coef.results != 0]
         }
         if (length(x = coef.results.filtered) == 0) {
-          if (verbose) setTxtProgressBar(pb = pb, value = i)
           return(list("gene" = NULL, "coef" = NULL))
         } else {
           gene.vec <- c(gene.vec, rep(i, length(x = coef.results.filtered)))
           coef.vec <- c(coef.vec, coef.results.filtered)
-          if (verbose) setTxtProgressBar(pb = pb, value = i)
         }
       }
       return(list("gene" = gene.vec, "coef" = coef.vec))
