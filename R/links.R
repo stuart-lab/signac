@@ -274,31 +274,6 @@ LinkPeaks <- function(
   return(object)
 }
 
-#' Find top links
-#'
-#' Filter a set of promoter-enhancer links and retain the top X\%
-#' based on correlation score. Links below the percentile cutoff
-#' will be set to zero. Note that the cutoff is defined across
-#' all genes, so some genes may have no links after filtering.
-#' The cutoff value is determined considering non-zero link
-#' scores only (eg, top 50\% among non-zero scores).
-#'
-#' @param links A sparse matrix containing genes in the rows and enhancers in
-#' the columns.
-#' Values correspond to the link score.
-#' @param cutoff Percentile cutoff for retaining links. 0.50 (default) retains
-#' the top 50\% of links.
-#' @return Returns a sparse matrix
-#' @export
-#' @concept links
-TopLinks <- function(links, cutoff = 0.25) {
-  nonzero.values <- abs(x = links@x)
-  cutoff.value <- quantile(x = nonzero.values, 1 - cutoff)
-  links[abs(links) < cutoff.value] <- 0
-  return(links)
-}
-
-
 ### Not exported ###
 
 # Link matrix to granges
@@ -393,29 +368,4 @@ DistanceToTSS <- function(peaks, genes, distance = 200000, sep = c("-", "-")) {
   rownames(x = hit_matrix) <- GRangesToString(grange = peaks, sep = sep)
   colnames(x = hit_matrix) <- genes.extended$gene_name
   return(hit_matrix)
-}
-
-# Return names of nonzero elements for each matrix row
-#
-# @param x A matrix
-# @param keep.sparse Keep as a sparse matrix. Slower but uses less memory.
-# @return Return list where each element correponds to a row
-# of the input matrix, and contains a vector of the names of the
-# nonzero elements for the row
-GetLinkedElements <- function(x, keep.sparse = FALSE) {
-  if (keep.sparse) {
-    results <- list()
-    for (i in seq_along(along.with = rownames(x = x))) {
-      results[[rownames(x = x)[[i]]]] <- names(x = which(abs(x[i, ]) > 0))
-    }
-    return(results)
-  } else {
-    return(
-      apply(
-        X = x,
-        MARGIN = 1,
-        FUN = function(y) names(x = which(abs(x = y) > 0))
-        )
-      )
-  }
 }
