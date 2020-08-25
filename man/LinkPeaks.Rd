@@ -32,7 +32,7 @@ expression assay. If NULL, extract from gene annotations stored in the assay.}
 \item{binary}{Binarize the peak counts (default FALSE)}
 
 \item{alpha}{Alpha parameter for elastic net regularization. Controls balance
-between LASSO (alpha=1) and ridge (alpha=0) regression.}
+between LASSO (alpha=1) and ridge (alpha=0) regularization.}
 
 \item{distance}{Distance threshold for peaks to include in regression model}
 
@@ -51,13 +51,14 @@ thresholds.}
 \item{verbose}{Display messages}
 }
 \value{
-Returns a Seurat object with links stored in the peak assay
+Returns a Seurat object with the \code{Links} information set, with
+each recorded link being the correlation coefficient between the
+accessibility of the peak and expression of the gene.
 }
 \description{
-Find peaks that are predictive of gene expression. Fits a generalized linear
-model with elastic net regularization between peak accessibility and gene
-expression, for all peaks within a given distance threshold (default 200 kb).
-Returns a peak x gene sparse matrix, with each entry being the correlation
-coefficient between the accessibility of the peak and expression of the gene.
+Find peaks that are correlated with gene expression. Fits a generalized
+linear model with elastic net regularization between peak accessibility and
+gene expression for all peaks within a given distance threshold from the gene
+TSS.
 }
 \concept{links}

@@ -93,11 +93,10 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 
 #' Link peaks to genes
 #'
-#' Find peaks that are predictive of gene expression. Fits a generalized linear
-#' model with elastic net regularization between peak accessibility and gene
-#' expression, for all peaks within a given distance threshold (default 200 kb).
-#' Returns a peak x gene sparse matrix, with each entry being the correlation
-#' coefficient between the accessibility of the peak and expression of the gene.
+#' Find peaks that are correlated with gene expression. Fits a generalized
+#' linear model with elastic net regularization between peak accessibility and
+#' gene expression for all peaks within a given distance threshold from the gene
+#' TSS.
 #'
 #' @param object A Seurat object
 #' @param peak.assay Name of assay containing peak information
@@ -106,7 +105,7 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' expression assay. If NULL, extract from gene annotations stored in the assay.
 #' @param binary Binarize the peak counts (default FALSE)
 #' @param alpha Alpha parameter for elastic net regularization. Controls balance
-#' between LASSO (alpha=1) and ridge (alpha=0) regression.
+#' between LASSO (alpha=1) and ridge (alpha=0) regularization.
 #' @param distance Distance threshold for peaks to include in regression model
 #' @param min.cells Minimum number of cells positive for the peak and gene
 #' needed to include in the results.
@@ -127,7 +126,10 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
 #'
-#' @return Returns a Seurat object with links stored in the peak assay
+#' @return Returns a Seurat object with the \code{Links} information set, with
+#' each recorded link being the correlation coefficient between the
+#' accessibility of the peak and expression of the gene.
+#'
 #' @export
 #' @concept links
 LinkPeaks <- function(
