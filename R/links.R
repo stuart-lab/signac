@@ -184,7 +184,7 @@ LinkPeaks <- function(
   gene.coords.use <- gene.coords[gene.coords$gene_name %in% genes,]
   peaks <- granges(x = object[[peak.assay]])
   peaks <- peaks[peaks.keep]
-  peak_distance_matrix <- DistanceToGene(
+  peak_distance_matrix <- DistanceToTSS(
     peaks = peaks,
     genes = gene.coords.use,
     distance = distance
@@ -368,12 +368,14 @@ LinksToGRanges <- function(linkmat, gene.coords, sep = c("-", "-")) {
 #' @importFrom GenomicRanges findOverlaps
 #' @importFrom S4Vectors queryHits subjectHits
 #' @importFrom Matrix sparseMatrix
+#' @importFrom GenomicRanges resize
 #
 # @return Returns a sparse matrix
-DistanceToGene <- function(peaks, genes, distance = 200000, sep = c("-", "-")) {
+DistanceToTSS <- function(peaks, genes, distance = 200000, sep = c("-", "-")) {
+  tss <- resize(x = genes, width = 1, fix = 'start')
   genes.extended <- suppressWarnings(
     expr = Extend(
-      x = genes, upstream = distance, downstream = distance
+      x = tss, upstream = distance, downstream = distance
     )
   )
   overlaps <- findOverlaps(
