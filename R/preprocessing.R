@@ -289,9 +289,10 @@ SingleFeatureMatrix <- function(
   if (!is.null(cells)) {
     # only look for cells that are in the fragment file
     frag.cells <- GetFragmentData(object = fragment, slot = "cells")
+    # first subset frag.cells
     cell.idx <- fmatch(
-      x = cells,
-      table = names(x = frag.cells),
+      x = names(x = frag.cells),
+      table = cells,
       nomatch = 0L
     ) > 0
     cells <- frag.cells[cell.idx]
