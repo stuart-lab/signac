@@ -91,6 +91,7 @@ CallPeaks.Seurat <- function(
       group.by = group.by,
       idents = idents
     )
+    groups <- gsub(pattern = " ", replacement = "_", x = groups)
     unique.groups <- unique(x = groups)
 
     # call peaks on each split fragment file separately
@@ -117,8 +118,12 @@ CallPeaks.Seurat <- function(
       # remove split fragment file from temp dir
       file.remove(fragpath)
       # add ident
-      gr$ident <- unique.groups[[i]]
-      grlist[[i]] <- gr
+      if (length(x = gr) > 0) {
+        gr$ident <- unique.groups[[i]]
+        grlist[[i]] <- gr
+      } else {
+        message("No peaks found for ", unique.groups[[i]])
+      }
     }
     if (combine.peaks) {
       # combine peaks and reduce, maintaining ident information

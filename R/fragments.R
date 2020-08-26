@@ -142,6 +142,8 @@ SplitFragments <- function(
     group.by = group.by,
     idents = idents
   )
+  # replace space with underscore
+  groups <- gsub(pattern = " ", replacement = "_", x = groups)
   buffer_length <- as.integer(x = buffer_length)
   cells <- names(x = groups)
   file.suffix <- as.character(x = file.suffix)
