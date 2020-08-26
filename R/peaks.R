@@ -5,8 +5,26 @@ NULL
 #' @param object A Seurat object, ChromatinAssay object, Fragment object, or the
 #' path to fragment file/s.
 #' @param assay Name of assay to use
+#' @param group.by Grouping variable to use. If set, peaks will be called
+#' independently on each group of cells and then combined. Note that to call
+#' peaks using subsets of cells we first split the fragment file/s used, so
+#' using a grouping variable will require extra time to split the files and
+#' perform multiple MACS peak calls, and will store additional files on-disk
+#' that may be large. Note that we store split fragment files in the temp
+#' directory, and if the program is interrupted before completing these
+#' temporary files will not be removed. If NULL, peaks are called using all
+#' cells together (pseudobulk).
+#' @param idents List of identities to include if grouping cells (only valid if
+#' also setting the \code{group.by} parameter). If NULL, peaks will be called
+#' for all cell identities.
 #' @param macs2.path Path to MACS program. If NULL, try to find MACS
 #' automatically.
+#' @param combine.peaks Controls whether peak calls from different groups of
+#' cells are combined using \code{GenomicRanges::reduce} when calling peaks for
+#' different groups of cells (\code{group.by} parameter). If FALSE, a list of
+#' \code{GRanges} object will be returned. Note that metadata fields such as the
+#' p-value, q-value, and fold-change information for each peak will be lost if
+#' combining peaks.
 #' @param outdir Path for output files
 #' @param effective.genome.size Effective genome size parameter for MACS
 #' (\code{-g}). Default is the human effective genome size (2.7e9).
@@ -25,13 +43,17 @@ NULL
 #'
 #' @importFrom Seurat DefaultAssay
 #' @importFrom Seurat Project
+#' @importFrom GenomicRanges reduce
 #'
 #' @export
 CallPeaks.Seurat <- function(
   object,
   assay = NULL,
+  group.by = NULL,
+  idents = NULL,
   macs2.path = NULL,
   outdir = tempdir(),
+  combine.peaks = TRUE,
   effective.genome.size = 2.7e9,
   extsize = 200,
   shift = -extsize/2,
@@ -42,19 +64,97 @@ CallPeaks.Seurat <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  gr <- CallPeaks(
-    object = object[[assay]],
-    macs2.path = macs2.path,
-    outdir = outdir,
-    effective.genome.size = effective.genome.size,
-    extsize = extsize,
-    shift = shift,
-    additional.args = additional.args,
-    name = name,
-    cleanup = cleanup,
-    verbose = verbose,
-    ...
-  )
+  if (!is.null(x = group.by)) {
+    # first check macs2 path before we spend time splitting the files
+    macs2.path <- SetIfNull(
+      x = macs2.path,
+      y = unname(obj = Sys.which(names = "macs2"))
+    )
+    if (nchar(x = macs2.path) == 0) {
+      stop("MACS2 not found. Please install MACS:",
+           "https://macs3-project.github.io/MACS/")
+    }
+
+    # split fragment files
+    SplitFragments(
+      object = object,
+      assay = assay,
+      group.by = group.by,
+      idents = idents,
+      outdir = tempdir(),
+      verbose = verbose
+    )
+
+    # work out what all the file paths to use are
+    groups <- GetGroups(
+      object = object,
+      group.by = group.by,
+      idents = idents
+    )
+    groups <- gsub(pattern = " ", replacement = "_", x = groups)
+    unique.groups <- unique(x = groups)
+
+    # call peaks on each split fragment file separately
+    grlist <- list()
+    for (i in seq_along(along.with = unique.groups)) {
+      fragpath <- paste0(
+        tempdir(),
+        .Platform$file.sep,
+        unique.groups[[i]],
+        ".bed"
+      )
+      gr <- CallPeaks(
+        object = fragpath,
+        macs2.path = macs2.path,
+        outdir = outdir,
+        effective.genome.size = effective.genome.size,
+        extsize = extsize,
+        shift = shift,
+        additional.args = additional.args,
+        name = name,
+        cleanup = cleanup,
+        verbose = verbose
+      )
+      # remove split fragment file from temp dir
+      file.remove(fragpath)
+      # add ident
+      if (length(x = gr) > 0) {
+        gr$ident <- unique.groups[[i]]
+        grlist[[i]] <- gr
+      } else {
+        message("No peaks found for ", unique.groups[[i]])
+      }
+    }
+    if (combine.peaks) {
+      # combine peaks and reduce, maintaining ident information
+      gr.combined <- Reduce(f = c, x = grlist)
+      gr <- reduce(x = gr.combined, with.revmap = TRUE)
+      dset.vec <- vector(mode = "character", length = length(x = gr))
+      # TODO more efficient way of doing this
+      for (i in seq_len(length.out = length(x = gr))) {
+        datasets <- gr.combined[as.vector(gr[i]$revmap)[[1]]]$ident
+        dset.vec[[i]] <- paste(unique(x = datasets), collapse = ",")
+      }
+      gr$peak_called_in <- dset.vec
+      gr$revmap <- NULL
+    } else {
+      gr <- grlist
+    }
+  } else {
+    gr <- CallPeaks(
+      object = object[[assay]],
+      macs2.path = macs2.path,
+      outdir = outdir,
+      effective.genome.size = effective.genome.size,
+      extsize = extsize,
+      shift = shift,
+      additional.args = additional.args,
+      name = name,
+      cleanup = cleanup,
+      verbose = verbose,
+      ...
+    )
+  }
   return(gr)
 }
 

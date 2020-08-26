@@ -104,6 +104,87 @@ FilterCells <- function(
   idx <- indexTabix(file = outfile, format = "bed")
 }
 
+#' Split fragment file by cell identities
+#'
+#' Splits a fragment file into separate files for each group of cells. If
+#' splitting multiple fragment files containing common cell types, fragments
+#' originating from different files will be appended to the same file for one
+#' group of cell identities.
+#'
+#' @param object A Seurat object
+#' @param assay Name of assay to use
+#' @param group.by Name of grouping variable to group cells by
+#' @param idents List of identities to include
+#' @param buffer_length Size of buffer to be read from the fragment file. This
+#' must be longer than the longest line in the file.
+#' @param outdir Directory to write output files
+#' @param file.suffix Suffix to add to all file names (before file extension)
+#' @param verbose Display messages
+#'
+#' @importFrom Seurat DefaultAssay
+#' @concept fragments
+#'
+#' @export
+SplitFragments <- function(
+  object,
+  assay = NULL,
+  group.by = NULL,
+  idents = NULL,
+  outdir = getwd(),
+  file.suffix = "",
+  buffer_length = 256L,
+  verbose = TRUE
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  frags <- Fragments(object = object[[assay]])
+  groups <- GetGroups(
+    object = object,
+    group.by = group.by,
+    idents = idents
+  )
+  # replace space with underscore
+  groups <- gsub(pattern = " ", replacement = "_", x = groups)
+  buffer_length <- as.integer(x = buffer_length)
+  cells <- names(x = groups)
+  file.suffix <- as.character(x = file.suffix)
+  idents <- as.character(x = unname(obj = groups))
+  unique_idents <- unique(x = idents)
+  outdir <- normalizePath(path = outdir, mustWork = TRUE)
+
+  # split cells from each fragment file
+  # append to existing file when more than one fragment file used
+  for (i in seq_along(along.with = frags)) {
+    fragpath <- GetFragmentData(object = frags[[i]], slot = "path")
+    # convert cell names
+    cellmap <- GetFragmentData(object = frags[[i]], slot = "cells")
+    cell.in.frag <- cells %in% names(x = cellmap)
+    cells.use <- cellmap[cells[cell.in.frag]]
+    idents.use <- as.character(x = unname(obj = groups[names(x = cells.use)]))
+    frag.cell.name <- as.character(x = unname(obj = cells.use))
+
+    if (verbose) {
+      message("Processing file ", fragpath)
+    }
+    splitfiles <- splitFragments(
+      fragments = fragpath,
+      outdir = paste0(outdir, .Platform$file.sep),
+      suffix = file.suffix,
+      append = i > 1,
+      cells = frag.cell.name,
+      idents = idents.use,
+      unique_idents = unique_idents,
+      buffer_length = buffer_length,
+      verbose = verbose
+    )
+    if (verbose) {
+      message("\n")
+    }
+    if (splitfiles == 1) {
+      stop("Error: cannot open requested file")
+    }
+  }
+}
+
 #' Create a Fragment object
 #'
 #' Create a \code{Fragment} object to store fragment file information.
