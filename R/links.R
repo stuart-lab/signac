@@ -2,6 +2,60 @@
 #'
 NULL
 
+#' Get peaks linked to genes
+#'
+#' Find peaks linked to a given set of genes
+#'
+#' @param object A Seurat object
+#' @param features A list of genes to find linked peaks for
+#' @param assay Name of assay to use. If NULL, use the default assay
+#' @param min.abs.score Minimum absolute value of the link score for a link to
+#' be returned
+#' @export
+#' @concept links
+#' @seealso GetLinkedGenes
+GetLinkedPeaks <- function(
+  object,
+  features,
+  assay = NULL,
+  min.abs.score = 0
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  lnk <- Links(object = object[[assay]])
+  if (length(x = lnk) == 0) {
+    stop("No links present in assay. Run LinkPeaks first.")
+  }
+  lnk.keep <- lnk[(abs(x = lnk$score) > min.abs.score) & lnk$gene %in% features]
+  return(unique(x = lnk.keep$peak))
+}
+
+#' Get genes linked to peaks
+#'
+#' Find genes linked to a given set of peaks
+#'
+#' @param object A Seurat object
+#' @param features A list of peaks to find linked genes for
+#' @param assay Name of assay to use. If NULL, use the default assay
+#' @param min.abs.score Minimum absolute value of the link score for a link to
+#' be returned
+#' @export
+#' @concept links
+#' @seealso GetLinkedPeaks
+GetLinkedGenes <- function(
+  object,
+  features,
+  assay = NULL,
+  min.abs.score = 0
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  lnk <- Links(object = object[[assay]])
+  if (length(x = lnk) == 0) {
+    stop("No links present in assay. Run LinkPeaks first.")
+  }
+  lnk.keep <- lnk[(abs(x = lnk$score) > min.abs.score) & lnk$peak %in% features]
+  return(unique(x = lnk.keep$gene))
+}
+
 #' Cicero connections to links
 #'
 #' Convert the output of Cicero connections to a set of genomic ranges where
