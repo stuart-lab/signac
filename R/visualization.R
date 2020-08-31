@@ -521,6 +521,8 @@ CoverageTrack <- function(
 #' @param annotation Display gene annotations
 #' @param peaks Display peaks
 #' @param ranges Additional genomic ranges to plot
+#' @param ranges.title Y-axis title for ranges track. Only relevant if
+#' \code{ranges} parameter is set.
 #' @param links Display links
 #' @param tile Display per-cell fragment information in sliding windows.
 #' @param tile.size Size of the sliding window for per-cell fragment tile plot

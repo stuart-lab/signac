@@ -65,6 +65,9 @@ if supplying the \code{features} argument.}
 
 \item{ranges}{Additional genomic ranges to plot}
 
+\item{ranges.title}{Y-axis title for ranges track. Only relevant if
+\code{ranges} parameter is set.}
+
 \item{links}{Display links}
 
 \item{tile}{Display per-cell fragment information in sliding windows.}
