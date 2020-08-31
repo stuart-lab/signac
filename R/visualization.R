@@ -242,6 +242,7 @@ SingleCoveragePlot <- function(
   annotation = TRUE,
   peaks = TRUE,
   ranges = NULL,
+  ranges.title = "Ranges",
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -348,7 +349,7 @@ SingleCoveragePlot <- function(
       region = region,
       peaks = ranges,
       color = "brown3") +
-      ylab("Ranges")
+      ylab(ranges.title)
   } else {
     range.plot <- NULL
   }
@@ -579,6 +580,7 @@ CoveragePlot <- function(
   annotation = TRUE,
   peaks = TRUE,
   ranges = NULL,
+  ranges.title = "Ranges",
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -611,6 +613,7 @@ CoveragePlot <- function(
           annotation = annotation,
           peaks = peaks,
           ranges = ranges,
+          ranges.title = ranges.title,
           assay = assay,
           links = links,
           tile = tile,
@@ -643,6 +646,7 @@ CoveragePlot <- function(
       show.bulk = show.bulk,
       peaks = peaks,
       ranges = ranges,
+      ranges.title = ranges.title,
       assay = assay,
       links = links,
       tile = tile,
