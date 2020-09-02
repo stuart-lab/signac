@@ -130,9 +130,10 @@ CallPeaks.Seurat <- function(
       gr.combined <- Reduce(f = c, x = grlist)
       gr <- reduce(x = gr.combined, with.revmap = TRUE)
       dset.vec <- vector(mode = "character", length = length(x = gr))
-      # TODO more efficient way of doing this
+      ident.vec <- gr.combined$ident
+      revmap <- gr$revmap
       for (i in seq_len(length.out = length(x = gr))) {
-        datasets <- gr.combined[as.vector(gr[i]$revmap)[[1]]]$ident
+        datasets <- ident.vec[revmap[[i]]]
         dset.vec[[i]] <- paste(unique(x = datasets), collapse = ",")
       }
       gr$peak_called_in <- dset.vec
