@@ -118,7 +118,12 @@ FilterCells <- function(
 #' @param buffer_length Size of buffer to be read from the fragment file. This
 #' must be longer than the longest line in the file.
 #' @param outdir Directory to write output files
-#' @param file.suffix Suffix to add to all file names (before file extension)
+#' @param file.suffix Suffix to add to all file names (before file extension).
+#' If splitting multiple fragment files without the \code{append} option set to
+#' TRUE, an additional numeric suffix will be added to each file (eg, .1, .2).
+#' @param append If splitting multiple fragment files, append cells from the
+#' same group (eg cluster) to the same file. Note that this can cause the output
+#' file to be unsorted.
 #' @param verbose Display messages
 #'
 #' @importFrom Seurat DefaultAssay
@@ -132,6 +137,7 @@ SplitFragments <- function(
   idents = NULL,
   outdir = getwd(),
   file.suffix = "",
+  append = TRUE,
   buffer_length = 256L,
   verbose = TRUE
 ) {
@@ -155,6 +161,11 @@ SplitFragments <- function(
   # split cells from each fragment file
   # append to existing file when more than one fragment file used
   for (i in seq_along(along.with = frags)) {
+    if (!append & (length(x = frags) > 1)) {
+      suffix.use <- paste0(file.suffix, ".", i)
+    } else {
+      suffix.use <- file.suffix
+    }
     fragpath <- GetFragmentData(object = frags[[i]], slot = "path")
     # convert cell names
     cellmap <- GetFragmentData(object = frags[[i]], slot = "cells")
@@ -169,8 +180,8 @@ SplitFragments <- function(
     splitfiles <- splitFragments(
       fragments = fragpath,
       outdir = paste0(outdir, .Platform$file.sep),
-      suffix = file.suffix,
-      append = i > 1,
+      suffix = suffix.use,
+      append = append,
       cells = frag.cell.name,
       idents = idents.use,
       unique_idents = unique_idents,
