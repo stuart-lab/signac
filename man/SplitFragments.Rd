@@ -11,6 +11,7 @@ SplitFragments(
   idents = NULL,
   outdir = getwd(),
   file.suffix = "",
+  append = TRUE,
   buffer_length = 256L,
   verbose = TRUE
 )
@@ -26,7 +27,13 @@ SplitFragments(
 
 \item{outdir}{Directory to write output files}
 
-\item{file.suffix}{Suffix to add to all file names (before file extension)}
+\item{file.suffix}{Suffix to add to all file names (before file extension).
+If splitting multiple fragment files without the \code{append} option set to
+TRUE, an additional numeric suffix will be added to each file (eg, .1, .2).}
+
+\item{append}{If splitting multiple fragment files, append cells from the
+same group (eg cluster) to the same file. Note that this can cause the output
+file to be unsorted.}
 
 \item{buffer_length}{Size of buffer to be read from the fragment file. This
 must be longer than the longest line in the file.}
