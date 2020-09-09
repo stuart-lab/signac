@@ -14,6 +14,7 @@ LinkPeaks(
   distance = 5e+05,
   min.cells = 10,
   expression.threshold = 0.1,
+  family = "poisson",
   genes.use = NULL,
   keep.all = FALSE,
   verbose = TRUE
@@ -41,6 +42,10 @@ needed to include in the results.}
 
 \item{expression.threshold}{Minimum value for a gene to be classified as
 expressed. Only used for filtering genes from regression.}
+
+\item{family}{Response type (for gene expression values). Valid values are
+"gaussian", "poisson", "binomial", or a \code{\link[stats]{glm}}-family
+object}
 
 \item{genes.use}{Genes to test. If NULL, determine from expression assay.}
 

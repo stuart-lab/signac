@@ -169,6 +169,9 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' had 0 coefficient and what were not tested due to expression or accessibility
 #' thresholds.
 #' @param genes.use Genes to test. If NULL, determine from expression assay.
+#' @param family Response type (for gene expression values). Valid values are
+#' "gaussian", "poisson", "binomial", or a \code{\link[stats]{glm}}-family
+#' object
 #' @param verbose Display messages
 #'
 #' @importFrom Seurat GetAssayData
@@ -195,6 +198,7 @@ LinkPeaks <- function(
   distance = 5e+05,
   min.cells = 10,
   expression.threshold = 0.1,
+  family = "poisson",
   genes.use = NULL,
   keep.all = FALSE,
   verbose = TRUE
@@ -268,7 +272,7 @@ LinkPeaks <- function(
           x = peak.access,
           y = gene.expression,
           alpha = alpha,
-          family = 'poisson'
+          family = family
         )
         lambda <- cvfit$lambda.1se
         coef.results <- coef(object = cvfit, s = lambda)
@@ -337,7 +341,7 @@ LinksToGRanges <- function(linkmat, gene.coords, sep = c("-", "-")) {
   gene.idx <- sapply(
     X = rownames(x = linkmat),
     FUN = function(x) {
-      which(x = x == tss$gene_name)
+      which(x = x == tss$gene_name)[[1]]
     }
   )
   tss <- tss[gene.idx]
