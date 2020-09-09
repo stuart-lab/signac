@@ -242,6 +242,7 @@ SingleCoveragePlot <- function(
   annotation = TRUE,
   peaks = TRUE,
   ranges = NULL,
+  ranges.title = "Ranges",
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -348,7 +349,7 @@ SingleCoveragePlot <- function(
       region = region,
       peaks = ranges,
       color = "brown3") +
-      ylab("Ranges")
+      ylab(ranges.title)
   } else {
     range.plot <- NULL
   }
@@ -520,6 +521,8 @@ CoverageTrack <- function(
 #' @param annotation Display gene annotations
 #' @param peaks Display peaks
 #' @param ranges Additional genomic ranges to plot
+#' @param ranges.title Y-axis title for ranges track. Only relevant if
+#' \code{ranges} parameter is set.
 #' @param links Display links
 #' @param tile Display per-cell fragment information in sliding windows.
 #' @param tile.size Size of the sliding window for per-cell fragment tile plot
@@ -579,6 +582,7 @@ CoveragePlot <- function(
   annotation = TRUE,
   peaks = TRUE,
   ranges = NULL,
+  ranges.title = "Ranges",
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -611,6 +615,7 @@ CoveragePlot <- function(
           annotation = annotation,
           peaks = peaks,
           ranges = ranges,
+          ranges.title = ranges.title,
           assay = assay,
           links = links,
           tile = tile,
@@ -643,6 +648,7 @@ CoveragePlot <- function(
       show.bulk = show.bulk,
       peaks = peaks,
       ranges = ranges,
+      ranges.title = ranges.title,
       assay = assay,
       links = links,
       tile = tile,

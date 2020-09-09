@@ -1531,6 +1531,7 @@ dim.Motif <- function(x) {
 #' @export
 #' @method Fragments<- ChromatinAssay
 #' @rdname Fragments
+#' @importFrom Seurat SetAssayData
 #' @concept assay
 #' @concept fragments
 #' @examples
@@ -1550,6 +1551,12 @@ dim.Motif <- function(x) {
     for (i in seq_along(along.with = value)) {
       object <- AddFragments(object = object, fragments = value[[i]])
     }
+  } else if (is.null(x = value)) {
+    object <- SetAssayData(
+      object = object,
+      slot = "fragments",
+      new.data = list()
+    )
   } else {
     object <- AddFragments(object = object, fragments = value)
   }

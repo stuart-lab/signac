@@ -15,6 +15,7 @@ CoveragePlot(
   annotation = TRUE,
   peaks = TRUE,
   ranges = NULL,
+  ranges.title = "Ranges",
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -63,6 +64,9 @@ if supplying the \code{features} argument.}
 \item{peaks}{Display peaks}
 
 \item{ranges}{Additional genomic ranges to plot}
+
+\item{ranges.title}{Y-axis title for ranges track. Only relevant if
+\code{ranges} parameter is set.}
 
 \item{links}{Display links}
 

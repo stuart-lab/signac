@@ -20,6 +20,7 @@ extended `Assay` class to store the additional information needed, including:
 * Genome-wide signal in a disk-based format (fragment files)
 * TF footprinting data
 * Tn5 insertion bias data
+* Linked genomic regions
 
 A major advantage of the Signac design is its interoperability with existing
 functions in the Seurat package, and other packages that are able to use the
@@ -327,6 +328,37 @@ object <- CreateSeuratObject(
 
 This will create a Seurat object containing a `ChromatinAssay`, with a single
 `Fragment` object.
+
+### Removing a `Fragment` object from the `ChromatinAssay`
+
+All the `Fragment` objects associated with a `ChromatinAssay` can be removed
+by assigning `NULL` using the `Fragment<-` assignment function. For example:
+
+```{r}
+Fragments(chrom_assay) <- NULL
+Fragments(chrom_assay)
+```
+
+To remove a subset of `Fragment` object from the list of `Fragment` objects
+stored in the `ChromatinAssay`, you will need to extract the list of `Fragment`
+objects using the `Fragments()` function, subset the list of objects, then
+assign the subsetted list to the assay using the `Seurat::SetAssayData()`
+function. For example:
+
+```{r}
+chrom_assay <- SetAssayData(chrom_assay, slot = "fragments", new.data = fragments)
+Fragments(chrom_assay)
+```
+
+### Changing the fragment file path in an existing `Fragment` object
+
+The path to the fragment file can be updated using the `UpdatePath()` function.
+This can be useful if you move the fragment file to a new directory, or if you
+copy a stored Seurat object containing a `ChromatinAssay` to a different server.
+
+```{r message=FALSE}
+fragments <- UpdatePath(fragments, new.path = "/home/stuartt/github/chrom/vignette_data/fragments.tsv.gz")
+```
 
 ### Using remote fragment files
 

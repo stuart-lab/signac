@@ -427,3 +427,36 @@ Seurat::Cells
     return(x)
   }
 }
+
+#' Update the file path for a Fragment object
+#'
+#' Change the path to a fragment file store in a \code{\link{Fragment}}
+#' object. Path must be to the same file that was used to create the fragment
+#' object. An MD5 hash will be computed using the new path and compared to the
+#' hash stored in the Fragment object to verify that the files are the same.
+#'
+#' @param object A \code{\link{Fragment}} object
+#' @param new.path Path to the fragment file
+#' @param verbose Display messages
+#'
+#' @concept fragments
+#' @export
+UpdatePath <- function(object, new.path, verbose = TRUE) {
+  new.path <- normalizePath(path = new.path, mustWork = TRUE)
+  index.file <- paste0(new.path, ".tbi")
+  if (!file.exists(new.path)) {
+    stop("Fragment file not found")
+  } else if (!file.exists(index.file)) {
+    stop("Fragment file not indexed")
+  }
+  old.path <- GetFragmentData(object = object, slot = "path")
+  if (identical(x = old.path, y = new.path)) {
+    return(object)
+  }
+  slot(object = object, name = "path") <- new.path
+  if (ValidateHash(object = object, verbose = verbose)) {
+    return(object)
+  } else {
+    stop("MD5 sum does not match previously computed sum")
+  }
+}

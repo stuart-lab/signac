@@ -57,8 +57,7 @@ Imports:
     lsa,
     RcppRoll,
     scales,
-    Rcpp,
-    qvalue
+    Rcpp
 Collate: 
     'RcppExports.R'
     'data.R'
