@@ -994,6 +994,48 @@ AddMissingCells <- function(x, cells) {
   return(x)
 }
 
+#' @importFrom Seurat DefaultAssay GetAssayData
+#' @importFrom Matrix Diagonal tcrossprod rowSums
+AverageCountMatrix <- function(
+  object,
+  assay = NULL,
+  group.by = NULL,
+  idents = NULL
+) {
+  assay = SetIfNull(x = assay, y = DefaultAssay(object = object))
+  countmatrix <- GetAssayData(object = object[[assay]], slot = "counts")
+  ident.matrix <- BinaryIdentMatrix(
+    object = object,
+    group.by = group.by,
+    idents = idents
+  )
+  collapsed.counts <- tcrossprod(x = countmatrix, y = ident.matrix)
+  avg.counts <- tcrossprod(
+    x = collapsed.counts,
+    y = Diagonal(x = 1 / rowSums(x = ident.matrix))
+  )
+  return(as.matrix(x = avg.counts))
+}
+
+# Create binary cell x class matrix of group membership
+#' @importFrom Matrix sparseMatrix
+BinaryIdentMatrix <- function(object, group.by = NULL, idents = NULL) {
+  group.idents <- GetGroups(object = pbmc, group.by = group.by, idents = idents)
+  cell.idx <- seq_along(along.with = names(x = group.idents))
+  unique.groups <- as.character(x = unique(x = group.idents))
+  ident.idx <- seq_along(along.with = unique.groups)
+  names(x = ident.idx) <- unique.groups
+  ident.matrix <- sparseMatrix(
+    i = ident.idx[as.character(x = group.idents)],
+    j = cell.idx,
+    x = 1
+  )
+  colnames(x = ident.matrix) <- names(x = group.idents)
+  rownames(x = ident.matrix) <- unique.groups
+  ident.matrix <- as(object = ident.matrix, Class = "dgCMatrix")
+  return(ident.matrix)
+}
+
 # Calculate nCount and nFeature
 #
 # From Seurat
