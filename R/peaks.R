@@ -25,6 +25,7 @@ NULL
 #' \code{GRanges} object will be returned. Note that metadata fields such as the
 #' p-value, q-value, and fold-change information for each peak will be lost if
 #' combining peaks.
+#' @param broad Call broad peaks (\code{--broad} parameter for MACS)
 #' @param outdir Path for output files
 #' @param effective.genome.size Effective genome size parameter for MACS
 #' (\code{-g}). Default is the human effective genome size (2.7e9).
@@ -52,6 +53,7 @@ CallPeaks.Seurat <- function(
   group.by = NULL,
   idents = NULL,
   macs2.path = NULL,
+  broad = FALSE,
   outdir = tempdir(),
   combine.peaks = TRUE,
   effective.genome.size = 2.7e9,
@@ -107,6 +109,7 @@ CallPeaks.Seurat <- function(
         object = fragpath,
         macs2.path = macs2.path,
         outdir = outdir,
+        broad = broad,
         effective.genome.size = effective.genome.size,
         extsize = extsize,
         shift = shift,
@@ -146,6 +149,7 @@ CallPeaks.Seurat <- function(
       object = object[[assay]],
       macs2.path = macs2.path,
       outdir = outdir,
+      broad = broad,
       effective.genome.size = effective.genome.size,
       extsize = extsize,
       shift = shift,
@@ -166,6 +170,7 @@ CallPeaks.ChromatinAssay <- function(
   object,
   macs2.path = NULL,
   outdir = tempdir(),
+  broad = FALSE,
   effective.genome.size = 2.7e9,
   extsize = 200,
   shift = -extsize/2,
@@ -184,6 +189,7 @@ CallPeaks.ChromatinAssay <- function(
     object = allfragpaths,
     macs2.path = macs2.path,
     outdir = outdir,
+    broad = broad,
     effective.genome.size = effective.genome.size,
     extsize = extsize,
     shift = shift,
@@ -203,6 +209,7 @@ CallPeaks.Fragment <- function(
   object,
   macs2.path = NULL,
   outdir = tempdir(),
+  broad = FALSE,
   effective.genome.size = 2.7e9,
   extsize = 200,
   shift = -extsize/2,
@@ -217,6 +224,7 @@ CallPeaks.Fragment <- function(
     object = fragpath,
     macs2.path = macs2.path,
     outdir = outdir,
+    broad = broad,
     effective.genome.size = effective.genome.size,
     extsize = extsize,
     shift = shift,
@@ -237,6 +245,7 @@ CallPeaks.default <- function(
   object,
   macs2.path = NULL,
   outdir = tempdir(),
+  broad = FALSE,
   effective.genome.size = 2.7e9,
   extsize = 200,
   shift = -extsize/2,
@@ -261,12 +270,15 @@ CallPeaks.default <- function(
     object <- Reduce(f = paste, x = object)
   }
 
+  broadstring <- ifelse(test = broad, yes = " --broad ", no = "")
+
   cmd <- paste0(
     macs2.path,
     " callpeak -t ",
     object,
     " -g ",
     as.character(x = effective.genome.size),
+    broadstring,
     " -f BED --nomodel --extsize ",
     as.character(x = extsize),
     " --shift ",
@@ -287,21 +299,36 @@ CallPeaks.default <- function(
     ignore.stdout = !verbose
   )
 
-  # read in narrowpeak file and create granges
-  df <- read.table(
-    file = paste0(outdir, "/", name, "_peaks.narrowPeak"),
-    col.names = c("chr", "start", "end", "name",
-                  "score", "strand", "fold_change",
-                  "neg_log10pvalue_summit", "neg_log10qvalue_summit",
-                  "relative_summit_position")
-  )
-  gr <- makeGRangesFromDataFrame(df = df, keep.extra.columns = TRUE)
-  if (cleanup) {
+  if (broad) {
+    # read in broadpeak
+    df <- read.table(
+      file = paste0(outdir, .Platform$file.sep, name, "_peaks.broadPeak"),
+      col.names = c("chr", "start", "end", "name",
+                    "score", "strand", "fold_change",
+                    "neg_log10pvalue_summit", "neg_log10qvalue_summit")
+    )
+    files.to.remove <- paste0(
+      name,
+      c("_peaks.broadPeak", "_peaks.xls", "_peaks.gappedPeak")
+    )
+  } else {
+    # read in narrowpeak file
+    df <- read.table(
+      file = paste0(outdir, .Platform$file.sep, name, "_peaks.narrowPeak"),
+      col.names = c("chr", "start", "end", "name",
+                    "score", "strand", "fold_change",
+                    "neg_log10pvalue_summit", "neg_log10qvalue_summit",
+                    "relative_summit_position")
+    )
     files.to.remove <- paste0(
       name,
       c("_peaks.narrowPeak", "_peaks.xls", "_summits.bed")
     )
-    files.to.remove <- paste0(outdir, "/", files.to.remove)
+  }
+
+  gr <- makeGRangesFromDataFrame(df = df, keep.extra.columns = TRUE)
+  if (cleanup) {
+    files.to.remove <- paste0(outdir, .Platform$file.sep, files.to.remove)
     for (i in files.to.remove) {
       if (file.exists(i)) {
         file.remove(i)

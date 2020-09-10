@@ -16,6 +16,7 @@ CallPeaks(object, ...)
   group.by = NULL,
   idents = NULL,
   macs2.path = NULL,
+  broad = FALSE,
   outdir = tempdir(),
   combine.peaks = TRUE,
   effective.genome.size = 2.7e+09,
@@ -32,6 +33,7 @@ CallPeaks(object, ...)
   object,
   macs2.path = NULL,
   outdir = tempdir(),
+  broad = FALSE,
   effective.genome.size = 2.7e+09,
   extsize = 200,
   shift = -extsize/2,
@@ -46,6 +48,7 @@ CallPeaks(object, ...)
   object,
   macs2.path = NULL,
   outdir = tempdir(),
+  broad = FALSE,
   effective.genome.size = 2.7e+09,
   extsize = 200,
   shift = -extsize/2,
@@ -60,6 +63,7 @@ CallPeaks(object, ...)
   object,
   macs2.path = NULL,
   outdir = tempdir(),
+  broad = FALSE,
   effective.genome.size = 2.7e+09,
   extsize = 200,
   shift = -extsize/2,
@@ -94,6 +98,8 @@ for all cell identities.}
 
 \item{macs2.path}{Path to MACS program. If NULL, try to find MACS
 automatically.}
+
+\item{broad}{Call broad peaks (\code{--broad} parameter for MACS)}
 
 \item{outdir}{Path for output files}
 
