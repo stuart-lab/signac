@@ -621,13 +621,21 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
     if (!(is(object = new.data, class2 = "AnyMatrix"))) {
       stop("Data must be a matrix or sparseMatrix")
     }
-    if (nrow(x = object) != nrow(x = new.data)) {
-      stop("Number of rows in provided matrix does not match
-           the number of rows in the object")
-    }
     if (ncol(x = object) != ncol(x = new.data)) {
       stop("Number of columns in the provided matrix does not match
            the number of cells in the object")
+    }
+    if (slot %in% c("counts", "data")) {
+      if (nrow(x = object) != nrow(x = new.data)) {
+        stop("Number of rows in provided matrix does not match
+           the number of rows in the object")
+      }
+    } else {
+      # scale data
+      if (nrow(x = object) < nrow(x = new.data)) {
+        stop("Number of rows in provided matrix is greater than
+             the number of rows in the object")
+      }
     }
     slot(object = object, name = slot) <- new.data
   } else if (slot == "seqinfo") {
