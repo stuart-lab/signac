@@ -1031,7 +1031,7 @@ AverageCountMatrix <- function(
 # Create binary cell x class matrix of group membership
 #' @importFrom Matrix sparseMatrix
 BinaryIdentMatrix <- function(object, group.by = NULL, idents = NULL) {
-  group.idents <- GetGroups(object = pbmc, group.by = group.by, idents = idents)
+  group.idents <- GetGroups(object = object, group.by = group.by, idents = idents)
   cell.idx <- seq_along(along.with = names(x = group.idents))
   unique.groups <- as.character(x = unique(x = group.idents))
   ident.idx <- seq_along(along.with = unique.groups)
