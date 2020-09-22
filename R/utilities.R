@@ -866,6 +866,11 @@ MatchRegionStats <- function(
   if (length(x = features.match) == 0) {
     stop("Must supply at least one sequence characteristic to match")
   }
+  if (!(all(regions %in% rownames(x = meta.feature)))) {
+    warning("Not all regions are present in meta.features. ",
+            "Removing missing regions.")
+    regions <- intersect(x = regions, y = rownames(x = meta.feature))
+  }
   mf.query <- meta.feature[regions, ]
   choosefrom <- setdiff(
     x = rownames(x = meta.feature), y = rownames(x = mf.query)
