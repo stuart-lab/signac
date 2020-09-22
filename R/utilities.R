@@ -860,6 +860,9 @@ MatchRegionStats <- function(
   verbose = TRUE,
   ...
 ) {
+  if (!inherits(x = meta.feature, what = 'data.frame')) {
+    stop("meta.feature should be a data.frame")
+  }
   if (length(x = features.match) == 0) {
     stop("Must supply at least one sequence characteristic to match")
   }
@@ -875,6 +878,14 @@ MatchRegionStats <- function(
   features.choose <- meta.feature[choosefrom, ]
   feature.weights <- rep(0, nrow(features.choose))
   for (i in features.match) {
+    if (!(i %in% colnames(x = mf.query))) {
+      if (i == "GC.percent") {
+        stop("GC.percent not present in meta.features.",
+             " Run RegionStats to compute GC.percent for each feature.")
+      } else {
+        stop(i, " not present in meta.features")
+      }
+    }
     if (verbose) {
       message("Matching ", i, " distribution")
     }
