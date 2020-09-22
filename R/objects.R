@@ -86,7 +86,9 @@ Motif <- setClass(
 #' enrichment scores for Tn5 integration (for example, enrichment at the TSS)
 #' @slot links A \code{\link[GenomicRanges]{GRanges}} object describing linked
 #' genomic positions, such as co-accessible sites or enhancer-gene regulatory
-#' relationships.
+#' relationships. This should be a \code{GRanges} object, where the start and
+#' end coordinates are the two linked genomic positions, and must contain a
+#' "score" metadata column.
 #'
 #' @name ChromatinAssay-class
 #' @rdname ChromatinAssay-class
