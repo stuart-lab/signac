@@ -250,6 +250,7 @@ InsertionBias.ChromatinAssay <- function(
   verbose = TRUE,
   ...
 ) {
+  chr.use <- unlist(x = strsplit(x = region, split = "-", fixed = TRUE))[[1]]
   reads <- MultiGetReadsInRegion(
     object = object,
     region = region,
@@ -270,7 +271,7 @@ InsertionBias.ChromatinAssay <- function(
   keep.seq <- !grepl(pattern = "N", x = names(x = seq.freq))
   insertion_hex_freq <- as.matrix(x = seq.freq[keep.seq])
   genome_freq <- oligonucleotideFrequency(
-    x = getSeq(x = genome, names = 'chr1'),
+    x = getSeq(x = genome, names = chr.use),
     width = 6
   )
   if (nrow(x = insertion_hex_freq) != length(x = genome_freq)) {

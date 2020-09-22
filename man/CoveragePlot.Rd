@@ -15,6 +15,7 @@ CoveragePlot(
   annotation = TRUE,
   peaks = TRUE,
   ranges = NULL,
+  ranges.title = "Ranges",
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -47,7 +48,9 @@ alongside accessibility tracks (for example, gene names).}
 
 \item{assay}{Name of the assay to plot}
 
-\item{show.bulk}{Include coverage track for all cells combined (pseudo-bulk)}
+\item{show.bulk}{Include coverage track for all cells combined (pseudo-bulk).
+Note that this will plot the combined accessibility for all cells included in
+the plot (rather than all cells in the object).}
 
 \item{expression.assay}{Name of the assay containing expression data to plot
 alongside accessibility tracks. Only needed if supplying \code{features}
@@ -61,6 +64,9 @@ if supplying the \code{features} argument.}
 \item{peaks}{Display peaks}
 
 \item{ranges}{Additional genomic ranges to plot}
+
+\item{ranges.title}{Y-axis title for ranges track. Only relevant if
+\code{ranges} parameter is set.}
 
 \item{links}{Display links}
 

@@ -1,7 +1,7 @@
 Package: Signac
 Title: Analysis of Single-Cell Chromatin Data
-Version: 1.0.0.9000
-Date: 2020-08-12
+Version: 1.1.0
+Date: 2020-08-26
 Authors@R: c(
   person(given = 'Tim', family = 'Stuart', email = 'tstuart@nygenome.org', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3044-0897')),
   person(given = 'Avi', family = 'Srivastava', email = 'asrivastava@nygenome.org', role = 'aut', comment = c(ORCID = '0000-0001-9798-2079')),
@@ -44,6 +44,7 @@ Imports:
     grid,
     stats,
     utils,
+    glmnet,
     Biobase,
     BiocGenerics,
     Biostrings,
@@ -56,8 +57,7 @@ Imports:
     lsa,
     RcppRoll,
     scales,
-    Rcpp,
-    qvalue
+    Rcpp
 Collate: 
     'RcppExports.R'
     'data.R'
@@ -68,9 +68,11 @@ Collate:
     'genomeinfodb-methods.R'
     'granges-methods.R'
     'iranges-methods.R'
+    'links.R'
     'mito.R'
     'motifs.R'
     'objects.R'
+    'peaks.R'
     'preprocessing.R'
     'utilities.R'
     'visualization.R'

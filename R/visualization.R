@@ -242,6 +242,7 @@ SingleCoveragePlot <- function(
   annotation = TRUE,
   peaks = TRUE,
   ranges = NULL,
+  ranges.title = "Ranges",
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -348,7 +349,7 @@ SingleCoveragePlot <- function(
       region = region,
       peaks = ranges,
       color = "brown3") +
-      ylab("Ranges")
+      ylab(ranges.title)
   } else {
     range.plot <- NULL
   }
@@ -520,6 +521,8 @@ CoverageTrack <- function(
 #' @param annotation Display gene annotations
 #' @param peaks Display peaks
 #' @param ranges Additional genomic ranges to plot
+#' @param ranges.title Y-axis title for ranges track. Only relevant if
+#' \code{ranges} parameter is set.
 #' @param links Display links
 #' @param tile Display per-cell fragment information in sliding windows.
 #' @param tile.size Size of the sliding window for per-cell fragment tile plot
@@ -579,6 +582,7 @@ CoveragePlot <- function(
   annotation = TRUE,
   peaks = TRUE,
   ranges = NULL,
+  ranges.title = "Ranges",
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -611,6 +615,7 @@ CoveragePlot <- function(
           annotation = annotation,
           peaks = peaks,
           ranges = ranges,
+          ranges.title = ranges.title,
           assay = assay,
           links = links,
           tile = tile,
@@ -643,6 +648,7 @@ CoveragePlot <- function(
       show.bulk = show.bulk,
       peaks = peaks,
       ranges = ranges,
+      ranges.title = ranges.title,
       assay = assay,
       links = links,
       tile = tile,
@@ -1013,7 +1019,7 @@ globalVariables(names = "score", package = "Signac")
 #' @importFrom GenomicRanges start end
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom ggplot2 ggplot geom_hline geom_curve aes theme_classic ylim xlim
-#' ylab theme element_blank
+#' ylab theme element_blank scale_color_gradient2
 #' @concept visualization
 #' @concept links
 LinkPlot <- function(object, region, min.cutoff = 0.05) {
@@ -1042,14 +1048,17 @@ LinkPlot <- function(object, region, min.cutoff = 0.05) {
   # filter out links below threshold
   link.df <- link.df[abs(x = link.df$score) > min.cutoff, ]
 
+  # add point in midpoint for the apex of the curve
+  # TODO
+
   # plot
   if (nrow(x = link.df) > 0) {
     p <- ggplot(data = link.df) +
       geom_hline(yintercept = 0, color = 'grey') +
       geom_curve(
-        mapping = aes(x = start, y = 0, xend = end, yend = 0, alpha = score),
-        curvature = 1/2
-      )
+        mapping = aes(x = start, y = 0, xend = end, yend = 0, color = score)
+      ) +
+      scale_color_gradient2(low = "red", mid = "grey", high = "blue")
   } else {
     p <- ggplot(data = link.df)
   }

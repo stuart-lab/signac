@@ -1,11 +1,23 @@
 # Unreleased
 
+New functionality:
+
+* Added `CallPeaks()` function to call peaks using MACS2. Peaks can be called
+for different groups of cells separately by setting the `group.by` parameter
+* Added `LinkPeaks()` function to link peaks to correlated genes.
 * Added `ranges` parameter to `CoveragePlot()` to plot addition sets of genomic ranges
 * Added `show.bulk` parameter to `CoveragePlot()` to plot accessibility of all cells combined
+* Added ability to remove `Fragment` objects and modify the file path for existing
+fragment objects ([#206](https://github.com/timoast/signac/issues/206))
+
+Bug fixes: 
+
 * Fixed bug in `AlleleFreq()` ([#196](https://github.com/timoast/signac/issues/196))
 * Fixed bug in `FeatureMatrix()` ([#205](https://github.com/timoast/signac/issues/205))
 * Fixed bug in `CreateChromatinAssay()` when setting `min.features` argument ([#194](https://github.com/timoast/signac/issues/194))
 * Fixed bug in `TSSEnrichment()` when cell information not set for fragment files ([#203](https://github.com/timoast/signac/issues/203))
+* Removed `qvalue` calculation from `FindMotifs()` ([#223](https://github.com/timoast/signac/issues/223))
+* Fixed bug in `SetAssayData()` when setting the `scale.data` slot
 
 
 # Signac 1.0.0

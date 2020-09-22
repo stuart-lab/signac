@@ -104,6 +104,99 @@ FilterCells <- function(
   idx <- indexTabix(file = outfile, format = "bed")
 }
 
+#' Split fragment file by cell identities
+#'
+#' Splits a fragment file into separate files for each group of cells. If
+#' splitting multiple fragment files containing common cell types, fragments
+#' originating from different files will be appended to the same file for one
+#' group of cell identities.
+#'
+#' @param object A Seurat object
+#' @param assay Name of assay to use
+#' @param group.by Name of grouping variable to group cells by
+#' @param idents List of identities to include
+#' @param buffer_length Size of buffer to be read from the fragment file. This
+#' must be longer than the longest line in the file.
+#' @param outdir Directory to write output files
+#' @param file.suffix Suffix to add to all file names (before file extension).
+#' If splitting multiple fragment files without the \code{append} option set to
+#' TRUE, an additional numeric suffix will be added to each file (eg, .1, .2).
+#' @param append If splitting multiple fragment files, append cells from the
+#' same group (eg cluster) to the same file. Note that this can cause the output
+#' file to be unsorted.
+#' @param verbose Display messages
+#'
+#' @importFrom Seurat DefaultAssay
+#' @concept fragments
+#'
+#' @export
+SplitFragments <- function(
+  object,
+  assay = NULL,
+  group.by = NULL,
+  idents = NULL,
+  outdir = getwd(),
+  file.suffix = "",
+  append = TRUE,
+  buffer_length = 256L,
+  verbose = TRUE
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  frags <- Fragments(object = object[[assay]])
+  groups <- GetGroups(
+    object = object,
+    group.by = group.by,
+    idents = idents
+  )
+  # replace space with underscore
+  cells <- names(x = groups)
+  groups <- gsub(pattern = " ", replacement = "_", x = groups)
+  names(x = groups) <- cells
+  buffer_length <- as.integer(x = buffer_length)
+  file.suffix <- as.character(x = file.suffix)
+  idents <- as.character(x = unname(obj = groups))
+  unique_idents <- unique(x = idents)
+  outdir <- normalizePath(path = outdir, mustWork = TRUE)
+
+  # split cells from each fragment file
+  # append to existing file when more than one fragment file used
+  for (i in seq_along(along.with = frags)) {
+    if (!append & (length(x = frags) > 1)) {
+      suffix.use <- paste0(file.suffix, ".", i)
+    } else {
+      suffix.use <- file.suffix
+    }
+    fragpath <- GetFragmentData(object = frags[[i]], slot = "path")
+    # convert cell names
+    cellmap <- GetFragmentData(object = frags[[i]], slot = "cells")
+    cell.in.frag <- cells %in% names(x = cellmap)
+    cells.use <- cellmap[cells[cell.in.frag]]
+    idents.use <- as.character(x = unname(obj = groups[names(x = cells.use)]))
+    frag.cell.name <- as.character(x = unname(obj = cells.use))
+
+    if (verbose) {
+      message("Processing file ", fragpath)
+    }
+    splitfiles <- splitFragments(
+      fragments = fragpath,
+      outdir = paste0(outdir, .Platform$file.sep),
+      suffix = suffix.use,
+      append = append,
+      cells = frag.cell.name,
+      idents = idents.use,
+      unique_idents = unique_idents,
+      buffer_length = buffer_length,
+      verbose = verbose
+    )
+    if (verbose) {
+      message("\n")
+    }
+    if (splitfiles == 1) {
+      stop("Error: cannot open requested file")
+    }
+  }
+}
+
 #' Create a Fragment object
 #'
 #' Create a \code{Fragment} object to store fragment file information.
@@ -332,5 +425,38 @@ Seurat::Cells
     stop("Cells not present in fragment file")
   } else {
     return(x)
+  }
+}
+
+#' Update the file path for a Fragment object
+#'
+#' Change the path to a fragment file store in a \code{\link{Fragment}}
+#' object. Path must be to the same file that was used to create the fragment
+#' object. An MD5 hash will be computed using the new path and compared to the
+#' hash stored in the Fragment object to verify that the files are the same.
+#'
+#' @param object A \code{\link{Fragment}} object
+#' @param new.path Path to the fragment file
+#' @param verbose Display messages
+#'
+#' @concept fragments
+#' @export
+UpdatePath <- function(object, new.path, verbose = TRUE) {
+  new.path <- normalizePath(path = new.path, mustWork = TRUE)
+  index.file <- paste0(new.path, ".tbi")
+  if (!file.exists(new.path)) {
+    stop("Fragment file not found")
+  } else if (!file.exists(index.file)) {
+    stop("Fragment file not indexed")
+  }
+  old.path <- GetFragmentData(object = object, slot = "path")
+  if (identical(x = old.path, y = new.path)) {
+    return(object)
+  }
+  slot(object = object, name = "path") <- new.path
+  if (ValidateHash(object = object, verbose = verbose)) {
+    return(object)
+  } else {
+    stop("MD5 sum does not match previously computed sum")
   }
 }

@@ -806,9 +806,9 @@ RunTFIDF.default <- function(
   colnames(x = norm.data) <- colnames(x = object)
   rownames(x = norm.data) <- rownames(x = object)
   # set NA values to 0
-  vals <- slot(object = object, name = "x")
+  vals <- slot(object = norm.data, name = "x")
   vals[is.na(x = vals)] <- 0
-  slot(object = object, name = "x") <- vals
+  slot(object = norm.data, name = "x") <- vals
   return(norm.data)
 }
 
