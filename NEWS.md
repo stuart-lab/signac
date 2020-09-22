@@ -5,6 +5,7 @@ New functionality:
 * Added `CallPeaks()` function to call peaks using MACS2. Peaks can be called
 for different groups of cells separately by setting the `group.by` parameter
 * Added `LinkPeaks()` function to link peaks to correlated genes.
+* Added `AddMotifs()` function to add motif information to a Seurat object or ChromatinAssay.
 * Added `ranges` parameter to `CoveragePlot()` to plot addition sets of genomic ranges
 * Added `show.bulk` parameter to `CoveragePlot()` to plot accessibility of all cells combined
 * Added ability to remove `Fragment` objects and modify the file path for existing

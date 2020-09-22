@@ -1,3 +1,19 @@
+#' Add DNA sequence motif information
+#'
+#' Construct a \code{\link{Motif}} object containing DNA sequence motif
+#' information and add it to an existing Seurat object or ChromatinAssay.
+#' If running on a Seurat object, \code{AddMotifs} will also run
+#' \code{\link{RegionStats}} to compute the GC content of each peak and store
+#' the results in the feature metadata.
+#'
+#' @param object A Seurat object or ChromatinAssay object
+#' @param ... Additional arguments passed to other methods
+#' @export AddMotifs
+#' @rdname AddMotifs
+AddMotifs <- function(object, ...) {
+  UseMethod(generic = "AddMotifs", object = object)
+}
+
 #' Convert objects to a ChromatinAssay
 #' @param x An object to convert to class \code{\link{ChromatinAssay}}
 #' @param ... Arguments passed to other methods

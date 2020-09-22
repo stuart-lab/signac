@@ -482,6 +482,105 @@ CreateMotifObject <- function(
   return(motif.obj)
 }
 
+#' @rdname AddMotifs
+#' @method AddMotifs default
+#' @export
+AddMotifs.default <- function(
+  object,
+  genome,
+  pfm,
+  verbose = TRUE,
+  ...
+) {
+  if (!requireNamespace("motifmatchr", quietly = TRUE)) {
+    stop("Please install motifmatchr.\n",
+         "https://www.bioconductor.org/packages/motifmatchr/")
+  }
+  if (verbose) {
+    message("Building motif matrix")
+  }
+  motif.matrix <- CreateMotifMatrix(
+    features = object,
+    pwm = pfm,
+    genome = genome,
+    use.counts = FALSE
+  )
+  if (verbose) {
+    message("Finding motif positions")
+  }
+  motif.positions <- motifmatchr::matchMotifs(
+    pwms = pfm,
+    subject = object,
+    out = 'positions',
+    genome = genome
+  )
+  if (verbose) {
+    message("Creating Motif object")
+  }
+  motif <- CreateMotifObject(
+    data = motif.matrix,
+    positions = motif.positions,
+    pwm = pfm
+  )
+  return(motif)
+}
+
+#' @rdname AddMotifs
+#' @method AddMotifs ChromatinAssay
+#' @export
+AddMotifs.ChromatinAssay <- function(
+  object,
+  genome,
+  pfm,
+  verbose = TRUE,
+  ...
+) {
+  motif <- AddMotifs(
+    object = granges(x = object),
+    genome = genome,
+    pfm = pfm,
+    verbose = verbose
+  )
+  object <- SetAssayData(
+    object = object,
+    slot = 'motifs',
+    new.data = motif
+  )
+  return(object)
+}
+
+#' @param assay Name of assay to use. If NULL, use the default assay
+#' @param genome A \code{BSgenome} object
+#' @param pfm A \code{PFMatrixList} object
+#' @param verbose Display messages
+#' @importFrom Seurat DefaultAssay
+#' @rdname AddMotifs
+#' @method AddMotifs Seurat
+#' @export
+AddMotifs.Seurat <- function(
+  object,
+  genome,
+  pfm,
+  assay = NULL,
+  verbose = TRUE,
+  ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  object[[assay]] <- AddMotifs(
+    object = object[[assay]],
+    genome = genome,
+    pfm = pfm,
+    verbose = verbose
+  )
+  object <- RegionStats(
+    object = object,
+    assay = assay,
+    genome = genome,
+    verbose = verbose
+  )
+  return(object)
+}
+
 #' @importFrom Seurat GetAssayData
 #' @method GetAssayData ChromatinAssay
 #' @export
