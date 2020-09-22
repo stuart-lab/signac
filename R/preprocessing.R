@@ -697,6 +697,7 @@ RegionStats.ChromatinAssay <- function(
   )
   rownames(x = feature.metadata) <- rownames(x = object)
   meta.data <- GetAssayData(object = object, slot = "meta.features")
+  feature.metadata <- feature.metadata[rownames(x = meta.data), ]
   meta.data <- cbind(meta.data, feature.metadata)
   slot(object = object, name = "meta.features") <- meta.data
   return(object)
