@@ -1386,6 +1386,9 @@ SingleFileCutMatrix <- function(
 ) {
   # if multiple regions supplied, must be the same width
   cells <- SetIfNull(x = cells, y = names(x = cellmap))
+  if (length(x = region) == 0) {
+    return(NULL)
+  }
   fragments <- GetReadsInRegion(
     region = region,
     cellmap = cellmap,
@@ -1401,7 +1404,7 @@ SingleFileCutMatrix <- function(
     cut.matrix <- sparseMatrix(
       i = NULL,
       j = NULL,
-      dims = c(length(x = cells), width(x = region))
+      dims = c(length(x = cells), width(x = region)[[1]])
     )
   } else {
     fragstarts <- start.lookup[fragments$ident] + 1
@@ -1472,15 +1475,17 @@ CutMatrix <- function(
       value = seqnames.in.both,
       pruning.mode = "coarse"
     )
-    cm <- SingleFileCutMatrix(
-      region = region,
-      cellmap = cellmap,
-      tabix.file = tabix.file,
-      cells = cells,
-      verbose = FALSE
-    )
+    if (length(x = region) != 0) {
+      cm <- SingleFileCutMatrix(
+        region = region,
+        cellmap = cellmap,
+        tabix.file = tabix.file,
+        cells = cells,
+        verbose = FALSE
+      )
+      res[[i]] <- cm
+    }
     close(con = tabix.file)
-    res[[i]] <- cm
   }
   res <- Reduce(f = `+`, x = res)
   return(res)
@@ -1571,6 +1576,9 @@ CreateRegionPileupMatrix <- function(
   cells = NULL,
   verbose = TRUE
 ) {
+  if (length(x = regions) == 0) {
+    stop("No regions supplied")
+  }
   # split into strands
   on_plus <- strand(x = regions) == "+" | strand(x = regions) == "*"
   plus.strand <- regions[on_plus, ]
@@ -1599,9 +1607,15 @@ CreateRegionPileupMatrix <- function(
   )
 
   # reverse minus strand and add together
-  full.matrix <- cut.matrix.plus + cut.matrix.minus[, rev(
-    x = colnames(x = cut.matrix.minus)
-  )]
+  if (is.null(x = cut.matrix.plus)) {
+    full.matrix <- cut.matrix.minus[, rev(x = colnames(x = cut.matrix.minus))]
+  } else if (is.null(x = cut.matrix.minus)) {
+    full.matrix <- cut.matrix.plus
+  } else {
+    full.matrix <- cut.matrix.plus + cut.matrix.minus[, rev(
+      x = colnames(x = cut.matrix.minus)
+    )]
+  }
   # rename so 0 is center
   region.width <- width(x = regions)[[1]]
   midpoint <- round(x = (region.width / 2))
