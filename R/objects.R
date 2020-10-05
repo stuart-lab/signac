@@ -1004,13 +1004,6 @@ subset.ChromatinAssay <- function(
     ranges.keep <- ranges.keep[idx.keep]
   }
 
-  # need to subsect matrix first, otherwise will give errors
-  # when dimension doesn't match the matrix dimension
-  x <- SetAssayData(
-    object = x,
-    slot = "ranges",
-    new.data = ranges.keep
-  )
   # subset motifs
   motifs <- Motifs(object = x)
   if (!is.null(x = motifs)) {
