@@ -3,6 +3,7 @@
 #' @export
 #' @importFrom stringi stri_split_fixed
 AlleleFreq.default <- function(object, variants, ...) {
+  variants <- unique(x = variants)
   # Access meta data for the counts
   meta_row_mat <- as.data.frame(
     x = stri_split_fixed(
@@ -63,7 +64,13 @@ AlleleFreq.default <- function(object, variants, ...) {
 
   # Same idea for the denominator but use a list since we have 8 things to think
   # about
-  idx_denom <- which(x = meta_row_mat$position %in% variant_df$position)
+  idx_denom <- sapply(X = meta_row_mat$position, FUN = function(x) {
+    matches <- which(x == variant_df$position)
+    if (length(x = matches) > 0) {
+      return(rep(x = x, length(x = matches)))
+    }
+  })
+  idx_denom <- unlist(x = idx_denom)
 
   # splits into a list of length # variants
   list_idx_denom <- split(
