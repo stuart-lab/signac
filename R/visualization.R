@@ -984,6 +984,8 @@ PeakPlot <- function(object, region, peaks = NULL, color = "dimgrey") {
   chromosome <- seqnames(x = region)
 
   if (nrow(x = peak.df) > 0) {
+    peak.df$start[peak.df$start < start.pos] <- start.pos
+    peak.df$end[peak.df$end > end.pos] <- end.pos
     peak.plot <- ggplot(data = peak.df, mapping = aes(color = color)) +
       geom_segment(aes(x = start, y = 0, xend = end, yend = 0),
                    size = 2,
