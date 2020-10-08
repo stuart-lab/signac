@@ -65,6 +65,9 @@ AggregateTiles.ChromatinAssay <- function(
     verbose = verbose,
     ...
   )
+  if (verbose) {
+    message("Constructing assay")
+  }
   assay.obj <- CreateChromatinAssay(
     counts = bins,
     fragments = frags
@@ -106,6 +109,9 @@ AggregateTiles.default <- function(
   bins <- bins[keep.rows, ]
   
   # join adjacent bins
+  if (verbose) {
+    message("Combining adjacent tiles")
+  }
   aggregate.tiles <- CombineTiles(bins = bins)
   return(aggregate.tiles)
 }
@@ -251,6 +257,8 @@ FeatureMatrix <- function(
 # matrix multiplication method for summing matrix rows
 #' @importFrom GenomicRanges reduce
 #' @importFrom S4Vectors elementNROWS
+#' @importFrom Matrix crossprod sparseMatrix
+#' @importMethodsFrom Matrix t
 CombineTiles <- function(bins) {
   ranges <- StringToGRanges(regions = rownames(x = bins))
   reduced.tiles <- reduce(x = ranges, with.revmap = TRUE)
