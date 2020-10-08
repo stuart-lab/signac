@@ -492,25 +492,27 @@ FRiP <- function(
 #' used to construct the genome bin coordinates. The can be obtained by calling
 #' seqlengths on a BSgenome-class object.
 #' @param assay Name of assay to use
-#' @param new.assay.name Name of new assay to create containing aggregated 
+#' @param new.assay.name Name of new assay to create containing aggregated
 #' genome tiles
-#' @param ncell Minimum number of counts for a tile to be retained prior to
+#' @param min_counts Minimum number of counts for a tile to be retained prior to
 #' aggregation
 #' @param binsize Size of the genome bins (tiles) in base pairs
 #' @param verbose Display messages
-#' 
+#'
 #' @rdname AggregateTiles
 #' @importFrom Seurat DefaultAssay
 #' @export
 #' @method AggregateTiles Seurat
 #' @concept quantification
 #' @concept preprocessing
+#' @return When running on a Seurat object, returns the Seurat object with a new
+#' \code{\link{ChromatinAssay}} added.
 AggregateTiles.Seurat <- function(
   object,
   genome,
   assay = NULL,
   new.assay.name = "tiles",
-  ncell = 5,
+  min_counts = 5,
   binsize = 5000,
   verbose = TRUE,
   ...
@@ -519,7 +521,7 @@ AggregateTiles.Seurat <- function(
   object[[new.assay.name]] <- AggregateTiles(
     object = object[[assay]],
     genome = genome,
-    ncell = ncell,
+    min_counts = min_counts,
     binsize = binsize,
     verbose = verbose,
     ...
@@ -532,10 +534,12 @@ AggregateTiles.Seurat <- function(
 #' @method AggregateTiles ChromatinAssay
 #' @concept quantification
 #' @concept preprocessing
+#' @return When running on a \code{\link{ChromatinAssay}}, returns a new
+#' \code{ChromatinAssay} containing the aggregated genome tiles.
 AggregateTiles.ChromatinAssay <- function(
   object,
   genome,
-  ncell = 5,
+  min_counts = 5,
   binsize = 5000,
   verbose = TRUE,
   ...
@@ -545,7 +549,7 @@ AggregateTiles.ChromatinAssay <- function(
     object = frags,
     genome = genome,
     cells = colnames(x = object),
-    ncell = ncell,
+    min_counts = min_counts,
     binsize = binsize,
     verbose = verbose,
     ...
@@ -557,17 +561,20 @@ AggregateTiles.ChromatinAssay <- function(
   return(assay.obj)
 }
 
+#' @param cells Cells to include
 #' @rdname AggregateTiles
 #' @importFrom Matrix rowSums
 #' @export
 #' @method AggregateTiles default
 #' @concept quantification
 #' @concept preprocessing
+#' @return When running on a fragment file, returns a sparse region x cell
+#' matrix.
 AggregateTiles.default <- function(
   object,
   genome,
   cells = NULL,
-  ncell = 5,
+  min_counts = 5,
   binsize = 5000,
   verbose = TRUE,
   ...
@@ -580,14 +587,14 @@ AggregateTiles.default <- function(
     binsize = binsize,
     verbose = verbose
   )
-  
+
   # filter out low coverage bins
-  keep.rows <- rowSums(x = bins) > ncell
+  keep.rows <- rowSums(x = bins) > min_counts
   if (sum(x = keep.rows) == 0) {
-    stop("No bins found with over ", ncell, " cells")
+    stop("No bins found with over ", min_counts, " cells")
   }
   bins <- bins[keep.rows, ]
-  
+
   # join adjacent bins
   aggregate.tiles <- CombineTiles(bins = bins)
   return(aggregate.tiles)
@@ -600,19 +607,19 @@ CombineTiles <- function(bins) {
   ranges <- StringToGRanges(regions = rownames(x = bins))
   reduced.tiles <- reduce(x = ranges, with.revmap = TRUE)
   rmap <- reduced.tiles$revmap
-  
+
   # construct matrix
   collapse_matrix <- sparseMatrix(
     i = unlist(x = rmap),
     j = rep(x = seq_along(rmap), times = elementNROWS(x = rmap)),
     x = 1
   )
-  
+
   # sum bin matrix rows via matrix multiplication
   collapsed <- crossprod(x = bins, y = collapse_matrix)
   collapsed <- t(x = collapsed)
   rownames(x = collapsed) <- GRangesToString(grange = reduced.tiles)
-  
+
   return(collapsed)
 }
 

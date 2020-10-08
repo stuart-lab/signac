@@ -16,6 +16,10 @@ AddMotifs <- function(object, ...) {
 
 #' Quantify aggregated genome tiles
 #'
+#' Quantifies fragment counts per cell in fixed-size genome bins across the
+#' whole genome, then removes bins with less than a desired minimum number of
+#' counts in the bin, then merges adjacent tiles into a single region.
+#'
 #' @param object A Seurat object or ChromatinAssay object
 #' @param ... Additional arguments passed to other methods
 #' @export AggregateTiles

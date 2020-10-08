@@ -15,7 +15,8 @@ GenomeBinMatrix(
 )
 }
 \arguments{
-\item{fragments}{Path to tabix-indexed fragments file}
+\item{fragments}{Path to tabix-indexed fragments file or a list of
+\code{\link{Fragment}} objects}
 
 \item{genome}{A vector of chromosome sizes for the genome. This is used to
 construct the genome bin coordinates. The can be obtained by calling
