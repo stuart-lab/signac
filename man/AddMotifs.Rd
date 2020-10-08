@@ -35,3 +35,4 @@ If running on a Seurat object, \code{AddMotifs} will also run
 \code{\link{RegionStats}} to compute the GC content of each peak and store
 the results in the feature metadata.
 }
+\concept{motifs}

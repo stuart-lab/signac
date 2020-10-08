@@ -484,6 +484,7 @@ CreateMotifObject <- function(
 
 #' @rdname AddMotifs
 #' @method AddMotifs default
+#' @concept motifs
 #' @export
 AddMotifs.default <- function(
   object,
@@ -527,6 +528,7 @@ AddMotifs.default <- function(
 
 #' @rdname AddMotifs
 #' @method AddMotifs ChromatinAssay
+#' @concept motifs
 #' @export
 AddMotifs.ChromatinAssay <- function(
   object,
@@ -556,6 +558,7 @@ AddMotifs.ChromatinAssay <- function(
 #' @importFrom Seurat DefaultAssay
 #' @rdname AddMotifs
 #' @method AddMotifs Seurat
+#' @concept motifs
 #' @export
 AddMotifs.Seurat <- function(
   object,
