@@ -488,6 +488,134 @@ FRiP <- function(
   return(object)
 }
 
+#' @param object genome A vector of chromosome sizes for the genome. This is
+#' used to construct the genome bin coordinates. The can be obtained by calling
+#' seqlengths on a BSgenome-class object.
+#' @param assay Name of assay to use
+#' @param new.assay.name Name of new assay to create containing aggregated 
+#' genome tiles
+#' @param ncell Minimum number of counts for a tile to be retained prior to
+#' aggregation
+#' @param binsize Size of the genome bins (tiles) in base pairs
+#' @param verbose Display messages
+#' 
+#' @rdname AggregateTiles
+#' @importFrom Seurat DefaultAssay
+#' @export
+#' @method AggregateTiles Seurat
+#' @concept quantification
+#' @concept preprocessing
+AggregateTiles.Seurat <- function(
+  object,
+  genome,
+  assay = NULL,
+  new.assay.name = "tiles",
+  ncell = 5,
+  binsize = 5000,
+  verbose = TRUE,
+  ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  object[[new.assay.name]] <- AggregateTiles(
+    object = object[[assay]],
+    genome = genome,
+    ncell = ncell,
+    binsize = binsize,
+    verbose = verbose,
+    ...
+  )
+  return(object)
+}
+
+#' @rdname AggregateTiles
+#' @export
+#' @method AggregateTiles ChromatinAssay
+#' @concept quantification
+#' @concept preprocessing
+AggregateTiles.ChromatinAssay <- function(
+  object,
+  genome,
+  ncell = 5,
+  binsize = 5000,
+  verbose = TRUE,
+  ...
+) {
+  frags <- Fragments(object = object)
+  bins <- AggregateTiles(
+    object = frags,
+    genome = genome,
+    cells = colnames(x = object),
+    ncell = ncell,
+    binsize = binsize,
+    verbose = verbose,
+    ...
+  )
+  assay.obj <- CreateChromatinAssay(
+    counts = bins,
+    fragments = frags
+  )
+  return(assay.obj)
+}
+
+#' @rdname AggregateTiles
+#' @importFrom Matrix rowSums
+#' @export
+#' @method AggregateTiles default
+#' @concept quantification
+#' @concept preprocessing
+AggregateTiles.default <- function(
+  object,
+  genome,
+  cells = NULL,
+  ncell = 5,
+  binsize = 5000,
+  verbose = TRUE,
+  ...
+) {
+  # quantify genome bins
+  bins <- GenomeBinMatrix(
+    fragments = object,
+    genome = genome,
+    cells = cells,
+    binsize = binsize,
+    verbose = verbose
+  )
+  
+  # filter out low coverage bins
+  keep.rows <- rowSums(x = bins) > ncell
+  if (sum(x = keep.rows) == 0) {
+    stop("No bins found with over ", ncell, " cells")
+  }
+  bins <- bins[keep.rows, ]
+  
+  # join adjacent bins
+  aggregate.tiles <- CombineTiles(bins = bins)
+  return(aggregate.tiles)
+}
+
+# matrix multiplication method for summing matrix rows
+#' @importFrom GenomicRanges reduce
+#' @importFrom S4Vectors elementNROWS
+CombineTiles <- function(bins) {
+  ranges <- StringToGRanges(regions = rownames(x = bins))
+  reduced.tiles <- reduce(x = ranges, with.revmap = TRUE)
+  rmap <- reduced.tiles$revmap
+  
+  # construct matrix
+  collapse_matrix <- sparseMatrix(
+    i = unlist(x = rmap),
+    j = rep(x = seq_along(rmap), times = elementNROWS(x = rmap)),
+    x = 1
+  )
+  
+  # sum bin matrix rows via matrix multiplication
+  collapsed <- crossprod(x = bins, y = collapse_matrix)
+  collapsed <- t(x = collapsed)
+  rownames(x = collapsed) <- GRangesToString(grange = reduced.tiles)
+  
+  return(collapsed)
+}
+
 #' Genome bin matrix
 #'
 #' Construct a bin x cell matrix from a fragments file.
@@ -495,7 +623,8 @@ FRiP <- function(
 #' This function bins the genome and calls \code{\link{FeatureMatrix}} to
 #' construct a bin x cell matrix.
 #'
-#' @param fragments Path to tabix-indexed fragments file
+#' @param fragments Path to tabix-indexed fragments file or a list of
+#' \code{\link{Fragment}} objects
 #' @param genome A vector of chromosome sizes for the genome. This is used to
 #' construct the genome bin coordinates. The can be obtained by calling
 #' \code{\link[GenomeInfoDb]{seqlengths}} on a

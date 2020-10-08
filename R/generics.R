@@ -14,6 +14,16 @@ AddMotifs <- function(object, ...) {
   UseMethod(generic = "AddMotifs", object = object)
 }
 
+#' Quantify aggregated genome tiles
+#'
+#' @param object A Seurat object or ChromatinAssay object
+#' @param ... Additional arguments passed to other methods
+#' @export AggregateTiles
+#' @rdname AggregateTiles
+AggregateTiles <- function(object, ...) {
+  UseMethod(generic = "AggregateTiles", object = object)
+}
+
 #' Convert objects to a ChromatinAssay
 #' @param x An object to convert to class \code{\link{ChromatinAssay}}
 #' @param ... Arguments passed to other methods
