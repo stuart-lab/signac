@@ -42,6 +42,8 @@ NULL
 #' @method CallPeaks Seurat
 #' @rdname CallPeaks
 #'
+#' @concept quantification
+#'
 #' @importFrom Seurat DefaultAssay
 #' @importFrom Seurat Project
 #' @importFrom GenomicRanges reduce
@@ -165,6 +167,7 @@ CallPeaks.Seurat <- function(
 
 #' @method CallPeaks ChromatinAssay
 #' @rdname CallPeaks
+#' @concept quantification
 #' @export
 CallPeaks.ChromatinAssay <- function(
   object,
@@ -204,6 +207,7 @@ CallPeaks.ChromatinAssay <- function(
 
 #' @method CallPeaks Fragment
 #' @rdname CallPeaks
+#' @concept quantification
 #' @export
 CallPeaks.Fragment <- function(
   object,
@@ -240,6 +244,7 @@ CallPeaks.Fragment <- function(
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @method CallPeaks default
 #' @rdname CallPeaks
+#' @concept quantification
 #' @export
 CallPeaks.default <- function(
   object,

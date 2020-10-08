@@ -56,6 +56,11 @@ reference:
   - contents:
     - has_concept("assay")
 
+  - title: "Quantification and peak calling"
+    desc: "Functions for identifying and quantifying genomic regions"
+  - contents:
+    - has_concept("quantification")
+
   - title: "Preprocessing"
     desc: "Functions for preprocessing single-cell data"
   - contents:

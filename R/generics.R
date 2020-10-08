@@ -14,6 +14,20 @@ AddMotifs <- function(object, ...) {
   UseMethod(generic = "AddMotifs", object = object)
 }
 
+#' Quantify aggregated genome tiles
+#'
+#' Quantifies fragment counts per cell in fixed-size genome bins across the
+#' whole genome, then removes bins with less than a desired minimum number of
+#' counts in the bin, then merges adjacent tiles into a single region.
+#'
+#' @param object A Seurat object or ChromatinAssay object
+#' @param ... Additional arguments passed to other methods
+#' @export AggregateTiles
+#' @rdname AggregateTiles
+AggregateTiles <- function(object, ...) {
+  UseMethod(generic = "AggregateTiles", object = object)
+}
+
 #' Convert objects to a ChromatinAssay
 #' @param x An object to convert to class \code{\link{ChromatinAssay}}
 #' @param ... Arguments passed to other methods
