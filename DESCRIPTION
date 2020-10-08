@@ -74,6 +74,7 @@ Collate:
     'objects.R'
     'peaks.R'
     'preprocessing.R'
+    'quantification.R'
     'utilities.R'
     'visualization.R'
 Suggests: 
