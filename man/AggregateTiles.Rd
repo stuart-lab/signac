@@ -40,11 +40,13 @@ AggregateTiles(object, ...)
 )
 }
 \arguments{
-\item{object}{genome A vector of chromosome sizes for the genome. This is
-used to construct the genome bin coordinates. The can be obtained by calling
-seqlengths on a BSgenome-class object.}
+\item{object}{A Seurat object or ChromatinAssay object}
 
 \item{...}{Additional arguments passed to other methods}
+
+\item{genome}{genome A vector of chromosome sizes for the genome. This is
+used to construct the genome bin coordinates. The can be obtained by calling
+seqlengths on a BSgenome-class object.}
 
 \item{assay}{Name of assay to use}
 

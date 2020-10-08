@@ -1,7 +1,7 @@
 #' @include generics.R
 NULL
 
-#' @param object genome A vector of chromosome sizes for the genome. This is
+#' @param genome genome A vector of chromosome sizes for the genome. This is
 #' used to construct the genome bin coordinates. The can be obtained by calling
 #' seqlengths on a BSgenome-class object.
 #' @param assay Name of assay to use
@@ -100,14 +100,14 @@ AggregateTiles.default <- function(
     binsize = binsize,
     verbose = verbose
   )
-  
+
   # filter out low coverage bins
   keep.rows <- rowSums(x = bins) > min_counts
   if (sum(x = keep.rows) == 0) {
     stop("No bins found with over ", min_counts, " cells")
   }
   bins <- bins[keep.rows, ]
-  
+
   # join adjacent bins
   if (verbose) {
     message("Combining adjacent tiles")
@@ -263,19 +263,19 @@ CombineTiles <- function(bins) {
   ranges <- StringToGRanges(regions = rownames(x = bins))
   reduced.tiles <- reduce(x = ranges, with.revmap = TRUE)
   rmap <- reduced.tiles$revmap
-  
+
   # construct matrix
   collapse_matrix <- sparseMatrix(
     i = unlist(x = rmap),
     j = rep(x = seq_along(rmap), times = elementNROWS(x = rmap)),
     x = 1
   )
-  
+
   # sum bin matrix rows via matrix multiplication
   collapsed <- crossprod(x = bins, y = collapse_matrix)
   collapsed <- t(x = collapsed)
   rownames(x = collapsed) <- GRangesToString(grange = reduced.tiles)
-  
+
   return(collapsed)
 }
 
@@ -318,7 +318,7 @@ SingleFeatureMatrix <- function(
     ),
     pruning.mode = "coarse"
   )
-  
+
   feature.list <- ChunkGRanges(
     granges = features,
     nchunk = ceiling(x = length(x = features) / process_n)
