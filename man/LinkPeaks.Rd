@@ -8,6 +8,7 @@ LinkPeaks(
   object,
   peak.assay,
   expression.assay,
+  expression.slot = "data",
   gene.coords = NULL,
   binary = FALSE,
   alpha = 0.95,
@@ -26,6 +27,8 @@ LinkPeaks(
 \item{peak.assay}{Name of assay containing peak information}
 
 \item{expression.assay}{Name of assay containing gene expression information}
+
+\item{expression.slot}{Name of slot to pull expression data from}
 
 \item{gene.coords}{GRanges object containing coordinates of genes in the
 expression assay. If NULL, extract from gene annotations stored in the assay.}

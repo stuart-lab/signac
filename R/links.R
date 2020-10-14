@@ -155,6 +155,7 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' @param object A Seurat object
 #' @param peak.assay Name of assay containing peak information
 #' @param expression.assay Name of assay containing gene expression information
+#' @param expression.slot Name of slot to pull expression data from
 #' @param gene.coords GRanges object containing coordinates of genes in the
 #' expression assay. If NULL, extract from gene annotations stored in the assay.
 #' @param binary Binarize the peak counts (default FALSE)
@@ -192,6 +193,7 @@ LinkPeaks <- function(
   object,
   peak.assay,
   expression.assay,
+  expression.slot = "data",
   gene.coords = NULL,
   binary = FALSE,
   alpha = 0.95,
@@ -212,7 +214,7 @@ LinkPeaks <- function(
     object = object, assay = peak.assay, slot = 'counts'
   )
   expression.data <- GetAssayData(
-    object = object, assay = expression.assay, slot = 'data'
+    object = object, assay = expression.assay, slot = expression.slot
   )
   peakcounts <- rowSums(x = peak.data > 0)
   genecounts <- rowSums(x = expression.data > expression.threshold)
