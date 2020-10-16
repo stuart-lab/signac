@@ -198,6 +198,7 @@ GenomeBinMatrix <- function(
 #' @param verbose Display messages
 #'
 #' @export
+#' @importFrom Seurat RowMergeSparseMatrices
 #' @concept quantification
 #' @return Returns a sparse matrix
 #' @examples
@@ -247,8 +248,8 @@ FeatureMatrix <- function(
         process_n = process_n
       )
     })
-  # cbind all the matrices
-  featmat <- do.call(what = cbind, args = mat.list)
+  # merge all the matrices
+  featmat <- Reduce(f = RowMergeSparseMatrices, x = mat.list)
   return(featmat)
 }
 
@@ -358,5 +359,8 @@ SingleFeatureMatrix <- function(
     names(x = cell.convert) <- cells
     colnames(x = featmat) <- unname(obj = cell.convert[colnames(x = featmat)])
   }
+  # reorder features
+  feat.str <- GRangesToString(grange = features)
+  featmat <- featmat[feat.str, ]
   return(featmat)
 }
