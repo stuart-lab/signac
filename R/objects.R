@@ -222,7 +222,7 @@ CreateChromatinAssay <- function(
   } else {
     max.cells <- ncol(x = data.use)
   }
-  features.keep <- (ncell.feature > min.cells) & (ncell.feature < max.cells)
+  features.keep <- (ncell.feature >= min.cells) & (ncell.feature <= max.cells)
   # re-assign row names of matrix so that it's a known granges transformation
   new.rownames <- GRangesToString(grange = ranges, sep = c("-", "-"))
   if (!missing(x = counts)) {
@@ -998,12 +998,10 @@ subset.ChromatinAssay <- function(
   standardassay <- as(object = x, Class = "Assay")
   standardassay <- subset(x = standardassay, features = features, cells = cells)
 
-  # TODO if cells or features change, need to wipe the data slot
-
   # subset genomic ranges
   ranges.keep <- granges(x = x)
   if (!is.null(x = features)) {
-    idx.keep <- which(rownames(x = x) == features)
+    idx.keep <- rownames(x = x) %in% features
     ranges.keep <- ranges.keep[idx.keep]
   }
 
