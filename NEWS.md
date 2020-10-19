@@ -18,6 +18,7 @@ Bug fixes:
 and [#260](https://github.com/timoast/signac/issues/260))
 * Fixed bug in `FeatureMatrix()` ([#205](https://github.com/timoast/signac/issues/205), [#291](https://github.com/timoast/signac/issues/291))
 * Fixed bug in `CreateChromatinAssay()` when setting `min.features` argument ([#194](https://github.com/timoast/signac/issues/194))
+* Fixed bug in `CreateChromatinAssay()` when setting `min.cells` argument ([#292](https://github.com/timoast/signac/issues/292))
 * Fixed bug in `TSSEnrichment()` when cell information not set for fragment files ([#203](https://github.com/timoast/signac/issues/203))
 * Fixed bug in `TSSEnrichment()` when no fragments present in TSS region ([#244](https://github.com/timoast/signac/issues/244))
 * Removed `qvalue` calculation from `FindMotifs()` ([#223](https://github.com/timoast/signac/issues/223))
