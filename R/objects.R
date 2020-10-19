@@ -1220,7 +1220,7 @@ merge.ChromatinAssay <- function(
 
     # create new ChromatinAssay object
     # bias, motifs, positionEnrichment, metafeatures not kept
-    # data and scaledata only kept if features exactly identical
+    # scaledata only kept if features exactly identical
     if (nrow(x = merged.counts) > 0) {
       new.assay <- CreateChromatinAssay(
         counts = merged.counts,
@@ -1283,38 +1283,64 @@ merge.ChromatinAssay <- function(
     merged.counts <- MergeOverlappingRows(
       mergeinfo = tomerge,
       assay.list = assays,
+      slot = "counts",
       verbose = TRUE
     )
 
-    # merge matrices
-    # RowMergeSparseMatrices only exported in Seurat release Dec-2019 (3.1.2)
-    merged.all <- merged.counts[[1]]
-    for (i in 2:length(x = merged.counts)) {
-      merged.all <- RowMergeSparseMatrices(
-        mat1 = merged.all,
-        mat2 = merged.counts[[i]]
+    merged.data <- MergeOverlappingRows(
+      mergeinfo = tomerge,
+      assay.list = assays,
+      slot = "data",
+      verbose = TRUE
+    )
+
+    if (nrow(x = merged.counts[[1]]) > 0) {
+      merged.counts <- MergeMatrixParts(
+        mat.list = merged.counts,
+        new.rownames = new.rownames
+      )
+      merged.data <- MergeMatrixParts(
+        mat.list = merged.data,
+        new.rownames = new.rownames
+      )
+      new.assay <- CreateChromatinAssay(
+        counts = merged.counts,
+        min.cells = 0,
+        min.features = 0,
+        max.cells = NULL,
+        ranges = reduced.ranges,
+        motifs = NULL,
+        fragments = all.frag,
+        genome = seqinfo.use,
+        annotation = annot.use,
+        bias = NULL,
+        validate.fragments = FALSE
+      )
+      new.assay <- SetAssayData(
+        object = new.assay, slot = "data", new.data = merged.data
+      )
+    } else {
+      merged.data <- MergeMatrixParts(
+        mat.list = merged.data,
+        new.rownames = new.rownames
+      )
+      # create new ChromatinAssay object
+      # bias, motifs, positionEnrichment, metafeatures not kept
+      # need to keep data otherwise integration doesn't work
+      new.assay <- CreateChromatinAssay(
+        data = merged.data,
+        min.cells = 0,
+        min.features = 0,
+        max.cells = NULL,
+        ranges = reduced.ranges,
+        motifs = NULL,
+        fragments = all.frag,
+        genome = seqinfo.use,
+        annotation = annot.use,
+        bias = NULL,
+        validate.fragments = FALSE
       )
     }
-
-    # reorder rows to match genomic ranges
-    merged.all <- merged.all[new.rownames, ]
-
-    # create new ChromatinAssay object
-    # bias, motifs, positionEnrichment, metafeatures not kept
-    # data and scaledata only kept if features exactly identical
-    new.assay <- CreateChromatinAssay(
-      counts = merged.all,
-      min.cells = 0,
-      min.features = 0,
-      max.cells = NULL,
-      ranges = reduced.ranges,
-      motifs = NULL,
-      fragments = all.frag,
-      genome = seqinfo.use,
-      annotation = annot.use,
-      bias = NULL,
-      validate.fragments = FALSE
-    )
   }
   return(new.assay)
 }

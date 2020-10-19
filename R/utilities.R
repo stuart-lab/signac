@@ -1310,6 +1310,24 @@ GetGroups <- function(
   return(obj.groups)
 }
 
+# row merge list of matrices
+# @param mat.list list of sparse matrices
+# @param new.rownames rownames to assign merged matrix
+#' @importFrom Seurat RowMergeSparseMatrices
+MergeMatrixParts <- function(mat.list, new.rownames) {
+  # RowMergeSparseMatrices only exported in Seurat release Dec-2019 (3.1.2)
+  merged.all <- mat.list[[1]]
+  for (i in 2:length(x = mat.list)) {
+    merged.all <- RowMergeSparseMatrices(
+      mat1 = merged.all,
+      mat2 = mat.list[[i]]
+    )
+  }
+  # reorder rows to match genomic ranges
+  merged.all <- merged.all[new.rownames, ]
+  return(merged.all)
+}
+
 # Run GetReadsInRegion for a list of Fragment objects
 # concatenate the output dataframes and return
 # @param object A Seurat or ChromatinAssay object
