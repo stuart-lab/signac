@@ -1856,11 +1856,28 @@ GetRowsToMerge <- function(assay.list, all.ranges, reduced.ranges) {
 #' @importFrom utils txtProgressBar setTxtProgressBar
 #' @importFrom Matrix rowSums
 #' @importMethodsFrom Matrix t
-MergeOverlappingRows <- function(mergeinfo, assay.list, verbose = TRUE) {
+MergeOverlappingRows <- function(
+  mergeinfo,
+  assay.list,
+  slot = "counts",
+  verbose = TRUE
+) {
   merge.counts <- list()
   for (i in seq_along(along.with = assay.list)) {
     # get count matrix
-    counts <- GetAssayData(object = assay.list[[i]], slot = "counts")
+    counts <- GetAssayData(object = assay.list[[i]], slot = slot)
+
+    if (nrow(x = counts) == 0) {
+      # no counts, only data
+      # skip row merge and return empty counts matrices
+      merge.counts <- lapply(
+        X = seq_along(along.with = assay.list),
+        FUN = matrix,
+        nrow = 0,
+        ncol = 0
+      )
+      return(merge.counts)
+    }
 
     # transpose for faster access since matrix is column major
     counts <- t(x = counts)
