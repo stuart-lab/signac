@@ -319,6 +319,9 @@ SingleFeatureMatrix <- function(
     ),
     pruning.mode = "coarse"
   )
+  if (length(x = features) == 0) {
+    stop("No matching chromosomes found in fragment file.")
+  }
 
   feature.list <- ChunkGRanges(
     granges = features,
