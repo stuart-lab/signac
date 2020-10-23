@@ -1006,7 +1006,7 @@ AddMissingCells <- function(x, cells) {
     colnames(x = null.mat) <- missing.cells
     x <- cbind(x, null.mat)
   }
-  x <- x[, cells]
+  x <- x[, cells, drop = FALSE]
   return(x)
 }
 
@@ -2012,6 +2012,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
     )
     rownames(x = featmat) <- GRangesToString(grange = regions)
     colnames(x = featmat) <- cells
+    featmat <- as(object = featmat, Class = "dgCMatrix")
     return(featmat)
   } else if (is.null(x = cells.in.regions$cells)) {
     # no fragments, no cells
@@ -2021,6 +2022,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
       j = NULL
     )
     rownames(x = featmat) <- GRangesToString(grange = regions)
+    featmat <- as(object = featmat, Class = "dgCMatrix")
     return(featmat)
   } else {
     all.cells <- unique(x = cells.in.regions$cells)
@@ -2057,6 +2059,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
       dims = c(length(x = missing.features), ncol(x = featmat))
     )
     rownames(x = null.mat) <- missing.features
+    null.mat <- as(object = null.mat, Class = "dgCMatrix")
     featmat <- rbind(featmat, null.mat)
   }
   return(featmat)
