@@ -18,7 +18,6 @@ LinkPeaks(
   family = "poisson",
   genes.use = NULL,
   keep.all = FALSE,
-  null = FALSE,
   n_sample = 300,
   verbose = TRUE
 )
@@ -57,9 +56,6 @@ object}
 \item{keep.all}{Retain all peaks in the output. Useful for knowing what peaks
 had 0 coefficient and what were not tested due to expression or accessibility
 thresholds.}
-
-\item{null}{Compute null distribution of coefficients using randomly selected
-peaks from other chromosomes.}
 
 \item{n_sample}{Number of peaks to sample at random when computing the null
 distribution.}
