@@ -173,8 +173,6 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' @param family Response type (for gene expression values). Valid values are
 #' "gaussian", "poisson", "binomial", or a \code{\link[stats]{glm}}-family
 #' object
-#' @param null Compute null distribution of coefficients using randomly selected
-#' peaks from other chromosomes.
 #' @param n_sample Number of peaks to sample at random when computing the null
 #' distribution.
 #' @param verbose Display messages
@@ -207,7 +205,6 @@ LinkPeaks <- function(
   family = "poisson",
   genes.use = NULL,
   keep.all = FALSE,
-  null = FALSE,
   n_sample = 300,
   verbose = TRUE
 ) {
@@ -219,6 +216,11 @@ LinkPeaks <- function(
   meta.features <- GetAssayData(
     object = object, assay = peak.assay, slot = "meta.features"
   )
+  features.match <- c("GC.percent", "count")
+  if (!all(features.match %in% colnames(x = meta.features))) {
+    stop("Required region features have not been computed.\n",
+         "Run RegionsStats before calling this function.")
+  }
   peak.data <- GetAssayData(
     object = object, assay = peak.assay, slot = 'counts'
   )
@@ -302,47 +304,45 @@ LinkPeaks <- function(
         if (length(x = coef.results.filtered) == 0) {
           return(list("gene" = NULL, "coef" = NULL, "pval" = NULL))
         } else {
-          if (null) {
-            # compute null distribution with same lambda
-            # sample from peaks on a different chromosome to the gene
-            trans.peaks <- all.peaks[
-              !grepl(pattern = paste0("^", gene.chrom), x = all.peaks)
-            ]
-            peaks.test <- colnames(x = peak.access)
-            meta.use <- meta.features[trans.peaks, ]
-            meta.use <- rbind(meta.use, meta.features[peaks.test, ])
-            # sample matching total accessibility and GC
-            peak.random <- MatchRegionStats(
-              meta.feature = meta.use,
-              regions = peaks.test,
-              features.match = c("GC.percent", "count"),
-              n = n_sample,
-              verbose = FALSE
-            )
-            peak.access <- t(x = peak.data[peak.random, ])
-            cvfit <- glmnet(
-              x = peak.access,
-              y = gene.expression,
-              alpha = alpha,
-              family = family
-            )
-            coef.results.rand <- coef(object = cvfit, s = lambda)
-            coef.results.rand <- coef.results.rand[
-              2:nrow(x = coef.results.rand),
-            ]
-            # number of random peaks with coefficient at least as extreme as obs
-            pvals <- sapply(
-              X = coef.results.filtered,
-              FUN = function(x) {
-                if (x < 0) {
-                  sum(coef.results.rand < x)
-                } else {
-                  sum(coef.results.rand > x)
-                }
-              })
-            pvals <- pvals / n_sample
-            pval.vec <- c(pval.vec, pvals)
-          }
+          # compute null distribution with same lambda
+          # sample from peaks on a different chromosome to the gene
+          trans.peaks <- all.peaks[
+            !grepl(pattern = paste0("^", gene.chrom), x = all.peaks)
+          ]
+          peaks.test <- colnames(x = peak.access)
+          meta.use <- meta.features[trans.peaks, ]
+          meta.use <- rbind(meta.use, meta.features[peaks.test, ])
+          # sample matching total accessibility and GC
+          peak.random <- MatchRegionStats(
+            meta.feature = meta.use,
+            regions = peaks.test,
+            features.match = features.match,
+            n = n_sample,
+            verbose = FALSE
+          )
+          peak.access <- t(x = peak.data[peak.random, ])
+          cvfit <- glmnet(
+            x = peak.access,
+            y = gene.expression,
+            alpha = alpha,
+            family = family
+          )
+          coef.results.rand <- coef(object = cvfit, s = lambda)
+          coef.results.rand <- coef.results.rand[
+            2:nrow(x = coef.results.rand),
+          ]
+          # number of random peaks with coefficient at least as extreme as obs
+          pvals <- sapply(
+            X = coef.results.filtered,
+            FUN = function(x) {
+              if (x < 0) {
+                sum(coef.results.rand < x)
+              } else {
+                sum(coef.results.rand > x)
+              }
+            })
+          pvals <- pvals / n_sample
+          pval.vec <- c(pval.vec, pvals)
           gene.vec <- c(gene.vec, rep(i, length(x = coef.results.filtered)))
           coef.vec <- c(coef.vec, coef.results.filtered)
         }
@@ -353,9 +353,7 @@ LinkPeaks <- function(
   # combine results
   gene.vec <- do.call(what = c, args = sapply(X = res, FUN = `[[`, 1))
   coef.vec <- do.call(what = c, args = sapply(X = res, FUN = `[[`, 2))
-  if (null) {
-    pval.vec <- do.call(what = c, args = sapply(X = res, FUN = `[[`, 3))
-  }
+  pval.vec <- do.call(what = c, args = sapply(X = res, FUN = `[[`, 3))
 
   if (length(x = coef.vec) == 0) {
     if (verbose) {
@@ -376,19 +374,17 @@ LinkPeaks <- function(
   rownames(x = coef.matrix) <- genes.use
   colnames(x = coef.matrix) <- names(x = peak.key)
   links <- LinksToGRanges(linkmat = coef.matrix, gene.coords = gene.coords.use)
-  if (null) {
-    # add pvalues
-    pv.matrix <- sparseMatrix(
-      i = gene.vec,
-      j = peak.key[names(x = pval.vec)],
-      x = pval.vec,
-      dims = c(length(x = genes.use), max(peak.key))
-    )
-    rownames(x = pv.matrix) <- genes.use
-    colnames(x = pv.matrix) <- names(x = peak.key)
-    pv.lnk <- LinksToGRanges(linkmat = pv.matrix, gene.coords = gene.coords.use)
-    links$pvalue <- pv.lnk$score
-  }
+  # add pvalues
+  pv.matrix <- sparseMatrix(
+    i = gene.vec,
+    j = peak.key[names(x = pval.vec)],
+    x = pval.vec,
+    dims = c(length(x = genes.use), max(peak.key))
+  )
+  rownames(x = pv.matrix) <- genes.use
+  colnames(x = pv.matrix) <- names(x = peak.key)
+  pv.lnk <- LinksToGRanges(linkmat = pv.matrix, gene.coords = gene.coords.use)
+  links$pvalue <- pv.lnk$score
   Links(object = object[[peak.assay]]) <- links
   return(object)
 }
