@@ -300,7 +300,7 @@ LinkPeaks <- function(
           coef.results.filtered <- coef.results[coef.results != 0]
         }
         if (length(x = coef.results.filtered) == 0) {
-          return(list("gene" = NULL, "coef" = NULL))
+          return(list("gene" = NULL, "coef" = NULL, "pval" = NULL))
         } else {
           if (null) {
             # compute null distribution with same lambda
