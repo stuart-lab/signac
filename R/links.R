@@ -180,7 +180,7 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' @param verbose Display messages
 #'
 #' @importFrom Seurat GetAssayData
-#' @importFrom glmnet cv.glmnet
+#' @importFrom glmnet cv.glmnet glmnet
 #' @importFrom stats coef
 #' @importFrom Matrix sparseMatrix rowSums
 #' @importFrom future.apply future_lapply
@@ -216,6 +216,9 @@ LinkPeaks <- function(
       ranges = Annotation(object = object[[peak.assay]])
     )
   }
+  meta.features <- GetAssayData(
+    object = object, assay = peak.assay, slot = "meta.features"
+  )
   peak.data <- GetAssayData(
     object = object, assay = peak.assay, slot = 'counts'
   )
@@ -301,17 +304,23 @@ LinkPeaks <- function(
         } else {
           if (null) {
             # compute null distribution with same lambda
-            # sample at random from peaks on a different chromosome to the gene
+            # sample from peaks on a different chromosome to the gene
             trans.peaks <- all.peaks[
               !grepl(pattern = paste0("^", gene.chrom), x = all.peaks)
             ]
-            peak.random <- sample(
-              x = trans.peaks,
-              size = n_sample,
-              replace = FALSE
+            peaks.test <- colnames(x = peak.access)
+            meta.use <- meta.features[trans.peaks, ]
+            meta.use <- rbind(meta.use, meta.features[peaks.test, ])
+            # sample matching total accessibility and GC
+            peak.random <- MatchRegionStats(
+              meta.feature = meta.use,
+              regions = peaks.test,
+              features.match = c("GC.percent", "count"),
+              n = n_sample,
+              verbose = FALSE
             )
             peak.access <- t(x = peak.data[peak.random, ])
-            cvfit <- cv.glmnet(
+            cvfit <- glmnet(
               x = peak.access,
               y = gene.expression,
               alpha = alpha,
