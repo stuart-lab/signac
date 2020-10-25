@@ -169,6 +169,7 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' @param keep.all Retain all peaks in the output. Useful for knowing what peaks
 #' had 0 coefficient and what were not tested due to expression or accessibility
 #' thresholds.
+#' @param enet Use elastic net.
 #' @param genes.use Genes to test. If NULL, determine from expression assay.
 #' @param family Response type (for gene expression values). Valid values are
 #' "gaussian", "poisson", "binomial", or a \code{\link[stats]{glm}}-family
@@ -200,14 +201,11 @@ LinkPeaks <- function(
   expression.slot = "data",
   gene.coords = NULL,
   binary = FALSE,
-  alpha = 0.95,
   distance = 5e+05,
   min.cells = 10,
   expression.threshold = 0.1,
-  family = "poisson",
   genes.use = NULL,
   keep.all = FALSE,
-  null = FALSE,
   n_sample = 300,
   verbose = TRUE
 ) {
@@ -216,6 +214,9 @@ LinkPeaks <- function(
       ranges = Annotation(object = object[[peak.assay]])
     )
   }
+  meta.features <- GetAssayData(
+    object = object, assay = peak.assay, slot = "meta.features"
+  )
   peak.data <- GetAssayData(
     object = object, assay = peak.assay, slot = 'counts'
   )
@@ -276,67 +277,52 @@ LinkPeaks <- function(
       gene.expression <- expression.data[genes.use[[i]], ]
       gene.chrom <- as.character(x = seqnames(x = gene.coords.use[i]))
 
-      if (sum(peak.use) < 2) {
-        # no peaks close to gene
+      if (sum(peak.use) == 0) {
         return(list("gene" = NULL, "coef" = NULL, "pval" = NULL))
       } else {
         peak.access <- t(x = peak.data[peak.use, ])
-        cvfit <- cv.glmnet(
-          x = peak.access,
-          y = gene.expression,
-          alpha = alpha,
-          family = family
+        coef.result <- cor(
+          x = as.matrix(x = peak.access),
+          y = as.matrix(x = gene.expression),
+          method = "spearman"
         )
-        lambda <- cvfit$lambda.1se
-        coef.results <- coef(object = cvfit, s = lambda)
-        coef.results <- coef.results[2:nrow(x = coef.results), ]
-        if (keep.all) {
-          # keep all genes so we know what was tested
-          coef.results.filtered <- coef.results
-        } else {
-          coef.results.filtered <- coef.results[coef.results != 0]
+        # for each peak, select 200 at random with matching GC content and accessibility
+        # sample at random from peaks on a different chromosome to the gene
+        peaks.test <- colnames(x = peak.access)
+        trans.peaks <- all.peaks[
+          !grepl(pattern = paste0("^", gene.chrom), x = all.peaks)
+        ]
+        meta.use <- meta.features[trans.peaks, ]
+        meta.use <- rbind(meta.use, meta.features[peaks.test, ])
+        bg.peaks <- lapply(
+          X = peaks.test,
+          FUN = MatchRegionStats,
+          meta.feature = meta.use,
+          features.match = c("count"),
+          n = n_sample,
+          verbose = FALSE
+        )
+        # run background correlations
+        pvals <- vector(mode = "numeric", length = length(x = peaks.test))
+        for (j in seq_along(along.with = peaks.test)) {
+          bg.access <- t(x = peak.data[unlist(x = bg.peaks[[j]]), ])
+          bg.coef <- cor(
+            x = as.matrix(x = bg.access),
+            y = as.matrix(x = gene.expression),
+            method = "spearman"
+          )
+          p <- ifelse(
+            test = coef.result[[j]] > 0,
+            yes = sum(bg.coef > coef.result[[j]]),
+            no = sum(bg.coef < coef.result[[j]])
+          ) / n_sample
+          pvals[[j]] <- p
         }
-        if (length(x = coef.results.filtered) == 0) {
-          return(list("gene" = NULL, "coef" = NULL))
-        } else {
-          if (null) {
-            # compute null distribution with same lambda
-            # sample at random from peaks on a different chromosome to the gene
-            trans.peaks <- all.peaks[
-              !grepl(pattern = paste0("^", gene.chrom), x = all.peaks)
-            ]
-            peak.random <- sample(
-              x = trans.peaks,
-              size = n_sample,
-              replace = FALSE
-            )
-            peak.access <- t(x = peak.data[peak.random, ])
-            cvfit <- cv.glmnet(
-              x = peak.access,
-              y = gene.expression,
-              alpha = alpha,
-              family = family
-            )
-            coef.results.rand <- coef(object = cvfit, s = lambda)
-            coef.results.rand <- coef.results.rand[
-              2:nrow(x = coef.results.rand),
-            ]
-            # number of random peaks with coefficient at least as extreme as obs
-            pvals <- sapply(
-              X = coef.results.filtered,
-              FUN = function(x) {
-                if (x < 0) {
-                  sum(coef.results.rand < x)
-                } else {
-                  sum(coef.results.rand > x)
-                }
-              })
-            pvals <- pvals / n_sample
-            pval.vec <- c(pval.vec, pvals)
-          }
-          gene.vec <- c(gene.vec, rep(i, length(x = coef.results.filtered)))
-          coef.vec <- c(coef.vec, coef.results.filtered)
-        }
+        names(x = coef.result) <- peaks.test
+        names(x = pvals) <- peaks.test
+        pval.vec <- c(pval.vec, pvals)
+        gene.vec <- c(gene.vec, rep(i, length(x = coef.result)))
+        coef.vec <- c(coef.vec, coef.result)
       }
       return(list("gene" = gene.vec, "coef" = coef.vec, "pval" = pval.vec))
     }
@@ -344,9 +330,7 @@ LinkPeaks <- function(
   # combine results
   gene.vec <- do.call(what = c, args = sapply(X = res, FUN = `[[`, 1))
   coef.vec <- do.call(what = c, args = sapply(X = res, FUN = `[[`, 2))
-  if (null) {
-    pval.vec <- do.call(what = c, args = sapply(X = res, FUN = `[[`, 3))
-  }
+  pval.vec <- do.call(what = c, args = sapply(X = res, FUN = `[[`, 3))
 
   if (length(x = coef.vec) == 0) {
     if (verbose) {
@@ -367,19 +351,17 @@ LinkPeaks <- function(
   rownames(x = coef.matrix) <- genes.use
   colnames(x = coef.matrix) <- names(x = peak.key)
   links <- LinksToGRanges(linkmat = coef.matrix, gene.coords = gene.coords.use)
-  if (null) {
-    # add pvalues
-    pv.matrix <- sparseMatrix(
-      i = gene.vec,
-      j = peak.key[names(x = pval.vec)],
-      x = pval.vec,
-      dims = c(length(x = genes.use), max(peak.key))
-    )
-    rownames(x = pv.matrix) <- genes.use
-    colnames(x = pv.matrix) <- names(x = peak.key)
-    pv.lnk <- LinksToGRanges(linkmat = pv.matrix, gene.coords = gene.coords.use)
-    links$pvalue <- pv.lnk$score
-  }
+  # add pvalues
+  pv.matrix <- sparseMatrix(
+    i = gene.vec,
+    j = peak.key[names(x = pval.vec)],
+    x = pval.vec,
+    dims = c(length(x = genes.use), max(peak.key))
+  )
+  rownames(x = pv.matrix) <- genes.use
+  colnames(x = pv.matrix) <- names(x = peak.key)
+  pv.lnk <- LinksToGRanges(linkmat = pv.matrix, gene.coords = gene.coords.use)
+  links$pvalue <- pv.lnk$score
   Links(object = object[[peak.assay]]) <- links
   return(object)
 }
