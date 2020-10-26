@@ -881,9 +881,9 @@ MatchRegionStats <- function(
             Returning ", n, " features")
   }
   features.choose <- meta.feature[choosefrom, ]
-  feature.weights <- rep(0, nrow(features.choose))
-  for (i in features.match) {
-    if (!(i %in% colnames(x = mf.query))) {
+  for (i in seq_along(along.with = features.match)) {
+    featmatch <- features.match[[i]]
+    if (!(featmatch %in% colnames(x = mf.query))) {
       if (i == "GC.percent") {
         stop("GC.percent not present in meta.features.",
              " Run RegionStats to compute GC.percent for each feature.")
@@ -892,17 +892,23 @@ MatchRegionStats <- function(
       }
     }
     if (verbose) {
-      message("Matching ", i, " distribution")
+      message("Matching ", featmatch, " distribution")
     }
-    density.estimate <- density(x = mf.query[[i]], kernel = "gaussian", bw = 1)
+    density.estimate <- density(
+      x = mf.query[[featmatch]], kernel = "gaussian", bw = 1
+    )
     weights <- approx(
       x = density.estimate$x,
       y = density.estimate$y,
-      xout = features.choose[[i]],
+      xout = features.choose[[featmatch]],
       yright = 0.0001,
       yleft = 0.0001
     )$y
-    feature.weights <- feature.weights + weights
+    if (i > 1) {
+      feature.weights <- feature.weights * weights
+    } else {
+      feature.weights <- weights
+    }
   }
   feature.select <- sample(
     x = rownames(x = features.choose),
