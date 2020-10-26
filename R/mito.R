@@ -156,8 +156,14 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
   })
   object$allele_ident_stash_clon <- NULL
   # cluster
-  hc <- hclust(d = dist(x = cosine(x = matty)))
-  hf <- hclust(d = dist(x = cosine(x = t(x = matty))))
+
+  cos_matty <- cosine(x = matty)
+  cos_matty_t <- cosine(x = t(x = matty))
+  # replace NaN with 0
+  cos_matty[is.nan(x = cos_matty)] <- 0
+  cos_matty_t[is.nan(x = cos_matty_t)] <- 0
+  hc <- hclust(d = dist(x = cos_matty))
+  hf <- hclust(d = dist(x = cos_matty_t))
   return(list("cells" = hc, "features" = hf))
 }
 
