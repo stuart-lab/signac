@@ -828,6 +828,16 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
 #' query regions for any given set of characteristics, specified in the input
 #' \code{meta.feature} dataframe.
 #'
+#' For each requested feature to match, a density
+#' distribution is estimated using the \code{\link[stats]{density}} function,
+#' and a set of weights for each feature in the dataset estimated based on the
+#' density distribution. If multiple features are to be matched (for example,
+#' GC content and overall accessibility), a joint density distribution is then
+#' computed by multiplying the individual feature weights. A set of features
+#' with characteristics matching the query regions is then selected using the
+#' \code{\link[base]{sample}} function, with the probability of randomly
+#' selecting each feature equal to the joint density distribution weight.
+#'
 #' @param meta.feature A dataframe containing DNA sequence information
 #' @param regions Set of query regions. Must be present in rownames.
 #' @param n Number of regions to select, with characteristics matching the query
