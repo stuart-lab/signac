@@ -217,13 +217,19 @@ LinkPeaks <- function(
     object = object, assay = peak.assay, slot = "meta.features"
   )
   features.match <- c("GC.percent", "count")
-  if (!all(features.match %in% colnames(x = meta.features))) {
-    stop("Required region features have not been computed.\n",
+  if (!("GC.percent" %in% colnames(x = meta.features))) {
+    stop("GC content per peak has not been computed.\n",
          "Run RegionsStats before calling this function.")
   }
   peak.data <- GetAssayData(
     object = object, assay = peak.assay, slot = 'counts'
   )
+  if (!("count" %in% colnames(x = meta.features))) {
+    # compute total count
+    hvf.info <- FindTopFeatures(object = peak.data)
+    hvf.info <- hvf.info[rownames(x = meta.features), ]
+    meta.features <- cbind(meta.features, hvf.info)
+  }
   expression.data <- GetAssayData(
     object = object, assay = expression.assay, slot = expression.slot
   )
