@@ -17,6 +17,7 @@ LinkPeaks(
   method = "spearman",
   genes.use = NULL,
   n_sample = 100,
+  pvalue_cutoff = 0.05,
   verbose = TRUE
 )
 }
@@ -49,6 +50,9 @@ expressed. Only used for filtering genes from regression.}
 
 \item{n_sample}{Number of peaks to sample at random when computing the null
 distribution.}
+
+\item{pvalue_cutoff}{Minimum p-value required to retain a link. Links with a
+p-value equal or greater than this value will be removed from the output.}
 
 \item{verbose}{Display messages}
 }

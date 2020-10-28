@@ -169,6 +169,8 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' (default), "pearson", or "kendall".
 #' @param n_sample Number of peaks to sample at random when computing the null
 #' distribution.
+#' @param pvalue_cutoff Minimum p-value required to retain a link. Links with a
+#' p-value equal or greater than this value will be removed from the output.
 #' @param verbose Display messages
 #'
 #' @importFrom Seurat GetAssayData
@@ -198,6 +200,7 @@ LinkPeaks <- function(
   method = "spearman",
   genes.use = NULL,
   n_sample = 100,
+  pvalue_cutoff = 0.05,
   verbose = TRUE
 ) {
   if (is.null(x = gene.coords)) {
@@ -366,6 +369,7 @@ LinkPeaks <- function(
   z.lnk <- LinksToGRanges(linkmat = z.matrix, gene.coords = gene.coords.use)
   links$zscore <- z.lnk$score
   links$pvalue <- pnorm(q = -abs(x = links$zscore))
+  links <- links[links$pvalue < pvalue_cutoff]
   Links(object = object[[peak.assay]]) <- links
   return(object)
 }
