@@ -329,7 +329,8 @@ LinkPeaks <- function(
         zscore.vec <- c(zscore.vec, zscores)
         gene.vec <- c(gene.vec, rep(i, length(x = coef.result)))
         coef.vec <- c(coef.vec, coef.result)
-        }
+      }
+      gc(verbose = FALSE)
       return(list("gene" = gene.vec, "coef" = coef.vec, "zscore" = zscore.vec))
     }
   )
