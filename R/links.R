@@ -169,6 +169,7 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' distribution.
 #' @param pvalue_cutoff Minimum p-value required to retain a link. Links with a
 #' p-value equal or greater than this value will be removed from the output.
+#' @param score_cutoff Minimum correlation coefficient for a link to be retained
 #' @param verbose Display messages
 #'
 #' @importFrom Seurat GetAssayData
@@ -196,8 +197,9 @@ LinkPeaks <- function(
   min.cells = 10,
   method = "pearson",
   genes.use = NULL,
-  n_sample = 100,
+  n_sample = 200,
   pvalue_cutoff = 0.05,
+  score_cutoff = 0.05,
   verbose = TRUE
 ) {
   if (is.null(x = gene.coords)) {
@@ -291,56 +293,62 @@ LinkPeaks <- function(
           y = as.matrix(x = gene.expression),
           method = method
         )
+        coef.result <- coef.result[coef.result > score_cutoff, , drop = FALSE]
 
-        # select peaks at random with matching GC content and accessibility
-        # sample from peaks on a different chromosome to the gene
-        peaks.test <- colnames(x = peak.access)
-        trans.peaks <- all.peaks[
-          !grepl(pattern = paste0("^", gene.chrom), x = all.peaks)
-        ]
-        meta.use <- meta.features[trans.peaks, ]
-        pk.use <- meta.features[peaks.test, ]
-        bg.peaks <- lapply(
-          X = seq_len(length.out = nrow(x = pk.use)),
-          FUN = function(x) {
-            MatchRegionStats(
-              meta.feature = meta.use,
-              query.feature = pk.use[x, , drop = FALSE],
-              features.match = c("GC.percent", "count"),
-              n = n_sample,
-              verbose = FALSE
-            )
+        if (nrow(x = coef.result) == 0) {
+          return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
+        } else {
+
+          # select peaks at random with matching GC content and accessibility
+          # sample from peaks on a different chromosome to the gene
+          peaks.test <- rownames(x = coef.result)
+          trans.peaks <- all.peaks[
+            !grepl(pattern = paste0("^", gene.chrom), x = all.peaks)
+          ]
+          meta.use <- meta.features[trans.peaks, ]
+          pk.use <- meta.features[peaks.test, ]
+          bg.peaks <- lapply(
+            X = seq_len(length.out = nrow(x = pk.use)),
+            FUN = function(x) {
+              MatchRegionStats(
+                meta.feature = meta.use,
+                query.feature = pk.use[x, , drop = FALSE],
+                features.match = c("GC.percent", "count", "sequence.length"),
+                n = n_sample,
+                verbose = FALSE
+              )
+            }
+          )
+          # run background correlations
+          bg.access <- peak.data[, unlist(x = bg.peaks)]
+          bg.coef <- cor(
+            x = as.matrix(x = bg.access),
+            y = as.matrix(x = gene.expression),
+            method = method
+          )
+          zscores <- vector(mode = "numeric", length = length(x = peaks.test))
+          for (j in seq_along(along.with = peaks.test)) {
+            coef.use <- bg.coef[(((j - 1) * n_sample) + 1):(j * n_sample), ]
+            z <- (coef.result[j] - mean(x = coef.use)) / sd(x = coef.use)
+            zscores[[j]] <- z
           }
-        )
-        # run background correlations
-        bg.access <- peak.data[, unlist(x = bg.peaks)]
-        bg.coef <- cor(
-          x = as.matrix(x = bg.access),
-          y = as.matrix(x = gene.expression),
-          method = method
-        )
-        zscores <- vector(mode = "numeric", length = length(x = peaks.test))
-        for (j in seq_along(along.with = peaks.test)) {
-          coef.use <- bg.coef[(((j - 1) * n_sample) + 1):(j * n_sample), ]
-          z <- (coef.result[j] - mean(x = coef.use)) / sd(x = coef.use)
-          zscores[[j]] <- z
+          names(x = coef.result) <- peaks.test
+          names(x = zscores) <- peaks.test
+          zscore.vec <- c(zscore.vec, zscores)
+          gene.vec <- c(gene.vec, rep(i, length(x = coef.result)))
+          coef.vec <- c(coef.vec, coef.result)
         }
-        names(x = coef.result) <- peaks.test
-        names(x = zscores) <- peaks.test
-        zscore.vec <- c(zscore.vec, zscores)
-        gene.vec <- c(gene.vec, rep(i, length(x = coef.result)))
-        coef.vec <- c(coef.vec, coef.result)
-      }
-      gc(verbose = FALSE)
-      pval.vec <- pnorm(q = -abs(x = zscore.vec))
-      links.keep <- pval.vec < pvalue_cutoff
-      if (sum(x = links.keep) == 0) {
-        return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
-      } else {
-        gene.vec <- gene.vec[links.keep]
-        coef.vec <- coef.vec[links.keep]
-        zscore.vec <- zscore.vec[links.keep]
-        return(list("gene" = gene.vec, "coef" = coef.vec, "zscore" = zscore.vec))
+        gc(verbose = FALSE)
+        pval.vec <- pnorm(q = -abs(x = zscore.vec))
+        links.keep <- pval.vec < pvalue_cutoff
+        if (sum(x = links.keep) == 0) {
+          return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
+        } else {
+          gene.vec <- gene.vec[links.keep]
+          coef.vec <- coef.vec[links.keep]
+          zscore.vec <- zscore.vec[links.keep]
+          return(list("gene" = gene.vec, "coef" = coef.vec, "zscore" = zscore.vec))
+        }
       }
     }
   )
