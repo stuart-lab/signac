@@ -331,7 +331,16 @@ LinkPeaks <- function(
         coef.vec <- c(coef.vec, coef.result)
       }
       gc(verbose = FALSE)
-      return(list("gene" = gene.vec, "coef" = coef.vec, "zscore" = zscore.vec))
+      pval.vec <- pnorm(q = -abs(x = zscore.vec))
+      links.keep <- pval.vec < pvalue_cutoff
+      if (sum(x = links.keep) == 0) {
+        return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
+      } else {
+        gene.vec <- gene.vec[links.keep]
+        coef.vec <- coef.vec[links.keep]
+        zscore.vec <- zscore.vec[links.keep]
+        return(list("gene" = gene.vec, "coef" = coef.vec, "zscore" = zscore.vec))
+      }
     }
   )
   # combine results
