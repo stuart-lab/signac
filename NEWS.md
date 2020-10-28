@@ -11,7 +11,6 @@ for different groups of cells separately by setting the `group.by` parameter
 * Added `show.bulk` parameter to `CoveragePlot()` to plot accessibility of all cells combined
 * Added ability to remove `Fragment` objects and modify the file path for existing
 fragment objects ([#206](https://github.com/timoast/signac/issues/206))
-* Improved feature matching in `MatchRegionStats()` function when matching distribution of multiple features (eg, GC content and overall accessibility)
 
 Bug fixes: 
 
@@ -25,6 +24,10 @@ and [#260](https://github.com/timoast/signac/issues/260))
 * Removed `qvalue` calculation from `FindMotifs()` ([#223](https://github.com/timoast/signac/issues/223))
 * Fixed bug in `SetAssayData()` when setting the `scale.data` slot
 
+Other changes:
+
+* Improved feature matching in `MatchRegionStats()` function when matching distribution of multiple features (eg, GC content and overall accessibility)
+* Changed parameter names in `MatchRegionStats()`
 
 # Signac 1.0.0
 
