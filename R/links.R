@@ -299,14 +299,18 @@ LinkPeaks <- function(
           !grepl(pattern = paste0("^", gene.chrom), x = all.peaks)
         ]
         meta.use <- meta.features[trans.peaks, ]
+        pk.use <- meta.features[peaks.test, ]
         bg.peaks <- lapply(
-          X = peaks.test,
-          FUN = MatchRegionStats,
-          meta.feature = meta.use,
-          query.feature = meta.features[peaks.test, ],
-          features.match = c("GC.percent", "count"),
-          n = n_sample,
-          verbose = FALSE
+          X = seq_len(length.out = nrow(x = pk.use)),
+          FUN = function(x) {
+            MatchRegionStats(
+              meta.feature = meta.use,
+              query.feature = pk.use[x, , drop = FALSE],
+              features.match = c("GC.percent", "count"),
+              n = n_sample,
+              verbose = FALSE
+            )
+          }
         )
         # run background correlations
         bg.access <- peak.data[, unlist(x = bg.peaks)]
