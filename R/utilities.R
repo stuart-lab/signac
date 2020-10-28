@@ -828,6 +828,16 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
 #' query regions for any given set of characteristics, specified in the input
 #' \code{meta.feature} dataframe.
 #'
+#' For each requested feature to match, a density
+#' distribution is estimated using the \code{\link[stats]{density}} function,
+#' and a set of weights for each feature in the dataset estimated based on the
+#' density distribution. If multiple features are to be matched (for example,
+#' GC content and overall accessibility), a joint density distribution is then
+#' computed by multiplying the individual feature weights. A set of features
+#' with characteristics matching the query regions is then selected using the
+#' \code{\link[base]{sample}} function, with the probability of randomly
+#' selecting each feature equal to the joint density distribution weight.
+#'
 #' @param meta.feature A dataframe containing DNA sequence information
 #' @param regions Set of query regions. Must be present in rownames.
 #' @param n Number of regions to select, with characteristics matching the query
@@ -881,9 +891,9 @@ MatchRegionStats <- function(
             Returning ", n, " features")
   }
   features.choose <- meta.feature[choosefrom, ]
-  feature.weights <- rep(0, nrow(features.choose))
-  for (i in features.match) {
-    if (!(i %in% colnames(x = mf.query))) {
+  for (i in seq_along(along.with = features.match)) {
+    featmatch <- features.match[[i]]
+    if (!(featmatch %in% colnames(x = mf.query))) {
       if (i == "GC.percent") {
         stop("GC.percent not present in meta.features.",
              " Run RegionStats to compute GC.percent for each feature.")
@@ -892,17 +902,23 @@ MatchRegionStats <- function(
       }
     }
     if (verbose) {
-      message("Matching ", i, " distribution")
+      message("Matching ", featmatch, " distribution")
     }
-    density.estimate <- density(x = mf.query[[i]], kernel = "gaussian", bw = 1)
+    density.estimate <- density(
+      x = mf.query[[featmatch]], kernel = "gaussian", bw = 1
+    )
     weights <- approx(
       x = density.estimate$x,
       y = density.estimate$y,
-      xout = features.choose[[i]],
+      xout = features.choose[[featmatch]],
       yright = 0.0001,
       yleft = 0.0001
     )$y
-    feature.weights <- feature.weights + weights
+    if (i > 1) {
+      feature.weights <- feature.weights * weights
+    } else {
+      feature.weights <- weights
+    }
   }
   feature.select <- sample(
     x = rownames(x = features.choose),

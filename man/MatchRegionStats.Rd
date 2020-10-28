@@ -36,6 +36,17 @@ Return a vector if genomic regions that match the distribution of a set of
 query regions for any given set of characteristics, specified in the input
 \code{meta.feature} dataframe.
 }
+\details{
+For each requested feature to match, a density
+distribution is estimated using the \code{\link[stats]{density}} function,
+and a set of weights for each feature in the dataset estimated based on the
+density distribution. If multiple features are to be matched (for example,
+GC content and overall accessibility), a joint density distribution is then
+computed by multiplying the individual feature weights. A set of features
+with characteristics matching the query regions is then selected using the
+\code{\link[base]{sample}} function, with the probability of randomly
+selecting each feature equal to the joint density distribution weight.
+}
 \examples{
 metafeatures <- Seurat::GetAssayData(
   object = atac_small[['peaks']], slot = 'meta.features'
