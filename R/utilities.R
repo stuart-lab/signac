@@ -918,11 +918,12 @@ MatchRegionStats <- function(
       feature.weights <- weights
     }
   }
-  feature.select <- sample(
-    x = rownames(x = meta.feature),
+  feature.select <- sample.int(
+    n = nrow(x = meta.feature),
     size = n,
     prob = feature.weights
   )
+  feature.select <- rownames(x = meta.feature)[feature.select]
   return(feature.select)
 }
 
