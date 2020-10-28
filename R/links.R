@@ -162,8 +162,6 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' @param distance Distance threshold for peaks to include in regression model
 #' @param min.cells Minimum number of cells positive for the peak and gene
 #' needed to include in the results.
-#' @param expression.threshold Minimum value for a gene to be classified as
-#' expressed. Only used for filtering genes from regression.
 #' @param genes.use Genes to test. If NULL, determine from expression assay.
 #' @param method Which correlation coefficient to compute. Can be "spearman"
 #' (default), "pearson", or "kendall".
@@ -196,8 +194,7 @@ LinkPeaks <- function(
   binary = FALSE,
   distance = 5e+05,
   min.cells = 10,
-  expression.threshold = 0.1,
-  method = "spearman",
+  method = "pearson",
   genes.use = NULL,
   n_sample = 100,
   pvalue_cutoff = 0.05,
@@ -228,8 +225,8 @@ LinkPeaks <- function(
   expression.data <- GetAssayData(
     object = object, assay = expression.assay, slot = expression.slot
   )
-  peakcounts <- rowSums(x = peak.data > 0)
-  genecounts <- rowSums(x = expression.data > expression.threshold)
+  peakcounts <- meta.features[rownames(x = peak.data), "count"]
+  genecounts <- rowSums(x = expression.data > 0)
   peaks.keep <- peakcounts > min.cells
   genes.keep <- genecounts > min.cells
   peak.data <- peak.data[peaks.keep, ]
@@ -302,11 +299,11 @@ LinkPeaks <- function(
           !grepl(pattern = paste0("^", gene.chrom), x = all.peaks)
         ]
         meta.use <- meta.features[trans.peaks, ]
-        meta.use <- rbind(meta.use, meta.features[peaks.test, ])
         bg.peaks <- lapply(
           X = peaks.test,
           FUN = MatchRegionStats,
           meta.feature = meta.use,
+          query.feature = meta.features[peaks.test, ],
           features.match = c("GC.percent", "count"),
           n = n_sample,
           verbose = FALSE
