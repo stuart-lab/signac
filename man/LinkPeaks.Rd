@@ -11,14 +11,12 @@ LinkPeaks(
   expression.slot = "data",
   gene.coords = NULL,
   binary = FALSE,
-  alpha = 0.95,
   distance = 5e+05,
   min.cells = 10,
   expression.threshold = 0.1,
-  family = "poisson",
+  method = "spearman",
   genes.use = NULL,
-  keep.all = FALSE,
-  n_sample = 300,
+  n_sample = 100,
   verbose = TRUE
 )
 }
@@ -36,9 +34,6 @@ expression assay. If NULL, extract from gene annotations stored in the assay.}
 
 \item{binary}{Binarize the peak counts (default FALSE)}
 
-\item{alpha}{Alpha parameter for elastic net regularization. Controls balance
-between LASSO (alpha=1) and ridge (alpha=0) regularization.}
-
 \item{distance}{Distance threshold for peaks to include in regression model}
 
 \item{min.cells}{Minimum number of cells positive for the peak and gene
@@ -47,15 +42,10 @@ needed to include in the results.}
 \item{expression.threshold}{Minimum value for a gene to be classified as
 expressed. Only used for filtering genes from regression.}
 
-\item{family}{Response type (for gene expression values). Valid values are
-"gaussian", "poisson", "binomial", or a \code{\link[stats]{glm}}-family
-object}
+\item{method}{Which correlation coefficient to compute. Can be "spearman"
+(default), "pearson", or "kendall".}
 
 \item{genes.use}{Genes to test. If NULL, determine from expression assay.}
-
-\item{keep.all}{Retain all peaks in the output. Useful for knowing what peaks
-had 0 coefficient and what were not tested due to expression or accessibility
-thresholds.}
 
 \item{n_sample}{Number of peaks to sample at random when computing the null
 distribution.}
