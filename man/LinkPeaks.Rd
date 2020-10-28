@@ -13,8 +13,7 @@ LinkPeaks(
   binary = FALSE,
   distance = 5e+05,
   min.cells = 10,
-  expression.threshold = 0.1,
-  method = "spearman",
+  method = "pearson",
   genes.use = NULL,
   n_sample = 100,
   pvalue_cutoff = 0.05,
@@ -39,9 +38,6 @@ expression assay. If NULL, extract from gene annotations stored in the assay.}
 
 \item{min.cells}{Minimum number of cells positive for the peak and gene
 needed to include in the results.}
-
-\item{expression.threshold}{Minimum value for a gene to be classified as
-expressed. Only used for filtering genes from regression.}
 
 \item{method}{Which correlation coefficient to compute. Can be "spearman"
 (default), "pearson", or "kendall".}
