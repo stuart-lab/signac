@@ -10,7 +10,6 @@ LinkPeaks(
   expression.assay,
   expression.slot = "data",
   gene.coords = NULL,
-  binary = FALSE,
   distance = 5e+05,
   min.cells = 10,
   method = "pearson",
@@ -33,15 +32,13 @@ LinkPeaks(
 \item{gene.coords}{GRanges object containing coordinates of genes in the
 expression assay. If NULL, extract from gene annotations stored in the assay.}
 
-\item{binary}{Binarize the peak counts (default FALSE)}
-
 \item{distance}{Distance threshold for peaks to include in regression model}
 
 \item{min.cells}{Minimum number of cells positive for the peak and gene
 needed to include in the results.}
 
-\item{method}{Which correlation coefficient to compute. Can be "spearman"
-(default), "pearson", or "kendall".}
+\item{method}{Which correlation coefficient to compute. Can be "pearson"
+(default), "spearman", or "kendall".}
 
 \item{genes.use}{Genes to test. If NULL, determine from expression assay.}
 
@@ -62,9 +59,16 @@ each recorded link being the correlation coefficient between the
 accessibility of the peak and expression of the gene.
 }
 \description{
-Find peaks that are correlated with gene expression. Fits a generalized
-linear model with elastic net regularization between peak accessibility and
-gene expression for all peaks within a given distance threshold from the gene
-TSS.
+Find peaks that are correlated with the expression of nearby genes.
+For each gene, this function computes the correlation coefficient between
+the gene expression and accessibility of each peak within a given distance
+from the gene TSS, and computes an expected correlation coefficient for each
+peak given the GC content, accessibility, and length of the peak. The expected
+coefficent values for the peak are then used to compute a z-score and p-value.
+}
+\details{
+This function was inspired by the method originally described by SHARE-seq
+(Sai Ma et al. 2020, Cell). Please consider citing the original SHARE-seq
+work if using this function: \url{https://doi.org/10.1016/j.cell.2020.09.056}
 }
 \concept{links}

@@ -147,10 +147,16 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 
 #' Link peaks to genes
 #'
-#' Find peaks that are correlated with gene expression. Fits a generalized
-#' linear model with elastic net regularization between peak accessibility and
-#' gene expression for all peaks within a given distance threshold from the gene
-#' TSS.
+#' Find peaks that are correlated with the expression of nearby genes.
+#' For each gene, this function computes the correlation coefficient between
+#' the gene expression and accessibility of each peak within a given distance
+#' from the gene TSS, and computes an expected correlation coefficient for each
+#' peak given the GC content, accessibility, and length of the peak. The expected
+#' coefficent values for the peak are then used to compute a z-score and p-value.
+#'
+#' This function was inspired by the method originally described by SHARE-seq
+#' (Sai Ma et al. 2020, Cell). Please consider citing the original SHARE-seq
+#' work if using this function: \url{https://doi.org/10.1016/j.cell.2020.09.056}
 #'
 #' @param object A Seurat object
 #' @param peak.assay Name of assay containing peak information
@@ -158,13 +164,12 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' @param expression.slot Name of slot to pull expression data from
 #' @param gene.coords GRanges object containing coordinates of genes in the
 #' expression assay. If NULL, extract from gene annotations stored in the assay.
-#' @param binary Binarize the peak counts (default FALSE)
 #' @param distance Distance threshold for peaks to include in regression model
 #' @param min.cells Minimum number of cells positive for the peak and gene
 #' needed to include in the results.
 #' @param genes.use Genes to test. If NULL, determine from expression assay.
-#' @param method Which correlation coefficient to compute. Can be "spearman"
-#' (default), "pearson", or "kendall".
+#' @param method Which correlation coefficient to compute. Can be "pearson"
+#' (default), "spearman", or "kendall".
 #' @param n_sample Number of peaks to sample at random when computing the null
 #' distribution.
 #' @param pvalue_cutoff Minimum p-value required to retain a link. Links with a
@@ -193,7 +198,6 @@ LinkPeaks <- function(
   expression.assay,
   expression.slot = "data",
   gene.coords = NULL,
-  binary = FALSE,
   distance = 5e+05,
   min.cells = 10,
   method = "pearson",
@@ -249,9 +253,6 @@ LinkPeaks <- function(
       sum(peaks.keep),
       " peaks"
     )
-  }
-  if (binary) {
-    peak.data <- BinarizeCounts(object = peak.data)
   }
   genes <- rownames(x = expression.data)
   gene.coords.use <- gene.coords[gene.coords$gene_name %in% genes,]
