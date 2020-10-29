@@ -169,7 +169,8 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' distribution.
 #' @param pvalue_cutoff Minimum p-value required to retain a link. Links with a
 #' p-value equal or greater than this value will be removed from the output.
-#' @param score_cutoff Minimum correlation coefficient for a link to be retained
+#' @param score_cutoff Minimum absolute value correlation coefficient for a link
+#' to be retained
 #' @param verbose Display messages
 #'
 #' @importFrom Seurat GetAssayData
@@ -293,7 +294,7 @@ LinkPeaks <- function(
           y = as.matrix(x = gene.expression),
           method = method
         )
-        coef.result <- coef.result[coef.result > score_cutoff, , drop = FALSE]
+        coef.result <- coef.result[abs(x = coef.result) > score_cutoff, , drop = FALSE]
 
         if (nrow(x = coef.result) == 0) {
           return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))

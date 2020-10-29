@@ -15,8 +15,9 @@ LinkPeaks(
   min.cells = 10,
   method = "pearson",
   genes.use = NULL,
-  n_sample = 100,
+  n_sample = 200,
   pvalue_cutoff = 0.05,
+  score_cutoff = 0.05,
   verbose = TRUE
 )
 }
@@ -49,6 +50,9 @@ distribution.}
 
 \item{pvalue_cutoff}{Minimum p-value required to retain a link. Links with a
 p-value equal or greater than this value will be removed from the output.}
+
+\item{score_cutoff}{Minimum absolute value correlation coefficient for a link
+to be retained}
 
 \item{verbose}{Display messages}
 }
