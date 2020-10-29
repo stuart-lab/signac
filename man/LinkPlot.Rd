@@ -4,7 +4,7 @@
 \alias{LinkPlot}
 \title{Plot linked genomic elements}
 \usage{
-LinkPlot(object, region, min.cutoff = 0.05)
+LinkPlot(object, region, min.cutoff = 0)
 }
 \arguments{
 \item{object}{A \code{\link[Seurat]{Seurat}} object}
