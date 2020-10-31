@@ -44,7 +44,6 @@ Imports:
     grid,
     stats,
     utils,
-    glmnet,
     Biobase,
     BiocGenerics,
     Biostrings,
