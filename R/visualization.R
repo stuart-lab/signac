@@ -1024,7 +1024,7 @@ globalVariables(names = "score", package = "Signac")
 #' ylab theme element_blank scale_color_gradient2
 #' @concept visualization
 #' @concept links
-LinkPlot <- function(object, region, min.cutoff = 0.05) {
+LinkPlot <- function(object, region, min.cutoff = 0) {
   if (!inherits(x = region, what = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }

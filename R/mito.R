@@ -43,17 +43,17 @@ AlleleFreq.default <- function(object, variants, ...) {
   # Numerator counts
   # Get the forward and reverse strands for the matching the position / letter
   # for the alternate allele
-  # Utilize the fact that all of the fwds come first, then the reverse
   ref_letter <-  paste0(meta_row_mat$position, meta_row_mat$letter)
   alt_letter <- paste0(variant_df$position, variant_df$alt)
-  idx_numerator <- which(x = ref_letter %in% alt_letter)
-  fwd_half_idx <- idx_numerator[1:(length(x = idx_numerator) / 2)]
-  rev_half_idx <- idx_numerator[
-    (length(x = idx_numerator) / 2 + 1):length(x = idx_numerator)
-  ]
+  idx_numerator <- lapply(
+    X = alt_letter, FUN = function(x) {
+      which(ref_letter == x)
+      }
+    )
+  fwd_half_idx <- sapply(X = idx_numerator, FUN = `[[`, 1)
+  rev_half_idx <- sapply(X = idx_numerator, FUN = `[[`, 2)
 
-  # Based on the object structure, use this feature to make fast subsetting
-  # But first verify that the object is behaving like we expect
+  # verify that the object is behaving like we expect
   if (!all.equal(
     target = meta_row_mat[fwd_half_idx, 2],
     current = meta_row_mat[rev_half_idx, 2]
@@ -61,77 +61,25 @@ AlleleFreq.default <- function(object, variants, ...) {
     stop("Variant count matrix does not have the required structure")
   }
   numerator_counts <- object[fwd_half_idx, ] + object[rev_half_idx, ]
+  rownames(x = numerator_counts) <- variants
 
-  # Same idea for the denominator but use a list since we have 8 things to think
-  # about
-  idx_denom <- sapply(X = meta_row_mat$position, FUN = function(x) {
-    matches <- which(x == variant_df$position)
-    if (length(x = matches) > 0) {
-      return(rep(x = x, length(x = matches)))
-    }
+  # Same idea for the denominator but use all counts at each position
+  denom_counts <- sapply(X = variant_df$position, FUN = function(x) {
+    idx <- which(meta_row_mat$position == x)
+    total_coverage <- colSums(x = object[idx, ])
+    return(total_coverage)
   })
-  idx_denom <- unlist(x = idx_denom)
-
-  # splits into a list of length # variants
-  list_idx_denom <- split(
-    x = idx_denom, f = rep(1:8, each = length(x = variants))
-  )
-
-  # Verify positions when split behave as expected
-  matrix_positions <- sapply(
-    X = list_idx_denom, FUN = function(idx) meta_row_mat$position[idx]
-  )
-  all.valid <- apply(
-    X = matrix_positions,
-    MARGIN = 1,
-    FUN = function(x) {
-      length(x = unique(x = x)) == 1
-      }
-    )
-  if (!all(all.valid)) {
-    stop("Invalid variant positions")
-  }
-
-  # Now sum into a denominator matrix
-  denominator_counts <- Reduce(
-    f = `+`,
-    x = lapply(
-      X = list_idx_denom,
-      FUN = function(idx) {
-          object[idx,]
-        }
-      )
-    )
-  denominator_counts <- as.matrix(x = denominator_counts)
-
-  numerator_ix <- sapply(
-    X = rownames(x = numerator_counts),
-    FUN = function(x) {
-      a <- unlist(
-        x = strsplit(x = x, split = "-", fixed = TRUE), use.names = FALSE
-        )[[2]]
-      return(as.numeric(x = a))
-    })
+  denom_counts <- t(x = denom_counts)
+  rownames(x = denom_counts) <- variant_df$variant
 
   # Prepare final allele frequency matrix to be returned
-  allele_freq_matrix <- numerator_counts[order(numerator_ix), ] / denominator_counts
+  allele_freq_matrix <- numerator_counts / denom_counts
   colnames(x = allele_freq_matrix) <- colnames(x = object)
 
   # Set NaN value due to 0 total counts to 0
   allele_freq_matrix@x[is.nan(x = allele_freq_matrix@x)] <- 0
 
-  # The row names may not be in order as specified, so manually establish
-  vars_in_order <- paste0(
-    meta_row_mat$position, meta_row_mat$letter
-  )[fwd_half_idx][order(numerator_ix)]
-  rownames(x = allele_freq_matrix) <- sapply(
-    X = vars_in_order,
-    FUN = function(s){
-      as.character(x = variant_df$variant[
-        match(x = s, table = paste0(variant_df$position, variant_df$alt))
-        ])
-      }
-    )
+  # reorder before returning
   return(allele_freq_matrix[variants, ])
 }
 
@@ -208,8 +156,14 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
   })
   object$allele_ident_stash_clon <- NULL
   # cluster
-  hc <- hclust(d = dist(x = cosine(x = matty)))
-  hf <- hclust(d = dist(x = cosine(x = t(x = matty))))
+
+  cos_matty <- cosine(x = matty)
+  cos_matty_t <- cosine(x = t(x = matty))
+  # replace NaN with 0
+  cos_matty[is.nan(x = cos_matty)] <- 0
+  cos_matty_t[is.nan(x = cos_matty_t)] <- 0
+  hc <- hclust(d = dist(x = cos_matty))
+  hf <- hclust(d = dist(x = cos_matty_t))
   return(list("cells" = hc, "features" = hf))
 }
 

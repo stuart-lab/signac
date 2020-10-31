@@ -6,7 +6,7 @@
 \usage{
 MatchRegionStats(
   meta.feature,
-  regions,
+  query.feature,
   features.match = c("GC.percent"),
   n = 10000,
   verbose = TRUE,
@@ -14,9 +14,11 @@ MatchRegionStats(
 )
 }
 \arguments{
-\item{meta.feature}{A dataframe containing DNA sequence information}
+\item{meta.feature}{A dataframe containing DNA sequence information for
+features to choose from}
 
-\item{regions}{Set of query regions. Must be present in rownames.}
+\item{query.feature}{A dataframe containing DNA sequence information for
+features to match.}
 
 \item{features.match}{Which features of the query to match when selecting a
 set of regions. A vector of column names present in the feature metadata can
@@ -36,13 +38,26 @@ Return a vector if genomic regions that match the distribution of a set of
 query regions for any given set of characteristics, specified in the input
 \code{meta.feature} dataframe.
 }
+\details{
+For each requested feature to match, a density
+distribution is estimated using the \code{\link[stats]{density}} function,
+and a set of weights for each feature in the dataset estimated based on the
+density distribution. If multiple features are to be matched (for example,
+GC content and overall accessibility), a joint density distribution is then
+computed by multiplying the individual feature weights. A set of features
+with characteristics matching the query regions is then selected using the
+\code{\link[base]{sample}} function, with the probability of randomly
+selecting each feature equal to the joint density distribution weight.
+}
 \examples{
 metafeatures <- Seurat::GetAssayData(
   object = atac_small[['peaks']], slot = 'meta.features'
 )
+query.feature <- metafeatures[1:10, ]
+features.choose <- metafeatures[11:nrow(metafeatures), ]
 MatchRegionStats(
-  meta.feature = metafeatures,
-  regions = head(rownames(metafeatures), 10),
+  meta.feature = features.choose,
+  query.feature = query.feature,
   features.match = "percentile",
   n = 10
 )

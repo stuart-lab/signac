@@ -163,15 +163,21 @@ FindMotifs <- function(
   background <- SetIfNull(x = background, y = rownames(x = object))
   if (is(object = background, class2 = "numeric")) {
     if (verbose) {
-      message("Selecting background regions to match input
-              sequence characteristics")
+      message("Selecting background regions to match input ",
+              "sequence characteristics")
     }
+    meta.feature <- GetAssayData(
+      object = object,
+      assay = assay,
+      slot = "meta.features"
+    )
+    mf.choose <- meta.feature[
+      setdiff(x = rownames(x = meta.feature), y = features),
+    ]
+    mf.query <- meta.feature[features, ]
     background <- MatchRegionStats(
-      meta.feature = GetAssayData(
-        object = object,
-        assay = assay,
-        slot = "meta.features"
-      ),
+      meta.feature = mf.choose,
+      query.feature = mf.query,
       regions = features,
       n = background,
       verbose = verbose,

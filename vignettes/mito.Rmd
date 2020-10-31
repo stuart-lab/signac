@@ -314,7 +314,7 @@ distributed across the cells. Here we visualize a subset of the variants using
 
 ```{r visualize variants, message=FALSE, warning = FALSE}
 DefaultAssay(crc) <- "alleles"
-alleles.view <- c("12889G>A", "16147C>T", "3244G>A", "9804G>A")
+alleles.view <- c("12889G>A", "16147C>T", "9728C>T", "9804G>A")
 FeaturePlot(
   object = crc,
   features = alleles.view,
