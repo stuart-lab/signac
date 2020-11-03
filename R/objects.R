@@ -208,7 +208,7 @@ CreateChromatinAssay <- function(
     stop("Annotation must be a GRanges object.")
   }
   # remove low-count cells
-  ncount.cell <- colSums(x = data.use)
+  ncount.cell <- colSums(x = data.use > 0)
   data.use <- data.use[, ncount.cell > min.features]
 
   ncell.feature <- rowSums(x = data.use > 0)
@@ -223,22 +223,26 @@ CreateChromatinAssay <- function(
     max.cells <- ncol(x = data.use)
   }
   features.keep <- (ncell.feature >= min.cells) & (ncell.feature <= max.cells)
+  data.use <- data.use[features.keep, ]
+  ranges <- ranges[features.keep, ]
   # re-assign row names of matrix so that it's a known granges transformation
   new.rownames <- GRangesToString(grange = ranges, sep = c("-", "-"))
+  rownames(x = data.use) <- new.rownames
   if (!missing(x = counts)) {
-    rownames(x = counts) <- new.rownames
-    counts <- counts[features.keep, ]
+    seurat.assay <- CreateAssayObject(
+      counts = data.use,
+      data = data,
+      min.cells = min.cells,
+      min.features = min.features
+    )
   } else {
-    rownames(x = data) <- new.rownames
-    data <- data[features.keep, ]
+    seurat.assay <- CreateAssayObject(
+      counts = counts,
+      data = data.use,
+      min.cells = min.cells,
+      min.features = min.features
+    )
   }
-  ranges <- ranges[features.keep, ]
-  seurat.assay <- CreateAssayObject(
-    counts = counts,
-    data = data,
-    min.cells = min.cells,
-    min.features = min.features
-  )
   if (inherits(x = fragments, what = "list")) {
     # check each object in the list is a fragment object
     # fragment list usually supplied when doing object merge,
