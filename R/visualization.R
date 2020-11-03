@@ -1143,7 +1143,7 @@ AnnotationPlot <- function(object, region) {
     p <- p@ggplot
     # extract y-axis limits and extend slightly so the label isn't covered
     y.limits <- ggplot_build(plot = p)$layout$panel_scales_y[[1]]$range$range
-    p <- p + ylim(y.limits[[1]], y.limits[[2]] + 0.5)
+    p <- suppressMessages(p + ylim(y.limits[[1]], y.limits[[2]] + 0.5))
   }
   p <- p +
     theme_classic() +
