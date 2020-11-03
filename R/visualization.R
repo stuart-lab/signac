@@ -1178,7 +1178,8 @@ globalVariables(names = "gene", package = "Signac")
 #'
 #' @importFrom Seurat GetAssayData DefaultAssay
 #' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic theme
-#' element_blank scale_y_discrete scale_x_continuous
+#' element_blank scale_y_discrete scale_x_continuous scale_fill_manual
+#' @importFrom scales hue_pal
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom IRanges start end
 #' @importFrom patchwork wrap_plots
@@ -1208,6 +1209,12 @@ ExpressionPlot <- function(
     group.by = group.by,
     idents = NULL
   )
+  # if levels set, define colors based on all groups
+  levels.use <- levels(x = obj.groups)
+  if (!is.null(x = levels.use)) {
+    colors_all <- hue_pal()(length(x = levels.use))
+    names(x = colors_all) <- levels.use
+  }
   if (!is.null(x = idents)) {
     cells.keep <- names(x = obj.groups)[
       fmatch(x = obj.groups, table = idents, nomatch = 0L) > 0
@@ -1254,6 +1261,9 @@ ExpressionPlot <- function(
         strip.text.y = element_blank(),
         legend.position = "none"
       )
+    if (!is.null(x = levels.use)) {
+      p <- p + scale_fill_manual(values = colors_all)
+    }
     p.list[[i]] <- p
   }
   p <- wrap_plots(p.list, ncol = length(x = p.list))
