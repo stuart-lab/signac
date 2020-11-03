@@ -1027,8 +1027,9 @@ globalVariables(names = "score", package = "Signac")
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom GenomicRanges start end
 #' @importFrom GenomeInfoDb seqnames
-#' @importFrom ggplot2 ggplot geom_hline geom_curve aes theme_classic ylim xlim
+#' @importFrom ggplot2 ggplot geom_hline aes theme_classic xlim
 #' ylab theme element_blank scale_color_gradient2
+#' @importFrom ggforce geom_bezier
 #' @concept visualization
 #' @concept links
 LinkPlot <- function(object, region, min.cutoff = 0) {
@@ -1048,32 +1049,39 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
   # subset to those in region
   links.keep <- subsetByOverlaps(x = links, ranges = region)
 
-  # convert to dataframe
-  link.df <- as.data.frame(x = links.keep)
-
-  # add point in midpoint for the apex of the curve
-  # TODO
-
   # filter out links below threshold
+  link.df <- as.data.frame(x = links.keep)
   link.df <- link.df[abs(x = link.df$score) > min.cutoff, ]
 
-  # add point in midpoint for the apex of the curve
-  # TODO
+  # remove links outside region
+  link.df <- link.df[link.df$start >= start(x = region) & link.df$end <= end(x = region), ]
+
+  # convert to format for geom_bezier
+  link.df$group <- seq_len(length.out = nrow(x = link.df))
+  df <- data.frame(
+    x = c(link.df$start,
+          (link.df$start + link.df$end) / 2,
+          link.df$end),
+    y = c(rep(x = 0, nrow(x = link.df)),
+          rep(x = -1, nrow(x = link.df)),
+          rep(x = 0, nrow(x = link.df))),
+    group = rep(x = link.df$group, 3),
+    score = rep(link.df$score, 3)
+  )
 
   # plot
   if (nrow(x = link.df) > 0) {
-    p <- ggplot(data = link.df) +
-      geom_hline(yintercept = 0, color = 'grey') +
-      geom_curve(
-        mapping = aes(x = start, y = 0, xend = end, yend = 0, color = score)
+    p <- ggplot(data = df) +
+      geom_bezier(
+        mapping = aes(x = x, y = y, group = group, color = score)
       ) +
+      geom_hline(yintercept = 0, color = 'grey') +
       scale_color_gradient2(low = "red", mid = "grey", high = "blue")
   } else {
     p <- ggplot(data = link.df)
   }
   p <- p +
     theme_classic() +
-    ylim(c(-1, 0)) +
     theme(axis.ticks.y = element_blank(),
           axis.text.y = element_blank()) +
     ylab("Links") +
