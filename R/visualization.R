@@ -418,6 +418,7 @@ SingleCoveragePlot <- function(
 #
 #' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic
 #' aes ylim theme element_blank element_text geom_segment scale_color_identity
+#' scale_fill_manual
 #' @importFrom IRanges IRanges width
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom Matrix colSums
@@ -426,6 +427,7 @@ SingleCoveragePlot <- function(
 #' @importFrom RcppRoll roll_sum
 #' @importFrom methods is
 #' @importFrom GenomicRanges GRanges
+#' @importFrom scales hue_pal
 #' @importMethodsFrom GenomicRanges start end
 CoverageTrack <- function(
   cutmat,
@@ -467,6 +469,8 @@ CoverageTrack <- function(
 
   # restore factor levels
   if (!is.null(x = levels.use)) {
+    colors_all <- hue_pal()(length(x = levels.use))
+    names(x = colors_all) <- levels.use
     coverages$group <- factor(x = coverages$group, levels = levels.use)
   }
   ymax <- SetIfNull(x = ymax, y = signif(
@@ -491,6 +495,9 @@ CoverageTrack <- function(
                         as.character(x = ymax), ")")) +
     ylim(c(ymin, ymax)) +
     theme_browser(legend = FALSE)
+  if (!is.null(x = levels.use)) {
+    p <- p + scale_fill_manual(values = colors_all)
+  }
   return(p)
 }
 
