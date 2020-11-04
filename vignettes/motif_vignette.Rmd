@@ -38,15 +38,10 @@ p1 <- DimPlot(mouse_brain, label = TRUE, pt.size = 0.1) + NoLegend()
 p1
 ```
 
-## The Motif class
+## Adding motif information to the Seurat object
 
-To facilitate motif analysis in Signac, we have create the `Motif` class to
-store all the required information, including a list of position weight matrices
-(PWMs) or position frequency matrices (PFMs) and a motif occurrence matrix.
-Here, we construct a `Motif` object and add it to our mouse brain dataset. A
-motif object can be added to any Seurat assay using the `SetAssayData()`
-function. See the [object interaction vignette](data_structures.html) for
-more information.
+To add the DNA sequence motif information required for motif analyses, we can
+run the `AddMotifs()` function:
 
 ```{r message=FALSE, warning=FALSE}
 # Get a list of motif position frequency matrices from the JASPAR database
@@ -55,38 +50,22 @@ pfm <- getMatrixSet(
   opts = list(species = 9606, all_versions = FALSE)
 )
 
-# Scan the DNA sequence of each peak for the presence of each motif
-motif.matrix <- CreateMotifMatrix(
-  features = granges(mouse_brain),
-  pwm = pfm,
-  genome = 'mm10',
-  use.counts = FALSE
-)
-
-# Create a new Mofif object to store the results
-motif <- CreateMotifObject(
-  data = motif.matrix,
-  pwm = pfm
-)
-
-# Add the Motif object to the assay
-mouse_brain <- SetAssayData(
+# add motif information
+mouse_brain <- AddMotifs(
   object = mouse_brain,
-  assay = 'peaks',
-  slot = 'motifs',
-  new.data = motif
+  genome = BSgenome.Mmusculus.UCSC.mm10,
+  pfm = pfm
 )
-mouse_brain[["peaks"]]
 ```
 
-In order to test for overrepresented motifs, we also need to compute some
-sequence characteristics of the peaks, such as GC content, sequence length, and
-dinucleotide frequency. The `RegionStats()` function computes this information
-for us and stores the results in the feature metadata in the Seurat object.
-
-```{r message=FALSE, warning=FALSE}
-mouse_brain <- RegionStats(object = mouse_brain, genome = BSgenome.Mmusculus.UCSC.mm10)
-```
+To facilitate motif analysis in Signac, we have create the `Motif` class to
+store all the required information, including a list of position weight matrices
+(PWMs) or position frequency matrices (PFMs) and a motif occurrence matrix.
+Here, the `AddMotifs()` function construct a `Motif` object and adds it to our
+mouse brain dataset, along with other information such as the base composition
+of each peak. A motif object can be added to any Seurat assay using the `SetAssayData()`
+function. See the [object interaction vignette](data_structures.html) for
+more information.
 
 ## Finding overrepresented motifs
 
