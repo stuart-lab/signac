@@ -133,9 +133,10 @@ from this larger set using `MatchRegionStats()`.
 open.peaks <- AccessiblePeaks(mouse_brain, idents = c("Pvalb", "Sst"))
 
 # match the overall GC content in the peak set
+meta.feature <- GetAssayData(mouse_brain, assay = "peaks", slot = "meta.features")
 peaks.matched <- MatchRegionStats(
-  meta.feature = GetAssayData(mouse_brain, assay = "peaks", slot = "meta.features")[open.peaks, ],
-  regions = top.da.peak,
+  meta.feature = meta.feature[open.peaks, ],
+  query.feature = meta.feature[top.da.peak, ],
   n = 50000
 )
 ```
