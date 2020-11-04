@@ -52,6 +52,15 @@ knitr::include_graphics("./assets/mito.png")
 The following short vignettes demonstrate how to perform more specialized 
 analysis tasks.
 
+## [Peak calling](peak_calling.html)
+
+In this vignette we demonstrate how to perform cell-type-specific peak
+calling for scATAC-seq data.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/peaks.png")
+```
+
 ## [Integration and label transfer](integration.html)
 
 Here we demonstrate two different approaches for the integration of multiple 
