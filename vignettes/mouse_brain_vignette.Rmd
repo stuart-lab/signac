@@ -341,8 +341,8 @@ plot1 | plot2
 ```
 
 ```{r, warning=FALSE, message=FALSE}
-open_l23 <- rownames(da_peaks[da_peaks$avg_logFC > 0.25, ])
-open_l456 <- rownames(da_peaks[da_peaks$avg_logFC < -0.25, ])
+open_l23 <- rownames(da_peaks[da_peaks$avg_log2FC > 0.25, ])
+open_l456 <- rownames(da_peaks[da_peaks$avg_log2FC < -0.25, ])
 closest_l23 <- ClosestFeature(brain, open_l23)
 closest_l456 <- ClosestFeature(brain, open_l456)
 head(closest_l23)
