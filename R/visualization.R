@@ -1056,21 +1056,20 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
   # remove links outside region
   link.df <- link.df[link.df$start >= start(x = region) & link.df$end <= end(x = region), ]
 
-  # convert to format for geom_bezier
-  link.df$group <- seq_len(length.out = nrow(x = link.df))
-  df <- data.frame(
-    x = c(link.df$start,
-          (link.df$start + link.df$end) / 2,
-          link.df$end),
-    y = c(rep(x = 0, nrow(x = link.df)),
-          rep(x = -1, nrow(x = link.df)),
-          rep(x = 0, nrow(x = link.df))),
-    group = rep(x = link.df$group, 3),
-    score = rep(link.df$score, 3)
-  )
-
   # plot
   if (nrow(x = link.df) > 0) {
+    # convert to format for geom_bezier
+    link.df$group <- seq_len(length.out = nrow(x = link.df))
+    df <- data.frame(
+      x = c(link.df$start,
+            (link.df$start + link.df$end) / 2,
+            link.df$end),
+      y = c(rep(x = 0, nrow(x = link.df)),
+            rep(x = -1, nrow(x = link.df)),
+            rep(x = 0, nrow(x = link.df))),
+      group = rep(x = link.df$group, 3),
+      score = rep(link.df$score, 3)
+    )
     p <- ggplot(data = df) +
       geom_bezier(
         mapping = aes(x = x, y = y, group = group, color = score)
