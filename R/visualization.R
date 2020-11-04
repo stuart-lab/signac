@@ -1012,7 +1012,6 @@ PeakPlot <- function(object, region, peaks = NULL, color = "dimgrey") {
   return(peak.plot)
 }
 
-globalVariables(names = "score", package = "Signac")
 #' Plot linked genomic elements
 #'
 #' Display links between pairs of genomic elements within a given region of the
@@ -1028,7 +1027,7 @@ globalVariables(names = "score", package = "Signac")
 #' @importFrom GenomicRanges start end
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom ggplot2 ggplot geom_hline aes theme_classic xlim
-#' ylab theme element_blank scale_color_gradient2
+#' ylab theme element_blank scale_color_gradient2 aes_string
 #' @importFrom ggforce geom_bezier
 #' @concept visualization
 #' @concept links
@@ -1072,7 +1071,7 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
     )
     p <- ggplot(data = df) +
       geom_bezier(
-        mapping = aes(x = x, y = y, group = group, color = score)
+        mapping = aes_string(x = "x", y = "y", group = "group", color = "score")
       ) +
       geom_hline(yintercept = 0, color = 'grey') +
       scale_color_gradient2(low = "red", mid = "grey", high = "blue")
