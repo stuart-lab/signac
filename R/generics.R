@@ -10,6 +10,9 @@
 #' @param ... Additional arguments passed to other methods
 #' @export AddMotifs
 #' @rdname AddMotifs
+#' @return When running on a \code{ChromatinAssay} or \code{Seurat} object,
+#' returns a modified version of the input object. When running on a matrix,
+#' returns a \code{Motif} object.
 AddMotifs <- function(object, ...) {
   UseMethod(generic = "AddMotifs", object = object)
 }
