@@ -33,7 +33,7 @@ be done separately for different groups of cells, or performed using data from
 all the cells. To call peaks on each annotated cell type, we can use the 
 `group.by` argument:
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, cache=TRUE}
 peaks <- CallPeaks(
   object = pbmc,
   group.by = "predicted.id",
@@ -41,8 +41,11 @@ peaks <- CallPeaks(
 )
 ```
 
-```{r}
-peaks
+The results are returned as a `GRanges` object, with an additional metadata column
+listing the cell types that each peak was identified in:
+
+```{r echo=FALSE}
+knitr::kable(head(as.data.frame(peaks)))
 ```
 
 We can quantify each peak using the `FeatureMatrix()` function.
@@ -51,7 +54,7 @@ We can visualize the cell-type-specific MACS2 peak calls alongside the 10x Cellr
 peak calls (currently being used in the `pbmc` object) with the `CoveragePlot()`
 function:
 
-```{r}
+```{r fig.height=6, fig.width=10}
 CoveragePlot(
   object = pbmc,
   region = "CD8A",
