@@ -1,4 +1,5 @@
 #' @include generics.R
+#' @importFrom Rcpp evalCpp
 #' @importFrom methods setClass setClassUnion setMethod is slot slot<- new as
 #' slotNames
 #' @importClassesFrom Matrix dgCMatrix
