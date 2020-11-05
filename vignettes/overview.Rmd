@@ -26,7 +26,18 @@ brain.
 knitr::include_graphics("./assets/mouse.png")
 ```
 
-## [Joint scRNA-seq and scATAC-seq analysis](snareseq.html)
+## [Joint scRNA-seq and scATAC-seq analysis: 10x Multiomic](pbmc_multiomic.html)
+
+In this tutorial we demonstrate a joint analysis of combined gene expression and
+DNA accessibility data, measured in the same human PBMCs using the 10x Genomics
+multiomic kit.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/multiomic.png")
+```
+
+
+## [Joint scRNA-seq and scATAC-seq analysis: SNARE-seq](snareseq.html)
 
 In this tutorial we demonstrate strategies to analyze a SNARE-seq dataset where
 we have paired measurements of gene expression and DNA accessibility from the 
@@ -46,7 +57,6 @@ accessibility patterns in a human colorectal cancer sample.
 knitr::include_graphics("./assets/mito.png")
 ```
 
-
 # How-to
 
 The following short vignettes demonstrate how to perform more specialized 
@@ -57,18 +67,17 @@ analysis tasks.
 In this vignette we demonstrate how to perform cell-type-specific peak
 calling for scATAC-seq data.
 
-```{r echo=FALSE, out.height="30%"}
+```{r echo=FALSE, out.height="50%"}
 knitr::include_graphics("./assets/peaks.png")
 ```
 
-## [Integration and label transfer](integration.html)
+## [Merging datasets](merging.html)
 
-Here we demonstrate two different approaches for the integration of multiple 
-scATAC-seq datasets, as well as label transfer from a reference scATAC-seq
-dataset to an unlabelled query dataset.
+This vignette outlines strategies for merging different single-cell chromatin
+datasets together.
 
-```{r echo=FALSE, out.height="30%"}
-knitr::include_graphics("./assets/integration.png")
+```{r echo=FALSE, out.width="50%"}
+knitr::include_graphics("./assets/merge.png")
 ```
 
 ## [DNA sequence motif enrichment analysis](motif_vignette.html)
@@ -116,16 +125,20 @@ chromatin data.
 knitr::include_graphics("./assets/viz.png")
 ```
 
+## [Integration and label transfer](integration.html)
+
+Here we demonstrate two different approaches for the integration of multiple 
+scATAC-seq datasets, as well as label transfer from a reference scATAC-seq
+dataset to an unlabelled query dataset.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/integration.png")
+```
+
 # Object interaction
 
 The following vignettes demonstrate how to interact with the Seurat object and 
 object classes defined in the Signac package.
-
-## [Merging datasets](merging.html)
-
-This vignette outlines strategies for merging different single-cell chromatin
-datasets together. For information about data integration methods, see the 
-integration vignette instead.
 
 ## [Data structures and object interaction](data_structures.html)
 
