@@ -20,14 +20,18 @@ navbar:
           href: articles/pbmc_vignette.html
         - text: "Adult mouse brain"
           href: articles/mouse_brain_vignette.html
-        - text: "Joint RNA and ATAC analysis"
+        - text: "Joint RNA and ATAC analysis: 10x multiomic"
+          href: articles/pbmc_multiomic.html
+        - text: "Joint RNA and ATAC analysis: SNARE-seq"
           href: articles/snareseq.html
+        - text: "Peak calling"
+          href: articles/peak_calling.html
+        - text: "Merging objects"
+          href: articles/merging.html
         - text: "Mitochondrial genotyping"
           href: articles/mito.html
         - text: "Motif analysis"
           href: articles/motif_vignette.html
-        - text: "scATAC-seq integration"
-          href: articles/integration.html
         - text: "Trajectory analysis"
           href: articles/monocle.html
         - text: "Finding co-accessible sites"
@@ -36,10 +40,10 @@ navbar:
           href: articles/footprint.html
         - text: "Data visualization"
           href: articles/visualization.html
+        - text: "scATAC-seq integration"
+          href: articles/integration.html
         - text: "Parallel computing"
           href: articles/future.html
-        - text: "Merging objects"
-          href: articles/merging.html
         - text: "Data structures and object interaction"
           href: articles/data_structures.html
     - text: "Reference"
