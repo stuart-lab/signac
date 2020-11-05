@@ -1,11 +1,15 @@
 ---
-title: "Joint scATAC-seq and scRNA-seq analysis"
+title: "Joint RNA and ATAC analysis: SNARE-seq"
 date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 output: html_document
 ---
 
 In this vignette we will analyse a single-cell co-assay dataset measuring gene
-expression and DNA accessibility in the same cells. This dataset was published
+expression and DNA accessibility in the same cells. This vignette is similar to
+the [PBMC multiomic vignette](pbmc_multiomic.html), but demonstrates a similar
+joint analysis in a different species and with data gathered using a different technology.
+
+This dataset was published
 by [Chen, Lake, and Zhang (2019)](https://www.nature.com/articles/s41587-019-0290-0)
 and uses a technology called SNARE-seq. We will look at a dataset from the adult
 mouse brain, and the raw data can be downloaded from NCBI GEO here:
