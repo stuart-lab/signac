@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 In this tutorial, we demonstrate how to call peaks on a single-cell ATAC-seq
 dataset using [MACS2](https://github.com/macs3-project/MACS).
 
-To use the peak calling functionality in Signac, you will first need to install
+To use the peak calling functionality in Signac you will first need to install
 MACS2. This can be done using [pip](https://pypi.org/project/MACS2/) or
 [conda](https://anaconda.org/bioconda/macs2), or by building the package
 from [source](https://github.com/macs3-project/MACS).
@@ -48,11 +48,11 @@ listing the cell types that each peak was identified in:
 knitr::kable(head(as.data.frame(peaks)))
 ```
 
-We can quantify each peak using the `FeatureMatrix()` function.
+To quantify counts in each peak, you can use the `FeatureMatrix()` function.
 
 We can visualize the cell-type-specific MACS2 peak calls alongside the 10x Cellranger
 peak calls (currently being used in the `pbmc` object) with the `CoveragePlot()`
-function:
+function. Here the Cellranger peaks are shown in grey and the MACS2 peaks in red:
 
 ```{r fig.height=6, fig.width=10}
 CoveragePlot(
@@ -62,3 +62,11 @@ CoveragePlot(
   ranges.title = "MACS2"
 )
 ```
+<details>
+  <summary>**Session Info**</summary>
+  
+```{r}
+sessionInfo()
+```
+
+</details>
