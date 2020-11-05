@@ -125,8 +125,7 @@ Plot frequency of Tn5 insertion events for different groups of cells within
 given regions of the genome.
 }
 \details{
-Thanks to Andrew Hill for providing an early version of this function
-\url{http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/}
+Thanks to Andrew Hill for providing an early version of this function.
 }
 \examples{
 \donttest{
