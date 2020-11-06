@@ -133,7 +133,7 @@ enriched.motifs <- FindMotifs(
 )
 ```
 
-```{r}
+```{r echo=FALSE}
 knitr::kable(head(enriched.motifs))
 ```
 

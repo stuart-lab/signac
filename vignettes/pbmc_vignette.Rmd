@@ -174,7 +174,7 @@ pbmc$nucleosome_group <- ifelse(pbmc$nucleosome_signal > 4, 'NS > 4', 'NS < 4')
 FragmentHistogram(object = pbmc, group.by = 'nucleosome_group')
 ```
 
-```{r message=FALSE, warning=FALSE, fig.width=12, fig.height=6}
+```{r message=FALSE, warning=FALSE, fig.width=18, fig.height=6}
 VlnPlot(
   object = pbmc,
   features = c('pct_reads_in_peaks', 'peak_region_fragments',
@@ -461,8 +461,8 @@ by doing gene ontology enrichment analysis on the gene sets returned by
 package for example).
 
 ```{r, warning=FALSE, message=FALSE}
-open_cd4naive <- rownames(da_peaks[da_peaks$avg_logFC > 0.5, ])
-open_cd14mono <- rownames(da_peaks[da_peaks$avg_logFC < -0.5, ])
+open_cd4naive <- rownames(da_peaks[da_peaks$avg_log2FC > 0.5, ])
+open_cd14mono <- rownames(da_peaks[da_peaks$avg_log2FC < -0.5, ])
 
 closest_genes_cd4naive <- ClosestFeature(pbmc, regions = open_cd4naive)
 closest_genes_cd14mono <- ClosestFeature(pbmc, regions = open_cd14mono)

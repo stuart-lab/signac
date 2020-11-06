@@ -28,6 +28,7 @@ library(Seurat)
 pbmc <- readRDS("../vignette_data/pbmc.rds")
 DimPlot(pbmc)
 ```
+
 Peak calling can be performed using the `CallPeaks()` function, and can either
 be done separately for different groups of cells, or performed using data from
 all the cells. To call peaks on each annotated cell type, we can use the 

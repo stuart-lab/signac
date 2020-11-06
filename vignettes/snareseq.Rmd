@@ -81,7 +81,7 @@ snare$blacklist_fraction <- FractionCountsInRegion(
 )
 ```
 
-```{r fig.width=12, message=FALSE, warning=FALSE}
+```{r fig.width=18, message=FALSE, warning=FALSE}
 Idents(snare) <- "all"  # group all cells together, rather than by replicate
 VlnPlot(
   snare,
@@ -161,7 +161,8 @@ transfer.anchors <- FindTransferAnchors(
 predicted.labels <- TransferData(
   anchorset = transfer.anchors,
   refdata = allen$subclass,
-  weight.reduction = snare[['pca']]
+  weight.reduction = snare[['pca']],
+  dims = 1:30
 )
 
 snare <- AddMetaData(object = snare, metadata = predicted.labels)

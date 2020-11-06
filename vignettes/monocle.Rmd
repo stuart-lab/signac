@@ -147,13 +147,13 @@ DepthCor(bone)
 bone <- RunUMAP(
   bone,
   reduction = "lsi",
-  dims = 2:100,
+  dims = 2:50,
   reduction.name = "UMAP"
 )
 ```
 
 ```{r message=FALSE, warning=FALSE}
-bone <- FindNeighbors(bone, dims = 2:100, reduction = "lsi")
+bone <- FindNeighbors(bone, dims = 2:50, reduction = "lsi")
 bone <- FindClusters(bone, resolution = 0.8, algorithm = 3)
 ```
 
@@ -197,7 +197,7 @@ and build the trajectories using Monocle 3. We'll do this separately for
 erythroid and lymphoid lineages, but you could explore other strategies building
 a trajectory for all lineages together.
 
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, results='hide'}
 erythroid.cds <- as.cell_data_set(erythroid)
 erythroid.cds <- cluster_cells(cds = erythroid.cds, reduction_method = "UMAP")
 erythroid.cds <- learn_graph(erythroid.cds, use_partition = TRUE)

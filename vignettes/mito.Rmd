@@ -245,7 +245,7 @@ and cluster the cells into clonotypes based on the frequency of these variants
 in the cells. Signac utilizes the principles established in the original
 mtscATAC-seq work of identifying high-quality variants.  
 
-```{r call_variants, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
+```{r call_variants, message=FALSE, warning = FALSE}
 variable.sites <- IdentifyVariants(crc, assay = "mito", refallele = mito.data$refallele)
 VariantPlot(variants = variable.sites)
 ```

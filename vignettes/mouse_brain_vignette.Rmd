@@ -114,7 +114,7 @@ brain$high.tss <- ifelse(brain$TSS.enrichment > 2, 'High', 'Low')
 TSSPlot(brain, group.by = 'high.tss') + NoLegend()
 ```
 
-```{r message=FALSE, warning=FALSE, fig.width=12, fig.height=6}
+```{r message=FALSE, warning=FALSE, fig.width=18, fig.height=6}
 brain$pct_reads_in_peaks <- brain$peak_region_fragments / brain$passed_filters * 100
 brain$blacklist_ratio <- brain$blacklist_region_fragments / brain$peak_region_fragments
 
