@@ -62,9 +62,12 @@ GetLinkedGenes <- function(
 #' the start and end coordinates of the range are the midpoints of the linked
 #' elements. Only elements on the same chromosome are included in the output.
 #'
+#' See the Cicero package for more information:
+#' \url{https://bioconductor.org/packages/cicero/}
+#'
 #' @param conns A dataframe containing co-accessible elements. This would
-#' usually be the output of \code{\link[cicero]{run_cicero}} or
-#' \code{\link[cicero]{assemble_connections}}. Specifically, this should be a
+#' usually be the output of \code{run_cicero} or
+#' \code{assemble_connections}. Specifically, this should be a
 #' dataframe where the first column contains the genomic coordinates of the
 #' first element in the linked pair of elements, with chromosome, start, end
 #' coordinates separated by "-" characters. The second column should be the
@@ -72,7 +75,7 @@ GetLinkedGenes <- function(
 #' column. A third column should contain the co-accessibility scores.
 #' @param ccans This is optional, but if supplied should be a dataframe
 #' containing the cis-co-accessibility network (CCAN) information generated
-#' by \code{\link[cicero]{generate_ccans}}. Specifically, this should be a
+#' by \code{generate_ccans}. Specifically, this should be a
 #' dataframe containing the name of the peak in the first column, and the
 #' CCAN that it belongs to in the second column.
 #' @param threshold Threshold for retaining a coaccessible site. Links with
