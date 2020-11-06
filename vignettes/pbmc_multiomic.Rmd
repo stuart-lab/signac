@@ -65,7 +65,7 @@ We can compute per-cell quality control metrics using the DNA accessibility data
 and remove cells that are outliers for these metrics, as well as cells with
 low or unusually high counts for either the RNA or ATAC assay.
 
-```{r fig.width=12, message=FALSE, warning=FALSE}
+```{r fig.width=18, message=FALSE, warning=FALSE}
 DefaultAssay(pbmc) <- "ATAC"
 
 pbmc <- NucleosomeSignal(pbmc)
@@ -275,7 +275,7 @@ p1 <- CoveragePlot(
   extend.downstream = 10000
 )
 
-p1 <- CoveragePlot(
+p2 <- CoveragePlot(
   object = pbmc,
   region = "LYZ",
   features = "LYZ",
