@@ -1180,7 +1180,10 @@ ExtractCell <- function(x) {
 # @return Returns a data.frame
 ExtractFragments <- function(fragments, n = NULL, verbose = TRUE) {
   fpath <- GetFragmentData(object = fragments, slot = "path")
-  fpath <- normalizePath(path = fpath, mustWork = TRUE)
+  is.remote <- grepl(pattern = "^http|^ftp", x = fpath)
+  if (!is.remote) {
+    fpath <- normalizePath(path = fpath, mustWork = TRUE)
+  }
   cells <- GetFragmentData(object = fragments, slot = "cells")
   if (!is.null(x = cells)) {
     cells.use <- as.character(x = cells)

@@ -240,6 +240,9 @@ CreateFragmentObject <- function(
   # check that file exists and is indexed
   # don't check if supplying remote file
   is.remote <- grepl(pattern = "^http|^ftp", x = path)
+  if (is.remote) {
+    validate.fragments <- FALSE
+  }
   if (!file.exists(path) & !is.remote) {
     stop("Fragment file does not exist.")
   }
