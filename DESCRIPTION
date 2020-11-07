@@ -1,6 +1,6 @@
 Package: Signac
 Title: Analysis of Single-Cell Chromatin Data
-Version: 1.1.0
+Version: 1.1.0.9000
 Date: 2020-11-04
 Authors@R: c(
   person(given = 'Tim', family = 'Stuart', email = 'tstuart@nygenome.org', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3044-0897')),
