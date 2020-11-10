@@ -78,11 +78,23 @@ gene.coords <- keepStandardChromosomes(gene.coords, pruning.mode = 'coarse')
 
 ## How should I cite Signac?
 
-Signac is currently unpublished, so we ask that you simply list the version of
-the package that  you used and link to the github page
-(https://github.com/timoast/signac). 
+If you use Signac, please cite [Stuart et al., 2020](https://www.biorxiv.org/content/10.1101/2020.11.09.373613v1):
+
+```{r, eval=FALSE}
+@UNPUBLISHED{signac,
+  title    = "Multimodal single-cell chromatin analysis with Signac",
+  author   = "Stuart, Tim and Srivastava, Avi and Lareau, Caleb and Satija,
+              Rahul",
+  journal  = "bioRxiv",
+  pages    = "2020.11.09.373613",
+  month    =  nov,
+  year     =  2020,
+  url      = "https://www.biorxiv.org/content/10.1101/2020.11.09.373613v1",
+  language = "en"
+}
+```
 
 Signac is an extension of [Seurat](https://satijalab.org/seurat/), and uses the
-Seurat object structure, so you should consider citing the Seurat paper if you
-have used Signac: https://doi.org/10.1016/j.cell.2019.05.031
+Seurat object structure, so you should consider citing the
+[Seurat paper](https://doi.org/10.1016/j.cell.2019.05.031) if you have used Signac.
 
