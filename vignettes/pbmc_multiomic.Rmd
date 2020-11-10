@@ -236,8 +236,8 @@ DimPlot(pbmc, label = TRUE, repel = TRUE, reduction = "umap") + NoLegend()
 For each gene, we can find the set of peaks that may regulate the gene by by
 computing the correlation between gene expression and accessibility at nearby
 peaks, and correcting for bias due to GC content, overall accessibility, and 
-peak size. See the [Signac paper]() for a full description of the method we 
-use to link peaks to genes.
+peak size. See the [Signac paper](https://www.biorxiv.org/content/10.1101/2020.11.09.373613v1)
+for a full description of the method we use to link peaks to genes.
 
 Running this step on the whole genome can be time consuming, so here we demonstrate
 peak-gene links for a subset of genes as an example. The same function can be used
