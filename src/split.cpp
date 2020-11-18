@@ -35,18 +35,18 @@ int splitFragments(
   std::vector<std::ofstream> streams;
   for (size_t i = 0; i < unique_idents.size(); i++) {
     std::string fileName = outdir + unique_idents[i] + suffix + ".bed";
-    std::ofstream o_stream;
-    if (append) {
-      o_stream.open(fileName, std::ios_base::app);
-    } else {
-      o_stream.open(fileName);
-    }
+//     std::ofstream o_stream;
+//     if (append) {
+//       o_stream.open(fileName, std::ios_base::app);
+//     } else {
+//       o_stream.open(fileName);
+//     }
     // return 1 if it can't find the file
-    if (!o_stream.is_open()) {
-      Rcpp::Rcerr << "can't open file" << std::flush;
-      return 1;
-    }
-    streams.emplace_back(o_stream);
+//     if (!o_stream.is_open()) {
+//       Rcpp::Rcerr << "can't open file" << std::flush;
+//       return 1;
+//     }
+    streams.emplace_back(fileName);
   }
 
   // return 1 if it can't find the file
