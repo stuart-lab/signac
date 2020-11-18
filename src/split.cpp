@@ -25,7 +25,7 @@ int splitFragments(
   // cell is the key, value is the ident
   std::map<std::string, std::string> cellmap;
   for (size_t i = 0; i < cells.size(); ++i) {
-    cellmap[cells[i]] = idents[i];
+   cellmap[cells[i]] = idents[i];
   }
 
   // opening gzipped compressed stream
@@ -35,11 +35,18 @@ int splitFragments(
   std::vector<std::ofstream> streams;
   for (size_t i = 0; i < unique_idents.size(); i++) {
     std::string fileName = outdir + unique_idents[i] + suffix + ".bed";
+    std::ofstream o_stream;
     if (append) {
-      streams.emplace_back(std::ofstream{ fileName, std::ios_base::app});
+      o_stream.open(fileName, std::ios_base::app);
     } else {
-      streams.emplace_back(std::ofstream{ fileName });
+      o_stream.open(fileName);
     }
+    // return 1 if it can't find the file
+    if (!o_stream.is_open()) {
+      Rcpp::Rcerr << "can't open file" << std::flush;
+      return 1;
+    }
+    streams.emplace_back(o_stream);
   }
 
   // return 1 if it can't find the file
