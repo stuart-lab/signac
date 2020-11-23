@@ -1127,8 +1127,8 @@ merge.ChromatinAssay <- function(
     if (nrow(x = merged.counts) > 0) {
       new.assay <- CreateChromatinAssay(
         counts = merged.counts,
-        min.cells = 0,
-        min.features = 0,
+        min.cells = -1,
+        min.features = -1,
         max.cells = NULL,
         ranges = reduced.ranges,
         motifs = NULL,
@@ -1144,8 +1144,8 @@ merge.ChromatinAssay <- function(
     } else {
       new.assay <- CreateChromatinAssay(
         data = merged.data,
-        min.cells = 0,
-        min.features = 0,
+        min.cells = -1,
+        min.features = -1,
         max.cells = NULL,
         ranges = reduced.ranges,
         motifs = NULL,
