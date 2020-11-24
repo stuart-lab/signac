@@ -29,7 +29,9 @@ as the VariableFeatures for the object. Alternatively, this can be an integer
 specifying the minumum number of cells containing the feature for the feature
 to be included in the set of VariableFeatures. For example, setting to 10
 will include features in >10 cells in the set of VariableFeatures. If NULL,
-include all features in VariableFeatures.}
+include all features in VariableFeatures. If NA, VariableFeatures will not be
+altered, and only the feature metadata will be updated with the total counts
+and percentile rank for each feature.}
 
 \item{verbose}{Display messages}
 }
@@ -37,9 +39,12 @@ include all features in VariableFeatures.}
 Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
-Find top binary features for a given assay based on total number of cells
-containing feature. Can specify a minumum cell count, or a lower percentile
-bound.
+Find top features for a given assay based on total number of counts for the
+feature. Can specify a minimum cell count, or a lower percentile
+bound to determine the set of variable features. Running this function will
+store the total counts and percentile rank for each feature in the feature
+metadata for the assay. To only compute the feature metadata, without
+changing the variable features for the assay, set \code{min.cutoff=NA}.
 }
 \examples{
 FindTopFeatures(object = atac_small[['peaks']][])

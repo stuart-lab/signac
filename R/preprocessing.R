@@ -202,7 +202,9 @@ DownsampleFeatures <- function(
 #' specifying the minumum number of cells containing the feature for the feature
 #' to be included in the set of VariableFeatures. For example, setting to 10
 #' will include features in >10 cells in the set of VariableFeatures. If NULL,
-#' include all features in VariableFeatures.
+#' include all features in VariableFeatures. If NA, VariableFeatures will not be
+#' altered, and only the feature metadata will be updated with the total counts
+#' and percentile rank for each feature.
 #' @param verbose Display messages
 #'
 #' @importFrom Matrix rowSums
@@ -259,6 +261,9 @@ FindTopFeatures.Assay <- function(
     VariableFeatures(object = object) <- rownames(
       x = hvf.info[hvf.info$count > min.cutoff, ]
     )
+  } else if (is.na(x = min.cutoff)) {
+    # don't change the variable features
+    return(object)
   } else {
     percentile.use <- as.numeric(
       x = sub(pattern = "q", replacement = "", x = as.character(x = min.cutoff))

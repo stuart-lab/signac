@@ -148,9 +148,12 @@ ConvertMotifID <- function(object, ...) {
 
 #' Find most frequently observed features
 #'
-#' Find top binary features for a given assay based on total number of cells
-#' containing feature. Can specify a minumum cell count, or a lower percentile
-#' bound.
+#' Find top features for a given assay based on total number of counts for the
+#' feature. Can specify a minimum cell count, or a lower percentile
+#' bound to determine the set of variable features. Running this function will
+#' store the total counts and percentile rank for each feature in the feature
+#' metadata for the assay. To only compute the feature metadata, without
+#' changing the variable features for the assay, set \code{min.cutoff=NA}.
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods

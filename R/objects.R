@@ -901,6 +901,13 @@ subset.ChromatinAssay <- function(
   standardassay <- as(object = x, Class = "Assay")
   standardassay <- subset(x = standardassay, features = features, cells = cells)
 
+  # recompute meta features
+  standardassay <- FindTopFeatures(
+    object = standardassay,
+    min.cutoff = NA,
+    verbose = FALSE
+  )
+
   # subset genomic ranges
   ranges.keep <- granges(x = x)
   if (!is.null(x = features)) {
