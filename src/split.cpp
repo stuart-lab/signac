@@ -31,20 +31,22 @@ int splitFragments(
   gzFile ifileHandler = gzopen(fragments.c_str(), "rb");
 
   // open one output file for each unique ident
-  std::vector<std::ofstream> streams;
+  std::ofstream streams[unique_idents.size()];
   for (size_t i = 0; i < unique_idents.size(); i++) {
     std::string fileName = outdir + unique_idents[i] + suffix + ".bed";
-    std::ofstream o_stream;
+    //std::ofstream o_stream;
     if (append) {
-      streams.emplace_back(std::ofstream{ fileName.c_str(), std::ios_base::app});
+      streams[i].open(fileName.c_str(), std::ios_base::app);
+      //streams.emplace_back(o_stream);
     } else {
-      streams.emplace_back(std::ofstream{ fileName.c_str()});
+      streams[i].open(fileName.c_str());
+      //streams.emplace_back(o_stream);
     }
     // return 1 if it can't find the file
-    if (o_stream.fail()) {
+    /*if (streams[i].fail()) {
       Rcpp::Rcerr << "can't open file" << std::flush;
       return 1;
-    }
+    }*/
     
   }
 
@@ -128,7 +130,7 @@ int splitFragments(
 
   // Cleanup
   gzclose(ifileHandler);
-  for (int i = 0; i < streams.size(); i++) {
+  for (int i = 0; i < unique_idents.size(); i++) {
     streams[i].close();
   }
 
