@@ -148,6 +148,12 @@ SplitFragments <- function(
     group.by = group.by,
     idents = idents
   )
+  cat(groups)
+  cat("\n")
+  cat(paste("group by", group.by))
+  cat("\n")
+  cat(idents)
+  cat("\n")
   # replace space with underscore
   cells <- names(x = groups)
   groups <- gsub(pattern = " ", replacement = "_", x = groups)
@@ -161,6 +167,7 @@ SplitFragments <- function(
   # split cells from each fragment file
   # append to existing file when more than one fragment file used
   for (i in seq_along(along.with = frags)) {
+    cat(paste("i: ", i, "\n"))
     if (!append & (length(x = frags) > 1)) {
       suffix.use <- paste0(file.suffix, ".", i)
     } else {
@@ -177,6 +184,11 @@ SplitFragments <- function(
     if (verbose) {
       message("Processing file ", fragpath)
     }
+    cat(paste("fragments", fragpath, "\n"))
+    cat(paste("outdir", paste0(outdir, .Platform$file.sep), "\n"))
+    cat(paste("suffix", suffix.use , "\n"))
+    cat(paste("unique_idents", unique_idents , "\n"))
+    cat(paste("buffer_length", buffer_length , "\n"))
     splitfiles <- splitFragments(
       fragments = fragpath,
       outdir = paste0(outdir, .Platform$file.sep),

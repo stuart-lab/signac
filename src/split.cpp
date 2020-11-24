@@ -27,27 +27,25 @@ int splitFragments(
   for (size_t i = 0; i < cells.size(); ++i) {
    cellmap[cells[i]] = idents[i];
   }
-
   // opening gzipped compressed stream
   gzFile ifileHandler = gzopen(fragments.c_str(), "rb");
 
   // open one output file for each unique ident
-  std::vector<std::ofstream*> streams;
+  std::vector<std::ofstream> streams;
   for (size_t i = 0; i < unique_idents.size(); i++) {
     std::string fileName = outdir + unique_idents[i] + suffix + ".bed";
-    std::ofstream *o_stream;
+    std::ofstream o_stream;
     if (append) {
-      o_stream->open(fileName, std::ios_base::app);
+      streams.emplace_back(std::ofstream{ fileName.c_str(), std::ios_base::app});
     } else {
-      o_stream->open(fileName);
+      streams.emplace_back(std::ofstream{ fileName.c_str()});
     }
     // return 1 if it can't find the file
-    if (!o_stream->is_open()) {
+    if (o_stream.fail()) {
       Rcpp::Rcerr << "can't open file" << std::flush;
       return 1;
     }
-
-    streams.emplace_back(o_stream);
+    
   }
 
   // return 1 if it can't find the file
@@ -105,7 +103,7 @@ int splitFragments(
           int index = std::distance(unique_idents.begin(), iter);
 
           // write to correct stream for given ident
-          (*streams[index]) << line_seq.c_str();
+          streams[index] << line_seq.c_str();
         }
       }
     }
@@ -131,7 +129,7 @@ int splitFragments(
   // Cleanup
   gzclose(ifileHandler);
   for (int i = 0; i < streams.size(); i++) {
-    streams[i]->close();
+    streams[i].close();
   }
 
   return 0;
