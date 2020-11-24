@@ -133,8 +133,8 @@ test_that("SplitFragments works", {
   of1 <- paste0(tempdir(), .Platform$file.sep, "0.bed")
   of2 <- paste0(tempdir(), .Platform$file.sep, "1.bed")
 
-  bed1 <- read.table(file = of1, sep = "\t")
-  bed2 <- read.table(file = of2, sep = "\t")
+  bed1 <- read.table(file = of1, sep = "\t", stringsAsFactors = FALSE)
+  bed2 <- read.table(file = of2, sep = "\t", stringsAsFactors = FALSE)
 
   expect_equal(
     object = bed1,
