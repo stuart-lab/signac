@@ -3,6 +3,16 @@
 #include <iostream>
 #include <fstream>
 
+// Source: https://stackoverflow.com/a/3418285
+void replaceAll(std::string& str, const std::string& from, const std::string& to) {
+  if(from.empty())
+    return;
+  size_t start_pos = 0;
+  while((start_pos = str.find(from, start_pos)) != std::string::npos) {
+    str.replace(start_pos, from.length(), to);
+    start_pos += to.length(); // In case 'to' contains 'from', like replacing 'x' with 'yx'
+  }
+}
 
 // [[Rcpp::export]]
 int splitFragments(
@@ -33,7 +43,10 @@ int splitFragments(
   // open one output file for each unique ident
   std::ofstream streams[unique_idents.size()];
   for (size_t i = 0; i < unique_idents.size(); i++) {
-    std::string fileName = outdir + unique_idents[i] + suffix + ".bed";
+    std::string unique_ident = unique_idents[i];
+    // replace '/' with '-'
+    replaceAll(unique_ident, "/", "-");
+    std::string fileName = outdir + unique_ident + suffix + ".bed";
     if (append) {
       streams[i].open(fileName.c_str(), std::ios_base::app);
     } else {
