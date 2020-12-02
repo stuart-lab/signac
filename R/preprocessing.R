@@ -247,6 +247,12 @@ FindTopFeatures.Assay <- function(
   ...
 ) {
   data.use <- GetAssayData(object = object, slot = "counts")
+  if (IsMatrixEmpty(x = data.use)) {
+    if (verbose) {
+      message("Count slot empty")
+    }
+    return(object)
+  }
   hvf.info <- FindTopFeatures(
     object = data.use,
     assay = assay,
