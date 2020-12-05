@@ -96,7 +96,7 @@ CallPeaks.Seurat <- function(
       idents = idents
     )
     groups <- gsub(pattern = " ", replacement = "_", x = groups)
-    groups <- gsub(pattern = .Platform$file.sep, replacement = "-", x = groups)
+    groups <- gsub(pattern = .Platform$file.sep, replacement = "_", x = groups)
     unique.groups <- unique(x = groups)
 
     # call peaks on each split fragment file separately
