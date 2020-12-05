@@ -117,7 +117,7 @@ CallPeaks.Seurat <- function(
         extsize = extsize,
         shift = shift,
         additional.args = additional.args,
-        name = name,
+        name = unique.groups[[i]],
         cleanup = cleanup,
         verbose = verbose
       )
