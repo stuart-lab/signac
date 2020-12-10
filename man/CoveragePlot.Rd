@@ -14,7 +14,9 @@ CoveragePlot(
   expression.slot = "data",
   annotation = TRUE,
   peaks = TRUE,
+  peaks.group.by = NULL,
   ranges = NULL,
+  ranges.group.by = NULL,
   ranges.title = "Ranges",
   links = TRUE,
   tile = FALSE,
@@ -63,7 +65,14 @@ if supplying the \code{features} argument.}
 
 \item{peaks}{Display peaks}
 
+\item{peaks.group.by}{Grouping variable to color peaks by. Must be a variable
+present in the feature metadata. If NULL, do not color peaks by any variable.}
+
 \item{ranges}{Additional genomic ranges to plot}
+
+\item{ranges.group.by}{Grouping variable to color ranges by. Must be a
+variable present in the metadata stored in the \code{ranges} genomic ranges.
+If NULL, do not color by any variable.}
 
 \item{ranges.title}{Y-axis title for ranges track. Only relevant if
 \code{ranges} parameter is set.}

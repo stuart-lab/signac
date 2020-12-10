@@ -228,7 +228,7 @@ globalVariables(
   names = c("position", "coverage", "group", "gene_name", "direction"),
   package = "Signac"
 )
-#' @importFrom ggplot2 ylab scale_fill_manual
+#' @importFrom ggplot2 ylab scale_fill_manual unit element_text theme
 #' @importMethodsFrom GenomicRanges start end
 #' @importFrom Seurat WhichCells Idents DefaultAssay
 SingleCoveragePlot <- function(
@@ -241,7 +241,9 @@ SingleCoveragePlot <- function(
   expression.slot = "data",
   annotation = TRUE,
   peaks = TRUE,
+  peaks.group.by = NULL,
   ranges = NULL,
+  ranges.group.by = NULL,
   ranges.title = "Ranges",
   links = TRUE,
   tile = FALSE,
@@ -339,7 +341,9 @@ SingleCoveragePlot <- function(
     link.plot <- NULL
   }
   if (peaks) {
-    peak.plot <- PeakPlot(object = object, region = region)
+    peak.plot <- PeakPlot(
+      object = object, region = region, group.by = peaks.group.by
+    )
   } else {
     peak.plot <- NULL
   }
@@ -348,6 +352,7 @@ SingleCoveragePlot <- function(
       object = object,
       region = region,
       peaks = ranges,
+      group.by = ranges.group.by,
       color = "brown3") +
       ylab(ranges.title)
   } else {
@@ -410,6 +415,10 @@ SingleCoveragePlot <- function(
     expression.plot = ex.plot,
     heights = heights,
     widths = widths
+  ) & theme(
+    legend.key.size = unit(x = 1/2, units = "lines"),
+    legend.text = element_text(size = 7),
+    legend.title = element_text(size = 8)
   )
   return(p)
 }
@@ -526,7 +535,12 @@ CoverageTrack <- function(
 #' if supplying the \code{features} argument.
 #' @param annotation Display gene annotations
 #' @param peaks Display peaks
+#' @param peaks.group.by Grouping variable to color peaks by. Must be a variable
+#' present in the feature metadata. If NULL, do not color peaks by any variable.
 #' @param ranges Additional genomic ranges to plot
+#' @param ranges.group.by Grouping variable to color ranges by. Must be a
+#' variable present in the metadata stored in the \code{ranges} genomic ranges.
+#' If NULL, do not color by any variable.
 #' @param ranges.title Y-axis title for ranges track. Only relevant if
 #' \code{ranges} parameter is set.
 #' @param links Display links
@@ -587,7 +601,9 @@ CoveragePlot <- function(
   expression.slot = "data",
   annotation = TRUE,
   peaks = TRUE,
+  peaks.group.by = NULL,
   ranges = NULL,
+  ranges.group.by = NULL,
   ranges.title = "Ranges",
   links = TRUE,
   tile = FALSE,
@@ -620,7 +636,9 @@ CoveragePlot <- function(
           show.bulk = show.bulk,
           annotation = annotation,
           peaks = peaks,
+          peaks.group.by = peaks.group.by,
           ranges = ranges,
+          ranges.group.by = ranges.group.by,
           ranges.title = ranges.title,
           assay = assay,
           links = links,
@@ -653,7 +671,9 @@ CoveragePlot <- function(
       expression.slot = expression.slot,
       show.bulk = show.bulk,
       peaks = peaks,
+      peaks.group.by = peaks.group.by,
       ranges = ranges,
+      ranges.group.by = ranges.group.by,
       ranges.title = ranges.title,
       assay = assay,
       links = links,
@@ -961,27 +981,53 @@ CombineTracks <- function(
 #' in a given genomic region
 #'
 #' @param object A \code{\link[Seurat]{Seurat}} object
+#' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param region A genomic region to plot
 #' @param peaks A GRanges object containing peak coordinates. If NULL, use
 #' coordinates stored in the Seurat object.
-#' @param color Fill color for plotted ranges
+#' @param group.by Name of variable in feature metadata (if using ranges in the
+#' Seurat object) or genomic ranges metadata (if using supplied ranges) to color
+#' ranges by. If NULL, do not color by any metadata variable.
+#' @param color Color to use. If \code{group.by} is not NULL, this can be a
+#' custom color scale (see examples).
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
 #' @concept visualization
+#' @importFrom Seurat DefaultAssay
+#' @importFrom S4Vectors mcols<-
 #' @importFrom GenomicRanges start end
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom ggplot2 ggplot aes geom_segment theme_classic element_blank
-#' theme xlab ylab scale_color_identity
+#' theme xlab ylab scale_color_manual
 #' @examples
+#'
+#' # plot peaks in assay
 #' PeakPlot(atac_small, region = "chr1-710000-715000")
-PeakPlot <- function(object, region, peaks = NULL, color = "dimgrey") {
+#'
+#' # manually set color
+#' PeakPlot(atac_small, region = "chr1-710000-715000", color = "red")
+#'
+#' # color by a variable in the feature metadata
+#' PeakPlot(atac_small, region = "chr1-710000-715000", group.by = "count")
+PeakPlot <- function(
+  object,
+  region,
+  assay = NULL,
+  peaks = NULL,
+  group.by = NULL,
+  color = "dimgrey"
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!inherits(x = region, what = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
-  # get ranges from object
-  peaks <- SetIfNull(x = peaks, y = granges(x = object))
+  if (is.null(x = peaks)) {
+    peaks <- granges(x = object)
+    md <- object[[assay]][[]]
+    mcols(x = peaks) <- md
+  }
   # subset to covered range
   peak.intersect <- subsetByOverlaps(x = peaks, ranges = region)
   peak.df <- as.data.frame(x = peak.intersect)
@@ -990,9 +1036,18 @@ PeakPlot <- function(object, region, peaks = NULL, color = "dimgrey") {
   chromosome <- seqnames(x = region)
 
   if (nrow(x = peak.df) > 0) {
+    if (!is.null(x = group.by)) {
+      if (!(group.by %in% colnames(x = peak.df))) {
+        warning("Requested grouping variable not found")
+        group.by <- NULL
+      }
+    }
     peak.df$start[peak.df$start < start.pos] <- start.pos
     peak.df$end[peak.df$end > end.pos] <- end.pos
-    peak.plot <- ggplot(data = peak.df, mapping = aes(color = color)) +
+    peak.plot <- ggplot(
+      data = peak.df,
+      aes_string(color = SetIfNull(x = group.by, y = "color"))
+    ) +
       geom_segment(aes(x = start, y = 0, xend = end, yend = 0),
                    size = 2,
                    data = peak.df)
@@ -1003,11 +1058,15 @@ PeakPlot <- function(object, region, peaks = NULL, color = "dimgrey") {
   peak.plot <- peak.plot + theme_classic() +
     ylab(label = "Peaks") +
     theme(axis.ticks.y = element_blank(),
-          axis.text.y = element_blank(),
-          legend.position = "none") +
+          axis.text.y = element_blank()) +
     xlab(label = paste0(chromosome, " position (bp)")) +
-    xlim(c(start.pos, end.pos)) +
-    scale_color_identity()
+    xlim(c(start.pos, end.pos))
+  if (is.null(x = group.by)) {
+    # remove legend, change color
+    peak.plot <- peak.plot +
+      scale_color_manual(values = color) +
+      theme(legend.position = "none")
+  }
   return(peak.plot)
 }
 

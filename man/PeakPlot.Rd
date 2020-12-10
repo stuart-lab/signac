@@ -4,17 +4,31 @@
 \alias{PeakPlot}
 \title{Plot peaks in a genomic region}
 \usage{
-PeakPlot(object, region, peaks = NULL, color = "dimgrey")
+PeakPlot(
+  object,
+  region,
+  assay = NULL,
+  peaks = NULL,
+  group.by = NULL,
+  color = "dimgrey"
+)
 }
 \arguments{
 \item{object}{A \code{\link[Seurat]{Seurat}} object}
 
 \item{region}{A genomic region to plot}
 
+\item{assay}{Name of assay to use. If NULL, use the default assay.}
+
 \item{peaks}{A GRanges object containing peak coordinates. If NULL, use
 coordinates stored in the Seurat object.}
 
-\item{color}{Fill color for plotted ranges}
+\item{group.by}{Name of variable in feature metadata (if using ranges in the
+Seurat object) or genomic ranges metadata (if using supplied ranges) to color
+ranges by. If NULL, do not color by any metadata variable.}
+
+\item{color}{Color to use. If \code{group.by} is not NULL, this can be a
+custom color scale (see examples).}
 }
 \value{
 Returns a \code{\link[ggplot2]{ggplot}} object
@@ -24,6 +38,14 @@ Display the genomic ranges in a \code{\link{ChromatinAssay}} object that fall
 in a given genomic region
 }
 \examples{
+
+# plot peaks in assay
 PeakPlot(atac_small, region = "chr1-710000-715000")
+
+# manually set color
+PeakPlot(atac_small, region = "chr1-710000-715000", color = "red")
+
+# color by a variable in the feature metadata
+PeakPlot(atac_small, region = "chr1-710000-715000", group.by = "count")
 }
 \concept{visualization}
