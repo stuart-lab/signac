@@ -1,5 +1,13 @@
 # Unreleased
 
+New functionality:
+
+* Added `group.by` parameter to `PeakPlot()` to allow coloring plotted genomic 
+ranges by metadata variables.
+* Added `peaks.group.by` and `ranges.group.by` parameters to `CoveragePlot()` to
+allow coloring plotted genomic ranges in `CoveragePlot()` to be colored by metadata
+variables.
+
 Bug fixes:
 
 * Update meta feature information (overall peak accessibility) when subsetting 
