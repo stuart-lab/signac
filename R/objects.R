@@ -877,12 +877,17 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
   new.pwm <- GetMotifData(object = x, slot = "pwm")[motifs]
   new.names <- GetMotifData(object = x, slot = "motif.names")[motifs]
   new.meta <- GetMotifData(object = x, slot = "meta.data")[motifs, ]
+  new.positions <- GetMotifData(object = x, slot = "positions")
+  if (!is.null(x = new.positions)) {
+    new.positions <- new.positions[motifs]
+  }
   new.motif <- new(
     Class = "Motif",
     data = new.data,
     pwm = new.pwm,
     motif.names = new.names,
-    meta.data = new.meta
+    meta.data = new.meta,
+    positions = new.positions
   )
   return(new.motif)
 }
