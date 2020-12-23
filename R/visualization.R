@@ -331,18 +331,21 @@ SingleCoveragePlot <- function(
     widths <- NULL
   }
   if (annotation) {
-    gene.plot <- AnnotationPlot(object = object, region = region)
+    gene.plot <- AnnotationPlot(object = object[[assay]], region = region)
   } else {
     gene.plot <- NULL
   }
   if (links) {
-    link.plot <- LinkPlot(object = object, region = region)
+    link.plot <- LinkPlot(object = object[[assay]], region = region)
   } else {
     link.plot <- NULL
   }
   if (peaks) {
     peak.plot <- PeakPlot(
-      object = object, region = region, group.by = peaks.group.by
+      object = object,
+      assay = assay,
+      region = region,
+      group.by = peaks.group.by
     )
   } else {
     peak.plot <- NULL
@@ -350,6 +353,7 @@ SingleCoveragePlot <- function(
   if (!is.null(x = ranges)) {
     range.plot <- PeakPlot(
       object = object,
+      assay = assay,
       region = region,
       peaks = ranges,
       group.by = ranges.group.by,
@@ -1024,7 +1028,7 @@ PeakPlot <- function(
     region <- StringToGRanges(regions = region)
   }
   if (is.null(x = peaks)) {
-    peaks <- granges(x = object)
+    peaks <- granges(x = object[[assay]])
     md <- object[[assay]][[]]
     mcols(x = peaks) <- md
   }
