@@ -15,6 +15,7 @@ objects to avoid counts becoming inaccurate ([#332](https://github.com/timoast/s
 * Prevent dropping features when creating a merged ChromatinAssay ([#340](https://github.com/timoast/signac/pull/340))
 * Fix compilation error when using g++ version <5 ([#326](https://github.com/timoast/signac/issues/326))
 * Retain motif positions during subset ([#364](https://github.com/timoast/signac/issues/364))
+* Fix `assay` parameter in `CoveragePlot()`
 
 Other changes:
 
