@@ -1990,6 +1990,14 @@ MergeOverlappingRows <- function(
     if (y == 1) {
       # no rows were merged, can return counts
       merge.counts[[i]] <- counts
+    } else if (y == 2) {
+      # only one element
+      tomerge <- matrix(data = newmat[[1]], nrow = 1)
+      colnames(x = tomerge) <- names(x = newmat[[1]])
+      rownames(x = tomerge) <- newmat.names
+      tomerge <- tomerge[, colnames(x = counts)]
+      counts <- rbind(counts, tomerge)
+      merge.counts[[i]] <- counts
     } else {
       # construct sparse matrix
       if (verbose) {
