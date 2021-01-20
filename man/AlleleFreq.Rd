@@ -28,7 +28,7 @@ example, \code{c("627G>A","709G>A","1045G>A","1793G>A")}.}
 \item{new.assay.name}{Name of new assay to store variant data in}
 }
 \value{
-Returns a \code{\link[Seurat]{Seurat}} object with a new assay
+Returns a \code{\link[SeuratObject]{Seurat}} object with a new assay
 containing the allele frequencies for the informative variants.
 }
 \description{

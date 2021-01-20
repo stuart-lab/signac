@@ -64,7 +64,7 @@ position given the local DNA sequence context and the insertion bias of Tn5}
 \item{verbose}{Display messages}
 }
 \value{
-Returns a \code{\link[Seurat]{Seurat}} object
+Returns a \code{\link[SeuratObject]{Seurat}} object
 }
 \description{
 Compute the normalized observed/expected Tn5 insertion frequency

@@ -73,7 +73,7 @@ cost of more memory use.}
 Default 'svd'}
 }
 \value{
-Returns a \code{\link[Seurat]{Seurat}} object
+Returns a \code{\link[SeuratObject]{Seurat}} object
 }
 \description{
 Run partial singular value decomposition using \code{\link[irlba]{irlba}}

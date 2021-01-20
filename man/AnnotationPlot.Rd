@@ -7,7 +7,7 @@
 AnnotationPlot(object, region)
 }
 \arguments{
-\item{object}{A \code{\link[Seurat]{Seurat}} object}
+\item{object}{A \code{\link[SeuratObject]{Seurat}} object}
 
 \item{region}{A genomic region to plot}
 }

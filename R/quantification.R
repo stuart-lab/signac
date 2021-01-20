@@ -13,7 +13,7 @@ NULL
 #' @param verbose Display messages
 #'
 #' @rdname AggregateTiles
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @method AggregateTiles Seurat
 #' @concept quantification
@@ -198,7 +198,7 @@ GenomeBinMatrix <- function(
 #' @param verbose Display messages
 #'
 #' @export
-#' @importFrom Seurat RowMergeSparseMatrices
+#' @importFrom SeuratObject RowMergeSparseMatrices
 #' @concept quantification
 #' @return Returns a sparse matrix
 #' @examples

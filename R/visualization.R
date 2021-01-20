@@ -9,7 +9,7 @@ globalVariables(names = c("Component", "counts"), package = "Signac")
 #' Compute the correlation between total counts and each reduced
 #' dimension component.
 #'
-#' @param object A \code{\link[Seurat]{Seurat}} object
+#' @param object A \code{\link[SeuratObject]{Seurat}} object
 #' @param reduction Name of a dimension reduction stored in the
 #' input object
 #' @param assay Name of assay to use for sequencing depth. If NULL, use the
@@ -18,7 +18,7 @@ globalVariables(names = c("Component", "counts"), package = "Signac")
 #' @param ... Additional arguments passed to \code{\link[stats]{cor}}
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
-#' @importFrom Seurat Embeddings DefaultAssay
+#' @importFrom SeuratObject Embeddings DefaultAssay
 #' @importFrom ggplot2 ggplot geom_point scale_x_continuous
 #' ylab ylim theme_light ggtitle aes
 #' @importFrom stats cor
@@ -71,7 +71,7 @@ globalVariables(
 #' @export
 #' @concept visualization
 #' @concept footprinting
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom ggplot2 ggplot aes geom_line facet_wrap xlab ylab theme_classic
 #' theme element_blank geom_label guides guide_legend
@@ -230,7 +230,7 @@ globalVariables(
 )
 #' @importFrom ggplot2 ylab scale_fill_manual unit element_text theme
 #' @importMethodsFrom GenomicRanges start end
-#' @importFrom Seurat WhichCells Idents DefaultAssay
+#' @importFrom SeuratObject WhichCells Idents DefaultAssay
 SingleCoveragePlot <- function(
   object,
   region,
@@ -840,7 +840,7 @@ globalVariables(names = "norm.value", package = "Signac")
 #' @param group.by Set of identities to group cells by
 #' @param idents Set of identities to include in the plot
 #'
-#' @importFrom Seurat GetAssayData
+#' @importFrom SeuratObject GetAssayData
 #' @importFrom Matrix colMeans
 #' @importFrom ggplot2 ggplot aes geom_line xlab ylab theme_classic ggtitle
 #' theme element_blank
@@ -984,7 +984,7 @@ CombineTracks <- function(
 #' Display the genomic ranges in a \code{\link{ChromatinAssay}} object that fall
 #' in a given genomic region
 #'
-#' @param object A \code{\link[Seurat]{Seurat}} object
+#' @param object A \code{\link[SeuratObject]{Seurat}} object
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param region A genomic region to plot
 #' @param peaks A GRanges object containing peak coordinates. If NULL, use
@@ -998,7 +998,7 @@ CombineTracks <- function(
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
 #' @concept visualization
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom S4Vectors mcols<-
 #' @importFrom GenomicRanges start end
 #' @importFrom IRanges subsetByOverlaps
@@ -1079,7 +1079,7 @@ PeakPlot <- function(
 #' Display links between pairs of genomic elements within a given region of the
 #' genome.
 #'
-#' @param object A \code{\link[Seurat]{Seurat}} object
+#' @param object A \code{\link[SeuratObject]{Seurat}} object
 #' @param region A genomic region to plot
 #' @param min.cutoff Minimum absolute score for link to be plotted.
 #'
@@ -1154,7 +1154,7 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
 #'
 #' Display gene annotations in a given region of the genome.
 #'
-#' @param object A \code{\link[Seurat]{Seurat}} object
+#' @param object A \code{\link[SeuratObject]{Seurat}} object
 #' @param region A genomic region to plot
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
@@ -1244,7 +1244,7 @@ globalVariables(names = "gene", package = "Signac")
 #' all identities
 #' @param slot Which slot to pull expression data from
 #'
-#' @importFrom Seurat GetAssayData DefaultAssay
+#' @importFrom SeuratObject GetAssayData DefaultAssay
 #' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic theme
 #' element_blank scale_y_discrete scale_x_continuous scale_fill_manual
 #' @importFrom scales hue_pal
@@ -1881,7 +1881,7 @@ VariantPlot <- function(
 #' @param cells Which cells to plot. Default all cells
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom ggplot2 xlab
 #' @importFrom GenomeInfoDb seqnames
 #'

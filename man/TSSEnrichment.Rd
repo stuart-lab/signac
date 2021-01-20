@@ -40,7 +40,7 @@ option.}
 \item{verbose}{Display messages}
 }
 \value{
-Returns a \code{\link[Seurat]{Seurat}} object
+Returns a \code{\link[SeuratObject]{Seurat}} object
 }
 \description{
 Compute the transcription start site (TSS) enrichment score for each cell,

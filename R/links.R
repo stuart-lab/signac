@@ -181,7 +181,7 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' to be retained
 #' @param verbose Display messages
 #'
-#' @importFrom Seurat GetAssayData
+#' @importFrom SeuratObject GetAssayData
 #' @importFrom stats pnorm sd
 #' @importFrom Matrix sparseMatrix rowSums
 #' @importFrom future.apply future_lapply

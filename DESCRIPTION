@@ -31,6 +31,7 @@ Imports:
     Rsamtools,
     S4Vectors,
     Seurat (>= 3.2.0),
+    SeuratObject,
     data.table,
     dplyr (>= 1.0.0),
     future,

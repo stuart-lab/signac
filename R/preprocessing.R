@@ -32,7 +32,7 @@ BinarizeCounts.default <- function(
 
 #' @rdname BinarizeCounts
 #' @method BinarizeCounts Assay
-#' @importFrom Seurat GetAssayData SetAssayData
+#' @importFrom SeuratObject GetAssayData SetAssayData
 #' @export
 #' @concept preprocessing
 #' @examples
@@ -58,7 +58,8 @@ BinarizeCounts.Assay <- function(
 #' and binarization will be applied to each.
 #' @rdname BinarizeCounts
 #' @method BinarizeCounts Seurat
-#' @importFrom Seurat GetAssay DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seurat GetAssay
 #' @export
 #' @concept preprocessing
 #' @examples
@@ -168,9 +169,9 @@ CreateMotifMatrix <- function(
 #' @param assay Name of assay to use. Default is the active assay.
 #' @param n Number of features to retain (default 20000).
 #' @param verbose Display messages
-#' @importFrom Seurat DefaultAssay GetAssayData "VariableFeatures<-"
-#' @return Returns a \code{\link[Seurat]{Seurat}} object with
-#' \code{\link[Seurat]{VariableFeatures}} set to the randomly sampled features.
+#' @importFrom SeuratObject DefaultAssay GetAssayData "VariableFeatures<-"
+#' @return Returns a \code{\link[SeuratObject]{Seurat}} object with
+#' \code{\link[SeuratObject]{VariableFeatures}} set to the randomly sampled features.
 #' @export
 #' @concept preprocessing
 #' @examples
@@ -233,7 +234,7 @@ FindTopFeatures.default <- function(
 }
 
 #' @rdname FindTopFeatures
-#' @importFrom Seurat GetAssayData VariableFeatures
+#' @importFrom SeuratObject GetAssayData VariableFeatures
 #' @export
 #' @method FindTopFeatures Assay
 #' @concept preprocessing
@@ -282,7 +283,8 @@ FindTopFeatures.Assay <- function(
 }
 
 #' @rdname FindTopFeatures
-#' @importFrom Seurat DefaultAssay GetAssay
+#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seurat GetAssay
 #' @export
 #' @concept preprocessing
 #' @method FindTopFeatures Seurat
@@ -319,11 +321,11 @@ FindTopFeatures.Seurat <- function(
 #' @param verbose Display messages
 #'
 #' @importFrom Matrix colSums
-#' @importFrom Seurat GetAssayData AddMetaData
+#' @importFrom SeuratObject GetAssayData AddMetaData
 #'
 #' @export
 #' @concept qc
-#' @return Returns a \code{\link[Seurat]{Seurat}} object
+#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
 #' @examples
 #' FRiP(object = atac_small, assay = 'peaks', total.fragments = "fragments")
 FRiP <- function(
@@ -362,13 +364,13 @@ globalVariables(names = "cell", package = "Signac")
 #' @importFrom dplyr group_by summarize
 #' @importFrom stats ecdf
 #'
-#' @return Returns a \code{\link[Seurat]{Seurat}} object with
+#' @return Returns a \code{\link[SeuratObject]{Seurat}} object with
 #' added metadata for the ratio of mononucleosomal to nucleosome-free fragments
 #' per cell, and the percentile rank of each ratio.
 #' @export
 #' @concept qc
 #' @importFrom fastmatch fmatch
-#' @importFrom Seurat AddMetaData
+#' @importFrom SeuratObject AddMetaData
 #' @importFrom stats ecdf
 #'
 #' @examples
@@ -463,7 +465,7 @@ RegionStats.default <- function(
 #' @rdname RegionStats
 #' @method RegionStats ChromatinAssay
 #' @importFrom methods slot
-#' @importFrom Seurat GetAssayData
+#' @importFrom SeuratObject GetAssayData
 #' @export
 #' @concept motifs
 #' @examples
@@ -695,9 +697,9 @@ RunTFIDF.Seurat <- function(
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom IRanges IRanges
 #' @importFrom GenomicRanges start width strand
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #'
-#' @return Returns a \code{\link[Seurat]{Seurat}} object
+#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
 #' @export
 #' @concept qc
 #' @examples
@@ -835,7 +837,7 @@ TSSEnrichment <- function(
 #' @importFrom GenomeInfoDb seqlevels keepSeqlevels
 #' @importFrom stats ecdf
 #' @importFrom Matrix rowSums
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 TSSFast <- function(
   object,
   tss.positions,

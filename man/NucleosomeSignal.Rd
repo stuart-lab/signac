@@ -26,7 +26,7 @@ lines. Default scales with the number of cells in the object.}
 \item{...}{Arguments passed to other functions}
 }
 \value{
-Returns a \code{\link[Seurat]{Seurat}} object with
+Returns a \code{\link[SeuratObject]{Seurat}} object with
 added metadata for the ratio of mononucleosomal to nucleosome-free fragments
 per cell, and the percentile rank of each ratio.
 }

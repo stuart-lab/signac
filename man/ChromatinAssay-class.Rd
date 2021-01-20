@@ -6,7 +6,7 @@
 \alias{ChromatinAssay}
 \title{The ChromatinAssay class}
 \description{
-The ChramatinAssay object is an extended \code{\link[Seurat]{Assay}}
+The ChramatinAssay object is an extended \code{\link[SeuratObject]{Assay}}
 for the storage and analysis of single-cell chromatin data.
 }
 \section{Slots}{
