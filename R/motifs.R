@@ -75,7 +75,7 @@ AddMotifs.ChromatinAssay <- function(
 #' @param genome A \code{BSgenome} object
 #' @param pfm A \code{PFMatrixList} object
 #' @param verbose Display messages
-#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seurat DefaultAssay
 #' @rdname AddMotifs
 #' @method AddMotifs Seurat
 #' @concept motifs
@@ -104,7 +104,7 @@ AddMotifs.Seurat <- function(
   return(object)
 }
 
-#' @importFrom SeuratObject GetAssayData CreateAssayObject
+#' @importFrom Seurat GetAssayData CreateAssayObject
 #' @importFrom Matrix rowSums
 #'
 #' @concept motifs
@@ -184,7 +184,7 @@ RunChromVAR.ChromatinAssay <- function(
 #' @method RunChromVAR Seurat
 #' @rdname RunChromVAR
 #' @export
-#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seurat DefaultAssay
 #' @concept motifs
 #' @examples
 #' \dontrun{
@@ -383,7 +383,7 @@ ConvertMotifID.ChromatinAssay <- function(object, ...) {
 #' @param assay For \code{Seurat} objectd. Name of assay to use.
 #' If NULL, use the default assay
 #'
-#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seurat DefaultAssay
 #'
 #' @method ConvertMotifID Seurat
 #' @rdname ConvertMotifID

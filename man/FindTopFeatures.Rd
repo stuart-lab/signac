@@ -36,7 +36,7 @@ and percentile rank for each feature.}
 \item{verbose}{Display messages}
 }
 \value{
-Returns a \code{\link[SeuratObject]{Seurat}} object
+Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
 Find top features for a given assay based on total number of counts for the

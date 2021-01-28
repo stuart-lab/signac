@@ -21,7 +21,6 @@ objects to avoid counts becoming inaccurate ([#332](https://github.com/timoast/s
 Other changes:
 
 * Added citation information to the package
-* Add SeuratObject dependency
 
 # Signac 1.1.0
 

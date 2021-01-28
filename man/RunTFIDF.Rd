@@ -62,7 +62,7 @@ RunTFIDF(object, ...)
 \item{verbose}{Print progress}
 }
 \value{
-Returns a \code{\link[SeuratObject]{Seurat}} object
+Returns a \code{\link[Seurat]{Seurat}} object
 }
 \description{
 Run term frequency inverse document frequency (TF-IDF) normalization on a

@@ -1,6 +1,6 @@
 #' @include generics.R
 #' @importFrom methods callGeneric
-#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seurat DefaultAssay
 #' @importFrom GenomeInfoDb
 #' seqinfo seqinfo<-
 #' seqnames seqnames<-
@@ -178,7 +178,7 @@ setMethod(
 )
 
 #' @describeIn seqinfo-methods set method for ChromatinAssay objects
-#' @importFrom SeuratObject SetAssayData
+#' @importFrom Seurat SetAssayData
 #' @exportMethod genome<-
 #' @concept seqinfo
 setMethod(
@@ -354,7 +354,7 @@ setMethod(
 )
 
 #' @describeIn seqinfo-methods set method for Seurat objects
-#' @importFrom SeuratObject SetAssayData
+#' @importFrom Seurat SetAssayData
 #' @concept seqinfo
 setMethod(
   f = "genome<-",

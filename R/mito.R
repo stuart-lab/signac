@@ -84,7 +84,7 @@ AlleleFreq.default <- function(object, variants, ...) {
 }
 
 #' @rdname AlleleFreq
-#' @importFrom SeuratObject CreateAssayObject GetAssayData
+#' @importFrom Seurat CreateAssayObject GetAssayData
 #' @concept mito
 #' @export
 #' @method AlleleFreq Assay
@@ -98,7 +98,7 @@ AlleleFreq.Assay <- function(object, variants, ...) {
 #' @param assay Name of assay to use
 #' @param new.assay.name Name of new assay to store variant data in
 #' @rdname AlleleFreq
-#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seurat DefaultAssay
 #' @method AlleleFreq Seurat
 #' @concept mito
 #' @export
@@ -127,7 +127,7 @@ AlleleFreq.Seurat <- function(
 #' @param assay Name of assay to use
 #' @param group.by Grouping variable for cells
 #'
-#' @importFrom SeuratObject Idents
+#' @importFrom Seurat Idents
 #' @importFrom lsa cosine
 #' @importFrom Matrix rowMeans
 #' @importFrom stats dist hclust
@@ -187,12 +187,11 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
 #' @param algorithm Community detection algorithm to use. See
 #' \code{\link[Seurat]{FindClusters}}
 #'
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @return Returns a \code{\link[Seurat]{Seurat}} object
 #'
 #' @export
 #' @concept mito
-#' @importFrom SeuratObject DefaultAssay GetAssayData
-#' @importFrom Seurat FindNeighbors FindClusters
+#' @importFrom Seurat DefaultAssay GetAssayData FindNeighbors FindClusters
 #' VariableFeatures
 FindClonotypes <- function(
   object,
@@ -421,7 +420,7 @@ IdentifyVariants.default <- function(
   return(rbind(a.df, t.df, c.df, g.df))
 }
 
-#' @importFrom SeuratObject GetAssayData
+#' @importFrom Seurat GetAssayData
 #' @rdname IdentifyVariants
 #' @method IdentifyVariants Assay
 #' @concept mito
@@ -436,8 +435,7 @@ IdentifyVariants.Assay <- function(
   return(df)
 }
 
-#' @importFrom SeuratObject DefaultAssay
-#' @importFrom Seurat GetAssay
+#' @importFrom Seurat GetAssay DefaultAssay
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @rdname IdentifyVariants
 #' @concept mito

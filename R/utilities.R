@@ -23,7 +23,7 @@ NULL
 #'
 #' @importFrom fastmatch fmatch
 #' @importFrom Matrix sparseMatrix
-#' @importFrom SeuratObject DefaultAssay GetAssayData AddMetaData
+#' @importFrom Seurat DefaultAssay GetAssayData AddMetaData
 #'
 #' @export
 #' @concept utilities
@@ -81,7 +81,7 @@ globalVariables(names = c("group", "readcount"), package = "Signac")
 #' @param group.by Grouping variable to use. Default is the active identities
 #' @param verbose Display messages
 #'
-#' @importFrom SeuratObject DefaultAssay Idents GetAssayData
+#' @importFrom Seurat DefaultAssay Idents GetAssayData
 #' @importFrom dplyr group_by summarize
 #' @export
 #' @concept utilities
@@ -128,7 +128,7 @@ AverageCounts <- function(
 #' for the peak to be called accessible
 #' @export
 #' @concept utilities
-#' @importFrom SeuratObject WhichCells DefaultAssay GetAssayData
+#' @importFrom Seurat WhichCells DefaultAssay GetAssayData
 #' @importFrom Matrix rowSums
 #' @return Returns a vector of peak names
 AccessiblePeaks <- function(
@@ -155,7 +155,7 @@ AccessiblePeaks <- function(
 #'
 #' @param object A Seurat object
 #' @param group.by A grouping variable. Default is the active identities
-#' @importFrom SeuratObject Idents
+#' @importFrom Seurat Idents
 #' @export
 #' @concept utilities
 #' @return Returns a vector
@@ -239,8 +239,7 @@ ClosestFeature <- function(
 #' top of the results due to high fold change values.
 #' @param verbose Display messages
 #'
-#' @importFrom SeuratObject Idents Idents<- DefaultAssay
-#' @importFrom Seurat AverageExpression
+#' @importFrom Seurat Idents Idents<- AverageExpression DefaultAssay
 #'
 #' @return Returns a data.frame
 #' @export
@@ -286,7 +285,6 @@ FoldChange <- function(
     slot = "counts",
     verbose = verbose
   )[[assay]]
-  avg <- as.data.frame(x = avg)
   Idents(object = object) <- ident.stash
   # compute fold change
   colnames(x = avg) <- paste0("mean_", colnames(x = avg))
@@ -317,7 +315,7 @@ FoldChange <- function(
 #'
 #' @concept utilities
 #' @export
-#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seurat DefaultAssay
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' fragments <- CreateFragmentObject(
@@ -345,7 +343,7 @@ GeneActivity <- function(
     message("Extracting gene coordinates")
   }
   transcripts <- CollapseToLongestTranscript(ranges = annotation)
-  # transcripts <- transcripts[transcripts$gene_biotype == "protein_coding"]
+  transcripts <- transcripts[transcripts$gene_biotype == "protein_coding"]
 
   # filter genes if provided
   if (!is.null(x = features)) {
@@ -468,7 +466,7 @@ GetTSSPositions <- function(ranges) {
 #'
 #' @importMethodsFrom GenomicRanges distanceToNearest
 #' @importFrom S4Vectors subjectHits queryHits mcols
-#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seurat DefaultAssay
 #' @export
 #' @concept utilities
 #' @return Returns a list of two character vectors containing the row names
@@ -665,7 +663,7 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 #' @importFrom IRanges findOverlaps
 #' @importFrom S4Vectors queryHits
 #' @importFrom Matrix colSums
-#' @importFrom SeuratObject GetAssayData
+#' @importFrom Seurat GetAssayData
 #'
 #' @export
 #' @concept utilities
@@ -706,7 +704,7 @@ CountsInRegion <- function(
 #' @param regions A GRanges object containing a set of genomic regions
 #' @param ... Additional arguments passed to \code{\link{CountsInRegion}}
 #' @importFrom Matrix colSums
-#' @importFrom SeuratObject GetAssayData DefaultAssay
+#' @importFrom Seurat GetAssayData DefaultAssay
 #'
 #' @export
 #' @concept utilities
@@ -802,7 +800,7 @@ IntersectMatrix <- function(
 #' @param gene Name of a gene to extract
 #' @param assay Name of assay to use
 #'
-#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seurat DefaultAssay
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges start end
 #' @importFrom GenomeInfoDb seqnames
@@ -1027,7 +1025,7 @@ AddMissingCells <- function(x, cells) {
   return(x)
 }
 
-#' @importFrom SeuratObject DefaultAssay GetAssayData
+#' @importFrom Seurat DefaultAssay GetAssayData
 #' @importFrom Matrix Diagonal tcrossprod rowSums
 AverageCountMatrix <- function(
   object,
@@ -1258,7 +1256,7 @@ FindRegion <- function(
 # @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #
 #' @importFrom Rsamtools TabixFile scanTabix
-#' @importFrom SeuratObject Idents
+#' @importFrom Seurat Idents
 #' @importFrom fastmatch fmatch
 #
 # @return Returns a data frame
@@ -1311,7 +1309,7 @@ GetReadsInRegion <- function(
 # @param group.by Identity class to group cells by
 # @param idents which identities to include
 # @return Returns a named vector
-#' @importFrom SeuratObject Idents
+#' @importFrom Seurat Idents
 GetGroups <- function(
   object,
   group.by,
@@ -1333,7 +1331,7 @@ GetGroups <- function(
 # row merge list of matrices
 # @param mat.list list of sparse matrices
 # @param new.rownames rownames to assign merged matrix
-#' @importFrom SeuratObject RowMergeSparseMatrices
+#' @importFrom Seurat RowMergeSparseMatrices
 MergeMatrixParts <- function(mat.list, new.rownames) {
   # RowMergeSparseMatrices only exported in Seurat release Dec-2019 (3.1.2)
   merged.all <- mat.list[[1]]
@@ -1355,7 +1353,7 @@ MergeMatrixParts <- function(mat.list, new.rownames) {
 # @param fragment.list A list of Fragment objects. If NULL, pull them from the
 # object
 # @param assay Name of assay to use if supplying a Seurat object
-#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seurat DefaultAssay
 #' @importFrom Rsamtools TabixFile
 #' @importFrom GenomeInfoDb keepSeqlevels
 MultiGetReadsInRegion <- function(
@@ -1482,7 +1480,7 @@ SingleFileCutMatrix <- function(
 # @param group.by Name of grouping variable to use
 # @param verbose Display messages
 # @return Returns a sparse matrix
-#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seurat DefaultAssay
 #' @importFrom Rsamtools TabixFile seqnamesTabix
 #' @importFrom GenomeInfoDb keepSeqlevels
 CutMatrix <- function(
@@ -1542,7 +1540,7 @@ CutMatrix <- function(
 # @param cells Vector of cells to include
 # @param verbose Display messages
 #' @importFrom Rsamtools TabixFile seqnamesTabix
-#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seurat DefaultAssay
 #' @importFrom GenomeInfoDb keepSeqlevels
 MultiRegionCutMatrix <- function(
   object,

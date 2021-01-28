@@ -7,7 +7,7 @@
 DepthCor(object, assay = NULL, reduction = "lsi", n = 10, ...)
 }
 \arguments{
-\item{object}{A \code{\link[SeuratObject]{Seurat}} object}
+\item{object}{A \code{\link[Seurat]{Seurat}} object}
 
 \item{assay}{Name of assay to use for sequencing depth. If NULL, use the
 default assay.}

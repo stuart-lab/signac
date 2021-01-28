@@ -1,5 +1,5 @@
 #' @include generics.R
-#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seurat DefaultAssay
 #' @importFrom GenomicRanges granges
 NULL
 

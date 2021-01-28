@@ -56,7 +56,7 @@ Jaccard <- function(x, y) {
 #'
 #' @importFrom irlba irlba
 #' @importFrom stats sd
-#' @importFrom SeuratObject CreateDimReducObject
+#' @importFrom Seurat CreateDimReducObject
 #' @importMethodsFrom Matrix t
 #'
 #' @rdname RunSVD
@@ -120,7 +120,7 @@ RunSVD.default <- function(
 #' @param features Which features to use. If NULL, use variable features
 #'
 #' @rdname RunSVD
-#' @importFrom SeuratObject VariableFeatures GetAssayData
+#' @importFrom Seurat VariableFeatures GetAssayData
 #' @export
 #' @concept dimension_reduction
 #' @method RunSVD Assay
