@@ -285,6 +285,7 @@ FoldChange <- function(
     slot = "counts",
     verbose = verbose
   )[[assay]]
+  avg <- as.data.frame(x = avg)
   Idents(object = object) <- ident.stash
   # compute fold change
   colnames(x = avg) <- paste0("mean_", colnames(x = avg))
