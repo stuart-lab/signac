@@ -480,7 +480,7 @@ setMethod(
 #' genomic ranges and the ranges stored in the ChromatinAssay.
 #'
 #' If a ChromatinAssay is set as the default assay in a
-#' \code{\link[Seurat]{Seurat}} object, you can also call \code{findOverlaps}
+#' \code{\link[SeuratObject]{Seurat}} object, you can also call \code{findOverlaps}
 #' directly on the Seurat object.
 #'
 #' @param query,subject A \code{\link{ChromatinAssay}} object

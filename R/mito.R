@@ -187,7 +187,7 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
 #' @param algorithm Community detection algorithm to use. See
 #' \code{\link[Seurat]{FindClusters}}
 #'
-#' @return Returns a \code{\link[Seurat]{Seurat}} object
+#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
 #'
 #' @export
 #' @concept mito

@@ -70,7 +70,7 @@ Motif <- setClass(
 
 #' The ChromatinAssay class
 #'
-#' The ChramatinAssay object is an extended \code{\link[Seurat]{Assay}}
+#' The ChramatinAssay object is an extended \code{\link[SeuratObject]{Assay}}
 #' for the storage and analysis of single-cell chromatin data.
 #'
 #' @slot ranges A \code{\link[GenomicRanges]{GRanges}} object describing the

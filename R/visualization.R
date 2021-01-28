@@ -9,7 +9,7 @@ globalVariables(names = c("Component", "counts"), package = "Signac")
 #' Compute the correlation between total counts and each reduced
 #' dimension component.
 #'
-#' @param object A \code{\link[Seurat]{Seurat}} object
+#' @param object A \code{\link[SeuratObject]{Seurat}} object
 #' @param reduction Name of a dimension reduction stored in the
 #' input object
 #' @param assay Name of assay to use for sequencing depth. If NULL, use the
@@ -984,7 +984,7 @@ CombineTracks <- function(
 #' Display the genomic ranges in a \code{\link{ChromatinAssay}} object that fall
 #' in a given genomic region
 #'
-#' @param object A \code{\link[Seurat]{Seurat}} object
+#' @param object A \code{\link[SeuratObject]{Seurat}} object
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param region A genomic region to plot
 #' @param peaks A GRanges object containing peak coordinates. If NULL, use
@@ -1079,7 +1079,7 @@ PeakPlot <- function(
 #' Display links between pairs of genomic elements within a given region of the
 #' genome.
 #'
-#' @param object A \code{\link[Seurat]{Seurat}} object
+#' @param object A \code{\link[SeuratObject]{Seurat}} object
 #' @param region A genomic region to plot
 #' @param min.cutoff Minimum absolute score for link to be plotted.
 #'
@@ -1154,7 +1154,7 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
 #'
 #' Display gene annotations in a given region of the genome.
 #'
-#' @param object A \code{\link[Seurat]{Seurat}} object
+#' @param object A \code{\link[SeuratObject]{Seurat}} object
 #' @param region A genomic region to plot
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export

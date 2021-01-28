@@ -25,7 +25,7 @@ GetMotifData(object, ...)
 \item{assay}{Which assay to use. Default is the current active assay}
 }
 \value{
-Returns a \code{\link[Seurat]{Seurat}} object
+Returns a \code{\link[SeuratObject]{Seurat}} object
 }
 \description{
 Get motif matrix for given assay

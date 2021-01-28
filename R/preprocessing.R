@@ -169,8 +169,8 @@ CreateMotifMatrix <- function(
 #' @param n Number of features to retain (default 20000).
 #' @param verbose Display messages
 #' @importFrom Seurat DefaultAssay GetAssayData "VariableFeatures<-"
-#' @return Returns a \code{\link[Seurat]{Seurat}} object with
-#' \code{\link[Seurat]{VariableFeatures}} set to the randomly sampled features.
+#' @return Returns a \code{\link[SeuratObject]{Seurat}} object with
+#' \code{\link[SeuratObject]{VariableFeatures}} set to the randomly sampled features.
 #' @export
 #' @concept preprocessing
 #' @examples
@@ -323,7 +323,7 @@ FindTopFeatures.Seurat <- function(
 #'
 #' @export
 #' @concept qc
-#' @return Returns a \code{\link[Seurat]{Seurat}} object
+#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
 #' @examples
 #' FRiP(object = atac_small, assay = 'peaks', total.fragments = "fragments")
 FRiP <- function(
@@ -362,7 +362,7 @@ globalVariables(names = "cell", package = "Signac")
 #' @importFrom dplyr group_by summarize
 #' @importFrom stats ecdf
 #'
-#' @return Returns a \code{\link[Seurat]{Seurat}} object with
+#' @return Returns a \code{\link[SeuratObject]{Seurat}} object with
 #' added metadata for the ratio of mononucleosomal to nucleosome-free fragments
 #' per cell, and the percentile rank of each ratio.
 #' @export
@@ -697,7 +697,7 @@ RunTFIDF.Seurat <- function(
 #' @importFrom GenomicRanges start width strand
 #' @importFrom Seurat DefaultAssay
 #'
-#' @return Returns a \code{\link[Seurat]{Seurat}} object
+#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
 #' @export
 #' @concept qc
 #' @examples

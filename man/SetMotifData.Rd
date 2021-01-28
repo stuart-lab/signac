@@ -27,7 +27,7 @@ SetMotifData(object, ...)
 \item{assay}{Name of assay whose data should be set}
 }
 \value{
-Returns a \code{\link[Seurat]{Seurat}} object
+Returns a \code{\link[SeuratObject]{Seurat}} object
 }
 \description{
 Set motif matrix for given assay
