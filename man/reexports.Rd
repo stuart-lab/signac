@@ -11,6 +11,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{Seurat}{\code{\link[Seurat:reexports]{Cells}}}
+  \item{SeuratObject}{\code{\link[SeuratObject]{Cells}}}
 }}
 

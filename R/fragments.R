@@ -410,9 +410,9 @@ Cells.Fragment <- function(x, ...) {
   return(names(x = cells))
 }
 
-# Re-export Seurat generic
+# Re-export SeuratObject generic
 #' @export
-Seurat::Cells
+SeuratObject::Cells
 
 #' @param value A vector of cell names to store in the \code{\link{Fragment}}
 #' object

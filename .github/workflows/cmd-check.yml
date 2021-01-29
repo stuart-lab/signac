@@ -76,7 +76,6 @@ jobs:
           BiocManager::install(c("GenomeInfoDbData", "GO.db", "GenomicAlignments", "ggbio", "biovizBase"), Ncpu = 2L)
           setRepositories(ind=1:2)
           remotes::install_deps(dependencies = TRUE, repos = getOption('repos'), Ncpu = 2L)
-          install.packages("SeuratObject")
           remotes::install_cran("rcmdcheck", Ncpu = 2L)
         shell: Rscript {0}
 
