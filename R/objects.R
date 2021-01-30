@@ -212,6 +212,10 @@ CreateChromatinAssay <- function(
   ncount.cell <- colSums(x = data.use > 0)
   data.use <- data.use[, ncount.cell > min.features]
 
+  if (ncol(x = data.use) == 0) {
+    stop("No cells retained due to minimum feature cutoff supplied")
+  }
+
   ncell.feature <- rowSums(x = data.use > 0)
   if (!is.null(x = max.cells)) {
     if (is(object = max.cells, class2 = "character")) {
@@ -224,6 +228,9 @@ CreateChromatinAssay <- function(
     max.cells <- ncol(x = data.use)
   }
   features.keep <- (ncell.feature >= min.cells) & (ncell.feature <= max.cells)
+  if (sum(features.keep) == 0) {
+    stop("No features retained due to minimum cell cutoff supplied")
+  }
   data.use <- data.use[features.keep, ]
   ranges <- ranges[features.keep, ]
   # re-assign row names of matrix so that it's a known granges transformation
