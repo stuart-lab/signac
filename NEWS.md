@@ -17,10 +17,13 @@ objects to avoid counts becoming inaccurate ([#332](https://github.com/timoast/s
 * Retain motif positions during subset ([#364](https://github.com/timoast/signac/issues/364))
 * Fix `assay` parameter in `CoveragePlot()`
 * Fix error when merging ChromatinAssay object ([#355](https://github.com/timoast/signac/issues/355))
+* Add more informative error message when all features or cells removed by parameter choices in `CreateChromatinAssay()` ([#387](https://github.com/timoast/signac/issues/387))
+* Fix bug in `CreateChromatinAssay()` when setting both `min.cells` and `min.features` arguments ([#390](https://github.com/timoast/signac/issues/390))
 
 Other changes:
 
 * Added citation information to the package
+* Added `SeuratObject` dependency
 
 # Signac 1.1.0
 
