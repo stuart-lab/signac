@@ -25,6 +25,9 @@ CountFragments <- function(
   max_lines = NULL,
   verbose = TRUE
 ) {
+  if (isRemote(x = fragments)) {
+    stop("Remote fragment files not supported")
+  }
   fragments <- normalizePath(path = fragments, mustWork = TRUE)
   max_lines <- SetIfNull(x = max_lines, y = 0)
   verbose = as.logical(x = verbose)
@@ -71,6 +74,9 @@ FilterCells <- function(
   buffer_length = 256L,
   verbose = TRUE
 ) {
+  if (isRemote(x = fragments)) {
+    stop("Remote fragment files not supported")
+  }
   fragments <- normalizePath(path = fragments, mustWork = TRUE)
   if (is.null(x = outfile)) {
     outfile <- paste0(fragments, ".filtered")
@@ -168,32 +174,36 @@ SplitFragments <- function(
       suffix.use <- file.suffix
     }
     fragpath <- GetFragmentData(object = frags[[i]], slot = "path")
-    # convert cell names
-    cellmap <- GetFragmentData(object = frags[[i]], slot = "cells")
-    cell.in.frag <- cells %in% names(x = cellmap)
-    cells.use <- cellmap[cells[cell.in.frag]]
-    idents.use <- as.character(x = unname(obj = groups[names(x = cells.use)]))
-    frag.cell.name <- as.character(x = unname(obj = cells.use))
+    if (isRemote(x = fragpath)) {
+      message("Remote fragment files not supported, skipping fragment file")
+    } else {
+      # convert cell names
+      cellmap <- GetFragmentData(object = frags[[i]], slot = "cells")
+      cell.in.frag <- cells %in% names(x = cellmap)
+      cells.use <- cellmap[cells[cell.in.frag]]
+      idents.use <- as.character(x = unname(obj = groups[names(x = cells.use)]))
+      frag.cell.name <- as.character(x = unname(obj = cells.use))
 
-    if (verbose) {
-      message("Processing file ", fragpath)
-    }
-    splitfiles <- splitFragments(
-      fragments = fragpath,
-      outdir = paste0(outdir, .Platform$file.sep),
-      suffix = suffix.use,
-      append = append,
-      cells = frag.cell.name,
-      idents = idents.use,
-      unique_idents = unique_idents,
-      buffer_length = buffer_length,
-      verbose = verbose
-    )
-    if (verbose) {
-      message("\n")
-    }
-    if (splitfiles == 1) {
-      stop("Error: cannot open requested file")
+      if (verbose) {
+        message("Processing file ", fragpath)
+      }
+      splitfiles <- splitFragments(
+        fragments = fragpath,
+        outdir = paste0(outdir, .Platform$file.sep),
+        suffix = suffix.use,
+        append = append,
+        cells = frag.cell.name,
+        idents = idents.use,
+        unique_idents = unique_idents,
+        buffer_length = buffer_length,
+        verbose = verbose
+      )
+      if (verbose) {
+        message("\n")
+      }
+      if (splitfiles == 1) {
+        stop("Error: cannot open requested file")
+      }
     }
   }
 }
@@ -446,16 +456,23 @@ SeuratObject::Cells
 #' @concept fragments
 #' @export
 UpdatePath <- function(object, new.path, verbose = TRUE) {
-  new.path <- normalizePath(path = new.path, mustWork = TRUE)
-  index.file <- paste0(new.path, ".tbi")
-  if (!file.exists(new.path)) {
-    stop("Fragment file not found")
-  } else if (!file.exists(index.file)) {
-    stop("Fragment file not indexed")
+  new.is.remote <- isRemote(x = new.path)
+  if (!new.is.remote) {
+    new.path <- normalizePath(path = new.path, mustWork = TRUE)
+    index.file <- paste0(new.path, ".tbi")
+    if (!file.exists(new.path)) {
+      stop("Fragment file not found")
+    } else if (!file.exists(index.file)) {
+      stop("Fragment file not indexed")
+    }
   }
   old.path <- GetFragmentData(object = object, slot = "path")
+  old.is.remote <- isRemote(x = old.path)
   if (identical(x = old.path, y = new.path)) {
     return(object)
+  }
+  if (!old.is.remote & new.is.remote) {
+    warning("Replacing local file path with a remote file")
   }
   slot(object = object, name = "path") <- new.path
   if (ValidateHash(object = object, verbose = verbose)) {

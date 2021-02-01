@@ -1181,10 +1181,10 @@ ExtractCell <- function(x) {
 # @return Returns a data.frame
 ExtractFragments <- function(fragments, n = NULL, verbose = TRUE) {
   fpath <- GetFragmentData(object = fragments, slot = "path")
-  is.remote <- isRemote(x = fpath)
-  if (!is.remote) {
-    fpath <- normalizePath(path = fpath, mustWork = TRUE)
+  if (isRemote(x = fpath)) {
+    stop("Remote fragment files not supported")
   }
+  fpath <- normalizePath(path = fpath, mustWork = TRUE)
   cells <- GetFragmentData(object = fragments, slot = "cells")
   if (!is.null(x = cells)) {
     cells.use <- as.character(x = cells)
