@@ -175,6 +175,7 @@ transfer_anchors <- FindTransferAnchors(
   query = pbmc,
   normalization.method = "SCT",
   reference.reduction = "spca",
+  recompute.residuals = FALSE,
   dims = 1:50
 )
 
@@ -196,11 +197,11 @@ Idents(pbmc) <- "predicted.id"
 # set a reasonable order for cell types to be displayed when plotting
 levels(pbmc) <- c("CD4 Naive", "CD4 TCM", "CD4 CTL", "CD4 TEM", "CD4 Proliferating",
                   "CD8 Naive", "dnT",
-                 "CD8 TEM", "CD8 TCM", "MAIT", "NK", "NK_CD56bright",
+                 "CD8 TEM", "CD8 TCM", "CD8 Proliferating", "MAIT", "NK", "NK_CD56bright",
                  "NK Proliferating", "gdT",
                  "Treg", "B naive", "B intermediate", "B memory", "Plasmablast",
                  "CD14 Mono", "CD16 Mono",
-                 "cDC1", "cDC2", "pDC", "HSPC", "Eryth", "ASDC", "ILC")
+                 "cDC1", "cDC2", "pDC", "HSPC", "Eryth", "ASDC", "ILC", "Platelet")
 ```
 
 ## Joint UMAP visualization
