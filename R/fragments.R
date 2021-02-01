@@ -240,7 +240,7 @@ CreateFragmentObject <- function(
 ) {
   # check that file exists and is indexed
   # don't check if supplying remote file
-  is.remote <- grepl(pattern = "^http|^ftp", x = path)
+  is.remote <- isRemote(x = path)
   if (is.remote) {
     validate.fragments <- FALSE
   }
@@ -324,7 +324,7 @@ ValidateCells <- function(
   max.lines <- SetIfNull(x = max.lines, y = 0)
   filepath <- GetFragmentData(object = object, slot = "path")
   filepath <- normalizePath(path = filepath, mustWork = TRUE)
-  is.remote <- grepl(pattern = "^http|^ftp", x = filepath)
+  is.remote <- isRemote(x = filepath)
   find_n <- as.integer(x = length(x = cells) * (1 - tolerance))
   # if remote, return TRUE
   if (is.remote) {
@@ -350,7 +350,7 @@ ValidateCells <- function(
 ValidateHash <- function(object, verbose = TRUE) {
   path <- GetFragmentData(object = object, slot = "path")
   index.file <- paste0(path, ".tbi")
-  is.remote <- grepl(pattern = "^http|^ftp", x = path)
+  is.remote <- isRemote(x = path)
   # if remote, return TRUE
   if (is.remote) {
     return(TRUE)

@@ -1181,7 +1181,7 @@ ExtractCell <- function(x) {
 # @return Returns a data.frame
 ExtractFragments <- function(fragments, n = NULL, verbose = TRUE) {
   fpath <- GetFragmentData(object = fragments, slot = "path")
-  is.remote <- grepl(pattern = "^http|^ftp", x = fpath)
+  is.remote <- isRemote(x = fpath)
   if (!is.remote) {
     fpath <- normalizePath(path = fpath, mustWork = TRUE)
   }
@@ -1327,6 +1327,12 @@ GetGroups <- function(
     obj.groups <- obj.groups[obj.groups %in% idents]
   }
   return(obj.groups)
+}
+
+# Check if path is remote
+# @param x path/s to check
+isRemote <- function(x) {
+  return(grepl(pattern = "^http|^ftp", x = x))
 }
 
 # row merge list of matrices
