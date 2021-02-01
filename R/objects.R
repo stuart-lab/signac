@@ -240,8 +240,8 @@ CreateChromatinAssay <- function(
     seurat.assay <- CreateAssayObject(
       counts = data.use,
       data = data,
-      min.cells = min.cells,
-      min.features = min.features
+      min.cells = -1,
+      min.features = -1 # min cell/feature filtering already done
     )
   } else {
     seurat.assay <- CreateAssayObject(
