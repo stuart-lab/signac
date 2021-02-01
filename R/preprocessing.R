@@ -732,6 +732,9 @@ TSSEnrichment <- function(
     }
     # work out TSS positions from gene annotations
     annotations <- Annotation(object = object[[assay]])
+    if (is.null(x = annotations)) {
+      stop("No gene annotations present in assay")
+    }
     tss.positions <- GetTSSPositions(ranges = annotations)
   }
   if (!is.null(x = n)) {
