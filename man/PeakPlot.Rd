@@ -38,7 +38,7 @@ Display the genomic ranges in a \code{\link{ChromatinAssay}} object that fall
 in a given genomic region
 }
 \examples{
-
+\donttest{
 # plot peaks in assay
 PeakPlot(atac_small, region = "chr1-710000-715000")
 
@@ -47,5 +47,6 @@ PeakPlot(atac_small, region = "chr1-710000-715000", color = "red")
 
 # color by a variable in the feature metadata
 PeakPlot(atac_small, region = "chr1-710000-715000", group.by = "count")
+}
 }
 \concept{visualization}

@@ -27,6 +27,8 @@ Compute the correlation between total counts and each reduced
 dimension component.
 }
 \examples{
+\donttest{
 DepthCor(object = atac_small)
+}
 }
 \concept{visualization}

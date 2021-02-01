@@ -24,7 +24,9 @@ globalVariables(names = c("Component", "counts"), package = "Signac")
 #' @importFrom stats cor
 #' @concept visualization
 #' @examples
+#' \donttest{
 #' DepthCor(object = atac_small)
+#' }
 DepthCor <- function(object, assay = NULL, reduction = 'lsi', n = 10, ...) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   dr <- object[[reduction]]
@@ -1008,7 +1010,7 @@ CombineTracks <- function(
 #' @importFrom ggplot2 ggplot aes geom_segment theme_classic element_blank
 #' theme xlab ylab scale_color_manual
 #' @examples
-#'
+#' \donttest{
 #' # plot peaks in assay
 #' PeakPlot(atac_small, region = "chr1-710000-715000")
 #'
@@ -1017,6 +1019,7 @@ CombineTracks <- function(
 #'
 #' # color by a variable in the feature metadata
 #' PeakPlot(atac_small, region = "chr1-710000-715000", group.by = "count")
+#' }
 PeakPlot <- function(
   object,
   region,
@@ -1258,7 +1261,9 @@ globalVariables(names = "gene", package = "Signac")
 #' @export
 #' @concept visualization
 #' @examples
+#' \donttest{
 #' ExpressionPlot(atac_small, features = "TSPAN6", assay = "RNA")
+#' }
 ExpressionPlot <- function(
   object,
   features,
@@ -2059,7 +2064,9 @@ CreateTilePlot <- function(df, n, legend = TRUE) {
 #' @export
 #' @concept visualization
 #' @examples
+#' \donttest{
 #' PeakPlot(atac_small, region = "chr1-710000-715000") + theme_browser()
+#' }
 theme_browser <- function(..., legend = TRUE) {
   browser.theme <- theme_classic() +
     theme(

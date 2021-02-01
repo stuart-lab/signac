@@ -37,6 +37,8 @@ and the plot will be able to be aligned with coverage tracks for the same
 groups of cells.
 }
 \examples{
+\donttest{
 ExpressionPlot(atac_small, features = "TSPAN6", assay = "RNA")
+}
 }
 \concept{visualization}
