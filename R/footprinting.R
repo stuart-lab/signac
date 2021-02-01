@@ -51,7 +51,7 @@ GetFootprintData <- function(
       fp <- fp[1:(nrow(x = fp) - 2), ]
       bg.norm <- lapply(X = all.groups, FUN = function(x) {
         cells.use <- names(x = obj.groups)[obj.groups == x]
-        mat.use <- fp[cells.use, ]
+        mat.use <- fp[cells.use, ,drop = FALSE]
         return(BackgroundMeanNorm(x = mat.use, background = 50))
       })
       bg.norm <- do.call(what = rbind, args = bg.norm)
