@@ -19,6 +19,8 @@ objects to avoid counts becoming inaccurate ([#332](https://github.com/timoast/s
 * Fix error when merging ChromatinAssay object ([#355](https://github.com/timoast/signac/issues/355))
 * Add more informative error message when all features or cells removed by parameter choices in `CreateChromatinAssay()` ([#387](https://github.com/timoast/signac/issues/387))
 * Fix bug in `CreateChromatinAssay()` when setting both `min.cells` and `min.features` arguments ([#390](https://github.com/timoast/signac/issues/390))
+* Improved support for remote fragment files
+* Fixed bug in `PlotFootprint()` when only one cell in an identity class ([#406](https://github.com/timoast/signac/issues/406))
 
 Other changes:
 
