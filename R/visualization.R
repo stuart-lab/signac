@@ -867,7 +867,9 @@ TSSPlot <- function(
   enrichment.matrix <- positionEnrichment[["TSS"]]
 
   # remove motif and expected
-  enrichment.matrix <- enrichment.matrix[1:(nrow(x = enrichment.matrix) - 2), ]
+  if (nrow(x = enrichment.matrix) == (ncol(x = object) + 2)) {
+    enrichment.matrix <- enrichment.matrix[1:(nrow(x = enrichment.matrix) - 2), ]
+  }
 
   # average the signal per group per base
   obj.groups <- GetGroups(
