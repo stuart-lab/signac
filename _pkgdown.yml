@@ -8,7 +8,7 @@ navbar:
     - text: "News"
       href: news/index.html
     - text: "Get started"
-      href: articles/pbmc_vignette.html
+      href: articles/overview.html
     - text: "FAQ"
       href: articles/faq.html
     - text: "Vignettes"
@@ -50,6 +50,8 @@ navbar:
       href: reference/index.html
     - text: "Archive"
       href: articles/archive.html
+    - text: "Discussions"
+      href: https://github.com/timoast/signac/discussions
   right:
     - icon: fa-github
       href: https://github.com/timoast/signac
