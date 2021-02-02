@@ -2,6 +2,7 @@
 #include <zlib.h>
 #include <iostream>
 #include <fstream>
+#include <memory>
 
 
 // [[Rcpp::export]]
@@ -31,13 +32,15 @@ int splitFragments(
   gzFile ifileHandler = gzopen(fragments.c_str(), "rb");
 
   // open one output file for each unique ident
-  std::ofstream streams[unique_idents.size()];
-  for (size_t i = 0; i < unique_idents.size(); i++) {
+  //std::ofstream streams[unique_idents.size()];
+  size_t num_idents = unique_idents.size();
+  std::vector<std::shared_ptr<std::ofstream>> streams;
+  for (size_t i = 0; i < num_idents; i++) {
     std::string fileName = outdir + unique_idents[i] + suffix + ".bed";
     if (append) {
-      streams[i].open(fileName.c_str(), std::ios_base::app);
+      streams.push_back( std::make_shared<std::ofstream>( std::ofstream {fileName.c_str(), std::ios_base::app} ) );
     } else {
-      streams[i].open(fileName.c_str());
+      streams.push_back( std::make_shared<std::ofstream>( fileName.c_str() ) );
     }
   }
 
@@ -96,7 +99,7 @@ int splitFragments(
           int index = std::distance(unique_idents.begin(), iter);
 
           // write to correct stream for given ident
-          streams[index] << line_seq.c_str();
+          *streams[index] << line_seq.c_str();
         }
       }
     }
@@ -121,9 +124,6 @@ int splitFragments(
 
   // Cleanup
   gzclose(ifileHandler);
-  for (int i = 0; i < unique_idents.size(); i++) {
-    streams[i].close();
-  }
 
   return 0;
 }
