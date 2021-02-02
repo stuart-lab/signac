@@ -34,14 +34,18 @@ int splitFragments(
   // open one output file for each unique ident
   //std::ofstream streams[unique_idents.size()];
   size_t num_idents = unique_idents.size();
-  std::vector<std::shared_ptr<std::ofstream>> streams(num_idents);
+  std::vector<std::shared_ptr<std::ofstream>> streams;
   for (size_t i = 0; i < num_idents; i++) {
     std::string fileName = outdir + unique_idents[i] + suffix + ".bed";
+    std::shared_ptr<std::ofstream> out(new std::ofstream);
+
     if (append) {
-      streams[i]->open( fileName.c_str(), std::ios_base::app );
+      out->open( fileName.c_str(), std::ios_base::app );
     } else {
-      streams[i]->open( fileName.c_str() );
+      out->open( fileName.c_str() );
     }
+ 
+    streams.push_back(out);
   }
 
   // return 1 if it can't find the file
