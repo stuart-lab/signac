@@ -140,6 +140,6 @@ in a single MACS invocation. Returns the \code{.narrowPeak} MACS output as a
 See \url{https://macs3-project.github.io/MACS/} for MACS documentation.
 
 If you call peaks using MACS2 please cite:
-\url{https://doi.org/10.1186/gb-2008-9-9-r137}
+\doi{10.1186/gb-2008-9-9-r137}
 }
 \concept{quantification}

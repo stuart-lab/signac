@@ -69,6 +69,6 @@ coefficent values for the peak are then used to compute a z-score and p-value.
 \details{
 This function was inspired by the method originally described by SHARE-seq
 (Sai Ma et al. 2020, Cell). Please consider citing the original SHARE-seq
-work if using this function: \url{https://doi.org/10.1016/j.cell.2020.09.056}
+work if using this function: \doi{10.1016/j.cell.2020.09.056}
 }
 \concept{links}

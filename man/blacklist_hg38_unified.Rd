@@ -10,7 +10,7 @@ A GRanges object
 \source{
 \url{https://www.encodeproject.org/files/ENCFF356LFX/}
 
-\url{https://doi.org/10.1038/s41598-019-45839-z}
+\doi{10.1038/s41598-019-45839-z}
 }
 \usage{
 blacklist_hg38_unified

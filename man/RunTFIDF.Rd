@@ -46,10 +46,10 @@ RunTFIDF(object, ...)
 \item{method}{Which TF-IDF implementation to use. Choice of:
 \itemize{
  \item{1}: The TF-IDF implementation used by Stuart & Butler et al. 2019
- (\url{https://doi.org/10.1101/460147}). This computes
+ (\doi{10.1101/460147}). This computes
  \eqn{\log(TF \times IDF)}.
  \item{2}: The TF-IDF implementation used by Cusanovich & Hill
- et al. 2018 (\url{https://doi.org/10.1016/j.cell.2018.06.052}). This
+ et al. 2018 (\doi{10.1016/j.cell.2018.06.052}). This
  computes \eqn{TF \times (\log(IDF))}.
  \item{3}: The log-TF method used by Andrew Hill.
  This computes \eqn{\log(TF) \times \log(IDF)}.
