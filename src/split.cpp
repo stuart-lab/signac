@@ -37,11 +37,15 @@ int splitFragments(
   std::vector<std::shared_ptr<std::ofstream>> streams;
   for (size_t i = 0; i < num_idents; i++) {
     std::string fileName = outdir + unique_idents[i] + suffix + ".bed";
+    std::shared_ptr<std::ofstream> out(new std::ofstream);
+
     if (append) {
-      streams.push_back( std::make_shared<std::ofstream>( std::ofstream {fileName.c_str(), std::ios_base::app} ) );
+      out->open( fileName.c_str(), std::ios_base::app );
     } else {
-      streams.push_back( std::make_shared<std::ofstream>( fileName.c_str() ) );
+      out->open( fileName.c_str() );
     }
+ 
+    streams.push_back(out);
   }
 
   // return 1 if it can't find the file
