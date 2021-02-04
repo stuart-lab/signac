@@ -1,7 +1,7 @@
 FROM satijalab/seurat:latest
 
 # Install system dependencies
-RUN apt-get update
+RUN apt-get update --fix-missing
 RUN apt-get install -y software-properties-common
 RUN add-apt-repository -y ppa:git-core/ppa
 RUN apt-get update
