@@ -14,3 +14,4 @@ cran-comments.md
 index.*
 .github/
 Dockerfile
+^CRAN-RELEASE$
