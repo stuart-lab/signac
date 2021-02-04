@@ -110,7 +110,7 @@ knitr::include_graphics("./assets/monocle.png")
 ## [Finding co-accessible sites with Cicero](cicero.html)
 
 Here we demonstrate how to find co-accessible peaks in scATAC-seq data using the
-Cicero package and coversion functions present in SeuratWrappers.
+Cicero package and conversion functions present in SeuratWrappers.
 
 ```{r echo=FALSE, out.height="30%"}
 knitr::include_graphics("./assets/cicero.png")
@@ -129,7 +129,7 @@ knitr::include_graphics("./assets/viz.png")
 
 Here we demonstrate two different approaches for the integration of multiple 
 scATAC-seq datasets, as well as label transfer from a reference scATAC-seq
-dataset to an unlabelled query dataset.
+dataset to an unlabeled query dataset.
 
 ```{r echo=FALSE, out.height="30%"}
 knitr::include_graphics("./assets/integration.png")
@@ -150,4 +150,4 @@ perform common analysis tasks.
 
 This vignette demonstrates how to enable parallel computing in Signac and Seurat,
 and gives an example of the amount of speedup that might be expected from 
-enabling paralellization. 
+enabling parallelization. 

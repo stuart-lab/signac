@@ -190,7 +190,7 @@ genomic position) to the bottom of the combined tracks.
 
 Above we've shown how to create genomic plot panels individually and how to
 combine them. This allows more control over how each panel is constructed and 
-how they're combined, but involves multiple steps. For convienence, we've
+how they're combined, but involves multiple steps. For convenience, we've
 included the ability to generate and combine different panels automatically in
 the `CoveragePlot()` function, through the `annotation`, `peaks`, `tile`, and
 `features` arguments. We can generate a similar plot to that shown above in a

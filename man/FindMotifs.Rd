@@ -36,7 +36,7 @@ This can be added using the
 Returns a data frame
 }
 \description{
-Find motifs overrepresented in a given set of genomic features.
+Find motifs over-represented in a given set of genomic features.
 Computes the number of features containing the motif (observed) and
 compares this to the total number of features containing the
 motif (background) using the hypergeometric test.

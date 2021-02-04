@@ -70,7 +70,7 @@ Motif <- setClass(
 
 #' The ChromatinAssay class
 #'
-#' The ChramatinAssay object is an extended \code{\link[SeuratObject]{Assay}}
+#' The ChromatinAssay object is an extended \code{\link[SeuratObject]{Assay}}
 #' for the storage and analysis of single-cell chromatin data.
 #'
 #' @slot ranges A \code{\link[GenomicRanges]{GRanges}} object describing the
@@ -306,7 +306,7 @@ CreateChromatinAssay <- function(
 #' @param fragments A list of \code{\link{Fragment}} objects
 #' @param bias Tn5 integration bias matrix
 #' @param positionEnrichment A named list of position enrichment matrices.
-#' @param sep Charaters used to separate the chromosome, start, and end
+#' @param sep Characters used to separate the chromosome, start, and end
 #' coordinates in the row names of the data matrix
 #'
 #' @rdname as.ChromatinAssay

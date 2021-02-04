@@ -253,7 +253,7 @@ this is a named vector where the elements of the vector are the cell names as
 they appear in the fragment file, and the name of each element is the cell
 name as it appears in the `ChromatinAssay` object storing the `Fragment`
 object. This allows a mapping of cell names on disk to cell names in R, and 
-avoids the need to alter fragement files on disk. This path can also be a remote
+avoids the need to alter fragment files on disk. This path can also be a remote
 file accessible by `http` or `ftp`.
 
 ### Constructing the `Fragment` class

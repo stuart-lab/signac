@@ -4,7 +4,7 @@ NULL
 
 #' Calculate the Jaccard index between two matrices
 #'
-#' Finds the Jaccard similarity between rows of the two matricies. Note that
+#' Finds the Jaccard similarity between rows of the two matrices. Note that
 #' the matrices must be binary, and any rows with zero total counts will result
 #' in an NaN entry that could cause problems in downstream analyses.
 #'

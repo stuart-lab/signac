@@ -41,7 +41,7 @@ can be provided and the sequence information will be downloaded from UCSC.}
 
 \item{positionEnrichment}{A named list of position enrichment matrices.}
 
-\item{sep}{Charaters used to separate the chromosome, start, and end
+\item{sep}{Characters used to separate the chromosome, start, and end
 coordinates in the row names of the data matrix}
 }
 \description{

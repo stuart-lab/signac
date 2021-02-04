@@ -219,7 +219,7 @@ RunChromVAR.Seurat <- function(
 globalVariables(names = "pvalue", package = "Signac")
 #' FindMotifs
 #'
-#' Find motifs overrepresented in a given set of genomic features.
+#' Find motifs over-represented in a given set of genomic features.
 #' Computes the number of features containing the motif (observed) and
 #' compares this to the total number of features containing the
 #' motif (background) using the hypergeometric test.
@@ -380,7 +380,7 @@ ConvertMotifID.ChromatinAssay <- function(object, ...) {
   return(ConvertMotifID(object = motifs, ...))
 }
 
-#' @param assay For \code{Seurat} objectd. Name of assay to use.
+#' @param assay For \code{Seurat} object. Name of assay to use.
 #' If NULL, use the default assay
 #'
 #' @importFrom Seurat DefaultAssay

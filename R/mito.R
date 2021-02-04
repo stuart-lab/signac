@@ -171,9 +171,9 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
 #'
 #' Identify groups of related cells from allele frequency data. This will
 #' cluster the cells based on their allele frequencies, reorder the factor
-#' levels for the cluster identities by heirarchically clustering the collapsed
+#' levels for the cluster identities by hierarchical clustering the collapsed
 #' (pseudobulk) cluster allele frequencies, and set the variable features for
-#' the allele frequency assay to the order of features defined by heirarchal
+#' the allele frequency assay to the order of features defined by hierarchical
 #' clustering.
 #'
 #' @param object A Seurat object

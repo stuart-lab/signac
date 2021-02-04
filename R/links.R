@@ -155,7 +155,7 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' the gene expression and accessibility of each peak within a given distance
 #' from the gene TSS, and computes an expected correlation coefficient for each
 #' peak given the GC content, accessibility, and length of the peak. The expected
-#' coefficent values for the peak are then used to compute a z-score and p-value.
+#' coefficient values for the peak are then used to compute a z-score and p-value.
 #'
 #' This function was inspired by the method originally described by SHARE-seq
 #' (Sai Ma et al. 2020, Cell). Please consider citing the original SHARE-seq

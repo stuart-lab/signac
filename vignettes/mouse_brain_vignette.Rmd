@@ -355,7 +355,7 @@ head(closest_l456)
 ## Plotting genomic regions
 
 We can also create coverage plots grouped by cluster, cell type, or any other
-metadata stored in the obect for any genomic region using the `CoveragePlot()`
+metadata stored in the object for any genomic region using the `CoveragePlot()`
 function. These represent pseudo-bulk accessibility tracks, where signal from
 all cells within a group have been averaged together to visualize the DNA 
 accessibility in a region.

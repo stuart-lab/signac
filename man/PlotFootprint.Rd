@@ -29,7 +29,7 @@ PlotFootprint(
 
 \item{idents}{Set of identities to include in the plot}
 
-\item{label}{TRUE/FALSE value to control whether groups are labelled.}
+\item{label}{TRUE/FALSE value to control whether groups are labeled.}
 
 \item{repel}{Repel labels from each other}
 

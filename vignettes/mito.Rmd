@@ -253,7 +253,7 @@ VariantPlot(variants = variable.sites)
 The plot above clearly shows a group of variants with a higher VMR and strand
 concordance. In principle, a high strand concordance reduces the likelihood of
 the allele frequency being driven by sequencing error (which predominately
-occurson one but not the other strand. This is due to the preceding nucleotide 
+occurs on one but not the other strand. This is due to the preceding nucleotide 
 content and a common error in mtDNA genotyping). On the other hand, variants
 that have a high VMR are more likely to be clonal variants as the alternate
 alleles tend to aggregate in certain cells rather than be equivalently

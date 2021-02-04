@@ -64,7 +64,7 @@ globalVariables(
 #' main footprint plot
 #' @param normalization Method to normalize for Tn5 DNA sequence bias. Options
 #' are "subtract", "divide", or NULL to perform no bias correction.
-#' @param label TRUE/FALSE value to control whether groups are labelled.
+#' @param label TRUE/FALSE value to control whether groups are labeled.
 #' @param repel Repel labels from each other
 #' @param label.top Number of groups to label based on highest accessibility
 #' in motif flanking region.

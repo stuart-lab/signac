@@ -445,12 +445,12 @@ GetTSSPositions <- function(ranges) {
   return(tss)
 }
 
-#' Find interesecting regions between two objects
+#' Find intersecting regions between two objects
 #'
 #' Intersects the regions stored in the rownames of two objects and
-#' returns a vector containing the names of rows that interesect
+#' returns a vector containing the names of rows that intersect
 #' for each object. The order of the row names return corresponds
-#' to the intersecting regions, ie the nth feature of the first vector
+#' to the intersecting regions, i.e. the nth feature of the first vector
 #' will intersect the nth feature in the second vector. A distance
 #' parameter can be given, in which case features within the given
 #' distance will be called as intersecting.

@@ -28,7 +28,7 @@ ConvertMotifID(object, ...)
 \item{id}{A vector of motif IDs. Only one of \code{name} and \code{id} should
 be supplied}
 
-\item{assay}{For \code{Seurat} objectd. Name of assay to use.
+\item{assay}{For \code{Seurat} object. Name of assay to use.
 If NULL, use the default assay}
 }
 \value{
