@@ -1,4 +1,4 @@
-# Unreleased
+# Signac 1.1.1 
 
 New functionality:
 
