@@ -84,4 +84,5 @@ Suggests:
     motifmatchr,
     BSgenome,
     shiny,
-    miniUI
+    miniUI,
+    rtracklayer

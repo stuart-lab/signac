@@ -22,6 +22,8 @@ CoveragePlot(
   tile = FALSE,
   tile.size = 100,
   tile.cells = 100,
+  bigwig = NULL,
+  bigwig.type = "coverage",
   heights = NULL,
   group.by = NULL,
   window = 100,
@@ -85,6 +87,14 @@ If NULL, do not color by any variable.}
 
 \item{tile.cells}{Number of cells to display fragment information for in tile
 plot.}
+
+\item{bigwig}{List of bigWig file paths to plot data from. Files can be
+remotely hosted. The name of each element in the list will determine the
+y-axis label given to the track.}
+
+\item{bigwig.type}{Type of track to use for bigWig files ("line", "heatmap",
+or "coverage"). Should either be a single value, or a list of values giving
+the type for each individual track in the provided list of bigwig files.}
 
 \item{heights}{Relative heights for each track (accessibility, gene
 annotations, peaks, links).}

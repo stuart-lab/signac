@@ -3,6 +3,105 @@
 #'
 NULL
 
+globalVariables(names = c("bin", "score"), package = "Signac")
+#' Plot data from BigWig
+#'
+#' Create a BigWig track. Note that this function does not work on windows.
+#'
+#' @param region GRanges object specifying region to plot
+#' @param bigwig Path to a bigwig file
+#' @param smooth Number of bases to smooth data over (rolling mean). If NULL,
+#' do not apply smoothing.
+#' @param type Plot type. Can be one of "line", "heatmap", or "coverage"
+#' @param y_label Y-axis label
+#' @param max.downsample Minimum number of positions kept when downsampling.
+#' Downsampling rate is adaptive to the window size, but this parameter will set
+#' the minimum possible number of positions to include so that plots do not
+#' become too sparse when the window size is small.
+#' @param downsample.rate Fraction of positions to retain when downsampling.
+#' Retaining more positions can give a higher-resolution plot but can make the
+#' number of points large, resulting in larger file sizes when saving the plot
+#' and a longer period of time needed to draw the plot.
+#'
+#' @importFrom ggplot2 ggplot aes_string geom_line geom_tile xlab ylab geom_area
+#' scale_fill_viridis_c
+#' @importFrom RcppRoll roll_mean
+#' @importFrom GenomicRanges start end seqnames width
+#' @importFrom dplyr slice_sample group_by mutate ungroup
+#' @concept visualization
+#'
+#' @export
+BigwigTrack <- function(
+  region,
+  bigwig,
+  smooth = 200,
+  type = "coverage",
+  y_label = "Score",
+  max.downsample = 3000,
+  downsample.rate = 0.1
+) {
+  possible_types <- c("line", "heatmap", "coverage")
+  if (!(type %in% possible_types)) {
+    stop(
+      "Invalid type requested. Choose ",
+      paste(possible_types, collapse = ", ")
+    )
+  }
+  if (.Platform$OS.type == "windows") {
+    message("BigwigTrack not supported on Windows")
+    return(NULL)
+  }
+  if (!requireNamespace("rtracklayer", quietly = TRUE)) {
+    message("Please install rtracklayer. http://www.bioconductor.org/packages/rtracklayer/")
+    return(NULL)
+  }
+  if (!inherits(x = region, what = "GRanges")) {
+    stop("region should be a GRanges object")
+  }
+  region_data <- rtracklayer::import(
+    con = bigwig,
+    which = region,
+    as = "NumericList"
+  )[[1]]
+  if (!is.null(x = smooth)) {
+    region_data <- roll_mean(x = region_data, n = smooth, fill = 0L)
+  }
+  region_data <- data.frame(
+    position = start(x = region):end(x = region),
+    score = region_data,
+    stringsAsFactors = FALSE
+  )
+  window.size = width(x = region)
+  sampling <- min(max.downsample, window.size * downsample.rate)
+  coverages <- slice_sample(.data = region_data, n = sampling)
+  p <- ggplot(
+    data = coverages,
+    mapping = aes_string(x = "position", y = "score")
+  )
+  if (type == "line") {
+    p <- p + geom_line()
+  } else if (type == "heatmap") {
+    # different downsampling needed for heatmap
+    # cut into n bins and average within each bin
+    region_data$bin <- floor(x = region_data$position / smooth)
+    region_data <- group_by(region_data, bin)
+    region_data <- mutate(region_data, score = mean(x = score))
+    region_data <- ungroup(region_data)
+    region_data <- unique(x = region_data[, c("bin", "score")])
+    p <- ggplot(
+      data = region_data,
+      mapping = aes_string(x = "bin", y = 1, fill = "score")
+    ) + geom_tile() + scale_fill_viridis_c()
+  } else if (type == "coverage") {
+    p <- p + geom_area()
+  }
+  chromosome <- as.character(x = seqnames(x = region))
+  p <- p + theme_browser() +
+    xlab(label = paste0(chromosome, " position (bp)")) +
+    ylab(label = y_label)
+  return(p)
+}
+
 globalVariables(names = c("Component", "counts"), package = "Signac")
 #' Plot sequencing depth correlation
 #'
@@ -251,6 +350,8 @@ SingleCoveragePlot <- function(
   tile = FALSE,
   tile.size = 100,
   tile.cells = 100,
+  bigwig = NULL,
+  bigwig.type = "coverage",
   group.by = NULL,
   window = 100,
   extend.upstream = 0,
@@ -318,6 +419,30 @@ SingleCoveragePlot <- function(
     downsample.rate = downsample.rate,
     max.downsample = max.downsample
   )
+  # create bigwig tracks
+  if (!is.null(x = bigwig)) {
+    if (!inherits(x = bigwig, what = "list")) {
+      warning("BigWig should be a list of file paths")
+      bigwig <- list("bigWig" = bigwig)
+    }
+    if (length(x = bigwig.type == 1)) {
+      bigwig.type <- rep(x = bigwig.type, length(x = bigwig))
+    } else if (length(x = bigwig.type) != length(x = bigwig)) {
+      stop("Must supply a bigWig track type for each bigWig file")
+    }
+    # iterate over list of files
+    bigwig.tracks <- list()
+    for (i in seq_along(along.with = bigwig)) {
+      bigwig.tracks[[i]] <- BigwigTrack(
+        region = region,
+        bigwig = bigwig[[i]],
+        y_label = names(x = bigwig)[[i]],
+        type = bigwig.type[[i]]
+      )
+    }
+  } else {
+    bigwig.tracks <- NULL
+  }
   if (!is.null(x = features)) {
     ex.plot <- ExpressionPlot(
       object = object,
@@ -412,11 +537,20 @@ SingleCoveragePlot <- function(
     bulk.plot <- NULL
   }
   nident <- length(x = unique(x = obj.groups))
+  bulk.height <- (1 / nident) * 10
+  bw.height <- bulk.height * length(x = bigwig.tracks)
   heights <- SetIfNull(
-    x = heights, y = c(10, (1 / nident) * 10, 10, 2, 1, 1, 3)
+    x = heights, y = c(10, bulk.height, bw.height, 10, 2, 1, 1, 3)
   )
+  # pre-combine bigwig tracks
+  if (!is.null(x = bigwig.tracks)) {
+    bigwig.tracks <- CombineTracks(
+      plotlist = bigwig.tracks,
+      heights = rep(x = 1, length(x = bigwig.tracks))
+    )
+  }
   p <- CombineTracks(
-    plotlist = list(p, bulk.plot, tile.plot, gene.plot,
+    plotlist = list(p, bulk.plot, bigwig.tracks, tile.plot, gene.plot,
                     peak.plot, range.plot, link.plot),
     expression.plot = ex.plot,
     heights = heights,
@@ -554,6 +688,12 @@ CoverageTrack <- function(
 #' @param tile.size Size of the sliding window for per-cell fragment tile plot
 #' @param tile.cells Number of cells to display fragment information for in tile
 #' plot.
+#' @param bigwig List of bigWig file paths to plot data from. Files can be
+#' remotely hosted. The name of each element in the list will determine the
+#' y-axis label given to the track.
+#' @param bigwig.type Type of track to use for bigWig files ("line", "heatmap",
+#' or "coverage"). Should either be a single value, or a list of values giving
+#' the type for each individual track in the provided list of bigwig files.
 #' @param cells Which cells to plot. Default all cells
 #' @param idents Which identities to include in the plot. Default is all
 #' identities.
@@ -615,6 +755,8 @@ CoveragePlot <- function(
   tile = FALSE,
   tile.size = 100,
   tile.cells = 100,
+  bigwig = NULL,
+  bigwig.type = "coverage",
   heights = NULL,
   group.by = NULL,
   window = 100,
@@ -651,6 +793,8 @@ CoveragePlot <- function(
           tile = tile,
           tile.size = tile.size,
           tile.cells = tile.cells,
+          bigwig = bigwig,
+          bigwig.type = bigwig.type,
           group.by = group.by,
           window = window,
           ymax = ymax,
@@ -686,6 +830,8 @@ CoveragePlot <- function(
       tile = tile,
       tile.size = tile.size,
       tile.cells = tile.cells,
+      bigwig = bigwig,
+      bigwig.type = bigwig.type,
       group.by = group.by,
       window = window,
       extend.upstream = extend.upstream,
