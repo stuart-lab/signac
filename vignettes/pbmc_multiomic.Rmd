@@ -289,6 +289,11 @@ p2 <- CoveragePlot(
 patchwork::wrap_plots(p1, p2, ncol = 1)
 ```
 
+```{r include=FALSE}
+saveRDS(object = pbmc, file = "../vignette_data/pbmc_multiomic.rds")
+```
+
+
 <details>
   <summary>**Session Info**</summary>
   
