@@ -6,6 +6,10 @@ New functionality:
 * Added `bigwig` and `bigwig.type` arguments to `CoveragePlot()` to
 include bigWig files in `CoveragePlot()`
 
+Other changes:
+
+* Improved speed of ChromatinAssay merging
+
 # Signac 1.1.1 
 
 New functionality:
