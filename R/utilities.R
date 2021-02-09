@@ -1008,6 +1008,18 @@ SubsetMatrix <- function(
 
 #### Not exported ####
 
+#' @importFrom IRanges isDisjoint
+NonOverlapping <- function(x, all.features) {
+  # x is list of assays
+  diff.features <- names(x = all.features[all.features < length(x = x)])
+  if (length(x = diff.features) == 0) {
+    return(TRUE)
+  } else {
+    diff.ranges <- StringToGRanges(regions = diff.features)
+    return(isDisjoint(x = diff.ranges))
+  }
+}
+
 #' @importFrom Matrix sparseMatrix
 AddMissingCells <- function(x, cells) {
   # add columns with zeros for cells not in matrix

@@ -1102,43 +1102,74 @@ merge.ChromatinAssay <- function(
     all.frag <- all.frag[valid.frags]
   }
 
-  # merge counts
-  # merge data if all features exactly the same
+  # check that all features are equal
+  all.features <- lapply(X = assays, FUN = rownames)
+  all.features <- table(do.call(what = c, args = all.features))
+  all.identical <- all(all.features == length(x = assays))
 
-  # check that all features are not equal
-  all.features <- sapply(X = assays, FUN = rownames)
-  all.features <- Reduce(f = c, x = all.features)
+  # find whether the unique ranges are all disjoint
+  all.nonoverlapping <- NonOverlapping(x = assays, all.features = all.features)
 
-  if (all(table(all.features) == length(x = assays))) {
-    # exact same features, can just run cbind
-    # can also merge data and scaledata
+  if (all.identical | all.nonoverlapping) {
+    # no non-identical but overlapping features present
     merged.counts <- list()
     merged.data <- list()
-    merged.scaledata <- list()
-    feat.use <- rownames(x = assays[[1]])
-    for (i in seq_along(along.with = assays)) {
-      # check that counts are present
-      # can be removed by DietSeurat
-      assay.counts <- GetAssayData(object = assays[[i]], slot = "counts")
-      if (nrow(x = assay.counts) > 0) {
-        merged.counts[[i]] <- assay.counts[feat.use, ]
-      } else {
-        merged.counts[[i]] <- assay.counts
+    if (all.identical) {
+      feat.use <- rownames(x = assays[[1]])
+      for (i in seq_along(along.with = assays)) {
+        # check that counts are present
+        # can be removed by DietSeurat
+        assay.counts <- GetAssayData(object = assays[[i]], slot = "counts")
+        if (nrow(x = assay.counts) > 0) {
+          merged.counts[[i]] <- assay.counts[feat.use, ]
+        } else {
+          merged.counts[[i]] <- assay.counts
+        }
+        merged.data[[i]] <- GetAssayData(
+          object = assays[[i]], slot = "data"
+        )[feat.use, ]
       }
-      merged.data[[i]] <- GetAssayData(
-        object = assays[[i]], slot = "data"
-      )[feat.use, ]
-      assay.scale <- GetAssayData(object = assays[[i]], slot = "scale.data")
-      if (nrow(x = assay.scale) > 0) {
-        merged.scaledata[[i]] <- assay.scale[feat.use, ]
+      # exact same features, can just run cbind
+      # can also merge data and scaledata
+      merged.counts <- do.call(what = cbind, args = merged.counts)
+      merged.data <- do.call(what = cbind, args = merged.data)
+      reduced.ranges <- granges(x = assays[[1]])
+    } else {
+      # disjoint
+      all.counts <- list()
+      all.data <- list()
+      for (i in seq_along(along.with = assays)) {
+        all.counts[[i]] <- GetAssayData(object = assays[[i]], slot = "counts")
+        all.data[[i]] <- GetAssayData(object = assays[[i]], slot = "data")
+      }
+      count_nonzero <- lapply(X = all.counts, FUN = ncol)
+      data_nonzero <- lapply(X = all.data, FUN = ncol)
+      if (all(count_nonzero > 0)) {
+        merged.counts <- RowMergeSparseMatrices(
+          mat1 = all.counts[[1]],
+          mat2 = all.counts[[2:length(x = all.counts)]]
+        )
+        reduced.ranges <- StringToGRanges(regions = rownames(x = merged.counts))
       } else {
-        merged.scaledata <- assay.scale
+        merged.counts <- matrix(nrow = 0, ncol = 0)
+        reduced.ranges <- NULL
+      }
+      if (all(data_nonzero > 0)) {
+        merged.data <- RowMergeSparseMatrices(
+          mat1 = all.data[[1]],
+          mat2 = all.data[[2:length(x = all.data)]]
+        )
+        reduced.ranges <- SetIfNull(
+          x = reduced.ranges,
+          y = StringToGRanges(regions = rownames(x = merged.data))
+        )
+      } else {
+        merged.data <- matrix(nrow = 0, ncol = 0)
+      }
+      if (is.null(x = reduced.ranges)) {
+        stop("No counts or data in the assay")
       }
     }
-    merged.counts <- Reduce(f = cbind, x = merged.counts)
-    merged.data <- Reduce(f = cbind, x = merged.data)
-    merged.scaledata <- Reduce(f = cbind, x = merged.scaledata)
-    reduced.ranges <- granges(x = assays[[1]])
 
     # create new ChromatinAssay object
     # bias, motifs, positionEnrichment, metafeatures not kept
@@ -1173,11 +1204,6 @@ merge.ChromatinAssay <- function(
         annotation = annot.use,
         bias = NULL,
         validate.fragments = FALSE
-      )
-    }
-    if (!is.null(x = merged.scaledata)) {
-      new.assay <- SetAssayData(
-        object = new.assay, slot = "scale.data", new.data = merged.scaledata
       )
     }
   } else {
