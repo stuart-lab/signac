@@ -1770,12 +1770,16 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
     nrep <- elementNROWS(x = reads)
   }
   reads <- unlist(x = reads, use.names = FALSE)
+  if (length(x = reads) == 1) {
+    reads <- paste0(reads, "\n")
+  }
   df <- fread(
     text = reads,
     sep = "\t",
     header = FALSE,
     col.names = c("chr", "start", "end", "cell", "count"),
-    fill = TRUE
+    fill = TRUE,
+    blank.lines.skip = TRUE
   )
   if (nrow(x = df) != length(x = reads)) {
     df <- df[!is.na(x = df$start), ]
