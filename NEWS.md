@@ -6,6 +6,10 @@ New functionality:
 * Added `bigwig` and `bigwig.type` arguments to `CoveragePlot()` to
 include bigWig files in `CoveragePlot()`
 
+Bug fixes:
+
+* Fixed fragment file reading when only one fragment found in requested region ([#474](https://github.com/timoast/signac/issues/474))
+
 Other changes:
 
 * Improved speed of ChromatinAssay merging
