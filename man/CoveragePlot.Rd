@@ -18,6 +18,7 @@ CoveragePlot(
   ranges = NULL,
   ranges.group.by = NULL,
   ranges.title = "Ranges",
+  region.highlight = NULL,
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -78,6 +79,12 @@ If NULL, do not color by any variable.}
 
 \item{ranges.title}{Y-axis title for ranges track. Only relevant if
 \code{ranges} parameter is set.}
+
+\item{region.highlight}{Region to highlight on the plot. Should be a GRanges
+object containing the coordinates to highlight. By default, regions will be
+highlighted in grey. To change the color of the highlighting, include a
+metadata column in the GRanges object named "color" containing the color to
+use for each region.}
 
 \item{links}{Display links}
 

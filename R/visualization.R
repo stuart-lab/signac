@@ -346,6 +346,7 @@ SingleCoveragePlot <- function(
   ranges = NULL,
   ranges.group.by = NULL,
   ranges.title = "Ranges",
+  region.highlight = NULL,
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -416,6 +417,7 @@ SingleCoveragePlot <- function(
     window = window,
     ymax = ymax,
     obj.groups = obj.groups,
+    region.highlight = region.highlight,
     downsample.rate = downsample.rate,
     max.downsample = max.downsample
   )
@@ -567,7 +569,7 @@ SingleCoveragePlot <- function(
 #
 #' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic
 #' aes ylim theme element_blank element_text geom_segment scale_color_identity
-#' scale_fill_manual
+#' scale_fill_manual geom_rect aes_string
 #' @importFrom IRanges IRanges width
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom Matrix colSums
@@ -577,6 +579,7 @@ SingleCoveragePlot <- function(
 #' @importFrom methods is
 #' @importFrom GenomicRanges GRanges
 #' @importFrom scales hue_pal
+#' @importFrom S4Vectors mcols
 #' @importMethodsFrom GenomicRanges start end
 CoverageTrack <- function(
   cutmat,
@@ -586,6 +589,7 @@ CoverageTrack <- function(
   obj.groups,
   ymax,
   downsample.rate,
+  region.highlight = NULL,
   window = 100,
   max.downsample = 3000
 ) {
@@ -643,9 +647,50 @@ CoverageTrack <- function(
                         as.character(x = ymin), " - ",
                         as.character(x = ymax), ")")) +
     ylim(c(ymin, ymax)) +
-    theme_browser(legend = FALSE)
+    theme_browser(legend = FALSE) +
+    theme(panel.spacing.y = unit(x = 0, units = "line"))
   if (!is.null(x = levels.use)) {
     p <- p + scale_fill_manual(values = colors_all)
+  }
+  if (!is.null(x = region.highlight)) {
+    if (!inherits(x = region.highlight, what = "GRanges")) {
+      warning("region.highlight must be a GRanges object")
+    } else {
+      md <- mcols(x = region.highlight)
+      if ("color" %in% colnames(x = md)) {
+        color.use <- md$color
+      } else {
+        color.use <- rep(x = "grey", length(x = region.highlight))
+      }
+      df <- data.frame(
+        "start" = start(x = region.highlight),
+        "end" = end(x = region.highlight),
+        "color" = color.use
+      )
+      df$start <- ifelse(
+        test = df$start < start.pos,
+        yes = start.pos,
+        no = df$start
+      )
+      df$end <- ifelse(
+        test = df$end > end.pos,
+        yes = end.pos,
+        no = df$end
+      )
+      p <- p +
+        geom_rect(
+          data = df,
+          inherit.aes = FALSE,
+          aes_string(
+            xmin = "start",
+            xmax = "end",
+            ymin = 0,
+            ymax = ymax),
+          fill = rep(x = df$color, length(x = unique(x = coverages$group))),
+          color = "transparent",
+          alpha = 0.2
+        )
+    }
   }
   return(p)
 }
@@ -683,6 +728,11 @@ CoverageTrack <- function(
 #' If NULL, do not color by any variable.
 #' @param ranges.title Y-axis title for ranges track. Only relevant if
 #' \code{ranges} parameter is set.
+#' @param region.highlight Region to highlight on the plot. Should be a GRanges
+#' object containing the coordinates to highlight. By default, regions will be
+#' highlighted in grey. To change the color of the highlighting, include a
+#' metadata column in the GRanges object named "color" containing the color to
+#' use for each region.
 #' @param links Display links
 #' @param tile Display per-cell fragment information in sliding windows.
 #' @param tile.size Size of the sliding window for per-cell fragment tile plot
@@ -751,6 +801,7 @@ CoveragePlot <- function(
   ranges = NULL,
   ranges.group.by = NULL,
   ranges.title = "Ranges",
+  region.highlight = NULL,
   links = TRUE,
   tile = FALSE,
   tile.size = 100,
@@ -788,6 +839,7 @@ CoveragePlot <- function(
           ranges = ranges,
           ranges.group.by = ranges.group.by,
           ranges.title = ranges.title,
+          region.highlight = region.highlight,
           assay = assay,
           links = links,
           tile = tile,
@@ -825,6 +877,7 @@ CoveragePlot <- function(
       ranges = ranges,
       ranges.group.by = ranges.group.by,
       ranges.title = ranges.title,
+      region.highlight = region.highlight,
       assay = assay,
       links = links,
       tile = tile,
