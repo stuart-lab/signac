@@ -5,6 +5,7 @@ New functionality:
 * Added `BigwigTrack()` function to plot data from bigWig files
 * Added `bigwig` and `bigwig.type` arguments to `CoveragePlot()` to
 include bigWig files in `CoveragePlot()`
+* Added `region.highlight` parameter to `CoveragePlot()`
 
 Bug fixes:
 
