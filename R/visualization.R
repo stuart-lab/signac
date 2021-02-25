@@ -785,7 +785,23 @@ CoverageTrack <- function(
 #'   validate.fragments = FALSE
 #' )
 #' Fragments(atac_small) <- fragments
+#'
+#' # Basic coverage plot
 #' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"))
+#'
+#' # Show additional ranges
+#' ranges.show <- StringToGRanges("chr1-713750-714000")
+#' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), ranges = ranges.show)
+#'
+#' # Highlight region
+#' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), region.highlight = ranges.show)
+#'
+#' # Change highlight color
+#' ranges.show$color <- "orange"
+#' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), region.highlight = ranges.show)
+#'
+#' # Show expression data
+#' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), features = "ELK1")
 #' }
 CoveragePlot <- function(
   object,
