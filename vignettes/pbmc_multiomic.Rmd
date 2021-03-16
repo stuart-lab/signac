@@ -223,7 +223,7 @@ pbmc <- FindMultiModalNeighbors(
 # build a joint UMAP visualization
 pbmc <- RunUMAP(
   object = pbmc,
-  nn.name = "wknn",
+  nn.name = "weighted.nn",
   assay = "RNA",
   verbose = TRUE
 )
