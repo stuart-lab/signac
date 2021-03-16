@@ -401,7 +401,9 @@ GetGRangesFromEnsDb <- function(
 ) {
   # convert seqinfo to granges
   whole.genome <-  as(object = seqinfo(x = ensdb), Class = "GRanges")
-  whole.genome <- keepStandardChromosomes(whole.genome, pruning.mode = "coarse")
+  if (standard.chromosomes) {
+    whole.genome <- keepStandardChromosomes(whole.genome, pruning.mode = "coarse")
+  }
 
   # extract genes from each chromosome
   if (verbose) {

@@ -10,6 +10,7 @@ include bigWig files in `CoveragePlot()`
 Bug fixes:
 
 * Fixed fragment file reading when only one fragment found in requested region ([#474](https://github.com/timoast/signac/issues/474))
+* Fixed `standard.chromosomes` parameter in `GetGRangesFromEnsDb()` ([#513](https://github.com/timoast/signac/issues/513))
 
 Other changes:
 
