@@ -15,6 +15,7 @@ Bug fixes:
 Other changes:
 
 * Improved speed of ChromatinAssay merging
+* Improved error message for `TSSEnrichment()` ([#485](https://github.com/timoast/signac/issues/485))
 
 # Signac 1.1.1 
 

@@ -436,10 +436,14 @@ GetGRangesFromEnsDb <- function(
 #'
 #' @param ranges A GRanges object containing gene annotations.
 #' @importFrom GenomicRanges resize
+#' @importFrom S4Vectors mcols
 #' @export
 #' @concept utilities
 GetTSSPositions <- function(ranges) {
   # get protein coding genes
+  if (!("gene_biotype" %in% colnames(x = mcols(x = ranges)))) {
+    stop("Gene annotation does not contain gene_biotype information")
+  }
   ranges <- ranges[ranges$gene_biotype == "protein_coding"]
   gene.ranges <- CollapseToLongestTranscript(ranges = ranges)
   # shrink to TSS position
