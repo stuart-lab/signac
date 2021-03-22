@@ -79,7 +79,9 @@ GetFootprintData <- function(
     }
   })
   plot.data <- do.call(what = rbind, args = plot.data)
-  plot.data$group <- factor(x = plot.data$group, levels = levels.stash)
+  if (!is.null(x = levels.stash)) {
+    plot.data$group <- factor(x = plot.data$group, levels = levels.stash)
+  }
   return(plot.data)
 }
 
