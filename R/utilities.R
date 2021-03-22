@@ -1125,12 +1125,14 @@ CollapseToLongestTranscript <- function(ranges) {
         min(start),
         max(end),
         strand[[1]],
-        gene_biotype[[1]]),
-    "gene_name"
+        gene_biotype[[1]],
+        gene_name[[1]]),
+    "gene_id"
   ]
   colnames(x = collapsed) <- c(
-    "gene_name", "seqnames", "start", "end", "strand", "gene_biotype"
+    "gene_id", "seqnames", "start", "end", "strand", "gene_biotype", "gene_name"
   )
+  collapsed$gene_name <- make.unique(names = collapsed$gene_name)
   gene.ranges <- makeGRangesFromDataFrame(
     df = collapsed,
     keep.extra.columns = TRUE
