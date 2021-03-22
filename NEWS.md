@@ -11,6 +11,7 @@ Bug fixes:
 
 * Fixed fragment file reading when only one fragment found in requested region ([#474](https://github.com/timoast/signac/issues/474))
 * Fixed `standard.chromosomes` parameter in `GetGRangesFromEnsDb()` ([#513](https://github.com/timoast/signac/issues/513))
+* Fixed `group.by` parameter in `PlotFootprint()` ([#522](https://github.com/timoast/signac/issues/522))
 
 Other changes:
 
