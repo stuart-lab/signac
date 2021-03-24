@@ -1804,29 +1804,31 @@ ApplyMatrixByGroup <- function(
 # @param reads List of character vectors (the output of \code{\link{scanTabix}})
 # @param record.ident Add a column recording which region the reads overlapped
 # with
-#' @importFrom data.table rbindlist fread
-#' @importFrom utils read.table
+#' @importFrom stringi stri_split_fixed
 #' @importFrom S4Vectors elementNROWS
-# @return Returns a data.frame
 TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
   if (record.ident) {
     nrep <- elementNROWS(x = reads)
   }
   reads <- unlist(x = reads, use.names = FALSE)
-  if (length(x = reads) == 1) {
-    reads <- paste0(reads, "\n")
-  }
-  df <- fread(
-    text = reads,
-    sep = "\t",
-    header = FALSE,
-    col.names = c("chr", "start", "end", "cell", "count"),
-    fill = TRUE,
-    blank.lines.skip = TRUE
+  reads <- stri_split_fixed(str = reads, pattern = "\t")
+  n <- length(x = reads[[1]])
+  unlisted <- unlist(x = reads)
+  e1 <- unlisted[n * (seq_along(along.with = reads)) - (n - 1)]
+  e2 <- as.numeric(x = unlisted[n * (seq_along(along.with = reads)) - (n - 2)])
+  e3 <- as.numeric(x = unlisted[n * (seq_along(along.with = reads)) - (n - 3)])
+  e4 <- unlisted[n * (seq_along(along.with = reads)) - (n - 4)]
+  e5 <- as.numeric(x = unlisted[n * (seq_along(along.with = reads)) - (n - 5)])
+  df <- data.frame(
+    "chr" = e1,
+    "start" = e2,
+    "end" = e3,
+    "cell" = e4,
+    "count" = e5,
+    stringsAsFactors = FALSE,
+    check.rows = FALSE,
+    check.names = FALSE
   )
-  if (nrow(x = df) != length(x = reads)) {
-    df <- df[!is.na(x = df$start), ]
-  }
   if (record.ident) {
     df$ident <- rep(x = seq_along(along.with = nrep), nrep)
   }
