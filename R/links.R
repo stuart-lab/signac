@@ -21,6 +21,9 @@ GetLinkedPeaks <- function(
   min.abs.score = 0
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+    stop("The requested assay is not a ChromatinAssay")
+  }
   lnk <- Links(object = object[[assay]])
   if (length(x = lnk) == 0) {
     stop("No links present in assay. Run LinkPeaks first.")
@@ -48,6 +51,9 @@ GetLinkedGenes <- function(
   min.abs.score = 0
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+    stop("The requested assay is not a ChromatinAssay")
+  }
   lnk <- Links(object = object[[assay]])
   if (length(x = lnk) == 0) {
     stop("No links present in assay. Run LinkPeaks first.")
@@ -210,6 +216,9 @@ LinkPeaks <- function(
   score_cutoff = 0.05,
   verbose = TRUE
 ) {
+  if (!inherits(x = object[[peak.assay]], what = "ChromatinAssay")) {
+    stop("The requested assay is not a ChromatinAssay")
+  }
   if (is.null(x = gene.coords)) {
     gene.coords <- CollapseToLongestTranscript(
       ranges = Annotation(object = object[[peak.assay]])

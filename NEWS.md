@@ -19,6 +19,9 @@ Other changes:
 
 * Improved speed of ChromatinAssay merging
 * Improved error message for `TSSEnrichment()` ([#485](https://github.com/timoast/signac/issues/485))
+* Improved error messages when trying to run `ChromatinAssay`-specific functions
+on non-`ChromatinAssay` assays
+* Added `biotypes` parameter to `GeneActivity()` and `GetTSSPositions()` functions
 
 # Signac 1.1.1 
 

@@ -36,6 +36,9 @@ AddChromatinModule <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+    stop("The requested assay is not a ChromatinAssay.")
+  }
 
   # first find index of each feature
   feat.idx <- sapply(X = features, FUN = fmatch, rownames(x = object[[assay]]))
@@ -190,6 +193,7 @@ CellsPerGroup <- function(
 #' @importMethodsFrom GenomicRanges distanceToNearest
 #' @importFrom S4Vectors subjectHits mcols
 #' @importFrom methods is
+#' @importFrom Seurat DefaultAssay
 #' @return Returns a dataframe with the name of each region, the closest feature
 #' in the annotation, and the distance to the feature.
 #' @export
@@ -209,6 +213,14 @@ ClosestFeature <- function(
 ) {
   if (!is(object = regions, class2 = 'GRanges')) {
     regions <- StringToGRanges(regions = regions, ...)
+  }
+  if (inherits(x = object, what = "Seurat")) {
+    # running on Seurat object, extract the assay
+    assay <- DefaultAssay(object = object)
+    object <- object[[assay]]
+  }
+  if (!inherits(x = object, what = "ChromatinAssay")) {
+    stop("The requested assay is not a ChromatinAssay.")
   }
   annotation <- SetIfNull(x = annotation, y = Annotation(object = object))
   nearest_feature <- distanceToNearest(x = regions, subject = annotation)
@@ -311,8 +323,12 @@ FoldChange <- function(
 #' the annotations stored in the object
 #' @param extend.upstream Number of bases to extend upstream of the TSS
 #' @param extend.downstream Number of bases to extend downstream of the TTS
+#' @param biotypes Gene biotypes to include. If NULL, use all biotypes in the
+#' gene annotation.
 #' @param verbose Display messages
 #' @param ... Additional options passed to \code{\link{FeatureMatrix}}
+#'
+#' @return Returns a sparse matrix
 #'
 #' @concept utilities
 #' @export
@@ -332,11 +348,16 @@ GeneActivity <- function(
   features = NULL,
   extend.upstream = 2000,
   extend.downstream = 0,
+  biotypes = "protein_coding",
   verbose = TRUE,
   ...
 ) {
   # collapse to longest protein coding transcript
-  annotation <- Annotation(object = object)
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+    stop("The requested assay is not a ChromatinAssay.")
+  }
+  annotation <- Annotation(object = object[[assay]])
   if (length(x = annotation) == 0) {
     stop("No gene annotations present in object")
   }
@@ -344,7 +365,9 @@ GeneActivity <- function(
     message("Extracting gene coordinates")
   }
   transcripts <- CollapseToLongestTranscript(ranges = annotation)
-  transcripts <- transcripts[transcripts$gene_biotype == "protein_coding"]
+  if (!is.null(x = biotypes)) {
+    transcripts <- transcripts[transcripts$gene_biotype %in% biotypes]
+  }
 
   # filter genes if provided
   if (!is.null(x = features)) {
@@ -357,8 +380,6 @@ GeneActivity <- function(
     upstream = extend.upstream,
     downstream = extend.downstream
   )
-
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
 
   # quantify
   counts <- FeatureMatrix(
@@ -435,16 +456,19 @@ GetGRangesFromEnsDb <- function(
 #' transcript. Only protein coding gene biotypes are included in output.
 #'
 #' @param ranges A GRanges object containing gene annotations.
+#' @param biotypes Gene biotypes to include. If NULL, use all biotypes in the
+#' supplied gene annotation.
 #' @importFrom GenomicRanges resize
 #' @importFrom S4Vectors mcols
 #' @export
 #' @concept utilities
-GetTSSPositions <- function(ranges) {
-  # get protein coding genes
+GetTSSPositions <- function(ranges, biotypes = "protein_coding") {
   if (!("gene_biotype" %in% colnames(x = mcols(x = ranges)))) {
     stop("Gene annotation does not contain gene_biotype information")
   }
-  ranges <- ranges[ranges$gene_biotype == "protein_coding"]
+  if (!is.null(x = biotypes)){
+    ranges <- ranges[ranges$gene_biotype == "protein_coding"]
+  }
   gene.ranges <- CollapseToLongestTranscript(ranges = ranges)
   # shrink to TSS position
   tss <- resize(gene.ranges, width = 1, fix = 'start')
@@ -493,6 +517,14 @@ GetIntersectingFeatures <- function(
   distance = 0,
   verbose = TRUE
 ) {
+  assay.1 <- SetIfNull(x = assay.1, y = DefaultAssay(object = object.1))
+  assay.2 <- SetIfNull(x = assay.2, y = DefaultAssay(object = object.2))
+  if (!inherits(x = object.1[[assay.1]], what = "ChromatinAssay")) {
+    stop("Requested assay in object 1 is not a ChromatinAssay.")
+  }
+  if (!inherits(x = object.2[[assay.2]], what = "ChromatinAssay")) {
+    stop("Requested assay in object 2 is not a ChromatinAssay")
+  }
   regions.1 <- GetAssayData(object = object.1, assay = assay.1, slot = "ranges")
   regions.2 <- GetAssayData(object = object.2, assay = assay.2, slot = "ranges")
   if (verbose) {
@@ -817,6 +849,9 @@ IntersectMatrix <- function(
 #' LookupGeneCoords(atac_small, gene = "MIR1302-10")
 LookupGeneCoords <- function(object, gene, assay = NULL) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+    stop("The requested assay is not a ChromatinAssay")
+  }
   annotations <- Annotation(object = object[[assay]])
   annot.sub <- annotations[annotations$gene_name == gene]
   if (length(x = annot.sub) == 0) {

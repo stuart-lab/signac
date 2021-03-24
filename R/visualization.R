@@ -191,6 +191,10 @@ PlotFootprint <- function(
   label.top = 3,
   label.idents = NULL
 ) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+    stop("The requested assay is not a ChromatinAssay.")
+  }
   # TODO add option to show variance among cells
   plot.data <- GetFootprintData(
     object = object,
@@ -368,6 +372,9 @@ SingleCoveragePlot <- function(
 ) {
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+    stop("Requested assay is not a ChromatinAssay.")
+  }
   if (!is.null(x = group.by)) {
     Idents(object = object) <- group.by
   }
@@ -929,6 +936,7 @@ CoveragePlot <- function(
 #' @param ... Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}
 #'
 #' @importFrom ggseqlogo ggseqlogo
+#' @importFrom Seurat DefaultAssay
 #' @export
 #' @concept visualization
 #' @concept motifs
@@ -945,6 +953,10 @@ MotifPlot <- function(
   use.names = TRUE,
   ...
 ) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+    stop("The requested assay is not a ChromatinAssay.")
+  }
   data.use <- GetMotifData(object = object, assay = assay, slot = "pwm")
   if (length(x = data.use) == 0) {
     stop("Position weight matrix list for the requested assay is empty")
@@ -978,6 +990,7 @@ globalVariables(names = "group", package = "Signac")
 #'
 #' @importFrom ggplot2 ggplot geom_histogram theme_classic aes facet_wrap xlim
 #' scale_y_log10 theme element_blank
+#' @importFrom Seurat DefaultAssay
 #'
 #' @export
 #' @concept visualization
@@ -1003,6 +1016,10 @@ FragmentHistogram <- function(
   ...
 ) {
   cells <- SetIfNull(x = cells, y = colnames(x = object))
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+    stop("The requested assay is not a ChromatinAssay.")
+  }
   reads <- MultiGetReadsInRegion(
     object = object,
     assay = assay,
@@ -1057,7 +1074,7 @@ globalVariables(names = "norm.value", package = "Signac")
 #' @param group.by Set of identities to group cells by
 #' @param idents Set of identities to include in the plot
 #'
-#' @importFrom Seurat GetAssayData
+#' @importFrom Seurat GetAssayData DefaultAssay
 #' @importFrom Matrix colMeans
 #' @importFrom ggplot2 ggplot aes geom_line xlab ylab theme_classic ggtitle
 #' theme element_blank
@@ -1072,6 +1089,10 @@ TSSPlot <- function(
   group.by = NULL,
   idents = NULL
 ) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+    stop("The requested assay is not a ChromatinAssay.")
+  }
   # get the normalized TSS enrichment matrix
   positionEnrichment <- GetAssayData(
     object = object,
@@ -1244,6 +1265,10 @@ PeakPlot <- function(
   color = "dimgrey"
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+    stop("The requested assay is not a ChromatinAssay.")
+  }
+
   if (!inherits(x = region, what = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
@@ -2135,6 +2160,9 @@ TilePlot <- function(
   idents = NULL
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+    stop("Requested assay is not a ChromatinAssay.")
+  }
   region <- FindRegion(
     object = object,
     region = region,

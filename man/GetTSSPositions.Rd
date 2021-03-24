@@ -4,10 +4,13 @@
 \alias{GetTSSPositions}
 \title{Find transcriptional start sites}
 \usage{
-GetTSSPositions(ranges)
+GetTSSPositions(ranges, biotypes = "protein_coding")
 }
 \arguments{
 \item{ranges}{A GRanges object containing gene annotations.}
+
+\item{biotypes}{Gene biotypes to include. If NULL, use all biotypes in the
+supplied gene annotation.}
 }
 \description{
 Get the TSS positions from a set of genomic ranges containing gene positions.

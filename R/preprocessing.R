@@ -387,6 +387,9 @@ NucleosomeSignal <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+    stop("The requested assay is not a ChromatinAssay")
+  }
   # first check that fragments are present
   frags <- Fragments(object = object[[assay]])
   if (length(x = frags) == 0) {
@@ -721,6 +724,9 @@ TSSEnrichment <- function(
   verbose = TRUE
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+    stop("The requested assay is not a ChromatinAssay")
+  }
   # first check that fragments are present
   frags <- Fragments(object = object[[assay]])
   if (length(x = frags) == 0) {
