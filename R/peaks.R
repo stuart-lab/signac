@@ -246,6 +246,7 @@ CallPeaks.Fragment <- function(
 }
 
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
+#' @importFrom utils read.table
 #' @method CallPeaks default
 #' @rdname CallPeaks
 #' @concept quantification

@@ -248,6 +248,7 @@ FindClonotypes <- function(
 #'
 #' @export
 #' @concept mito
+#' @importFrom utils read.table
 #' @examples
 #' \dontrun{
 #' data.dir <- system.file("extdata", "test_mgatk", package="Signac")
