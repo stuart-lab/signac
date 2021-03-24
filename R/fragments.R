@@ -317,7 +317,6 @@ CreateFragmentObject <- function(
 #' @param verbose Display messages
 #' @export
 #' @concept fragments
-#' @importFrom data.table fread
 ValidateCells <- function(
   object,
   cells = NULL,
