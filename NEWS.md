@@ -22,6 +22,7 @@ Other changes:
 * Improved error messages when trying to run `ChromatinAssay`-specific functions
 on non-`ChromatinAssay` assays
 * Added `biotypes` parameter to `GeneActivity()` and `GetTSSPositions()` functions
+* Performance improvements
 
 # Signac 1.1.1 
 
