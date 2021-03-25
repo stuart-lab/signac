@@ -382,7 +382,7 @@ globalVariables(names = "cell", package = "Signac")
 NucleosomeSignal <- function(
   object,
   assay = NULL,
-  n = ncol(object) * 1e4,
+  n = ncol(object) * 5e3,
   verbose = TRUE,
   ...
 ) {
