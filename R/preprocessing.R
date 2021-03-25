@@ -845,6 +845,9 @@ TSSEnrichment <- function(
 #' @importFrom stats ecdf
 #' @importFrom Matrix rowSums
 #' @importFrom Seurat DefaultAssay
+#' @importFrom future nbrOfWorkers
+#' @importFrom future.apply future_lapply
+#' @importFrom pbapply pblapply
 TSSFast <- function(
   object,
   tss.positions,
@@ -896,12 +899,6 @@ TSSFast <- function(
     nchunk = nchunk
   )
 
-  # initialize vectors
-  flank.counts <- vector(mode = "numeric", length = ncol(x = object))
-  names(x = flank.counts) <- colnames(x = object)
-  center.counts <- vector(mode = "numeric", length = ncol(x = object))
-  names(x = center.counts) <- colnames(x = object)
-
   # iterate over fragment files and parts of region
   if (verbose) {
     message("Extracting fragments at TSSs")
@@ -912,6 +909,13 @@ TSSFast <- function(
       file = stderr()
     )
   }
+
+  if (nbrOfWorkers() > 1) {
+    mylapply <- future_lapply
+  } else {
+    mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
+  }
+
   for (i in seq_along(along.with = frags)) {
     # open fragment file
     tbx.path <- GetFragmentData(object = frags[[i]], slot = "path")
@@ -923,58 +927,29 @@ TSSFast <- function(
       cellmap <- cellmap[intersect(names(x = cellmap), colnames(x = object))]
     }
     tbx <- TabixFile(file = tbx.path)
-    open(con = tbx)
+    # open(con = tbx)
     # iterate over chunked ranges
-    for (j in seq_along(along.with = centers)) {
-      # remove seqlevels not present in fragment file
-      common.seqlevels <- intersect(
-        x = seqlevels(x = centers[[j]]),
-        y = seqnamesTabix(file = tbx)
-      )
-      uflanks.use <- keepSeqlevels(
-        x = upstream.flank[[j]],
-        value = common.seqlevels,
-        pruning.mode = "coarse"
-      )
-      dflanks.use <- keepSeqlevels(
-        x = downstream.flank[[j]],
-        value = common.seqlevels,
-        pruning.mode = "coarse"
-      )
-      centers.use <- keepSeqlevels(
-        x = centers[[j]],
-        value = common.seqlevels,
-        pruning.mode = "coarse"
-      )
-
-      # count integration events
-      cuts.center <- SingleFileCutMatrix(
-        cellmap = cellmap,
-        tabix.file = tbx,
-        region = centers.use,
-        verbose = FALSE
-      )
-      counts.center <- rowSums(x = cuts.center)
-
-      cuts.flank <- SingleFileCutMatrix(
-        cellmap = cellmap,
-        tabix.file = tbx,
-        region = c(uflanks.use, dflanks.use),
-        verbose = FALSE
-      )
-      counts.flank <- rowSums(x = cuts.flank)
-
-      # increment count vectors
-      center.counts[names(x = counts.center)] <-
-        center.counts + as.vector(x = counts.center)
-      flank.counts[names(x = counts.flank)] <-
-        flank.counts + as.vector(x = counts.flank)
-
-      if (verbose) {
-        setTxtProgressBar(pb = pb, value = j)
+    res <- mylapply(
+      X = seq_along(along.with = centers),
+      FUN = function(x) {
+        extract_tss_counts(
+          cellnames = colnames(x = object),
+          region.centers = centers[[x]],
+          upstream = upstream.flank[[x]],
+          downstream = downstream.flank[[x]],
+          tabix.file = tbx,
+          cell.name.map = cellmap
+        )
       }
-    }
-    close(con = tbx)
+    )
+    # close(con = tbx)
+
+    # sum results from each chunk of granges
+    cc <- lapply(X = res, FUN = `[[`, 1)
+    fc <- lapply(X = res, FUN = `[[`, 2)
+    center.counts <- Reduce(f = `+`, x = cc)
+    flank.counts <- Reduce(f = `+`, x = fc)
+
   }
 
   if (verbose) {
@@ -995,4 +970,63 @@ TSSFast <- function(
     digits = 2
   )
   return(object)
+}
+
+#' @importFrom GenomeInfoDb seqlevels keepSeqlevels
+#' @importFrom Rsamtools seqnamesTabix
+extract_tss_counts <- function(
+  cellnames,
+  region.centers,
+  tabix.file,
+  upstream,
+  downstream,
+  cell.name.map
+) {
+  tabix.file <- open(con = tabix.file)
+  # initialize vectors
+  fc <- vector(mode = "numeric", length = length(x = cellnames))
+  names(x = fc) <- cellnames
+  cc <- vector(mode = "numeric", length = length(x = cellnames))
+  names(x = cc) <- cellnames
+
+  # remove seqlevels not present in fragment file
+  common.seqlevels <- intersect(
+    x = seqlevels(x = region.centers),
+    y = seqnamesTabix(file = tabix.file)
+  )
+  uflanks.use <- keepSeqlevels(
+    x = upstream,
+    value = common.seqlevels,
+    pruning.mode = "coarse"
+  )
+  dflanks.use <- keepSeqlevels(
+    x = downstream,
+    value = common.seqlevels,
+    pruning.mode = "coarse"
+  )
+  centers.use <- keepSeqlevels(
+    x = region.centers,
+    value = common.seqlevels,
+    pruning.mode = "coarse"
+  )
+
+  # count integration events
+  cuts.center <- SingleFileCutMatrix(
+    cellmap = cell.name.map,
+    tabix.file = tabix.file,
+    region = centers.use,
+    verbose = FALSE
+  )
+  counts.center <- rowSums(x = cuts.center)
+  cuts.flank <- SingleFileCutMatrix(
+    cellmap = cell.name.map,
+    tabix.file = tabix.file,
+    region = c(uflanks.use, dflanks.use),
+    verbose = FALSE
+  )
+  counts.flank <- rowSums(x = cuts.flank)
+  cc[names(x = counts.center)] <- cc + as.vector(x = counts.center)
+  fc[names(x = counts.flank)] <- fc + as.vector(x = counts.flank)
+  close(con = tabix.file)
+  return(list(cc, fc))
 }
