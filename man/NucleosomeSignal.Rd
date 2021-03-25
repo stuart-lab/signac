@@ -7,7 +7,7 @@
 NucleosomeSignal(
   object,
   assay = NULL,
-  n = ncol(object) * 10000,
+  n = ncol(object) * 5000,
   verbose = TRUE,
   ...
 )
