@@ -6,7 +6,7 @@ New functionality:
 * Added `bigwig` and `bigwig.type` arguments to `CoveragePlot()` to
 include bigWig files in `CoveragePlot()`
 * Added `region.highlight` parameter to `CoveragePlot()`
-
+* Added `biotypes` parameter to `GeneActivity()` and `GetTSSPositions()` functions
 Bug fixes:
 
 * Fixed fragment file reading when only one fragment found in requested region ([#474](https://github.com/timoast/signac/issues/474))
@@ -21,7 +21,6 @@ Other changes:
 * Improved error message for `TSSEnrichment()` ([#485](https://github.com/timoast/signac/issues/485))
 * Improved error messages when trying to run `ChromatinAssay`-specific functions
 on non-`ChromatinAssay` assays
-* Added `biotypes` parameter to `GeneActivity()` and `GetTSSPositions()` functions
 * Performance improvements
 * Changed default value for `n` in `NucleosomeSignal()`
 * Enabled parallization in `TSSEnrichment()` when `fast=TRUE`
