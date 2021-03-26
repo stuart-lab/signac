@@ -24,6 +24,7 @@ on non-`ChromatinAssay` assays
 * Added `biotypes` parameter to `GeneActivity()` and `GetTSSPositions()` functions
 * Performance improvements
 * Changed default value for `n` in `NucleosomeSignal()`
+* Enabled parallization in `TSSEnrichment()` when `fast=TRUE`
 
 # Signac 1.1.1 
 
