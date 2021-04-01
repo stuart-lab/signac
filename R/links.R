@@ -266,6 +266,12 @@ LinkPeaks <- function(
     genes = gene.coords.use,
     distance = distance
   )
+  if (sum(peak_distance_matrix) == 0) {
+    stop("No peaks fall within distance threshold\n",
+         "Have you set the proper genome and seqlevelsStyle for ",
+         peak.assay,
+         " assay?")
+  }
   genes.use <- colnames(x = peak_distance_matrix)
   all.peaks <- rownames(x = peak.data)
 
