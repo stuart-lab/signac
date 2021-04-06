@@ -299,11 +299,11 @@ LinkPeaks <- function(
         return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
       } else {
         peak.access <- peak.data[, peak.use]
-        coef.result <- cor(
-          x = as.matrix(x = peak.access),
-          y = as.matrix(x = gene.expression),
-          method = method
+        coef.result <- corSparse(
+          X = peak.access,
+          Y = gene.expression
         )
+        rownames(coef.result) <- colnames(peak.access)
         coef.result <- coef.result[abs(x = coef.result) > score_cutoff, , drop = FALSE]
 
         if (nrow(x = coef.result) == 0) {
@@ -332,11 +332,11 @@ LinkPeaks <- function(
           )
           # run background correlations
           bg.access <- peak.data[, unlist(x = bg.peaks)]
-          bg.coef <- cor(
-            x = as.matrix(x = bg.access),
-            y = as.matrix(x = gene.expression),
-            method = method
+          bg.coef <- corSparse(
+            X = bg.access,
+            Y = Matrix(gene.expression)
           )
+          rownames(bg.coef) <- colnames(bg.access)
           zscores <- vector(mode = "numeric", length = length(x = peaks.test))
           for (j in seq_along(along.with = peaks.test)) {
             coef.use <- bg.coef[(((j - 1) * n_sample) + 1):(j * n_sample), ]
