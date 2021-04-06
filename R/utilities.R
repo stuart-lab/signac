@@ -934,11 +934,11 @@ MatchRegionStats <- function(
   for (i in seq_along(along.with = features.match)) {
     featmatch <- features.match[[i]]
     if (!(featmatch %in% colnames(x = query.feature))) {
-      if (i == "GC.percent") {
+      if (featmatch == "GC.percent") {
         stop("GC.percent not present in meta.features.",
              " Run RegionStats to compute GC.percent for each feature.")
       } else {
-        stop(i, " not present in meta.features")
+        stop(featmatch, " not present in meta.features")
       }
     }
     if (verbose) {
