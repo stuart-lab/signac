@@ -26,6 +26,8 @@ on non-`ChromatinAssay` assays
 * Performance improvements
 * Changed default value for `n` in `NucleosomeSignal()`
 * Enabled parallization in `TSSEnrichment()` when `fast=TRUE`
+* Added early error checking in `LinkPeaks()` ([#550](https://github.com/timoast/signac/pull/550))
+* Change to sparse matrix correlation in `LinkPeaks()` ([#550](https://github.com/timoast/signac/pull/550))
 
 # Signac 1.1.1 
 
