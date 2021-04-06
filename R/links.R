@@ -187,6 +187,7 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' @importFrom future.apply future_lapply
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
+#' @importFrom qlcMatrix corSparse
 #' @importMethodsFrom Matrix t
 #'
 #' @return Returns a Seurat object with the \code{Links} information set, with
