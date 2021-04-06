@@ -274,9 +274,9 @@ FindMotifs <- function(
       slot = "meta.features"
     )
     mf.choose <- meta.feature[
-      setdiff(x = rownames(x = meta.feature), y = features),
+      setdiff(x = rownames(x = meta.feature), y = features), , drop = FALSE
     ]
-    mf.query <- meta.feature[features, ]
+    mf.query <- meta.feature[features, , drop = FALSE]
     background <- MatchRegionStats(
       meta.feature = mf.choose,
       query.feature = mf.query,
