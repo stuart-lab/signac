@@ -292,19 +292,19 @@ LinkPeaks <- function(
     X = seq_along(along.with = genes.use),
     FUN = function(i) {
       peak.use <- as.logical(x = peak_distance_matrix[, genes.use[[i]]])
-      gene.expression <- expression.data[genes.use[[i]], ]
+      gene.expression <- t(x = expression.data[genes.use[[i]], , drop = FALSE])
       gene.chrom <- as.character(x = seqnames(x = gene.coords.use[i]))
 
       if (sum(peak.use) < 2) {
         # no peaks close to gene
         return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
       } else {
-        peak.access <- peak.data[, peak.use]
+        peak.access <- peak.data[, peak.use, drop = FALSE]
         coef.result <- corSparse(
           X = peak.access,
           Y = gene.expression
         )
-        rownames(coef.result) <- colnames(peak.access)
+        rownames(x = coef.result) <- colnames(x = peak.access)
         coef.result <- coef.result[abs(x = coef.result) > score_cutoff, , drop = FALSE]
 
         if (nrow(x = coef.result) == 0) {
@@ -332,10 +332,10 @@ LinkPeaks <- function(
             }
           )
           # run background correlations
-          bg.access <- peak.data[, unlist(x = bg.peaks)]
+          bg.access <- peak.data[, unlist(x = bg.peaks), drop = FALSE]
           bg.coef <- corSparse(
             X = bg.access,
-            Y = Matrix(gene.expression)
+            Y = gene.expression
           )
           rownames(bg.coef) <- colnames(bg.access)
           zscores <- vector(mode = "numeric", length = length(x = peaks.test))
