@@ -15,6 +15,7 @@ Bug fixes:
 * Fixed `group.by` parameter in `PlotFootprint()` ([#522](https://github.com/timoast/signac/issues/522))
 * Fixed bug that would cause some gene coordinates used by `GeneActivity()` to be 
 incorrect ([#521](https://github.com/timoast/signac/issues/521))
+* Fixed error message in `FindMotifs()` ([#549](https://github.com/timoast/signac/issues/549))
 
 Other changes:
 
