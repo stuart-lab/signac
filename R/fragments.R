@@ -420,6 +420,7 @@ Cells.Fragment <- function(x, ...) {
 }
 
 # Re-export SeuratObject generic
+#' @importFrom SeuratObject Cells
 #' @export
 SeuratObject::Cells
 
