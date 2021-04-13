@@ -218,6 +218,7 @@ LinkPeaks <- function(
   expression.slot = "data",
   gene.coords = NULL,
   distance = 5e+05,
+  min.distance = NULL,
   min.cells = 10,
   method = "pearson",
   genes.use = NULL,
@@ -285,6 +286,14 @@ LinkPeaks <- function(
     genes = gene.coords.use,
     distance = distance
   )
+  if (!is.null(min.distance)) {
+    peak_distance_matrix_min <- DistanceToTSS(
+      peaks = peaks,
+      genes = gene.coords.use,
+      distance = min.distance
+    )
+    peak_distance_matrix <- peak_distance_matrix - peak_distance_matrix_min
+  }
   if (sum(peak_distance_matrix) == 0) {
     stop("No peaks fall within distance threshold\n",
          "Have you set the proper genome and seqlevelsStyle for ",
