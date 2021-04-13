@@ -174,6 +174,7 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' @param gene.coords GRanges object containing coordinates of genes in the
 #' expression assay. If NULL, extract from gene annotations stored in the assay.
 #' @param distance Distance threshold for peaks to include in regression model
+#' @param min.distance Minimum distance between peak and TSS to include in regression model
 #' @param min.cells Minimum number of cells positive for the peak and gene
 #' needed to include in the results.
 #' @param genes.use Genes to test. If NULL, determine from expression assay.
