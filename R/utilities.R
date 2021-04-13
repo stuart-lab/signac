@@ -660,9 +660,6 @@ Extend <- function(
 #'
 #' @param tabix Tabix object
 #' @param region A string giving the region to extract from the fragments file
-#' @param sep Vector of separators to use for genomic string. First element is
-#' used to separate chromosome and coordinates, second separator is used to
-#' separate start and end coordinates.
 #' @param cells Vector of cells to include in output. If NULL, include all cells
 #'
 #' @importFrom Rsamtools TabixFile scanTabix
@@ -693,7 +690,7 @@ Extend <- function(
 #   return(list(cells = reads, region = regions))
 # }
 
-GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
+GetCellsInRegion <- function(tabix, region, cells = NULL) {
   if (!is(object = region, class2 = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
@@ -710,12 +707,6 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
     })
   }
   return(reads)
-  # nrep <- elementNROWS(x = reads)
-  # regions <- rep(x = names(x = reads), nrep)
-  # cellnames <- unlist(x = reads, use.names = FALSE)
-  # regions <- gsub(pattern = ":", replacement = sep[[1]], x = regions)
-  # regions <- gsub(pattern = "-", replacement = sep[[2]], x = regions)
-  # return(list(cells = cellnames, region = regions))
 }
 
 #' Counts in region
@@ -2129,8 +2120,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
   cells.in.regions <- GetCellsInRegion(
     tabix = tabix,
     region = regions,
-    cells = cells,
-    sep = sep # TODO remove sep argument, not used here
+    cells = cells
   )
   close(con = tabix)
   gc(verbose = FALSE)
@@ -2202,7 +2192,8 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
       x = rep(x = 1, length(x = cells.in.regions))
     )
     featmat <- as(Class = "dgCMatrix", object = featmat)
-    rownames(x = featmat) <- all.features
+    included.features <- unique(x = feature.vec)
+    rownames(x = featmat) <- all.features[included.features]
     colnames(x = featmat) <- names(x = cell.lookup)
   }
 
@@ -2211,7 +2202,6 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
     featmat <- AddMissingCells(x = featmat, cells = cells)
   }
   # add zero rows for missing features
-  all.features <- GRangesToString(grange = regions, sep = sep)
   missing.features <- all.features[!(all.features %in% rownames(x = featmat))]
   if (length(x = missing.features) > 0) {
     null.mat <- sparseMatrix(
