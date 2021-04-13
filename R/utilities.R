@@ -325,6 +325,10 @@ FoldChange <- function(
 #' @param extend.downstream Number of bases to extend downstream of the TTS
 #' @param biotypes Gene biotypes to include. If NULL, use all biotypes in the
 #' gene annotation.
+#' @param max.width Maximum allowed gene width for a gene to be quantified.
+#' Setting this parameter can avoid quantifying extremely long transcripts that
+#' can add a relatively long amount of time. If NULL, do not filter genes based
+#' on width.
 #' @param verbose Display messages
 #' @param ... Additional options passed to \code{\link{FeatureMatrix}}
 #'
@@ -349,6 +353,7 @@ GeneActivity <- function(
   extend.upstream = 2000,
   extend.downstream = 0,
   biotypes = "protein_coding",
+  max.width = 500000,
   verbose = TRUE,
   ...
 ) {
@@ -372,6 +377,10 @@ GeneActivity <- function(
   # filter genes if provided
   if (!is.null(x = features)) {
     transcripts <- transcripts[transcripts$gene_name %in% features]
+  }
+  if (!is.null(x = max.width)) {
+    transcript.keep <- which(x = width(x = transcripts) < max.width)
+    transcripts <- transcripts[transcript.keep]
   }
 
   # extend to include promoters
@@ -2113,12 +2122,14 @@ MergeOverlappingRows <- function(
 #' @importFrom Matrix sparseMatrix
 PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
   # construct sparse matrix for one set of regions
+  open(con = tabix)
   cells.in.regions <- GetCellsInRegion(
     tabix = tabix,
     region = regions,
     cells = cells,
     sep = sep
   )
+  close(con = tabix)
   if (is.null(x = cells.in.regions$cells) & !is.null(x = cells)) {
     # zero for everything
     featmat <- sparseMatrix(
