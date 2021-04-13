@@ -2192,8 +2192,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
       x = rep(x = 1, length(x = cells.in.regions))
     )
     featmat <- as(Class = "dgCMatrix", object = featmat)
-    included.features <- unique(x = feature.vec)
-    rownames(x = featmat) <- all.features[included.features]
+    rownames(x = featmat) <- all.features[1:max(feature.vec)]
     colnames(x = featmat) <- names(x = cell.lookup)
   }
 
