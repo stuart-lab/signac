@@ -675,48 +675,48 @@ Extend <- function(
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' GetCellsInRegion(tabix = fpath, region = "chr1-10245-762629")
-GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
-  if (!is(object = region, class2 = "GRanges")) {
-    region <- StringToGRanges(regions = region)
-  }
-  reads <- scanTabix(file = tabix, param = region)
-  gc(verbose = FALSE)
-  nrep <- elementNROWS(x = reads)
-  regions <- GRangesToString(grange = region, sep = sep)
-  regions <- rep(x = regions, nrep)
-  reads <- unlist(x = reads, use.names = FALSE)
-  reads <- ExtractCell(x = reads)
-  if (!is.null(x = cells)) {
-    matches <- fmatch(x = reads, table = cells, nomatch = 0L) > 0L
-    reads <- reads[matches]
-    regions <- regions[matches]
-  }
-  return(list(cells = reads, region = regions))
-}
-
 # GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
 #   if (!is(object = region, class2 = "GRanges")) {
 #     region <- StringToGRanges(regions = region)
 #   }
 #   reads <- scanTabix(file = tabix, param = region)
-#   reads <- lapply(X = reads, FUN = ExtractCell)
-#   if (!is.null(x = cells)) {
-#     reads <- sapply(X = reads, FUN = function(x) {
-#       x <- x[fmatch(x = x, table = cells, nomatch = 0L) > 0L]
-#       if (length(x = x) == 0) {
-#         return(NULL)
-#       } else {
-#         return(x)
-#       }
-#     })
-#   }
 #   nrep <- elementNROWS(x = reads)
-#   regions <- rep(x = names(x = reads), nrep)
-#   cellnames <- unlist(x = reads, use.names = FALSE)
-#   regions <- gsub(pattern = ":", replacement = sep[[1]], x = regions)
-#   regions <- gsub(pattern = "-", replacement = sep[[2]], x = regions)
-#   return(list(cells = cellnames, region = regions))
+#   regions <- GRangesToString(grange = region, sep = sep)
+#   regions <- rep(x = regions, nrep)
+#   reads <- unlist(x = reads, use.names = FALSE)
+#   reads <- ExtractCell(x = reads)
+#   if (!is.null(x = cells)) {
+#     matches <- fmatch(x = reads, table = cells, nomatch = 0L) > 0L
+#     reads <- reads[matches]
+#     regions <- regions[matches]
+#   }
+#   return(list(cells = reads, region = regions))
 # }
+
+GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
+  if (!is(object = region, class2 = "GRanges")) {
+    region <- StringToGRanges(regions = region)
+  }
+  reads <- scanTabix(file = tabix, param = region)
+  reads <- lapply(X = reads, FUN = ExtractCell)
+  if (!is.null(x = cells)) {
+    reads <- sapply(X = reads, FUN = function(x) {
+      x <- x[fmatch(x = x, table = cells, nomatch = 0L) > 0L]
+      if (length(x = x) == 0) {
+        return(NULL)
+      } else {
+        return(x)
+      }
+    })
+  }
+  return(reads)
+  # nrep <- elementNROWS(x = reads)
+  # regions <- rep(x = names(x = reads), nrep)
+  # cellnames <- unlist(x = reads, use.names = FALSE)
+  # regions <- gsub(pattern = ":", replacement = sep[[1]], x = regions)
+  # regions <- gsub(pattern = "-", replacement = sep[[2]], x = regions)
+  # return(list(cells = cellnames, region = regions))
+}
 
 #' Counts in region
 #'
@@ -2120,18 +2120,24 @@ MergeOverlappingRows <- function(
 }
 
 #' @importFrom Matrix sparseMatrix
+#' @importFrom S4Vectors elementNROWS
 PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
   # construct sparse matrix for one set of regions
+  # names of the cells vector can be ignored here, conversion is handled in
+  # the parent functions
   open(con = tabix)
   cells.in.regions <- GetCellsInRegion(
     tabix = tabix,
     region = regions,
     cells = cells,
-    sep = sep
+    sep = sep # TODO remove sep argument, not used here
   )
   close(con = tabix)
-  if (is.null(x = cells.in.regions$cells) & !is.null(x = cells)) {
-    # zero for everything
+  gc(verbose = FALSE)
+  nrep <- elementNROWS(x = cells.in.regions)
+  if (all(nrep == 0) & !is.null(x = cells)) {
+    # no fragments
+    # zero for all requested cells
     featmat <- sparseMatrix(
       dims = c(length(x = regions), length(x = cells)),
       i = NULL,
@@ -2141,8 +2147,9 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
     colnames(x = featmat) <- cells
     featmat <- as(object = featmat, Class = "dgCMatrix")
     return(featmat)
-  } else if (is.null(x = cells.in.regions$cells)) {
-    # no fragments, no cells
+  } else if (all(nrep == 0)) {
+    # no fragments, no cells requested
+    # create empty matrix
     featmat <- sparseMatrix(
       dims = c(length(x = regions), 0),
       i = NULL,
@@ -2152,23 +2159,50 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
     featmat <- as(object = featmat, Class = "dgCMatrix")
     return(featmat)
   } else {
-    all.cells <- unique(x = cells.in.regions$cells)
-    all.features <- unique(x = cells.in.regions$region)
-    cell.lookup <- seq_along(along.with = all.cells)
-    feature.lookup <- seq_along(along.with = all.features)
-    names(x = cell.lookup) <- all.cells
-    names(x = feature.lookup) <- all.features
-    matrix.features <- feature.lookup[cells.in.regions$region]
-    matrix.cells <- cell.lookup[cells.in.regions$cells]
-    nrep <- length(x = cells.in.regions$cells)
-    rm(cells.in.regions)
+    # fragments detected
+    if (is.null(x = cells)) {
+      all.cells <- unique(x = unlist(x = cells.in.regions))
+      cell.lookup <- seq_along(along.with = all.cells)
+      names(x = cell.lookup) <- all.cells
+    } else {
+      cell.lookup <- seq_along(along.with = cells)
+      names(cell.lookup) <- cells
+    }
+
+    # convert cell name to integer
+    cells.in.regions <- unlist(x = cells.in.regions)
+    cells.in.regions <- unname(obj = cell.lookup[cells.in.regions])
+
+    # all.cells <- unique(x = cells.in.regions$cells)
+    # all.features <- unique(x = cells.in.regions$region)
+    # cell.lookup <- seq_along(along.with = all.cells)
+    # names(x = cell.lookup) <- all.cells
+
+    all.features <- GRangesToString(
+      grange = StringToGRanges(regions = names(x = nrep), sep = c(":", "-")),
+      sep = sep
+    )
+    feature.vec <- rep(x = seq_along(along.with = all.features), nrep)
+
+    # matrix.features <- feature.lookup[cells.in.regions$region]
+    # matrix.cells <- cell.lookup[cells.in.regions$cells]
+
+    # nrep <- length(x = cells.in.regions$cells)
+
+    # rm(cells.in.regions)
+
+    # featmat <- sparseMatrix(
+    #   i = matrix.features,
+    #   j = matrix.cells,
+    #   x = rep(x = 1, nrep)
+    # )
     featmat <- sparseMatrix(
-      i = matrix.features,
-      j = matrix.cells,
-      x = rep(x = 1, nrep)
+      i = feature.vec,
+      j = cells.in.regions,
+      x = rep(x = 1, length(x = cells.in.regions))
     )
     featmat <- as(Class = "dgCMatrix", object = featmat)
-    rownames(x = featmat) <- names(x = feature.lookup)
+    rownames(x = featmat) <- all.features
     colnames(x = featmat) <- names(x = cell.lookup)
   }
 
