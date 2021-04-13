@@ -671,24 +671,43 @@ GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
     region <- StringToGRanges(regions = region)
   }
   reads <- scanTabix(file = tabix, param = region)
-  reads <- sapply(X = reads, FUN = ExtractCell, simplify = FALSE)
-  if (!is.null(x = cells)) {
-    reads <- sapply(X = reads, FUN = function(x) {
-      x <- x[fmatch(x = x, table = cells, nomatch = 0L) > 0L]
-      if (length(x = x) == 0) {
-        return(NULL)
-      } else {
-        return(x)
-      }
-    })
-  }
+  gc(verbose = FALSE)
   nrep <- elementNROWS(x = reads)
-  regions <- rep(x = names(x = reads), nrep)
-  cellnames <- unlist(x = reads, use.names = FALSE)
-  regions <- gsub(pattern = ":", replacement = sep[[1]], x = regions)
-  regions <- gsub(pattern = "-", replacement = sep[[2]], x = regions)
-  return(list(cells = cellnames, region = regions))
+  regions <- GRangesToString(grange = region, sep = sep)
+  regions <- rep(x = regions, nrep)
+  reads <- unlist(x = reads, use.names = FALSE)
+  reads <- ExtractCell(x = reads)
+  if (!is.null(x = cells)) {
+    matches <- fmatch(x = reads, table = cells, nomatch = 0L) > 0L
+    reads <- reads[matches]
+    regions <- regions[matches]
+  }
+  return(list(cells = reads, region = regions))
 }
+
+# GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
+#   if (!is(object = region, class2 = "GRanges")) {
+#     region <- StringToGRanges(regions = region)
+#   }
+#   reads <- scanTabix(file = tabix, param = region)
+#   reads <- lapply(X = reads, FUN = ExtractCell)
+#   if (!is.null(x = cells)) {
+#     reads <- sapply(X = reads, FUN = function(x) {
+#       x <- x[fmatch(x = x, table = cells, nomatch = 0L) > 0L]
+#       if (length(x = x) == 0) {
+#         return(NULL)
+#       } else {
+#         return(x)
+#       }
+#     })
+#   }
+#   nrep <- elementNROWS(x = reads)
+#   regions <- rep(x = names(x = reads), nrep)
+#   cellnames <- unlist(x = reads, use.names = FALSE)
+#   regions <- gsub(pattern = ":", replacement = sep[[1]], x = regions)
+#   regions <- gsub(pattern = "-", replacement = sep[[2]], x = regions)
+#   return(list(cells = cellnames, region = regions))
+# }
 
 #' Counts in region
 #'
@@ -1217,7 +1236,9 @@ ExtractCell <- function(x) {
     return(NULL)
   } else {
     x <- stri_split_fixed(str = x, pattern = "\t")
-    return(unlist(x = x)[5 * (seq_along(along.with = x)) - 1])
+    n <- length(x = x)
+    x <- unlist(x = x)
+    return(unlist(x = x)[5 * (1:n) - 1])
   }
 }
 
