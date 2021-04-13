@@ -249,8 +249,12 @@ FeatureMatrix <- function(
       )
     })
   # merge all the matrices
-  featmat <- Reduce(f = RowMergeSparseMatrices, x = mat.list)
-  return(featmat)
+  if (length(x = mat.list) == 1) {
+    return(mat.list[[1]])
+  } else {
+    featmat <- Reduce(f = RowMergeSparseMatrices, x = mat.list)
+    return(featmat)
+  }
 }
 
 #### Not Exported ####
