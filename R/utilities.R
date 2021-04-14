@@ -391,10 +391,12 @@ GeneActivity <- function(
   )
 
   # quantify
+  frags <- Fragments(object = object[[assay]])
+  cells <- colnames(x = object[[assay]])
   counts <- FeatureMatrix(
-    fragments = Fragments(object = object[[assay]]),
+    fragments = frags,
     features = transcripts,
-    cells = colnames(x = object[[assay]]),
+    cells = cells,
     verbose = verbose,
     ...
   )
@@ -662,34 +664,15 @@ Extend <- function(
 #' @param region A string giving the region to extract from the fragments file
 #' @param cells Vector of cells to include in output. If NULL, include all cells
 #'
-#' @importFrom Rsamtools TabixFile scanTabix
+#' @importFrom Rsamtools scanTabix
 #' @importFrom methods is
 #' @importFrom fastmatch fmatch
-#' @importFrom S4Vectors elementNROWS
 #' @export
 #' @concept utilities
 #' @return Returns a list
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' GetCellsInRegion(tabix = fpath, region = "chr1-10245-762629")
-# GetCellsInRegion <- function(tabix, region, sep = c("-", "-"), cells = NULL) {
-#   if (!is(object = region, class2 = "GRanges")) {
-#     region <- StringToGRanges(regions = region)
-#   }
-#   reads <- scanTabix(file = tabix, param = region)
-#   nrep <- elementNROWS(x = reads)
-#   regions <- GRangesToString(grange = region, sep = sep)
-#   regions <- rep(x = regions, nrep)
-#   reads <- unlist(x = reads, use.names = FALSE)
-#   reads <- ExtractCell(x = reads)
-#   if (!is.null(x = cells)) {
-#     matches <- fmatch(x = reads, table = cells, nomatch = 0L) > 0L
-#     reads <- reads[matches]
-#     regions <- regions[matches]
-#   }
-#   return(list(cells = reads, region = regions))
-# }
-
 GetCellsInRegion <- function(tabix, region, cells = NULL) {
   if (!is(object = region, class2 = "GRanges")) {
     region <- StringToGRanges(regions = region)
@@ -2158,34 +2141,11 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
       cell.lookup <- seq_along(along.with = cells)
       names(cell.lookup) <- cells
     }
-
     # convert cell name to integer
     cells.in.regions <- unlist(x = cells.in.regions)
     cells.in.regions <- unname(obj = cell.lookup[cells.in.regions])
-
-    # all.cells <- unique(x = cells.in.regions$cells)
-    # all.features <- unique(x = cells.in.regions$region)
-    # cell.lookup <- seq_along(along.with = all.cells)
-    # names(x = cell.lookup) <- all.cells
-
-    all.features <- GRangesToString(
-      grange = StringToGRanges(regions = names(x = nrep), sep = c(":", "-")),
-      sep = sep
-    )
+    all.features <- GRangesToString(grange = regions, sep = sep)
     feature.vec <- rep(x = seq_along(along.with = all.features), nrep)
-
-    # matrix.features <- feature.lookup[cells.in.regions$region]
-    # matrix.cells <- cell.lookup[cells.in.regions$cells]
-
-    # nrep <- length(x = cells.in.regions$cells)
-
-    # rm(cells.in.regions)
-
-    # featmat <- sparseMatrix(
-    #   i = matrix.features,
-    #   j = matrix.cells,
-    #   x = rep(x = 1, nrep)
-    # )
     featmat <- sparseMatrix(
       i = feature.vec,
       j = cells.in.regions,

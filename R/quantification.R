@@ -359,7 +359,7 @@ SingleFeatureMatrix <- function(
       cells = all.cells
     )
   }
-  featmat <- Reduce(f = rbind, x = matrix.parts)
+  featmat <- do.call(what = rbind, args = matrix.parts)
   if (!is.null(x = cells)) {
     # cells supplied, rename with cell name from object rather than file
     cell.convert <- names(x = cells)

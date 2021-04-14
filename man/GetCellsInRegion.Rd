@@ -4,16 +4,12 @@
 \alias{GetCellsInRegion}
 \title{Get cells in a region}
 \usage{
-GetCellsInRegion(tabix, region, sep = c("-", "-"), cells = NULL)
+GetCellsInRegion(tabix, region, cells = NULL)
 }
 \arguments{
 \item{tabix}{Tabix object}
 
 \item{region}{A string giving the region to extract from the fragments file}
-
-\item{sep}{Vector of separators to use for genomic string. First element is
-used to separate chromosome and coordinates, second separator is used to
-separate start and end coordinates.}
 
 \item{cells}{Vector of cells to include in output. If NULL, include all cells}
 }
