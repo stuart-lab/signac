@@ -7,6 +7,7 @@ New functionality:
 include bigWig files in `CoveragePlot()`
 * Added `region.highlight` parameter to `CoveragePlot()`
 * Added `biotypes` parameter to `GeneActivity()` and `GetTSSPositions()` functions
+* Added `max.width` parameter to `GeneActivity()`
 
 Bug fixes:
 
