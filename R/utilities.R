@@ -2154,25 +2154,24 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
     featmat <- as(Class = "dgCMatrix", object = featmat)
     rownames(x = featmat) <- all.features[1:max(feature.vec)]
     colnames(x = featmat) <- names(x = cell.lookup)
+    # add zero columns for missing cells
+    if (!is.null(x = cells)) {
+      featmat <- AddMissingCells(x = featmat, cells = cells)
+    }
+    # add zero rows for missing features
+    missing.features <- all.features[!(all.features %in% rownames(x = featmat))]
+    if (length(x = missing.features) > 0) {
+      null.mat <- sparseMatrix(
+        i = c(),
+        j = c(),
+        dims = c(length(x = missing.features), ncol(x = featmat))
+      )
+      rownames(x = null.mat) <- missing.features
+      null.mat <- as(object = null.mat, Class = "dgCMatrix")
+      featmat <- rbind(featmat, null.mat)
+    }
+    return(featmat)
   }
-
-  # add zero columns for missing cells
-  if (!is.null(x = cells)) {
-    featmat <- AddMissingCells(x = featmat, cells = cells)
-  }
-  # add zero rows for missing features
-  missing.features <- all.features[!(all.features %in% rownames(x = featmat))]
-  if (length(x = missing.features) > 0) {
-    null.mat <- sparseMatrix(
-      i = c(),
-      j = c(),
-      dims = c(length(x = missing.features), ncol(x = featmat))
-    )
-    rownames(x = null.mat) <- missing.features
-    null.mat <- as(object = null.mat, Class = "dgCMatrix")
-    featmat <- rbind(featmat, null.mat)
-  }
-  return(featmat)
 }
 
 # Convert PFMMatrix to
