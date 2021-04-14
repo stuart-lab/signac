@@ -335,17 +335,25 @@ SingleFeatureMatrix <- function(
     message("Extracting reads overlapping genomic regions")
   }
   if (nbrOfWorkers() > 1) {
-    mylapply <- future_lapply
+    matrix.parts <- future_lapply(
+      X = feature.list,
+      FUN = PartialMatrix,
+      tabix = tbx,
+      cells = cells,
+      sep = sep,
+      future.globals = list(),
+      future.scheduling = FALSE
+    )
   } else {
     mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
+    matrix.parts <- mylapply(
+      X = feature.list,
+      FUN = PartialMatrix,
+      tabix = tbx,
+      cells = cells,
+      sep = sep
+    )
   }
-  matrix.parts <- mylapply(
-    X = feature.list,
-    FUN = PartialMatrix,
-    tabix = tbx,
-    cells = cells,
-    sep = sep
-  )
   # remove any that are NULL (no fragments for any cells in the region)
   null.parts <- sapply(X = matrix.parts, FUN = is.null)
   matrix.parts <- matrix.parts[!null.parts]
