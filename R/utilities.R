@@ -2153,7 +2153,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
     )
     featmat <- as(Class = "dgCMatrix", object = featmat)
     rownames(x = featmat) <- all.features[1:max(feature.vec)]
-    colnames(x = featmat) <- names(x = cell.lookup)
+    colnames(x = featmat) <- names(x = cell.lookup)[1:max(cells.in.regions)]
     # add zero columns for missing cells
     if (!is.null(x = cells)) {
       featmat <- AddMissingCells(x = featmat, cells = cells)
