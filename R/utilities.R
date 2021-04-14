@@ -1252,7 +1252,8 @@ ExtractFragments <- function(fragments, n = NULL, verbose = TRUE) {
   }
   verbose <- as.logical(x = verbose)
   n <- SetIfNull(x = n, y = 0)
-  n <- as.integer(x = n)
+  n <- as.numeric(x = n)
+  n <- round(x = n, digits = 0)
   counts <- groupCommand(
     fragments = fpath,
     some_whitelist_cells = cells.use,
