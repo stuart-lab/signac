@@ -8,6 +8,7 @@ include bigWig files in `CoveragePlot()`
 * Added `region.highlight` parameter to `CoveragePlot()`
 * Added `biotypes` parameter to `GeneActivity()` and `GetTSSPositions()` functions
 * Added `max.width` parameter to `GeneActivity()`
+* Added `min.distance` parameter to `LinkPeaks()` ([#561](https://github.com/timoast/signac/pull/561))
 
 Bug fixes:
 
