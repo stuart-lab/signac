@@ -174,7 +174,8 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' @param gene.coords GRanges object containing coordinates of genes in the
 #' expression assay. If NULL, extract from gene annotations stored in the assay.
 #' @param distance Distance threshold for peaks to include in regression model
-#' @param min.distance Minimum distance between peak and TSS to include in regression model
+#' @param min.distance Minimum distance between peak and TSS to include in
+#' regression model. If NULL (default), no minimum distance is used.
 #' @param min.cells Minimum number of cells positive for the peak and gene
 #' needed to include in the results.
 #' @param genes.use Genes to test. If NULL, determine from expression assay.
@@ -231,6 +232,18 @@ LinkPeaks <- function(
   if (!inherits(x = object[[peak.assay]], what = "ChromatinAssay")) {
     stop("The requested assay is not a ChromatinAssay")
   }
+  if (!is.null(x = min.distance)) {
+    if (!is.numeric(x = min.distance)) {
+      stop("min.distance should be a numeric value")
+    }
+    if (min.distance < 0) {
+      warning("Requested a negative min.distance value, setting min.distance to zero")
+      min.distance <- NULL
+    } else if (min.distance == 0) {
+      min.distance <- NULL
+    }
+  }
+
   if (is.null(x = gene.coords)) {
     gene.coords <- CollapseToLongestTranscript(
       ranges = Annotation(object = object[[peak.assay]])
@@ -287,7 +300,7 @@ LinkPeaks <- function(
     genes = gene.coords.use,
     distance = distance
   )
-  if (!is.null(min.distance)) {
+  if (!is.null(x = min.distance)) {
     peak_distance_matrix_min <- DistanceToTSS(
       peaks = peaks,
       genes = gene.coords.use,
