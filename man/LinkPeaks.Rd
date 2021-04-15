@@ -11,6 +11,7 @@ LinkPeaks(
   expression.slot = "data",
   gene.coords = NULL,
   distance = 5e+05,
+  min.distance = NULL,
   min.cells = 10,
   method = "pearson",
   genes.use = NULL,
@@ -33,6 +34,8 @@ LinkPeaks(
 expression assay. If NULL, extract from gene annotations stored in the assay.}
 
 \item{distance}{Distance threshold for peaks to include in regression model}
+
+\item{min.distance}{Minimum distance between peak and TSS to include in regression model}
 
 \item{min.cells}{Minimum number of cells positive for the peak and gene
 needed to include in the results.}
