@@ -35,7 +35,8 @@ expression assay. If NULL, extract from gene annotations stored in the assay.}
 
 \item{distance}{Distance threshold for peaks to include in regression model}
 
-\item{min.distance}{Minimum distance between peak and TSS to include in regression model}
+\item{min.distance}{Minimum distance between peak and TSS to include in
+regression model. If NULL (default), no minimum distance is used.}
 
 \item{min.cells}{Minimum number of cells positive for the peak and gene
 needed to include in the results.}
