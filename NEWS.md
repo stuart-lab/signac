@@ -18,6 +18,7 @@ Bug fixes:
 * Fixed bug that would cause some gene coordinates used by `GeneActivity()` to be 
 incorrect ([#521](https://github.com/timoast/signac/issues/521))
 * Fixed error message in `FindMotifs()` ([#549](https://github.com/timoast/signac/issues/549))
+* Fixed bug in `CountsInRegion()` ([#563](https://github.com/timoast/signac/issues/563))
 
 Other changes:
 

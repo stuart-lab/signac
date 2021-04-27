@@ -731,7 +731,7 @@ CountsInRegion <- function(
   hit.regions <- queryHits(x = overlaps)
   data.matrix <- GetAssayData(
     object = object, assay = assay, slot = "counts"
-  )[hit.regions, ]
+  )[hit.regions, , drop = FALSE]
   return(colSums(data.matrix))
 }
 
