@@ -2,9 +2,9 @@
 [![CRAN Version](https://www.r-pkg.org/badges/version/Signac)](https://cran.r-project.org/package=Signac)
 [![CRAN Downloads](https://cranlogs.r-pkg.org/badges/Signac)](https://cran.r-project.org/package=Signac)
 
-# Signac 1.1.1
+# Signac
 
-Signac is an extension of [Seurat](https://satijalab.org/seurat) for the analysis of single-cell chromatin data.
+Signac is a comprehensive R package for the analysis of single-cell chromatin data.
 
 Documentation can be found at https://satijalab.org/signac/
 
