@@ -1406,10 +1406,10 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom GenomicRanges start end
 #' @importFrom GenomeInfoDb seqnames
-#' @importFrom ggplot2 theme_classic ylim xlim ylab xlab ggplot_build
+#' @importFrom ggplot2 theme_classic ylim xlim ylab xlab
+#' geom_segment geom_text aes_string scale_color_manual
+#' @importFrom grid arrow
 #' @importFrom S4Vectors split
-#' @importFrom ggbio autoplot
-#' @importFrom AnnotationFilter GRangesFilter
 #' @importFrom fastmatch fmatch
 #' @concept visualization
 #' @examples
@@ -1439,34 +1439,103 @@ AnnotationPlot <- function(object, region) {
   if (length(x = annotation.subset) == 0) {
     # make empty plot
     p <- ggplot(data = data.frame())
-
+    y_limit <- c(0, 1)
   } else {
-    annotation.subset <- split(
-      x = annotation.subset,
-      f = annotation.subset$gene_name
+    annotation_df_list <- reformat_annotations(
+      annotation = annotation.subset,
+      start.pos = start.pos,
+      end.pos = end.pos
     )
-    p <- suppressWarnings(expr = suppressMessages(expr = autoplot(
-      object = annotation.subset,
-      GRangesFilter(value = region),
-      fill = "darkblue",
-      size = 1/2,
-      color = "darkblue",
-      names.expr = "gene_name"
-    )))
-    p <- p@ggplot
-    # extract y-axis limits and extend slightly so the label isn't covered
-    y.limits <- ggplot_build(plot = p)$layout$panel_scales_y[[1]]$range$range
-    p <- suppressMessages(p + ylim(y.limits[[1]], y.limits[[2]] + 0.5))
+    p <- ggplot() +
+      # exons
+      geom_segment(
+        data = annotation_df_list$exons,
+        mapping = aes_string(
+          x = "start",
+          y = annotation_df_list$exons$dodge,
+          xend = "end",
+          yend = annotation_df_list$exons$dodge,
+          color = "strand"
+        ),
+        show.legend = FALSE,
+        size = 5
+      ) +
+      # gene body
+      geom_segment(
+        data = annotation_df_list$labels,
+        mapping = aes_string(
+          x = "start",
+          y = annotation_df_list$labels$dodge,
+          xend = "end",
+          yend = annotation_df_list$labels$dodge,
+          color = "strand"
+        ),
+        show.legend = FALSE,
+        size = 1/2
+      )
+    if (nrow(x = annotation_df_list$plus) > 0) {
+      # forward strand arrows
+      p <- p + geom_segment(
+        data = annotation_df_list$plus,
+        mapping = aes_string(
+          x = "start",
+          y = annotation_df_list$plus$dodge,
+          xend = "end",
+          yend = annotation_df_list$plus$dodge,
+          color = "strand"
+        ),
+        arrow = arrow(
+          ends = "last",
+          type = "open",
+          angle = 45,
+          length = unit(x = 0.05, units = "inches")
+        ),
+        show.legend = FALSE,
+        size = 1/2
+      )
+    }
+    if (nrow(x = annotation_df_list$minus) > 0) {
+      # reverse strand arrows
+      p <- p + geom_segment(
+        data = annotation_df_list$minus,
+        mapping = aes_string(
+          x = "start",
+          y = annotation_df_list$minus$dodge,
+          xend = "end",
+          yend = annotation_df_list$minus$dodge,
+          color = "strand"
+        ),
+        arrow = arrow(
+          ends = "first",
+          type = "open",
+          angle = 45,
+          length = unit(x = 0.05, units = "inches")
+        ),
+        show.legend = FALSE,
+        size = 1/2
+      )
+    }
+    # label genes
+    n_stack <- max(annotation_df_list$labels$dodge)
+    annotation_df_list$labels$dodge <- annotation_df_list$labels$dodge + (n_stack * 0.2)
+    p <- p + geom_text(
+      data = annotation_df_list$labels,
+      mapping = aes_string(x = "position", y = "dodge", label = "gene_name"),
+      size = 3
+    )
+    y_limit <- c(0.9, n_stack + (n_stack * 0.5))
   }
   p <- p +
     theme_classic() +
     ylab("Genes") +
     xlab(label = paste0(chromosome, " position (kb)")) +
     xlim(start.pos, end.pos) +
+    ylim(y_limit) +
     theme(
       axis.ticks.y = element_blank(),
       axis.text.y = element_blank()
-    )
+    ) +
+    scale_color_manual(values = c("darkblue", "darkgreen"))
   return(p)
 }
 
@@ -2324,4 +2393,117 @@ theme_browser <- function(..., legend = TRUE) {
       )
   }
   return(browser.theme)
+}
+
+####################
+### Not exported ###
+####################
+
+split_body <- function(df, width = 1000) {
+  wd <- df$end - df$start
+  nbreak <- wd / width
+  if (nbreak > 1) {
+    steps <- 0:(nbreak)
+    starts <- (width * steps) + df$start
+    starts[starts > df$end] <- NULL
+  } else {
+    starts <- df$end
+  }
+  breaks <- data.frame(
+    seqnames = df$seqnames[[1]],
+    start = starts,
+    end = starts + 1,
+    strand = df$strand[[1]],
+    gene_name = df$gene_name[[1]],
+    gene_biotype = df$gene_biotype[[1]],
+    type = "arrow"
+  )
+  return(breaks)
+}
+
+reformat_annotations <- function(
+  annotation,
+  start.pos,
+  end.pos
+) {
+  annotation <- annotation[annotation$type == "exon"]
+  exons <- as.data.frame(x = annotation)
+  annotation <- split(
+    x = annotation,
+    f = annotation$gene_name
+  )
+  annotation <- lapply(X = annotation, FUN = as.data.frame)
+
+  # add gene total start / end
+  gene_bodies <- list()
+  for (i in seq_along(annotation)) {
+    df <- data.frame(
+      seqnames = annotation[[i]]$seqnames[[1]],
+      start = min(annotation[[i]]$start),
+      end = max(annotation[[i]]$end),
+      strand = annotation[[i]]$strand[[1]],
+      gene_name = annotation[[i]]$gene_name[[1]],
+      gene_biotype = annotation[[i]]$gene_biotype[[1]],
+      type = "body"
+    )
+    # trim any that extend beyond region
+    df$start <- ifelse(
+      test = df$start < start.pos,
+      yes = start.pos,
+      no = df$start
+    )
+    df$end <- ifelse(
+      test = df$end > end.pos,
+      yes = end.pos,
+      no = df$end
+    )
+    breaks <- split_body(df = df)
+    df <- rbind(df, breaks)
+    gene_bodies[[i]] <- df
+  }
+  gene_bodies <- do.call(what = rbind, args = gene_bodies)
+
+  # record if genes overlap
+  overlap_idx <- record_overlapping(annotation = gene_bodies, min.gapwidth = 1000)
+  gene_bodies$dodge <- overlap_idx[gene_bodies$gene_name]
+  exons$dodge <- overlap_idx[exons$gene_name]
+
+  label_df <- gene_bodies[gene_bodies$type == "body", ]
+  label_df$width <- label_df$end - label_df$start
+  label_df$position <- label_df$start + (label_df$width / 2)
+
+  onplus <- gene_bodies[gene_bodies$strand %in% c("*", "+"), ]
+  onminus <- gene_bodies[gene_bodies$strand == "-", ]
+
+  return(
+    list(
+      "labels" = label_df,
+      "exons" = exons,
+      "plus" = onplus,
+      "minus" = onminus
+    )
+  )
+}
+
+#' @importFrom GenomicRanges makeGRangesFromDataFrame reduce
+record_overlapping <- function(annotation, min.gapwidth = 1000) {
+  # convert back to granges
+  annotation.stash <- annotation
+  annotation$strand <- "*"
+  gr <- makeGRangesFromDataFrame(
+    df = annotation[annotation$type == "body", ], keep.extra.columns = TRUE
+  )
+  # work out which ranges overlap
+  collapsed <- reduce(
+    x = gr, with.revmap = TRUE, min.gapwidth = min.gapwidth
+  )$revmap
+  idx <- seq_along(gr)
+  for (i in seq_along(collapsed)) {
+    mrg <- collapsed[[i]]
+    for (j in seq_along(mrg)) {
+      idx[[mrg[[j]]]] <- j
+    }
+  }
+  names(x = idx) <- gr$gene_name
+  return(idx)
 }
