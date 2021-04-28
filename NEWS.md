@@ -31,6 +31,9 @@ on non-`ChromatinAssay` assays
 * Enabled parallization in `TSSEnrichment()` when `fast=TRUE`
 * Added early error checking in `LinkPeaks()` ([#550](https://github.com/timoast/signac/pull/550))
 * Change to sparse matrix correlation in `LinkPeaks()` ([#550](https://github.com/timoast/signac/pull/550))
+* Moved `biovizBase` to suggested packages
+* Removed `ggbio` dependency
+* Re-implemented `AnnotationPlot()`
 
 # Signac 1.1.1 
 
