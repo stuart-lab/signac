@@ -228,7 +228,6 @@ Footprint.Seurat <- function(
 #'
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
-#' @importFrom Biostrings oligonucleotideFrequency
 #' @export
 #' @concept footprinting
 #' @rdname InsertionBias
@@ -255,6 +254,9 @@ InsertionBias.ChromatinAssay <- function(
   verbose = TRUE,
   ...
 ) {
+  if (!requireNamespace('Biostrings', quietly = TRUE)) {
+    stop("Please install Biostrings: BiocManager::install('Biostrings')")
+  }
   chr.use <- unlist(x = strsplit(x = region, split = "-", fixed = TRUE))[[1]]
   reads <- MultiGetReadsInRegion(
     object = object,
@@ -270,13 +272,13 @@ InsertionBias.ChromatinAssay <- function(
     strand = '+'
   )
   insertions <- Extend(x = insertions, upstream = 3, downstream = 2)
-  sequences <- as.vector(x = getSeq(x = genome, insertions))
+  sequences <- as.vector(x = Biostrings::getSeq(x = genome, insertions))
   seq.freq <- table(sequences)
   # remove sequences containing N
   keep.seq <- !grepl(pattern = "N", x = names(x = seq.freq))
   insertion_hex_freq <- as.matrix(x = seq.freq[keep.seq])
-  genome_freq <- oligonucleotideFrequency(
-    x = getSeq(x = genome, names = chr.use),
+  genome_freq <- Biostrings::oligonucleotideFrequency(
+    x = Biostrings::getSeq(x = genome, names = chr.use),
     width = 6
   )
   if (nrow(x = insertion_hex_freq) != length(x = genome_freq)) {
@@ -465,7 +467,6 @@ GetMotifSize <- function(
 # @param downstream Number of bases to extend downstream
 # @param in.peaks Restrict to motifs in peaks
 #' @importFrom IRanges width subsetByOverlaps
-#' @importFrom Biostrings getSeq
 #' @importFrom BiocGenerics sort
 RunFootprint <- function(
   object,
@@ -477,6 +478,9 @@ RunFootprint <- function(
   in.peaks = FALSE,
   verbose = TRUE
 ) {
+  if (!requireNamespace('Biostrings', quietly = TRUE)) {
+    stop("Please install Biostrings: BiocManager::install('Biostrings')")
+  }
   motif.size <- width(x = regions)[[1]]
   regions <- sort(x = regions)
   if (in.peaks) {
@@ -498,7 +502,7 @@ RunFootprint <- function(
     } else {
       # add three bases each side here so we can get the hexamer frequencies
       # for every position
-      dna.sequence <- getSeq(x = genome, Extend(
+      dna.sequence <- Biostrings::getSeq(x = genome, Extend(
         x = regions,
         upstream = 3,
         downstream = 3
