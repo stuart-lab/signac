@@ -421,7 +421,6 @@ GeneActivity <- function(
 #' @param biotypes Biotypes to keep
 #' @param verbose Display messages
 #'
-#' @importFrom biovizBase crunch
 #' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo
 #' @concept utilities
 #' @export
@@ -431,6 +430,10 @@ GetGRangesFromEnsDb <- function(
   biotypes = c("protein_coding", "lincRNA", "rRNA", "processed_transcript"),
   verbose = TRUE
 ) {
+  if (!requireNamespace("biovizBase", quietly = TRUE)) {
+    stop("Please install biovizBase\n",
+         "https://www.bioconductor.org/packages/biovizBase/")
+  }
   # convert seqinfo to granges
   whole.genome <-  as(object = seqinfo(x = ensdb), Class = "GRanges")
   if (standard.chromosomes) {
@@ -440,14 +443,14 @@ GetGRangesFromEnsDb <- function(
   # extract genes from each chromosome
   if (verbose) {
     tx <- sapply(X = seq_along(whole.genome), FUN = function(x){
-      crunch(
+      biovizBase::crunch(
         obj = ensdb,
         which = whole.genome[x],
         columns = c("tx_id", "gene_name", "gene_id", "gene_biotype"))
     })
   } else {
     tx <- sapply(X = seq_along(whole.genome), FUN = function(x){
-      suppressMessages(expr = crunch(
+      suppressMessages(expr = biovizBase::crunch(
         obj = ensdb,
         which = whole.genome[x],
         columns = c("tx_id", "gene_name", "gene_id", "gene_biotype")))
