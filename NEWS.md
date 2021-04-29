@@ -1,3 +1,9 @@
+# Unreleased
+
+Bug fixes:
+
+* Fixed bug in `ChromatinAssay` merging ([#596](https://github.com/timoast/signac/pull/596))
+
 # Signac 1.2.0
 
 New functionality:
