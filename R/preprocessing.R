@@ -156,9 +156,12 @@ CreateMotifMatrix <- function(
     }
   }
   rownames(motif.matrix) <- GRangesToString(grange = features, sep = sep)
-  if (is.null(names(pwm))) {
-    warning("No `names` attribute found in `PFMatrixList`. Extracting `name`s from individual entries.")
-    colnames(motif.matrix) <- vapply(pwm, slot, "character", "name")
+  if (is.null(x = names(x = pwm))) {
+    warning("No 'names' attribute found in PFMatrixList. ",
+            "Extracting names from individual entries.")
+    colnames(x = motif.matrix) <- vapply(
+      X = pwm, FUN = slot, FUN.VALUE = "character", "name"
+    )
   }
   return(motif.matrix)
 }
