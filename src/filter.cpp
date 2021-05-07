@@ -47,13 +47,18 @@ int filterCells(
   cb_seq.reserve(32);
   line_seq.reserve(buffer_length);
 
-  while (gzgets(ifileHandler, buffer, buffer_length) !=0) {
+  bool eof_check;
+  while ((eof_check = gzgets(ifileHandler, buffer, buffer_length)) !=0) {
     line_seq.clear();
     line_seq.append(buffer);
 
     if (line_seq.at(0) != '#') {
       break;
     }
+  }
+
+  if (!eof_check) {
+    Rcpp::Rcerr << "Incomplete: File has only headers";
   }
 
   // looping over the fragments file
