@@ -6,7 +6,7 @@ Bug fixes:
 
 Other changes:
 
-* Added support for fragment files containing headers (cellranger-atac v2; ([#609](https://github.com/timoast/signac/issues/609))
+* Added support for fragment files containing headers (cellranger-atac v2; [#609](https://github.com/timoast/signac/issues/609))
 
 # Signac 1.2.0
 
