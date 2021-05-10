@@ -58,7 +58,9 @@ int filterCells(
   }
 
   if (!eof_check) {
-    Rcpp::Rcerr << "Incomplete: File has only headers";
+    Rcpp::Rcerr << "Error: fragment file contains header only\n" << std::flush;
+    gzclose(ifileHandler);
+    return 1;
   }
 
   // looping over the fragments file

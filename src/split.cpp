@@ -44,7 +44,7 @@ int splitFragments(
     } else {
       out->open( fileName.c_str() );
     }
- 
+
     streams.push_back(out);
   }
 
@@ -80,8 +80,25 @@ int splitFragments(
   cb_seq.reserve(32);
   line_seq.reserve(buffer_length);
 
+  // skip header if present
+  bool eof_check;
+  while ((eof_check = gzgets(ifileHandler, buffer, buffer_length)) !=0) {
+    line_seq.clear();
+    line_seq.append(buffer);
+
+    if (line_seq.at(0) != '#') {
+      break;
+    }
+  }
+
+  if (!eof_check) {
+    Rcpp::Rcerr << "Error: fragment file contains header only\n" << std::flush;
+    gzclose(ifileHandler);
+    return 1;
+  }
+
   // looping over the fragments file
-  while(gzgets(ifileHandler, buffer, buffer_length) !=0 ){
+  do {
     line_seq.clear();
     line_seq.append(buffer);
 
@@ -124,7 +141,7 @@ int splitFragments(
     if (is_ten_mil) {
       Rcpp::checkUserInterrupt();
     }
-  }
+  } while(gzgets(ifileHandler, buffer, buffer_length) !=0 );
 
   // Cleanup
   gzclose(ifileHandler);
