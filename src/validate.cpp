@@ -46,11 +46,29 @@ bool validateCells(
   }
 
   // char * to string extraction
-  std::string cb_seq;
+  std::string cb_seq, line_seq;
   cb_seq.reserve(32);
+  line_seq.reserve(buffer_length);
+
+  // skip header if present
+  bool eof_check;
+  while ((eof_check = gzgets(fileHandler, buffer, buffer_length)) !=0) {
+    line_seq.clear();
+    line_seq.append(buffer);
+
+    if (line_seq.at(0) != '#') {
+      break;
+    }
+  }
+
+  if (!eof_check) {
+    Rcpp::Rcerr << "Error: fragment file contains header only\n" << std::flush;
+    gzclose(fileHandler);
+    return (false);
+  }
 
   // looping over the fragments file
-  while(gzgets(fileHandler, buffer, buffer_length) !=0 ){
+  do {
     cb_char = strtok ( buffer, "\t" );
 
     for (auto i=1; i<=3; i++) {
@@ -83,7 +101,7 @@ bool validateCells(
     if (line_counter % 2000000 == 0) {
       Rcpp::checkUserInterrupt();
     }
-  }
+  } while(gzgets(fileHandler, buffer, buffer_length) !=0 );
 
   //Cleanup
   gzclose(fileHandler);

@@ -47,13 +47,27 @@ int filterCells(
   cb_seq.reserve(32);
   line_seq.reserve(buffer_length);
 
-  // looping over the fragments file
-  while(gzgets(ifileHandler, buffer, buffer_length) !=0 ){
+  bool eof_check;
+  while ((eof_check = gzgets(ifileHandler, buffer, buffer_length)) !=0) {
     line_seq.clear();
     line_seq.append(buffer);
 
-    cb_char = strtok ( buffer, "\t" );
+    if (line_seq.at(0) != '#') {
+      break;
+    }
+  }
 
+  if (!eof_check) {
+    Rcpp::Rcerr << "Error: fragment file contains header only\n" << std::flush;
+    gzclose(ifileHandler);
+    return 1;
+  }
+
+  // looping over the fragments file
+  do {
+    line_seq.append(buffer);
+
+    cb_char = strtok ( buffer, "\t" );
     for (auto i=1; i<=3; i++) {
       cb_char = strtok (NULL, "\t");
 
@@ -82,7 +96,9 @@ int filterCells(
     if (is_ten_mil) {
       Rcpp::checkUserInterrupt();
     }
-  }
+
+    line_seq.clear();
+  } while(gzgets(ifileHandler, buffer, buffer_length) !=0 );
 
   //Cleanup
   gzclose(ifileHandler);

@@ -18,8 +18,14 @@ read_vec <- c(5, 4, 2, 5, 3, 2, 3, 13, 1, 2, 6, 8, 5, 1, 8, 4, 6, 3, 1, 1, 2,
 
 test_that("CountFragments works", {
   fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+  fpath_headered <- system.file("extdata", "fragments_header.tsv.gz", package="Signac")
   counts <- CountFragments(fragments = fpath)
+  counts_headered <- CountFragments(fragments = fpath_headered)
 
+  expect_equal(
+    object = counts_headered,
+    expected = counts
+  )
   expect_equal(
     object = counts$frequency_count,
     expected = count_vec
@@ -42,10 +48,18 @@ test_that("CountFragments works", {
 
 test_that("ExtractFragments works", {
   fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+  fpath_headered <- system.file("extdata", "fragments_header.tsv.gz", package="Signac")
   cells <- colnames(x = atac_small)
   names(x = cells) <- paste0("test_", cells)
   frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)
   counts <- ExtractFragments(fragments = frags, verbose = FALSE)
+  frags_headered <- CreateFragmentObject(path = fpath_headered, cells = cells, verbose = FALSE, tolerance = 0.5)
+  counts_headered <- ExtractFragments(fragments = frags_headered, verbose = FALSE)
+
+  expect_equal(
+    object = counts_headered,
+    expected = counts
+  )
 
   expect_equal(
     object = counts$CB,
@@ -74,10 +88,17 @@ test_that("ExtractFragments works", {
 
 test_that("ValidateCells works", {
   fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+  fpath_headered <- system.file("extdata", "fragments_header.tsv.gz", package="Signac")
   cells <- colnames(x = atac_small)
   names(x = cells) <- paste0("test_", cells)
   frags <- CreateFragmentObject(
     path = fpath,
+    cells = cells,
+    verbose = FALSE,
+    validate = FALSE
+  )
+  frags_headered <- CreateFragmentObject(
+    path = fpath_headered,
     cells = cells,
     verbose = FALSE,
     validate = FALSE
@@ -94,10 +115,24 @@ test_that("ValidateCells works", {
   )
   expect_true(object = valid)
   expect_false(object = invalid)
+
+  valid_h <- Signac:::ValidateCells(
+    object = frags_headered,
+    verbose = FALSE,
+    tolerance = 0.5
+  )
+  invalid_h <- Signac:::ValidateCells(
+    object = frags_headered,
+    verbose = FALSE,
+    tolerance = 0
+  )
+  expect_true(object = valid_h)
+  expect_false(object = invalid_h)
 })
 
 test_that("ValidateHash works", {
   fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+  fpath_headered <- system.file("extdata", "fragments_header.tsv.gz", package="Signac")
   cells <- colnames(x = atac_small)
   names(x = cells) <- paste0("test_", cells)
   frags <- CreateFragmentObject(
@@ -106,18 +141,86 @@ test_that("ValidateHash works", {
     verbose = FALSE,
     validate = FALSE
   )
+  frags_headered <- CreateFragmentObject(
+    path = fpath_headered,
+    cells = cells,
+    verbose = FALSE,
+    validate = FALSE
+  )
+
   valid <- Signac:::ValidateHash(
     object = frags,
     verbose = FALSE
   )
   expect_true(object = valid)
+
+  valid_h <- Signac:::ValidateHash(
+    object = frags_headered,
+    verbose = FALSE
+  )
+  expect_true(object = valid_h)
+})
+
+test_that("FilterCells works", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+  fpath_headered <- system.file("extdata", "fragments_header.tsv.gz", package="Signac")
+  tmpf <- tempfile(fileext = ".gz")
+  FilterCells(
+    fragments = fpath,
+    cells = head(colnames(atac_small)),
+    outfile = tmpf
+  )
+  output <- read.table(file = tmpf, stringsAsFactors = FALSE)
+
+  file.remove(tmpf)
+  FilterCells(
+    fragments = fpath_headered,
+    cells = head(colnames(atac_small)),
+    outfile = tmpf
+  )
+  output_headered <- read.table(file = tmpf, stringsAsFactors = FALSE)
+
+  expect_equal(
+    object = output,
+    expected = output_headered
+  )
+
+  expected <- structure(list(V1 = c("chr1", "chr1", "chr1",
+                                    "chr1", "chr1", "chr1",
+                                    "chr1", "chr1", "chr1",
+                                    "chr1", "chr1"),
+                             V2 = c(712868L, 713783L, 713944L,
+                                    714140L, 714144L, 714263L,
+                                    757378L, 762811L, 762874L,
+                                    762951L, 773225L),
+                             V3 = c(713146L, 714045L, 713997L,
+                                    714174L, 714209L, 714732L,
+                                    757538L, 762953L, 762953L,
+                                    763224L, 773453L),
+                             V4 = c("AAACGAAAGGCTTCGC-1", "AAACGAAAGGCTTCGC-1",
+                                    "AAACGAAAGGCTTCGC-1", "AAACGAAAGCGAGCTA-1",
+                                    "AAACGAAAGGCTTCGC-1", "AAACGAAAGGCTTCGC-1",
+                                    "AAACGAAAGGCTTCGC-1", "AAACGAAAGCGAGCTA-1",
+                                    "AAACGAAAGCGAGCTA-1", "AAACGAAAGGCTTCGC-1",
+                                    "AAACGAAAGGCTTCGC-1"),
+                             V5 = c(1L, 2L, 1L, 1L, 3L, 1L,
+                                    2L, 1L, 2L, 1L, 2L)),
+                        class = "data.frame", row.names = c(NA, -11L))
+  expect_equal(object = output, expected = expected)
 })
 
 test_that("SplitFragments works", {
   fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+  fpath_headered <- system.file("extdata", "fragments_header.tsv.gz", package="Signac")
   cells <- colnames(x = atac_small)
   names(x = cells) <- cells
   frags <- CreateFragmentObject(
+    path = fpath,
+    cells = cells,
+    verbose = FALSE,
+    validate = FALSE
+  )
+  frags_headered <- CreateFragmentObject(
     path = fpath,
     cells = cells,
     verbose = FALSE,
@@ -238,4 +341,29 @@ test_that("SplitFragments works", {
                          class = "data.frame", row.names = c(NA, -51L))
   )
   file.remove(of1, of2)
+
+  Fragments(atac_small) <- NULL
+  Fragments(atac_small) <- frags_headered
+  SplitFragments(
+    object = atac_small,
+    assay = "peaks",
+    group.by = "seurat_clusters",
+    outdir = tempdir()
+  )
+  of1 <- paste0(tempdir(), .Platform$file.sep, "0.bed")
+  of2 <- paste0(tempdir(), .Platform$file.sep, "1.bed")
+
+  bed1_h <- read.table(file = of1, sep = "\t", stringsAsFactors = FALSE)
+  bed2_h <- read.table(file = of2, sep = "\t", stringsAsFactors = FALSE)
+
+  expect_equal(
+    object = bed1_h,
+    expected = bed1
+  )
+
+  expect_equal(
+    object = bed2_h,
+    expected = bed2
+  )
+
 })

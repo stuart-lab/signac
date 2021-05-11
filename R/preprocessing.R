@@ -156,6 +156,13 @@ CreateMotifMatrix <- function(
     }
   }
   rownames(motif.matrix) <- GRangesToString(grange = features, sep = sep)
+  if (is.null(x = names(x = pwm))) {
+    warning("No 'names' attribute found in PFMatrixList. ",
+            "Extracting names from individual entries.")
+    colnames(x = motif.matrix) <- vapply(
+      X = pwm, FUN = slot, FUN.VALUE = "character", "name"
+    )
+  }
   return(motif.matrix)
 }
 
@@ -752,7 +759,7 @@ TSSEnrichment <- function(
 
   # exclude chrM
   sn <- seqnames(x = tss.positions)
-  tss.positions <- tss.positions[!as.character(sn) %in% c("chrM", "Mt")]
+  tss.positions <- tss.positions[!as.character(sn) %in% c("chrM", "Mt", "MT")]
 
   if (fast) {
     # just compute the TSS enrichment score without storing the full matrix

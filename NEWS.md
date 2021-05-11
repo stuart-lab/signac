@@ -1,3 +1,17 @@
+# Signac 1.2.1
+
+New functionality:
+
+* Added `head()` method for `Fragment`-class objects.
+
+Bug fixes:
+
+* Fixed bug in `ChromatinAssay` merging ([#596](https://github.com/timoast/signac/pull/596))
+
+Other changes:
+
+* Added support for fragment files containing headers (cellranger-atac v2; [#609](https://github.com/timoast/signac/issues/609))
+
 # Signac 1.2.0
 
 New functionality:

@@ -2,6 +2,32 @@
 #'
 NULL
 
+#' Return the first rows of a fragment file
+#'
+#' Returns the first \code{n} rows of a fragment file. This allows the content
+#' of a fragment file to be inspected.
+#'
+#' @param x a \code{Fragment} object
+#' @param n an integer specifying the number of rows to return from the fragment
+#' file
+#' @param ... additional arguments passed to \code{\link[utils]{read.table}}
+#'
+#' @return The first \code{n} rows of a fragment file as a \code{data.frame}
+#' with the following columns: chrom, start, end, barcode, readCount.
+#'
+#' @export
+#' @method head Fragment
+#' @concept fragments
+#'
+head.Fragment <- function(x, n = 6L, ...) {
+  fpath <- GetFragmentData(object = x, slot = "path")
+  df <- read.table(file = fpath, nrows = n, ...)
+  if (ncol(x = df) == 5) {
+    colnames(x = df) <- c("chrom", "start", "end", "barcode", "readCount")
+  }
+  return(df)
+}
+
 #' Count fragments
 #'
 #' Count total fragments per cell barcode present in a fragment file.
