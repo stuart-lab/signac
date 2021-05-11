@@ -28,6 +28,8 @@ navbar:
           href: articles/peak_calling.html
         - text: "Merging objects"
           href: articles/merging.html
+        - text: "scATAC-seq integration"
+          href: articles/integrate_atac.html
         - text: "Mitochondrial genotyping"
           href: articles/mito.html
         - text: "Motif analysis"
@@ -40,8 +42,6 @@ navbar:
           href: articles/footprint.html
         - text: "Data visualization"
           href: articles/visualization.html
-        - text: "scATAC-seq integration"
-          href: articles/integration.html
         - text: "Parallel computing"
           href: articles/future.html
         - text: "Data structures and object interaction"

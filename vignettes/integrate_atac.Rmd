@@ -1,0 +1,300 @@
+---
+title: "scATAC-seq data integration"
+date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Here we demonstrate the integration of multiple single-cell chromatin datasets
+derived from human PBMCs. One dataset was generated using the 10x Genomics
+multiome technology, and includes DNA accessibility and gene expression information
+for each cell. The other dataset was profiled using 10x Genomics scATAC-seq,
+and includes DNA accessibility data only.
+
+We will integrate the two datasets together using the shared DNA accessibility
+assay, using tools available in the Seurat package. Furthermore, we will
+demonstrate transferring both continuous (gene expression) and categorical
+(cell labels) information from a reference to a query single-cell chromatin
+dataset.
+
+**Note that this functionality currently requires the development version of Seurat.
+This can be installed from GitHub, see the installation instructions
+[here](https://satijalab.org/seurat/articles/install.html#install-the-development-version-of-seurat-1)**
+
+The PBMC multiome and scATAC-seq data can be downloaded from the 10x website:
+
+```{bash, eval=FALSE}
+# multiome
+wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_10k/pbmc_granulocyte_sorted_10k_filtered_feature_bc_matrix.h5
+wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_10k/pbmc_granulocyte_sorted_10k_atac_fragments.tsv.gz
+wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_10k/pbmc_granulocyte_sorted_10k_atac_fragments.tsv.gz.tbi
+
+# scATAC
+wget https://cf.10xgenomics.com/samples/cell-atac/2.0.0/atac_pbmc_10k_nextgem/atac_pbmc_10k_nextgem_fragments.tsv.gz
+wget https://cf.10xgenomics.com/samples/cell-atac/2.0.0/atac_pbmc_10k_nextgem/atac_pbmc_10k_nextgem_fragments.tsv.gz.tbi
+```
+
+## Preprocessing
+
+Here we'll load the PBMC multiome data pre-processed in our
+[multiome vignette](articles/pbmc_multiomic.html), and create a new object from
+the scATAC-seq data:
+
+```{r message=FALSE, warning=FALSE}
+library(Signac)
+library(Seurat)
+library(ggplot2)
+
+# load the pre-processed multiome data
+pbmc.multi <- readRDS("../vignette_data/pbmc_multiomic.rds")
+
+# process the hg38-mapped ATAC data
+# first count fragments per cell
+# fragpath <- "~/data/10x_atac/pbmc_10k_hg38/fragments.tsv.gz"
+fragpath <- "~/data/10x_atac/pbmc10k_v2/atac_pbmc_10k_nextgem_fragments.tsv.gz"
+fragcounts <- CountFragments(fragments = fragpath)
+atac.cells <- fragcounts[fragcounts$frequency_count > 2000, "CB"]
+
+# create the fragment object
+atac.frags <- CreateFragmentObject(path = fragpath, cells = atac.cells)
+```
+
+An important first step in any integrative analysis of single-cell chromatin data
+is to ensure that the same features are measured in each dataset. Here, we
+quantify the mutliome peaks in the ATAC dataset to ensure that there are common features
+across the two datasets.
+
+```{r message=FALSE, warning=FALSE, cache=TRUE}
+# quantify multiome peaks in the scATAC-seq dataset
+counts <- FeatureMatrix(
+  fragments = atac.frags,
+  features = granges(pbmc.multi),
+  cells = atac.cells
+)
+
+# create object
+atac.assay <- CreateChromatinAssay(
+  counts = counts,
+  min.features = 1000,
+  fragments = atac.frags
+)
+pbmc.atac <- CreateSeuratObject(counts = atac.assay, assay = "peaks")
+pbmc.atac <- subset(pbmc.atac, nCount_peaks > 2000 & nCount_peaks < 30000)
+
+# compute LSI
+pbmc.atac <- FindTopFeatures(pbmc.atac, min.cutoff = 10)
+pbmc.atac <- RunTFIDF(pbmc.atac)
+pbmc.atac <- RunSVD(pbmc.atac)
+```
+
+Next we can merge the multiome and scATAC datasets together and observe that
+there is a difference between them that appears to be due to the batch
+(experiment and technology-specific variation).
+
+```{r message=FALSE, warning=FALSE}
+# first add dataset-identifying metadata
+pbmc.atac$dataset <- "ATAC"
+pbmc.multi$dataset <- "Multiome"
+
+# merge
+pbmc.combined <- merge(pbmc.atac, pbmc.multi)
+
+# process the combined dataset
+pbmc.combined <- FindTopFeatures(pbmc.combined, min.cutoff = 10)
+pbmc.combined <- RunTFIDF(pbmc.combined)
+pbmc.combined <- RunSVD(pbmc.combined)
+pbmc.combined <- RunUMAP(pbmc.combined, reduction = "lsi", dims = 2:30)
+p1 <- DimPlot(pbmc.combined, group.by = "dataset")
+```
+
+## Integration
+
+To find integration anchors between the two datasets, we need to project them into
+a shared low-dimensional space. To do this, we'll use reciprocal LSI projection
+(projecting each dataset into the other's LSI space) by setting `reduction="rlsi"`.
+For more information about the data integration methods in Seurat, see our recent
+[paper](https://doi.org/10.1016/j.cell.2019.05.031)
+and the [Seurat website](https://satijalab.org/seurat/).
+
+Rather than integrating the normalized data matrix, as is typically done for 
+scRNA-seq data, we'll integrate the low-dimensional cell embeddings (the LSI
+coordinates) across the datasets using the `IntegrateEmbeddings()` function.
+This is much better suited to scATAC-seq data,
+as we typically have a very sparse matrix with a large number of features. Note 
+that this requires that we first compute an uncorrected LSI embedding using the
+merged dataset (as we did above).
+
+```{r message=FALSE, warning=FALSE}
+# find integration anchors
+integration.anchors <- FindIntegrationAnchors(
+  object.list = list(pbmc.multi, pbmc.atac),
+  anchor.features = rownames(pbmc.multi),
+  reduction = "rlsi",
+  dims = 2:30
+)
+
+# integrate LSI embeddings
+integrated <- IntegrateEmbeddings(
+  anchorset = integration.anchors,
+  reductions = pbmc.combined[["lsi"]],
+  new.reduction.name = "integrated_lsi",
+  dims.to.integrate = 1:30
+)
+
+# create a new UMAP using the integrated embeddings
+integrated <- RunUMAP(integrated, reduction = "integrated_lsi", dims = 2:30)
+p2 <- DimPlot(integrated, group.by = "dataset")
+```
+
+Finally, we can compare the results of the merged and integrated datasets, and
+find that the integration has successfully removed the technology-specific variation
+in the dataset while retaining the cell-type-specific (biological) variation.
+
+```{r message=FALSE, warning=FALSE, fig.width=12}
+(p1 + ggtitle("Merged")) | (p2 + ggtitle("Integrated"))
+```
+
+Here we've demonstrated the integration method using two datasets, but the same
+workflow can be applied to integrate any number of datasets.
+
+## Reference mapping
+
+In cases where we have a large, high-quality dataset, or a dataset containing unique
+information not present in other datasets (cell type annotations or additional 
+data modalities, for example), we often want to use that dataset as 
+a reference and map queries onto it so that we can interpret these query datasets
+in the context of the existing reference.
+
+To demonstrate how to do this using single-cell chromatin reference and query
+datasets, we'll treat the PBMC multiome dataset here as a reference and map the
+scATAC-seq dataset to it using the `FindTransferAnchors()` and `MapQuery()`
+functions from Seurat.
+
+```{r message=FALSE, warning=FALSE}
+# compute UMAP and store the UMAP model
+pbmc.multi <- RunUMAP(pbmc.multi, reduction = "lsi", dims = 2:30, return.model = TRUE)
+
+# find transfer anchors
+transfer.anchors <- FindTransferAnchors(
+  reference = pbmc.multi,
+  query = pbmc.atac,
+  reference.reduction = "lsi",
+  reduction = "lsiproject",
+  dims = 2:30
+)
+
+# map query onto the reference dataset
+pbmc.atac <- MapQuery(
+  anchorset = transfer.anchors,
+  reference = pbmc.multi,
+  query = pbmc.atac,
+  refdata = pbmc.multi$predicted.id,
+  reference.reduction = "lsi",
+  new.reduction.name = "ref.lsi",
+  reduction.model = 'umap'
+)
+```
+
+<details>
+  <summary>**What is `MapQuery()` doing?**</summary>
+
+`MapQuery()` is a wrapper function that runs `TransferData()`, `IntegrateEmbeddings()`,
+and `ProjectUMAP()` for a query dataset, and sets sensible default parameters based
+on how the anchor object was generated. For finer control over the parameters used 
+by each of these functions, you can pass parameters through `MapQuery()` to each function
+using the `transferdata.args`, `integrateembeddings.args`, and `projectumap.args` arguments
+for `MapQuery()`, or you can run each of the functions yourself. For example:
+
+```{r, eval=FALSE}
+pbmc.atac <- TransferData(
+  anchorset = transfer.anchors, 
+  reference = pbmc.multi,
+  weight.reduction = "lsiproject",
+  query = pbmc.atac,
+  refdata = list(
+    celltype = "predicted.id",
+    predicted_RNA = "RNA")
+)
+pbmc.atac <- IntegrateEmbeddings(
+  anchorset = transfer.anchors,
+  reference = pbmc.multi,
+  query = pbmc.atac, 
+  reductions = "lsiproject",
+  new.reduction.name = "ref.lsi"
+)
+pbmc.atac <- ProjectUMAP(
+  query = pbmc.atac, 
+  query.reduction = "ref.lsi",
+  reference = pbmc.multi, 
+  reference.reduction = "lsi",
+  reduction.model = "umap"
+)
+```
+
+</details>
+
+By running `MapQuery()`, we have mapped the scATAC-seq dataset onto the the
+multimodal reference, and enabled cell type labels to be transfered from reference
+to query. We can visualize these reference mapping results and the cell type 
+labels now associated with the scATAC-seq dataset:
+
+```{r message=FALSE, warning=FALSE, fig.width=12, fig.height=6}
+p1 <- DimPlot(pbmc.multi, reduction = "umap", group.by = "predicted.id", label = TRUE, repel = TRUE) + NoLegend() + ggtitle("Reference")
+p2 <- DimPlot(pbmc.atac, reduction = "ref.umap", group.by = "predicted.id", label = TRUE, repel = TRUE) + NoLegend() + ggtitle("Query")
+
+p1 | p2
+```
+
+For more information about multimodal reference mapping, see the [Seurat vignette](https://satijalab.org/seurat/articles/multimodal_reference_mapping.html).
+
+## RNA imputation
+
+Above we transferred categorical information (the cell labels) and mapped the 
+query data onto an existing reference UMAP. We can also transfer continuous data
+from the reference to the query in the same way. Here we demonstrate transferring
+the gene expression values from the PBMC multiome dataset (that measured DNA
+accessibility and gene expression in the same cells) to the PBMC scATAC-seq 
+dataset (that measured DNA accessibility only). Note that we could also transfer
+these values using the `MapQuery()` function call above by setting the `refdata`
+parameter to a list of values.
+
+```{r message=FALSE, warning=FALSE}
+# predict gene expression values
+rna <- TransferData(
+  anchorset = transfer.anchors,
+  refdata = GetAssayData(pbmc.multi, assay = "RNA", slot = "data"),
+  weight.reduction = pbmc.atac[["lsi"]],
+  dims = 2:30
+)
+
+# add predicted values as a new assay
+pbmc.atac[["predicted"]] <- rna
+```
+
+We can look at some immune marker genes and see that the predicted expression
+patterns match our expectation based on known expression patterns.
+
+```{r message=FALSE, warning=FALSE, fig.width=12, fig.height=8}
+DefaultAssay(pbmc.atac) <- "predicted"
+
+FeaturePlot(
+  object = pbmc.atac,
+  features = c('MS4A1', 'CD3D', 'LEF1', 'NKG7', 'TREM1', 'LYZ'),
+  pt.size = 0.1,
+  max.cutoff = 'q95',
+  reduction = "ref.umap",
+  ncol = 3
+)
+```
+
+<details>
+  <summary>**Session Info**</summary>
+  
+```{r}
+sessionInfo()
+```
+
+</details>

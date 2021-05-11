@@ -80,6 +80,16 @@ datasets together.
 knitr::include_graphics("./assets/merge.png")
 ```
 
+## [Integration and label transfer](integrate_atac.html)
+
+Here we demonstrate two different approaches for the integration of multiple 
+scATAC-seq datasets, as well as label transfer from a reference scATAC-seq
+dataset to an unlabeled query dataset.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/integration.png")
+```
+
 ## [DNA sequence motif enrichment analysis](motif_vignette.html)
 
 In this vignette we demonstrate how to perform DNA sequence motif enrichment
@@ -123,16 +133,6 @@ chromatin data.
 
 ```{r echo=FALSE, out.height="30%"}
 knitr::include_graphics("./assets/viz.png")
-```
-
-## [Integration and label transfer](integration.html)
-
-Here we demonstrate two different approaches for the integration of multiple 
-scATAC-seq datasets, as well as label transfer from a reference scATAC-seq
-dataset to an unlabeled query dataset.
-
-```{r echo=FALSE, out.height="30%"}
-knitr::include_graphics("./assets/integration.png")
 ```
 
 # Object interaction
