@@ -82,9 +82,8 @@ knitr::include_graphics("./assets/merge.png")
 
 ## [Integration and label transfer](integrate_atac.html)
 
-Here we demonstrate two different approaches for the integration of multiple 
-scATAC-seq datasets, as well as label transfer from a reference scATAC-seq
-dataset to an unlabeled query dataset.
+Here we demonstrate the integration of multiple single-cell chromatin datasets,
+as well as label transfer from a reference dataset to an unlabeled query dataset.
 
 ```{r echo=FALSE, out.height="30%"}
 knitr::include_graphics("./assets/integration.png")
