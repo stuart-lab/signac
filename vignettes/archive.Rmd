@@ -8,4 +8,6 @@ To install past versions of Signac see the
 
 Past versions of the Signac documentation can be found here:
 
-#### [0.2](../0.2/index.html)
+## [0.2](../0.2/index.html)
+
+## [1.2.0](../1.2.0/index.html)
