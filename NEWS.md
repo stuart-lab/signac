@@ -1,5 +1,9 @@
 # Unreleased
 
+New functionality:
+
+* Added `head()` method for `Fragment`-class objects.
+
 Bug fixes:
 
 * Fixed bug in `ChromatinAssay` merging ([#596](https://github.com/timoast/signac/pull/596))
