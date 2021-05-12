@@ -18,6 +18,7 @@ CallPeaks(object, ...)
   macs2.path = NULL,
   broad = FALSE,
   outdir = tempdir(),
+  fragment.tempdir = tempdir(),
   combine.peaks = TRUE,
   effective.genome.size = 2.7e+09,
   extsize = 200,
@@ -88,9 +89,9 @@ peaks using subsets of cells we first split the fragment file/s used, so
 using a grouping variable will require extra time to split the files and
 perform multiple MACS peak calls, and will store additional files on-disk
 that may be large. Note that we store split fragment files in the temp
-directory, and if the program is interrupted before completing these
-temporary files will not be removed. If NULL, peaks are called using all
-cells together (pseudobulk).}
+directory (\code{\link[base]{tempdir}}) by default, and if the program is
+interrupted before completing these temporary files will not be removed. If
+NULL, peaks are called using all cells together (pseudobulk).}
 
 \item{idents}{List of identities to include if grouping cells (only valid if
 also setting the \code{group.by} parameter). If NULL, peaks will be called
@@ -102,6 +103,9 @@ automatically.}
 \item{broad}{Call broad peaks (\code{--broad} parameter for MACS)}
 
 \item{outdir}{Path for output files}
+
+\item{fragment.tempdir}{Path to write temporary fragment files. Only used if
+\code{group.by} is not NULL.}
 
 \item{combine.peaks}{Controls whether peak calls from different groups of
 cells are combined using \code{GenomicRanges::reduce} when calling peaks for

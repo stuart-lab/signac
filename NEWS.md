@@ -1,3 +1,8 @@
+# Unreleased
+
+* Added `fragment.tempdir` parameter to `CallPeaks()` to enable setting directory
+that split fragment files are written to during peak calling ([#579](https://github.com/timoast/signac/issues/579))
+
 # Signac 1.2.1
 
 New functionality:
