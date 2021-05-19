@@ -280,7 +280,7 @@ LinkPeaks <- function(
     genes.keep <- intersect(
       x = names(x = genes.keep[genes.keep]), y = genes.use
     )
-    expression.data <- expression.data[genes.keep, ]
+    expression.data <- expression.data[genes.keep, , drop = FALSE]
   }
   if (verbose) {
     message(
@@ -406,9 +406,9 @@ LinkPeaks <- function(
     }
   )
   # combine results
-  gene.vec <- do.call(what = c, args = sapply(X = res, FUN = `[[`, 1))
-  coef.vec <- do.call(what = c, args = sapply(X = res, FUN = `[[`, 2))
-  zscore.vec <- do.call(what = c, args = sapply(X = res, FUN = `[[`, 3))
+  gene.vec <- do.call(what = c, args = lapply(X = res, FUN = `[[`, 1))
+  coef.vec <- do.call(what = c, args = lapply(X = res, FUN = `[[`, 2))
+  zscore.vec <- do.call(what = c, args = lapply(X = res, FUN = `[[`, 3))
 
   if (length(x = coef.vec) == 0) {
     if (verbose) {
