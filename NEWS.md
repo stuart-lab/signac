@@ -1,5 +1,8 @@
 # Unreleased
 
+Bug fixes:
+
+* Fixed `LinkPeaks()` function when running on a single gene ([#629](https://github.com/timoast/signac/issues/629))
 * Added `fragment.tempdir` parameter to `CallPeaks()` to enable setting directory
 that split fragment files are written to during peak calling ([#579](https://github.com/timoast/signac/issues/579))
 
