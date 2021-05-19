@@ -392,6 +392,9 @@ GeneActivity <- function(
 
   # quantify
   frags <- Fragments(object = object[[assay]])
+  if (length(x = frags) == 0) {
+    stop("No fragment information found for requested assay")
+  }
   cells <- colnames(x = object[[assay]])
   counts <- FeatureMatrix(
     fragments = frags,
