@@ -289,6 +289,10 @@ FeaturePlot(
 )
 ```
 
+```{r include=FALSE}
+saveRDS(object = pbmc.atac, file = "../vignette_data/pbmc_atac_integration.rds")
+```
+
 <details>
   <summary>**Session Info**</summary>
   
