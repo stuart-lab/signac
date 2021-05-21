@@ -398,7 +398,10 @@ perform a differential accessibility (DA) test. We utilize logistic regression
 for DA, as suggested by
 [Ntranos et al. 2018](https://www.biorxiv.org/content/10.1101/258566v2)
 for scRNA-seq data, and add the total number of fragments as a latent variable
-to mitigate the effect of differential sequencing depth on the result. Here we
+to mitigate the effect of differential sequencing depth on the result.
+For sparse data (such as scATAC-seq), we find it is often necessary
+to lower the `min.pct` threshold in `FindMarkers()` from the default (0.1, which
+was designed for scRNA-seq data). Here we
 will focus on comparing Naive CD4 cells and CD14 monocytes, but any groups of
 cells can be compared using these methods. We can also visualize these marker
 peaks on a violin plot, feature plot, dot plot, heat map, or any
@@ -412,7 +415,7 @@ da_peaks <- FindMarkers(
   object = pbmc,
   ident.1 = "CD4 Naive",
   ident.2 = "CD14 Mono",
-  min.pct = 0.2,
+  min.pct = 0.05,
   test.use = 'LR',
   latent.vars = 'peak_region_fragments'
 )
@@ -442,7 +445,7 @@ than running more sophisticated DA tests, but is not able to account for
 latent variables such as differences in the total sequencing depth between
 cells, and does not perform any statistical test. However, this can still be a
 useful way to quickly explore data, and can be performed using the `FoldChange()`
-function in Signac.
+function in Seurat.
 
 ```{r message=FALSE, warning=FALSE}
 fc <- FoldChange(pbmc, ident.1 = "CD4 Naive", ident.2 = "CD14 Mono")
