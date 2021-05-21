@@ -3,7 +3,6 @@
 #' @export
 Seurat::FoldChange
 
-#' @importFrom Matrix rowMeans
 #' @rdname FoldChange
 #' @export
 #' @method FoldChange ChromatinAssay
