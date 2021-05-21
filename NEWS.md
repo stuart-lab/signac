@@ -9,6 +9,9 @@ that split fragment files are written to during peak calling ([#579](https://git
 Other changes: 
 
 * Improved error checking for `GeneActivity()` ([#625](https://github.com/timoast/signac/issues/625))
+* Added `FoldChange()` method for `ChromatinAssay()` object that sets proper parameters for 
+chromatin data. This fixes the calculation of fold changes when running `Seurat::FindMarkers()` on
+single-cell chromatin data.
 
 # Signac 1.2.1
 
