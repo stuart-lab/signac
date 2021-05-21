@@ -58,6 +58,7 @@ Imports:
 Collate: 
     'RcppExports.R'
     'data.R'
+    'differential_accessibility.R'
     'generics.R'
     'dimension_reduction.R'
     'footprinting.R'
