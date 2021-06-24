@@ -375,7 +375,7 @@ SingleFeatureMatrix <- function(
     colnames(x = featmat) <- unname(obj = cell.convert[colnames(x = featmat)])
   }
   # reorder features
-  feat.str <- GRangesToString(grange = features)
+  feat.str <- GRangesToString(grange = features, sep = sep)
   featmat <- featmat[feat.str, ]
   return(featmat)
 }
