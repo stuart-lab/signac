@@ -64,6 +64,16 @@ To use as a base image in a new Dockerfile:
 FROM timoast/signac:latest
 ```
 
+## Conda
+
+Signac can also be installed using conda. Note that if you use conda, you 
+should install all packages through conda rather than R itself. Make sure to 
+set up the conda channels first: http://bioconda.github.io/user/install.html#set-up-channels
+
+```{bash}
+conda install -c bioconda r-signac
+```
+
 ## Installing genome assembly and gene annotation packages
 
 It can also be useful (but not essential) to install species-specific packages 
