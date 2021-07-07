@@ -6,6 +6,7 @@ Bug fixes:
 * Added `fragment.tempdir` parameter to `CallPeaks()` to enable setting directory
 that split fragment files are written to during peak calling ([#579](https://github.com/timoast/signac/issues/579))
 * Fixed error in `FeatureMatrix()` when setting `sep` parameter ([#626](https://github.com/timoast/signac/discussions/626))
+* Fixed peak calling error when group names contain special parameters
 
 Other changes: 
 
