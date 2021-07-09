@@ -20,10 +20,6 @@ demonstrate transferring both continuous (gene expression) and categorical
 (cell labels) information from a reference to a query single-cell chromatin
 dataset.
 
-**Note that this functionality currently requires the development version of Seurat.
-This can be installed from GitHub, see the installation instructions
-[here](https://satijalab.org/seurat/articles/install.html#install-the-development-version-of-seurat-1)**
-
 The PBMC multiome and scATAC-seq data can be downloaded from the 10x website:
 
 ```{bash, eval=FALSE}
