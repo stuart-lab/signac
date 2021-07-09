@@ -65,7 +65,7 @@ jobs:
           sysreqs=$(Rscript -e "cat(sysreqs::sysreq_commands('DESCRIPTION'))")
           sudo -s eval "$sysreqs"
           sudo apt-get update
-          sudo apt-get install libgsl2 libgsl-dev
+          sudo apt-get install libgslcblas0 libgsl-dev
 
       - name: Install dependencies
         run: |
