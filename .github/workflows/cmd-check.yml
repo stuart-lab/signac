@@ -26,7 +26,7 @@ jobs:
           # - {os: macOS-latest, r: '3.6', bioc: '3.10'}
           # - {os: windows-latest, r: '3.6', bioc: '3.10'}
           # - {os: macOS-latest, r: 'devel', bioc: 'devel'}
-          - {os: ubuntu-16.04, r: '4.0', bioc: '3.12', rspm: "https://demo.rstudiopm.com/all/__linux__/xenial/latest"}
+          - {os: ubuntu-latest, r: '4.0', bioc: '3.12', rspm: "https://demo.rstudiopm.com/all/__linux__/xenial/latest"}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
