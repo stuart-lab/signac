@@ -24,7 +24,7 @@ on:
   push:
   pull_request:
 
-name: R-CMD-check-bioc
+name: R-CMD-check
 
 ## These environment variables control whether to run GHA code later on that is
 ## specific to testthat, covr, and pkgdown.
@@ -42,7 +42,9 @@ env:
   run_docker: 'false'
 
 jobs:
+  
   build-check:
+    if: "!contains(github.event.head_commit.message, 'ci-skip')"
     runs-on: ${{ matrix.config.os }}
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
     container: ${{ matrix.config.cont }}
