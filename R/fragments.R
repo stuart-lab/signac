@@ -507,3 +507,15 @@ UpdatePath <- function(object, new.path, verbose = TRUE) {
     stop("MD5 sum does not match previously computed sum")
   }
 }
+
+# If Fragment object does not contain cell names, assign to given list of names
+# Used in CreateChromatinAssay when adding a Fragment object with no cell names
+#' @importFrom methods slot slot<-
+AssignFragCellnames <- function(fragments, cellnames) {
+  if (is.null(x = Cells(x = fragments))) {
+    cells <- cellnames
+    names(x = cells) <- cells
+    slot(object = fragments, name = "cells") <- cells
+  }
+  return(fragments)
+}
