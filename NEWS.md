@@ -1,4 +1,4 @@
-# Unreleased
+# Signac 1.3.0 
 
 Bug fixes:
 
