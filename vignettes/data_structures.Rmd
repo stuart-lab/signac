@@ -443,18 +443,18 @@ functions from the [TFBSTools](https://www.bioconductor.org/packages/release/bio
 and [motifmatchr](https://www.bioconductor.org/packages/release/bioc/html/motifmatchr.html)
 packages. Position frequency matrices for motifs can be loaded using the
 [JASPAR](http://jaspar.genereg.net/) packages on
-[Bioconductor](https://bioconductor.org/packages/release/data/annotation/html/JASPAR2018.html)
+[Bioconductor](https://bioconductor.org/packages/release/data/annotation/html/JASPAR2020.html)
 or the [chromVARmotifs](https://github.com/GreenleafLab/chromVARmotifs) package.
 For example:
 
 ```{r message=FALSE, warning=FALSE}
-library(JASPAR2018)
+library(JASPAR2020)
 library(TFBSTools)
 library(motifmatchr)
 
 # Get a list of motif position frequency matrices from the JASPAR database
 pfm <- getMatrixSet(
-  x = JASPAR2018,
+  x = JASPAR2020,
   opts = list(species = 9606) # 9606 is the species code for human
 )
 
