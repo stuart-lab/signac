@@ -74,7 +74,11 @@ can search for DNA motifs that are overrepresented in a set of peaks that are
 differentially accessible between cell types.
 
 Here, we find differentially accessible peaks between Pvalb and Sst inhibitory
-interneurons. We then perform a hypergeometric test to test the probability of
+interneurons. For sparse data (such as scATAC-seq), we find it is often necessary
+to lower the `min.pct` threshold in `FindMarkers()` from the default (0.1, which
+was designed for scRNA-seq data). 
+
+We then perform a hypergeometric test to test the probability of
 observing the motif at the given frequency by chance, comparing with a
 background set of peaks matched for GC content. 
 
@@ -85,6 +89,7 @@ da_peaks <- FindMarkers(
   ident.2 = 'Sst',
   only.pos = TRUE,
   test.use = 'LR',
+  min.pct = 0.05,
   latent.vars = 'nCount_peaks'
 )
 

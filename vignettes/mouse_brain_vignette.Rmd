@@ -316,7 +316,7 @@ da_peaks <- FindMarkers(
   object = brain,
   ident.1 = c("L2/3 IT"), 
   ident.2 = c("L4", "L5 IT", "L6 IT"),
-  min.pct = 0.4,
+  min.pct = 0.05,
   test.use = 'LR',
   latent.vars = 'peak_region_fragments'
 )

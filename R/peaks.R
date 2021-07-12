@@ -11,9 +11,9 @@ NULL
 #' using a grouping variable will require extra time to split the files and
 #' perform multiple MACS peak calls, and will store additional files on-disk
 #' that may be large. Note that we store split fragment files in the temp
-#' directory, and if the program is interrupted before completing these
-#' temporary files will not be removed. If NULL, peaks are called using all
-#' cells together (pseudobulk).
+#' directory (\code{\link[base]{tempdir}}) by default, and if the program is
+#' interrupted before completing these temporary files will not be removed. If
+#' NULL, peaks are called using all cells together (pseudobulk).
 #' @param idents List of identities to include if grouping cells (only valid if
 #' also setting the \code{group.by} parameter). If NULL, peaks will be called
 #' for all cell identities.
@@ -27,6 +27,8 @@ NULL
 #' combining peaks.
 #' @param broad Call broad peaks (\code{--broad} parameter for MACS)
 #' @param outdir Path for output files
+#' @param fragment.tempdir Path to write temporary fragment files. Only used if
+#' \code{group.by} is not NULL.
 #' @param effective.genome.size Effective genome size parameter for MACS
 #' (\code{-g}). Default is the human effective genome size (2.7e9).
 #' @param extsize \code{extsize} parameter for MACS.
@@ -57,6 +59,7 @@ CallPeaks.Seurat <- function(
   macs2.path = NULL,
   broad = FALSE,
   outdir = tempdir(),
+  fragment.tempdir = tempdir(),
   combine.peaks = TRUE,
   effective.genome.size = 2.7e9,
   extsize = 200,
@@ -81,14 +84,19 @@ CallPeaks.Seurat <- function(
       stop("MACS2 not found. Please install MACS:",
            "https://macs3-project.github.io/MACS/")
     }
-
+    if (fragment.tempdir != tempdir()) {
+      if (!dir.exists(paths = fragment.tempdir)) {
+        warning("Requested output directory does not exist, creating directory")
+        dir.create(path = fragment.tempdir)
+      }
+    }
     # split fragment files
     SplitFragments(
       object = object,
       assay = assay,
       group.by = group.by,
       idents = idents,
-      outdir = tempdir(),
+      outdir = fragment.tempdir,
       verbose = verbose
     )
 
@@ -106,7 +114,7 @@ CallPeaks.Seurat <- function(
     grlist <- list()
     for (i in seq_along(along.with = unique.groups)) {
       fragpath <- paste0(
-        tempdir(),
+        fragment.tempdir,
         .Platform$file.sep,
         unique.groups[[i]],
         ".bed"
@@ -288,7 +296,9 @@ CallPeaks.default <- function(
   cmd <- paste0(
     macs2.path,
     " callpeak -t ",
+    "'",
     object,
+    "'",
     " -g ",
     as.character(x = effective.genome.size),
     broadstring,
@@ -297,7 +307,9 @@ CallPeaks.default <- function(
     " --shift ",
     as.character(x = shift),
     " -n ",
+    "'",
     as.character(x = name),
+    "'",
     " --outdir ",
     outdir,
     " ",

@@ -232,87 +232,6 @@ ClosestFeature <- function(
   return(df)
 }
 
-#' Compute fold change between two groups of cells
-#'
-#' Computes the fold change or log2 fold change (if \code{log=TRUE}) in average
-#' counts between two groups of cells.
-#'
-#' @param object A Seurat object
-#' @param assay Name of assay to use. If NULL, use the default assay.
-#' @param group.by Grouping variable to use. If NULL, use the current cell
-#' identities.
-#' @param ident.1 Identities of first group of cells to compare.
-#' @param ident.2 Identities of second group of cells to compare. If NULL,
-#' compare cells in the first group to all other cells.
-#' @param cutoff Mean count cutoff for classifying as "open". Only used for
-#' ordering results. Results will be ordered first by whether the average counts
-#' in ident.1 is greater than the cutoff value, then by fold change with respect
-#' to ident.2. This prevents very lowly detected peaks from being pushed to the
-#' top of the results due to high fold change values.
-#' @param verbose Display messages
-#'
-#' @importFrom Seurat Idents Idents<- AverageExpression DefaultAssay
-#'
-#' @return Returns a data.frame
-#' @export
-#' @concept utilities
-#' @examples
-#' \donttest{
-#' fc <- FoldChange(object = atac_small, ident.1 = 0)
-#' head(fc)
-#' }
-FoldChange <- function(
-  object,
-  ident.1,
-  ident.2 = NULL,
-  group.by = NULL,
-  cutoff = 0.5,
-  assay = NULL,
-  verbose = TRUE
-) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (is.null(x = group.by)) {
-    # stash current idents
-    object$fc_tmp_group_var <- Idents(object = object)
-  } else {
-    # create temp grouping variable
-    object$fc_tmp_group_var <- object[[group.by]]
-  }
-  if (is.null(x = ident.2)) {
-    # if ident.2 is NULL create a new grouping variable
-    # that separates ident.1 from all other cells
-    ident.2 <- "all_other"
-    object$fc_tmp_group_var <- ifelse(
-      test = object$fc_tmp_group_var == ident.1,
-      yes = as.character(x = object$fc_tmp_group_var),
-      no = ident.2
-    )
-  }
-  ident.stash <- Idents(object = object)
-  Idents(object = object) <- "fc_tmp_group_var"
-  # compute average counts for each group
-  avg <- AverageExpression(
-    object = object,
-    assays = assay,
-    slot = "counts",
-    verbose = verbose
-  )[[assay]]
-  avg <- as.data.frame(x = avg)
-  Idents(object = object) <- ident.stash
-  # compute fold change
-  colnames(x = avg) <- paste0("mean_", colnames(x = avg))
-  avg$fold_change <- avg[[paste0("mean_", ident.1)]] /
-    avg[[paste0("mean_", ident.2)]]
-  avg$log2_fold_change <- log2(x = avg$fold_change)
-  # add open/closed
-  avg$open <- avg[[paste0("mean_", ident.1)]] > cutoff
-  # sort by fold change
-  avg <- avg[order(-avg$open, -avg$fold_change), ]
-  # wipe temporary metadata
-  object$fc_tmp_group_var <- NULL
-  return(avg)
-}
-
 #' Create gene activity matrix
 #'
 #' Compute counts per cell in gene body and promoter region.
@@ -392,6 +311,9 @@ GeneActivity <- function(
 
   # quantify
   frags <- Fragments(object = object[[assay]])
+  if (length(x = frags) == 0) {
+    stop("No fragment information found for requested assay")
+  }
   cells <- colnames(x = object[[assay]])
   counts <- FeatureMatrix(
     fragments = frags,

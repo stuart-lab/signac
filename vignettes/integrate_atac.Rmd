@@ -20,10 +20,6 @@ demonstrate transferring both continuous (gene expression) and categorical
 (cell labels) information from a reference to a query single-cell chromatin
 dataset.
 
-**Note that this functionality currently requires the development version of Seurat.
-This can be installed from GitHub, see the installation instructions
-[here](https://satijalab.org/seurat/articles/install.html#install-the-development-version-of-seurat-1)**
-
 The PBMC multiome and scATAC-seq data can be downloaded from the 10x website:
 
 ```{bash, eval=FALSE}
@@ -51,9 +47,8 @@ library(ggplot2)
 # load the pre-processed multiome data
 pbmc.multi <- readRDS("../vignette_data/pbmc_multiomic.rds")
 
-# process the hg38-mapped ATAC data
+# process the scATAC data
 # first count fragments per cell
-# fragpath <- "~/data/10x_atac/pbmc_10k_hg38/fragments.tsv.gz"
 fragpath <- "~/data/10x_atac/pbmc10k_v2/atac_pbmc_10k_nextgem_fragments.tsv.gz"
 fragcounts <- CountFragments(fragments = fragpath)
 atac.cells <- fragcounts[fragcounts$frequency_count > 2000, "CB"]
@@ -64,7 +59,7 @@ atac.frags <- CreateFragmentObject(path = fragpath, cells = atac.cells)
 
 An important first step in any integrative analysis of single-cell chromatin data
 is to ensure that the same features are measured in each dataset. Here, we
-quantify the mutliome peaks in the ATAC dataset to ensure that there are common features
+quantify the multiome peaks in the ATAC dataset to ensure that there are common features
 across the two datasets.
 
 ```{r message=FALSE, warning=FALSE, cache=TRUE}
@@ -114,7 +109,7 @@ p1 <- DimPlot(pbmc.combined, group.by = "dataset")
 
 To find integration anchors between the two datasets, we need to project them into
 a shared low-dimensional space. To do this, we'll use reciprocal LSI projection
-(projecting each dataset into the other's LSI space) by setting `reduction="rlsi"`.
+(projecting each dataset into the others LSI space) by setting `reduction="rlsi"`.
 For more information about the data integration methods in Seurat, see our recent
 [paper](https://doi.org/10.1016/j.cell.2019.05.031)
 and the [Seurat website](https://satijalab.org/seurat/).
@@ -237,7 +232,7 @@ pbmc.atac <- ProjectUMAP(
 </details>
 
 By running `MapQuery()`, we have mapped the scATAC-seq dataset onto the the
-multimodal reference, and enabled cell type labels to be transfered from reference
+multimodal reference, and enabled cell type labels to be transferred from reference
 to query. We can visualize these reference mapping results and the cell type 
 labels now associated with the scATAC-seq dataset:
 
@@ -288,6 +283,10 @@ FeaturePlot(
   reduction = "ref.umap",
   ncol = 3
 )
+```
+
+```{r include=FALSE}
+saveRDS(object = pbmc.atac, file = "../vignette_data/pbmc_atac_integration.rds")
 ```
 
 <details>

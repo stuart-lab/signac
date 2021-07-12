@@ -1,3 +1,21 @@
+# Signac 1.3.0 
+
+Bug fixes:
+
+* Fixed `LinkPeaks()` function when running on a single gene ([#629](https://github.com/timoast/signac/issues/629))
+* Added `fragment.tempdir` parameter to `CallPeaks()` to enable setting directory
+that split fragment files are written to during peak calling ([#579](https://github.com/timoast/signac/issues/579))
+* Fixed error in `FeatureMatrix()` when setting `sep` parameter ([#626](https://github.com/timoast/signac/discussions/626))
+* Fixed peak calling error when group names contain special characters
+* Fixed issue with `RenameCells()` when cell information not present in Fragment object ([#704](https://github.com/timoast/signac/issues/704))
+
+Other changes: 
+
+* Improved error checking for `GeneActivity()` ([#625](https://github.com/timoast/signac/issues/625))
+* Added `FoldChange()` method for `ChromatinAssay()` object that sets proper parameters for 
+chromatin data. This fixes the calculation of fold changes when running `Seurat::FindMarkers()` on
+single-cell chromatin data.
+
 # Signac 1.2.1
 
 New functionality:

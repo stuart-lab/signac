@@ -335,7 +335,7 @@ globalVariables(
 )
 #' @importFrom ggplot2 ylab scale_fill_manual unit element_text theme
 #' @importMethodsFrom GenomicRanges start end
-#' @importFrom Seurat WhichCells Idents DefaultAssay
+#' @importFrom Seurat WhichCells Idents DefaultAssay Idents<-
 SingleCoveragePlot <- function(
   object,
   region,
