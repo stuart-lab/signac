@@ -72,7 +72,8 @@ AddMotifs.ChromatinAssay <- function(
 }
 
 #' @param assay Name of assay to use. If NULL, use the default assay
-#' @param genome A \code{BSgenome} object
+#' @param genome A \code{BSgenome}, \code{DNAStringSet}, \code{FaFile}, or
+#' string stating the genome build recognized by \code{getBSgenome}.
 #' @param pfm A \code{PFMatrixList} object
 #' @param verbose Display messages
 #' @importFrom Seurat DefaultAssay

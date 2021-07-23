@@ -4,6 +4,10 @@ Bug fixes:
 
 * Fixed bug in `FindMotifs()` when using only one region as input ([#732](https://github.com/timoast/signac/issues/732))
 
+Other changes:
+
+* Updated documentation for `genome` parameter in `AddMotifs()` and `RunChromVAR()` ([712](https://github.com/timoast/signac/issues/712))
+
 # Signac 1.3.0 
 
 Bug fixes:
