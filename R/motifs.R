@@ -287,7 +287,16 @@ FindMotifs <- function(
     )
   }
   if (verbose) {
-    message("Testing motif enrichment in ", length(x = features), " regions")
+    msg <- ifelse(
+      test = length(x = features) > 1,
+      yes = " regions",
+      no = " region"
+    )
+    message("Testing motif enrichment in ", length(x = features), msg)
+  }
+  if (length(x = features) < 10) {
+    warning("Testing motif enrichment using a small number of regions is ",
+            "not recommended")
   }
   motif.all <- GetMotifData(
     object = object, assay = assay, slot = "data"
@@ -295,8 +304,8 @@ FindMotifs <- function(
   motif.names <- GetMotifData(
     object = object, assay = assay, slot = "motif.names"
   )
-  query.motifs <- motif.all[features, ]
-  background.motifs <- motif.all[background, ]
+  query.motifs <- motif.all[features, , drop = FALSE]
+  background.motifs <- motif.all[background, , drop = FALSE]
   query.counts <- colSums(x = query.motifs)
   background.counts <- colSums(x = background.motifs)
   percent.observed <- query.counts / length(x = features) * 100

@@ -1,3 +1,9 @@
+# Unreleased
+
+Bug fixes:
+
+* Fixed bug in `FindMotifs()` when using only one region as input ([#732](https://github.com/timoast/signac/issues/732))
+
 # Signac 1.3.0 
 
 Bug fixes:
