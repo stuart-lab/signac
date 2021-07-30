@@ -3,7 +3,7 @@
 \docType{data}
 \name{blacklist_ce10}
 \alias{blacklist_ce10}
-\title{Genomic blacklist regions for C. elegans ce10}
+\title{Genomic blacklist regions for C. elegans ce10 (0-based)}
 \format{
 A GRanges object
 }
@@ -16,7 +16,7 @@ A GRanges object
 blacklist_ce10
 }
 \description{
-Genomic blacklist regions for C. elegans ce10
+Genomic blacklist regions for C. elegans ce10 (0-based)
 }
 \concept{data}
 \keyword{datasets}

@@ -3,7 +3,7 @@
 \docType{data}
 \name{blacklist_mm10}
 \alias{blacklist_mm10}
-\title{Genomic blacklist regions for Mouse mm10}
+\title{Genomic blacklist regions for Mouse mm10 (0-based)}
 \format{
 A GRanges object
 }
@@ -16,7 +16,7 @@ A GRanges object
 blacklist_mm10
 }
 \description{
-Genomic blacklist regions for Mouse mm10
+Genomic blacklist regions for Mouse mm10 (0-based)
 }
 \concept{data}
 \keyword{datasets}

@@ -35,42 +35,42 @@
 #' @source \doi{10.1038/s41598-019-45839-z}
 "blacklist_hg38_unified"
 
-#' Genomic blacklist regions for Human hg19
+#' Genomic blacklist regions for Human hg19 (0-based)
 #' @concept data
 #' @format A GRanges object
 #' @source \url{https://github.com/Boyle-Lab/Blacklist}
 #' @source \doi{10.1038/s41598-019-45839-z}
 "blacklist_hg19"
 
-#' Genomic blacklist regions for Mouse mm10
+#' Genomic blacklist regions for Mouse mm10 (0-based)
 #' @concept data
 #' @format A GRanges object
 #' @source \url{https://github.com/Boyle-Lab/Blacklist}
 #' @source \doi{10.1038/s41598-019-45839-z}
 "blacklist_mm10"
 
-#' Genomic blacklist regions for Drosophila dm3
+#' Genomic blacklist regions for Drosophila dm3 (0-based)
 #' @concept data
 #' @format A GRanges object
 #' @source \url{https://github.com/Boyle-Lab/Blacklist}
 #' @source \doi{10.1038/s41598-019-45839-z}
 "blacklist_dm3"
 
-#' Genomic blacklist regions for Drosophila dm6
+#' Genomic blacklist regions for Drosophila dm6 (0-based)
 #' @concept data
 #' @format A GRanges object
 #' @source \url{https://github.com/Boyle-Lab/Blacklist}
 #' @source \doi{10.1038/s41598-019-45839-z}
 "blacklist_dm6"
 
-#' Genomic blacklist regions for C. elegans ce10
+#' Genomic blacklist regions for C. elegans ce10 (0-based)
 #' @concept data
 #' @format A GRanges object
 #' @source \url{https://github.com/Boyle-Lab/Blacklist}
 #' @source \doi{10.1038/s41598-019-45839-z}
 "blacklist_ce10"
 
-#' Genomic blacklist regions for C. elegans ce11
+#' Genomic blacklist regions for C. elegans ce11 (0-based)
 #' @concept data
 #' @format A GRanges object
 #' @source \url{https://github.com/Boyle-Lab/Blacklist}
