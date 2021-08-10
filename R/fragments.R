@@ -292,9 +292,17 @@ CreateFragmentObject <- function(
   } else {
     con <- path
   }
-  df <- readLines(con = con, n = 1)
-  if (length(x = strsplit(x = df, split = "\t")[[1]]) != 5) {
-    stop("Incorrect number of columns found in fragment file")
+  df <- readLines(con = con, n = 10000)
+  for (i in df) {
+    if (grepl(pattern = '^#', x = i)) {
+      next
+    } else {
+      if (length(x = strsplit(x = i, split = "\t")[[1]]) != 5) {
+        stop("Incorrect number of columns found in fragment file")
+      } else {
+        break
+      }
+    }
   }
   if (!is.null(x = cells)) {
     if (is.null(names(x = cells))) {
