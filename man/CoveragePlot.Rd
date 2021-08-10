@@ -51,7 +51,10 @@ supplied, annotations must be present in the assay.}
 \item{features}{A vector of features present in another assay to plot
 alongside accessibility tracks (for example, gene names).}
 
-\item{assay}{Name of the assay to plot}
+\item{assay}{Name of the assay to plot. If a list of assays is provided,
+data from each assay will be shown overlaid on each track. The first assay in
+the list will define the assay used for gene annotations, links, and peaks
+(if shown). The order of assays given defines the plotting order.}
 
 \item{show.bulk}{Include coverage track for all cells combined (pseudo-bulk).
 Note that this will plot the combined accessibility for all cells included in

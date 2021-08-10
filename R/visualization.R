@@ -372,9 +372,14 @@ SingleCoveragePlot <- function(
 ) {
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("Requested assay is not a ChromatinAssay.")
+  if (!inherits(x = assay, what = "list")) {
+    assay <- list(assay)
   }
+  lapply(X = assay, FUN = function(x) {
+    if (!inherits(x = object[[x]], what = "ChromatinAssay")) {
+      stop("Requested assay is not a ChromatinAssay.")
+    }
+  })
   if (!is.null(x = group.by)) {
     Idents(object = object) <- group.by
   }
@@ -386,41 +391,51 @@ SingleCoveragePlot <- function(
     object = object,
     region = region,
     sep = sep,
-    assay = assay,
+    assay = assay[[1]],
     extend.upstream = extend.upstream,
     extend.downstream = extend.downstream
-  )
-  reads.per.group <- AverageCounts(
-    object = object,
-    group.by = group.by,
-    verbose = FALSE
   )
   cells.per.group <- CellsPerGroup(
     object = object,
     group.by = group.by
-  )
-  cutmat <- CutMatrix(
-    object = object,
-    region = region,
-    assay = assay,
-    cells = cells,
-    verbose = FALSE
-  )
-  colnames(cutmat) <- start(x = region):end(x = region)
-  group.scale.factors <- suppressWarnings(reads.per.group * cells.per.group)
-  scale.factor <- SetIfNull(
-    x = scale.factor, y = median(x = group.scale.factors)
   )
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
     idents = idents
   )
+  cm.list <- list()
+  sf.list <- list()
+  gsf.list <- list()
+  for (i in seq_along(along.with = assay)) {
+    reads.per.group <- AverageCounts(
+      object = object,
+      assay = assay[[i]],
+      group.by = group.by,
+      verbose = FALSE
+    )
+    cutmat <- CutMatrix(
+      object = object,
+      region = region,
+      assay = assay[[i]],
+      cells = cells,
+      verbose = FALSE
+    )
+    colnames(cutmat) <- start(x = region):end(x = region)
+    group.scale.factors <- suppressWarnings(reads.per.group * cells.per.group)
+    scale.factor <- SetIfNull(
+      x = scale.factor, y = median(x = group.scale.factors)
+    )
+    cm.list[[i]] <- cutmat
+    sf.list[[i]] <- scale.factor
+    gsf.list[[i]] <- group.scale.factors
+  }
+  names(x = cm.list) <- unlist(x = assay)
   p <- CoverageTrack(
-    cutmat = cutmat,
+    cutmat = cm.list,
     region = region,
-    group.scale.factors = group.scale.factors,
-    scale.factor = scale.factor,
+    group.scale.factors = gsf.list,
+    scale.factor = sf.list,
     window = window,
     ymax = ymax,
     obj.groups = obj.groups,
@@ -467,19 +482,19 @@ SingleCoveragePlot <- function(
     widths <- NULL
   }
   if (annotation) {
-    gene.plot <- AnnotationPlot(object = object[[assay]], region = region)
+    gene.plot <- AnnotationPlot(object = object[[assay[[1]]]], region = region)
   } else {
     gene.plot <- NULL
   }
   if (links) {
-    link.plot <- LinkPlot(object = object[[assay]], region = region)
+    link.plot <- LinkPlot(object = object[[assay[[1]]]], region = region)
   } else {
     link.plot <- NULL
   }
   if (peaks) {
     peak.plot <- PeakPlot(
       object = object,
-      assay = assay,
+      assay = assay[[1]],
       region = region,
       group.by = peaks.group.by
     )
@@ -489,7 +504,7 @@ SingleCoveragePlot <- function(
   if (!is.null(x = ranges)) {
     range.plot <- PeakPlot(
       object = object,
-      assay = assay,
+      assay = assay[[1]],
       region = region,
       peaks = ranges,
       group.by = ranges.group.by,
@@ -501,7 +516,7 @@ SingleCoveragePlot <- function(
   if (tile) {
     # reuse cut matrix
     tile.df <- ComputeTile(
-      cutmatrix = cutmat,
+      cutmatrix = cutmat[[1]],
       groups = obj.groups,
       window = tile.size,
       n = tile.cells,
@@ -518,6 +533,7 @@ SingleCoveragePlot <- function(
     object$bulk <- "All cells"
     reads.per.group <- AverageCounts(
       object = object,
+      assay = assay[[1]],
       group.by = "bulk",
       verbose = FALSE
     )
@@ -530,7 +546,7 @@ SingleCoveragePlot <- function(
     names(x = bulk.groups) <- names(x = obj.groups)
 
     bulk.plot <- CoverageTrack(
-      cutmat = cutmat,
+      cutmat = cutmat[[1]],
       region = region,
       group.scale.factors = bulk.scale.factor,
       scale.factor = scale.factor,
@@ -602,30 +618,40 @@ CoverageTrack <- function(
 ) {
   window.size <- width(x = region)
   levels.use <- levels(x = obj.groups)
-  coverages <- ApplyMatrixByGroup(
-    mat = cutmat,
-    fun = colSums,
-    groups = obj.groups,
-    group.scale.factors = group.scale.factors,
-    scale.factor = scale.factor,
-    normalize = TRUE
-  )
-  if (!is.na(x = window)) {
-    coverages <- group_by(.data = coverages, group)
-    coverages <- mutate(.data = coverages, coverage = roll_sum(
-      x = norm.value, n = window, fill = NA, align = "center"
-    ))
-    coverages <- ungroup(x = coverages)
-  } else {
-    coverages$coverage <- coverages$norm.value
-  }
   chromosome <- as.character(x = seqnames(x = region))
   start.pos <- start(x = region)
   end.pos <- end(x = region)
-  coverages <- coverages[!is.na(x = coverages$coverage), ]
-  coverages <- group_by(.data = coverages, group)
-  sampling <- min(max.downsample, window.size * downsample.rate)
-  coverages <- slice_sample(.data = coverages, n = sampling)
+  multicov <- length(x = cutmat) > 1
+  
+  cov.df <- data.frame()
+  for (i in seq_along(along.with = cutmat)) {
+    coverages <- ApplyMatrixByGroup(
+      mat = cutmat[[i]],
+      fun = colSums,
+      groups = obj.groups,
+      group.scale.factors = group.scale.factors[[i]],
+      scale.factor = scale.factor[[i]],
+      normalize = TRUE
+    )
+    if (!is.na(x = window)) {
+      coverages <- group_by(.data = coverages, group)
+      coverages <- mutate(.data = coverages, coverage = roll_sum(
+        x = norm.value, n = window, fill = NA, align = "center"
+      ))
+      coverages <- ungroup(x = coverages)
+    } else {
+      coverages$coverage <- coverages$norm.value
+    }
+  
+    coverages <- coverages[!is.na(x = coverages$coverage), ]
+    coverages <- group_by(.data = coverages, group)
+    sampling <- min(max.downsample, window.size * downsample.rate)
+    coverages <- slice_sample(.data = coverages, n = sampling)
+    coverages$Assay <- names(x = cutmat)[[i]]
+    cov.df <- rbind(cov.df, coverages)
+  }
+  coverages <- cov.df
+  coverages$Assay <- factor(x = coverages$Assay, levels = names(x = cutmat))
 
   # restore factor levels
   if (!is.null(x = levels.use)) {
@@ -642,21 +668,31 @@ CoverageTrack <- function(
     seqnames = chromosome,
     IRanges(start = start.pos, end = end.pos)
   )
-  p <- ggplot(
-    data = coverages,
-    mapping = aes(x = position, y = coverage, fill = group)
-  ) +
-    geom_area(stat = "identity") +
+  if (multicov) {
+    p <- ggplot(
+      data = coverages,
+      mapping = aes(x = position, y = coverage, fill = Assay)
+    )
+  } else {
+    p <- ggplot(
+      data = coverages,
+      mapping = aes(x = position, y = coverage, fill = group)
+    )
+  }
+  p <- p +
+    geom_area(
+      stat = "identity",
+      alpha = ifelse(test = multicov, yes = 0.7, no = 1)) +
     geom_hline(yintercept = 0, size = 0.1) +
     facet_wrap(facets = ~group, strip.position = "left", ncol = 1) +
     xlab(label = paste0(chromosome, " position (bp)")) +
-    ylab(label = paste0("Normalized accessibility \n(range ",
+    ylab(label = paste0("Normalized signal \n(range ",
                         as.character(x = ymin), " - ",
                         as.character(x = ymax), ")")) +
     ylim(c(ymin, ymax)) +
-    theme_browser(legend = FALSE) +
+    theme_browser(legend = multicov) +
     theme(panel.spacing.y = unit(x = 0, units = "line"))
-  if (!is.null(x = levels.use)) {
+  if (!is.null(x = levels.use) & !multicov) {
     p <- p + scale_fill_manual(values = colors_all)
   }
   if (!is.null(x = region.highlight)) {
@@ -716,7 +752,10 @@ CoverageTrack <- function(
 #' supplied, annotations must be present in the assay.
 #' @param features A vector of features present in another assay to plot
 #' alongside accessibility tracks (for example, gene names).
-#' @param assay Name of the assay to plot
+#' @param assay Name of the assay to plot. If a list of assays is provided,
+#' data from each assay will be shown overlaid on each track. The first assay in
+#' the list will define the assay used for gene annotations, links, and peaks
+#' (if shown). The order of assays given defines the plotting order.
 #' @param show.bulk Include coverage track for all cells combined (pseudo-bulk).
 #' Note that this will plot the combined accessibility for all cells included in
 #' the plot (rather than all cells in the object).
