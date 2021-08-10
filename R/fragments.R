@@ -287,6 +287,15 @@ CreateFragmentObject <- function(
   if (!file.exists(index.file) & !is.remote) {
     stop("Fragment file is not indexed.")
   }
+  if (is.remote) {
+    con <- gzcon(con = url(description = path))
+  } else {
+    con <- path
+  }
+  df <- readLines(con = con, n = 1)
+  if (length(x = strsplit(x = df, split = "\t")[[1]]) != 5) {
+    stop("Incorrect number of columns found in fragment file")
+  }
   if (!is.null(x = cells)) {
     if (is.null(names(x = cells))) {
       # assume cells are as they appear in the assay

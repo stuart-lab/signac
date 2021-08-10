@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // filterCells
 int filterCells(std::string fragments, std::string outfile, std::vector<std::string> keep_cells, int buffer_length, bool verbose);
 RcppExport SEXP _Signac_filterCells(SEXP fragmentsSEXP, SEXP outfileSEXP, SEXP keep_cellsSEXP, SEXP buffer_lengthSEXP, SEXP verboseSEXP) {
