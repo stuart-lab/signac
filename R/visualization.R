@@ -682,7 +682,7 @@ CoverageTrack <- function(
   p <- p +
     geom_area(
       stat = "identity",
-      alpha = ifelse(test = multicov, yes = 0.7, no = 1)) +
+      alpha = ifelse(test = multicov, yes = 0.5, no = 1)) +
     geom_hline(yintercept = 0, size = 0.1) +
     facet_wrap(facets = ~group, strip.position = "left", ncol = 1) +
     xlab(label = paste0(chromosome, " position (bp)")) +
