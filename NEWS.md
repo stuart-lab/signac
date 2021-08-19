@@ -1,5 +1,9 @@
 # Unreleased
 
+New functionality:
+
+* Added ability to display multiple assays in `CoveragePlot()`. The `assay` parameter can now be a list of assays to plot data from, with signal colored by assay of origin.
+
 Bug fixes:
 
 * Fixed bug in `FindMotifs()` when using only one region as input ([#732](https://github.com/timoast/signac/issues/732))
