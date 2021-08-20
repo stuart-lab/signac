@@ -341,6 +341,7 @@ SingleCoveragePlot <- function(
   region,
   features = NULL,
   assay = NULL,
+  split.assays = FALSE,
   show.bulk = FALSE,
   expression.assay = NULL,
   expression.slot = "data",
@@ -438,6 +439,7 @@ SingleCoveragePlot <- function(
     scale.factor = sf.list,
     window = window,
     ymax = ymax,
+    split.assays = split.assays,
     obj.groups = obj.groups,
     region.highlight = region.highlight,
     downsample.rate = downsample.rate,
@@ -562,6 +564,9 @@ SingleCoveragePlot <- function(
     bulk.plot <- NULL
   }
   nident <- length(x = unique(x = obj.groups))
+  if (split.assays) {
+    nident <- nident * length(x = assay)
+  }
   bulk.height <- (1 / nident) * 10
   bw.height <- bulk.height * length(x = bigwig.tracks)
   heights <- SetIfNull(
@@ -612,6 +617,7 @@ CoverageTrack <- function(
   obj.groups,
   ymax,
   downsample.rate,
+  split.assays = FALSE,
   region.highlight = NULL,
   window = 100,
   max.downsample = 3000
@@ -648,11 +654,17 @@ CoverageTrack <- function(
     sampling <- min(max.downsample, window.size * downsample.rate)
     coverages <- slice_sample(.data = coverages, n = sampling)
     coverages$Assay <- names(x = cutmat)[[i]]
+    if (multicov) {
+      # scale to fraction of max so assays can be compared
+      assay.max <- max(coverages$coverage, na.rm = TRUE)
+      coverages$coverage <- coverages$coverage / assay.max
+    }
     cov.df <- rbind(cov.df, coverages)
   }
   coverages <- cov.df
   coverages$Assay <- factor(x = coverages$Assay, levels = names(x = cutmat))
-
+  coverages$assay_group <- paste(coverages$group, coverages$Assay, sep = "_")
+  
   # restore factor levels
   if (!is.null(x = levels.use)) {
     colors_all <- hue_pal()(length(x = levels.use))
@@ -682,9 +694,15 @@ CoverageTrack <- function(
   p <- p +
     geom_area(
       stat = "identity",
-      alpha = ifelse(test = multicov, yes = 0.5, no = 1)) +
-    geom_hline(yintercept = 0, size = 0.1) +
-    facet_wrap(facets = ~group, strip.position = "left", ncol = 1) +
+      alpha = ifelse(test = !split.assays & multicov, yes = 0.5, no = 1)) +
+    geom_hline(yintercept = 0, size = 0.1)
+  if (split.assays) {
+    p <- p +
+      facet_wrap(facets = ~assay_group, strip.position = "left", ncol = 1)
+  } else {
+    p <- p + facet_wrap(facets = ~group, strip.position = "left", ncol = 1)
+  }
+  p <- p +
     xlab(label = paste0(chromosome, " position (bp)")) +
     ylab(label = paste0("Normalized signal \n(range ",
                         as.character(x = ymin), " - ",
@@ -756,6 +774,9 @@ CoverageTrack <- function(
 #' data from each assay will be shown overlaid on each track. The first assay in
 #' the list will define the assay used for gene annotations, links, and peaks
 #' (if shown). The order of assays given defines the plotting order.
+#' @param split.assays When plotting data from multiple assays, display each
+#' assay as a separate track. If FALSE, data from different assays are overlaid
+#' on a single track with transparancy applied.
 #' @param show.bulk Include coverage track for all cells combined (pseudo-bulk).
 #' Note that this will plot the combined accessibility for all cells included in
 #' the plot (rather than all cells in the object).
@@ -854,6 +875,7 @@ CoveragePlot <- function(
   region,
   features = NULL,
   assay = NULL,
+  split.assays = FALSE,
   show.bulk = FALSE,
   expression.assay = "RNA",
   expression.slot = "data",
@@ -903,6 +925,7 @@ CoveragePlot <- function(
           ranges.title = ranges.title,
           region.highlight = region.highlight,
           assay = assay,
+          split.assays = split.assays,
           links = links,
           tile = tile,
           tile.size = tile.size,
@@ -941,6 +964,7 @@ CoveragePlot <- function(
       ranges.title = ranges.title,
       region.highlight = region.highlight,
       assay = assay,
+      split.assays = split.assays,
       links = links,
       tile = tile,
       tile.size = tile.size,
@@ -2465,6 +2489,8 @@ reformat_annotations <- function(
   start.pos,
   end.pos
 ) {
+  total.width <- end.pos - start.pos
+  tick.freq <- total.width / 50
   annotation <- annotation[annotation$type == "exon"]
   exons <- as.data.frame(x = annotation)
   annotation <- split(
@@ -2496,7 +2522,7 @@ reformat_annotations <- function(
       yes = end.pos,
       no = df$end
     )
-    breaks <- split_body(df = df)
+    breaks <- split_body(df = df, width = tick.freq)
     df <- rbind(df, breaks)
     gene_bodies[[i]] <- df
   }
