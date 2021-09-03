@@ -219,16 +219,16 @@ dataset, storing the Fragment object for each dataset in the assay.
 
 ```{r message=FALSE, warning=FALSE}
 pbmc500_assay <- CreateChromatinAssay(pbmc500.counts, fragments = frags.500)
-pbmc500 <- CreateSeuratObject(pbmc500_assay, assay = "ATAC")
+pbmc500 <- CreateSeuratObject(pbmc500_assay, assay = "ATAC", meta.data=md.500)
 
 pbmc1k_assay <- CreateChromatinAssay(pbmc1k.counts, fragments = frags.1k)
-pbmc1k <- CreateSeuratObject(pbmc1k_assay, assay = "ATAC")
+pbmc1k <- CreateSeuratObject(pbmc1k_assay, assay = "ATAC", meta.data=md.1k)
 
 pbmc5k_assay <- CreateChromatinAssay(pbmc5k.counts, fragments = frags.5k)
-pbmc5k <- CreateSeuratObject(pbmc5k_assay, assay = "ATAC")
+pbmc5k <- CreateSeuratObject(pbmc5k_assay, assay = "ATAC", meta.data=md.5k)
 
 pbmc10k_assay <- CreateChromatinAssay(pbmc10k.counts, fragments = frags.10k)
-pbmc10k <- CreateSeuratObject(pbmc10k_assay, assay = "ATAC")
+pbmc10k <- CreateSeuratObject(pbmc10k_assay, assay = "ATAC", meta.data=md.10k)
 ```
 
 ## Merge objects
