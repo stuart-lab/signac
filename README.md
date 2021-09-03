@@ -16,10 +16,14 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install()
 setRepositories(ind=1:2)
+```
 
+```r
 # To install the current release
 install.packages("Signac")
+```
 
+```r
 # To install the development version
 install.packages("devtools")
 devtools::install_github("timoast/signac", ref = "develop")
