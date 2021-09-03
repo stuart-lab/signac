@@ -780,7 +780,9 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
     stop("The requested assay is not a ChromatinAssay")
   }
   annotations <- Annotation(object = object[[assay]])
-  annot.sub <- annotations[annotations$gene_name == gene]
+  isgene <- annotations$gene_name == gene
+  isgene <- !is.na(x = isgene) & isgene
+  annot.sub <- annotations[isgene]
   if (length(x = annot.sub) == 0) {
     return(NULL)
   } else {
