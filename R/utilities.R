@@ -222,7 +222,28 @@ ClosestFeature <- function(
   if (!inherits(x = object, what = "ChromatinAssay")) {
     stop("The requested assay is not a ChromatinAssay.")
   }
+  if (length(x = regions) == 0) {
+    stop("No query regions supplied")
+  }
   annotation <- SetIfNull(x = annotation, y = Annotation(object = object))
+  missing_seqlevels <- setdiff(
+    x = seqlevels(x = regions), y = seqlevels(x = annotation)
+  )
+  if (length(x = missing_seqlevels) > 0) {
+    warning(
+      "The following seqlevels present in query regions are not present\n ",
+      "in the supplied gene annotations and will be removed: ",
+      paste(missing_seqlevels, collapse = ", ")
+    )
+    regions <- dropSeqlevels(
+      x = regions,
+      value = missing_seqlevels,
+      pruning.mode = "coarse"
+    )
+    if (length(x = regions) == 0) {
+      stop("None of the supplied regions were found in the supplied annotation")
+    }
+  }
   nearest_feature <- distanceToNearest(x = regions, subject = annotation)
   feature_hits <- annotation[subjectHits(x = nearest_feature)]
   df <- as.data.frame(x = mcols(x = feature_hits))
