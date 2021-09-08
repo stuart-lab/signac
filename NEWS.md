@@ -8,6 +8,8 @@ Bug fixes:
 
 * Fixed bug in `FindMotifs()` when using only one region as input ([#732](https://github.com/timoast/signac/issues/732))
 * Add check for correct number of columns in fragment file ([#748](https://github.com/timoast/signac/issues/748))
+* Fixed gene lookup when annotations contain NA values ([#771](https://github.com/timoast/signac/issues/771))
+* Fixed error in `ClosestFeature()` when query contained regions on contigs not present in gene annotation ([#758](https://github.com/timoast/signac/issues/758))
 
 Other changes:
 
