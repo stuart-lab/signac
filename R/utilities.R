@@ -194,6 +194,7 @@ CellsPerGroup <- function(
 #' @importFrom S4Vectors subjectHits mcols
 #' @importFrom methods is
 #' @importFrom Seurat DefaultAssay
+#' @importFrom GenomeInfoDb dropSeqlevels
 #' @return Returns a dataframe with the name of each region, the closest feature
 #' in the annotation, and the distance to the feature.
 #' @export
