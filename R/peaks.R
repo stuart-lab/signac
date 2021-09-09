@@ -288,7 +288,12 @@ CallPeaks.default <- function(
 
   # if list of paths given, collapse to a single space-separated string
   if (length(x = object) > 1) {
+    object <- sapply(
+      X = object, FUN = function(x) paste0("'", x, "'"), USE.NAMES = FALSE
+    )
     object <- Reduce(f = paste, x = object)
+  } else {
+    object <- paste0("'", object, "'")
   }
 
   broadstring <- ifelse(test = broad, yes = " --broad ", no = "")
@@ -296,9 +301,7 @@ CallPeaks.default <- function(
   cmd <- paste0(
     macs2.path,
     " callpeak -t ",
-    "'",
     object,
-    "'",
     " -g ",
     as.character(x = effective.genome.size),
     broadstring,
