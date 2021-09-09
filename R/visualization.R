@@ -330,7 +330,7 @@ PlotFootprint <- function(
 }
 
 globalVariables(
-  names = c("position", "coverage", "group", "gene_name", "direction"),
+  names = c("position", "coverage", "group", "gene_name", "direction", "Assay"),
   package = "Signac"
 )
 #' @importFrom ggplot2 ylab scale_fill_manual unit element_text theme
