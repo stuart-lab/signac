@@ -199,7 +199,6 @@ CallPeaks.ChromatinAssay <- function(
   frags <- Fragments(object = object)
   # get all fragment file paths
   allfragpaths <- sapply(X = frags, FUN = GetFragmentData, slot = "path")
-  allfragpaths <- Reduce(f = paste, x = allfragpaths)
   gr <- CallPeaks(
     object = allfragpaths,
     macs2.path = macs2.path,
