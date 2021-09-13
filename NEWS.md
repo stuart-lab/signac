@@ -8,6 +8,7 @@ Bug fixes:
 * Fixed error in `ClosestFeature()` when query contained regions on contigs not present in gene annotation ([#758](https://github.com/timoast/signac/issues/758))
 * Fixed bug in `TSSEnrichment()` when using multiple fragment files ([#783](https://github.com/timoast/signac/issues/783))
 * Fixed bug in `CallPeaks()` when multiple fragment files used as input
+* Fixed bug in `CallPeaks()` to account for 0-based starts in called peaks
 
 Other changes:
 

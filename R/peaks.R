@@ -354,7 +354,7 @@ CallPeaks.default <- function(
     )
   }
 
-  gr <- makeGRangesFromDataFrame(df = df, keep.extra.columns = TRUE)
+  gr <- makeGRangesFromDataFrame(df = df, keep.extra.columns = TRUE, starts.in.df.are.0based = TRUE)
   if (cleanup) {
     files.to.remove <- paste0(outdir, .Platform$file.sep, files.to.remove)
     for (i in files.to.remove) {
