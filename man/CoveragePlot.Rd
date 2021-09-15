@@ -9,6 +9,7 @@ CoveragePlot(
   region,
   features = NULL,
   assay = NULL,
+  split.assays = FALSE,
   show.bulk = FALSE,
   expression.assay = "RNA",
   expression.slot = "data",
@@ -55,6 +56,10 @@ alongside accessibility tracks (for example, gene names).}
 data from each assay will be shown overlaid on each track. The first assay in
 the list will define the assay used for gene annotations, links, and peaks
 (if shown). The order of assays given defines the plotting order.}
+
+\item{split.assays}{When plotting data from multiple assays, display each
+assay as a separate track. If FALSE, data from different assays are overlaid
+on a single track with transparancy applied.}
 
 \item{show.bulk}{Include coverage track for all cells combined (pseudo-bulk).
 Note that this will plot the combined accessibility for all cells included in
