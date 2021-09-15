@@ -20,7 +20,6 @@ FoldChange.ChromatinAssay <- function(
   base = 2,
   ...
 ) {
-  slot <- "counts"
   mean.fxn <-  function(x) {
     return(log(x = rowMeans(x = x) + pseudocount.use, base = base))
   }

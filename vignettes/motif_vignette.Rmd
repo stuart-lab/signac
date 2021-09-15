@@ -195,14 +195,19 @@ We can also directly test for differential activity scores between cell types.
 This tends to give similar results as performing an enrichment test on
 differentially accessible peaks between the cell types (shown above).
 
+When performing differential testing on the chromVAR z-score, we can set 
+`mean.fxn=rowMeans` and `fc.name="avg_diff"` in the `FindMarkers()` function so
+that the fold-change calculation computes the average difference in z-score
+between the groups.
+
 ```{r message=FALSE, warning=FALSE}
 differential.activity <- FindMarkers(
   object = mouse_brain,
   ident.1 = 'Pvalb',
   ident.2 = 'Sst',
   only.pos = TRUE,
-  test.use = 'LR',
-  latent.vars = 'nCount_peaks'
+  mean.fxn = rowMeans,
+  fc.name = "avg_diff"
 )
 
 MotifPlot(
