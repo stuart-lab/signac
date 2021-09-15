@@ -12,7 +12,8 @@ Bug fixes:
 
 Other changes:
 
-* Updated documentation for `genome` parameter in `AddMotifs()` and `RunChromVAR()` ([712](https://github.com/timoast/signac/issues/712))
+* Updated documentation for `genome` parameter in `AddMotifs()` and `RunChromVAR()` ([#712](https://github.com/timoast/signac/issues/712))
+* Updated the `FoldChange()` function to use normalized counts rather than raw counts ([#795](https://github.com/timoast/signac/issues/795))
 
 # Signac 1.3.0 
 
