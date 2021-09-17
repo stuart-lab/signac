@@ -17,6 +17,7 @@ CallPeaks(object, ...)
   idents = NULL,
   macs2.path = NULL,
   broad = FALSE,
+  format = "BED",
   outdir = tempdir(),
   fragment.tempdir = tempdir(),
   combine.peaks = TRUE,
@@ -35,6 +36,7 @@ CallPeaks(object, ...)
   macs2.path = NULL,
   outdir = tempdir(),
   broad = FALSE,
+  format = "BED",
   effective.genome.size = 2.7e+09,
   extsize = 200,
   shift = -extsize/2,
@@ -50,6 +52,7 @@ CallPeaks(object, ...)
   macs2.path = NULL,
   outdir = tempdir(),
   broad = FALSE,
+  format = "BED",
   effective.genome.size = 2.7e+09,
   extsize = 200,
   shift = -extsize/2,
@@ -65,6 +68,7 @@ CallPeaks(object, ...)
   macs2.path = NULL,
   outdir = tempdir(),
   broad = FALSE,
+  format = "BED",
   effective.genome.size = 2.7e+09,
   extsize = 200,
   shift = -extsize/2,
@@ -102,6 +106,9 @@ automatically.}
 
 \item{broad}{Call broad peaks (\code{--broad} parameter for MACS)}
 
+\item{format}{File format to use. Should be either "BED" or "BEDPE" (see 
+MACS documentation).}
+
 \item{outdir}{Path for output files}
 
 \item{fragment.tempdir}{Path to write temporary fragment files. Only used if
@@ -117,9 +124,10 @@ combining peaks.}
 \item{effective.genome.size}{Effective genome size parameter for MACS
 (\code{-g}). Default is the human effective genome size (2.7e9).}
 
-\item{extsize}{\code{extsize} parameter for MACS.}
+\item{extsize}{\code{extsize} parameter for MACS. Only relevant if 
+format="BED"}
 
-\item{shift}{\code{shift} parameter for MACS.}
+\item{shift}{\code{shift} parameter for MACS. Only relevant if format="BED"}
 
 \item{additional.args}{Additional arguments passed to MACS. This should be a
 single character string}
