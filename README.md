@@ -69,19 +69,17 @@ you can open a
 If you use the Signac package in your work please cite [Stuart et
 al. 2020](https://www.biorxiv.org/content/10.1101/2020.11.09.373613v1)
 
-``` eval
-@UNPUBLISHED{signac,
-  title    = "Multimodal single-cell chromatin analysis with Signac",
-  author   = "Stuart, Tim and Srivastava, Avi and Lareau, Caleb and Satija,
-              Rahul",
-  journal  = "bioRxiv",
-  pages    = "2020.11.09.373613",
-  month    =  nov,
-  year     =  2020,
-  url      = "https://www.biorxiv.org/content/10.1101/2020.11.09.373613v1",
-  language = "en"
-}
-```
+    @UNPUBLISHED{signac,
+      title    = "Multimodal single-cell chromatin analysis with Signac",
+      author   = "Stuart, Tim and Srivastava, Avi and Lareau, Caleb and Satija,
+                  Rahul",
+      journal  = "bioRxiv",
+      pages    = "2020.11.09.373613",
+      month    =  nov,
+      year     =  2020,
+      url      = "https://www.biorxiv.org/content/10.1101/2020.11.09.373613v1",
+      language = "en"
+    }
 
 ## Related packages
 
