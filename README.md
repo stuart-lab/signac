@@ -1,16 +1,10 @@
-
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
 # Signac
-
-<!-- badges: start -->
 
 [![R-CMD-check](https://github.com/timoast/signac/workflows/R-CMD-check/badge.svg)](https://github.com/timoast/signac/actions)
 [![CRAN
 Version](https://www.r-pkg.org/badges/version/Signac)](https://cran.r-project.org/package=Signac)
 [![CRAN
 Downloads](https://cranlogs.r-pkg.org/badges/Signac)](https://cran.r-project.org/package=Signac)
-<!-- badges: end -->
 
 ## Overview
 
@@ -67,7 +61,7 @@ you can open a
 ## Citing Signac
 
 If you use the Signac package in your work please cite [Stuart et
-al. 2020](https://www.biorxiv.org/content/10.1101/2020.11.09.373613v1)
+al. 2020](https://www.biorxiv.org/content/10.1101/2020.11.09.373613v1)
 
     @UNPUBLISHED{signac,
       title    = "Multimodal single-cell chromatin analysis with Signac",
