@@ -47,7 +47,7 @@ run the `AddMotifs()` function:
 # Get a list of motif position frequency matrices from the JASPAR database
 pfm <- getMatrixSet(
   x = JASPAR2020,
-  opts = list(species = 9606, all_versions = FALSE)
+  opts = list(collection = "CORE", tax_group = 'vertebrates', all_versions = FALSE)
 )
 
 # add motif information

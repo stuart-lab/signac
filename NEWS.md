@@ -14,6 +14,8 @@ Other changes:
 
 * Updated documentation for `genome` parameter in `AddMotifs()` and `RunChromVAR()` ([#712](https://github.com/timoast/signac/issues/712))
 * Updated the `FoldChange()` function to use normalized counts rather than raw counts ([#795](https://github.com/timoast/signac/issues/795))
+* Improved error checking in `GeneActivity()` ([#797](https://github.com/timoast/signac/issues/797))
+* Added `format` parameter to `CallPeaks()` ([#682](https://github.com/timoast/signac/issues/682))
 
 # Signac 1.3.0 
 
