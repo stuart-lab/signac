@@ -298,6 +298,11 @@ GeneActivity <- function(
   verbose = TRUE,
   ...
 ) {
+  if (!is.null(x = features)) {
+    if (length(x = features) == 0) {
+      stop("Empty list of features provided")
+    }
+  }
   # collapse to longest protein coding transcript
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
@@ -313,15 +318,24 @@ GeneActivity <- function(
   transcripts <- CollapseToLongestTranscript(ranges = annotation)
   if (!is.null(x = biotypes)) {
     transcripts <- transcripts[transcripts$gene_biotype %in% biotypes]
+    if (length(x = transcripts) == 0) {
+      stop("No genes remaining after filtering for requested biotypes")
+    }
   }
 
   # filter genes if provided
   if (!is.null(x = features)) {
     transcripts <- transcripts[transcripts$gene_name %in% features]
+    if (length(x = transcripts) == 0) {
+      stop("None of the requested genes were found in the gene annotation")
+    }
   }
   if (!is.null(x = max.width)) {
     transcript.keep <- which(x = width(x = transcripts) < max.width)
     transcripts <- transcripts[transcript.keep]
+    if (length(x = transcripts) == 0) {
+      stop("No genes remaining after filtering for max.width")
+    }
   }
 
   # extend to include promoters
@@ -1766,6 +1780,17 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
     nrep <- elementNROWS(x = reads)
   }
   reads <- unlist(x = reads, use.names = FALSE)
+  if (length(x = reads) == 0) {
+    df <- data.frame(
+      "chr" = "",
+      "start" = "",
+      "end" = "",
+      "cell" = "",
+      "count" = ""
+    )
+    df <- df[-1, ]
+    return(df)
+  }
   reads <- stri_split_fixed(str = reads, pattern = "\t")
   n <- length(x = reads[[1]])
   unlisted <- unlist(x = reads)

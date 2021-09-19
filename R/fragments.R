@@ -57,6 +57,9 @@ CountFragments <- function(
   fragments <- normalizePath(path = fragments, mustWork = TRUE)
   max_lines <- SetIfNull(x = max_lines, y = 0)
   verbose = as.logical(x = verbose)
+  if (!is.null(x = cells)) {
+    cells <- unique(x = cells)
+  }
   counts <- groupCommand(
     fragments = fragments,
     some_whitelist_cells = cells,

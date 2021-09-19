@@ -980,6 +980,7 @@ TSSFast <- function(
 
 #' @importFrom GenomeInfoDb seqlevels keepSeqlevels
 #' @importFrom Rsamtools seqnamesTabix
+#' @importFrom Matrix rowSums
 extract_tss_counts <- function(
   cellnames,
   region.centers,
@@ -1000,6 +1001,10 @@ extract_tss_counts <- function(
     x = seqlevels(x = region.centers),
     y = seqnamesTabix(file = tabix.file)
   )
+  if (length(x = common.seqlevels) == 0) {
+    close(con = tabix.file)
+    return(list(cc, fc))
+  }
   uflanks.use <- keepSeqlevels(
     x = upstream,
     value = common.seqlevels,
