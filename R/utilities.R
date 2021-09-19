@@ -1312,7 +1312,6 @@ GetReadsInRegion <- function(
     pruning.mode = "coarse"
   )
   reads <- scanTabix(file = tabix.file, param = region)
-  invisible(x = gc(verbose = FALSE))
   reads <- TabixOutputToDataFrame(reads = reads)
   reads <- reads[
     fmatch(x = reads$cell, table = cellmap, nomatch = 0L) > 0,
