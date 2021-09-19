@@ -1766,6 +1766,17 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
     nrep <- elementNROWS(x = reads)
   }
   reads <- unlist(x = reads, use.names = FALSE)
+  if (length(x = reads) == 0) {
+    df <- data.frame(
+      "chr" = "",
+      "start" = "",
+      "end" = "",
+      "cell" = "",
+      "count" = ""
+    )
+    df <- df[-1, ]
+    return(df)
+  }
   reads <- stri_split_fixed(str = reads, pattern = "\t")
   n <- length(x = reads[[1]])
   unlisted <- unlist(x = reads)
