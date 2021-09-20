@@ -9,6 +9,7 @@ Bug fixes:
 * Fixed bug in `TSSEnrichment()` when using multiple fragment files ([#783](https://github.com/timoast/signac/issues/783))
 * Fixed bug in `CallPeaks()` when multiple fragment files used as input
 * Fixed bug in `CallPeaks()` to account for 0-based starts in called peaks
+* Fixed bug in gene name lookup when gene names contain `-` characters ([#759](https://github.com/timoast/signac/issues/759))
 
 Other changes:
 
