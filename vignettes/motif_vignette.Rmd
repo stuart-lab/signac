@@ -18,6 +18,23 @@ In this demonstration we use data from the adult mouse brain. See our
 and links to the raw data. First, load the required packages and the
 pre-computed Seurat object:
 
+```{r include=FALSE}
+if (!requireNamespace("TFBSTools", quietly = TRUE))
+    BiocManager::install("TFBSTools")
+
+if (!requireNamespace("JASPAR2020", quietly = TRUE))
+    BiocManager::install("JASPAR2020")
+
+if (!requireNamespace("BSgenome.Mmusculus.UCSC.mm10", quietly = TRUE))
+    BiocManager::install("BSgenome.Mmusculus.UCSC.mm10")
+
+if (!requireNamespace("chromVAR", quietly = TRUE))
+    BiocManager::install("chromVAR")
+
+if (!requireNamespace("ggbio", quietly = TRUE))
+    BiocManager::install("ggbio")
+```
+
 ```{r message=FALSE, warning=FALSE}
 library(Signac)
 library(Seurat)

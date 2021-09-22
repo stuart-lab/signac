@@ -10,14 +10,35 @@ knitr::opts_chunk$set(echo = TRUE)
 
 In this vignette, we'll demonstrate how to jointly analyze a single-cell dataset
 measuring both DNA accessibility and gene expression in the same cells using
-Signac and Seurat.
+Signac and Seurat. In this vignette we'll be using a publicly available 10x
+Genomic Multiome dataset for human PBMCs.
 
-To demonstrate we'll use a dataset provided by 10x Genomics for human PBMCs.
-You can download the required data here:
+<details>
+  <summary>**View data download code**</summary>
 
-* [Count matrix](https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_10k/pbmc_granulocyte_sorted_10k_filtered_feature_bc_matrix.h5)
-* [ATAC fragment file](https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_10k/pbmc_granulocyte_sorted_10k_atac_fragments.tsv.gz)
-* [ATAC fragment file index](https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_10k/pbmc_granulocyte_sorted_10k_atac_fragments.tsv.gz.tbi)
+You can download the required data by running the following lines in a shell:
+
+```{sh, eval=FALSE}
+wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_10k/pbmc_granulocyte_sorted_10k_filtered_feature_bc_matrix.h5
+wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_10k/pbmc_granulocyte_sorted_10k_atac_fragments.tsv.gz
+wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_10k/pbmc_granulocyte_sorted_10k_atac_fragments.tsv.gz.tbi
+```
+
+</details>
+
+```{r include=FALSE}
+if (!requireNamespace("EnsDb.Hsapiens.v86", quietly = TRUE))
+    BiocManager::install("EnsDb.Hsapiens.v86")
+
+if (!requireNamespace("BSgenome.Hsapiens.UCSC.hg38", quietly = TRUE))
+    BiocManager::install("BSgenome.Hsapiens.UCSC.hg38")
+
+if (!requireNamespace("remotes", quietly = TRUE))
+    install.packages("remotes")
+
+if (!requireNamespace("SeuratDisk", quietly = TRUE))
+    remotes::install_github("mojaveazure/seurat-disk")
+```
 
 ```{r message=FALSE, warning=FALSE}
 library(Signac)

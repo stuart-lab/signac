@@ -31,6 +31,23 @@ yourself using [tabix](https://www.htslib.org/doc/tabix.html), for example:
 First we will load the dataset and perform some standard preprocessing using
 Signac.
 
+```{r include=FALSE}
+if (!requireNamespace("remotes", quietly = TRUE))
+    install.packages("remotes")
+
+if (!requireNamespace("SeuratWrappers", quietly = TRUE))
+    remotes::install_github('satijalab/seurat-wrappers')
+
+if (!requireNamespace("leidenbase", quietly = TRUE))
+    remotes::install_github("cole-trapnell-lab/leidenbase")
+
+if (!requireNamespace("monocle3", quietly = TRUE))
+    remotes::install_github("cole-trapnell-lab/monocle3")
+
+if (!requireNamespace("EnsDb.Hsapiens.v75", quietly = TRUE))
+    BiocManager::install("EnsDb.Hsapiens.v75")
+```
+
 ```{r message=FALSE, warning=FALSE}
 library(Signac)
 library(Seurat)
@@ -43,7 +60,7 @@ set.seed(1234)
 ```
 
 ```{r}
-filepath <- "~/data/satpathy19/GSE129785/GSE129785_scATAC-Hematopoiesis-CD34"
+filepath <- "../vignette_data/GSE129785/GSE129785_scATAC-Hematopoiesis-CD34"
 
 peaks <- read.table(paste0(filepath, ".peaks.txt.gz"), header = TRUE)
 cells <- read.table(paste0(filepath, ".cell_barcodes.txt.gz"), header = TRUE, stringsAsFactors = FALSE)
@@ -59,7 +76,7 @@ rownames(mtx) <- peaks$Feature
 bone_assay <- CreateChromatinAssay(
   counts = mtx,
   min.cells = 5,
-  fragments = "~/data/satpathy19/GSE129785/GSM3722029_CD34_Progenitors_Rep1_fragments.tsv.gz",
+  fragments = "../vignette_data/GSE129785/GSM3722029_CD34_Progenitors_Rep1_fragments.tsv.gz",
   sep = c("_", "_"),
   genome = "hg19"
 )

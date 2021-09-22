@@ -29,6 +29,23 @@ create the object from raw data.
 First we will load their dataset and perform some standard preprocessing using
 Signac.
 
+```{r include=FALSE}
+if (!requireNamespace("remotes", quietly = TRUE))
+    install.packages("remotes")
+
+if (!requireNamespace("SeuratWrappers", quietly = TRUE))
+    remotes::install_github('satijalab/seurat-wrappers')
+
+if (!requireNamespace("leidenbase", quietly = TRUE))
+    remotes::install_github("cole-trapnell-lab/leidenbase")
+
+if (!requireNamespace("monocle3", quietly = TRUE))
+    remotes::install_github("cole-trapnell-lab/monocle3")
+
+if (!requireNamespace("cicero", quietly = TRUE))
+    remotes::install_github("cole-trapnell-lab/cicero-release", ref = "monocle3")
+```
+
 ```{r message=FALSE, warning=FALSE}
 library(Signac)
 library(Seurat)
