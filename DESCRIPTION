@@ -1,6 +1,6 @@
 Package: Signac
 Title: Analysis of Single-Cell Chromatin Data
-Version: 1.3.0.9010
+Version: 1.4.0
 Date: 2021-09-20
 Authors@R: c(
   person(given = 'Tim', family = 'Stuart', email = 'tstuart@nygenome.org', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3044-0897')),
@@ -16,7 +16,7 @@ Description: A framework for the analysis and exploration of single-cell chromat
 Depends:
     R (>= 4.0.0),
     methods
-License: MIT + file LICENSE
+License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
