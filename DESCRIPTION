@@ -16,7 +16,7 @@ Description: A framework for the analysis and exploration of single-cell chromat
 Depends:
     R (>= 4.0.0),
     methods
-License: GPL-3 + file LICENSE
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
