@@ -20,9 +20,11 @@ AddMotifs(object, ...)
 
 \item{...}{Additional arguments passed to other methods}
 
-\item{genome}{A \code{BSgenome} object}
+\item{genome}{A \code{BSgenome}, \code{DNAStringSet}, \code{FaFile}, or
+string stating the genome build recognized by \code{getBSgenome}.}
 
-\item{pfm}{A \code{PFMatrixList} object}
+\item{pfm}{A \code{PFMatrixList} or \code{PWMatrixList} object containing
+position weight/frequency matrices to use}
 
 \item{verbose}{Display messages}
 

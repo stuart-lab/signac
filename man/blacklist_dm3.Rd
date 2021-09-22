@@ -3,7 +3,7 @@
 \docType{data}
 \name{blacklist_dm3}
 \alias{blacklist_dm3}
-\title{Genomic blacklist regions for Drosophila dm3}
+\title{Genomic blacklist regions for Drosophila dm3 (0-based)}
 \format{
 A GRanges object
 }
@@ -16,7 +16,7 @@ A GRanges object
 blacklist_dm3
 }
 \description{
-Genomic blacklist regions for Drosophila dm3
+Genomic blacklist regions for Drosophila dm3 (0-based)
 }
 \concept{data}
 \keyword{datasets}

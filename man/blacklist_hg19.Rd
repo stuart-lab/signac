@@ -3,7 +3,7 @@
 \docType{data}
 \name{blacklist_hg19}
 \alias{blacklist_hg19}
-\title{Genomic blacklist regions for Human hg19}
+\title{Genomic blacklist regions for Human hg19 (0-based)}
 \format{
 A GRanges object
 }
@@ -16,7 +16,7 @@ A GRanges object
 blacklist_hg19
 }
 \description{
-Genomic blacklist regions for Human hg19
+Genomic blacklist regions for Human hg19 (0-based)
 }
 \concept{data}
 \keyword{datasets}

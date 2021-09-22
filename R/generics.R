@@ -297,7 +297,8 @@ RegionStats <- function(object, ...) {
 #' See the chromVAR paper: \url{https://www.nature.com/articles/nmeth.4401}
 #'
 #' @param object A Seurat object
-#' @param genome A BSgenome object
+#' @param genome A \code{BSgenome}, \code{DNAStringSet}, \code{FaFile}, or
+#' string stating the genome build recognized by \code{getBSgenome}.
 #' @param motif.matrix A peak x motif matrix. If NULL, pull the peak x motif
 #' matrix from a Motif object stored in the assay.
 #' @param verbose Display messages

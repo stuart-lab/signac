@@ -277,6 +277,17 @@ you can set this value to `FALSE` to skip this step and save some time. This
 check is typically only run once when the `Fragment` object is created, and is 
 not normally run on existing `Fragment` files.
 
+### Inspecting the fragment file
+
+To extract the first few lines of a fragment file on-disk, we can use the
+`head()` method defined for `Fragment` objects. This is useful for quickly
+checking the chromosome naming style in our fragment file, or checking how the 
+cell barcodes are named:
+
+```{r}
+head(fragments)
+```
+
 ### Adding a `Fragment` object to the `ChromatinAssay`
 
 A `ChromatinAssay` object can contain a list of `Fragment` objects. This avoids
@@ -357,7 +368,26 @@ This can be useful if you move the fragment file to a new directory, or if you
 copy a stored Seurat object containing a `ChromatinAssay` to a different server.
 
 ```{r message=FALSE}
-fragments <- UpdatePath(fragments, new.path = "/home/stuartt/github/chrom/vignette_data/fragments.tsv.gz")
+fragments <- UpdatePath(fragments, new.path = frag.path)
+```
+
+To change the path to fragment files in an object, you will need to remove
+the fragment objects, update the paths, and then add the fragment objects
+back to the object. For example:
+
+```{r}
+frags <- Fragments(object)  # get list of fragment objects
+Fragments(object) <- NULL  # remove fragment information from assay
+
+# create a vector with all the new paths, in the correct order for your list of fragment objects
+# In this case we only have 1
+new.paths <- list(frag.path)
+for (i in seq_along(frags)) {
+  frags[[i]] <- UpdatePath(frags[[i]], new.path = new.paths[[i]]) # update path
+}
+
+Fragments(object) <- frags # assign updated list back to the object
+Fragments(object)
 ```
 
 ### Using remote fragment files
@@ -382,7 +412,7 @@ hash and expected cells) are not performed.
 
 To access the cell names stored in a `Fragment` object, we can use the `Cells()`
 function. **Importantly**, this returns the cell names as they appear in the 
-`ChromatinAssay`, rather than the as they appear in the fragment file itself.
+`ChromatinAssay`, rather than as they appear in the fragment file itself.
 
 ```{r}
 fragments <- CreateFragmentObject(

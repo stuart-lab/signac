@@ -1,4 +1,5 @@
 ^chrom\.Rproj$
+^signac\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
 .travis.yml
@@ -15,3 +16,4 @@ index.*
 .github/
 Dockerfile
 ^CRAN-RELEASE$
+benchmark/

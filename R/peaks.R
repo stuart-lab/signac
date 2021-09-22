@@ -26,13 +26,16 @@ NULL
 #' p-value, q-value, and fold-change information for each peak will be lost if
 #' combining peaks.
 #' @param broad Call broad peaks (\code{--broad} parameter for MACS)
+#' @param format File format to use. Should be either "BED" or "BEDPE" (see 
+#' MACS documentation).
 #' @param outdir Path for output files
 #' @param fragment.tempdir Path to write temporary fragment files. Only used if
 #' \code{group.by} is not NULL.
 #' @param effective.genome.size Effective genome size parameter for MACS
 #' (\code{-g}). Default is the human effective genome size (2.7e9).
-#' @param extsize \code{extsize} parameter for MACS.
-#' @param shift \code{shift} parameter for MACS.
+#' @param extsize \code{extsize} parameter for MACS. Only relevant if 
+#' format="BED"
+#' @param shift \code{shift} parameter for MACS. Only relevant if format="BED"
 #' @param additional.args Additional arguments passed to MACS. This should be a
 #' single character string
 #' @param name Name for output MACS files. This will also be placed in the
@@ -58,6 +61,7 @@ CallPeaks.Seurat <- function(
   idents = NULL,
   macs2.path = NULL,
   broad = FALSE,
+  format = "BED",
   outdir = tempdir(),
   fragment.tempdir = tempdir(),
   combine.peaks = TRUE,
@@ -124,6 +128,7 @@ CallPeaks.Seurat <- function(
         macs2.path = macs2.path,
         outdir = outdir,
         broad = broad,
+        format = format,
         effective.genome.size = effective.genome.size,
         extsize = extsize,
         shift = shift,
@@ -164,6 +169,7 @@ CallPeaks.Seurat <- function(
       macs2.path = macs2.path,
       outdir = outdir,
       broad = broad,
+      format = format,
       effective.genome.size = effective.genome.size,
       extsize = extsize,
       shift = shift,
@@ -186,6 +192,7 @@ CallPeaks.ChromatinAssay <- function(
   macs2.path = NULL,
   outdir = tempdir(),
   broad = FALSE,
+  format = "BED",
   effective.genome.size = 2.7e9,
   extsize = 200,
   shift = -extsize/2,
@@ -199,12 +206,12 @@ CallPeaks.ChromatinAssay <- function(
   frags <- Fragments(object = object)
   # get all fragment file paths
   allfragpaths <- sapply(X = frags, FUN = GetFragmentData, slot = "path")
-  allfragpaths <- Reduce(f = paste, x = allfragpaths)
   gr <- CallPeaks(
     object = allfragpaths,
     macs2.path = macs2.path,
     outdir = outdir,
     broad = broad,
+    format = format,
     effective.genome.size = effective.genome.size,
     extsize = extsize,
     shift = shift,
@@ -226,6 +233,7 @@ CallPeaks.Fragment <- function(
   macs2.path = NULL,
   outdir = tempdir(),
   broad = FALSE,
+  format = "BED",
   effective.genome.size = 2.7e9,
   extsize = 200,
   shift = -extsize/2,
@@ -241,6 +249,7 @@ CallPeaks.Fragment <- function(
     macs2.path = macs2.path,
     outdir = outdir,
     broad = broad,
+    format = format,
     effective.genome.size = effective.genome.size,
     extsize = extsize,
     shift = shift,
@@ -264,6 +273,7 @@ CallPeaks.default <- function(
   macs2.path = NULL,
   outdir = tempdir(),
   broad = FALSE,
+  format = "BED",
   effective.genome.size = 2.7e9,
   extsize = 200,
   shift = -extsize/2,
@@ -288,24 +298,35 @@ CallPeaks.default <- function(
 
   # if list of paths given, collapse to a single space-separated string
   if (length(x = object) > 1) {
+    object <- sapply(
+      X = object, FUN = function(x) paste0("'", x, "'"), USE.NAMES = FALSE
+    )
     object <- Reduce(f = paste, x = object)
+  } else {
+    object <- paste0("'", object, "'")
   }
 
   broadstring <- ifelse(test = broad, yes = " --broad ", no = "")
-
+  nomod_str <- ifelse(
+    test = format == "BED",
+    yes = paste0(" --nomodel --extsize ",
+    as.character(x = extsize),
+    " --shift ",
+    as.character(x = shift)
+    ),
+    no = ""
+  )
+  
   cmd <- paste0(
     macs2.path,
     " callpeak -t ",
-    "'",
     object,
-    "'",
     " -g ",
     as.character(x = effective.genome.size),
     broadstring,
-    " -f BED --nomodel --extsize ",
-    as.character(x = extsize),
-    " --shift ",
-    as.character(x = shift),
+    " -f ",
+    format,
+    nomod_str,
     " -n ",
     "'",
     as.character(x = name),
@@ -351,7 +372,7 @@ CallPeaks.default <- function(
     )
   }
 
-  gr <- makeGRangesFromDataFrame(df = df, keep.extra.columns = TRUE)
+  gr <- makeGRangesFromDataFrame(df = df, keep.extra.columns = TRUE, starts.in.df.are.0based = TRUE)
   if (cleanup) {
     files.to.remove <- paste0(outdir, .Platform$file.sep, files.to.remove)
     for (i in files.to.remove) {

@@ -24,7 +24,7 @@ to `multicore`, `multiprocessor`, or `multisession` to get asynchronous processi
 number of workers to change the number of cores used.
 
 ```{r, warning=FALSE, message=FALSE}
-plan("multiprocess", workers = 10)
+plan("multicore", workers = 10)
 plan()
 ```
 
@@ -43,19 +43,26 @@ Here we demonstrate the runtime of `FeatureMatrix` run on 90,686 peaks for 10,24
 <details>
   <summary>**View benchmarking code**</summary>
   
-The following code was run on Ubuntu 18.04 LTS with 12 Intel Xeon W-2135 CPUs @ 3.70GHz and 500 Gb RAM.
+The following code was run on Ubuntu 20.04 LTS with 56 Intel Xeon Platinum 8280L CPU @ 2.70GHz
+
+```{bash, eval = FALSE}
+# download data
+wget https://cf.10xgenomics.com/samples/cell-atac/2.0.0/atac_pbmc_10k_nextgem/atac_pbmc_10k_nextgem_fragments.tsv.gz
+wget https://cf.10xgenomics.com/samples/cell-atac/2.0.0/atac_pbmc_10k_nextgem/atac_pbmc_10k_nextgem_fragments.tsv.gz.tbi
+wget https://cf.10xgenomics.com/samples/cell-atac/2.0.0/atac_pbmc_10k_nextgem/atac_pbmc_10k_nextgem_peaks.bed
+```
   
 ```{r, eval=FALSE}
 library(Signac)
 
 # load data
-fragments <- "/home/stuartt/data/pbmc10k/atac_pbmc_10k_nextgem_fragments.tsv.gz"
+fragments <- "../vignette_data/atac_pbmc_10k_nextgem_fragments.tsv.gz"
 peaks.10k <- read.table(
-  file = "/home/stuartt/data/pbmc10k/atac_pbmc_10k_nextgem_peaks.bed",
+  file = "../vignette_data/atac_pbmc_10k_nextgem_peaks.bed",
   col.names = c("chr", "start", "end")
 )
 peaks <- GenomicRanges::makeGRangesFromDataFrame(peaks.10k)
-cells <- readLines("/home/stuartt/data/pbmc10k/cells.txt")
+cells <- readLines("../vignette_data/pbmc10k/cells.txt")
 
 fragments <- CreateFragmentObject(path = fragments, cells = cells, validate.fragments = FALSE)
 
@@ -81,7 +88,7 @@ results <- rbind(results, res)
 
 # 4 core
 library(future)
-plan("multiprocess", workers = 4)
+plan("multicore", workers = 4)
 options(future.globals.maxSize = 100000 * 1024^2)
 
 timing.4core <- c()
@@ -99,7 +106,7 @@ res <- data.frame(
 results <- rbind(results, res)
 
 # 10 core
-plan("multiprocess", workers = 10)
+plan("multicore", workers = 10)
 
 timing.10core <- c()
 for (i in seq_len(nrep)) {
@@ -118,7 +125,7 @@ results <- rbind(results, res)
 # save results
 write.table(
   x = results,
-  file = paste0("/home/stuartt/github/chrom/bldignore/timings_", Sys.date(), ".tsv"),
+  file = paste0("../vignette_data/pbmc10k/timings_", Sys.Date(), ".tsv"),
   quote = FALSE,
   row.names = FALSE
 )
@@ -128,12 +135,12 @@ write.table(
 
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
 library(ggplot2)
-results <- read.table("/home/stuartt/github/chrom/bldignore/timings_2020-06-24.tsv", header = TRUE)
+results <- read.table("../vignette_data/pbmc10k/timings_2021-09-20.tsv", header = TRUE)
 results$cores <- factor(results$cores, levels = c("1", "4", "10"))
 
 p <- ggplot(results, aes(x = cores, y = time/60, color = cores)) +
   geom_jitter(width = 1/10) +
-  ylim(c(0, 11)) +
+  ylim(c(0, 13)) +
   ylab("Time (min)") +
   xlab("Number of cores") +
   theme_bw() +

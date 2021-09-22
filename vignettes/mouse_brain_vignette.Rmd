@@ -10,12 +10,21 @@ knitr::opts_chunk$set(echo = TRUE)
 
 For this tutorial, we will be analyzing a single-cell ATAC-seq dataset of adult
 mouse brain cells provided by 10x Genomics. The following files are used in this
-vignette, all available through the 10x Genomics website:
+vignette, all available through the 10x Genomics website.
 
-* The [Raw data](http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh_5k/atac_v1_adult_brain_fresh_5k_filtered_peak_bc_matrix.h5)  
-* The [Metadata](http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh_5k/atac_v1_adult_brain_fresh_5k_singlecell.csv)  
-* The [fragments file](http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh_5k/atac_v1_adult_brain_fresh_5k_fragments.tsv.gz)  
-* The fragments file [index](http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh_5k/atac_v1_adult_brain_fresh_5k_fragments.tsv.gz.tbi)
+<details>
+  <summary>**View data download code**</summary>
+
+To download the required data, run the following lines in a shell:
+
+```{bash, eval=FALSE}
+wget http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh_5k/atac_v1_adult_brain_fresh_5k_filtered_peak_bc_matrix.h5
+wget http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh_5k/atac_v1_adult_brain_fresh_5k_singlecell.csv
+wget http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh_5k/atac_v1_adult_brain_fresh_5k_fragments.tsv.gz
+wget http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh_5k/atac_v1_adult_brain_fresh_5k_fragments.tsv.gz.tbi
+```
+
+</details>
 
 This vignette echoes the commands run in the introductory Signac vignette on
 [human PBMC](https://satijalab.org/signac/articles/pbmc_vignette.html). We
@@ -25,6 +34,14 @@ species.
 
 First load in Signac, Seurat, and some other packages we will be using for
 analyzing mouse data.
+
+```{r include=FALSE}
+if (!requireNamespace("EnsDb.Mmusculus.v79", quietly = TRUE))
+    BiocManager::install("EnsDb.Mmusculus.v79")
+
+if (!requireNamespace("GenomeInfoDb", quietly = TRUE))
+    BiocManager::install("GenomeInfoDb")
+```
 
 ```{r setup, message=FALSE}
 library(Signac)
@@ -39,9 +56,9 @@ set.seed(1234)
 ## Pre-processing workflow
   
 ```{r}
-counts <- Read10X_h5("/home/stuartt/github/chrom/vignette_data/atac_v1_adult_brain_fresh_5k_filtered_peak_bc_matrix.h5")
+counts <- Read10X_h5("../vignette_data/atac_v1_adult_brain_fresh_5k_filtered_peak_bc_matrix.h5")
 metadata <- read.csv(
-  file = "/home/stuartt/github/chrom/vignette_data/atac_v1_adult_brain_fresh_5k_singlecell.csv",
+  file = "../vignette_data/atac_v1_adult_brain_fresh_5k_singlecell.csv",
   header = TRUE,
   row.names = 1
 )
@@ -50,7 +67,7 @@ brain_assay <- CreateChromatinAssay(
   counts = counts,
   sep = c(":", "-"),
   genome = "mm10",
-  fragments = '/home/stuartt/github/chrom/vignette_data/atac_v1_adult_brain_fresh_5k_fragments.tsv.gz',
+  fragments = '../vignette_data/atac_v1_adult_brain_fresh_5k_fragments.tsv.gz',
   min.cells = 1
 )
 brain <- CreateSeuratObject(
@@ -232,11 +249,11 @@ You can download the raw data for this experiment from the Allen Institute
 and view the code used to construct this object on
 [GitHub](https://github.com/satijalab/Integration2019/blob/master/preprocessing_scripts/allen_brain.R). 
 Alternatively, you can download the pre-processed Seurat object
-[here](https://www.dropbox.com/s/kqsy9tvsklbu7c4/allen_brain.rds?dl=0).
+[here](https://www.dropbox.com/s/kqsy9tvsklbu7c4/allen_brain.rds).
 
 ```{r warning=FALSE, message=FALSE}
 # Load the pre-processed scRNA-seq data
-allen_rna <- readRDS("/home/stuartt/github/chrom/vignette_data/allen_brain.rds")
+allen_rna <- readRDS("../vignette_data/allen_brain.rds")
 allen_rna <- FindVariableFeatures(
   object = allen_rna,
   nfeatures = 5000

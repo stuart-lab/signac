@@ -17,6 +17,43 @@ datasets provided by 10x Genomics:
 * [5k-cell PBMC](https://support.10xgenomics.com/single-cell-atac/datasets/1.1.0/atac_pbmc_5k_nextgem)
 * [10k-cell PBMC](https://support.10xgenomics.com/single-cell-atac/datasets/1.1.0/atac_pbmc_10k_nextgem)
 
+<details>
+  <summary>**View data download code**</summary>
+
+To download the required data, run the following lines in a shell:
+
+```{bash, eval=FALSE}
+# 500 cell
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_500_nextgem/atac_pbmc_500_nextgem_fragments.tsv.gz
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_500_nextgem/atac_pbmc_500_nextgem_fragments.tsv.gz.tbi
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_500_nextgem/atac_pbmc_500_nextgem_peaks.bed
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_500_nextgem/atac_pbmc_500_nextgem_singlecell.csv
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_500_nextgem/atac_pbmc_500_nextgem_filtered_peak_bc_matrix.h5
+
+# 1k cell
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_1k_nextgem/atac_pbmc_1k_nextgem_fragments.tsv.gz
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_1k_nextgem/atac_pbmc_1k_nextgem_fragments.tsv.gz.tbi
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_1k_nextgem/atac_pbmc_1k_nextgem_peaks.bed
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_1k_nextgem/atac_pbmc_1k_nextgem_singlecell.csv
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_1k_nextgem/atac_pbmc_1k_nextgem_filtered_peak_bc_matrix.h5
+
+# 5k cell
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_5k_nextgem/atac_pbmc_5k_nextgem_fragments.tsv.gz
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_5k_nextgem/atac_pbmc_5k_nextgem_fragments.tsv.gz.tbi
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_5k_nextgem/atac_pbmc_5k_nextgem_peaks.bed
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_5k_nextgem/atac_pbmc_5k_nextgem_singlecell.csv
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_5k_nextgem/atac_pbmc_5k_nextgem_filtered_peak_bc_matrix.h5
+
+# 10k cell
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_10k_nextgem/atac_pbmc_10k_nextgem_fragments.tsv.gz
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_10k_nextgem/atac_pbmc_10k_nextgem_fragments.tsv.gz.tbi
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_10k_nextgem/atac_pbmc_10k_nextgem_peaks.bed
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_10k_nextgem/atac_pbmc_10k_nextgem_singlecell.csv
+wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_10k_nextgem/atac_pbmc_10k_nextgem_filtered_peak_bc_matrix.h5
+```
+
+</details>
+
 When merging multiple single-cell chromatin datasets, it's important to be aware
 that if peak calling was performed on each dataset independently, the peaks are 
 unlikely to be exactly the same. We therefore need to create a common set of
@@ -71,19 +108,19 @@ options(future.globals.maxSize = 50000 * 1024^2) # for 50 Gb RAM
 ```{r}
 # read in peak sets
 peaks.500 <- read.table(
-  file = "/home/stuartt/data/pbmc500/atac_pbmc_500_nextgem_peaks.bed",
+  file = "../vignette_data/pbmc500/atac_pbmc_500_nextgem_peaks.bed",
   col.names = c("chr", "start", "end")
 )
 peaks.1k <- read.table(
-  file = "/home/stuartt/data/pbmc1k/atac_pbmc_1k_nextgem_peaks.bed",
+  file = "../vignette_data/pbmc1k/atac_pbmc_1k_nextgem_peaks.bed",
   col.names = c("chr", "start", "end")
 )
 peaks.5k <- read.table(
-  file = "/home/stuartt/data/pbmc5k/atac_pbmc_5k_nextgem_peaks.bed",
+  file = "../vignette_data/pbmc5k/atac_pbmc_5k_nextgem_peaks.bed",
   col.names = c("chr", "start", "end")
 )
 peaks.10k <- read.table(
-  file = "/home/stuartt/data/pbmc10k/atac_pbmc_10k_nextgem_peaks.bed",
+  file = "../vignette_data/pbmc10k/atac_pbmc_10k_nextgem_peaks.bed",
   col.names = c("chr", "start", "end")
 )
 
@@ -119,7 +156,7 @@ expected cells are present in the file.
 ```{r}
 # load metadata
 md.500 <- read.table(
-  file = "/home/stuartt/data/pbmc500/atac_pbmc_500_nextgem_singlecell.csv",
+  file = "../vignette_data/pbmc500/atac_pbmc_500_nextgem_singlecell.csv",
   stringsAsFactors = FALSE,
   sep = ",",
   header = TRUE,
@@ -127,7 +164,7 @@ md.500 <- read.table(
 )[-1, ] # remove the first row
 
 md.1k <- read.table(
-  file = "/home/stuartt/data/pbmc1k/atac_pbmc_1k_nextgem_singlecell.csv",
+  file = "../vignette_data/pbmc1k/atac_pbmc_1k_nextgem_singlecell.csv",
   stringsAsFactors = FALSE,
   sep = ",",
   header = TRUE,
@@ -135,7 +172,7 @@ md.1k <- read.table(
 )[-1, ]
 
 md.5k <- read.table(
-  file = "/home/stuartt/data/pbmc5k/atac_pbmc_5k_nextgem_singlecell.csv",
+  file = "../vignette_data/pbmc5k/atac_pbmc_5k_nextgem_singlecell.csv",
   stringsAsFactors = FALSE,
   sep = ",",
   header = TRUE,
@@ -143,7 +180,7 @@ md.5k <- read.table(
 )[-1, ]
 
 md.10k <- read.table(
-  file = "/home/stuartt/data/pbmc10k/atac_pbmc_10k_nextgem_singlecell.csv",
+  file = "../vignette_data/pbmc10k/atac_pbmc_10k_nextgem_singlecell.csv",
   stringsAsFactors = FALSE,
   sep = ",",
   header = TRUE,
@@ -158,22 +195,22 @@ md.10k <- md.10k[md.10k$passed_filters > 1000, ] # sequenced deeper so set highe
 
 # create fragment objects
 frags.500 <- CreateFragmentObject(
-  path = "/home/stuartt/data/pbmc500/atac_pbmc_500_nextgem_fragments.tsv.gz",
+  path = "../vignette_data/pbmc500/atac_pbmc_500_nextgem_fragments.tsv.gz",
   cells = rownames(md.500)
 )
 
 frags.1k <- CreateFragmentObject(
-  path = "/home/stuartt/data/pbmc1k/atac_pbmc_1k_nextgem_fragments.tsv.gz",
+  path = "../vignette_data/pbmc1k/atac_pbmc_1k_nextgem_fragments.tsv.gz",
   cells = rownames(md.1k)
 )
 
 frags.5k <- CreateFragmentObject(
-  path = "/home/stuartt/data/pbmc5k/atac_pbmc_5k_nextgem_fragments.tsv.gz",
+  path = "../vignette_data/pbmc5k/atac_pbmc_5k_nextgem_fragments.tsv.gz",
   cells = rownames(md.5k)
 )
 
 frags.10k <- CreateFragmentObject(
-  path = "/home/stuartt/data/pbmc10k/atac_pbmc_10k_nextgem_fragments.tsv.gz",
+  path = "../vignette_data/pbmc10k/atac_pbmc_10k_nextgem_fragments.tsv.gz",
   cells = rownames(md.10k)
 )
 ```
@@ -219,16 +256,16 @@ dataset, storing the Fragment object for each dataset in the assay.
 
 ```{r message=FALSE, warning=FALSE}
 pbmc500_assay <- CreateChromatinAssay(pbmc500.counts, fragments = frags.500)
-pbmc500 <- CreateSeuratObject(pbmc500_assay, assay = "ATAC")
+pbmc500 <- CreateSeuratObject(pbmc500_assay, assay = "ATAC", meta.data=md.500)
 
 pbmc1k_assay <- CreateChromatinAssay(pbmc1k.counts, fragments = frags.1k)
-pbmc1k <- CreateSeuratObject(pbmc1k_assay, assay = "ATAC")
+pbmc1k <- CreateSeuratObject(pbmc1k_assay, assay = "ATAC", meta.data=md.1k)
 
 pbmc5k_assay <- CreateChromatinAssay(pbmc5k.counts, fragments = frags.5k)
-pbmc5k <- CreateSeuratObject(pbmc5k_assay, assay = "ATAC")
+pbmc5k <- CreateSeuratObject(pbmc5k_assay, assay = "ATAC", meta.data=md.5k)
 
 pbmc10k_assay <- CreateChromatinAssay(pbmc10k.counts, fragments = frags.10k)
-pbmc10k <- CreateSeuratObject(pbmc10k_assay, assay = "ATAC")
+pbmc10k <- CreateSeuratObject(pbmc10k_assay, assay = "ATAC", meta.data=md.10k)
 ```
 
 ## Merge objects
@@ -306,10 +343,10 @@ common feature set:
 
 ```{r message=FALSE, warning=FALSE}
 # load the count matrix for each object that was generated by cellranger
-counts.500 <- Read10X_h5("/home/stuartt/data/pbmc500/atac_pbmc_500_nextgem_filtered_peak_bc_matrix.h5")
-counts.1k <- Read10X_h5("/home/stuartt/data/pbmc1k/atac_pbmc_1k_nextgem_filtered_peak_bc_matrix.h5")
-counts.5k <- Read10X_h5("/home/stuartt/data/pbmc5k/atac_pbmc_5k_nextgem_filtered_peak_bc_matrix.h5")
-counts.10k <- Read10X_h5("/home/stuartt/data/pbmc10k/atac_pbmc_10k_nextgem_filtered_peak_bc_matrix.h5")
+counts.500 <- Read10X_h5("../vignette_data/pbmc500/atac_pbmc_500_nextgem_filtered_peak_bc_matrix.h5")
+counts.1k <- Read10X_h5("../vignette_data/pbmc1k/atac_pbmc_1k_nextgem_filtered_peak_bc_matrix.h5")
+counts.5k <- Read10X_h5("../vignette_data/pbmc5k/atac_pbmc_5k_nextgem_filtered_peak_bc_matrix.h5")
+counts.10k <- Read10X_h5("../vignette_data/pbmc10k/atac_pbmc_10k_nextgem_filtered_peak_bc_matrix.h5")
 
 # create objects
 pbmc500_assay <- CreateChromatinAssay(counts = counts.500, sep = c(":", "-"), min.features = 500)

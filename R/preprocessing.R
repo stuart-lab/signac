@@ -923,6 +923,8 @@ TSSFast <- function(
     mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
   }
 
+  center.counts <- vector(mode = "numeric", length = ncol(x = object))
+  flank.counts <- vector(mode = "numeric", length = ncol(x = object))
   for (i in seq_along(along.with = frags)) {
     # open fragment file
     tbx.path <- GetFragmentData(object = frags[[i]], slot = "path")
@@ -934,7 +936,6 @@ TSSFast <- function(
       cellmap <- cellmap[intersect(names(x = cellmap), colnames(x = object))]
     }
     tbx <- TabixFile(file = tbx.path)
-    # open(con = tbx)
     # iterate over chunked ranges
     res <- mylapply(
       X = seq_along(along.with = centers),
@@ -949,14 +950,12 @@ TSSFast <- function(
         )
       }
     )
-    # close(con = tbx)
 
     # sum results from each chunk of granges
     cc <- lapply(X = res, FUN = `[[`, 1)
     fc <- lapply(X = res, FUN = `[[`, 2)
-    center.counts <- Reduce(f = `+`, x = cc)
-    flank.counts <- Reduce(f = `+`, x = fc)
-
+    center.counts <- center.counts + Reduce(f = `+`, x = cc)
+    flank.counts <- flank.counts + Reduce(f = `+`, x = fc)
   }
 
   if (verbose) {
@@ -981,6 +980,7 @@ TSSFast <- function(
 
 #' @importFrom GenomeInfoDb seqlevels keepSeqlevels
 #' @importFrom Rsamtools seqnamesTabix
+#' @importFrom Matrix rowSums
 extract_tss_counts <- function(
   cellnames,
   region.centers,
@@ -1001,6 +1001,10 @@ extract_tss_counts <- function(
     x = seqlevels(x = region.centers),
     y = seqnamesTabix(file = tabix.file)
   )
+  if (length(x = common.seqlevels) == 0) {
+    close(con = tabix.file)
+    return(list(cc, fc))
+  }
   uflanks.use <- keepSeqlevels(
     x = upstream,
     value = common.seqlevels,

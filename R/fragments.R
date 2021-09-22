@@ -57,6 +57,9 @@ CountFragments <- function(
   fragments <- normalizePath(path = fragments, mustWork = TRUE)
   max_lines <- SetIfNull(x = max_lines, y = 0)
   verbose = as.logical(x = verbose)
+  if (!is.null(x = cells)) {
+    cells <- unique(x = cells)
+  }
   counts <- groupCommand(
     fragments = fragments,
     some_whitelist_cells = cells,
@@ -286,6 +289,23 @@ CreateFragmentObject <- function(
   index.file <- paste0(path, ".tbi")
   if (!file.exists(index.file) & !is.remote) {
     stop("Fragment file is not indexed.")
+  }
+  if (is.remote) {
+    con <- gzcon(con = url(description = path))
+  } else {
+    con <- path
+  }
+  df <- readLines(con = con, n = 10000)
+  for (i in df) {
+    if (grepl(pattern = '^#', x = i)) {
+      next
+    } else {
+      if (length(x = strsplit(x = i, split = "\t")[[1]]) != 5) {
+        stop("Incorrect number of columns found in fragment file")
+      } else {
+        break
+      }
+    }
   }
   if (!is.null(x = cells)) {
     if (is.null(names(x = cells))) {

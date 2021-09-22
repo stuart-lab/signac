@@ -20,6 +20,9 @@ demonstrate transferring both continuous (gene expression) and categorical
 (cell labels) information from a reference to a query single-cell chromatin
 dataset.
 
+<details>
+  <summary>**View data download code**</summary>
+
 The PBMC multiome and scATAC-seq data can be downloaded from the 10x website:
 
 ```{bash, eval=FALSE}
@@ -32,6 +35,8 @@ wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_1
 wget https://cf.10xgenomics.com/samples/cell-atac/2.0.0/atac_pbmc_10k_nextgem/atac_pbmc_10k_nextgem_fragments.tsv.gz
 wget https://cf.10xgenomics.com/samples/cell-atac/2.0.0/atac_pbmc_10k_nextgem/atac_pbmc_10k_nextgem_fragments.tsv.gz.tbi
 ```
+
+</details>
 
 ## Preprocessing
 
@@ -49,7 +54,7 @@ pbmc.multi <- readRDS("../vignette_data/pbmc_multiomic.rds")
 
 # process the scATAC data
 # first count fragments per cell
-fragpath <- "~/data/10x_atac/pbmc10k_v2/atac_pbmc_10k_nextgem_fragments.tsv.gz"
+fragpath <- "../vignette_data/atac_pbmc_10k_nextgem_fragments.tsv.gz"
 fragcounts <- CountFragments(fragments = fragpath)
 atac.cells <- fragcounts[fragcounts$frequency_count > 2000, "CB"]
 

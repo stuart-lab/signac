@@ -29,6 +29,30 @@ Raw sequencing data and DNA accessibility processed files for the these datasets
 are available on NCBI GEO here:
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE142745
 
+<details>
+  <summary>**View data download code**</summary>
+
+The required files can be downloaded by running the following lines in a shell:
+
+```{bash, eval=FALSE}
+# ATAC data
+wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.filtered_peak_bc_matrix.h5
+wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.singlecell.csv
+wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.fragments.tsv.gz
+wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.fragments.tsv.gz.tbi
+
+# mitochondrial allele data
+wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.A.txt.gz
+wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.C.txt.gz
+wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.G.txt.gz
+wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.T.txt.gz
+wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.depthTable.txt
+wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.chrM_refAllele.txt
+```
+
+</details>
+
+
 # Colorectal cancer dataset
 
 To demonstrate combined analyses of mitochondrial DNA variants and accessible
@@ -351,6 +375,28 @@ the allele frequency data and how to relate these clonal groups to
 accessibility differences utilizing the multimodal capabilities of Signac. 
 
 ## Data loading
+
+<details>
+  <summary>**View data download code**</summary>
+
+To download the data from Zenodo run the following in a shell:
+
+```{bash, eval=FALSE}
+# ATAC data
+wget https://zenodo.org/record/3977808/files/TF1.filtered.fragments.tsv.gz
+wget https://zenodo.org/record/3977808/files/TF1.filtered.fragments.tsv.gz.tbi
+wget https://zenodo.org/record/3977808/files/TF1.filtered.narrowPeak.gz
+
+# mitochondrial genome data
+wget https://zenodo.org/record/3977808/files/TF1_filtered.A.txt.gz
+wget https://zenodo.org/record/3977808/files/TF1_filtered.T.txt.gz
+wget https://zenodo.org/record/3977808/files/TF1_filtered.C.txt.gz
+wget https://zenodo.org/record/3977808/files/TF1_filtered.G.txt.gz
+wget https://zenodo.org/record/3977808/files/TF1_filtered.chrM_refAllele.txt.gz
+wget https://zenodo.org/record/3977808/files/TF1_filtered.depthTable.txt.gz
+```
+
+</details>
 
 ```{r}
 # read the mitochondrial data

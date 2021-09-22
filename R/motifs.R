@@ -72,8 +72,10 @@ AddMotifs.ChromatinAssay <- function(
 }
 
 #' @param assay Name of assay to use. If NULL, use the default assay
-#' @param genome A \code{BSgenome} object
-#' @param pfm A \code{PFMatrixList} object
+#' @param genome A \code{BSgenome}, \code{DNAStringSet}, \code{FaFile}, or
+#' string stating the genome build recognized by \code{getBSgenome}.
+#' @param pfm A \code{PFMatrixList} or \code{PWMatrixList} object containing
+#' position weight/frequency matrices to use
 #' @param verbose Display messages
 #' @importFrom Seurat DefaultAssay
 #' @rdname AddMotifs
@@ -287,7 +289,16 @@ FindMotifs <- function(
     )
   }
   if (verbose) {
-    message("Testing motif enrichment in ", length(x = features), " regions")
+    msg <- ifelse(
+      test = length(x = features) > 1,
+      yes = " regions",
+      no = " region"
+    )
+    message("Testing motif enrichment in ", length(x = features), msg)
+  }
+  if (length(x = features) < 10) {
+    warning("Testing motif enrichment using a small number of regions is ",
+            "not recommended")
   }
   motif.all <- GetMotifData(
     object = object, assay = assay, slot = "data"
@@ -295,8 +306,8 @@ FindMotifs <- function(
   motif.names <- GetMotifData(
     object = object, assay = assay, slot = "motif.names"
   )
-  query.motifs <- motif.all[features, ]
-  background.motifs <- motif.all[background, ]
+  query.motifs <- motif.all[features, , drop = FALSE]
+  background.motifs <- motif.all[background, , drop = FALSE]
   query.counts <- colSums(x = query.motifs)
   background.counts <- colSums(x = background.motifs)
   percent.observed <- query.counts / length(x = features) * 100
