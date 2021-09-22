@@ -1244,15 +1244,22 @@ FindRegion <- function(
   extend.downstream = 0
 ) {
   if (!is(object = region, class2 = "GRanges")) {
-    # if separators are present in the string and we can convert the
-    # start to a number, assume we're using genomic coordinates
-    if (all(sapply(X = sep, FUN = grepl, x = region))) {
-      region <- StringToGRanges(regions = region, sep = sep)
-    } else {
-      region <- LookupGeneCoords(object = object, assay = assay, gene = region)
-      if (is.null(x = region)) {
-        stop("Gene not found")
+    # first try to convert to coordinates, if not lookup gene
+    region <- tryCatch(
+      expr = suppressWarnings(
+        expr = StringToGRanges(regions = region, sep = sep)
+      ),
+      error = function(x) {
+        region <- LookupGeneCoords(
+          object = object,
+          assay = assay,
+          gene = region
+        )
+        return(region)
       }
+    )
+    if (is.null(x = region)) {
+      stop("Gene not found")
     }
   }
   region <- suppressWarnings(expr = Extend(

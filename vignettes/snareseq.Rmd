@@ -20,9 +20,9 @@ re-mapped the raw data to the mm10 genome and created a fragment file using
 [Sinto](https://timoast.github.io/sinto/).
 
 The fragment file can be downloaded
-here: https://www.dropbox.com/s/se3uag0cvld4xqg/fragments.sort.bed.gz?dl=0
+here: https://www.dropbox.com/s/se3uag0cvld4xqg/fragments.sort.bed.gz
 
-The fragment file index can be downloaded here: https://www.dropbox.com/s/kvb8fiewkjz3kzf/fragments.sort.bed.gz.tbi?dl=0
+The fragment file index can be downloaded here: https://www.dropbox.com/s/kvb8fiewkjz3kzf/fragments.sort.bed.gz.tbi
 
 Code used to create the fragment file from raw data is available here:
 https://github.com/timoast/SNARE-seq 
@@ -36,6 +36,11 @@ To load the count data, we can use the `Read10X()` function from Seurat by first
 placing the `barcodes.tsv.gz`, `matrix.mtx.gz`, and `features.tsv.gz` files into
 a separate folder.
 
+```{r include=FALSE}
+if (!requireNamespace("EnsDb.Mmusculus.v79", quietly = TRUE))
+    BiocManager::install("EnsDb.Mmusculus.v79")
+```
+
 ```{r message=FALSE, warning=FALSE}
 library(Signac)
 library(Seurat)
@@ -44,9 +49,9 @@ library(EnsDb.Mmusculus.v79)
 set.seed(1234)
 
 # load processed data matrices for each assay
-rna <- Read10X("/home/stuartt/data/snare-seq/GSE126074_AdBrainCortex_rna/", gene.column = 1)
-atac <- Read10X("/home/stuartt/data/snare-seq/GSE126074_AdBrainCortex_atac/", gene.column = 1)
-fragments <- "/home/stuartt/data/snare-seq/fragments.sort.bed.gz"
+rna <- Read10X("../vignette_data/snare-seq/GSE126074_AdBrainCortex_rna/", gene.column = 1)
+atac <- Read10X("../vignette_data/snare-seq/GSE126074_AdBrainCortex_atac/", gene.column = 1)
+fragments <- "../vignette_data/snare-seq/fragments.sort.bed.gz"
 
 # create a Seurat object and add the assays
 snare <- CreateSeuratObject(counts = rna)
@@ -146,7 +151,7 @@ Institute.
 
 ```{r message=FALSE, warning=FALSE}
 # label transfer from Allen brain
-allen <- readRDS("/home/stuartt/github/chrom/vignette_data/allen_brain.rds")
+allen <- readRDS("../vignette_data/allen_brain.rds")
 
 # use the RNA assay in the SNARE-seq data for integration with scRNA-seq
 DefaultAssay(snare) <- 'RNA'
@@ -202,6 +207,10 @@ expression information for different genes.
 ```{r message=FALSE, warning=FALSE, fig.width=12, fig.height=8}
 DefaultAssay(snare) <- "ATAC"
 CoveragePlot(snare, region = "chr2-22620000-22660000", features = "Gad2")
+```
+
+```{r include=FALSE}
+saveRDS(object = snare, file = "../vignette_data/snare.rds")
 ```
 
 <details>
