@@ -1,3 +1,9 @@
+# Unreleased
+
+Bug fixes:
+
+* Fixed bug in `FeatureMatrix()` when cells information not present in Fragment object ([#803](https://github.com/timoast/signac/issues/803))
+
 # Signac 1.4.0
 
 Bug fixes:
