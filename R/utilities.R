@@ -712,11 +712,13 @@ CountsInRegion <- function(
 #' @concept utilities
 #' @return Returns a numeric vector
 #' @examples
+#' \dontrun{
 #' FractionCountsInRegion(
 #'   object = atac_small,
 #'   assay = 'bins',
 #'   regions = blacklist_hg19
 #' )
+#' }
 FractionCountsInRegion <- function(
   object,
   regions,
