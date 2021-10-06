@@ -14,6 +14,7 @@ RunTFIDF(object, ...)
   assay = NULL,
   method = 1,
   scale.factor = 10000,
+  idf = NULL,
   verbose = TRUE,
   ...
 )
@@ -23,6 +24,7 @@ RunTFIDF(object, ...)
   assay = NULL,
   method = 1,
   scale.factor = 10000,
+  idf = NULL,
   verbose = TRUE,
   ...
 )
@@ -32,6 +34,7 @@ RunTFIDF(object, ...)
   assay = NULL,
   method = 1,
   scale.factor = 10000,
+  idf = NULL,
   verbose = TRUE,
   ...
 )
@@ -58,6 +61,9 @@ RunTFIDF(object, ...)
 }}
 
 \item{scale.factor}{Which scale factor to use. Default is 10000.}
+
+\item{idf}{A precomputed IDF vector to use. If NULL, compute based on the
+input data matrix.}
 
 \item{verbose}{Print progress}
 }
