@@ -194,6 +194,8 @@ jobs:
       - name: Run CMD check
         env:
           _R_CHECK_CRAN_INCOMING_: false
+          _R_CHECK_DEPENDS_ONLY_: true
+          _R_CHECK_FORCE_SUGGESTS_: false
         run: |
           rcmdcheck::rcmdcheck(
               args = c("--no-build-vignettes", "--no-manual", "--timings"),

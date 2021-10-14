@@ -552,6 +552,8 @@ RegionStats.Seurat <- function(
 #'  \eqn{IDF}.
 #' }
 #' @param scale.factor Which scale factor to use. Default is 10000.
+#' @param idf A precomputed IDF vector to use. If NULL, compute based on the
+#' input data matrix.
 #' @param verbose Print progress
 #' @rdname RunTFIDF
 #' @importFrom Matrix colSums rowSums Diagonal tcrossprod
@@ -566,6 +568,7 @@ RunTFIDF.default <- function(
   assay = NULL,
   method = 1,
   scale.factor = 1e4,
+  idf = NULL,
   verbose = TRUE,
   ...
 ) {
@@ -587,18 +590,41 @@ RunTFIDF.default <- function(
   } else {
     tf <- tcrossprod(x = object, y = Diagonal(x = 1 / npeaks))
   }
-  rsums <- rowSums(x = object)
-  if (any(rsums == 0)) {
-    warning("Some features contain 0 total counts")
+  if (!is.null(x = idf)) {
+    precomputed_idf <- TRUE
+    if (!inherits(x = idf, what = "numeric")) {
+      stop("idf parameter must be a numeric vector")
+    }
+    if (length(x = idf) != nrow(x = object)) {
+      stop("Length of supplied IDF vector does not match",
+           " number of rows in input matrix")
+    }
+    if (any(idf == 0)) {
+      stop("Supplied IDF values cannot be zero")
+    }
+    if (verbose) {
+      message("Using precomputed IDF vector")
+    }
+  } else {
+    precomputed_idf <- FALSE
+    rsums <- rowSums(x = object)
+    if (any(rsums == 0)) {
+      warning("Some features contain 0 total counts")
+    }
+    idf <- ncol(x = object) / rsums
   }
-  idf <- ncol(x = object) / rsums
+
   if (method == 2) {
-    idf <- log(1 + idf)
+    if (!precomputed_idf) {
+      idf <- log(1 + idf)
+    }
   } else if (method == 3) {
     slot(object = tf, name = "x") <- log1p(
       x = slot(object = tf, name = "x") * scale.factor
     )
-    idf <- log(1 + idf)
+    if (!precomputed_idf) {
+      idf <- log(1 + idf)
+    }
   }
   norm.data <- Diagonal(n = length(x = idf), x = idf) %*% tf
   if (method == 1) {
@@ -626,6 +652,7 @@ RunTFIDF.Assay <- function(
   assay = NULL,
   method = 1,
   scale.factor = 1e4,
+  idf = NULL,
   verbose = TRUE,
   ...
 ) {
@@ -634,6 +661,7 @@ RunTFIDF.Assay <- function(
     method = method,
     assay = assay,
     scale.factor = scale.factor,
+    idf = idf,
     verbose = verbose,
     ...
   )
@@ -658,6 +686,7 @@ RunTFIDF.Seurat <- function(
   assay = NULL,
   method = 1,
   scale.factor = 1e4,
+  idf = NULL,
   verbose = TRUE,
   ...
 ) {
@@ -668,6 +697,7 @@ RunTFIDF.Seurat <- function(
     assay = assay,
     method = method,
     scale.factor = scale.factor,
+    idf = idf,
     verbose = verbose,
     ...
   )
