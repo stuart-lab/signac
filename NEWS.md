@@ -2,7 +2,8 @@
 
 Bug fixes:
 
-* Fixed bug in `FeatureMatrix()` when cells information not present in Fragment object ([#803](https://github.com/timoast/signac/issues/803))
+* Fixed bug in `FeatureMatrix()` when cells information not present in Fragment object ([#803](https://github.com/timoast/signac/issues/803)
+* Fixed bug in object merging ([#804](https://github.com/timoast/signac/issues/804))
 
 Other changes:
 
