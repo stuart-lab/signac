@@ -12,7 +12,7 @@ Description: A framework for the analysis and exploration of single-cell chromat
     The 'Signac' package contains functions for quantifying single-cell chromatin data,
     computing per-cell quality control metrics, dimension reduction
     and normalization, visualization, and DNA sequence motif analysis.
-    Reference: Stuart et al. (2020) <doi:10.1101/2020.11.09.373613>.
+    Reference: Stuart et al. (2021) <doi:10.1038/s41592-021-01282-5>.
 Depends:
     R (>= 4.0.0),
     methods
