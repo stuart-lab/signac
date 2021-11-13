@@ -18,6 +18,7 @@ LinkPeaks(
   n_sample = 200,
   pvalue_cutoff = 0.05,
   score_cutoff = 0.05,
+  gene.id = FALSE,
   verbose = TRUE
 )
 }
@@ -54,6 +55,9 @@ p-value equal or greater than this value will be removed from the output.}
 
 \item{score_cutoff}{Minimum absolute value correlation coefficient for a link
 to be retained}
+
+\item{gene.id}{Set to TRUE if genes in the expression assay are named
+using gene IDs rather than gene names.}
 
 \item{verbose}{Display messages}
 }
