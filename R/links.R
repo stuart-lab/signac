@@ -296,24 +296,21 @@ LinkPeaks <- function(
   }
   genes <- rownames(x = expression.data)
   if (gene.id) {
-    gene.coords.use <- gene.coords[gene.coords$gene_id %in% genes,]
-  } else {
-    gene.coords.use <- gene.coords[gene.coords$gene_name %in% genes,]
+    gene.coords.use$gene_name <- gene.coords.use$gene_id
   }
+  gene.coords.use <- gene.coords[gene.coords$gene_name %in% genes,]
   peaks <- granges(x = object[[peak.assay]])
   peaks <- peaks[peaks.keep]
   peak_distance_matrix <- DistanceToTSS(
     peaks = peaks,
     genes = gene.coords.use,
-    distance = distance,
-    gene.id = gene.id
+    distance = distance
   )
   if (!is.null(x = min.distance)) {
     peak_distance_matrix_min <- DistanceToTSS(
       peaks = peaks,
       genes = gene.coords.use,
-      distance = min.distance,
-      gene.id = gene.id
+      distance = min.distance
     )
     peak_distance_matrix <- peak_distance_matrix - peak_distance_matrix_min
   }
@@ -531,8 +528,7 @@ DistanceToTSS <- function(
   peaks,
   genes,
   distance = 200000,
-  sep = c("-", "-"),
-  gene.id = FALSE
+  sep = c("-", "-")
   ) {
   tss <- resize(x = genes, width = 1, fix = 'start')
   genes.extended <- suppressWarnings(
@@ -553,10 +549,6 @@ DistanceToTSS <- function(
     dims = c(length(x = peaks), length(x = genes.extended))
   )
   rownames(x = hit_matrix) <- GRangesToString(grange = peaks, sep = sep)
-  if (gene.id) {
-    colnames(x = hit_matrix) <- genes.extended$gene_id
-  } else {
-    colnames(x = hit_matrix) <- genes.extended$gene_name
-  }
+  colnames(x = hit_matrix) <- genes.extended$gene_name
   return(hit_matrix)
 }
