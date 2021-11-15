@@ -296,9 +296,19 @@ LinkPeaks <- function(
   }
   genes <- rownames(x = expression.data)
   if (gene.id) {
+    gene.coords.use <- gene.coords[gene.coords$gene_id %in% genes,]
     gene.coords.use$gene_name <- gene.coords.use$gene_id
+  } else {
+    gene.coords.use <- gene.coords[gene.coords$gene_name %in% genes,]
   }
-  gene.coords.use <- gene.coords[gene.coords$gene_name %in% genes,]
+  if (length(x = gene.coords.use) == 0) {
+    stop("Could not find gene coordinates for requested genes")
+  }
+  if (length(x = gene.coords.use) < nrow(x = expression.data)) {
+    message("Found gene coordinates for ",
+            length(x = gene.coords.use),
+            " genes")
+  }
   peaks <- granges(x = object[[peak.assay]])
   peaks <- peaks[peaks.keep]
   peak_distance_matrix <- DistanceToTSS(
