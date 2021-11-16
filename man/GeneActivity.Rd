@@ -12,6 +12,7 @@ GeneActivity(
   extend.downstream = 0,
   biotypes = "protein_coding",
   max.width = 5e+05,
+  gene.id = FALSE,
   verbose = TRUE,
   ...
 )
@@ -35,6 +36,8 @@ gene annotation.}
 Setting this parameter can avoid quantifying extremely long transcripts that
 can add a relatively long amount of time. If NULL, do not filter genes based
 on width.}
+
+\item{gene.id}{Record gene IDs in output matrix rather than gene name.}
 
 \item{verbose}{Display messages}
 

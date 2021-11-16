@@ -398,6 +398,6 @@ SingleFeatureMatrix <- function(
   }
   # reorder features
   feat.str <- GRangesToString(grange = features, sep = sep)
-  featmat <- featmat[feat.str, ]
+  featmat <- featmat[feat.str, , drop=FALSE]
   return(featmat)
 }
