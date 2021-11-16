@@ -1,7 +1,7 @@
 Package: Signac
 Title: Analysis of Single-Cell Chromatin Data
-Version: 1.4.0.9002
-Date: 2021-10-21
+Version: 1.4.0.9005
+Date: 2021-11-16
 Authors@R: c(
   person(given = 'Tim', family = 'Stuart', email = 'tstuart@nygenome.org', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3044-0897')),
   person(given = 'Avi', family = 'Srivastava', email = 'asrivastava@nygenome.org', role = 'aut', comment = c(ORCID = '0000-0001-9798-2079')),
@@ -12,7 +12,7 @@ Description: A framework for the analysis and exploration of single-cell chromat
     The 'Signac' package contains functions for quantifying single-cell chromatin data,
     computing per-cell quality control metrics, dimension reduction
     and normalization, visualization, and DNA sequence motif analysis.
-    Reference: Stuart et al. (2020) <doi:10.1101/2020.11.09.373613>.
+    Reference: Stuart et al. (2021) <doi:10.1038/s41592-021-01282-5>.
 Depends:
     R (>= 4.0.0),
     methods

@@ -3,12 +3,13 @@ citHeader("To cite Signac, please use:")
 citEntry(entry = "article",
   author = personList(as.person("Tim Stuart"),
                       as.person("Avi Srivastava"),
+                      as.person("Shaista Madad"),
                       as.person("Caleb Lareau"),
                       as.person("Rahul Satija")),
-  title = "Multimodal single-cell chromatin analysis with Signac",
-  journal = "bioRxiv",
-  year = "2020",
-  doi = "10.1101/2020.11.09.373613",
-  url = "https://doi.org/10.1101/2020.11.09.373613",
-  textVersion = "Stuart et al. Multimodal single-cell chromatin analysis with Signac. bioRxiv (2020)."
+  title = "Single-cell chromatin state analysis with Signac",
+  journal = "Nature Methods",
+  year = "2021",
+  doi = "10.1038/s41592-021-01282-5",
+  url = "https://doi.org/10.1038/s41592-021-01282-5",
+  textVersion = "Stuart et al. Single-cell chromatin state analysis with Signac. Nature Methods (2021)."
 )

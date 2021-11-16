@@ -187,6 +187,8 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' p-value equal or greater than this value will be removed from the output.
 #' @param score_cutoff Minimum absolute value correlation coefficient for a link
 #' to be retained
+#' @param gene.id Set to TRUE if genes in the expression assay are named
+#' using gene IDs rather than gene names.
 #' @param verbose Display messages
 #'
 #' @importFrom Seurat GetAssayData
@@ -227,6 +229,7 @@ LinkPeaks <- function(
   n_sample = 200,
   pvalue_cutoff = 0.05,
   score_cutoff = 0.05,
+  gene.id = FALSE,
   verbose = TRUE
 ) {
   if (!inherits(x = object[[peak.assay]], what = "ChromatinAssay")) {
@@ -292,7 +295,20 @@ LinkPeaks <- function(
     )
   }
   genes <- rownames(x = expression.data)
-  gene.coords.use <- gene.coords[gene.coords$gene_name %in% genes,]
+  if (gene.id) {
+    gene.coords.use <- gene.coords[gene.coords$gene_id %in% genes,]
+    gene.coords.use$gene_name <- gene.coords.use$gene_id
+  } else {
+    gene.coords.use <- gene.coords[gene.coords$gene_name %in% genes,]
+  }
+  if (length(x = gene.coords.use) == 0) {
+    stop("Could not find gene coordinates for requested genes")
+  }
+  if (length(x = gene.coords.use) < nrow(x = expression.data)) {
+    message("Found gene coordinates for ",
+            length(x = gene.coords.use),
+            " genes")
+  }
   peaks <- granges(x = object[[peak.assay]])
   peaks <- peaks[peaks.keep]
   peak_distance_matrix <- DistanceToTSS(
@@ -518,7 +534,12 @@ LinksToGRanges <- function(linkmat, gene.coords, sep = c("-", "-")) {
 #' @importFrom GenomicRanges resize
 #
 # @return Returns a sparse matrix
-DistanceToTSS <- function(peaks, genes, distance = 200000, sep = c("-", "-")) {
+DistanceToTSS <- function(
+  peaks,
+  genes,
+  distance = 200000,
+  sep = c("-", "-")
+  ) {
   tss <- resize(x = genes, width = 1, fix = 'start')
   genes.extended <- suppressWarnings(
     expr = Extend(
