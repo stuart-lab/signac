@@ -45,7 +45,7 @@ remotes::install_github("timoast/signac", ref = "develop")
 ## Release notes
 
 For a changelog please see the [NEWS
-file](https://github.com/timoast/signac/blob/master/NEWS.md), also
+file](https://github.com/timoast/signac/blob/develop/NEWS.md), also
 available on the [Signac
 website](https://satijalab.org/signac/news/index.html).
 
