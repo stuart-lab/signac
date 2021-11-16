@@ -6,10 +6,12 @@ Bug fixes:
 * Fixed bug in object merging ([#804](https://github.com/timoast/signac/issues/804))
 * Add ability to run `LinkPeaks()` using Ensembl IDs ([#858](https://github.com/timoast/signac/issues/858))
 * Fix issue in `GeneActivity()` when gene names are `NA` ([#865](https://github.com/timoast/signac/issues/865))
+* Fix bug in `FeatureMatrix()` when only one region supplied
 
 Other changes:
 
 * Added `idf` parameter to `RunTFIDF()` to use precomputed IDF vector
+* Added `gene.id` parameter to `GeneActivity()` to allow output genes named using gene ID ([#837](https://github.com/timoast/signac/issues/837))
 
 # Signac 1.4.0
 
