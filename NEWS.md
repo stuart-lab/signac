@@ -2,7 +2,7 @@
 
 Bug fixes:
 
-* Fixed bug in `FeatureMatrix()` when cells information not present in Fragment object ([#803](https://github.com/timoast/signac/issues/803)
+* Fixed bug in `FeatureMatrix()` when cells information not present in Fragment object ([#803](https://github.com/timoast/signac/issues/803))
 * Fixed bug in object merging ([#804](https://github.com/timoast/signac/issues/804))
 * Add ability to run `LinkPeaks()` using Ensembl IDs ([#858](https://github.com/timoast/signac/issues/858))
 * Fix issue in `GeneActivity()` when gene names are `NA` ([#865](https://github.com/timoast/signac/issues/865))
