@@ -4,7 +4,7 @@
 \alias{ConnectionsToLinks}
 \title{Cicero connections to links}
 \usage{
-ConnectionsToLinks(conns, ccans = NULL, threshold = 0)
+ConnectionsToLinks(conns, ccans = NULL, threshold = 0, sep = c("-", "-"))
 }
 \arguments{
 \item{conns}{A dataframe containing co-accessible elements. This would
@@ -24,6 +24,10 @@ CCAN that it belongs to in the second column.}
 
 \item{threshold}{Threshold for retaining a coaccessible site. Links with
 a value less than or equal to this threshold will be discarded.}
+
+\item{sep}{Separators to use for strings encoding genomic coordinates.
+First element is used to separate the chromosome from the coordinates, second
+element is used to separate the start from end coordinate.}
 }
 \value{
 Returns a \code{\link[GenomicRanges]{GRanges}} object
