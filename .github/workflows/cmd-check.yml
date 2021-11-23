@@ -106,8 +106,8 @@ jobs:
         uses: actions/cache@v2
         with:
           path: /home/runner/work/_temp/Library
-          key: ${{ env.cache-version }}-${{ runner.os }}-biocversion-RELEASE_3_12-r-4.0-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ env.cache-version }}-${{ runner.os }}-biocversion-RELEASE_3_12-r-4.0-
+          key: ${{ env.cache-version }}-${{ runner.os }}-biocversion-RELEASE_3_12-r-4.0-2${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ env.cache-version }}-${{ runner.os }}-biocversion-RELEASE_3_12-r-4.0-2
 
       - name: Install Linux system dependencies
         if: runner.os == 'Linux'
