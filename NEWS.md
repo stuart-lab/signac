@@ -12,6 +12,7 @@ Other changes:
 
 * Added `idf` parameter to `RunTFIDF()` to use precomputed IDF vector
 * Added `gene.id` parameter to `GeneActivity()` to allow output genes named using gene ID ([#837](https://github.com/timoast/signac/issues/837))
+* Added `sep` parameter to `ConnectionsToLinks()` ([#841](https://github.com/timoast/signac/issues/841))
 
 # Signac 1.4.0
 
