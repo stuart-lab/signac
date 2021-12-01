@@ -67,7 +67,6 @@ annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Mmusculus.v79)
 
 # change to UCSC style since the data was mapped to hg19
 seqlevelsStyle(annotations) <- 'UCSC'
-genome(annotations) <- "mm10"
 
 # add the gene information to the object
 Annotation(snare[["ATAC"]]) <- annotations
