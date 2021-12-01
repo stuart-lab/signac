@@ -7,6 +7,7 @@ Bug fixes:
 * Add ability to run `LinkPeaks()` using Ensembl IDs ([#858](https://github.com/timoast/signac/issues/858))
 * Fix issue in `GeneActivity()` when gene names are `NA` ([#865](https://github.com/timoast/signac/issues/865))
 * Fix bug in `FeatureMatrix()` when only one region supplied
+* Allow negative values in `ExpressionPlot()` when using scaled data ([#893](https://github.com/timoast/signac/issues/893))
 
 Other changes:
 
