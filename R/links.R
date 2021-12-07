@@ -285,14 +285,12 @@ LinkPeaks <- function(
   peaks.keep <- peakcounts > min.cells
   genes.keep <- genecounts > min.cells
   peak.data <- peak.data[peaks.keep, ]
-  if (is.null(x = genes.use)) {
-    expression.data <- expression.data[genes.keep, ]
-  } else {
+  if (!is.null(x = genes.use)) {
     genes.keep <- intersect(
       x = names(x = genes.keep[genes.keep]), y = genes.use
     )
-    expression.data <- expression.data[genes.keep, , drop = FALSE]
   }
+  expression.data <- expression.data[genes.keep, , drop = FALSE]
   if (verbose) {
     message(
       "Testing ",
