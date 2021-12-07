@@ -32,7 +32,9 @@ head.Fragment <- function(x, n = 6L, ...) {
 #'
 #' Count total fragments per cell barcode present in a fragment file.
 #'
-#' @param fragments Path to a fragment file
+#' @param fragments Path to a fragment file. If a list of fragment files is
+#' provided, the total fragments for each cell barcode across all files will be
+#' returned
 #' @param cells Cells to include. If NULL, include all cells
 #' @param max_lines Maximum number of lines to read from the fragment file. If
 #' NULL, read all lines in the file.
@@ -51,22 +53,45 @@ CountFragments <- function(
   max_lines = NULL,
   verbose = TRUE
 ) {
-  if (isRemote(x = fragments)) {
-    stop("Remote fragment files not supported")
+  if (!inherits(x = fragments, what = "list")) {
+    fragments <- list(fragments)
   }
-  fragments <- normalizePath(path = fragments, mustWork = TRUE)
-  max_lines <- SetIfNull(x = max_lines, y = 0)
-  verbose = as.logical(x = verbose)
-  if (!is.null(x = cells)) {
-    cells <- unique(x = cells)
+  for (i in seq_along(along.with = fragments)) {
+    if (isRemote(x = i)) {
+      stop("Remote fragment files not supported")
+    }
+    fragments[[i]] <- normalizePath(path = fragments[[i]], mustWork = TRUE)
+    max_lines <- SetIfNull(x = max_lines, y = 0)
+    verbose = as.logical(x = verbose)
+    if (!is.null(x = cells)) {
+      cells <- unique(x = cells)
+    }
+    counts <- groupCommand(
+      fragments = fragments[[i]],
+      some_whitelist_cells = cells,
+      max_lines = max_lines,
+      verbose = verbose
+    )
+    rownames(x = counts) <- counts$CB
+    counts$CB <- NULL
+    if (i == 1) {
+      # first file
+      allcounts <- counts
+    } else {
+      # merge
+      common <- intersect(
+        x = rownames(x = allcounts), y = rownames(x = counts)
+      )
+      allcounts[common, ] <- allcounts[common, ] + counts[common, ]
+      missing_cells <- setdiff(x = rownames(x = counts), y = common)
+      allcounts <- rbind(allcounts, counts[missing_cells, ])
+    }
   }
-  counts <- groupCommand(
-    fragments = fragments,
-    some_whitelist_cells = cells,
-    max_lines = max_lines,
-    verbose = verbose
-  )
-  return(counts)
+  # reformat for backwards compatibility
+  allcounts$CB <- rownames(x = allcounts)
+  rownames(x = allcounts) <- NULL
+  allcounts <- allcounts[, c(5, 1, 2, 3, 4)]
+  return(allcounts)
 }
 
 #' Filter cells from fragment file

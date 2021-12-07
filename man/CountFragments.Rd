@@ -7,7 +7,9 @@
 CountFragments(fragments, cells = NULL, max_lines = NULL, verbose = TRUE)
 }
 \arguments{
-\item{fragments}{Path to a fragment file}
+\item{fragments}{Path to a fragment file. If a list of fragment files is
+provided, the total fragments for each cell barcode across all files will be
+returned}
 
 \item{cells}{Cells to include. If NULL, include all cells}
 
