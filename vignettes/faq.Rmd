@@ -30,8 +30,9 @@ information on combining multiple single-cell chromatin datasets.
 
 ## How can I create a fragment file for my dataset?
 
-The fragment file is provided in the output of [cellranger-atac](https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/what-is-cell-ranger-atac),
-so if you use the 10x Genomics scATAC-seq kit and process the data using Cellranger you will have a fragment file generated.
+The fragment file is provided in the output of popular single-cell data
+data processing tools such as [chromap](https://github.com/haowenz/chromap), [cellranger-atac](https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/what-is-cell-ranger-atac),
+and [cellranger-arc](https://support.10xgenomics.com/single-cell-multiome-atac-gex/software/pipelines/latest/what-is-cell-ranger-arc).
 
 If you are using another method that does not provide a fragment file as output,
 you can use the [sinto](https://github.com/timoast/sinto) package to generate
