@@ -79,7 +79,6 @@ annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
 
 # change to UCSC style since the data was mapped to hg19
 seqlevelsStyle(annotations) <- 'UCSC'
-genome(annotations) <- "hg19"
 
 # create object
 crc_assay <- CreateChromatinAssay(

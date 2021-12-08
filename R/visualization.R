@@ -1629,6 +1629,7 @@ ExpressionPlot <- function(
     }
   }
   p.list <- list()
+  lower.limit <- ifelse(test = slot == "scale.data", yes = NA, no = 0)
   for (i in seq_along(along.with = features)) {
     df.use <- df[df$gene == features[[i]], ]
     p <- ggplot(data = df.use, aes(x = expression, y = gene, fill = group)) +
@@ -1636,7 +1637,7 @@ ExpressionPlot <- function(
       facet_wrap(~group, ncol = 1, strip.position = "right") +
       theme_classic() +
       scale_y_discrete(position = "top") +
-      scale_x_continuous(position = "bottom", limits = c(0, NA)) +
+      scale_x_continuous(position = "bottom", limits = c(lower.limit, NA)) +
       theme(
         axis.text.y = element_blank(),
         axis.text.x = element_text(size = 8),

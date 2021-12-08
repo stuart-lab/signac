@@ -45,7 +45,7 @@ remotes::install_github("timoast/signac", ref = "develop")
 ## Release notes
 
 For a changelog please see the [NEWS
-file](https://github.com/timoast/signac/blob/master/NEWS.md), also
+file](https://github.com/timoast/signac/blob/develop/NEWS.md), also
 available on the [Signac
 website](https://satijalab.org/signac/news/index.html).
 
@@ -61,19 +61,22 @@ you can open a
 ## Citing Signac
 
 If you use the Signac package in your work please cite [Stuart et
-al. 2020](https://www.biorxiv.org/content/10.1101/2020.11.09.373613v1)
+al. 2021](https://doi.org/10.1038/s41592-021-01282-5)
 
-    @UNPUBLISHED{signac,
-      title    = "Multimodal single-cell chromatin analysis with Signac",
-      author   = "Stuart, Tim and Srivastava, Avi and Lareau, Caleb and Satija,
-                  Rahul",
-      journal  = "bioRxiv",
-      pages    = "2020.11.09.373613",
-      month    =  nov,
-      year     =  2020,
-      url      = "https://www.biorxiv.org/content/10.1101/2020.11.09.373613v1",
-      language = "en"
-    }
+```
+@ARTICLE{signac,
+  title     = "Single-cell chromatin state analysis with Signac",
+  author    = "Stuart, Tim and Srivastava, Avi and Madad, Shaista and Lareau,
+               Caleb A and Satija, Rahul",
+  journal   = "Nat. Methods",
+  publisher = "Nature Publishing Group",
+  pages     = "1--9",
+  month     =  nov,
+  year      =  2021,
+  url       = "https://www.nature.com/articles/s41592-021-01282-5",
+  language  = "en"
+}
+```
 
 ## Related packages
 

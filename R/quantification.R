@@ -184,7 +184,11 @@ GenomeBinMatrix <- function(
 #'
 #' Construct a feature x cell matrix from a genomic fragments file
 #'
-#' @param fragments A list of \code{\link{Fragment}} objects.
+#' @param fragments A list of \code{\link{Fragment}} objects. Note that if
+#' setting the \code{cells} parameter, the requested cells should be present in
+#' the supplied \code{Fragment} objects. However, if the cells information in
+#' the fragment object is not set (\code{Cells(fragments)} is \code{NULL}), then
+#' the fragment object will still be searched.
 #' @param features A GRanges object containing a set of genomic intervals.
 #' These will form the rows of the matrix, with each entry recording the number
 #' of unique reads falling in the genomic region for each cell.
@@ -216,6 +220,16 @@ FeatureMatrix <- function(
   sep = c("-", "-"),
   verbose = TRUE
 ) {
+  if (!inherits(x = features, what = "GRanges")) {
+    if (inherits(x = features, what = "character")) {
+      features <- StringToGRanges(
+        regions = features,
+        sep = sep
+      )
+    } else {
+      stop("features should be a GRanges object")
+    }
+  }
   if (!inherits(x = fragments, what = "list")) {
     if (inherits(x = fragments, what = "Fragment")) {
       fragments <- list(fragments)
@@ -228,7 +242,10 @@ FeatureMatrix <- function(
   if (!is.null(x = cells)) {
     obj.use <- c()
     for (i in seq_along(along.with = fragments)) {
-      if (any(cells %in% Cells(x = fragments[[i]]))) {
+      if (is.null(x = Cells(fragments[[i]]))) {
+        # cells information not set for fragment object
+        obj.use <- c(obj.use, i)
+      } else if (any(cells %in% Cells(x = fragments[[i]]))) {
         obj.use <- c(obj.use, i)
       }
     }
@@ -306,13 +323,18 @@ SingleFeatureMatrix <- function(
   if (!is.null(cells)) {
     # only look for cells that are in the fragment file
     frag.cells <- GetFragmentData(object = fragment, slot = "cells")
-    # first subset frag.cells
-    cell.idx <- fmatch(
-      x = names(x = frag.cells),
-      table = cells,
-      nomatch = 0L
-    ) > 0
-    cells <- frag.cells[cell.idx]
+    if (is.null(x = frag.cells)) {
+      # cells information not set in fragment object
+      names(x = cells) <- cells
+    } else {
+      # first subset frag.cells
+      cell.idx <- fmatch(
+        x = names(x = frag.cells),
+        table = cells,
+        nomatch = 0L
+      ) > 0
+      cells <- frag.cells[cell.idx]
+    }
   }
   tbx <- TabixFile(file = fragment.path)
   features <- keepSeqlevels(
@@ -376,6 +398,6 @@ SingleFeatureMatrix <- function(
   }
   # reorder features
   feat.str <- GRangesToString(grange = features, sep = sep)
-  featmat <- featmat[feat.str, ]
+  featmat <- featmat[feat.str, , drop=FALSE]
   return(featmat)
 }

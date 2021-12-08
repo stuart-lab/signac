@@ -270,6 +270,7 @@ ClosestFeature <- function(
 #' Setting this parameter can avoid quantifying extremely long transcripts that
 #' can add a relatively long amount of time. If NULL, do not filter genes based
 #' on width.
+#' @param gene.id Record gene IDs in output matrix rather than gene name.
 #' @param verbose Display messages
 #' @param ... Additional options passed to \code{\link{FeatureMatrix}}
 #'
@@ -295,6 +296,7 @@ GeneActivity <- function(
   extend.downstream = 0,
   biotypes = "protein_coding",
   max.width = 500000,
+  gene.id = FALSE,
   verbose = TRUE,
   ...
 ) {
@@ -316,6 +318,9 @@ GeneActivity <- function(
     message("Extracting gene coordinates")
   }
   transcripts <- CollapseToLongestTranscript(ranges = annotation)
+  if (gene.id) {
+    transcripts$gene_name <- transcripts$gene_id
+  }
   if (!is.null(x = biotypes)) {
     transcripts <- transcripts[transcripts$gene_biotype %in% biotypes]
     if (length(x = transcripts) == 0) {
@@ -358,7 +363,12 @@ GeneActivity <- function(
     verbose = verbose,
     ...
   )
-
+  # replace NA names with gene ID
+  transcripts$gene_name <- ifelse(
+    test = is.na(x = transcripts$gene_name),
+    yes = transcripts$gene_id,
+    no = transcripts$gene_name
+  )
   # set row names
   gene.key <- transcripts$gene_name
   names(x = gene.key) <- GRangesToString(grange = transcripts)
@@ -712,11 +722,13 @@ CountsInRegion <- function(
 #' @concept utilities
 #' @return Returns a numeric vector
 #' @examples
+#' \dontrun{
 #' FractionCountsInRegion(
 #'   object = atac_small,
 #'   assay = 'bins',
 #'   regions = blacklist_hg19
 #' )
+#' }
 FractionCountsInRegion <- function(
   object,
   regions,
@@ -2088,7 +2100,11 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
   )
   close(con = tabix)
   gc(verbose = FALSE)
-  nrep <- elementNROWS(x = cells.in.regions)
+  if (length(x = regions) == 1) {
+    nrep <- length(x = cells.in.regions)
+  } else {
+    nrep <- elementNROWS(x = cells.in.regions)
+  }
   if (all(nrep == 0) & !is.null(x = cells)) {
     # no fragments
     # zero for all requested cells

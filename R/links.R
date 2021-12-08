@@ -86,6 +86,9 @@ GetLinkedGenes <- function(
 #' CCAN that it belongs to in the second column.
 #' @param threshold Threshold for retaining a coaccessible site. Links with
 #' a value less than or equal to this threshold will be discarded.
+#' @param sep Separators to use for strings encoding genomic coordinates.
+#' First element is used to separate the chromosome from the coordinates, second
+#' element is used to separate the start from end coordinate.
 #'
 #' @export
 #' @importFrom GenomicRanges start end makeGRangesFromDataFrame
@@ -94,11 +97,16 @@ GetLinkedGenes <- function(
 #'
 #' @concept links
 #' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
-ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
+ConnectionsToLinks <- function(
+  conns,
+  ccans = NULL,
+  threshold = 0,
+  sep = c("-", "-")
+) {
   # add chromosome information
-  chr1 <- stri_split_fixed(str = conns$Peak1, pattern = "-")
+  chr1 <- stri_split_fixed(str = conns$Peak1, pattern = sep[[1]])
   conns$chr1 <- unlist(x = chr1)[3 * (seq_along(along.with = chr1)) - 2]
-  chr2 <- stri_split_fixed(str = conns$Peak2, pattern = "-")
+  chr2 <- stri_split_fixed(str = conns$Peak2, pattern = sep[[1]])
   conns$chr2 <- unlist(x = chr2)[3 * (seq_along(along.with = chr2)) - 2]
 
   # filter out trans-chr links
@@ -124,8 +132,8 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
   }
 
   # extract genomic regions
-  coords.1 <- StringToGRanges(regions = conns$Peak1, sep = c("-", "-"))
-  coords.2 <- StringToGRanges(regions = conns$Peak2, sep = c("-", "-"))
+  coords.1 <- StringToGRanges(regions = conns$Peak1, sep = sep)
+  coords.2 <- StringToGRanges(regions = conns$Peak2, sep = sep)
   chr <- seqnames(x = coords.1)
 
   # find midpoints
@@ -187,6 +195,8 @@ ConnectionsToLinks <- function(conns, ccans = NULL, threshold = 0) {
 #' p-value equal or greater than this value will be removed from the output.
 #' @param score_cutoff Minimum absolute value correlation coefficient for a link
 #' to be retained
+#' @param gene.id Set to TRUE if genes in the expression assay are named
+#' using gene IDs rather than gene names.
 #' @param verbose Display messages
 #'
 #' @importFrom Seurat GetAssayData
@@ -227,6 +237,7 @@ LinkPeaks <- function(
   n_sample = 200,
   pvalue_cutoff = 0.05,
   score_cutoff = 0.05,
+  gene.id = FALSE,
   verbose = TRUE
 ) {
   if (!inherits(x = object[[peak.assay]], what = "ChromatinAssay")) {
@@ -274,14 +285,12 @@ LinkPeaks <- function(
   peaks.keep <- peakcounts > min.cells
   genes.keep <- genecounts > min.cells
   peak.data <- peak.data[peaks.keep, ]
-  if (is.null(x = genes.use)) {
-    expression.data <- expression.data[genes.keep, ]
-  } else {
+  if (!is.null(x = genes.use)) {
     genes.keep <- intersect(
       x = names(x = genes.keep[genes.keep]), y = genes.use
     )
-    expression.data <- expression.data[genes.keep, , drop = FALSE]
   }
+  expression.data <- expression.data[genes.keep, , drop = FALSE]
   if (verbose) {
     message(
       "Testing ",
@@ -292,7 +301,20 @@ LinkPeaks <- function(
     )
   }
   genes <- rownames(x = expression.data)
-  gene.coords.use <- gene.coords[gene.coords$gene_name %in% genes,]
+  if (gene.id) {
+    gene.coords.use <- gene.coords[gene.coords$gene_id %in% genes,]
+    gene.coords.use$gene_name <- gene.coords.use$gene_id
+  } else {
+    gene.coords.use <- gene.coords[gene.coords$gene_name %in% genes,]
+  }
+  if (length(x = gene.coords.use) == 0) {
+    stop("Could not find gene coordinates for requested genes")
+  }
+  if (length(x = gene.coords.use) < nrow(x = expression.data)) {
+    message("Found gene coordinates for ",
+            length(x = gene.coords.use),
+            " genes")
+  }
   peaks <- granges(x = object[[peak.assay]])
   peaks <- peaks[peaks.keep]
   peak_distance_matrix <- DistanceToTSS(
@@ -518,7 +540,12 @@ LinksToGRanges <- function(linkmat, gene.coords, sep = c("-", "-")) {
 #' @importFrom GenomicRanges resize
 #
 # @return Returns a sparse matrix
-DistanceToTSS <- function(peaks, genes, distance = 200000, sep = c("-", "-")) {
+DistanceToTSS <- function(
+  peaks,
+  genes,
+  distance = 200000,
+  sep = c("-", "-")
+  ) {
   tss <- resize(x = genes, width = 1, fix = 'start')
   genes.extended <- suppressWarnings(
     expr = Extend(

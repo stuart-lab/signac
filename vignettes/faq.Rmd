@@ -30,8 +30,9 @@ information on combining multiple single-cell chromatin datasets.
 
 ## How can I create a fragment file for my dataset?
 
-The fragment file is provided in the output of [cellranger-atac](https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/what-is-cell-ranger-atac),
-so if you use the 10x Genomics scATAC-seq kit and process the data using Cellranger you will have a fragment file generated.
+The fragment file is provided in the output of popular single-cell data
+data processing tools such as [chromap](https://github.com/haowenz/chromap), [cellranger-atac](https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/what-is-cell-ranger-atac),
+and [cellranger-arc](https://support.10xgenomics.com/single-cell-multiome-atac-gex/software/pipelines/latest/what-is-cell-ranger-arc).
 
 If you are using another method that does not provide a fragment file as output,
 you can use the [sinto](https://github.com/timoast/sinto) package to generate
@@ -78,19 +79,20 @@ gene.coords <- keepStandardChromosomes(gene.coords, pruning.mode = 'coarse')
 
 ## How should I cite Signac?
 
-If you use Signac, please cite [Stuart et al., 2020](https://www.biorxiv.org/content/10.1101/2020.11.09.373613v1):
+If you use Signac, please cite [Stuart et al., 2021](https://doi.org/10.1038/s41592-021-01282-5):
 
 ```{r, eval=FALSE}
-@UNPUBLISHED{signac,
-  title    = "Multimodal single-cell chromatin analysis with Signac",
-  author   = "Stuart, Tim and Srivastava, Avi and Lareau, Caleb and Satija,
-              Rahul",
-  journal  = "bioRxiv",
-  pages    = "2020.11.09.373613",
-  month    =  nov,
-  year     =  2020,
-  url      = "https://www.biorxiv.org/content/10.1101/2020.11.09.373613v1",
-  language = "en"
+@ARTICLE{signac,
+  title     = "Single-cell chromatin state analysis with Signac",
+  author    = "Stuart, Tim and Srivastava, Avi and Madad, Shaista and Lareau,
+               Caleb A and Satija, Rahul",
+  journal   = "Nat. Methods",
+  publisher = "Nature Publishing Group",
+  pages     = "1--9",
+  month     =  nov,
+  year      =  2021,
+  url       = "https://www.nature.com/articles/s41592-021-01282-5",
+  language  = "en"
 }
 ```
 

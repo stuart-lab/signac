@@ -1,3 +1,20 @@
+# Signac 1.5.0
+
+Bug fixes:
+
+* Fixed bug in `FeatureMatrix()` when cells information not present in Fragment object ([#803](https://github.com/timoast/signac/issues/803))
+* Fixed bug in object merging ([#804](https://github.com/timoast/signac/issues/804))
+* Add ability to run `LinkPeaks()` using Ensembl IDs ([#858](https://github.com/timoast/signac/issues/858))
+* Fix issue in `GeneActivity()` when gene names are `NA` ([#865](https://github.com/timoast/signac/issues/865))
+* Fix bug in `FeatureMatrix()` when only one region supplied
+* Allow negative values in `ExpressionPlot()` when using scaled data ([#893](https://github.com/timoast/signac/issues/893))
+
+Other changes:
+
+* Added `idf` parameter to `RunTFIDF()` to use precomputed IDF vector
+* Added `gene.id` parameter to `GeneActivity()` to allow output genes named using gene ID ([#837](https://github.com/timoast/signac/issues/837))
+* Added `sep` parameter to `ConnectionsToLinks()` ([#841](https://github.com/timoast/signac/issues/841))
+
 # Signac 1.4.0
 
 Bug fixes:
