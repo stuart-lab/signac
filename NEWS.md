@@ -1,3 +1,9 @@
+# Unreleased
+
+Bug fixes:
+
+* Fixed behaviour of `min.features` parameter in `CreateChromatinAssay()` to retain cells with `>= min.features` (#[902](https://github.com/timoast/signac/discussions/902))
+
 # Signac 1.5.0
 
 Bug fixes:

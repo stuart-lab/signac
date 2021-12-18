@@ -210,7 +210,7 @@ CreateChromatinAssay <- function(
   }
   # remove low-count cells
   ncount.cell <- colSums(x = data.use > 0)
-  data.use <- data.use[, ncount.cell > min.features]
+  data.use <- data.use[, ncount.cell >= min.features]
 
   if (ncol(x = data.use) == 0) {
     stop("No cells retained due to minimum feature cutoff supplied")
