@@ -9,7 +9,7 @@ RegionHeatmap(
   key,
   window = 200,
   normalize = TRUE,
-  order = "sum",
+  order = TRUE,
   assay = NULL,
   idents = NULL
 )
@@ -24,8 +24,8 @@ RegionHeatmap(
 
 \item{normalize}{Normalize by number of cells in each group}
 
-\item{order}{Define the order for plotting regions. If "sum," order by the 
-total number of fragments in the region across all included identities}
+\item{order}{Order regions by the total number of fragments in the region
+across all included identities}
 
 \item{assay}{Name of assay to use}
 

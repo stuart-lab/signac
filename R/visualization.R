@@ -343,8 +343,8 @@ globalVariables(
 #' \code{\link{RegionMatrix}}
 #' @param window Smoothing window to apply
 #' @param normalize Normalize by number of cells in each group
-#' @param order Define the order for plotting regions. If "sum," order by the 
-#' total number of fragments in the region across all included identities
+#' @param order Order regions by the total number of fragments in the region
+#' across all included identities
 #' @param idents Cell identities to include. Note that cells cannot be
 #' regrouped, this will require re-running \code{RegionMatrix} to generate a 
 #' new set of matrices
@@ -368,7 +368,7 @@ RegionHeatmap <- function(
   key,
   window = 200,
   normalize = TRUE,
-  order = "sum",
+  order = TRUE,
   assay = NULL,
   idents = NULL
 ) {
@@ -395,12 +395,23 @@ RegionHeatmap <- function(
     matlist <- matlist[valid.idents]
   }
   
-  # TODO implement region ordering
+  # TODO fix x-axis labeling
+  # TODO make sure factor levels preserved
+  
+  if (order) {
+    rsums <- lapply(X = matlist, FUN = rowSums)
+    rsums <- Reduce(f = `+`, x = rsums)
+    order.use <- base::order(rsums)
+  }
   
   for (i in seq_along(along.with = matlist)) {
     grp.name <- names(x = matlist)[[i]]
     m <- matlist[[i]]
     colnames(m) <- 1:ncol(x = m)
+    
+    if (order) {
+      m <- m[order.use, ]
+    }
     
     if (normalize) {
       m <- m / cells.per.group[[grp.name]]
