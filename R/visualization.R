@@ -330,6 +330,119 @@ PlotFootprint <- function(
 }
 
 globalVariables(
+  names = c("group"),
+  package = "Signac"
+)
+#' Region heatmap
+#' 
+#' Plot fragment counts within a set of regions.
+#' 
+#' @param object A Seurat object
+#' @param assay Name of assay to use
+#' @param key Name of key to pull data from. Stores the results from
+#' \code{\link{RegionMatrix}}
+#' @param window Smoothing window to apply
+#' @param order Define the order for plotting regions. If "sum," order by the 
+#' total number of fragments in the region across all included identities
+#' @param idents Cell identities to include. Note that cells cannot be
+#' regrouped, this will require re-running \code{RegionMatrix} to generate a 
+#' new set of matrices
+#' 
+#' @seealso RegionMatrix
+#' 
+#' @return Returns a ggplot2 object
+#' 
+#' @importFrom Seurat DefaultAssay
+#' @importFrom RcppRoll roll_sum
+#' @importFrom tidyselect all_of
+#' @importFrom tidyr pivot_longer
+#' @importFrom ggplot2 ggplot aes_string facet_wrap geom_raster guides theme
+#' element_blank element_text scale_fill_gradient ylab guide_legend
+#' 
+#' @export
+#' @concept visualization
+#' @concept heatmap
+RegionHeatmap <- function(
+  object,
+  key,
+  window = 200,
+  order = "sum",
+  assay = NULL,
+  idents = NULL
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+    stop("The requested assay is not a ChromatinAssay")
+  }
+  if (!(key %in% names(x = GetAssayData(
+    object = object[[assay]], slot = "positionEnrichment"
+  )))) {
+    stop("Requested key is not present in the assay")
+  }
+  matlist <- GetAssayData(
+    object = object,
+    slot = "positionEnrichment"
+  )[[key]]
+  
+  # TODO normalize by number of cells in group
+  # TODO implement idents option
+  # TODO implement region ordering
+  
+  for (i in seq_along(along.with = matlist)) {
+    grp.name <- names(x = matlist)[[i]]
+    m <- matlist[[i]]
+    colnames(m) <- 1:ncol(x = m)
+    smoothed <- apply(
+      X = m,
+      MARGIN = 1,
+      FUN = roll_sum,
+      n = window,
+      by = window
+    )
+    # create dataframe
+    smoothed <- as.data.frame(x = smoothed)
+    
+    # add extra column as bin ID
+    regions <- colnames(x = smoothed)
+    smoothed$bin <- seq_len(length.out = nrow(x = smoothed))
+    smoothed <- pivot_longer(
+      data = smoothed,
+      cols = all_of(regions)
+    )
+    smoothed$group <- grp.name
+    if (i == 1) {
+      df <- smoothed
+    } else {
+      df <- rbind(df, smoothed)
+    }
+  }
+  
+  p <- ggplot(
+    data = df,
+    aes_string(x = "bin", y = "name", fill = "value")) +
+    facet_wrap(
+      facets = ~group,
+      scales = "free_y"
+    ) +
+    geom_raster() +
+    theme_browser(legend = TRUE) +
+    ylab("Region") +
+    scale_fill_gradient(low = "white", high = "darkred") +
+    guides(fill = guide_legend(
+      title = "Fragment\ncount",
+      keywidth = 1/2, keyheight = 1
+    )
+    ) +
+    theme(
+      axis.ticks.y = element_blank(),
+      legend.title = element_text(size = 8),
+      legend.text = element_text(size = 8)
+    )
+  
+  return(p)
+}
+
+globalVariables(
   names = c("position", "coverage", "group", "gene_name", "direction", "Assay"),
   package = "Signac"
 )
