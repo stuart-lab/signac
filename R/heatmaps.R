@@ -97,7 +97,14 @@ RegionMatrix.ChromatinAssay <- function(
   cells.per.group <- cells.per.group <- table(group.by, useNA = "always")
   lut <- as.vector(x = cells.per.group)
   names(x = lut) <- names(x = cells.per.group)
-  matlist$cells.per.group <- lut
+  
+  # store upstream and downstream parameters
+  params <- list(
+    "upstream" = upstream,
+    "downstream" = downstream,
+    "cells" = lut
+  )
+  matlist$function.parameters <- params
   
   # assigning a list using SetAssayData will overwrite the whole slot
   # temporary solution
