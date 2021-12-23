@@ -7,11 +7,14 @@
 RegionHeatmap(
   object,
   key,
-  window = 200,
-  normalize = TRUE,
-  order = TRUE,
   assay = NULL,
-  idents = NULL
+  idents = NULL,
+  normalize = TRUE,
+  upstream = 3000,
+  downstream = 3000,
+  window = (upstream + downstream)/30,
+  order = TRUE,
+  nrow = NULL
 )
 }
 \arguments{
@@ -20,18 +23,30 @@ RegionHeatmap(
 \item{key}{Name of key to pull data from. Stores the results from
 \code{\link{RegionMatrix}}}
 
-\item{window}{Smoothing window to apply}
-
-\item{normalize}{Normalize by number of cells in each group}
-
-\item{order}{Order regions by the total number of fragments in the region
-across all included identities}
-
 \item{assay}{Name of assay to use}
 
 \item{idents}{Cell identities to include. Note that cells cannot be
 regrouped, this will require re-running \code{RegionMatrix} to generate a 
 new set of matrices}
+
+\item{normalize}{Normalize by number of cells in each group}
+
+\item{upstream}{Number of bases to include upstream of region. If NULL, use
+all bases that were included in the \code{RegionMatrix} function call. Note
+that this value cannot be larger than the value for \code{upstream} given in
+the original \code{RegionMatrix} function call. If NULL, use parameters that
+were given in the \code{RegionMatrix} function call}
+
+\item{downstream}{Number of bases to include downstream of region. See
+documentation for \code{upstream}.}
+
+\item{window}{Smoothing window to apply}
+
+\item{order}{Order regions by the total number of fragments in the region
+across all included identities}
+
+\item{nrow}{Number of rows to use when creating plot. If NULL, chosen
+automatically by ggplot2}
 }
 \value{
 Returns a ggplot2 object
