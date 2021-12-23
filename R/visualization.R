@@ -342,6 +342,7 @@ globalVariables(
 #' @param key Name of key to pull data from. Stores the results from
 #' \code{\link{RegionMatrix}}
 #' @param window Smoothing window to apply
+#' @param normalize Normalize by number of cells in each group
 #' @param order Define the order for plotting regions. If "sum," order by the 
 #' total number of fragments in the region across all included identities
 #' @param idents Cell identities to include. Note that cells cannot be
@@ -366,6 +367,7 @@ RegionHeatmap <- function(
   object,
   key,
   window = 200,
+  normalize = TRUE,
   order = "sum",
   assay = NULL,
   idents = NULL
@@ -384,18 +386,29 @@ RegionHeatmap <- function(
     slot = "positionEnrichment"
   )[[key]]
   
+  # extract normalization factors
+  cells.per.group <- matlist$cells.per.group
+  matlist$cells.per.group <- NULL
+  
   if (!is.null(x = idents)) {
     valid.idents <- intersect(x = idents, y = names(x = matlist))
     matlist <- matlist[valid.idents]
   }
   
-  # TODO normalize by number of cells in group
   # TODO implement region ordering
   
   for (i in seq_along(along.with = matlist)) {
     grp.name <- names(x = matlist)[[i]]
     m <- matlist[[i]]
     colnames(m) <- 1:ncol(x = m)
+    
+    if (normalize) {
+      m <- m / cells.per.group[[grp.name]]
+      guide.label <- "Fragment counts\nper cell"
+    } else {
+      guide.label <- "Fragment\ncount"
+    }
+    
     smoothed <- apply(
       X = m,
       MARGIN = 1,
@@ -433,7 +446,7 @@ RegionHeatmap <- function(
     ylab("Region") +
     scale_fill_gradient(low = "white", high = "darkred") +
     guides(fill = guide_legend(
-      title = "Fragment\ncount",
+      title = guide.label,
       keywidth = 1/2, keyheight = 1
     )
     ) +

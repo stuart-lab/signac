@@ -92,6 +92,13 @@ RegionMatrix.ChromatinAssay <- function(
     verbose = verbose,
     ...
   )
+  
+  # get normalization factors
+  cells.per.group <- cells.per.group <- table(group.by, useNA = "always")
+  lut <- as.vector(x = cells.per.group)
+  names(x = lut) <- names(x = cells.per.group)
+  matlist$cells.per.group <- lut
+  
   # assigning a list using SetAssayData will overwrite the whole slot
   # temporary solution
   if (key %in% names(GetAssayData(object, slot = "positionEnrichment"))) {

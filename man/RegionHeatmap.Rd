@@ -8,6 +8,7 @@ RegionHeatmap(
   object,
   key,
   window = 200,
+  normalize = TRUE,
   order = "sum",
   assay = NULL,
   idents = NULL
@@ -20,6 +21,8 @@ RegionHeatmap(
 \code{\link{RegionMatrix}}}
 
 \item{window}{Smoothing window to apply}
+
+\item{normalize}{Normalize by number of cells in each group}
 
 \item{order}{Define the order for plotting regions. If "sum," order by the 
 total number of fragments in the region across all included identities}
