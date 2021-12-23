@@ -345,9 +345,18 @@ globalVariables(
 #' @param normalize Normalize by number of cells in each group
 #' @param order Order regions by the total number of fragments in the region
 #' across all included identities
+#' @param upstream Number of bases to include upstream of region. If NULL, use
+#' all bases that were included in the \code{RegionMatrix} function call. Note
+#' that this value cannot be larger than the value for \code{upstream} given in
+#' the original \code{RegionMatrix} function call. If NULL, use parameters that
+#' were given in the \code{RegionMatrix} function call
+#' @param downstream Number of bases to include downstream of region. See
+#' documentation for \code{upstream}.
 #' @param idents Cell identities to include. Note that cells cannot be
 #' regrouped, this will require re-running \code{RegionMatrix} to generate a 
 #' new set of matrices
+#' @param nrow Number of rows to use when creating plot. If NULL, chosen
+#' automatically by ggplot2
 #' 
 #' @seealso RegionMatrix
 #' 
@@ -358,7 +367,7 @@ globalVariables(
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer
 #' @importFrom ggplot2 ggplot aes_string facet_wrap geom_raster guides theme
-#' element_blank element_text scale_fill_gradient ylab guide_legend
+#' element_blank element_text scale_fill_gradient ylab guide_legend xlab
 #' 
 #' @export
 #' @concept visualization
@@ -366,11 +375,14 @@ globalVariables(
 RegionHeatmap <- function(
   object,
   key,
-  window = 200,
-  normalize = TRUE,
-  order = TRUE,
   assay = NULL,
-  idents = NULL
+  idents = NULL,
+  normalize = TRUE,
+  upstream = 3000,
+  downstream = 3000,
+  window = (upstream+downstream)/30,
+  order = TRUE,
+  nrow = NULL
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
@@ -386,17 +398,40 @@ RegionHeatmap <- function(
     slot = "positionEnrichment"
   )[[key]]
   
-  # extract normalization factors
-  cells.per.group <- matlist$cells.per.group
-  matlist$cells.per.group <- NULL
+  # extract RegionMatrix parameters
+  function.params <- matlist$function.parameters
+  matlist$function.parameters <- NULL
+  cells.per.group <- function.params$cells
+  upstream.max <- function.params$upstream
+  downstream.max <- function.params$downstream
+  
+  # set upstream/downstream parameters
+  if (is.null(x = upstream)) {
+    upstream <- upstream.max
+  } else {
+    if (upstream > upstream.max) {
+      warning("Requested more upstream bases than were computed. ",
+              "Re-run RegionMatrix with a different upstream parameter")
+      upstream <- upstream.max
+    }
+  }
+  if (is.null(x = downstream)) {
+    downstream <- downstream.max
+  } else {
+    if (downstream > downstream.max) {
+      warning("Requested more downstream bases than were computed. ",
+              "Re-run RegionMatrix with a different downstream parameter")
+      downstream <- downstream.max
+    }
+  }
+  
+  # define clipping
+  cols.keep <- (upstream.max - upstream + 1):(upstream.max + downstream + 1)
   
   if (!is.null(x = idents)) {
     valid.idents <- intersect(x = idents, y = names(x = matlist))
     matlist <- matlist[valid.idents]
   }
-  
-  # TODO fix x-axis labeling
-  # TODO make sure factor levels preserved
   
   if (order) {
     rsums <- lapply(X = matlist, FUN = rowSums)
@@ -407,6 +442,9 @@ RegionHeatmap <- function(
   for (i in seq_along(along.with = matlist)) {
     grp.name <- names(x = matlist)[[i]]
     m <- matlist[[i]]
+    
+    # clip up/downstream
+    m <- m[, cols.keep]
     colnames(m) <- 1:ncol(x = m)
     
     if (order) {
@@ -445,16 +483,21 @@ RegionHeatmap <- function(
     }
   }
   
+  # fix bin label
+  df$bin <- (df$bin - (upstream/window)) * window
+  
   p <- ggplot(
     data = df,
     aes_string(x = "bin", y = "name", fill = "value")) +
     facet_wrap(
       facets = ~group,
-      scales = "free_y"
+      scales = "free_y",
+      nrow = nrow
     ) +
     geom_raster() +
     theme_browser(legend = TRUE) +
     ylab("Region") +
+    xlab("Distance from center (bp)") +
     scale_fill_gradient(low = "white", high = "darkred") +
     guides(fill = guide_legend(
       title = guide.label,
