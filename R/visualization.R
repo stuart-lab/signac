@@ -356,6 +356,7 @@ globalVariables(
 #' to the maximum value. A quantile maximum can be specified in the form of 
 #' "q##" where "##" is the quantile (eg, "q90" for 90th quantile). If NULL, no
 #' cutoff will be set
+#' @param min.counts Minimum total counts to display region in plot
 #' @param idents Cell identities to include. Note that cells cannot be
 #' regrouped, this will require re-running \code{RegionMatrix} to generate a 
 #' new set of matrices
@@ -385,6 +386,7 @@ RegionHeatmap <- function(
   upstream = 3000,
   downstream = 3000,
   max.cutoff = "q95",
+  min.counts = 1,
   window = (upstream+downstream)/30,
   order = TRUE,
   nrow = NULL
@@ -437,6 +439,15 @@ RegionHeatmap <- function(
     valid.idents <- intersect(x = idents, y = names(x = matlist))
     matlist <- matlist[valid.idents]
   }
+  
+  rsums <- lapply(X = matlist, FUN = rowSums)
+  rsums <- Reduce(f = `+`, x = rsums)
+  rows.retain <- rsums >= min.counts
+
+  # remove low count
+  matlist <- lapply(X = matlist, FUN = function(x) {
+    x[rows.retain, ]
+  })
   
   if (order) {
     rsums <- lapply(X = matlist, FUN = rowSums)

@@ -13,6 +13,7 @@ RegionHeatmap(
   upstream = 3000,
   downstream = 3000,
   max.cutoff = "q95",
+  min.counts = 1,
   window = (upstream + downstream)/30,
   order = TRUE,
   nrow = NULL
@@ -45,6 +46,8 @@ documentation for \code{upstream}}
 to the maximum value. A quantile maximum can be specified in the form of 
 "q##" where "##" is the quantile (eg, "q90" for 90th quantile). If NULL, no
 cutoff will be set}
+
+\item{min.counts}{Minimum total counts to display region in plot}
 
 \item{window}{Smoothing window to apply}
 
