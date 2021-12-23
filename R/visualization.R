@@ -352,7 +352,7 @@ globalVariables(
 #' 
 #' @return Returns a ggplot2 object
 #' 
-#' @importFrom Seurat DefaultAssay
+#' @importFrom Seurat DefaultAssay GetAssayData
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer
@@ -384,8 +384,12 @@ RegionHeatmap <- function(
     slot = "positionEnrichment"
   )[[key]]
   
+  if (!is.null(x = idents)) {
+    valid.idents <- intersect(x = idents, y = names(x = matlist))
+    matlist <- matlist[valid.idents]
+  }
+  
   # TODO normalize by number of cells in group
-  # TODO implement idents option
   # TODO implement region ordering
   
   for (i in seq_along(along.with = matlist)) {
