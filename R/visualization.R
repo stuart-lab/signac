@@ -351,7 +351,11 @@ globalVariables(
 #' the original \code{RegionMatrix} function call. If NULL, use parameters that
 #' were given in the \code{RegionMatrix} function call
 #' @param downstream Number of bases to include downstream of region. See
-#' documentation for \code{upstream}.
+#' documentation for \code{upstream}
+#' @param max.cutoff Maximum cutoff value. Data above this value will be clipped
+#' to the maximum value. A quantile maximum can be specified in the form of 
+#' "q##" where "##" is the quantile (eg, "q90" for 90th quantile). If NULL, no
+#' cutoff will be set
 #' @param idents Cell identities to include. Note that cells cannot be
 #' regrouped, this will require re-running \code{RegionMatrix} to generate a 
 #' new set of matrices
@@ -362,7 +366,7 @@ globalVariables(
 #' 
 #' @return Returns a ggplot2 object
 #' 
-#' @importFrom Seurat DefaultAssay GetAssayData
+#' @importFrom Seurat DefaultAssay GetAssayData SetQuantile
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer
@@ -380,6 +384,7 @@ RegionHeatmap <- function(
   normalize = TRUE,
   upstream = 3000,
   downstream = 3000,
+  max.cutoff = "q95",
   window = (upstream+downstream)/30,
   order = TRUE,
   nrow = NULL
@@ -467,6 +472,12 @@ RegionHeatmap <- function(
     )
     # create dataframe
     smoothed <- as.data.frame(x = smoothed)
+    
+    # clip values
+    if (!is.na(x = max.cutoff)) {
+      cutoff <- SetQuantile(cutoff = max.cutoff, data = smoothed)
+      smoothed[smoothed > cutoff] <- cutoff
+    }
     
     # add extra column as bin ID
     regions <- colnames(x = smoothed)
