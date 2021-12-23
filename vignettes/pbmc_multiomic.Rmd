@@ -59,7 +59,6 @@ fragpath <- "../vignette_data/multiomic/pbmc_granulocyte_sorted_10k_atac_fragmen
 # get gene annotations for hg38
 annotation <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
 seqlevelsStyle(annotation) <- "UCSC"
-genome(annotation) <- "hg38"
 
 # create a Seurat object containing the RNA adata
 pbmc <- CreateSeuratObject(
