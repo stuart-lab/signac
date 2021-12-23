@@ -54,7 +54,8 @@ Imports:
     Rcpp,
     ggforce,
     qlcMatrix,
-    grid
+    grid,
+    tidyselect
 Collate: 
     'RcppExports.R'
     'data.R'
@@ -65,6 +66,7 @@ Collate:
     'fragments.R'
     'genomeinfodb-methods.R'
     'granges-methods.R'
+    'heatmaps.R'
     'iranges-methods.R'
     'links.R'
     'mito.R'
