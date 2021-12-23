@@ -472,6 +472,7 @@ RegionHeatmap <- function(
     )
     # create dataframe
     smoothed <- as.data.frame(x = smoothed)
+    colnames(smoothed) <- 1:ncol(x = smoothed)
     
     # clip values
     if (!is.na(x = max.cutoff)) {
@@ -496,6 +497,7 @@ RegionHeatmap <- function(
   
   # fix bin label
   df$bin <- (df$bin - (upstream/window)) * window
+  df$name <- as.numeric(x = df$name)
   
   p <- ggplot(
     data = df,
