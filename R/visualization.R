@@ -394,7 +394,7 @@ RegionHeatmap <- function(
     stop("Requested key is not present in the assay")
   }
   matlist <- GetAssayData(
-    object = object,
+    object = object[[assay]],
     slot = "positionEnrichment"
   )[[key]]
   
