@@ -338,7 +338,9 @@ globalVariables(
 #' Plot fragment counts within a set of regions.
 #' 
 #' @param object A Seurat object
-#' @param assay Name of assay to use
+#' @param assay Name of assay to use. If a list or vector of assay names is
+#' given, data will be plotted from each assay. Note that all assays must
+#' contain \code{RegionMatrix} results with the same key
 #' @param key Name of key to pull data from. Stores the results from
 #' \code{\link{RegionMatrix}}
 #' @param window Smoothing window to apply
@@ -392,132 +394,152 @@ RegionHeatmap <- function(
   nrow = NULL
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
+  all.valid <- sapply(X = assay, FUN = function(x) {
+    inherits(x = object[[x]], what = "ChromatinAssay")
+  })
+  if (!all(all.valid)) {
     stop("The requested assay is not a ChromatinAssay")
   }
-  if (!(key %in% names(x = GetAssayData(
-    object = object[[assay]], slot = "positionEnrichment"
-  )))) {
-    stop("Requested key is not present in the assay")
-  }
-  matlist <- GetAssayData(
-    object = object[[assay]],
-    slot = "positionEnrichment"
-  )[[key]]
   
-  # extract RegionMatrix parameters
-  function.params <- matlist$function.parameters
-  matlist$function.parameters <- NULL
-  cells.per.group <- function.params$cells
-  upstream.max <- function.params$upstream
-  downstream.max <- function.params$downstream
-  
-  # set upstream/downstream parameters
-  if (is.null(x = upstream)) {
-    upstream <- upstream.max
-  } else {
-    if (upstream > upstream.max) {
-      warning("Requested more upstream bases than were computed. ",
-              "Re-run RegionMatrix with a different upstream parameter")
+  all.assay <- data.frame()
+  for (j in seq_along(along.with = assay)) {
+    # each assay will set its own max value
+    
+    if (!(key %in% names(x = GetAssayData(
+      object = object[[assay[[j]]]], slot = "positionEnrichment"
+    )))) {
+      stop("Requested key is not present in the assay")
+    }
+    matlist <- GetAssayData(
+      object = object[[assay[[j]]]],
+      slot = "positionEnrichment"
+    )[[key]]
+    
+    # extract RegionMatrix parameters
+    function.params <- matlist$function.parameters
+    matlist$function.parameters <- NULL
+    cells.per.group <- function.params$cells
+    upstream.max <- function.params$upstream
+    downstream.max <- function.params$downstream
+    
+    # set upstream/downstream parameters
+    if (is.null(x = upstream)) {
       upstream <- upstream.max
+    } else {
+      if (upstream > upstream.max) {
+        warning("Requested more upstream bases than were computed. ",
+                "Re-run RegionMatrix with a different upstream parameter")
+        upstream <- upstream.max
+      }
     }
-  }
-  if (is.null(x = downstream)) {
-    downstream <- downstream.max
-  } else {
-    if (downstream > downstream.max) {
-      warning("Requested more downstream bases than were computed. ",
-              "Re-run RegionMatrix with a different downstream parameter")
+    if (is.null(x = downstream)) {
       downstream <- downstream.max
+    } else {
+      if (downstream > downstream.max) {
+        warning("Requested more downstream bases than were computed. ",
+                "Re-run RegionMatrix with a different downstream parameter")
+        downstream <- downstream.max
+      }
     }
-  }
-  
-  # define clipping
-  cols.keep <- (upstream.max - upstream + 1):(upstream.max + downstream + 1)
-  
-  if (!is.null(x = idents)) {
-    valid.idents <- intersect(x = idents, y = names(x = matlist))
-    matlist <- matlist[valid.idents]
-  }
-  
-  rsums <- lapply(X = matlist, FUN = rowSums)
-  rsums <- Reduce(f = `+`, x = rsums)
-  rows.retain <- rsums >= min.counts
-
-  # remove low count
-  matlist <- lapply(X = matlist, FUN = function(x) {
-    x[rows.retain, ]
-  })
-  
-  if (order) {
+    
+    # define clipping
+    cols.keep <- (upstream.max - upstream + 1):(upstream.max + downstream + 1)
+    
+    if (!is.null(x = idents)) {
+      valid.idents <- intersect(x = idents, y = names(x = matlist))
+      matlist <- matlist[valid.idents]
+    }
+    
     rsums <- lapply(X = matlist, FUN = rowSums)
     rsums <- Reduce(f = `+`, x = rsums)
-    order.use <- base::order(rsums)
-  }
-  
-  for (i in seq_along(along.with = matlist)) {
-    grp.name <- names(x = matlist)[[i]]
-    m <- matlist[[i]]
+    rows.retain <- rsums >= min.counts
     
-    # clip up/downstream
-    m <- m[, cols.keep]
-    colnames(m) <- 1:ncol(x = m)
+    # remove low count
+    matlist <- lapply(X = matlist, FUN = function(x) {
+      x[rows.retain, ]
+    })
     
     if (order) {
-      m <- m[order.use, ]
+      rsums <- lapply(X = matlist, FUN = rowSums)
+      rsums <- Reduce(f = `+`, x = rsums)
+      order.use <- base::order(rsums)
     }
     
-    if (normalize) {
-      m <- m / cells.per.group[[grp.name]]
-      guide.label <- "Fragment counts\nper cell"
-    } else {
-      guide.label <- "Fragment\ncount"
+    for (i in seq_along(along.with = matlist)) {
+      grp.name <- names(x = matlist)[[i]]
+      m <- matlist[[i]]
+      
+      # clip up/downstream
+      m <- m[, cols.keep]
+      colnames(m) <- 1:ncol(x = m)
+      
+      if (order) {
+        m <- m[order.use, ]
+      }
+      
+      if (normalize) {
+        m <- m / cells.per.group[[grp.name]]
+        guide.label <- "Fragment counts\nper cell"
+      } else {
+        guide.label <- "Fragment\ncount"
+      }
+      
+      smoothed <- apply(
+        X = m,
+        MARGIN = 1,
+        FUN = roll_sum,
+        n = window,
+        by = window
+      )
+      # create dataframe
+      smoothed <- as.data.frame(x = smoothed)
+      colnames(smoothed) <- 1:ncol(x = smoothed)
+      
+      # clip values
+      if (!is.na(x = max.cutoff)) {
+        cutoff <- SetQuantile(cutoff = max.cutoff, data = smoothed)
+        smoothed[smoothed > cutoff] <- cutoff
+      }
+      
+      # add extra column as bin ID
+      regions <- colnames(x = smoothed)
+      smoothed$bin <- seq_len(length.out = nrow(x = smoothed))
+      smoothed <- pivot_longer(
+        data = smoothed,
+        cols = all_of(regions)
+      )
+      smoothed$group <- grp.name
+      if (i == 1) {
+        df <- smoothed
+      } else {
+        df <- rbind(df, smoothed)
+      }
     }
     
-    smoothed <- apply(
-      X = m,
-      MARGIN = 1,
-      FUN = roll_sum,
-      n = window,
-      by = window
-    )
-    # create dataframe
-    smoothed <- as.data.frame(x = smoothed)
-    colnames(smoothed) <- 1:ncol(x = smoothed)
+    # fix bin label
+    df$bin <- (df$bin - (upstream/window)) * window
+    df$name <- as.numeric(x = df$name)
+    df$assay <- assay[[j]]
     
-    # clip values
-    if (!is.na(x = max.cutoff)) {
-      cutoff <- SetQuantile(cutoff = max.cutoff, data = smoothed)
-      smoothed[smoothed > cutoff] <- cutoff
-    }
-    
-    # add extra column as bin ID
-    regions <- colnames(x = smoothed)
-    smoothed$bin <- seq_len(length.out = nrow(x = smoothed))
-    smoothed <- pivot_longer(
-      data = smoothed,
-      cols = all_of(regions)
-    )
-    smoothed$group <- grp.name
-    if (i == 1) {
-      df <- smoothed
-    } else {
-      df <- rbind(df, smoothed)
-    }
+    all.assay <- rbind(all.assay, df)
   }
-  
-  # fix bin label
-  df$bin <- (df$bin - (upstream/window)) * window
-  df$name <- as.numeric(x = df$name)
-  
   p <- ggplot(
     data = df,
-    aes_string(x = "bin", y = "name", fill = "value")) +
-    facet_wrap(
+    aes_string(x = "bin", y = "name", fill = "value"))
+  if (length(x = assay) > 1) {
+    p <- p + facet_wrap(
+      facets = assay~group,
+      scales = "free_y",
+      nrow = nrow
+    )
+  } else {
+    p <- p + facet_wrap(
       facets = ~group,
       scales = "free_y",
       nrow = nrow
-    ) +
+    )
+  }
+  p <- p +
     geom_raster() +
     theme_browser(legend = TRUE) +
     ylab("Region") +
