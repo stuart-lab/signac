@@ -340,7 +340,8 @@ globalVariables(
 #' @param object A Seurat object
 #' @param assay Name of assay to use. If a list or vector of assay names is
 #' given, data will be plotted from each assay. Note that all assays must
-#' contain \code{RegionMatrix} results with the same key
+#' contain \code{RegionMatrix} results with the same key. Sorting will be 
+#' defined by the first assay in the list
 #' @param key Name of key to pull data from. Stores the results from
 #' \code{\link{RegionMatrix}}
 #' @param window Smoothing window to apply
@@ -450,16 +451,18 @@ RegionHeatmap <- function(
       matlist <- matlist[valid.idents]
     }
     
-    rsums <- lapply(X = matlist, FUN = rowSums)
-    rsums <- Reduce(f = `+`, x = rsums)
-    rows.retain <- rsums >= min.counts
-    
+    if (j == 1) {
+      rsums <- lapply(X = matlist, FUN = rowSums)
+      rsums <- Reduce(f = `+`, x = rsums)
+      rows.retain <- rsums >= min.counts
+    }
+
     # remove low count
     matlist <- lapply(X = matlist, FUN = function(x) {
       x[rows.retain, ]
     })
     
-    if (order) {
+    if (order & j == 1) {
       rsums <- lapply(X = matlist, FUN = rowSums)
       rsums <- Reduce(f = `+`, x = rsums)
       order.use <- base::order(rsums)
@@ -524,7 +527,7 @@ RegionHeatmap <- function(
     all.assay <- rbind(all.assay, df)
   }
   p <- ggplot(
-    data = df,
+    data = all.assay,
     aes_string(x = "bin", y = "name", fill = "value"))
   if (length(x = assay) > 1) {
     p <- p + facet_wrap(
