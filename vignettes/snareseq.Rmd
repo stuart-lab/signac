@@ -20,9 +20,9 @@ re-mapped the raw data to the mm10 genome and created a fragment file using
 [Sinto](https://timoast.github.io/sinto/).
 
 The fragment file can be downloaded
-here: https://www.dropbox.com/s/se3uag0cvld4xqg/fragments.sort.bed.gz
+here: https://signac-objects.s3.amazonaws.com/snareseq/fragments.sort.bed.gz
 
-The fragment file index can be downloaded here: https://www.dropbox.com/s/kvb8fiewkjz3kzf/fragments.sort.bed.gz.tbi
+The fragment file index can be downloaded here: https://signac-objects.s3.amazonaws.com/snareseq/fragments.sort.bed.gz.tbi
 
 Code used to create the fragment file from raw data is available here:
 https://github.com/timoast/SNARE-seq 
