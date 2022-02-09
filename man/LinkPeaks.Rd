@@ -13,7 +13,6 @@ LinkPeaks(
   distance = 5e+05,
   min.distance = NULL,
   min.cells = 10,
-  method = "pearson",
   genes.use = NULL,
   n_sample = 200,
   pvalue_cutoff = 0.05,
@@ -41,9 +40,6 @@ regression model. If NULL (default), no minimum distance is used.}
 
 \item{min.cells}{Minimum number of cells positive for the peak and gene
 needed to include in the results.}
-
-\item{method}{Which correlation coefficient to compute. Can be "pearson"
-(default), "spearman", or "kendall".}
 
 \item{genes.use}{Genes to test. If NULL, determine from expression assay.}
 

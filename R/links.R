@@ -187,8 +187,6 @@ ConnectionsToLinks <- function(
 #' @param min.cells Minimum number of cells positive for the peak and gene
 #' needed to include in the results.
 #' @param genes.use Genes to test. If NULL, determine from expression assay.
-#' @param method Which correlation coefficient to compute. Can be "pearson"
-#' (default), "spearman", or "kendall".
 #' @param n_sample Number of peaks to sample at random when computing the null
 #' distribution.
 #' @param pvalue_cutoff Minimum p-value required to retain a link. Links with a
@@ -232,7 +230,6 @@ LinkPeaks <- function(
   distance = 5e+05,
   min.distance = NULL,
   min.cells = 10,
-  method = "pearson",
   genes.use = NULL,
   n_sample = 200,
   pvalue_cutoff = 0.05,
