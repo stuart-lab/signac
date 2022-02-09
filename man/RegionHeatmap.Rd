@@ -27,7 +27,8 @@ RegionHeatmap(
 
 \item{assay}{Name of assay to use. If a list or vector of assay names is
 given, data will be plotted from each assay. Note that all assays must
-contain \code{RegionMatrix} results with the same key}
+contain \code{RegionMatrix} results with the same key. Sorting will be 
+defined by the first assay in the list}
 
 \item{idents}{Cell identities to include. Note that cells cannot be
 regrouped, this will require re-running \code{RegionMatrix} to generate a 
