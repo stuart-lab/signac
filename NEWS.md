@@ -1,5 +1,12 @@
 # Unreleased
 
+New functionality:
+
+* Added `RegionHeatmap()` function
+* Added `RegionMatrix()` function
+* Added `MotifCounts()` function
+* Added ability to plot multiple assays simultaneously in `CoveragePlot()` by providing a list of assay names
+
 Bug fixes:
 
 * Fixed behaviour of `min.features` parameter in `CreateChromatinAssay()` to retain cells with `>= min.features` (#[902](https://github.com/timoast/signac/discussions/902))
