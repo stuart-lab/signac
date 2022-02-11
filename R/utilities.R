@@ -658,7 +658,7 @@ GetCellsInRegion <- function(tabix, region, cells = NULL) {
       } else {
         return(x)
       }
-    })
+    }, simplify = FALSE)
   }
   return(reads)
 }
@@ -2100,11 +2100,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
   )
   close(con = tabix)
   gc(verbose = FALSE)
-  if (length(x = regions) == 1) {
-    nrep <- length(x = cells.in.regions)
-  } else {
-    nrep <- elementNROWS(x = cells.in.regions)
-  }
+  nrep <- elementNROWS(x = cells.in.regions)
   if (all(nrep == 0) & !is.null(x = cells)) {
     # no fragments
     # zero for all requested cells
