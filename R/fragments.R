@@ -43,7 +43,14 @@ head.Fragment <- function(x, n = 6L, ...) {
 #' @rdname CountFragments
 #' @export
 #' @concept fragments
-#' @return Returns a data.frame
+#' @return Returns a data.frame with the following columns:
+#' \itemize{
+#'   \item{CB: the cell barcode}
+#'   \item{frequency_count: total number of fragments sequenced for the cell}
+#'   \item{mononucleosome: total number of fragments with length between 147 bp and 294 bp}
+#'   \item{nucleosome_free: total number of fragments with length <147 bp}
+#'   \item{reads_count: total number of reads sequenced for the cell}
+#' }
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' counts <- CountFragments(fragments = fpath)
