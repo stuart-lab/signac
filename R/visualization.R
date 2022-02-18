@@ -404,44 +404,17 @@ RegionHeatmap <- function(
   
   all.assay <- data.frame()
   for (j in seq_along(along.with = assay)) {
-    # each assay will set its own max value
-    
-    if (!(key %in% names(x = GetAssayData(
-      object = object[[assay[[j]]]], slot = "positionEnrichment"
-    )))) {
-      stop("Requested key is not present in the assay")
-    }
-    matlist <- GetAssayData(
+    heatmap_data <- get_heatmap_data(
       object = object[[assay[[j]]]],
-      slot = "positionEnrichment"
-    )[[key]]
-    
-    # extract RegionMatrix parameters
-    function.params <- matlist$function.parameters
-    matlist$function.parameters <- NULL
-    cells.per.group <- function.params$cells
-    upstream.max <- function.params$upstream
-    downstream.max <- function.params$downstream
-    
-    # set upstream/downstream parameters
-    if (is.null(x = upstream)) {
-      upstream <- upstream.max
-    } else {
-      if (upstream > upstream.max) {
-        warning("Requested more upstream bases than were computed. ",
-                "Re-run RegionMatrix with a different upstream parameter")
-        upstream <- upstream.max
-      }
-    }
-    if (is.null(x = downstream)) {
-      downstream <- downstream.max
-    } else {
-      if (downstream > downstream.max) {
-        warning("Requested more downstream bases than were computed. ",
-                "Re-run RegionMatrix with a different downstream parameter")
-        downstream <- downstream.max
-      }
-    }
+      key = key,
+      upstream = upstream,
+      downstream = downstream
+    )
+    upstream.max <- heatmap_data$upstream.max
+    downstream.max <- heatmap_data$downstream.max
+    matlist <- heatmap_data$matlist
+    cells.per.group <- heatmap_data$cells.per.group
+    rm(heatmap_data)
     
     # define clipping
     cols.keep <- (upstream.max - upstream + 1):(upstream.max + downstream + 1)
@@ -558,6 +531,195 @@ RegionHeatmap <- function(
       legend.title = element_text(size = 8),
       legend.text = element_text(size = 8)
     )
+  
+  return(p)
+}
+
+#' @importFrom Seurat GetAssayData
+get_heatmap_data <- function(
+  object,
+  key,
+  upstream,
+  downstream  
+) {
+  # each assay will set its own max value
+  
+  if (!(key %in% names(x = GetAssayData(
+    object = object, slot = "positionEnrichment"
+  )))) {
+    stop("Requested key is not present in the assay")
+  }
+  matlist <- GetAssayData(
+    object = object,
+    slot = "positionEnrichment"
+  )[[key]]
+  
+  # extract RegionMatrix parameters
+  function.params <- matlist$function.parameters
+  matlist$function.parameters <- NULL
+  cells.per.group <- function.params$cells
+  upstream.max <- function.params$upstream
+  downstream.max <- function.params$downstream
+  
+  # set upstream/downstream parameters
+  if (is.null(x = upstream)) {
+    upstream <- upstream.max
+  } else {
+    if (upstream > upstream.max) {
+      warning("Requested more upstream bases than were computed. ",
+              "Re-run RegionMatrix with a different upstream parameter")
+      upstream <- upstream.max
+    }
+  }
+  if (is.null(x = downstream)) {
+    downstream <- downstream.max
+  } else {
+    if (downstream > downstream.max) {
+      warning("Requested more downstream bases than were computed. ",
+              "Re-run RegionMatrix with a different downstream parameter")
+      downstream <- downstream.max
+    }
+  }
+  return(list("matlist" = matlist, "cells.per.group" = cells.per.group,
+              "upstream.max" = upstream.max, "downstream.max" = downstream.max))
+}
+
+#' Region plot
+#' 
+#' Plot fragment counts within a set of regions.
+#' 
+#' @param object A Seurat object
+#' @param assay Name of assay to use. If a list or vector of assay names is
+#' given, data will be plotted from each assay. Note that all assays must
+#' contain \code{RegionMatrix} results with the same key. Sorting will be 
+#' defined by the first assay in the list
+#' @param key Name of key to pull data from. Stores the results from
+#' \code{\link{RegionMatrix}}
+#' @param window Smoothing window to apply
+#' @param normalize Normalize by number of cells in each group
+#' @param upstream Number of bases to include upstream of region. If NULL, use
+#' all bases that were included in the \code{RegionMatrix} function call. Note
+#' that this value cannot be larger than the value for \code{upstream} given in
+#' the original \code{RegionMatrix} function call. If NULL, use parameters that
+#' were given in the \code{RegionMatrix} function call
+#' @param downstream Number of bases to include downstream of region. See
+#' documentation for \code{upstream}
+#' @param idents Cell identities to include. Note that cells cannot be
+#' regrouped, this will require re-running \code{RegionMatrix} to generate a 
+#' new set of matrices
+#' @param nrow Number of rows to use when creating plot. If NULL, chosen
+#' automatically by ggplot2
+#' 
+#' @seealso RegionMatrix
+#' 
+#' @return Returns a ggplot2 object
+#' 
+#' @importFrom Seurat DefaultAssay GetAssayData
+#' @importFrom RcppRoll roll_sum
+#' @importFrom tidyselect all_of
+#' @importFrom tidyr pivot_longer
+#' @importFrom ggplot2 ggplot aes_string facet_wrap guides theme theme_classic
+#' element_blank element_text ylab xlab geom_line
+#' 
+#' @export
+#' @concept visualization
+#' @concept heatmap
+RegionPlot <- function(
+  object,
+  key,
+  assay = NULL,
+  idents = NULL,
+  normalize = TRUE,
+  upstream = 3000,
+  downstream = 3000,
+  window = (upstream+downstream)/500,
+  nrow = NULL
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  all.valid <- sapply(X = assay, FUN = function(x) {
+    inherits(x = object[[x]], what = "ChromatinAssay")
+  })
+  if (!all(all.valid)) {
+    stop("The requested assay is not a ChromatinAssay")
+  }
+  
+  all.assay <- data.frame()
+  for (j in seq_along(along.with = assay)) {
+    heatmap_data <- get_heatmap_data(
+      object = object[[assay[[j]]]],
+      key = key,
+      upstream = upstream,
+      downstream = downstream
+    )
+    upstream.max <- heatmap_data$upstream.max
+    downstream.max <- heatmap_data$downstream.max
+    matlist <- heatmap_data$matlist
+    cells.per.group <- heatmap_data$cells.per.group
+    rm(heatmap_data)
+    
+    # define clipping
+    cols.keep <- (upstream.max - upstream + 1):(upstream.max + downstream + 1)
+    
+    if (!is.null(x = idents)) {
+      valid.idents <- intersect(x = idents, y = names(x = matlist))
+      matlist <- matlist[valid.idents]
+    }
+    
+    for (i in seq_along(along.with = matlist)) {
+      grp.name <- names(x = matlist)[[i]]
+      m <- matlist[[i]]
+      
+      # clip up/downstream
+      m <- m[, cols.keep]
+      colnames(m) <- 1:ncol(x = m)
+      
+      if (normalize) {
+        m <- m / cells.per.group[[grp.name]]
+        guide.label <- "Fragment counts\nper cell"
+      } else {
+        guide.label <- "Fragment\ncount"
+      }
+      
+      totals <- colSums(x = m)
+      smoothed <- roll_sum(x = totals, n = window, by = window)
+      grp.name <- names(x = matlist)[[i]]
+      
+      if (i == 1) {
+        df <- data.frame(
+          'data' = smoothed,
+          'group' = grp.name,
+          'bin' = seq_along(along.with = smoothed)
+        )
+      } else {
+        df <- rbind(
+          df,
+          data.frame(
+            'data' = smoothed,
+            'group' = grp.name,
+            'bin' = seq_along(along.with = smoothed)
+          )
+        )
+      }
+      # fix bin label
+      df$bin <- (df$bin - (upstream/window)) * window
+    }
+    df$assay <- assay[[j]]
+    all.assay <- rbind(all.assay, df)
+  }
+
+  p <- ggplot(
+    data = all.assay,
+    aes_string(x = "bin", y = "data", color = "assay")) +
+    facet_wrap(facets = "group") +
+    geom_line() +
+    theme_classic() +
+    theme(
+      strip.background = element_blank(),
+      legend.title = element_text(size = 8),
+      legend.text = element_text(size = 8)
+      ) +
+    ylab(label = guide.label) +
+    xlab("Distance from center (bp)")
   
   return(p)
 }
