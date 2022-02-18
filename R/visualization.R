@@ -630,12 +630,15 @@ RegionPlot <- function(
   assay = NULL,
   idents = NULL,
   normalize = TRUE,
-  upstream = 3000,
-  downstream = 3000,
+  upstream = NULL,
+  downstream = NULL,
   window = (upstream+downstream)/500,
   nrow = NULL
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = assay, what = "list")) {
+    assay <- list(assay)
+  }
   all.valid <- sapply(X = assay, FUN = function(x) {
     inherits(x = object[[x]], what = "ChromatinAssay")
   })
@@ -657,12 +660,18 @@ RegionPlot <- function(
     cells.per.group <- heatmap_data$cells.per.group
     rm(heatmap_data)
     
+    upstream <- SetIfNull(x = upstream, y = upstream.max)
+    downstream <- SetIfNull(x = downstream, y = downstream.max)
+    
     # define clipping
     cols.keep <- (upstream.max - upstream + 1):(upstream.max + downstream + 1)
     
     if (!is.null(x = idents)) {
       valid.idents <- intersect(x = idents, y = names(x = matlist))
       matlist <- matlist[valid.idents]
+    }
+    if (length(x = matlist) == 0) {
+      stop("None of the requested idents found")
     }
     
     for (i in seq_along(along.with = matlist)) {
