@@ -75,6 +75,7 @@ Collate:
     'peaks.R'
     'preprocessing.R'
     'quantification.R'
+    'region-enrichment.R'
     'utilities.R'
     'visualization.R'
     'zzz.R'
