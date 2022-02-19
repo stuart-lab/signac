@@ -74,12 +74,11 @@ BigwigTrack <- function(
   window.size = width(x = region)
   sampling <- min(max.downsample, window.size * downsample.rate)
   coverages <- slice_sample(.data = region_data, n = sampling)
-  p <- ggplot(
-    data = coverages,
-    mapping = aes_string(x = "position", y = "score")
-  )
   if (type == "line") {
-    p <- p + geom_line()
+    p <- ggplot(
+      data = coverages,
+      mapping = aes_string(x = "position", y = "score")
+    ) + geom_line()
   } else if (type == "heatmap") {
     # different downsampling needed for heatmap
     # cut into n bins and average within each bin
@@ -93,7 +92,11 @@ BigwigTrack <- function(
       mapping = aes_string(x = "bin", y = 1, fill = "score")
     ) + geom_tile() + scale_fill_viridis_c()
   } else if (type == "coverage") {
-    p <- p + geom_area()
+    coverages$fill <- "black"
+    p <- ggplot(
+      data = coverages,
+      mapping = aes_string(x = "position", y = "score", fill = "fill")
+    ) + geom_area() + scale_fill_identity()
   }
   chromosome <- as.character(x = seqnames(x = region))
   p <- p + theme_browser() +
