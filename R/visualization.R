@@ -379,6 +379,8 @@ globalVariables(
 #' @importFrom tidyr pivot_longer
 #' @importFrom ggplot2 ggplot aes_string facet_wrap geom_raster guides theme
 #' element_blank element_text scale_fill_gradient ylab guide_legend xlab
+#' @importFrom scales hue_pal
+#' @importFrom patchwork wrap_plots
 #' 
 #' @export
 #' @concept visualization
@@ -404,6 +406,8 @@ RegionHeatmap <- function(
   if (!all(all.valid)) {
     stop("The requested assay is not a ChromatinAssay")
   }
+  colors_all <- hue_pal()(length(x = assay))
+  names(x = colors_all) <- assay
   
   all.assay <- data.frame()
   for (j in seq_along(along.with = assay)) {
@@ -502,39 +506,46 @@ RegionHeatmap <- function(
     
     all.assay <- rbind(all.assay, df)
   }
-  p <- ggplot(
-    data = all.assay,
-    aes_string(x = "bin", y = "name", fill = "value"))
-  if (length(x = assay) > 1) {
-    p <- p + facet_wrap(
-      facets = assay~group,
-      scales = "free_y",
-      nrow = nrow
-    )
-  } else {
-    p <- p + facet_wrap(
-      facets = ~group,
-      scales = "free_y",
-      nrow = nrow
-    )
-  }
-  p <- p +
-    geom_raster() +
-    theme_browser(legend = TRUE) +
-    ylab("Region") +
-    xlab("Distance from center (bp)") +
-    scale_fill_gradient(low = "white", high = "darkred") +
-    guides(fill = guide_legend(
-      title = guide.label,
-      keywidth = 1/2, keyheight = 1
-    )
-    ) +
-    theme(
-      axis.ticks.y = element_blank(),
-      legend.title = element_text(size = 8),
-      legend.text = element_text(size = 8)
-    )
   
+  maxval <- max(all.assay$value)
+  # create separate heatmap for each assay so that color scales are different
+  plist <- list()
+  for (i in seq_along(along.with = assay)) {
+    data.use <- all.assay[all.assay$assay == assay[[i]], ]
+    pp <- ggplot(
+      data = data.use,
+      mapping = aes_string(x = "bin", y = "name", fill = "value")
+    ) +
+      facet_wrap(
+        facets = ~group,
+        scales = "free_y",
+        nrow = nrow
+      ) +
+      geom_raster() +
+      theme_browser(legend = TRUE) +
+      ylab("Region") +
+      xlab("Distance from center (bp)") +
+      ggtitle(assay[[i]]) +
+      scale_fill_gradient(
+        low = "white",
+        high = colors_all[[assay[[i]]]],
+        limits = c(0, maxval)
+      ) +
+      guides(
+        fill = guide_legend(
+          title = ifelse(test = length(x = assay) > 1, yes = assay[[i]], no = guide.label),
+          keywidth = 1/2,
+          keyheight = 1
+        )
+      ) +
+      theme(
+        axis.ticks.y = element_blank(),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 8)
+      )
+    plist[[i]] <- pp
+  }
+  p <- wrap_plots(plist, guides = "collect")
   return(p)
 }
 
