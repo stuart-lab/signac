@@ -3,6 +3,7 @@
 New functionality:
 
 * Added `RegionHeatmap()` function
+* Added `RegionPlot()` function
 * Added `RegionMatrix()` function
 * Added `MotifCounts()` function
 * Added ability to plot multiple assays simultaneously in `CoveragePlot()` by providing a list of assay names
