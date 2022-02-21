@@ -10,8 +10,8 @@ RegionPlot(
   assay = NULL,
   idents = NULL,
   normalize = TRUE,
-  upstream = 3000,
-  downstream = 3000,
+  upstream = NULL,
+  downstream = NULL,
   window = (upstream + downstream)/500,
   nrow = NULL
 )

@@ -13,6 +13,7 @@ RegionHeatmap(
   upstream = 3000,
   downstream = 3000,
   max.cutoff = "q95",
+  cols = NULL,
   min.counts = 1,
   window = (upstream + downstream)/30,
   order = TRUE,
@@ -49,6 +50,10 @@ documentation for \code{upstream}}
 to the maximum value. A quantile maximum can be specified in the form of 
 "q##" where "##" is the quantile (eg, "q90" for 90th quantile). If NULL, no
 cutoff will be set}
+
+\item{cols}{Vector of colors to use as the maximum value of the color scale.
+One color must be supplied for each assay. If NULL, the default ggplot2
+colors are used.}
 
 \item{min.counts}{Minimum total counts to display region in plot}
 
