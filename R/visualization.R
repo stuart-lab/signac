@@ -362,6 +362,9 @@ globalVariables(
 #' to the maximum value. A quantile maximum can be specified in the form of 
 #' "q##" where "##" is the quantile (eg, "q90" for 90th quantile). If NULL, no
 #' cutoff will be set
+#' @param cols Vector of colors to use as the maximum value of the color scale.
+#' One color must be supplied for each assay. If NULL, the default ggplot2
+#' colors are used. 
 #' @param min.counts Minimum total counts to display region in plot
 #' @param idents Cell identities to include. Note that cells cannot be
 #' regrouped, this will require re-running \code{RegionMatrix} to generate a 
@@ -394,6 +397,7 @@ RegionHeatmap <- function(
   upstream = 3000,
   downstream = 3000,
   max.cutoff = "q95",
+  cols = NULL,
   min.counts = 1,
   window = (upstream+downstream)/30,
   order = TRUE,
@@ -406,8 +410,18 @@ RegionHeatmap <- function(
   if (!all(all.valid)) {
     stop("The requested assay is not a ChromatinAssay")
   }
-  colors_all <- hue_pal()(length(x = assay))
-  names(x = colors_all) <- assay
+  if (is.null(x = cols)) {
+    colors_all <- hue_pal()(length(x = assay))
+    names(x = colors_all) <- assay
+  } else {
+    if (length(x = cols) != length(x = assay)) {
+      stop("Wrong number of colors supplied. Must give one color per assay")
+    }
+    colors_all <- cols
+    if (!all(names(x = colors_all) %in% assay)) {
+      names(x = colors_all) <- assay
+    }
+  }
   
   all.assay <- data.frame()
   for (j in seq_along(along.with = assay)) {
@@ -533,7 +547,10 @@ RegionHeatmap <- function(
       ) +
       guides(
         fill = guide_legend(
-          title = ifelse(test = length(x = assay) > 1, yes = assay[[i]], no = guide.label),
+          title = ifelse(
+            test = length(x = assay) > 1,
+            yes = assay[[i]],
+            no = guide.label),
           keywidth = 1/2,
           keyheight = 1
         )
