@@ -538,7 +538,6 @@ RegionHeatmap <- function(
       geom_raster() +
       theme_browser(legend = TRUE) +
       ylab("Region") +
-      xlab("Distance from center (bp)") +
       ggtitle(assay[[i]]) +
       scale_fill_gradient(
         low = "white",
@@ -558,7 +557,8 @@ RegionHeatmap <- function(
       theme(
         axis.ticks.y = element_blank(),
         legend.title = element_text(size = 8),
-        legend.text = element_text(size = 8)
+        legend.text = element_text(size = 8),
+        axis.title.x = element_blank()
       )
     plist[[i]] <- pp
   }
