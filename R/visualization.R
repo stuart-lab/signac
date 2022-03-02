@@ -1194,9 +1194,24 @@ CoverageTrack <- function(
 #' Plot Tn5 insertion frequency over a region
 #'
 #' Plot frequency of Tn5 insertion events for different groups of cells within
-#' given regions of the genome.
-#'
-#' Thanks to Andrew Hill for providing an early version of this function.
+#' given regions of the genome. Tracks are normalized using a per-group scaling
+#' factor computed as the number of cells in the group multiplied by the mean
+#' sequencing depth for that group of cells. This accounts for differences in
+#' number of cells and potential differences in sequencing depth between groups.
+#' 
+#' Additional information can be layered on the coverage plot by setting several
+#' different options in the CoveragePlot function. This includes showing:
+#' \itemize{
+#' \item{gene annotations}
+#' \item{peak positions}
+#' \item{additional genomic ranges}
+#' \item{additional data stored in a bigWig file, which may be hosted remotely}
+#' \item{gene or protein expression data alongside coverage tracks}
+#' \item{peak-gene links}
+#' \item{the position of individual sequenced fragments as a heatmap}
+#' \item{data for multiple chromatin assays simultaneously}
+#' \item{a pseudobulk for all cells combined}
+#' }
 #'
 #' @param object A Seurat object
 #' @param region A set of genomic coordinates to show. Can be a GRanges object,
@@ -1212,6 +1227,12 @@ CoverageTrack <- function(
 #' @param split.assays When plotting data from multiple assays, display each
 #' assay as a separate track. If FALSE, data from different assays are overlaid
 #' on a single track with transparancy applied.
+#' @param assay.scale Scaling to apply to data from different assays. Can be:
+#' \itemize{
+#' \item{common: plot all assays on a common scale (default)}
+#' \item{separate: plot each assay on a separate scale ranging from zero to the
+#' maximum value for that assay within the plotted region}
+#' }
 #' @param show.bulk Include coverage track for all cells combined (pseudo-bulk).
 #' Note that this will plot the combined accessibility for all cells included in
 #' the plot (rather than all cells in the object).
@@ -1252,8 +1273,14 @@ CoverageTrack <- function(
 #' @param window Smoothing window size
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
-#' @param ymax Maximum value for Y axis. If NULL (default) set to the highest
-#' value among all the tracks.
+#' @param ymax Maximum value for Y axis. Can be one of:
+#' \itemize{
+#' \item{NULL: set to the highest value among all the tracks (default)}
+#' \item{qXX: clip the maximum value to the XX quantile (for example, q95 will
+#' set the maximum value to 95\% of the maximum value in the data). This can help
+#' remove the effect of extreme values that may otherwise distort the scale.}
+#' \item{numeric: manually define a Y-axis limit}
+#' }
 #' @param scale.factor Scaling factor for track height. If NULL (default),
 #' use the median group scaling factor determined by total number of fragments
 #' sequences in each group.
@@ -1277,7 +1304,7 @@ CoverageTrack <- function(
 #' @importFrom patchwork wrap_plots
 #' @export
 #' @concept visualization
-#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @return Returns a \code{\link[patchwork]{patchwork}} object
 #' @examples
 #' \donttest{
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
@@ -1311,6 +1338,7 @@ CoveragePlot <- function(
   features = NULL,
   assay = NULL,
   split.assays = FALSE,
+  assay.scale = "common",
   show.bulk = FALSE,
   expression.assay = "RNA",
   expression.slot = "data",
@@ -1361,6 +1389,7 @@ CoveragePlot <- function(
           region.highlight = region.highlight,
           assay = assay,
           split.assays = split.assays,
+          assay.scale = assay.scale,
           links = links,
           tile = tile,
           tile.size = tile.size,
@@ -1400,6 +1429,7 @@ CoveragePlot <- function(
       region.highlight = region.highlight,
       assay = assay,
       split.assays = split.assays,
+      assay.scale = assay.scale,
       links = links,
       tile = tile,
       tile.size = tile.size,
