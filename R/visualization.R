@@ -24,7 +24,7 @@ globalVariables(names = c("bin", "score"), package = "Signac")
 #' and a longer period of time needed to draw the plot.
 #'
 #' @importFrom ggplot2 ggplot aes_string geom_line geom_tile xlab ylab geom_area
-#' scale_fill_viridis_c
+#' scale_fill_viridis_c scale_color_grey scale_fill_grey facet_wrap
 #' @importFrom RcppRoll roll_mean
 #' @importFrom GenomicRanges start end seqnames width
 #' @importFrom dplyr slice_sample group_by mutate ungroup
@@ -36,12 +36,10 @@ BigwigTrack <- function(
   bigwig,
   smooth = 200,
   type = "coverage",
-  y_label = "Score",
+  y_label = "bigWig",
   max.downsample = 3000,
   downsample.rate = 0.1
 ) {
-  # TODO update this to take a list of bigwig files
-  # plot each one as separate facet as for single-cell coverage track
   possible_types <- c("line", "heatmap", "coverage")
   if (!(type %in% possible_types)) {
     stop(
@@ -60,45 +58,55 @@ BigwigTrack <- function(
   if (!inherits(x = region, what = "GRanges")) {
     stop("region should be a GRanges object")
   }
-  region_data <- rtracklayer::import(
-    con = bigwig,
-    which = region,
-    as = "NumericList"
-  )[[1]]
-  if (!is.null(x = smooth)) {
-    region_data <- roll_mean(x = region_data, n = smooth, fill = 0L)
+  all.data <- data.frame()
+  for (i in seq_along(bigwig)) {
+    region_data <- rtracklayer::import(
+      con = bigwig[[i]],
+      which = region,
+      as = "NumericList"
+    )[[1]]
+    if (!is.null(x = smooth)) {
+      region_data <- roll_mean(x = region_data, n = smooth, fill = 0L)
+    }
+    region_data <- data.frame(
+      position = start(x = region):end(x = region),
+      score = region_data,
+      stringsAsFactors = FALSE,
+      bw = names(x = bigwig)[[i]]
+    )
+    all.data <- rbind(all.data, region_data)
   }
-  region_data <- data.frame(
-    position = start(x = region):end(x = region),
-    score = region_data,
-    stringsAsFactors = FALSE
-  )
   window.size = width(x = region)
   sampling <- min(max.downsample, window.size * downsample.rate)
-  coverages <- slice_sample(.data = region_data, n = sampling)
+  coverages <- slice_sample(.data = all.data, n = sampling)
   if (type == "line") {
     p <- ggplot(
       data = coverages,
-      mapping = aes_string(x = "position", y = "score")
-    ) + geom_line()
+      mapping = aes_string(x = "position", y = "score", color = "bw")
+    ) + geom_line() +
+      facet_wrap(facets = ~bw, strip.position = "left", ncol = 1) +
+      scale_color_grey()
   } else if (type == "heatmap") {
     # different downsampling needed for heatmap
     # cut into n bins and average within each bin
-    region_data$bin <- floor(x = region_data$position / smooth)
-    region_data <- group_by(region_data, bin)
-    region_data <- mutate(region_data, score = mean(x = score))
-    region_data <- ungroup(region_data)
-    region_data <- unique(x = region_data[, c("bin", "score")])
+    all.data$bin <- floor(x = all.data$position / smooth)
+    all.data <- group_by(all.data, bin, bw)
+    all.data <- mutate(all.data, score = mean(x = score))
+    all.data <- ungroup(all.data)
+    all.data <- unique(x = all.data[, c("bin", "score", "bw")])
     p <- ggplot(
-      data = region_data,
+      data = all.data,
       mapping = aes_string(x = "bin", y = 1, fill = "score")
-    ) + geom_tile() + scale_fill_viridis_c()
+    ) + geom_tile() + scale_fill_viridis_c() +
+      facet_wrap(facets = ~bw, strip.position = "left", ncol = 1)
   } else if (type == "coverage") {
     coverages$fill <- "black"
     p <- ggplot(
       data = coverages,
-      mapping = aes_string(x = "position", y = "score", fill = "fill")
-    ) + geom_area() + scale_fill_identity()
+      mapping = aes_string(x = "position", y = "score", fill = "bw")
+    ) + geom_area() +
+      facet_wrap(facets = ~bw, strip.position = "left", ncol = 1) +
+      scale_fill_grey()
   }
   chromosome <- as.character(x = seqnames(x = region))
   p <- p + theme_browser() +
@@ -898,32 +906,31 @@ SingleCoveragePlot <- function(
       warning("BigWig should be a list of file paths")
       bigwig <- list("bigWig" = bigwig)
     }
-    if (length(x = bigwig.type == 1)) {
+    if (length(x = bigwig.type) == 1) {
       bigwig.type <- rep(x = bigwig.type, length(x = bigwig))
     } else if (length(x = bigwig.type) != length(x = bigwig)) {
       stop("Must supply a bigWig track type for each bigWig file")
     }
-    # iterate over list of files
-    bigwig.tracks <- list()
-    for (i in seq_along(along.with = bigwig)) {
-      bigwig.tracks[[i]] <- BigwigTrack(
+    # TODO implement common and separate scaling for bigwig
+    # TODO implement y-axis clipping for bigwig
+    
+    unique.types <- unique(x = bigwig.type)
+    bw.all <- list()
+    for (i in seq_along(unique.types)) {
+      # get bigwigs for that type
+      bw.use <- which(x = bigwig.type == unique.types[[i]])
+      bw.all[[i]] <- BigwigTrack(
         region = region,
-        bigwig = bigwig[[i]],
-        y_label = names(x = bigwig)[[i]],
-        type = bigwig.type[[i]]
+        bigwig = bigwig[bw.use],
+        type = unique.types[[i]]
       )
     }
-    # TODO apply y-axis clippling to bigwigs
-    if (bigwig.scale == "common") {
-      # get ymax for each plot
-      all.max <- sapply(X = bigwig.tracks, FUN = function(x) {
-        ggplot_build(x)$layout$panel_params[[1]]$y.range[[2]]
-      })
-      bigwig.tracks <- lapply(X = bigwig.tracks, FUN = function(x) {
-        x <- x + ylim(c(0, max(all.max)))
-        return(x)
-      })
-    }
+    # precombine bigwigs
+    bigwig.tracks <- CombineTracks(
+      plotlist = bw.all,
+      heights = table(unlist(x = bigwig.type))
+    )
+    
   } else {
     bigwig.tracks <- NULL
   }
@@ -1026,17 +1033,10 @@ SingleCoveragePlot <- function(
     nident <- nident * length(x = assay)
   }
   bulk.height <- (1 / nident) * 10
-  bw.height <- bulk.height * length(x = bigwig.tracks)
+  bw.height <- 10
   heights <- SetIfNull(
     x = heights, y = c(10, bulk.height, bw.height, 10, 2, 1, 1, 3)
   )
-  # pre-combine bigwig tracks
-  if (!is.null(x = bigwig.tracks)) {
-    bigwig.tracks <- CombineTracks(
-      plotlist = bigwig.tracks,
-      heights = rep(x = 1, length(x = bigwig.tracks))
-    )
-  }
   p <- CombineTracks(
     plotlist = list(p, bulk.plot, bigwig.tracks, tile.plot, gene.plot,
                     peak.plot, range.plot, link.plot),
