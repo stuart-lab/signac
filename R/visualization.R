@@ -3,7 +3,7 @@
 #'
 NULL
 
-globalVariables(names = c("bin", "score"), package = "Signac")
+globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' Plot data from BigWig
 #'
 #' Create a BigWig track. Note that this function does not work on windows.
@@ -100,7 +100,7 @@ BigwigTrack <- function(
   if (bigwig.scale == "separate") {
     # scale to fraction of max for each separately
     file.max <- max(coverages$score, na.rm = TRUE)
-    coverages$score <- coverages$score / assay.max
+    coverages$score <- coverages$score / file.max
   }
   
   covmax <- signif(x = max(coverages$score, na.rm = TRUE), digits = 2)
@@ -1458,7 +1458,7 @@ CoveragePlot <- function(
     FUN = function(x) {
       SingleCoveragePlot(
         object = object,
-        region = region[x],
+        region = region[[x]],
         features = features,
         expression.assay = expression.assay,
         expression.slot = expression.slot,
