@@ -777,6 +777,7 @@ SingleCoveragePlot <- function(
   features = NULL,
   assay = NULL,
   split.assays = FALSE,
+  assay.scale = "common",
   show.bulk = FALSE,
   expression.assay = NULL,
   expression.slot = "data",
@@ -806,6 +807,14 @@ SingleCoveragePlot <- function(
   max.downsample = 3000,
   downsample.rate = 0.1
 ) {
+  # TODO apply common scaling to bigWig tracks
+  valid.assay.scale <- c("common", "separate")
+  if (!(assay.scale %in% valid.assay.scale)) {
+    stop(
+      "Unknown assay.scale requested. Please choose from: ",
+      paste(valid.assay.scale, collapse = ", ")
+    )
+  }
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!inherits(x = assay, what = "list")) {
@@ -875,6 +884,7 @@ SingleCoveragePlot <- function(
     window = window,
     ymax = ymax,
     split.assays = split.assays,
+    assay.scale = assay.scale,
     obj.groups = obj.groups,
     region.highlight = region.highlight,
     downsample.rate = downsample.rate,
@@ -1049,6 +1059,7 @@ CoverageTrack <- function(
   region,
   group.scale.factors,
   scale.factor,
+  assay.scale,
   obj.groups,
   ymax,
   downsample.rate,
@@ -1090,9 +1101,11 @@ CoverageTrack <- function(
     coverages <- slice_sample(.data = coverages, n = sampling)
     coverages$Assay <- names(x = cutmat)[[i]]
     if (multicov) {
-      # scale to fraction of max so assays can be compared
-      assay.max <- max(coverages$coverage, na.rm = TRUE)
-      coverages$coverage <- coverages$coverage / assay.max
+      if (assay.scale == "separate") {
+        # scale to fraction of max for each separately
+        assay.max <- max(coverages$coverage, na.rm = TRUE)
+        coverages$coverage <- coverages$coverage / assay.max
+      }
     }
     cov.df <- rbind(cov.df, coverages)
   }
@@ -1106,10 +1119,24 @@ CoverageTrack <- function(
     names(x = colors_all) <- levels.use
     coverages$group <- factor(x = coverages$group, levels = levels.use)
   }
-  ymax <- SetIfNull(x = ymax, y = signif(
-    x = max(coverages$coverage, na.rm = TRUE), digits = 2)
-  )
+  covmax <- signif(x = max(coverages$coverage, na.rm = TRUE), digits = 2)
+  if (is.null(x = ymax)) {
+    ymax <- covmax
+  } else if (is.character(x = ymax)) {
+    if (!startsWith(x = ymax, prefix = "q")) {
+      stop("Unknown ymax requested. Must be NULL, a numeric value, or 
+           a quantile denoted by 'qXX' with XX the desired quantile value,
+           e.g. q95 for 95th percentile")
+    }
+    percentile.use <- as.numeric(
+      x = sub(pattern = "q", replacement = "", x = as.character(x = ymax))
+    ) / 100
+    ymax <- covmax * percentile.use
+  }
   ymin <- 0
+  
+  # perform clipping
+  coverages$coverage[coverages$coverage > ymax] <- ymax 
 
   gr <- GRanges(
     seqnames = chromosome,
