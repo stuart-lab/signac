@@ -40,6 +40,8 @@ BigwigTrack <- function(
   max.downsample = 3000,
   downsample.rate = 0.1
 ) {
+  # TODO update this to take a list of bigwig files
+  # plot each one as separate facet as for single-cell coverage track
   possible_types <- c("line", "heatmap", "coverage")
   if (!(type %in% possible_types)) {
     stop(
@@ -794,6 +796,7 @@ SingleCoveragePlot <- function(
   tile.cells = 100,
   bigwig = NULL,
   bigwig.type = "coverage",
+  bigwig.scale = "common",
   group.by = NULL,
   window = 100,
   extend.upstream = 0,
@@ -807,7 +810,6 @@ SingleCoveragePlot <- function(
   max.downsample = 3000,
   downsample.rate = 0.1
 ) {
-  # TODO apply common scaling to bigWig tracks
   valid.assay.scale <- c("common", "separate")
   if (!(assay.scale %in% valid.assay.scale)) {
     stop(
@@ -910,6 +912,17 @@ SingleCoveragePlot <- function(
         y_label = names(x = bigwig)[[i]],
         type = bigwig.type[[i]]
       )
+    }
+    # TODO apply y-axis clippling to bigwigs
+    if (bigwig.scale == "common") {
+      # get ymax for each plot
+      all.max <- sapply(X = bigwig.tracks, FUN = function(x) {
+        ggplot_build(x)$layout$panel_params[[1]]$y.range[[2]]
+      })
+      bigwig.tracks <- lapply(X = bigwig.tracks, FUN = function(x) {
+        x <- x + ylim(c(0, max(all.max)))
+        return(x)
+      })
     }
   } else {
     bigwig.tracks <- NULL
@@ -1294,6 +1307,8 @@ CoverageTrack <- function(
 #' @param bigwig.type Type of track to use for bigWig files ("line", "heatmap",
 #' or "coverage"). Should either be a single value, or a list of values giving
 #' the type for each individual track in the provided list of bigwig files.
+#' @param bigwig.scale Same as \code{assay.scale} parameter, except for bigWig
+#' files when plotted with \code{bigwig.type="coverage"}
 #' @param cells Which cells to plot. Default all cells
 #' @param idents Which identities to include in the plot. Default is all
 #' identities.
@@ -1382,6 +1397,7 @@ CoveragePlot <- function(
   tile.cells = 100,
   bigwig = NULL,
   bigwig.type = "coverage",
+  bigwig.scale = "common",
   heights = NULL,
   group.by = NULL,
   window = 100,
@@ -1425,6 +1441,7 @@ CoveragePlot <- function(
         tile.cells = tile.cells,
         bigwig = bigwig,
         bigwig.type = bigwig.type,
+        bigwig.scale = bigwig.scale,
         group.by = group.by,
         window = window,
         ymax = ymax,
