@@ -7,8 +7,9 @@ New functionality:
 * Added `RegionMatrix()` function
 * Added `MotifCounts()` function
 * Added ability to plot multiple assays simultaneously in `CoveragePlot()` by providing a list of assay names
-* Added `assay.scale` and `split.assay` parameters to `CoveragePlot()`
+* Added `assay.scale`, `bigwig.scale`, and `split.assay` parameters to `CoveragePlot()`
 * Added new option to provide quantile `ymax` value in `CoveragePlot()`
+* Added `bigwig.scale` and `ymax` parameters to `BigwigTrack()`
 
 Bug fixes:
 

@@ -10,7 +10,7 @@ CoveragePlot(
   features = NULL,
   assay = NULL,
   split.assays = FALSE,
-  assay.scale = c("common", "separate"),
+  assay.scale = "common",
   show.bulk = FALSE,
   expression.assay = "RNA",
   expression.slot = "data",
@@ -27,6 +27,7 @@ CoveragePlot(
   tile.cells = 100,
   bigwig = NULL,
   bigwig.type = "coverage",
+  bigwig.scale = "common",
   heights = NULL,
   group.by = NULL,
   window = 100,
@@ -118,6 +119,9 @@ y-axis label given to the track.}
 \item{bigwig.type}{Type of track to use for bigWig files ("line", "heatmap",
 or "coverage"). Should either be a single value, or a list of values giving
 the type for each individual track in the provided list of bigwig files.}
+
+\item{bigwig.scale}{Same as \code{assay.scale} parameter, except for bigWig
+files when plotted with \code{bigwig.type="coverage"}}
 
 \item{heights}{Relative heights for each track (accessibility, gene
 annotations, peaks, links).}
