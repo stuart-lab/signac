@@ -1369,87 +1369,51 @@ CoveragePlot <- function(
   downsample.rate = 0.1,
   ...
 ) {
-  if (length(x = region) > 1) {
-    plot.list <- lapply(
-      X = seq_along(region),
-      FUN = function(x) {
-        SingleCoveragePlot(
-          object = object,
-          region = region[x],
-          features = features,
-          expression.assay = expression.assay,
-          expression.slot = expression.slot,
-          show.bulk = show.bulk,
-          annotation = annotation,
-          peaks = peaks,
-          peaks.group.by = peaks.group.by,
-          ranges = ranges,
-          ranges.group.by = ranges.group.by,
-          ranges.title = ranges.title,
-          region.highlight = region.highlight,
-          assay = assay,
-          split.assays = split.assays,
-          assay.scale = assay.scale,
-          links = links,
-          tile = tile,
-          tile.size = tile.size,
-          tile.cells = tile.cells,
-          bigwig = bigwig,
-          bigwig.type = bigwig.type,
-          group.by = group.by,
-          window = window,
-          ymax = ymax,
-          scale.factor = scale.factor,
-          extend.upstream = extend.upstream,
-          extend.downstream = extend.downstream,
-          cells = cells,
-          idents = idents,
-          sep = sep,
-          heights = heights,
-          max.downsample = max.downsample,
-          downsample.rate = downsample.rate
-        )
-      }
-    )
-    return(wrap_plots(plot.list, ...))
-  } else {
-    return(SingleCoveragePlot(
-      object = object,
-      region = region,
-      annotation = annotation,
-      features = features,
-      expression.assay = expression.assay,
-      expression.slot = expression.slot,
-      show.bulk = show.bulk,
-      peaks = peaks,
-      peaks.group.by = peaks.group.by,
-      ranges = ranges,
-      ranges.group.by = ranges.group.by,
-      ranges.title = ranges.title,
-      region.highlight = region.highlight,
-      assay = assay,
-      split.assays = split.assays,
-      assay.scale = assay.scale,
-      links = links,
-      tile = tile,
-      tile.size = tile.size,
-      tile.cells = tile.cells,
-      bigwig = bigwig,
-      bigwig.type = bigwig.type,
-      group.by = group.by,
-      window = window,
-      extend.upstream = extend.upstream,
-      extend.downstream = extend.downstream,
-      ymax = ymax,
-      scale.factor = scale.factor,
-      cells = cells,
-      idents = idents,
-      sep = sep,
-      heights = heights,
-      max.downsample = max.downsample,
-      downsample.rate = downsample.rate
-    ))
+  if (length(x = region) == 1) {
+    region <- list(region)
   }
+  plot.list <- lapply(
+    X = seq_along(region),
+    FUN = function(x) {
+      SingleCoveragePlot(
+        object = object,
+        region = region[x],
+        features = features,
+        expression.assay = expression.assay,
+        expression.slot = expression.slot,
+        show.bulk = show.bulk,
+        annotation = annotation,
+        peaks = peaks,
+        peaks.group.by = peaks.group.by,
+        ranges = ranges,
+        ranges.group.by = ranges.group.by,
+        ranges.title = ranges.title,
+        region.highlight = region.highlight,
+        assay = assay,
+        split.assays = split.assays,
+        assay.scale = assay.scale,
+        links = links,
+        tile = tile,
+        tile.size = tile.size,
+        tile.cells = tile.cells,
+        bigwig = bigwig,
+        bigwig.type = bigwig.type,
+        group.by = group.by,
+        window = window,
+        ymax = ymax,
+        scale.factor = scale.factor,
+        extend.upstream = extend.upstream,
+        extend.downstream = extend.downstream,
+        cells = cells,
+        idents = idents,
+        sep = sep,
+        heights = heights,
+        max.downsample = max.downsample,
+        downsample.rate = downsample.rate
+      )
+    }
+  )
+  return(wrap_plots(plot.list, ...))
 }
 
 #' Plot DNA sequence motif
