@@ -14,6 +14,21 @@ globalVariables(names = c("bin", "score"), package = "Signac")
 #' do not apply smoothing.
 #' @param type Plot type. Can be one of "line", "heatmap", or "coverage"
 #' @param y_label Y-axis label
+#' @param bigwig.scale Scaling to apply to data from different bigwig files.
+#' Can be:
+#' \itemize{
+#' \item{common: plot each bigwig on a common scale (default)}
+#' \item{separate: plot each bigwig on a separate scale ranging from zero to the
+#' maximum value for that bigwig file within the plotted region}
+#' }
+#' @param ymax Maximum value for Y axis. Can be one of:
+#' \itemize{
+#' \item{NULL: set to the highest value among all the tracks (default)}
+#' \item{qXX: clip the maximum value to the XX quantile (for example, q95 will
+#' set the maximum value to 95\% of the maximum value in the data). This can help
+#' remove the effect of extreme values that may otherwise distort the scale.}
+#' \item{numeric: manually define a Y-axis limit}
+#' }
 #' @param max.downsample Minimum number of positions kept when downsampling.
 #' Downsampling rate is adaptive to the window size, but this parameter will set
 #' the minimum possible number of positions to include so that plots do not
@@ -37,6 +52,8 @@ BigwigTrack <- function(
   smooth = 200,
   type = "coverage",
   y_label = "bigWig",
+  bigwig.scale = "common",
+  ymax = NULL,
   max.downsample = 3000,
   downsample.rate = 0.1
 ) {
@@ -79,6 +96,32 @@ BigwigTrack <- function(
   window.size = width(x = region)
   sampling <- min(max.downsample, window.size * downsample.rate)
   coverages <- slice_sample(.data = all.data, n = sampling)
+  
+  if (bigwig.scale == "separate") {
+    # scale to fraction of max for each separately
+    file.max <- max(coverages$score, na.rm = TRUE)
+    coverages$score <- coverages$score / assay.max
+  }
+  
+  covmax <- signif(x = max(coverages$score, na.rm = TRUE), digits = 2)
+  if (is.null(x = ymax)) {
+    ymax <- covmax
+  } else if (is.character(x = ymax)) {
+    if (!startsWith(x = ymax, prefix = "q")) {
+      stop("Unknown ymax requested. Must be NULL, a numeric value, or 
+           a quantile denoted by 'qXX' with XX the desired quantile value,
+           e.g. q95 for 95th percentile")
+    }
+    percentile.use <- as.numeric(
+      x = sub(pattern = "q", replacement = "", x = as.character(x = ymax))
+    ) / 100
+    ymax <- covmax * percentile.use
+  }
+  ymin <- 0
+  
+  # perform clipping
+  coverages$score[coverages$score > ymax] <- ymax 
+  
   if (type == "line") {
     p <- ggplot(
       data = coverages,
@@ -100,7 +143,6 @@ BigwigTrack <- function(
     ) + geom_tile() + scale_fill_viridis_c() +
       facet_wrap(facets = ~bw, strip.position = "left", ncol = 1)
   } else if (type == "coverage") {
-    coverages$fill <- "black"
     p <- ggplot(
       data = coverages,
       mapping = aes_string(x = "position", y = "score", fill = "bw")
@@ -911,26 +953,22 @@ SingleCoveragePlot <- function(
     } else if (length(x = bigwig.type) != length(x = bigwig)) {
       stop("Must supply a bigWig track type for each bigWig file")
     }
-    # TODO implement common and separate scaling for bigwig
-    # TODO implement y-axis clipping for bigwig
-    
     unique.types <- unique(x = bigwig.type)
     bw.all <- list()
     for (i in seq_along(unique.types)) {
-      # get bigwigs for that type
       bw.use <- which(x = bigwig.type == unique.types[[i]])
       bw.all[[i]] <- BigwigTrack(
         region = region,
         bigwig = bigwig[bw.use],
-        type = unique.types[[i]]
+        type = unique.types[[i]],
+        bigwig.scale = bigwig.scale,
+        ymax = ymax
       )
     }
-    # precombine bigwigs
     bigwig.tracks <- CombineTracks(
       plotlist = bw.all,
       heights = table(unlist(x = bigwig.type))
     )
-    
   } else {
     bigwig.tracks <- NULL
   }
