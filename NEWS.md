@@ -1,4 +1,4 @@
-# Unreleased
+# Signac 1.6.0
 
 New functionality:
 
@@ -7,10 +7,16 @@ New functionality:
 * Added `RegionMatrix()` function
 * Added `MotifCounts()` function
 * Added ability to plot multiple assays simultaneously in `CoveragePlot()` by providing a list of assay names
+* Added `assay.scale` and `split.assay` parameters to `CoveragePlot()`
+* Added new option to provide quantile `ymax` value in `CoveragePlot()`
 
 Bug fixes:
 
 * Fixed behaviour of `min.features` parameter in `CreateChromatinAssay()` to retain cells with `>= min.features` (#[902](https://github.com/timoast/signac/discussions/902))
+
+Other changes:
+
+* Updated documentation for `CoveragePlot()` ([#992](https://github.com/timoast/signac/issues/992))
 
 # Signac 1.5.0
 
