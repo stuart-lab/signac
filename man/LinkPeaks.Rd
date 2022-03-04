@@ -8,6 +8,7 @@ LinkPeaks(
   object,
   peak.assay,
   expression.assay,
+  peak.slot = "counts",
   expression.slot = "data",
   gene.coords = NULL,
   distance = 5e+05,
@@ -27,6 +28,8 @@ LinkPeaks(
 \item{peak.assay}{Name of assay containing peak information}
 
 \item{expression.assay}{Name of assay containing gene expression information}
+
+\item{peak.slot}{Name of slot to pull chromatin data from}
 
 \item{expression.slot}{Name of slot to pull expression data from}
 

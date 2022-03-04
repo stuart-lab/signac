@@ -177,6 +177,7 @@ ConnectionsToLinks <- function(
 #'
 #' @param object A Seurat object
 #' @param peak.assay Name of assay containing peak information
+#' @param peak.slot Name of slot to pull chromatin data from
 #' @param expression.assay Name of assay containing gene expression information
 #' @param expression.slot Name of slot to pull expression data from
 #' @param gene.coords GRanges object containing coordinates of genes in the
@@ -225,6 +226,7 @@ LinkPeaks <- function(
   object,
   peak.assay,
   expression.assay,
+  peak.slot = "counts",
   expression.slot = "data",
   gene.coords = NULL,
   distance = 5e+05,
@@ -266,18 +268,12 @@ LinkPeaks <- function(
          "Run RegionsStats before calling this function.")
   }
   peak.data <- GetAssayData(
-    object = object, assay = peak.assay, slot = 'counts'
+    object = object, assay = peak.assay, slot = peak.slot
   )
-  if (!("count" %in% colnames(x = meta.features))) {
-    # compute total count
-    hvf.info <- FindTopFeatures(object = peak.data)
-    hvf.info <- hvf.info[rownames(x = meta.features), ]
-    meta.features <- cbind(meta.features, hvf.info)
-  }
   expression.data <- GetAssayData(
     object = object, assay = expression.assay, slot = expression.slot
   )
-  peakcounts <- meta.features[rownames(x = peak.data), "count"]
+  peakcounts <- rowSums(x = peak.data > 0)
   genecounts <- rowSums(x = expression.data > 0)
   peaks.keep <- peakcounts > min.cells
   genes.keep <- genecounts > min.cells
