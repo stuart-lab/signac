@@ -1,4 +1,4 @@
-# Unreleased
+# Signac 1.6.0
 
 New functionality:
 
