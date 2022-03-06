@@ -495,6 +495,12 @@ RunFootprint <- function(
   if (verbose) {
     message("Computing observed Tn5 insertions per base")
   }
+  dna.sequence <- Biostrings::getSeq(x = genome, Extend(
+    x = regions,
+    upstream = 3,
+    downstream = 3
+    )
+  )
   if (compute.expected) {
     bias <- GetAssayData(object = object, slot = "bias")
     if (is.null(x = bias)) {
@@ -502,12 +508,6 @@ RunFootprint <- function(
     } else {
       # add three bases each side here so we can get the hexamer frequencies
       # for every position
-      dna.sequence <- Biostrings::getSeq(x = genome, Extend(
-        x = regions,
-        upstream = 3,
-        downstream = 3
-       )
-      )
       expected.insertions <- FindExpectedInsertions(
         dna.sequence = dna.sequence,
         bias = bias,
@@ -515,7 +515,7 @@ RunFootprint <- function(
       )
     }
   } else {
-    expected.insertions <- rep(1, width(x = dna.sequence)[[1]])
+    expected.insertions <- rep(1, width(x = dna.sequence)[[1]] - 6)
   }
 
   # count insertions at each position for each cell

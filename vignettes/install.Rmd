@@ -19,6 +19,8 @@ BiocManager::install()
 setRepositories(ind=1:2)
 ```
 
+We highly recommend using the latest Bioconductor release.
+
 ## Current release
 
 ```{r}

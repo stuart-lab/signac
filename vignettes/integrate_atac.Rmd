@@ -41,7 +41,7 @@ wget https://cf.10xgenomics.com/samples/cell-atac/2.0.0/atac_pbmc_10k_nextgem/at
 ## Preprocessing
 
 Here we'll load the PBMC multiome data pre-processed in our
-[multiome vignette](articles/pbmc_multiomic.html), and create a new object from
+[multiome vignette](pbmc_multiomic.html), and create a new object from
 the scATAC-seq data:
 
 ```{r message=FALSE, warning=FALSE}

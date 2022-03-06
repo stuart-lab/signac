@@ -270,6 +270,20 @@ IdentifyVariants <- function(object, ...) {
   UseMethod(generic = "IdentifyVariants", object = object)
 }
 
+#' Region enrichment analysis
+#'
+#' Count fragments within a set of regions for different groups of
+#' cells.
+#'
+#' @param object A Seurat or ChromatinAssay object
+#' @param ... Arguments passed to other methods
+#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @rdname RegionMatrix
+#' @export RegionMatrix
+RegionMatrix <- function(object, ...) {
+  UseMethod(generic = "RegionMatrix", object = object)
+}
+
 #' Compute base composition information for genomic ranges
 #'
 #' Compute the GC content, region lengths, and dinucleotide base frequencies

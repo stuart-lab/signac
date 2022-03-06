@@ -8,12 +8,12 @@ LinkPeaks(
   object,
   peak.assay,
   expression.assay,
+  peak.slot = "counts",
   expression.slot = "data",
   gene.coords = NULL,
   distance = 5e+05,
   min.distance = NULL,
   min.cells = 10,
-  method = "pearson",
   genes.use = NULL,
   n_sample = 200,
   pvalue_cutoff = 0.05,
@@ -29,6 +29,8 @@ LinkPeaks(
 
 \item{expression.assay}{Name of assay containing gene expression information}
 
+\item{peak.slot}{Name of slot to pull chromatin data from}
+
 \item{expression.slot}{Name of slot to pull expression data from}
 
 \item{gene.coords}{GRanges object containing coordinates of genes in the
@@ -41,9 +43,6 @@ regression model. If NULL (default), no minimum distance is used.}
 
 \item{min.cells}{Minimum number of cells positive for the peak and gene
 needed to include in the results.}
-
-\item{method}{Which correlation coefficient to compute. Can be "pearson"
-(default), "spearman", or "kendall".}
 
 \item{genes.use}{Genes to test. If NULL, determine from expression assay.}
 

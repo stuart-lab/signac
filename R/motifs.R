@@ -404,3 +404,59 @@ ConvertMotifID.Seurat <- function(object, assay = NULL, ...) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   return(ConvertMotifID(object = object[[assay]], ...))
 }
+
+#' Count fragments surrounding motif sites
+#' 
+#' Count the number of sequenced DNA fragments in a region surrounding each 
+#' instance of a given DNA sequence motif.
+#' 
+#' @param object A Seurat object
+#' @param motifs A list of DNA sequence motif names. One matrix will be generated
+#' for each motif
+#' @param flanking.region Amount of sequence to include surrounding the motif
+#' itself
+#' @param assay Name of assay to use. Must be a ChromatinAssay
+#' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{\link{FeatureMatrix}}
+#' 
+#' @return Returns a list of sparse matrices
+#' 
+#' @importFrom Seurat DefaultAssay
+#' @export
+MotifCounts <- function(
+  object,
+  motifs,
+  flanking.region = 1000,
+  assay = NULL,
+  verbose = TRUE,
+  ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  cells.use <- colnames(x = object)
+  fraglist <- Fragments(object = object[[assay]])
+  motif.obj <- Motifs(object = object[[assay]])
+  regionlist <- lapply(X = motifs, FUN = function(x) {
+    GetFootprintRegions(motif.obj = motif.obj, motif.name = x)
+  })
+  
+  # extend upstream and downstream
+  regionlist <- lapply(
+    X = regionlist,
+    Extend,
+    upstream = flanking.region/2,
+    downstream = flanking.region/2,
+    from.midpoint = TRUE
+  )
+  
+  # create matrix
+  count_matrices <- lapply(
+    X = regionlist,
+    FUN = FeatureMatrix,
+    fragments = fraglist,
+    verbose = verbose,
+    cells = cells.use,
+    ...
+  )
+  names(x = count_matrices) <- motifs
+  return(count_matrices)
+}

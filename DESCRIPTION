@@ -1,7 +1,7 @@
 Package: Signac
 Title: Analysis of Single-Cell Chromatin Data
-Version: 1.5.0
-Date: 2021-12-07
+Version: 1.6.0
+Date: 2022-03-04
 Authors@R: c(
   person(given = 'Tim', family = 'Stuart', email = 'tstuart@nygenome.org', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3044-0897')),
   person(given = 'Avi', family = 'Srivastava', email = 'asrivastava@nygenome.org', role = 'aut', comment = c(ORCID = '0000-0001-9798-2079')),
@@ -30,7 +30,7 @@ Imports:
     Matrix,
     Rsamtools,
     S4Vectors,
-    Seurat (>= 4.0.0),
+    Seurat (>= 4.0.6),
     SeuratObject (>= 4.0.0),
     data.table,
     dplyr (>= 1.0.0),
@@ -54,7 +54,8 @@ Imports:
     Rcpp,
     ggforce,
     qlcMatrix,
-    grid
+    grid,
+    tidyselect
 Collate: 
     'RcppExports.R'
     'data.R'
@@ -65,6 +66,7 @@ Collate:
     'fragments.R'
     'genomeinfodb-methods.R'
     'granges-methods.R'
+    'heatmaps.R'
     'iranges-methods.R'
     'links.R'
     'mito.R'
@@ -73,6 +75,7 @@ Collate:
     'peaks.R'
     'preprocessing.R'
     'quantification.R'
+    'region-enrichment.R'
     'utilities.R'
     'visualization.R'
     'zzz.R'

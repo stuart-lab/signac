@@ -9,7 +9,9 @@ BigwigTrack(
   bigwig,
   smooth = 200,
   type = "coverage",
-  y_label = "Score",
+  y_label = "bigWig",
+  bigwig.scale = "common",
+  ymax = NULL,
   max.downsample = 3000,
   downsample.rate = 0.1
 )
@@ -25,6 +27,23 @@ do not apply smoothing.}
 \item{type}{Plot type. Can be one of "line", "heatmap", or "coverage"}
 
 \item{y_label}{Y-axis label}
+
+\item{bigwig.scale}{Scaling to apply to data from different bigwig files.
+Can be:
+\itemize{
+\item{common: plot each bigwig on a common scale (default)}
+\item{separate: plot each bigwig on a separate scale ranging from zero to the
+maximum value for that bigwig file within the plotted region}
+}}
+
+\item{ymax}{Maximum value for Y axis. Can be one of:
+\itemize{
+\item{NULL: set to the highest value among all the tracks (default)}
+\item{qXX: clip the maximum value to the XX quantile (for example, q95 will
+set the maximum value to 95\% of the maximum value in the data). This can help
+remove the effect of extreme values that may otherwise distort the scale.}
+\item{numeric: manually define a Y-axis limit}
+}}
 
 \item{max.downsample}{Minimum number of positions kept when downsampling.
 Downsampling rate is adaptive to the window size, but this parameter will set
