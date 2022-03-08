@@ -28,6 +28,8 @@ BiocManager::install()
 setRepositories(ind=1:2)
 ```
 
+We highly recommend using the latest Bioconductor release.
+
 To install the latest release of Signac from CRAN:
 
 ``` r

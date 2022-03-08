@@ -3,7 +3,7 @@
 #'
 NULL
 
-globalVariables(names = c("bin", "score"), package = "Signac")
+globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' Plot data from BigWig
 #'
 #' Create a BigWig track. Note that this function does not work on windows.
@@ -14,6 +14,21 @@ globalVariables(names = c("bin", "score"), package = "Signac")
 #' do not apply smoothing.
 #' @param type Plot type. Can be one of "line", "heatmap", or "coverage"
 #' @param y_label Y-axis label
+#' @param bigwig.scale Scaling to apply to data from different bigwig files.
+#' Can be:
+#' \itemize{
+#' \item{common: plot each bigwig on a common scale (default)}
+#' \item{separate: plot each bigwig on a separate scale ranging from zero to the
+#' maximum value for that bigwig file within the plotted region}
+#' }
+#' @param ymax Maximum value for Y axis. Can be one of:
+#' \itemize{
+#' \item{NULL: set to the highest value among all the tracks (default)}
+#' \item{qXX: clip the maximum value to the XX quantile (for example, q95 will
+#' set the maximum value to 95\% of the maximum value in the data). This can help
+#' remove the effect of extreme values that may otherwise distort the scale.}
+#' \item{numeric: manually define a Y-axis limit}
+#' }
 #' @param max.downsample Minimum number of positions kept when downsampling.
 #' Downsampling rate is adaptive to the window size, but this parameter will set
 #' the minimum possible number of positions to include so that plots do not
@@ -24,7 +39,7 @@ globalVariables(names = c("bin", "score"), package = "Signac")
 #' and a longer period of time needed to draw the plot.
 #'
 #' @importFrom ggplot2 ggplot aes_string geom_line geom_tile xlab ylab geom_area
-#' scale_fill_viridis_c
+#' scale_fill_viridis_c scale_color_grey scale_fill_grey facet_wrap
 #' @importFrom RcppRoll roll_mean
 #' @importFrom GenomicRanges start end seqnames width
 #' @importFrom dplyr slice_sample group_by mutate ungroup
@@ -36,7 +51,9 @@ BigwigTrack <- function(
   bigwig,
   smooth = 200,
   type = "coverage",
-  y_label = "Score",
+  y_label = "bigWig",
+  bigwig.scale = "common",
+  ymax = NULL,
   max.downsample = 3000,
   downsample.rate = 0.1
 ) {
@@ -58,42 +75,80 @@ BigwigTrack <- function(
   if (!inherits(x = region, what = "GRanges")) {
     stop("region should be a GRanges object")
   }
-  region_data <- rtracklayer::import(
-    con = bigwig,
-    which = region,
-    as = "NumericList"
-  )[[1]]
-  if (!is.null(x = smooth)) {
-    region_data <- roll_mean(x = region_data, n = smooth, fill = 0L)
+  all.data <- data.frame()
+  for (i in seq_along(bigwig)) {
+    region_data <- rtracklayer::import(
+      con = bigwig[[i]],
+      which = region,
+      as = "NumericList"
+    )[[1]]
+    if (!is.null(x = smooth)) {
+      region_data <- roll_mean(x = region_data, n = smooth, fill = 0L)
+    }
+    region_data <- data.frame(
+      position = start(x = region):end(x = region),
+      score = region_data,
+      stringsAsFactors = FALSE,
+      bw = names(x = bigwig)[[i]]
+    )
+    all.data <- rbind(all.data, region_data)
   }
-  region_data <- data.frame(
-    position = start(x = region):end(x = region),
-    score = region_data,
-    stringsAsFactors = FALSE
-  )
   window.size = width(x = region)
   sampling <- min(max.downsample, window.size * downsample.rate)
-  coverages <- slice_sample(.data = region_data, n = sampling)
-  p <- ggplot(
-    data = coverages,
-    mapping = aes_string(x = "position", y = "score")
-  )
+  coverages <- slice_sample(.data = all.data, n = sampling)
+  
+  if (bigwig.scale == "separate") {
+    # scale to fraction of max for each separately
+    file.max <- max(coverages$score, na.rm = TRUE)
+    coverages$score <- coverages$score / file.max
+  }
+  
+  covmax <- signif(x = max(coverages$score, na.rm = TRUE), digits = 2)
+  if (is.null(x = ymax)) {
+    ymax <- covmax
+  } else if (is.character(x = ymax)) {
+    if (!startsWith(x = ymax, prefix = "q")) {
+      stop("Unknown ymax requested. Must be NULL, a numeric value, or 
+           a quantile denoted by 'qXX' with XX the desired quantile value,
+           e.g. q95 for 95th percentile")
+    }
+    percentile.use <- as.numeric(
+      x = sub(pattern = "q", replacement = "", x = as.character(x = ymax))
+    ) / 100
+    ymax <- covmax * percentile.use
+  }
+  ymin <- 0
+  
+  # perform clipping
+  coverages$score[coverages$score > ymax] <- ymax 
+  
   if (type == "line") {
-    p <- p + geom_line()
+    p <- ggplot(
+      data = coverages,
+      mapping = aes_string(x = "position", y = "score", color = "bw")
+    ) + geom_line() +
+      facet_wrap(facets = ~bw, strip.position = "left", ncol = 1) +
+      scale_color_grey()
   } else if (type == "heatmap") {
     # different downsampling needed for heatmap
     # cut into n bins and average within each bin
-    region_data$bin <- floor(x = region_data$position / smooth)
-    region_data <- group_by(region_data, bin)
-    region_data <- mutate(region_data, score = mean(x = score))
-    region_data <- ungroup(region_data)
-    region_data <- unique(x = region_data[, c("bin", "score")])
+    all.data$bin <- floor(x = all.data$position / smooth)
+    all.data <- group_by(all.data, bin, bw)
+    all.data <- mutate(all.data, score = mean(x = score))
+    all.data <- ungroup(all.data)
+    all.data <- unique(x = all.data[, c("bin", "score", "bw")])
     p <- ggplot(
-      data = region_data,
+      data = all.data,
       mapping = aes_string(x = "bin", y = 1, fill = "score")
-    ) + geom_tile() + scale_fill_viridis_c()
+    ) + geom_tile() + scale_fill_viridis_c() +
+      facet_wrap(facets = ~bw, strip.position = "left", ncol = 1)
   } else if (type == "coverage") {
-    p <- p + geom_area()
+    p <- ggplot(
+      data = coverages,
+      mapping = aes_string(x = "position", y = "score", fill = "bw")
+    ) + geom_area() +
+      facet_wrap(facets = ~bw, strip.position = "left", ncol = 1) +
+      scale_fill_grey()
   }
   chromosome <- as.character(x = seqnames(x = region))
   p <- p + theme_browser() +
@@ -330,7 +385,439 @@ PlotFootprint <- function(
 }
 
 globalVariables(
-  names = c("position", "coverage", "group", "gene_name", "direction"),
+  names = c("group"),
+  package = "Signac"
+)
+#' Region heatmap
+#' 
+#' Plot fragment counts within a set of regions.
+#' 
+#' @param object A Seurat object
+#' @param assay Name of assay to use. If a list or vector of assay names is
+#' given, data will be plotted from each assay. Note that all assays must
+#' contain \code{RegionMatrix} results with the same key. Sorting will be 
+#' defined by the first assay in the list
+#' @param key Name of key to pull data from. Stores the results from
+#' \code{\link{RegionMatrix}}
+#' @param window Smoothing window to apply
+#' @param normalize Normalize by number of cells in each group
+#' @param order Order regions by the total number of fragments in the region
+#' across all included identities
+#' @param upstream Number of bases to include upstream of region. If NULL, use
+#' all bases that were included in the \code{RegionMatrix} function call. Note
+#' that this value cannot be larger than the value for \code{upstream} given in
+#' the original \code{RegionMatrix} function call. If NULL, use parameters that
+#' were given in the \code{RegionMatrix} function call
+#' @param downstream Number of bases to include downstream of region. See
+#' documentation for \code{upstream}
+#' @param max.cutoff Maximum cutoff value. Data above this value will be clipped
+#' to the maximum value. A quantile maximum can be specified in the form of 
+#' "q##" where "##" is the quantile (eg, "q90" for 90th quantile). If NULL, no
+#' cutoff will be set
+#' @param cols Vector of colors to use as the maximum value of the color scale.
+#' One color must be supplied for each assay. If NULL, the default ggplot2
+#' colors are used. 
+#' @param min.counts Minimum total counts to display region in plot
+#' @param idents Cell identities to include. Note that cells cannot be
+#' regrouped, this will require re-running \code{RegionMatrix} to generate a 
+#' new set of matrices
+#' @param nrow Number of rows to use when creating plot. If NULL, chosen
+#' automatically by ggplot2
+#' 
+#' @seealso RegionMatrix
+#' 
+#' @return Returns a ggplot2 object
+#' 
+#' @importFrom Seurat DefaultAssay GetAssayData SetQuantile
+#' @importFrom RcppRoll roll_sum
+#' @importFrom tidyselect all_of
+#' @importFrom tidyr pivot_longer
+#' @importFrom ggplot2 ggplot aes_string facet_wrap geom_raster guides theme
+#' element_blank element_text scale_fill_gradient ylab guide_legend xlab
+#' @importFrom scales hue_pal
+#' @importFrom patchwork wrap_plots
+#' 
+#' @export
+#' @concept visualization
+#' @concept heatmap
+RegionHeatmap <- function(
+  object,
+  key,
+  assay = NULL,
+  idents = NULL,
+  normalize = TRUE,
+  upstream = 3000,
+  downstream = 3000,
+  max.cutoff = "q95",
+  cols = NULL,
+  min.counts = 1,
+  window = (upstream+downstream)/30,
+  order = TRUE,
+  nrow = NULL
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  all.valid <- sapply(X = assay, FUN = function(x) {
+    inherits(x = object[[x]], what = "ChromatinAssay")
+  })
+  if (!all(all.valid)) {
+    stop("The requested assay is not a ChromatinAssay")
+  }
+  if (is.null(x = cols)) {
+    colors_all <- hue_pal()(length(x = assay))
+    names(x = colors_all) <- assay
+  } else {
+    if (length(x = cols) != length(x = assay)) {
+      stop("Wrong number of colors supplied. Must give one color per assay")
+    }
+    colors_all <- cols
+    if (!all(names(x = colors_all) %in% assay)) {
+      names(x = colors_all) <- assay
+    }
+  }
+  
+  all.assay <- data.frame()
+  for (j in seq_along(along.with = assay)) {
+    heatmap_data <- get_heatmap_data(
+      object = object[[assay[[j]]]],
+      key = key,
+      upstream = upstream,
+      downstream = downstream
+    )
+    upstream.max <- heatmap_data$upstream.max
+    downstream.max <- heatmap_data$downstream.max
+    matlist <- heatmap_data$matlist
+    cells.per.group <- heatmap_data$cells.per.group
+    rm(heatmap_data)
+    
+    # define clipping
+    cols.keep <- (upstream.max - upstream + 1):(upstream.max + downstream + 1)
+    
+    if (!is.null(x = idents)) {
+      valid.idents <- intersect(x = idents, y = names(x = matlist))
+      matlist <- matlist[valid.idents]
+    }
+    
+    if (j == 1) {
+      rsums <- lapply(X = matlist, FUN = rowSums)
+      rsums <- Reduce(f = `+`, x = rsums)
+      rows.retain <- rsums >= min.counts
+    }
+
+    # remove low count
+    matlist <- lapply(X = matlist, FUN = function(x) {
+      x[rows.retain, ]
+    })
+    
+    if (order & j == 1) {
+      rsums <- lapply(X = matlist, FUN = rowSums)
+      rsums <- Reduce(f = `+`, x = rsums)
+      order.use <- base::order(rsums)
+    }
+    
+    for (i in seq_along(along.with = matlist)) {
+      grp.name <- names(x = matlist)[[i]]
+      m <- matlist[[i]]
+      
+      # clip up/downstream
+      m <- m[, cols.keep]
+      colnames(m) <- 1:ncol(x = m)
+      
+      if (order) {
+        m <- m[order.use, ]
+      }
+      
+      if (normalize) {
+        m <- m / cells.per.group[[grp.name]]
+        guide.label <- "Fragment counts\nper cell"
+      } else {
+        guide.label <- "Fragment\ncount"
+      }
+      
+      smoothed <- apply(
+        X = m,
+        MARGIN = 1,
+        FUN = roll_sum,
+        n = window,
+        by = window
+      )
+      # create dataframe
+      smoothed <- as.data.frame(x = smoothed)
+      colnames(smoothed) <- 1:ncol(x = smoothed)
+      
+      # clip values
+      if (!is.na(x = max.cutoff)) {
+        cutoff <- SetQuantile(cutoff = max.cutoff, data = smoothed)
+        smoothed[smoothed > cutoff] <- cutoff
+      }
+      
+      # add extra column as bin ID
+      regions <- colnames(x = smoothed)
+      smoothed$bin <- seq_len(length.out = nrow(x = smoothed))
+      smoothed <- pivot_longer(
+        data = smoothed,
+        cols = all_of(regions)
+      )
+      smoothed$group <- grp.name
+      if (i == 1) {
+        df <- smoothed
+      } else {
+        df <- rbind(df, smoothed)
+      }
+    }
+    
+    # fix bin label
+    df$bin <- (df$bin - (upstream/window)) * window
+    df$name <- as.numeric(x = df$name)
+    df$assay <- assay[[j]]
+    
+    all.assay <- rbind(all.assay, df)
+  }
+  
+  maxval <- max(all.assay$value)
+  # create separate heatmap for each assay so that color scales are different
+  plist <- list()
+  for (i in seq_along(along.with = assay)) {
+    data.use <- all.assay[all.assay$assay == assay[[i]], ]
+    pp <- ggplot(
+      data = data.use,
+      mapping = aes_string(x = "bin", y = "name", fill = "value")
+    ) +
+      facet_wrap(
+        facets = ~group,
+        scales = "free_y",
+        nrow = nrow
+      ) +
+      geom_raster() +
+      theme_browser(legend = TRUE) +
+      ylab("Region") +
+      ggtitle(assay[[i]]) +
+      scale_fill_gradient(
+        low = "white",
+        high = colors_all[[assay[[i]]]],
+        limits = c(0, maxval)
+      ) +
+      guides(
+        fill = guide_legend(
+          title = ifelse(
+            test = length(x = assay) > 1,
+            yes = assay[[i]],
+            no = guide.label),
+          keywidth = 1/2,
+          keyheight = 1
+        )
+      ) +
+      theme(
+        axis.ticks.y = element_blank(),
+        legend.title = element_text(size = 8),
+        legend.text = element_text(size = 8),
+        axis.title.x = element_blank()
+      )
+    plist[[i]] <- pp
+  }
+  p <- wrap_plots(plist, guides = "collect")
+  return(p)
+}
+
+#' @importFrom Seurat GetAssayData
+get_heatmap_data <- function(
+  object,
+  key,
+  upstream,
+  downstream  
+) {
+  # each assay will set its own max value
+  
+  if (!(key %in% names(x = GetAssayData(
+    object = object, slot = "positionEnrichment"
+  )))) {
+    stop("Requested key is not present in the assay")
+  }
+  matlist <- GetAssayData(
+    object = object,
+    slot = "positionEnrichment"
+  )[[key]]
+  
+  # extract RegionMatrix parameters
+  function.params <- matlist$function.parameters
+  matlist$function.parameters <- NULL
+  cells.per.group <- function.params$cells
+  upstream.max <- function.params$upstream
+  downstream.max <- function.params$downstream
+  
+  # set upstream/downstream parameters
+  if (is.null(x = upstream)) {
+    upstream <- upstream.max
+  } else {
+    if (upstream > upstream.max) {
+      warning("Requested more upstream bases than were computed. ",
+              "Re-run RegionMatrix with a different upstream parameter")
+      upstream <- upstream.max
+    }
+  }
+  if (is.null(x = downstream)) {
+    downstream <- downstream.max
+  } else {
+    if (downstream > downstream.max) {
+      warning("Requested more downstream bases than were computed. ",
+              "Re-run RegionMatrix with a different downstream parameter")
+      downstream <- downstream.max
+    }
+  }
+  return(list("matlist" = matlist, "cells.per.group" = cells.per.group,
+              "upstream.max" = upstream.max, "downstream.max" = downstream.max))
+}
+
+#' Region plot
+#' 
+#' Plot fragment counts within a set of regions.
+#' 
+#' @param object A Seurat object
+#' @param assay Name of assay to use. If a list or vector of assay names is
+#' given, data will be plotted from each assay. Note that all assays must
+#' contain \code{RegionMatrix} results with the same key. Sorting will be 
+#' defined by the first assay in the list
+#' @param key Name of key to pull data from. Stores the results from
+#' \code{\link{RegionMatrix}}
+#' @param window Smoothing window to apply
+#' @param normalize Normalize by number of cells in each group
+#' @param upstream Number of bases to include upstream of region. If NULL, use
+#' all bases that were included in the \code{RegionMatrix} function call. Note
+#' that this value cannot be larger than the value for \code{upstream} given in
+#' the original \code{RegionMatrix} function call. If NULL, use parameters that
+#' were given in the \code{RegionMatrix} function call
+#' @param downstream Number of bases to include downstream of region. See
+#' documentation for \code{upstream}
+#' @param idents Cell identities to include. Note that cells cannot be
+#' regrouped, this will require re-running \code{RegionMatrix} to generate a 
+#' new set of matrices
+#' @param nrow Number of rows to use when creating plot. If NULL, chosen
+#' automatically by ggplot2
+#' 
+#' @seealso RegionMatrix
+#' 
+#' @return Returns a ggplot2 object
+#' 
+#' @importFrom Seurat DefaultAssay GetAssayData
+#' @importFrom RcppRoll roll_sum
+#' @importFrom tidyselect all_of
+#' @importFrom tidyr pivot_longer
+#' @importFrom ggplot2 ggplot aes_string facet_wrap guides theme theme_classic
+#' element_blank element_text ylab xlab geom_line
+#' 
+#' @export
+#' @concept visualization
+#' @concept heatmap
+RegionPlot <- function(
+  object,
+  key,
+  assay = NULL,
+  idents = NULL,
+  normalize = TRUE,
+  upstream = NULL,
+  downstream = NULL,
+  window = (upstream+downstream)/500,
+  nrow = NULL
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!inherits(x = assay, what = "list")) {
+    assay <- list(assay)
+  }
+  all.valid <- sapply(X = assay, FUN = function(x) {
+    inherits(x = object[[x]], what = "ChromatinAssay")
+  })
+  if (!all(all.valid)) {
+    stop("The requested assay is not a ChromatinAssay")
+  }
+  
+  all.assay <- data.frame()
+  for (j in seq_along(along.with = assay)) {
+    heatmap_data <- get_heatmap_data(
+      object = object[[assay[[j]]]],
+      key = key,
+      upstream = upstream,
+      downstream = downstream
+    )
+    upstream.max <- heatmap_data$upstream.max
+    downstream.max <- heatmap_data$downstream.max
+    matlist <- heatmap_data$matlist
+    cells.per.group <- heatmap_data$cells.per.group
+    rm(heatmap_data)
+    
+    upstream <- SetIfNull(x = upstream, y = upstream.max)
+    downstream <- SetIfNull(x = downstream, y = downstream.max)
+    
+    # define clipping
+    cols.keep <- (upstream.max - upstream + 1):(upstream.max + downstream + 1)
+    
+    if (!is.null(x = idents)) {
+      valid.idents <- intersect(x = idents, y = names(x = matlist))
+      matlist <- matlist[valid.idents]
+    }
+    if (length(x = matlist) == 0) {
+      stop("None of the requested idents found")
+    }
+    
+    for (i in seq_along(along.with = matlist)) {
+      grp.name <- names(x = matlist)[[i]]
+      m <- matlist[[i]]
+      
+      # clip up/downstream
+      m <- m[, cols.keep]
+      colnames(m) <- 1:ncol(x = m)
+      
+      if (normalize) {
+        m <- m / cells.per.group[[grp.name]]
+        guide.label <- "Fragment counts\nper cell"
+      } else {
+        guide.label <- "Fragment\ncount"
+      }
+      
+      totals <- colSums(x = m)
+      smoothed <- roll_sum(x = totals, n = window, by = window)
+      grp.name <- names(x = matlist)[[i]]
+      
+      if (i == 1) {
+        df <- data.frame(
+          'data' = smoothed,
+          'group' = grp.name,
+          'bin' = seq_along(along.with = smoothed)
+        )
+      } else {
+        df <- rbind(
+          df,
+          data.frame(
+            'data' = smoothed,
+            'group' = grp.name,
+            'bin' = seq_along(along.with = smoothed)
+          )
+        )
+      }
+      # fix bin label
+      df$bin <- (df$bin - (upstream/window)) * window
+    }
+    df$assay <- assay[[j]]
+    all.assay <- rbind(all.assay, df)
+  }
+
+  p <- ggplot(
+    data = all.assay,
+    aes_string(x = "bin", y = "data", color = "assay")) +
+    facet_wrap(facets = "group") +
+    geom_line() +
+    theme_classic() +
+    theme(
+      strip.background = element_blank(),
+      legend.title = element_text(size = 8),
+      legend.text = element_text(size = 8)
+      ) +
+    ylab(label = guide.label) +
+    xlab("Distance from center (bp)")
+  
+  return(p)
+}
+
+globalVariables(
+  names = c("position", "coverage", "group", "gene_name", "direction", "Assay"),
   package = "Signac"
 )
 #' @importFrom ggplot2 ylab scale_fill_manual unit element_text theme
@@ -341,6 +828,8 @@ SingleCoveragePlot <- function(
   region,
   features = NULL,
   assay = NULL,
+  split.assays = FALSE,
+  assay.scale = "common",
   show.bulk = FALSE,
   expression.assay = NULL,
   expression.slot = "data",
@@ -357,6 +846,7 @@ SingleCoveragePlot <- function(
   tile.cells = 100,
   bigwig = NULL,
   bigwig.type = "coverage",
+  bigwig.scale = "common",
   group.by = NULL,
   window = 100,
   extend.upstream = 0,
@@ -370,11 +860,23 @@ SingleCoveragePlot <- function(
   max.downsample = 3000,
   downsample.rate = 0.1
 ) {
+  valid.assay.scale <- c("common", "separate")
+  if (!(assay.scale %in% valid.assay.scale)) {
+    stop(
+      "Unknown assay.scale requested. Please choose from: ",
+      paste(valid.assay.scale, collapse = ", ")
+    )
+  }
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("Requested assay is not a ChromatinAssay.")
+  if (!inherits(x = assay, what = "list")) {
+    assay <- list(assay)
   }
+  lapply(X = assay, FUN = function(x) {
+    if (!inherits(x = object[[x]], what = "ChromatinAssay")) {
+      stop("Requested assay is not a ChromatinAssay.")
+    }
+  })
   if (!is.null(x = group.by)) {
     Idents(object = object) <- group.by
   }
@@ -386,43 +888,55 @@ SingleCoveragePlot <- function(
     object = object,
     region = region,
     sep = sep,
-    assay = assay,
+    assay = assay[[1]],
     extend.upstream = extend.upstream,
     extend.downstream = extend.downstream
-  )
-  reads.per.group <- AverageCounts(
-    object = object,
-    group.by = group.by,
-    verbose = FALSE
   )
   cells.per.group <- CellsPerGroup(
     object = object,
     group.by = group.by
-  )
-  cutmat <- CutMatrix(
-    object = object,
-    region = region,
-    assay = assay,
-    cells = cells,
-    verbose = FALSE
-  )
-  colnames(cutmat) <- start(x = region):end(x = region)
-  group.scale.factors <- suppressWarnings(reads.per.group * cells.per.group)
-  scale.factor <- SetIfNull(
-    x = scale.factor, y = median(x = group.scale.factors)
   )
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
     idents = idents
   )
+  cm.list <- list()
+  sf.list <- list()
+  gsf.list <- list()
+  for (i in seq_along(along.with = assay)) {
+    reads.per.group <- AverageCounts(
+      object = object,
+      assay = assay[[i]],
+      group.by = group.by,
+      verbose = FALSE
+    )
+    cutmat <- CutMatrix(
+      object = object,
+      region = region,
+      assay = assay[[i]],
+      cells = cells,
+      verbose = FALSE
+    )
+    colnames(cutmat) <- start(x = region):end(x = region)
+    group.scale.factors <- suppressWarnings(reads.per.group * cells.per.group)
+    scale.factor <- SetIfNull(
+      x = scale.factor, y = median(x = group.scale.factors)
+    )
+    cm.list[[i]] <- cutmat
+    sf.list[[i]] <- scale.factor
+    gsf.list[[i]] <- group.scale.factors
+  }
+  names(x = cm.list) <- unlist(x = assay)
   p <- CoverageTrack(
-    cutmat = cutmat,
+    cutmat = cm.list,
     region = region,
-    group.scale.factors = group.scale.factors,
-    scale.factor = scale.factor,
+    group.scale.factors = gsf.list,
+    scale.factor = sf.list,
     window = window,
     ymax = ymax,
+    split.assays = split.assays,
+    assay.scale = assay.scale,
     obj.groups = obj.groups,
     region.highlight = region.highlight,
     downsample.rate = downsample.rate,
@@ -434,21 +948,27 @@ SingleCoveragePlot <- function(
       warning("BigWig should be a list of file paths")
       bigwig <- list("bigWig" = bigwig)
     }
-    if (length(x = bigwig.type == 1)) {
+    if (length(x = bigwig.type) == 1) {
       bigwig.type <- rep(x = bigwig.type, length(x = bigwig))
     } else if (length(x = bigwig.type) != length(x = bigwig)) {
       stop("Must supply a bigWig track type for each bigWig file")
     }
-    # iterate over list of files
-    bigwig.tracks <- list()
-    for (i in seq_along(along.with = bigwig)) {
-      bigwig.tracks[[i]] <- BigwigTrack(
+    unique.types <- unique(x = bigwig.type)
+    bw.all <- list()
+    for (i in seq_along(unique.types)) {
+      bw.use <- which(x = bigwig.type == unique.types[[i]])
+      bw.all[[i]] <- BigwigTrack(
         region = region,
-        bigwig = bigwig[[i]],
-        y_label = names(x = bigwig)[[i]],
-        type = bigwig.type[[i]]
+        bigwig = bigwig[bw.use],
+        type = unique.types[[i]],
+        bigwig.scale = bigwig.scale,
+        ymax = ymax
       )
     }
+    bigwig.tracks <- CombineTracks(
+      plotlist = bw.all,
+      heights = table(unlist(x = bigwig.type))
+    )
   } else {
     bigwig.tracks <- NULL
   }
@@ -467,19 +987,19 @@ SingleCoveragePlot <- function(
     widths <- NULL
   }
   if (annotation) {
-    gene.plot <- AnnotationPlot(object = object[[assay]], region = region)
+    gene.plot <- AnnotationPlot(object = object[[assay[[1]]]], region = region)
   } else {
     gene.plot <- NULL
   }
   if (links) {
-    link.plot <- LinkPlot(object = object[[assay]], region = region)
+    link.plot <- LinkPlot(object = object[[assay[[1]]]], region = region)
   } else {
     link.plot <- NULL
   }
   if (peaks) {
     peak.plot <- PeakPlot(
       object = object,
-      assay = assay,
+      assay = assay[[1]],
       region = region,
       group.by = peaks.group.by
     )
@@ -489,7 +1009,7 @@ SingleCoveragePlot <- function(
   if (!is.null(x = ranges)) {
     range.plot <- PeakPlot(
       object = object,
-      assay = assay,
+      assay = assay[[1]],
       region = region,
       peaks = ranges,
       group.by = ranges.group.by,
@@ -501,7 +1021,7 @@ SingleCoveragePlot <- function(
   if (tile) {
     # reuse cut matrix
     tile.df <- ComputeTile(
-      cutmatrix = cutmat,
+      cutmatrix = cutmat[[1]],
       groups = obj.groups,
       window = tile.size,
       n = tile.cells,
@@ -518,6 +1038,7 @@ SingleCoveragePlot <- function(
     object$bulk <- "All cells"
     reads.per.group <- AverageCounts(
       object = object,
+      assay = assay[[1]],
       group.by = "bulk",
       verbose = FALSE
     )
@@ -530,7 +1051,7 @@ SingleCoveragePlot <- function(
     names(x = bulk.groups) <- names(x = obj.groups)
 
     bulk.plot <- CoverageTrack(
-      cutmat = cutmat,
+      cutmat = cutmat[[1]],
       region = region,
       group.scale.factors = bulk.scale.factor,
       scale.factor = scale.factor,
@@ -546,18 +1067,14 @@ SingleCoveragePlot <- function(
     bulk.plot <- NULL
   }
   nident <- length(x = unique(x = obj.groups))
+  if (split.assays) {
+    nident <- nident * length(x = assay)
+  }
   bulk.height <- (1 / nident) * 10
-  bw.height <- bulk.height * length(x = bigwig.tracks)
+  bw.height <- 10
   heights <- SetIfNull(
     x = heights, y = c(10, bulk.height, bw.height, 10, 2, 1, 1, 3)
   )
-  # pre-combine bigwig tracks
-  if (!is.null(x = bigwig.tracks)) {
-    bigwig.tracks <- CombineTracks(
-      plotlist = bigwig.tracks,
-      heights = rep(x = 1, length(x = bigwig.tracks))
-    )
-  }
   p <- CombineTracks(
     plotlist = list(p, bulk.plot, bigwig.tracks, tile.plot, gene.plot,
                     peak.plot, range.plot, link.plot),
@@ -593,70 +1110,120 @@ CoverageTrack <- function(
   region,
   group.scale.factors,
   scale.factor,
+  assay.scale,
   obj.groups,
   ymax,
   downsample.rate,
+  split.assays = FALSE,
   region.highlight = NULL,
   window = 100,
   max.downsample = 3000
 ) {
   window.size <- width(x = region)
   levels.use <- levels(x = obj.groups)
-  coverages <- ApplyMatrixByGroup(
-    mat = cutmat,
-    fun = colSums,
-    groups = obj.groups,
-    group.scale.factors = group.scale.factors,
-    scale.factor = scale.factor,
-    normalize = TRUE
-  )
-  if (!is.na(x = window)) {
-    coverages <- group_by(.data = coverages, group)
-    coverages <- mutate(.data = coverages, coverage = roll_sum(
-      x = norm.value, n = window, fill = NA, align = "center"
-    ))
-    coverages <- ungroup(x = coverages)
-  } else {
-    coverages$coverage <- coverages$norm.value
-  }
   chromosome <- as.character(x = seqnames(x = region))
   start.pos <- start(x = region)
   end.pos <- end(x = region)
-  coverages <- coverages[!is.na(x = coverages$coverage), ]
-  coverages <- group_by(.data = coverages, group)
-  sampling <- min(max.downsample, window.size * downsample.rate)
-  coverages <- slice_sample(.data = coverages, n = sampling)
-
+  multicov <- length(x = cutmat) > 1
+  
+  cov.df <- data.frame()
+  for (i in seq_along(along.with = cutmat)) {
+    coverages <- ApplyMatrixByGroup(
+      mat = cutmat[[i]],
+      fun = colSums,
+      groups = obj.groups,
+      group.scale.factors = group.scale.factors[[i]],
+      scale.factor = scale.factor[[i]],
+      normalize = TRUE
+    )
+    if (!is.na(x = window)) {
+      coverages <- group_by(.data = coverages, group)
+      coverages <- mutate(.data = coverages, coverage = roll_sum(
+        x = norm.value, n = window, fill = NA, align = "center"
+      ))
+      coverages <- ungroup(x = coverages)
+    } else {
+      coverages$coverage <- coverages$norm.value
+    }
+  
+    coverages <- coverages[!is.na(x = coverages$coverage), ]
+    coverages <- group_by(.data = coverages, group)
+    sampling <- min(max.downsample, window.size * downsample.rate)
+    coverages <- slice_sample(.data = coverages, n = sampling)
+    coverages$Assay <- names(x = cutmat)[[i]]
+    if (multicov) {
+      if (assay.scale == "separate") {
+        # scale to fraction of max for each separately
+        assay.max <- max(coverages$coverage, na.rm = TRUE)
+        coverages$coverage <- coverages$coverage / assay.max
+      }
+    }
+    cov.df <- rbind(cov.df, coverages)
+  }
+  coverages <- cov.df
+  coverages$Assay <- factor(x = coverages$Assay, levels = names(x = cutmat))
+  coverages$assay_group <- paste(coverages$group, coverages$Assay, sep = "_")
+  
   # restore factor levels
   if (!is.null(x = levels.use)) {
     colors_all <- hue_pal()(length(x = levels.use))
     names(x = colors_all) <- levels.use
     coverages$group <- factor(x = coverages$group, levels = levels.use)
   }
-  ymax <- SetIfNull(x = ymax, y = signif(
-    x = max(coverages$coverage, na.rm = TRUE), digits = 2)
-  )
+  covmax <- signif(x = max(coverages$coverage, na.rm = TRUE), digits = 2)
+  if (is.null(x = ymax)) {
+    ymax <- covmax
+  } else if (is.character(x = ymax)) {
+    if (!startsWith(x = ymax, prefix = "q")) {
+      stop("Unknown ymax requested. Must be NULL, a numeric value, or 
+           a quantile denoted by 'qXX' with XX the desired quantile value,
+           e.g. q95 for 95th percentile")
+    }
+    percentile.use <- as.numeric(
+      x = sub(pattern = "q", replacement = "", x = as.character(x = ymax))
+    ) / 100
+    ymax <- covmax * percentile.use
+  }
   ymin <- 0
+  
+  # perform clipping
+  coverages$coverage[coverages$coverage > ymax] <- ymax 
 
   gr <- GRanges(
     seqnames = chromosome,
     IRanges(start = start.pos, end = end.pos)
   )
-  p <- ggplot(
-    data = coverages,
-    mapping = aes(x = position, y = coverage, fill = group)
-  ) +
-    geom_area(stat = "identity") +
-    geom_hline(yintercept = 0, size = 0.1) +
-    facet_wrap(facets = ~group, strip.position = "left", ncol = 1) +
+  if (multicov) {
+    p <- ggplot(
+      data = coverages,
+      mapping = aes(x = position, y = coverage, fill = Assay)
+    )
+  } else {
+    p <- ggplot(
+      data = coverages,
+      mapping = aes(x = position, y = coverage, fill = group)
+    )
+  }
+  p <- p +
+    geom_area(
+      stat = "identity",
+      alpha = ifelse(test = !split.assays & multicov, yes = 0.5, no = 1)) +
+    geom_hline(yintercept = 0, size = 0.1)
+  if (split.assays) {
+    p <- p +
+      facet_wrap(facets = ~assay_group, strip.position = "left", ncol = 1)
+  } else {
+    p <- p + facet_wrap(facets = ~group, strip.position = "left", ncol = 1)
+  }
+  p <- p +
     xlab(label = paste0(chromosome, " position (bp)")) +
-    ylab(label = paste0("Normalized accessibility \n(range ",
+    ylab(label = paste0("Normalized signal \n(range ",
                         as.character(x = ymin), " - ",
                         as.character(x = ymax), ")")) +
     ylim(c(ymin, ymax)) +
-    theme_browser(legend = FALSE) +
+    theme_browser(legend = multicov) +
     theme(panel.spacing.y = unit(x = 0, units = "line"))
-  if (!is.null(x = levels.use)) {
+  if (!is.null(x = levels.use) & !multicov) {
     p <- p + scale_fill_manual(values = colors_all)
   }
   if (!is.null(x = region.highlight)) {
@@ -705,9 +1272,24 @@ CoverageTrack <- function(
 #' Plot Tn5 insertion frequency over a region
 #'
 #' Plot frequency of Tn5 insertion events for different groups of cells within
-#' given regions of the genome.
-#'
-#' Thanks to Andrew Hill for providing an early version of this function.
+#' given regions of the genome. Tracks are normalized using a per-group scaling
+#' factor computed as the number of cells in the group multiplied by the mean
+#' sequencing depth for that group of cells. This accounts for differences in
+#' number of cells and potential differences in sequencing depth between groups.
+#' 
+#' Additional information can be layered on the coverage plot by setting several
+#' different options in the CoveragePlot function. This includes showing:
+#' \itemize{
+#' \item{gene annotations}
+#' \item{peak positions}
+#' \item{additional genomic ranges}
+#' \item{additional data stored in a bigWig file, which may be hosted remotely}
+#' \item{gene or protein expression data alongside coverage tracks}
+#' \item{peak-gene links}
+#' \item{the position of individual sequenced fragments as a heatmap}
+#' \item{data for multiple chromatin assays simultaneously}
+#' \item{a pseudobulk for all cells combined}
+#' }
 #'
 #' @param object A Seurat object
 #' @param region A set of genomic coordinates to show. Can be a GRanges object,
@@ -716,7 +1298,19 @@ CoverageTrack <- function(
 #' supplied, annotations must be present in the assay.
 #' @param features A vector of features present in another assay to plot
 #' alongside accessibility tracks (for example, gene names).
-#' @param assay Name of the assay to plot
+#' @param assay Name of the assay to plot. If a list of assays is provided,
+#' data from each assay will be shown overlaid on each track. The first assay in
+#' the list will define the assay used for gene annotations, links, and peaks
+#' (if shown). The order of assays given defines the plotting order.
+#' @param split.assays When plotting data from multiple assays, display each
+#' assay as a separate track. If FALSE, data from different assays are overlaid
+#' on a single track with transparancy applied.
+#' @param assay.scale Scaling to apply to data from different assays. Can be:
+#' \itemize{
+#' \item{common: plot all assays on a common scale (default)}
+#' \item{separate: plot each assay on a separate scale ranging from zero to the
+#' maximum value for that assay within the plotted region}
+#' }
 #' @param show.bulk Include coverage track for all cells combined (pseudo-bulk).
 #' Note that this will plot the combined accessibility for all cells included in
 #' the plot (rather than all cells in the object).
@@ -751,14 +1345,22 @@ CoverageTrack <- function(
 #' @param bigwig.type Type of track to use for bigWig files ("line", "heatmap",
 #' or "coverage"). Should either be a single value, or a list of values giving
 #' the type for each individual track in the provided list of bigwig files.
+#' @param bigwig.scale Same as \code{assay.scale} parameter, except for bigWig
+#' files when plotted with \code{bigwig.type="coverage"}
 #' @param cells Which cells to plot. Default all cells
 #' @param idents Which identities to include in the plot. Default is all
 #' identities.
 #' @param window Smoothing window size
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
-#' @param ymax Maximum value for Y axis. If NULL (default) set to the highest
-#' value among all the tracks.
+#' @param ymax Maximum value for Y axis. Can be one of:
+#' \itemize{
+#' \item{NULL: set to the highest value among all the tracks (default)}
+#' \item{qXX: clip the maximum value to the XX quantile (for example, q95 will
+#' set the maximum value to 95\% of the maximum value in the data). This can help
+#' remove the effect of extreme values that may otherwise distort the scale.}
+#' \item{numeric: manually define a Y-axis limit}
+#' }
 #' @param scale.factor Scaling factor for track height. If NULL (default),
 #' use the median group scaling factor determined by total number of fragments
 #' sequences in each group.
@@ -782,7 +1384,7 @@ CoverageTrack <- function(
 #' @importFrom patchwork wrap_plots
 #' @export
 #' @concept visualization
-#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @return Returns a \code{\link[patchwork]{patchwork}} object
 #' @examples
 #' \donttest{
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
@@ -815,6 +1417,8 @@ CoveragePlot <- function(
   region,
   features = NULL,
   assay = NULL,
+  split.assays = FALSE,
+  assay.scale = "common",
   show.bulk = FALSE,
   expression.assay = "RNA",
   expression.slot = "data",
@@ -831,6 +1435,7 @@ CoveragePlot <- function(
   tile.cells = 100,
   bigwig = NULL,
   bigwig.type = "coverage",
+  bigwig.scale = "common",
   heights = NULL,
   group.by = NULL,
   window = 100,
@@ -845,83 +1450,52 @@ CoveragePlot <- function(
   downsample.rate = 0.1,
   ...
 ) {
-  if (length(x = region) > 1) {
-    plot.list <- lapply(
-      X = seq_along(region),
-      FUN = function(x) {
-        SingleCoveragePlot(
-          object = object,
-          region = region[x],
-          features = features,
-          expression.assay = expression.assay,
-          expression.slot = expression.slot,
-          show.bulk = show.bulk,
-          annotation = annotation,
-          peaks = peaks,
-          peaks.group.by = peaks.group.by,
-          ranges = ranges,
-          ranges.group.by = ranges.group.by,
-          ranges.title = ranges.title,
-          region.highlight = region.highlight,
-          assay = assay,
-          links = links,
-          tile = tile,
-          tile.size = tile.size,
-          tile.cells = tile.cells,
-          bigwig = bigwig,
-          bigwig.type = bigwig.type,
-          group.by = group.by,
-          window = window,
-          ymax = ymax,
-          scale.factor = scale.factor,
-          extend.upstream = extend.upstream,
-          extend.downstream = extend.downstream,
-          cells = cells,
-          idents = idents,
-          sep = sep,
-          heights = heights,
-          max.downsample = max.downsample,
-          downsample.rate = downsample.rate
-        )
-      }
-    )
-    return(wrap_plots(plot.list, ...))
-  } else {
-    return(SingleCoveragePlot(
-      object = object,
-      region = region,
-      annotation = annotation,
-      features = features,
-      expression.assay = expression.assay,
-      expression.slot = expression.slot,
-      show.bulk = show.bulk,
-      peaks = peaks,
-      peaks.group.by = peaks.group.by,
-      ranges = ranges,
-      ranges.group.by = ranges.group.by,
-      ranges.title = ranges.title,
-      region.highlight = region.highlight,
-      assay = assay,
-      links = links,
-      tile = tile,
-      tile.size = tile.size,
-      tile.cells = tile.cells,
-      bigwig = bigwig,
-      bigwig.type = bigwig.type,
-      group.by = group.by,
-      window = window,
-      extend.upstream = extend.upstream,
-      extend.downstream = extend.downstream,
-      ymax = ymax,
-      scale.factor = scale.factor,
-      cells = cells,
-      idents = idents,
-      sep = sep,
-      heights = heights,
-      max.downsample = max.downsample,
-      downsample.rate = downsample.rate
-    ))
+  if (length(x = region) == 1) {
+    region <- list(region)
   }
+  plot.list <- lapply(
+    X = seq_along(region),
+    FUN = function(x) {
+      SingleCoveragePlot(
+        object = object,
+        region = region[[x]],
+        features = features,
+        expression.assay = expression.assay,
+        expression.slot = expression.slot,
+        show.bulk = show.bulk,
+        annotation = annotation,
+        peaks = peaks,
+        peaks.group.by = peaks.group.by,
+        ranges = ranges,
+        ranges.group.by = ranges.group.by,
+        ranges.title = ranges.title,
+        region.highlight = region.highlight,
+        assay = assay,
+        split.assays = split.assays,
+        assay.scale = assay.scale,
+        links = links,
+        tile = tile,
+        tile.size = tile.size,
+        tile.cells = tile.cells,
+        bigwig = bigwig,
+        bigwig.type = bigwig.type,
+        bigwig.scale = bigwig.scale,
+        group.by = group.by,
+        window = window,
+        ymax = ymax,
+        scale.factor = scale.factor,
+        extend.upstream = extend.upstream,
+        extend.downstream = extend.downstream,
+        cells = cells,
+        idents = idents,
+        sep = sep,
+        heights = heights,
+        max.downsample = max.downsample,
+        downsample.rate = downsample.rate
+      )
+    }
+  )
+  return(wrap_plots(plot.list, ...))
 }
 
 #' Plot DNA sequence motif
@@ -2427,6 +3001,8 @@ reformat_annotations <- function(
   start.pos,
   end.pos
 ) {
+  total.width <- end.pos - start.pos
+  tick.freq <- total.width / 50
   annotation <- annotation[annotation$type == "exon"]
   exons <- as.data.frame(x = annotation)
   annotation <- split(
@@ -2458,7 +3034,7 @@ reformat_annotations <- function(
       yes = end.pos,
       no = df$end
     )
-    breaks <- split_body(df = df)
+    breaks <- split_body(df = df, width = tick.freq)
     df <- rbind(df, breaks)
     gene_bodies[[i]] <- df
   }
