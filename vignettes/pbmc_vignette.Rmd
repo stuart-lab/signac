@@ -329,7 +329,7 @@ Here we load a pre-processed scRNA-seq dataset for human PBMCs, also provided by
 and view the code used to construct this object on
 [GitHub](https://github.com/satijalab/Integration2019/blob/master/preprocessing_scripts/pbmc_10k_v3.R).
 Alternatively, you can download the pre-processed Seurat object 
-[here](https://www.dropbox.com/s/zn6khirjafoyyxl/pbmc_10k_v3.rds).
+[here](https://signac-objects.s3.amazonaws.com/pbmc_10k_v3.rds).
 
 ```{r warning=FALSE, message=FALSE}
 # Load the pre-processed scRNA-seq data for PBMCs
