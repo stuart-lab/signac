@@ -180,6 +180,7 @@ ConnectionsToLinks <- function(
 #' @param peak.slot Name of slot to pull chromatin data from
 #' @param expression.assay Name of assay containing gene expression information
 #' @param expression.slot Name of slot to pull expression data from
+#' @param method Correlation method to use. One of "pearson" or "spearman"
 #' @param gene.coords GRanges object containing coordinates of genes in the
 #' expression assay. If NULL, extract from gene annotations stored in the assay.
 #' @param distance Distance threshold for peaks to include in regression model
@@ -228,6 +229,7 @@ LinkPeaks <- function(
   expression.assay,
   peak.slot = "counts",
   expression.slot = "data",
+  method = "pearson",
   gene.coords = NULL,
   distance = 5e+05,
   min.distance = NULL,
@@ -252,6 +254,10 @@ LinkPeaks <- function(
     } else if (min.distance == 0) {
       min.distance <- NULL
     }
+  }
+
+  if (!method %in% c("pearson", "spearman")){
+    stop("method can be one of 'pearson' or 'spearman'.")
   }
 
   if (is.null(x = gene.coords)) {
@@ -356,10 +362,17 @@ LinkPeaks <- function(
         return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
       } else {
         peak.access <- peak.data[, peak.use, drop = FALSE]
-        coef.result <- corSparse(
-          X = peak.access,
-          Y = gene.expression
-        )
+        if (method == "pearson") {
+          coef.result <- corSparse(
+            X = peak.access,
+            Y = gene.expression
+          )
+        } else if (method == "spearman") {
+          coef.result <- SparseSpearmanCor(
+            X = peak.access,
+            Y = gene.expression
+          )
+        }
         rownames(x = coef.result) <- colnames(x = peak.access)
         coef.result <- coef.result[abs(x = coef.result) > score_cutoff, , drop = FALSE]
 
