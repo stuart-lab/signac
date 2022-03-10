@@ -2203,7 +2203,7 @@ SparseColVar <- function(x) {
 #' This rank matrix can then be used to calculate pearson correlation
 #' (pearson correlation )
 SparsifiedRanks <- function(X){
-  if (class(X.sparse)[1] != "dgCMatrix") {
+  if (class(X)[1] != "dgCMatrix") {
     X <- as(object = X, Class = "dgCMatrix")
   }
   non_zeros_per_col <- diff(x = X@p)
