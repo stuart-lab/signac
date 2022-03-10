@@ -2203,30 +2203,33 @@ SparseColVar <- function(x) {
 #' This rank matrix can then be used to calculate pearson correlation
 #' (pearson correlation )
 SparsifiedRanks <- function(X){
-  X <- as(object = X, Class = "dgCMatrix")
-  j <- summary(object = X)$j
-  n_zeros_per_col <- nrow(X) - diff(X@p)
-
-  for (column in unique(x = j)){
-    non_zero_element_index <- which(j == column)
-    elements_along_row <- X@x[non_zero_element_index]
-    ranks <- rank(elements_along_row)
-    ranks <- ranks + (n_zeros_per_col[column] - 1)/2
-    X@x[non_zero_element_index] <- ranks
+  if (class(X.sparse)[1] != "dgCMatrix") {
+    X <- as(object = X, Class = "dgCMatrix")
   }
-  return(X)
+  non_zeros_per_col <- diff(x = X@p)
+  n_zeros_per_col <- nrow(x = X) - non_zeros_per_col
+  offsets <- (n_zeros_per_col - 1) / 2
+  x <- X@x
+  ## split entries to columns
+  col_lst <- split(x = x, f = rep.int(x = 1:ncol(X), times = non_zeros_per_col))
+  ## calculate sparsified ranks and do shifting
+  sparsified_ranks <- unlist(x = lapply(X = seq_along(col_lst),
+                                        FUN = function(i) rank(x = col_lst[[i]]) + offsets[i]))
+  ## Create template rank matrix
+  X.ranks <- X
+  X.ranks@x <- sparsified_ranks
+  return(X.ranks)
 }
 
 #' @importFrom qlcMatrix corSparse
 #'
 SparseSpearmanCor <- function(X, Y = NULL, cov = FALSE) {
-
   # Get sparsified ranks
-  rankX <- SparsifiedRanks(X)
+  rankX <- SparsifiedRanks(X = X)
   if (is.null(Y)){
     # Calculate pearson correlation on rank matrices
-    return (corSparse(X=rankX, cov=cov))
+    return (corSparse(X = rankX, cov = cov))
     }
-  rankY <- SparsifiedRanks(Y)
-  return(corSparse( X = rankX, Y = rankY, cov = cov))
+  rankY <- SparsifiedRanks(X = Y)
+  return(corSparse(X = rankX, Y = rankY, cov = cov))
 }
