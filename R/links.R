@@ -256,7 +256,11 @@ LinkPeaks <- function(
     }
   }
 
-  if (!method %in% c("pearson", "spearman")){
+  if (method == "pearson") {
+    cor_method <- corSparse
+  } else if (method == "spearman") {
+    cor_method <- SparseSpearmanCor
+  } else {
     stop("method can be one of 'pearson' or 'spearman'.")
   }
 
@@ -362,17 +366,10 @@ LinkPeaks <- function(
         return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
       } else {
         peak.access <- peak.data[, peak.use, drop = FALSE]
-        if (method == "pearson") {
-          coef.result <- corSparse(
-            X = peak.access,
-            Y = gene.expression
-          )
-        } else if (method == "spearman") {
-          coef.result <- SparseSpearmanCor(
-            X = peak.access,
-            Y = gene.expression
-          )
-        }
+        coef.result <- cor_method(
+          X = peak.access,
+          Y = gene.expression
+        )
         rownames(x = coef.result) <- colnames(x = peak.access)
         coef.result <- coef.result[abs(x = coef.result) > score_cutoff, , drop = FALSE]
 
@@ -402,7 +399,7 @@ LinkPeaks <- function(
           )
           # run background correlations
           bg.access <- peak.data[, unlist(x = bg.peaks), drop = FALSE]
-          bg.coef <- corSparse(
+          bg.coef <- cor_method(
             X = bg.access,
             Y = gene.expression
           )
