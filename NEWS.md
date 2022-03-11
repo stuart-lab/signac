@@ -1,3 +1,9 @@
+# Unreleased
+
+New functionality:
+
+* Added `method` parameter to `LinkPeaks()` ([@saketkc](https://github.com/saketkc); [#1030](https://github.com/timoast/signac/pull/1030))
+
 # Signac 1.6.0
 
 New functionality:
