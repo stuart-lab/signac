@@ -265,8 +265,12 @@ LinkPeaks <- function(
   }
 
   if (is.null(x = gene.coords)) {
+    annot <- Annotation(object = object[[peak.assay]])
+    if (is.null(x = annot)) {
+      stop("Gene annotations not found")
+    }
     gene.coords <- CollapseToLongestTranscript(
-      ranges = Annotation(object = object[[peak.assay]])
+      ranges = annot
     )
   }
   meta.features <- GetAssayData(
