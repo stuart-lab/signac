@@ -7,6 +7,7 @@ New functionality:
 Bug fixes:
 
 * Fixed bug in `CallPeaks()` when project name contained whitespace ([#981](https://github.com/timoast/signac/issues/981))
+* Fixed bug in `CoveragePlot()` when `tile=TRUE`
 
 # Signac 1.6.0
 
