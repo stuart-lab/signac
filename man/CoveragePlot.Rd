@@ -105,7 +105,8 @@ use for each region.}
 
 \item{links}{Display links}
 
-\item{tile}{Display per-cell fragment information in sliding windows.}
+\item{tile}{Display per-cell fragment information in sliding windows. If
+plotting multi-assay data, only the first assay is shown in the tile plot.}
 
 \item{tile.size}{Size of the sliding window for per-cell fragment tile plot}
 
