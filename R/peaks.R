@@ -295,6 +295,8 @@ CallPeaks.default <- function(
     stop("MACS2 not found. Please install MACS:",
          "https://macs3-project.github.io/MACS/")
   }
+  name <- gsub(pattern = " ", replacement = "_", x = name)
+  name <- gsub(pattern = .Platform$file.sep, replacement = "_", x = name)
 
   # if list of paths given, collapse to a single space-separated string
   if (length(x = object) > 1) {

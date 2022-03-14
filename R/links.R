@@ -177,8 +177,10 @@ ConnectionsToLinks <- function(
 #'
 #' @param object A Seurat object
 #' @param peak.assay Name of assay containing peak information
+#' @param peak.slot Name of slot to pull chromatin data from
 #' @param expression.assay Name of assay containing gene expression information
 #' @param expression.slot Name of slot to pull expression data from
+#' @param method Correlation method to use. One of "pearson" or "spearman"
 #' @param gene.coords GRanges object containing coordinates of genes in the
 #' expression assay. If NULL, extract from gene annotations stored in the assay.
 #' @param distance Distance threshold for peaks to include in regression model
@@ -225,7 +227,9 @@ LinkPeaks <- function(
   object,
   peak.assay,
   expression.assay,
+  peak.slot = "counts",
   expression.slot = "data",
+  method = "pearson",
   gene.coords = NULL,
   distance = 5e+05,
   min.distance = NULL,
@@ -252,9 +256,21 @@ LinkPeaks <- function(
     }
   }
 
+  if (method == "pearson") {
+    cor_method <- corSparse
+  } else if (method == "spearman") {
+    cor_method <- SparseSpearmanCor
+  } else {
+    stop("method can be one of 'pearson' or 'spearman'.")
+  }
+
   if (is.null(x = gene.coords)) {
+    annot <- Annotation(object = object[[peak.assay]])
+    if (is.null(x = annot)) {
+      stop("Gene annotations not found")
+    }
     gene.coords <- CollapseToLongestTranscript(
-      ranges = Annotation(object = object[[peak.assay]])
+      ranges = annot
     )
   }
   meta.features <- GetAssayData(
@@ -266,18 +282,12 @@ LinkPeaks <- function(
          "Run RegionsStats before calling this function.")
   }
   peak.data <- GetAssayData(
-    object = object, assay = peak.assay, slot = 'counts'
+    object = object, assay = peak.assay, slot = peak.slot
   )
-  if (!("count" %in% colnames(x = meta.features))) {
-    # compute total count
-    hvf.info <- FindTopFeatures(object = peak.data)
-    hvf.info <- hvf.info[rownames(x = meta.features), ]
-    meta.features <- cbind(meta.features, hvf.info)
-  }
   expression.data <- GetAssayData(
     object = object, assay = expression.assay, slot = expression.slot
   )
-  peakcounts <- meta.features[rownames(x = peak.data), "count"]
+  peakcounts <- rowSums(x = peak.data > 0)
   genecounts <- rowSums(x = expression.data > 0)
   peaks.keep <- peakcounts > min.cells
   genes.keep <- genecounts > min.cells
@@ -360,7 +370,7 @@ LinkPeaks <- function(
         return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
       } else {
         peak.access <- peak.data[, peak.use, drop = FALSE]
-        coef.result <- corSparse(
+        coef.result <- cor_method(
           X = peak.access,
           Y = gene.expression
         )
@@ -393,7 +403,7 @@ LinkPeaks <- function(
           )
           # run background correlations
           bg.access <- peak.data[, unlist(x = bg.peaks), drop = FALSE]
-          bg.coef <- corSparse(
+          bg.coef <- cor_method(
             X = bg.access,
             Y = gene.expression
           )

@@ -8,7 +8,9 @@ LinkPeaks(
   object,
   peak.assay,
   expression.assay,
+  peak.slot = "counts",
   expression.slot = "data",
+  method = "pearson",
   gene.coords = NULL,
   distance = 5e+05,
   min.distance = NULL,
@@ -28,7 +30,11 @@ LinkPeaks(
 
 \item{expression.assay}{Name of assay containing gene expression information}
 
+\item{peak.slot}{Name of slot to pull chromatin data from}
+
 \item{expression.slot}{Name of slot to pull expression data from}
+
+\item{method}{Correlation method to use. One of "pearson" or "spearman"}
 
 \item{gene.coords}{GRanges object containing coordinates of genes in the
 expression assay. If NULL, extract from gene annotations stored in the assay.}

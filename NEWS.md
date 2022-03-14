@@ -2,6 +2,17 @@
 
 New functionality:
 
+* Added `method` parameter to `LinkPeaks()` ([@saketkc](https://github.com/saketkc); [#1030](https://github.com/timoast/signac/pull/1030))
+
+Bug fixes:
+
+* Fixed bug in `CallPeaks()` when project name contained whitespace ([#981](https://github.com/timoast/signac/issues/981))
+* Fixed bug in `CoveragePlot()` when `tile=TRUE`
+
+# Signac 1.6.0
+
+New functionality:
+
 * Added `RegionHeatmap()` function
 * Added `RegionPlot()` function
 * Added `RegionMatrix()` function
@@ -10,14 +21,17 @@ New functionality:
 * Added `assay.scale`, `bigwig.scale`, and `split.assay` parameters to `CoveragePlot()`
 * Added new option to provide quantile `ymax` value in `CoveragePlot()`
 * Added `bigwig.scale` and `ymax` parameters to `BigwigTrack()`
+* Added `peak.slot` parameter to `LinkPeaks()` ([#932](https://github.com/timoast/signac/issues/932))
 
 Bug fixes:
 
 * Fixed behaviour of `min.features` parameter in `CreateChromatinAssay()` to retain cells with `>= min.features` (#[902](https://github.com/timoast/signac/discussions/902))
+* Fixed behaviour of `min.cells` parameter in `LinkPeaks()` ([#932](https://github.com/timoast/signac/issues/932))
 
 Other changes:
 
 * Updated documentation for `CoveragePlot()` ([#992](https://github.com/timoast/signac/issues/992))
+* Removed `method` parameter from `LinkPeaks()` ([#932](https://github.com/timoast/signac/issues/932))
 
 # Signac 1.5.0
 

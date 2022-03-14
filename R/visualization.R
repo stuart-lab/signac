@@ -1036,8 +1036,9 @@ SingleCoveragePlot <- function(
   }
   if (tile) {
     # reuse cut matrix
+    # TODO implement for multi assay
     tile.df <- ComputeTile(
-      cutmatrix = cutmat[[1]],
+      cutmatrix = cm.list[[1]],
       groups = obj.groups,
       window = tile.size,
       n = tile.cells,
@@ -1351,7 +1352,8 @@ CoverageTrack <- function(
 #' metadata column in the GRanges object named "color" containing the color to
 #' use for each region.
 #' @param links Display links
-#' @param tile Display per-cell fragment information in sliding windows.
+#' @param tile Display per-cell fragment information in sliding windows. If
+#' plotting multi-assay data, only the first assay is shown in the tile plot.
 #' @param tile.size Size of the sliding window for per-cell fragment tile plot
 #' @param tile.cells Number of cells to display fragment information for in tile
 #' plot.
