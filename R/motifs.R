@@ -71,6 +71,21 @@ AddMotifs.ChromatinAssay <- function(
   return(object)
 }
 
+#' @rdname AddMotifs
+#' @method AddMotifs Assay
+#' @concept motifs
+#' @export
+AddMotifs.Assay <- function(
+  object,
+  genome,
+  pfm,
+  verbose = TRUE,
+  ...
+) {
+  stop("Attempting to run AddMotifs on a standard Assay.\n",
+       "Please supply a ChromatinAssay instead.")
+}
+
 #' @param assay Name of assay to use. If NULL, use the default assay
 #' @param genome A \code{BSgenome}, \code{DNAStringSet}, \code{FaFile}, or
 #' string stating the genome build recognized by \code{getBSgenome}.
