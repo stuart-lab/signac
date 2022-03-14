@@ -4,14 +4,20 @@
 NULL
 
 globalVariables(names = c("bin", "score", "bw"), package = "Signac")
-#' Plot data from BigWig
+#' Plot data from BigWig files
 #'
-#' Create a BigWig track. Note that this function does not work on windows.
+#' Create coverage tracks, heatmaps, or line plots from bigwig files.
+#' 
+#' Note that this function does not work on windows.
 #'
 #' @param region GRanges object specifying region to plot
-#' @param bigwig Path to a bigwig file
+#' @param bigwig List of bigwig file paths. List should be named, and the name
+#' of each element in the list of files will be displayed alongside the track
+#' in the final plot.
 #' @param smooth Number of bases to smooth data over (rolling mean). If NULL,
 #' do not apply smoothing.
+#' @param extend.upstream Number of bases to extend the region upstream.
+#' @param extend.downstream Number of bases to extend the region downstream.
 #' @param type Plot type. Can be one of "line", "heatmap", or "coverage"
 #' @param y_label Y-axis label
 #' @param bigwig.scale Scaling to apply to data from different bigwig files.
@@ -44,12 +50,15 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' @importFrom GenomicRanges start end seqnames width
 #' @importFrom dplyr slice_sample group_by mutate ungroup
 #' @concept visualization
+#' @return Returns a ggplot object
 #'
 #' @export
 BigwigTrack <- function(
   region,
   bigwig,
   smooth = 200,
+  extend.upstream = 0,
+  extend.downstream = 0,
   type = "coverage",
   y_label = "bigWig",
   bigwig.scale = "common",
@@ -72,6 +81,13 @@ BigwigTrack <- function(
     message("Please install rtracklayer. http://www.bioconductor.org/packages/rtracklayer/")
     return(NULL)
   }
+  region <- FindRegion(
+    object = NULL,
+    region = region,
+    sep = c("-", "-"),
+    extend.upstream = extend.upstream,
+    extend.downstream = extend.downstream
+  )
   if (!inherits(x = region, what = "GRanges")) {
     stop("region should be a GRanges object")
   }
@@ -91,17 +107,17 @@ BigwigTrack <- function(
       stringsAsFactors = FALSE,
       bw = names(x = bigwig)[[i]]
     )
+    if (bigwig.scale == "separate") {
+      # scale to fraction of max for each separately
+      file.max <- max(region_data$score, na.rm = TRUE)
+      region_data$score <- region_data$score / file.max
+    }
     all.data <- rbind(all.data, region_data)
   }
+  all.data$bw <- factor(x = all.data$bw, levels = names(x = bigwig))
   window.size = width(x = region)
-  sampling <- min(max.downsample, window.size * downsample.rate)
+  sampling <- max(max.downsample, window.size * downsample.rate)
   coverages <- slice_sample(.data = all.data, n = sampling)
-  
-  if (bigwig.scale == "separate") {
-    # scale to fraction of max for each separately
-    file.max <- max(coverages$score, na.rm = TRUE)
-    coverages$score <- coverages$score / file.max
-  }
   
   covmax <- signif(x = max(coverages$score, na.rm = TRUE), digits = 2)
   if (is.null(x = ymax)) {
@@ -151,7 +167,7 @@ BigwigTrack <- function(
       scale_fill_grey()
   }
   chromosome <- as.character(x = seqnames(x = region))
-  p <- p + theme_browser() +
+  p <- p + theme_browser(axis.text.y = TRUE) +
     xlab(label = paste0(chromosome, " position (bp)")) +
     ylab(label = y_label)
   return(p)
@@ -2946,6 +2962,7 @@ CreateTilePlot <- function(df, n, legend = TRUE) {
 #'
 #' @param ... Additional arguments
 #' @param legend Display plot legend
+#' @param axis.text.y Display y-axis text
 #'
 #' @importFrom ggplot2 theme theme_classic element_blank element_text
 #' @export
@@ -2954,13 +2971,18 @@ CreateTilePlot <- function(df, n, legend = TRUE) {
 #' \donttest{
 #' PeakPlot(atac_small, region = "chr1-710000-715000") + theme_browser()
 #' }
-theme_browser <- function(..., legend = TRUE) {
+theme_browser <- function(..., legend = TRUE, axis.text.y = FALSE) {
   browser.theme <- theme_classic() +
     theme(
-      axis.text.y = element_blank(),
       strip.background = element_blank(),
       strip.text.y.left = element_text(angle = 0)
     )
+  if (!axis.text.y) {
+    browser.theme <- browser.theme +
+      theme(
+        axis.text.y = element_blank()
+      )
+  }
   if (!legend) {
     browser.theme <- browser.theme +
       theme(
