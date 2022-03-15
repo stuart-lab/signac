@@ -8,6 +8,7 @@ Bug fixes:
 
 * Fixed bug in `CallPeaks()` when project name contained whitespace ([#981](https://github.com/timoast/signac/issues/981))
 * Fixed bug in `CoveragePlot()` when `tile=TRUE`
+* Fixed bug in `InsertionBias()` that set the coordinates beyond the end of some chromosomes ([#986](https://github.com/timoast/signac/issues/986))
 
 # Signac 1.6.0
 
