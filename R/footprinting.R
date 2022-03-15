@@ -104,6 +104,7 @@ GetFootprintData <- function(
 #' @importFrom future.apply future_lapply
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
+#' @importFrom GenomeInfoDb seqlengths
 #' @export
 #' @concept footprinting
 #' @rdname Footprint
@@ -149,9 +150,15 @@ Footprint.ChromatinAssay <- function(
       if (verbose) {
         message("Computing Tn5 insertion bias")
       }
+      region.end <- seqlengths(x = genome)[1]
       object <- InsertionBias(
         object = object,
-        genome = genome
+        genome = genome,
+        region = paste0(
+          names(x = region.end),
+          "-1-",
+          as.character(x = region.end)
+        )
       )
     }
   }
