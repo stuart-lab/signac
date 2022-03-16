@@ -3,6 +3,7 @@
 New functionality:
 
 * Added `method` parameter to `LinkPeaks()` ([@saketkc](https://github.com/saketkc); [#1030](https://github.com/timoast/signac/pull/1030))
+* Add ability to plot transcript isoforms (set `annotation="transcript"` in `CoveragePlot()`)
 
 Bug fixes:
 
