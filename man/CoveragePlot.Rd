@@ -81,7 +81,10 @@ argument.}
 \item{expression.slot}{Name of slot to pull expression data from. Only needed
 if supplying the \code{features} argument.}
 
-\item{annotation}{Display gene annotations}
+\item{annotation}{Display gene annotations. Set to TRUE or FALSE to control
+whether genes models are displayed, or choose "transcript" to display all
+transcript isoforms, or "gene" to display gene models only (same as setting
+TRUE).}
 
 \item{peaks}{Display peaks}
 

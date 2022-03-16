@@ -1002,10 +1002,22 @@ SingleCoveragePlot <- function(
     ex.plot <- NULL
     widths <- NULL
   }
-  if (annotation) {
-    gene.plot <- AnnotationPlot(object = object[[assay[[1]]]], region = region)
+  if (is.logical(x = annotation)) {
+    if (annotation) {
+      gene.plot <- AnnotationPlot(
+        object = object[[assay[[1]]]],
+        region = region,
+        mode = "gene"
+      )
+    } else {
+      gene.plot <- NULL
+    }
   } else {
-    gene.plot <- NULL
+    gene.plot <- AnnotationPlot(
+      object = object[[assay[[1]]]],
+      region = region,
+      mode = annotation
+    )
   }
   if (links) {
     link.plot <- LinkPlot(object = object[[assay[[1]]]], region = region)
@@ -1090,7 +1102,7 @@ SingleCoveragePlot <- function(
   bulk.height <- (1 / nident) * 10
   bw.height <- 10
   heights <- SetIfNull(
-    x = heights, y = c(10, bulk.height, bw.height, 10, 2, 1, 1, 3)
+    x = heights, y = c(10, bulk.height, bw.height, 10, 3, 1, 1, 3)
   )
   p <- CombineTracks(
     plotlist = list(p, bulk.plot, bigwig.tracks, tile.plot, gene.plot,
@@ -1336,7 +1348,10 @@ CoverageTrack <- function(
 #' argument.
 #' @param expression.slot Name of slot to pull expression data from. Only needed
 #' if supplying the \code{features} argument.
-#' @param annotation Display gene annotations
+#' @param annotation Display gene annotations. Set to TRUE or FALSE to control
+#' whether genes models are displayed, or choose "transcript" to display all
+#' transcript isoforms, or "gene" to display gene models only (same as setting
+#' TRUE).
 #' @param peaks Display peaks
 #' @param peaks.group.by Grouping variable to color peaks by. Must be a variable
 #' present in the feature metadata. If NULL, do not color peaks by any variable.
@@ -1993,6 +2008,8 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
 #'
 #' @param object A \code{\link[SeuratObject]{Seurat}} object
 #' @param region A genomic region to plot
+#' @param mode Display mode. Choose either "gene" or "transcript" to determine
+#' whether genes or transcripts are plotted.
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
 #' @importFrom IRanges subsetByOverlaps
@@ -2008,7 +2025,16 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
 #' \donttest{
 #' AnnotationPlot(object = atac_small, region = c("chr1-29554-39554"))
 #' }
-AnnotationPlot <- function(object, region) {
+AnnotationPlot <- function(object, region, mode = "gene") {
+  if(mode == "gene") {
+    collapse_transcript <- TRUE
+    label <- "gene_name"
+  } else if (mode == "transcript") {
+    collapse_transcript <- FALSE
+    label <- "tx_id"
+  } else {
+    stop("Unknown mode requested, choose either 'gene' or 'transcript'")
+  }
   annotation <- Annotation(object = object)
   if (is.null(x = annotation)) {
     return(NULL)
@@ -2036,7 +2062,8 @@ AnnotationPlot <- function(object, region) {
     annotation_df_list <- reformat_annotations(
       annotation = annotation.subset,
       start.pos = start.pos,
-      end.pos = end.pos
+      end.pos = end.pos,
+      collapse_transcript = collapse_transcript
     )
     p <- ggplot() +
       # exons
@@ -2050,7 +2077,7 @@ AnnotationPlot <- function(object, region) {
           color = "strand"
         ),
         show.legend = FALSE,
-        size = 5
+        size = 3
       ) +
       # gene body
       geom_segment(
@@ -2080,7 +2107,7 @@ AnnotationPlot <- function(object, region) {
           ends = "last",
           type = "open",
           angle = 45,
-          length = unit(x = 0.05, units = "inches")
+          length = unit(x = 0.04, units = "inches")
         ),
         show.legend = FALSE,
         size = 1/2
@@ -2101,7 +2128,7 @@ AnnotationPlot <- function(object, region) {
           ends = "first",
           type = "open",
           angle = 45,
-          length = unit(x = 0.05, units = "inches")
+          length = unit(x = 0.04, units = "inches")
         ),
         show.legend = FALSE,
         size = 1/2
@@ -2109,13 +2136,13 @@ AnnotationPlot <- function(object, region) {
     }
     # label genes
     n_stack <- max(annotation_df_list$labels$dodge)
-    annotation_df_list$labels$dodge <- annotation_df_list$labels$dodge + (n_stack * 0.2)
+    annotation_df_list$labels$dodge <- annotation_df_list$labels$dodge + 0.2
     p <- p + geom_text(
       data = annotation_df_list$labels,
-      mapping = aes_string(x = "position", y = "dodge", label = "gene_name"),
-      size = 3
+      mapping = aes_string(x = "position", y = "dodge", label = label),
+      size = 2.5
     )
-    y_limit <- c(0.9, n_stack + (n_stack * 0.5))
+    y_limit <- c(0.9, n_stack + 0.4)
   }
   p <- p +
     theme_classic() +
@@ -3013,6 +3040,7 @@ split_body <- function(df, width = 1000) {
     start = starts,
     end = starts + 1,
     strand = df$strand[[1]],
+    tx_id = df$tx_id[[1]],
     gene_name = df$gene_name[[1]],
     gene_biotype = df$gene_biotype[[1]],
     type = "arrow"
@@ -3023,16 +3051,24 @@ split_body <- function(df, width = 1000) {
 reformat_annotations <- function(
   annotation,
   start.pos,
-  end.pos
+  end.pos,
+  collapse_transcript = TRUE
 ) {
   total.width <- end.pos - start.pos
   tick.freq <- total.width / 50
   annotation <- annotation[annotation$type == "exon"]
   exons <- as.data.frame(x = annotation)
-  annotation <- split(
-    x = annotation,
-    f = annotation$gene_name
-  )
+  if (collapse_transcript) {
+    annotation <- split(
+      x = annotation,
+      f = annotation$gene_name
+    )
+  } else {
+    annotation <- split(
+      x = annotation,
+      f = annotation$tx_id
+    )
+  }
   annotation <- lapply(X = annotation, FUN = as.data.frame)
 
   # add gene total start / end
@@ -3043,6 +3079,7 @@ reformat_annotations <- function(
       start = min(annotation[[i]]$start),
       end = max(annotation[[i]]$end),
       strand = annotation[[i]]$strand[[1]],
+      tx_id = annotation[[i]]$tx_id[[1]],
       gene_name = annotation[[i]]$gene_name[[1]],
       gene_biotype = annotation[[i]]$gene_biotype[[1]],
       type = "body"
@@ -3065,9 +3102,19 @@ reformat_annotations <- function(
   gene_bodies <- do.call(what = rbind, args = gene_bodies)
 
   # record if genes overlap
-  overlap_idx <- record_overlapping(annotation = gene_bodies, min.gapwidth = 1000)
-  gene_bodies$dodge <- overlap_idx[gene_bodies$gene_name]
-  exons$dodge <- overlap_idx[exons$gene_name]
+  overlap_idx <- record_overlapping(
+    annotation = gene_bodies,
+    min.gapwidth = 1000,
+    collapse_transcript = collapse_transcript
+  )
+  # overlap_idx <- overlap_idx
+  if (collapse_transcript) {
+    gene_bodies$dodge <- overlap_idx[gene_bodies$gene_name]
+    exons$dodge <- overlap_idx[exons$gene_name]
+  } else {
+    gene_bodies$dodge <- overlap_idx[gene_bodies$tx_id]
+    exons$dodge <- overlap_idx[exons$tx_id]
+  }
 
   label_df <- gene_bodies[gene_bodies$type == "body", ]
   label_df$width <- label_df$end - label_df$start
@@ -3087,9 +3134,12 @@ reformat_annotations <- function(
 }
 
 #' @importFrom GenomicRanges makeGRangesFromDataFrame reduce
-record_overlapping <- function(annotation, min.gapwidth = 1000) {
+record_overlapping <- function(
+  annotation,
+  min.gapwidth = 1000,
+  collapse_transcript = TRUE
+) {
   # convert back to granges
-  annotation.stash <- annotation
   annotation$strand <- "*"
   gr <- makeGRangesFromDataFrame(
     df = annotation[annotation$type == "body", ], keep.extra.columns = TRUE
@@ -3105,6 +3155,10 @@ record_overlapping <- function(annotation, min.gapwidth = 1000) {
       idx[[mrg[[j]]]] <- j
     }
   }
-  names(x = idx) <- gr$gene_name
+  if (collapse_transcript) {
+    names(x = idx) <- gr$gene_name
+  } else {
+    names(x = idx) <- gr$tx_id
+  }
   return(idx)
 }
