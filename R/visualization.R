@@ -2049,10 +2049,17 @@ AnnotationPlot <- function(object, region, mode = "gene") {
   # get names of genes that overlap region, then subset to include only those
   # genes. This avoids truncating the gene if it runs outside the region
   annotation.subset <- subsetByOverlaps(x = annotation, ranges = region)
-  genes.keep <- unique(x = annotation.subset$gene_name)
-  annotation.subset <- annotation[
-    fmatch(x = annotation$gene_name, table = genes.keep, nomatch = 0L) > 0L
-  ]
+  if (mode == "gene") {
+    genes.keep <- unique(x = annotation.subset$gene_name)
+    annotation.subset <- annotation[
+      fmatch(x = annotation$gene_name, table = genes.keep, nomatch = 0L) > 0L
+    ]
+  } else {
+    tx.keep <- unique(x = annotation.subset$tx_id)
+    annotation.subset <- annotation[
+      fmatch(x = annotation$tx_id, table = tx.keep, nomatch = 0L) > 0L
+    ]
+  }
 
   if (length(x = annotation.subset) == 0) {
     # make empty plot
