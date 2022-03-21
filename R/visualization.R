@@ -66,6 +66,9 @@ BigwigTrack <- function(
   max.downsample = 3000,
   downsample.rate = 0.1
 ) {
+  if (!inherits(x = bigwig, what = "list")) {
+    bigwig <- list("bigWig" = bigwig)
+  }
   possible_types <- c("line", "heatmap", "coverage")
   if (!(type %in% possible_types)) {
     stop(
