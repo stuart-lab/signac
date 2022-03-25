@@ -88,7 +88,8 @@ GetFootprintData <- function(
   return(plot.data)
 }
 
-#' @param regions A set of genomic ranges containing the motif instances
+#' @param regions A set of genomic ranges containing the motif instances. These
+#' should all be the same width.
 #' @param genome A \code{\link[BSgenome]{BSgenome}} object
 #' @param motif.name Name of a motif stored in the assay to footprint. If not
 #' supplied, must supply a set of regions.
@@ -141,6 +142,9 @@ Footprint.ChromatinAssay <- function(
       stop("Must set a key to store positional enrichment information")
     }
     # supplied regions, put into list
+    if (!length(x = unique(x = width(x = regions))) == 1) {
+      stop("Manually-supplied regions must all have the same width.")
+    }
     regionlist <- list(regions)
   }
   if (compute.expected) {

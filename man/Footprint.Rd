@@ -48,7 +48,8 @@ supplied, must supply a set of regions.}
 
 \item{key}{Key to store positional enrichment information under.}
 
-\item{regions}{A set of genomic ranges containing the motif instances}
+\item{regions}{A set of genomic ranges containing the motif instances. These
+should all be the same width.}
 
 \item{assay}{Name of assay to use}
 
