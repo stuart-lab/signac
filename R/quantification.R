@@ -269,7 +269,16 @@ FeatureMatrix <- function(
   if (length(x = mat.list) == 1) {
     return(mat.list[[1]])
   } else {
-    featmat <- Reduce(f = RowMergeSparseMatrices, x = mat.list)
+    # ensure all cells present, same order
+    all.cells <- unique(
+      x = unlist(x = lapply(X = mat.list, FUN = colnames))
+    )
+    mat.list <- lapply(
+      X = mat.list,
+      FUN = AddMissingCells,
+      cells = all.cells
+    )
+    featmat <- Reduce(f = `+`, x = mat.list)
     return(featmat)
   }
 }
