@@ -270,9 +270,10 @@ ClosestFeature <- function(
 #' Setting this parameter can avoid quantifying extremely long transcripts that
 #' can add a relatively long amount of time. If NULL, do not filter genes based
 #' on width.
+#' @param process_n Number of regions to load into memory at a time, per thread.
+#' Processing more regions at once can be faster but uses more memory.
 #' @param gene.id Record gene IDs in output matrix rather than gene name.
 #' @param verbose Display messages
-#' @param ... Additional options passed to \code{\link{FeatureMatrix}}
 #'
 #' @return Returns a sparse matrix
 #'
@@ -296,9 +297,9 @@ GeneActivity <- function(
   extend.downstream = 0,
   biotypes = "protein_coding",
   max.width = 500000,
+  process_n = 2000,
   gene.id = FALSE,
-  verbose = TRUE,
-  ...
+  verbose = TRUE
 ) {
   if (!is.null(x = features)) {
     if (length(x = features) == 0) {
@@ -359,9 +360,9 @@ GeneActivity <- function(
   counts <- FeatureMatrix(
     fragments = frags,
     features = transcripts,
+    process_n = process_n,
     cells = cells,
-    verbose = verbose,
-    ...
+    verbose = verbose
   )
   # replace NA names with gene ID
   transcripts$gene_name <- ifelse(
