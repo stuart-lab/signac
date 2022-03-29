@@ -366,7 +366,7 @@ GeneActivity <- function(
   )
   # replace NA names with gene ID
   transcripts$gene_name <- ifelse(
-    test = is.na(x = transcripts$gene_name),
+    test = is.na(x = transcripts$gene_name) | (transcripts$gene_name == ""),
     yes = transcripts$gene_id,
     no = transcripts$gene_name
   )
