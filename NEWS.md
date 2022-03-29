@@ -13,6 +13,7 @@ Bug fixes:
 * Fixed bug in `BigwigTrack()` when supplying a single bigwig file ([#1053](https://github.com/timoast/signac/issues/1053))
 * Fixed bug in `GeneActivity()` when specifying biotypes ([#1058](https://github.com/timoast/signac/issues/1058))
 * Fixed bug in `GeneActivity()` when gene name is an empty string ([#1055](https://github.com/timoast/signac/issues/1055))
+* Fixed bug in `FeatureMatrix()` when using list of Fragment objects ([#1056](https://github.com/timoast/signac/issues/1056))
 
 # Signac 1.6.0
 
