@@ -12,6 +12,7 @@ Bug fixes:
 * Fixed bug in `InsertionBias()` that set the coordinates beyond the end of some chromosomes ([#986](https://github.com/timoast/signac/issues/986))
 * Fixed bug in `BigwigTrack()` when supplying a single bigwig file ([#1053](https://github.com/timoast/signac/issues/1053))
 * Fixed bug in `GeneActivity()` when specifying biotypes ([#1058](https://github.com/timoast/signac/issues/1058))
+* Fixed bug in `GeneActivity()` when gene name is an empty string ([#1055](https://github.com/timoast/signac/issues/1055))
 
 # Signac 1.6.0
 
