@@ -312,6 +312,12 @@ GeneActivity <- function(
     stop("The requested assay is not a ChromatinAssay.")
   }
   annotation <- Annotation(object = object[[assay]])
+  # replace NA names with gene ID
+  annotation$gene_name <- ifelse(
+    test = is.na(x = annotation$gene_name) | (annotation$gene_name == ""),
+    yes = annotation$gene_id,
+    no = annotation$gene_name
+  )
   if (length(x = annotation) == 0) {
     stop("No gene annotations present in object")
   }
@@ -363,12 +369,6 @@ GeneActivity <- function(
     process_n = process_n,
     cells = cells,
     verbose = verbose
-  )
-  # replace NA names with gene ID
-  transcripts$gene_name <- ifelse(
-    test = is.na(x = transcripts$gene_name) | (transcripts$gene_name == ""),
-    yes = transcripts$gene_id,
-    no = transcripts$gene_name
   )
   # set row names
   gene.key <- transcripts$gene_name
