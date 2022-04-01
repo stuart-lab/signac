@@ -306,6 +306,9 @@ CallPeaks.default <- function(
     object <- Reduce(f = paste, x = object)
   } else {
     object <- paste0("'", object, "'")
+    if (object == "''") {
+      stop("No fragment files supplied")
+    }
   }
 
   broadstring <- ifelse(test = broad, yes = " --broad ", no = "")
