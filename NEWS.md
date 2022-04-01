@@ -15,6 +15,10 @@ Bug fixes:
 * Fixed bug in `GeneActivity()` when gene name is an empty string ([#1055](https://github.com/timoast/signac/issues/1055))
 * Fixed bug in `FeatureMatrix()` when using list of Fragment objects ([#1056](https://github.com/timoast/signac/issues/1056))
 
+Other changes:
+
+* Improved error message when no fragment file is supplied in `CallPeaks()` ([#1062](https://github.com/timoast/signac/issues/1062))
+
 # Signac 1.6.0
 
 New functionality:
