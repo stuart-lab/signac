@@ -51,7 +51,6 @@ Imports:
     RcppRoll,
     scales,
     Rcpp,
-    ggforce,
     qlcMatrix,
     grid,
     tidyselect,
@@ -81,6 +80,7 @@ Collate:
     'zzz.R'
 Suggests: 
     Seurat (>= 4.0.6),
+    ggforce,
     testthat (>= 2.1.0),
     chromVAR,
     SummarizedExperiment,

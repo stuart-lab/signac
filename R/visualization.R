@@ -1948,7 +1948,6 @@ PeakPlot <- function(
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom ggplot2 ggplot geom_hline aes theme_classic xlim
 #' ylab theme element_blank scale_color_gradient2 aes_string
-#' @importFrom ggforce geom_bezier
 #' @concept visualization
 #' @concept links
 LinkPlot <- function(object, region, min.cutoff = 0) {
@@ -1977,24 +1976,30 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
 
   # plot
   if (nrow(x = link.df) > 0) {
-    # convert to format for geom_bezier
-    link.df$group <- seq_len(length.out = nrow(x = link.df))
-    df <- data.frame(
-      x = c(link.df$start,
-            (link.df$start + link.df$end) / 2,
-            link.df$end),
-      y = c(rep(x = 0, nrow(x = link.df)),
-            rep(x = -1, nrow(x = link.df)),
-            rep(x = 0, nrow(x = link.df))),
-      group = rep(x = link.df$group, 3),
-      score = rep(link.df$score, 3)
-    )
-    p <- ggplot(data = df) +
-      geom_bezier(
-        mapping = aes_string(x = "x", y = "y", group = "group", color = "score")
-      ) +
-      geom_hline(yintercept = 0, color = 'grey') +
-      scale_color_gradient2(low = "red", mid = "grey", high = "blue")
+    if (!requireNamespace(package = "ggforce", quietly = TRUE)) {
+      warning("Please install ggforce to enable LinkPlot plotting: ",
+              "install.packages('ggforce')")
+      p <- ggplot(data = link.df)
+    } else {
+      # convert to format for geom_bezier
+      link.df$group <- seq_len(length.out = nrow(x = link.df))
+      df <- data.frame(
+        x = c(link.df$start,
+              (link.df$start + link.df$end) / 2,
+              link.df$end),
+        y = c(rep(x = 0, nrow(x = link.df)),
+              rep(x = -1, nrow(x = link.df)),
+              rep(x = 0, nrow(x = link.df))),
+        group = rep(x = link.df$group, 3),
+        score = rep(link.df$score, 3)
+      )
+      p <- ggplot(data = df) +
+        geom_bezier(
+          mapping = aes_string(x = "x", y = "y", group = "group", color = "score")
+        ) +
+        geom_hline(yintercept = 0, color = 'grey') +
+        scale_color_gradient2(low = "red", mid = "grey", high = "blue")
+    }
   } else {
     p <- ggplot(data = link.df)
   }
