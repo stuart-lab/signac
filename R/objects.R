@@ -566,14 +566,13 @@ GetMotifData.ChromatinAssay <- function(object, slot = "data", ...) {
 #' @method GetMotifData Seurat
 #' @concept motifs
 #' @importFrom SeuratObject DefaultAssay
-#' @importFrom Seurat GetAssay
 #' @export
 #' @examples
 #' GetMotifData(object = atac_small)
 GetMotifData.Seurat <- function(object, assay = NULL, slot = "data", ...) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   return(GetMotifData(
-    object = GetAssay(object = object, assay = assay),
+    object = object[[assay]],
     slot = slot,
     ...
   ))

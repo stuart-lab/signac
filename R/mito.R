@@ -437,7 +437,6 @@ IdentifyVariants.Assay <- function(
   return(df)
 }
 
-#' @importFrom Seurat GetAssay
 #' @importFrom SeuratObject DefaultAssay
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @rdname IdentifyVariants
@@ -451,7 +450,7 @@ IdentifyVariants.Seurat <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  assay.obj <- GetAssay(object = object, assay = assay)
+  assay.obj <- object[[assay]]
   df <- IdentifyVariants(object = assay.obj, refallele = refallele, ...)
   return(df)
 }

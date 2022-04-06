@@ -174,7 +174,7 @@ RunSVD.Seurat <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  assay.data <- GetAssay(object = object, assay = assay)
+  assay.data <- object[[assay]]
   reduction.data <- RunSVD(
     object = assay.data,
     assay = assay,

@@ -58,7 +58,6 @@ BinarizeCounts.Assay <- function(
 #' and binarization will be applied to each.
 #' @rdname BinarizeCounts
 #' @method BinarizeCounts Seurat
-#' @importFrom Seurat GetAssay
 #' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @concept preprocessing
@@ -72,7 +71,7 @@ BinarizeCounts.Seurat <- function(
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   for (i in seq_along(along.with = assay)) {
-    assay.data <- GetAssay(object = object, assay = assay[[i]])
+    assay.data <- object[[assay[[i]]]]
     assay.data <- BinarizeCounts(
       object = assay.data,
       assay = assay[[i]],
@@ -291,7 +290,6 @@ FindTopFeatures.Assay <- function(
 
 #' @rdname FindTopFeatures
 #' @importFrom SeuratObject DefaultAssay
-#' @importFrom Seurat GetAssay
 #' @export
 #' @concept preprocessing
 #' @method FindTopFeatures Seurat
@@ -305,7 +303,7 @@ FindTopFeatures.Seurat <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object))
-  assay.data <- GetAssay(object = object, assay = assay)
+  assay.data <- object[[assay]]
   assay.data <- FindTopFeatures(
     object = assay.data,
     assay = assay,
@@ -529,7 +527,7 @@ RegionStats.Seurat <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  assay.data <- GetAssay(object = object, assay = assay)
+  assay.data <- object[[assay]]
   assay.data <- RegionStats(
     object = assay.data,
     genome = genome,
@@ -693,7 +691,7 @@ RunTFIDF.Seurat <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object))
-  assay.data <- GetAssay(object = object, assay = assay)
+  assay.data <- object[[assay]]
   assay.data <- RunTFIDF(
     object = assay.data,
     assay = assay,
