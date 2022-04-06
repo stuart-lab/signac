@@ -21,6 +21,9 @@ FoldChange.ChromatinAssay <- function(
   base = 2,
   ...
 ) {
+  if (!requireNamespace(package = "Seurat", quietly = TRUE)) {
+    stop("Please install Seurat: install.packages('Seurat')")
+  }
   mean.fxn <-  function(x) {
     return(log(x = rowMeans(x = x) + pseudocount.use, base = base))
   }
@@ -32,7 +35,7 @@ FoldChange.ChromatinAssay <- function(
   )
   fc.name <- SetIfNull(x = fc.name, y = paste0("avg_log", base.text, "FC"))
   data <- GetAssayData(object = object, slot = slot)
-  FoldChange(
+  Seurat::FoldChange(
     object = data,
     cells.1 = cells.1,
     cells.2 = cells.2,

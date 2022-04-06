@@ -448,7 +448,6 @@ globalVariables(
 #' @return Returns a ggplot2 object
 #' 
 #' @importFrom SeuratObject DefaultAssay GetAssayData
-#' @importFrom Seurat SetQuantile
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer
@@ -566,7 +565,10 @@ RegionHeatmap <- function(
       
       # clip values
       if (!is.na(x = max.cutoff)) {
-        cutoff <- SetQuantile(cutoff = max.cutoff, data = smoothed)
+        if (!requireNamespace(package = "Seurat", quietly = TRUE)) {
+          stop("Please install Seurat: install.packages('Seurat')")
+        }
+        cutoff <- Seurat::SetQuantile(cutoff = max.cutoff, data = smoothed)
         smoothed[smoothed > cutoff] <- cutoff
       }
       

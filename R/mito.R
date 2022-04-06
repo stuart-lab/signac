@@ -192,7 +192,6 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
 #' @export
 #' @concept mito
 #' @importFrom SeuratObject DefaultAssay GetAssayData
-#' @importFrom Seurat FindNeighbors FindClusters
 #' VariableFeatures
 FindClonotypes <- function(
   object,
@@ -203,6 +202,9 @@ FindClonotypes <- function(
   k = 10,
   algorithm = 3
 ) {
+  if (!requireNamespace(package = "Seurat", quietly = TRUE)) {
+    stop("Please install Seurat: install.packages('Seurat')")
+  }
   # get allele matrix
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   features <- SetIfNull(x = features, y = rownames(x = object[[assay]]))
@@ -210,12 +212,16 @@ FindClonotypes <- function(
   mat <- sqrt(x = t(x = mat))
 
   # construct neighbor graph
-  graph <- FindNeighbors(object = mat, k.param = k, annoy.metric = metric)
+  graph <- Seurat::FindNeighbors(
+    object = mat,
+    k.param = k,
+    annoy.metric = metric
+  )
   object[[paste0(assay, "_nn")]] <- graph$nn
   object[[paste0(assay, "_snn")]] <- graph$snn
 
   # cluster
-  object <- FindClusters(
+  object <- Seurat::FindClusters(
     object = object,
     graph.name = paste0(assay, "_snn"),
     resolution = resolution,
