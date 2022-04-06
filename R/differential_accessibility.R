@@ -6,7 +6,8 @@ Seurat::FoldChange
 #' @rdname FoldChange
 #' @export
 #' @method FoldChange ChromatinAssay
-#' @importFrom Seurat FoldChange GetAssayData
+#' @importFrom Seurat FoldChange
+#' @importFrom SeuratObject GetAssayData
 #' @importFrom Matrix rowMeans
 FoldChange.ChromatinAssay <- function(
   object,

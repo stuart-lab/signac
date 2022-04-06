@@ -199,7 +199,7 @@ ConnectionsToLinks <- function(
 #' using gene IDs rather than gene names.
 #' @param verbose Display messages
 #'
-#' @importFrom Seurat GetAssayData
+#' @importFrom SeuratObject GetAssayData
 #' @importFrom stats pnorm sd
 #' @importFrom Matrix sparseMatrix rowSums
 #' @importFrom future.apply future_lapply

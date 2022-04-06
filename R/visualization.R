@@ -191,7 +191,7 @@ globalVariables(names = c("Component", "counts"), package = "Signac")
 #' @param ... Additional arguments passed to \code{\link[stats]{cor}}
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
-#' @importFrom Seurat Embeddings DefaultAssay
+#' @importFrom SeuratObject Embeddings DefaultAssay
 #' @importFrom ggplot2 ggplot geom_point scale_x_continuous
 #' ylab ylim theme_light ggtitle aes
 #' @importFrom stats cor
@@ -246,7 +246,7 @@ globalVariables(
 #' @export
 #' @concept visualization
 #' @concept footprinting
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom ggplot2 ggplot aes geom_line facet_wrap xlab ylab theme_classic
 #' theme element_blank geom_label guides guide_legend
@@ -447,7 +447,8 @@ globalVariables(
 #' 
 #' @return Returns a ggplot2 object
 #' 
-#' @importFrom Seurat DefaultAssay GetAssayData SetQuantile
+#' @importFrom SeuratObject DefaultAssay GetAssayData
+#' @importFrom Seurat SetQuantile
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer
@@ -637,7 +638,7 @@ RegionHeatmap <- function(
   return(p)
 }
 
-#' @importFrom Seurat GetAssayData
+#' @importFrom SeuratObject GetAssayData
 get_heatmap_data <- function(
   object,
   key,
@@ -716,7 +717,7 @@ get_heatmap_data <- function(
 #' 
 #' @return Returns a ggplot2 object
 #' 
-#' @importFrom Seurat DefaultAssay GetAssayData
+#' @importFrom SeuratObject DefaultAssay GetAssayData
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer
@@ -841,7 +842,7 @@ globalVariables(
 )
 #' @importFrom ggplot2 ylab scale_fill_manual unit element_text theme
 #' @importMethodsFrom GenomicRanges start end
-#' @importFrom Seurat WhichCells Idents DefaultAssay Idents<-
+#' @importFrom SeuratObject WhichCells Idents DefaultAssay Idents<-
 SingleCoveragePlot <- function(
   object,
   region,
@@ -1546,7 +1547,7 @@ CoveragePlot <- function(
 #' @param ... Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}
 #'
 #' @importFrom ggseqlogo ggseqlogo
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @concept visualization
 #' @concept motifs
@@ -1600,7 +1601,7 @@ globalVariables(names = "group", package = "Signac")
 #'
 #' @importFrom ggplot2 ggplot geom_histogram theme_classic aes facet_wrap xlim
 #' scale_y_log10 theme element_blank
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #'
 #' @export
 #' @concept visualization
@@ -1684,7 +1685,7 @@ globalVariables(names = "norm.value", package = "Signac")
 #' @param group.by Set of identities to group cells by
 #' @param idents Set of identities to include in the plot
 #'
-#' @importFrom Seurat GetAssayData DefaultAssay
+#' @importFrom SeuratObject GetAssayData DefaultAssay
 #' @importFrom Matrix colMeans
 #' @importFrom ggplot2 ggplot aes geom_line xlab ylab theme_classic ggtitle
 #' theme element_blank
@@ -1848,7 +1849,7 @@ CombineTracks <- function(
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
 #' @concept visualization
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom S4Vectors mcols<-
 #' @importFrom GenomicRanges start end
 #' @importFrom IRanges subsetByOverlaps
@@ -2187,7 +2188,7 @@ globalVariables(names = "gene", package = "Signac")
 #' all identities
 #' @param slot Which slot to pull expression data from
 #'
-#' @importFrom Seurat GetAssayData DefaultAssay
+#' @importFrom SeuratObject GetAssayData DefaultAssay
 #' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic theme
 #' element_blank scale_y_discrete scale_x_continuous scale_fill_manual
 #' @importFrom scales hue_pal
@@ -2827,7 +2828,7 @@ VariantPlot <- function(
 #' @param cells Which cells to plot. Default all cells
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom ggplot2 xlab
 #' @importFrom GenomeInfoDb seqnames
 #'

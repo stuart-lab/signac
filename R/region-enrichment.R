@@ -32,7 +32,7 @@ NULL
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom IRanges IRanges
 #' @importFrom GenomicRanges start width strand
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #'
 #' @return Returns a \code{\link[SeuratObject]{Seurat}} object
 #' @export
@@ -178,7 +178,7 @@ TSSEnrichment <- function(
 #' @importFrom GenomeInfoDb seqlevels keepSeqlevels
 #' @importFrom stats ecdf
 #' @importFrom Matrix rowSums
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom future nbrOfWorkers
 #' @importFrom future.apply future_lapply
 #' @importFrom pbapply pblapply

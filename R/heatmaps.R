@@ -15,7 +15,7 @@ NULL
 #' @method RegionMatrix Seurat
 #' @export
 #' @rdname RegionMatrix
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 RegionMatrix.Seurat <- function(
   object,
   regions,
@@ -55,7 +55,7 @@ RegionMatrix.Seurat <- function(
 
 #' @method RegionMatrix ChromatinAssay
 #' @export
-#' @importFrom Seurat GetAssayData
+#' @importFrom SeuratObject GetAssayData
 #' @rdname RegionMatrix
 #' @concept heatmap
 RegionMatrix.ChromatinAssay <- function(

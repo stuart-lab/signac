@@ -32,7 +32,7 @@ BinarizeCounts.default <- function(
 
 #' @rdname BinarizeCounts
 #' @method BinarizeCounts Assay
-#' @importFrom Seurat GetAssayData SetAssayData
+#' @importFrom SeuratObject GetAssayData SetAssayData
 #' @export
 #' @concept preprocessing
 #' @examples
@@ -58,7 +58,8 @@ BinarizeCounts.Assay <- function(
 #' and binarization will be applied to each.
 #' @rdname BinarizeCounts
 #' @method BinarizeCounts Seurat
-#' @importFrom Seurat GetAssay DefaultAssay
+#' @importFrom Seurat GetAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @concept preprocessing
 #' @examples
@@ -175,7 +176,7 @@ CreateMotifMatrix <- function(
 #' @param assay Name of assay to use. Default is the active assay.
 #' @param n Number of features to retain (default 20000).
 #' @param verbose Display messages
-#' @importFrom Seurat DefaultAssay GetAssayData "VariableFeatures<-"
+#' @importFrom SeuratObject DefaultAssay GetAssayData "VariableFeatures<-"
 #' @return Returns a \code{\link[SeuratObject]{Seurat}} object with
 #' \code{\link[SeuratObject]{VariableFeatures}} set to the randomly sampled features.
 #' @export
@@ -240,7 +241,7 @@ FindTopFeatures.default <- function(
 }
 
 #' @rdname FindTopFeatures
-#' @importFrom Seurat GetAssayData VariableFeatures
+#' @importFrom SeuratObject GetAssayData VariableFeatures
 #' @export
 #' @method FindTopFeatures Assay
 #' @concept preprocessing
@@ -289,7 +290,8 @@ FindTopFeatures.Assay <- function(
 }
 
 #' @rdname FindTopFeatures
-#' @importFrom Seurat DefaultAssay GetAssay
+#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seurat GetAssay
 #' @export
 #' @concept preprocessing
 #' @method FindTopFeatures Seurat
@@ -326,7 +328,7 @@ FindTopFeatures.Seurat <- function(
 #' @param verbose Display messages
 #'
 #' @importFrom Matrix colSums
-#' @importFrom Seurat GetAssayData AddMetaData
+#' @importFrom SeuratObject GetAssayData AddMetaData
 #'
 #' @export
 #' @concept qc
@@ -473,7 +475,7 @@ RegionStats.default <- function(
 #' @rdname RegionStats
 #' @method RegionStats ChromatinAssay
 #' @importFrom methods slot
-#' @importFrom Seurat GetAssayData
+#' @importFrom SeuratObject GetAssayData
 #' @export
 #' @concept motifs
 #' @examples

@@ -18,7 +18,7 @@ NULL
 #' @export
 #' @return Returns a matrix
 #' @concept footprinting
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 GetFootprintData <- function(
   object,
   features,
@@ -204,7 +204,7 @@ Footprint.ChromatinAssay <- function(
 #' @method Footprint Seurat
 #' @export
 #' @concept footprinting
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 Footprint.Seurat <- function(
   object,
   genome,
@@ -304,7 +304,7 @@ InsertionBias.ChromatinAssay <- function(
 #' @param assay Name of assay to use
 #' @rdname InsertionBias
 #' @method InsertionBias Seurat
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @concept footprinting
 InsertionBias.Seurat <- function(
@@ -449,7 +449,7 @@ GetFootprintRegions <- function(
 # @param object A Seurat object
 # @param feature A vector of footprinted TFs
 # @param assay Name of assay to use
-#' @importFrom Seurat DefaultAssay GetAssayData
+#' @importFrom SeuratObject DefaultAssay GetAssayData
 GetMotifSize <- function(
   object,
   features,

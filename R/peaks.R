@@ -49,8 +49,7 @@ NULL
 #'
 #' @concept quantification
 #'
-#' @importFrom Seurat DefaultAssay
-#' @importFrom Seurat Project
+#' @importFrom SeuratObject DefaultAssay Project
 #' @importFrom GenomicRanges reduce
 #'
 #' @export

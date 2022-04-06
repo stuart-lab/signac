@@ -92,7 +92,7 @@ AddMotifs.Assay <- function(
 #' @param pfm A \code{PFMatrixList} or \code{PWMatrixList} object containing
 #' position weight/frequency matrices to use
 #' @param verbose Display messages
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @rdname AddMotifs
 #' @method AddMotifs Seurat
 #' @concept motifs
@@ -121,7 +121,7 @@ AddMotifs.Seurat <- function(
   return(object)
 }
 
-#' @importFrom Seurat GetAssayData CreateAssayObject
+#' @importFrom SeuratObject GetAssayData CreateAssayObject
 #' @importFrom Matrix rowSums
 #'
 #' @concept motifs
@@ -201,7 +201,7 @@ RunChromVAR.ChromatinAssay <- function(
 #' @method RunChromVAR Seurat
 #' @rdname RunChromVAR
 #' @export
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @concept motifs
 #' @examples
 #' \dontrun{
@@ -409,7 +409,7 @@ ConvertMotifID.ChromatinAssay <- function(object, ...) {
 #' @param assay For \code{Seurat} object. Name of assay to use.
 #' If NULL, use the default assay
 #'
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #'
 #' @method ConvertMotifID Seurat
 #' @rdname ConvertMotifID
@@ -436,7 +436,7 @@ ConvertMotifID.Seurat <- function(object, assay = NULL, ...) {
 #' 
 #' @return Returns a list of sparse matrices
 #' 
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @export
 MotifCounts <- function(
   object,

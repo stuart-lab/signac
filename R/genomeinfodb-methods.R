@@ -178,7 +178,7 @@ setMethod(
 )
 
 #' @describeIn seqinfo-methods set method for ChromatinAssay objects
-#' @importFrom Seurat SetAssayData
+#' @importFrom SeuratObject SetAssayData
 #' @exportMethod genome<-
 #' @concept seqinfo
 setMethod(

@@ -1,6 +1,6 @@
 #' @include generics.R
 #' @importFrom methods callGeneric
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom IRanges precede follow nearest distance distanceToNearest
 #' findOverlaps countOverlaps coverage
 #' reduce disjoin gaps isDisjoint disjointBins
