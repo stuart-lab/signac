@@ -377,7 +377,7 @@ globalVariables(names = "cell", package = "Signac")
 #' @export
 #' @concept qc
 #' @importFrom fastmatch fmatch
-#' @importFrom Seurat AddMetaData
+#' @importFrom SeuratObject AddMetaData
 #' @importFrom stats ecdf
 #'
 #' @examples

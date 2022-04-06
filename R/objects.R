@@ -539,7 +539,7 @@ GetFragmentData <- function(object, slot = "path") {
 #' @export
 #' @concept motifs
 #' @examples
-#' motif.obj <- Seurat::GetAssayData(
+#' motif.obj <- SeuratObject::GetAssayData(
 #'   object = atac_small[['peaks']], slot = "motifs"
 #' )
 #' GetMotifData(object = motif.obj)
@@ -785,7 +785,7 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
 #' @export
 #' @concept motifs
 #' @examples
-#' motif.obj <- Seurat::GetAssayData(
+#' motif.obj <- SeuratObject::GetAssayData(
 #'   object = atac_small[['peaks']], slot = "motifs"
 #' )
 #' SetMotifData(object = motif.obj, slot = 'data', new.data = matrix())
@@ -884,7 +884,7 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
 #' @export
 #' @concept motifs
 #' @examples
-#' motif.obj <- Seurat::GetAssayData(
+#' motif.obj <- SeuratObject::GetAssayData(
 #'   object = atac_small[['peaks']], slot = "motifs"
 #' )
 #' subset(x = motif.obj, features = head(rownames(motif.obj), 10))
@@ -1312,7 +1312,7 @@ merge.ChromatinAssay <- function(
 #' @concept motifs
 #' @method [ Motif
 #' @examples
-#' motif.obj <- Seurat::GetAssayData(
+#' motif.obj <- SeuratObject::GetAssayData(
 #'   object = atac_small, assay = 'peaks', slot = 'motifs'
 #' )
 #' motif.obj[1:10,1:10]
@@ -1656,7 +1656,7 @@ dim.Motif <- function(x) {
 #' @rdname Fragments
 #' @concept assay
 #' @concept fragments
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' fragments <- CreateFragmentObject(
