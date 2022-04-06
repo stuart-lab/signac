@@ -1,12 +1,5 @@
-# Re-export Seurat generic
-#' @importFrom Seurat FoldChange
-#' @export
-Seurat::FoldChange
-
-#' @rdname FoldChange
-#' @export
+# dynamically exported, see zzz.R
 #' @method FoldChange ChromatinAssay
-#' @importFrom Seurat FoldChange
 #' @importFrom SeuratObject GetAssayData
 #' @importFrom Matrix rowMeans
 FoldChange.ChromatinAssay <- function(
