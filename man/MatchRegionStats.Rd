@@ -50,7 +50,7 @@ with characteristics matching the query regions is then selected using the
 selecting each feature equal to the joint density distribution weight.
 }
 \examples{
-metafeatures <- Seurat::GetAssayData(
+metafeatures <- SeuratObject::GetAssayData(
   object = atac_small[['peaks']], slot = 'meta.features'
 )
 query.feature <- metafeatures[1:10, ]

@@ -875,7 +875,7 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
 #' @concept utilities
 #' @concept motifs
 #' @examples
-#' metafeatures <- Seurat::GetAssayData(
+#' metafeatures <- SeuratObject::GetAssayData(
 #'   object = atac_small[['peaks']], slot = 'meta.features'
 #' )
 #' query.feature <- metafeatures[1:10, ]
