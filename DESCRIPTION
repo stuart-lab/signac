@@ -44,7 +44,6 @@ Imports:
     stats,
     utils,
     BiocGenerics,
-    ggrepel,
     stringi,
     fastmatch,
     lsa,
@@ -81,6 +80,7 @@ Collate:
 Suggests: 
     Seurat (>= 4.0.6),
     ggforce,
+    ggrepel,
     testthat (>= 2.1.0),
     chromVAR,
     SummarizedExperiment,

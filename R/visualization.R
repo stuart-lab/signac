@@ -247,7 +247,6 @@ globalVariables(
 #' @concept visualization
 #' @concept footprinting
 #' @importFrom SeuratObject DefaultAssay
-#' @importFrom ggrepel geom_label_repel
 #' @importFrom ggplot2 ggplot aes geom_line facet_wrap xlab ylab theme_classic
 #' theme element_blank geom_label guides guide_legend
 #' @importFrom dplyr group_by summarize top_n
@@ -372,7 +371,15 @@ PlotFootprint <- function(
       guides(color = guide_legend(override.aes = list(size = 1)))
     if (label) {
       if (repel) {
-        p <- p + geom_label_repel(box.padding = 0.5, show.legend = FALSE)
+        if (!requireNamespace(package = "ggrepel", quietly = TRUE)) {
+          warning("Please install ggrepel to enable repel=TRUE: ",
+                  "install.packages('ggrepel')")
+          p <- p + geom_label(show.legend = FALSE)
+        } else {
+          p <- p + ggrepel::geom_label_repel(
+            box.padding = 0.5, show.legend = FALSE
+          )
+        }
       } else {
         p <- p + geom_label(show.legend = FALSE)
       }
@@ -1994,7 +2001,7 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
         score = rep(link.df$score, 3)
       )
       p <- ggplot(data = df) +
-        geom_bezier(
+        ggforce::geom_bezier(
           mapping = aes_string(x = "x", y = "y", group = "group", color = "score")
         ) +
         geom_hline(yintercept = 0, color = 'grey') +
