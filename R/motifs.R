@@ -403,7 +403,18 @@ ConvertMotifID.Motif <- function(object, ...) {
 #' @export
 ConvertMotifID.ChromatinAssay <- function(object, ...) {
   motifs <- Motifs(object = object)
+  if (is.null(x = motifs)) {
+    stop("No motif information present in assay")
+  }
   return(ConvertMotifID(object = motifs, ...))
+}
+
+#' @method ConvertMotifID Assay
+#' @rdname ConvertMotifID
+#' @concept motifs
+#' @export
+ConvertMotifID.Assay <- function(object, ...) {
+  stop("Cannot run ConvertMotifID on a standard Assay object")
 }
 
 #' @param assay For \code{Seurat} object. Name of assay to use.
