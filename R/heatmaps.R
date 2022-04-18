@@ -161,12 +161,12 @@ RegionMatrix.default <- function(
   on_plus <- strand(x = regions) == "+" | strand(x = regions) == "*"
   plus.strand <- regions[on_plus, ]
   minus.strand <- regions[!on_plus, ]
-  
   for (i in seq_along(along.with = object)) {
     tmplist <- list()
     
     # open tabix connection
     fragfile <- GetFragmentData(object = object[[i]], slot = "path")
+    cellnames <- GetFragmentData(object = object[[i]], slot = "cells")
     tabix.file <- TabixFile(file = fragfile)
     open(con = tabix.file)
     
@@ -204,7 +204,11 @@ RegionMatrix.default <- function(
         for (cell in unique.groups) {
           cells.keep <- names(x = group.by[group.by == cell])
           subfrag <- res[
-            fmatch(x = res$cell, table = cells.keep, nomatch = 0L) > 0, ,
+            fmatch(
+              x = res$cell,
+              table = cellnames[cells.keep],
+              nomatch = 0L
+              ) > 0, ,
             drop = FALSE]
           startpos <- subfrag$start
           endpos <- subfrag$end
