@@ -593,9 +593,11 @@ RenameCells.ChromatinAssay <- function(object, new.names = NULL, ...) {
   pos.enrich <- GetAssayData(object = object, slot = "positionEnrichment")
   for (i in seq_along(along.with = pos.enrich)) {
     mat <- pos.enrich[[i]]
-    mat <- mat[colnames(x = object), ]
-    rownames(x = mat) <- new.names[rownames(x = mat)]
-    pos.enrich[[i]] <- mat
+    if (!inherits(x = mat, what = "list")) {
+      mat <- mat[colnames(x = object), ]
+      rownames(x = mat) <- new.names[rownames(x = mat)]
+      pos.enrich[[i]] <- mat
+    }
   }
   slot(object = object, name = "positionEnrichment") <- pos.enrich
 
