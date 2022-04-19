@@ -3,7 +3,9 @@
 New functionality:
 
 * Added `method` parameter to `LinkPeaks()` ([@saketkc](https://github.com/saketkc); [#1030](https://github.com/timoast/signac/pull/1030))
-* Add ability to plot transcript isoforms (set `annotation="transcript"` in `CoveragePlot()`)
+* Added ability to plot transcript isoforms (set `annotation="transcript"` in `CoveragePlot()`)
+* Added multiple testing correction to `FindMotifs()`, and new `p.ajust` column in output dataframe
+* Added `p.adjust.method` parameter to `FindMotifs()` to control multiple testing correction method used
 
 Bug fixes:
 
