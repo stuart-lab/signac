@@ -1555,7 +1555,6 @@ CoveragePlot <- function(
 #' @param use.names Use motif names stored in the motif object
 #' @param ... Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}
 #'
-#' @importFrom ggseqlogo ggseqlogo
 #' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @concept visualization
@@ -1573,6 +1572,9 @@ MotifPlot <- function(
   use.names = TRUE,
   ...
 ) {
+  if (!requireNamespace(package = "ggseqlogo", quietly = TRUE)) {
+    stop("Please install ggseqlogo: install.packages('ggseqlogo')")
+  }
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
     stop("The requested assay is not a ChromatinAssay.")
@@ -1587,7 +1589,7 @@ MotifPlot <- function(
       object = object, assay = assay, slot = "motif.names"
     )[motifs]
   }
-  p <- ggseqlogo(data = data.use, ...)
+  p <- ggseqlogo::ggseqlogo(data = data.use, ...)
   return(p)
 }
 
