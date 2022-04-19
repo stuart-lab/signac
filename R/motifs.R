@@ -252,12 +252,14 @@ globalVariables(names = "pvalue", package = "Signac")
 #' This can be added using the
 #'  \code{\link{RegionStats}} function. If NULL, use all features in the assay.
 #' @param verbose Display messages
+#' @param p.adjust.method Multiple testing correction method to be applied.
+#' Passed to \code{\link[stats]{p.adjust}}.
 #' @param ... Arguments passed to \code{\link{MatchRegionStats}}.
 #'
 #' @return Returns a data frame
 #'
 #' @importFrom Matrix colSums
-#' @importFrom stats phyper
+#' @importFrom stats phyper p.adjust
 #' @importFrom methods is
 #'
 #' @export
@@ -276,6 +278,7 @@ FindMotifs <- function(
   background = 40000,
   assay = NULL,
   verbose = TRUE,
+  p.adjust.method = "BH",
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
@@ -349,6 +352,7 @@ FindMotifs <- function(
     motif.name = as.vector(
       x = unlist(x = motif.names[names(x = query.counts)])
     ),
+    p.adjust = p.adjust(p = p.list, method = p.adjust.method),
     stringsAsFactors = FALSE
   )
   if (nrow(x = results) == 0) {
