@@ -205,7 +205,6 @@ ConnectionsToLinks <- function(
 #' @importFrom future.apply future_lapply
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
-#' @importFrom qlcMatrix corSparse
 #' @importMethodsFrom Matrix t
 #'
 #' @return Returns a Seurat object with the \code{Links} information set. This is
@@ -241,6 +240,9 @@ LinkPeaks <- function(
   gene.id = FALSE,
   verbose = TRUE
 ) {
+  if (!requireNamespace(package = "qlcMatrix", quietly = TRUE)) {
+    stop("Please install qlcMatrix: install.packages('qlcMatrix')")
+  }
   if (!inherits(x = object[[peak.assay]], what = "ChromatinAssay")) {
     stop("The requested assay is not a ChromatinAssay")
   }
@@ -257,7 +259,7 @@ LinkPeaks <- function(
   }
 
   if (method == "pearson") {
-    cor_method <- corSparse
+    cor_method <- qlcMatrix::corSparse
   } else if (method == "spearman") {
     cor_method <- SparseSpearmanCor
   } else {

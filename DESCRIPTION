@@ -45,11 +45,9 @@ Imports:
     BiocGenerics,
     stringi,
     fastmatch,
-    lsa,
     RcppRoll,
     scales,
     Rcpp,
-    qlcMatrix,
     grid,
     tidyselect,
     vctrs
@@ -91,4 +89,6 @@ Suggests:
     miniUI,
     rtracklayer,
     biovizBase,
-    Biostrings
+    Biostrings,
+    lsa,
+    qlcMatrix

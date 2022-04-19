@@ -128,7 +128,6 @@ AlleleFreq.Seurat <- function(
 #' @param group.by Grouping variable for cells
 #'
 #' @importFrom SeuratObject Idents
-#' @importFrom lsa cosine
 #' @importFrom Matrix rowMeans
 #' @importFrom stats dist hclust
 #'
@@ -139,6 +138,9 @@ AlleleFreq.Seurat <- function(
 #'
 #' @concept mito
 ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
+  if (!requireNamespace(package = "lsa", quietly = TRUE)) {
+    stop("Please install lsa: install.packages('lsa')")
+  }
   if (is.null(x = group.by)) {
     object$allele_ident_stash_clon <- Idents(object = object)
   } else {
@@ -157,8 +159,8 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
   object$allele_ident_stash_clon <- NULL
   # cluster
 
-  cos_matty <- cosine(x = matty)
-  cos_matty_t <- cosine(x = t(x = matty))
+  cos_matty <- lsa::cosine(x = matty)
+  cos_matty_t <- lsa::cosine(x = t(x = matty))
   # replace NaN with 0
   cos_matty[is.nan(x = cos_matty)] <- 0
   cos_matty_t[is.nan(x = cos_matty_t)] <- 0
