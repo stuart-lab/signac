@@ -257,7 +257,7 @@ LinkPeaks <- function(
       min.distance <- NULL
     }
   }
-
+  features.match <- c("GC.percent", "count", "sequence.length")
   if (method == "pearson") {
     cor_method <- qlcMatrix::corSparse
   } else if (method == "spearman") {
@@ -278,10 +278,17 @@ LinkPeaks <- function(
   meta.features <- GetAssayData(
     object = object, assay = peak.assay, slot = "meta.features"
   )
-  features.match <- c("GC.percent", "count")
-  if (!("GC.percent" %in% colnames(x = meta.features))) {
-    stop("GC content per peak has not been computed.\n",
+  if (!(all(
+    c("GC.percent", "sequence.length") %in% colnames(x = meta.features)
+    ))) {
+    stop("DNA sequence information for each peak has not been computed.\n",
          "Run RegionsStats before calling this function.")
+  }
+  if (!("count" %in% colnames(x = meta.features))) {
+    data.use <- GetAssayData(object = object[[peak.assay]], slot = "counts")
+    hvf.info <- FindTopFeatures(object = data.use, verbose = FALSE)
+    hvf.info <- hvf.info[rownames(meta.features), , drop = FALSE]
+    meta.features <- cbind(meta.features, hvf.info)
   }
   peak.data <- GetAssayData(
     object = object, assay = peak.assay, slot = peak.slot
@@ -397,7 +404,7 @@ LinkPeaks <- function(
               MatchRegionStats(
                 meta.feature = meta.use,
                 query.feature = pk.use[x, , drop = FALSE],
-                features.match = c("GC.percent", "count", "sequence.length"),
+                features.match = features.match,
                 n = n_sample,
                 verbose = FALSE
               )
