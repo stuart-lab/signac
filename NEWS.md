@@ -17,6 +17,7 @@ Bug fixes:
 * Fixed bug in `GeneActivity()` when gene name is an empty string ([#1055](https://github.com/timoast/signac/issues/1055))
 * Fixed bug in `FeatureMatrix()` when using list of Fragment objects ([#1056](https://github.com/timoast/signac/issues/1056))
 * Fixed bug in `RegionMatrix()` when running on objects containing renamed cells ([#1076](https://github.com/timoast/signac/issues/1076))
+* Fixed bug in `Footprint()` when using a FASTA file ([#1092](https://github.com/timoast/signac/issues/1092))
 
 Other changes:
 
