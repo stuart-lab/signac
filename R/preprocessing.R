@@ -432,7 +432,9 @@ NucleosomeSignal <- function(
 }
 
 
-#' @param genome A BSgenome object
+#' @param genome A \code{BSgenome} object or any other object supported by
+#' \code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all
+#' supported object types.
 #' @param verbose Display messages
 #'
 #' @importMethodsFrom GenomicRanges width
@@ -460,7 +462,7 @@ RegionStats.default <- function(
     stop("Please install Biostrings: BiocManager::install('Biostrings')")
   }
   sequence.length <- width(x = object)
-  sequences <- BSgenome::getSeq(x = genome, names = object)
+  sequences <- Biostrings::getSeq(x = genome, object)
   gc <- Biostrings::letterFrequency(
     x = sequences, letters = 'CG'
   ) / sequence.length * 100

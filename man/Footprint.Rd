@@ -41,7 +41,9 @@ Footprint(object, ...)
 
 \item{...}{Arguments passed to other methods}
 
-\item{genome}{A \code{\link[BSgenome]{BSgenome}} object}
+\item{genome}{A \code{BSgenome} object or any other object supported by
+\code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all
+supported object types.}
 
 \item{motif.name}{Name of a motif stored in the assay to footprint. If not
 supplied, must supply a set of regions.}

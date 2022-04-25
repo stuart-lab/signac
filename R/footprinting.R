@@ -90,7 +90,9 @@ GetFootprintData <- function(
 
 #' @param regions A set of genomic ranges containing the motif instances. These
 #' should all be the same width.
-#' @param genome A \code{\link[BSgenome]{BSgenome}} object
+#' @param genome A \code{BSgenome} object or any other object supported by
+#' \code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all
+#' supported object types.
 #' @param motif.name Name of a motif stored in the assay to footprint. If not
 #' supplied, must supply a set of regions.
 #' @param key Key to store positional enrichment information under.
@@ -232,8 +234,10 @@ Footprint.Seurat <- function(
   return(object)
 }
 
-#' @param genome A BSgenome object
-#' @param region Region to use when assessing bias. Default is human chromosome 1.
+#' @param genome A \code{BSgenome} object or any other object supported by
+#' \code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all
+#' supported object types.
+#' @param region Genomic region to use when assessing bias.
 #' @param verbose Display messages
 #' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #'
@@ -269,6 +273,9 @@ InsertionBias.ChromatinAssay <- function(
     stop("Please install Biostrings: BiocManager::install('Biostrings')")
   }
   chr.use <- unlist(x = strsplit(x = region, split = "-", fixed = TRUE))[[1]]
+  if (inherits(x = genome, what = "FaFile")) {
+    chr.use <- StringToGRanges(regions = region)
+  }
   reads <- MultiGetReadsInRegion(
     object = object,
     region = region,
@@ -289,9 +296,12 @@ InsertionBias.ChromatinAssay <- function(
   keep.seq <- !grepl(pattern = "N", x = names(x = seq.freq))
   insertion_hex_freq <- as.matrix(x = seq.freq[keep.seq])
   genome_freq <- Biostrings::oligonucleotideFrequency(
-    x = Biostrings::getSeq(x = genome, names = chr.use),
+    x = Biostrings::getSeq(x = genome, chr.use),
     width = 6
   )
+  if (inherits(x = genome_freq, what = "matrix")) {
+    genome_freq <- genome_freq[1, ]
+  }
   if (nrow(x = insertion_hex_freq) != length(x = genome_freq)) {
     stop("Not all hexamers represented in input region")
   }
