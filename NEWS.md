@@ -18,6 +18,7 @@ Bug fixes:
 * Fixed bug in `FeatureMatrix()` when using list of Fragment objects ([#1056](https://github.com/timoast/signac/issues/1056))
 * Fixed bug in `RegionMatrix()` when running on objects containing renamed cells ([#1076](https://github.com/timoast/signac/issues/1076))
 * Fixed bug in `Footprint()` when using a FASTA file ([#1092](https://github.com/timoast/signac/issues/1092))
+* Fixed bug in `Footprint()` when using list of genomic regions ([#1098](https://github.com/timoast/signac/issues/1098))
 
 Other changes:
 
