@@ -144,10 +144,17 @@ Footprint.ChromatinAssay <- function(
       stop("Must set a key to store positional enrichment information")
     }
     # supplied regions, put into list
-    if (!length(x = unique(x = width(x = regions))) == 1) {
+    if (!inherits(x = regions, what = "list")) {
+      regionlist <- list(regions)
+    } else {
+      regionlist <- regions
+    }
+    all.widths <- sapply(X = regionlist, FUN = function(x) {
+      length(x = unique(x = width(x = x))) == 1
+    })
+    if (!all(all.widths)) {
       stop("Manually-supplied regions must all have the same width.")
     }
-    regionlist <- list(regions)
   }
   if (compute.expected) {
     # check that bias is computed
