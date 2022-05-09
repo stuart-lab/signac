@@ -19,6 +19,7 @@ Bug fixes:
 * Fixed bug in `RegionMatrix()` when running on objects containing renamed cells ([#1076](https://github.com/timoast/signac/issues/1076))
 * Fixed bug in `Footprint()` when using a FASTA file ([#1092](https://github.com/timoast/signac/issues/1092))
 * Fixed bug in `Footprint()` when using list of genomic regions ([#1098](https://github.com/timoast/signac/issues/1098))
+* Add check for invalid features in `FindMotifs()` ([#1109](https://github.com/timoast/signac/issues/1109))
 
 Other changes:
 

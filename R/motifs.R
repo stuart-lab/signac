@@ -296,6 +296,14 @@ FindMotifs <- function(
     mf.choose <- meta.feature[
       setdiff(x = rownames(x = meta.feature), y = features), , drop = FALSE
     ]
+    missing.features <- setdiff(x = features, y = rownames(x = meta.feature))
+    if (length(x = missing.features) > 0) {
+      warning(
+        "The following features were not found in the assay: ",
+        missing.features,
+        "\nRemoving missing features", immediate. = TRUE)
+      features <- intersect(x = features, y = rownames(x = meta.feature))
+    }
     mf.query <- meta.feature[features, , drop = FALSE]
     background <- MatchRegionStats(
       meta.feature = mf.choose,
