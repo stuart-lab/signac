@@ -2174,7 +2174,7 @@ AnnotationPlot <- function(object, region, mode = "gene") {
   p <- p +
     theme_classic() +
     ylab("Genes") +
-    xlab(label = paste0(chromosome, " position (kb)")) +
+    xlab(label = paste0(chromosome, " position (bp)")) +
     xlim(start.pos, end.pos) +
     ylim(y_limit) +
     theme(
