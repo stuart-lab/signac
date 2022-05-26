@@ -391,6 +391,7 @@ GeneActivity <- function(
 #' @param verbose Display messages
 #'
 #' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo
+#' @importFrom pbapply pblapply
 #' @concept utilities
 #' @export
 GetGRangesFromEnsDb <- function(
@@ -410,22 +411,14 @@ GetGRangesFromEnsDb <- function(
   }
 
   # extract genes from each chromosome
-  if (verbose) {
-    tx <- sapply(X = seq_along(whole.genome), FUN = function(x){
-      biovizBase::crunch(
-        obj = ensdb,
-        which = whole.genome[x],
-        columns = c("tx_id", "gene_name", "gene_id", "gene_biotype"))
-    })
-  } else {
-    tx <- sapply(X = seq_along(whole.genome), FUN = function(x){
-      suppressMessages(expr = biovizBase::crunch(
-        obj = ensdb,
-        which = whole.genome[x],
-        columns = c("tx_id", "gene_name", "gene_id", "gene_biotype")))
-    })
-  }
-
+  my_lapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
+  tx <- my_lapply(X = seq_along(whole.genome), FUN = function(x){
+        suppressMessages(expr = biovizBase::crunch(
+          obj = ensdb,
+          which = whole.genome[x],
+          columns = c("tx_id", "gene_name", "gene_id", "gene_biotype")))
+      })
+  
   # combine
   tx <- do.call(what = c, args = tx)
   tx <- tx[tx$gene_biotype %in% biotypes]

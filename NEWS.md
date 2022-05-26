@@ -25,6 +25,7 @@ Other changes:
 
 * Improved error message when no fragment file is supplied in `CallPeaks()` ([#1062](https://github.com/timoast/signac/issues/1062))
 * Moved `Seurat`, `ggforce`, `ggrepel`, `ggseqlogo`, `lsa`, `qlcMatrix` to suggested packages
+* Added progress bar to `GetGRangesFromEnsDb()`
 
 # Signac 1.6.0
 
