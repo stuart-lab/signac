@@ -2,12 +2,14 @@
 % Please edit documentation in R/visualization.R
 \name{BigwigTrack}
 \alias{BigwigTrack}
-\title{Plot data from BigWig}
+\title{Plot data from BigWig files}
 \usage{
 BigwigTrack(
   region,
   bigwig,
   smooth = 200,
+  extend.upstream = 0,
+  extend.downstream = 0,
   type = "coverage",
   y_label = "bigWig",
   bigwig.scale = "common",
@@ -19,10 +21,16 @@ BigwigTrack(
 \arguments{
 \item{region}{GRanges object specifying region to plot}
 
-\item{bigwig}{Path to a bigwig file}
+\item{bigwig}{List of bigwig file paths. List should be named, and the name
+of each element in the list of files will be displayed alongside the track
+in the final plot.}
 
 \item{smooth}{Number of bases to smooth data over (rolling mean). If NULL,
 do not apply smoothing.}
+
+\item{extend.upstream}{Number of bases to extend the region upstream.}
+
+\item{extend.downstream}{Number of bases to extend the region downstream.}
 
 \item{type}{Plot type. Can be one of "line", "heatmap", or "coverage"}
 
@@ -55,7 +63,13 @@ Retaining more positions can give a higher-resolution plot but can make the
 number of points large, resulting in larger file sizes when saving the plot
 and a longer period of time needed to draw the plot.}
 }
+\value{
+Returns a ggplot object
+}
 \description{
-Create a BigWig track. Note that this function does not work on windows.
+Create coverage tracks, heatmaps, or line plots from bigwig files.
+}
+\details{
+Note that this function does not work on windows.
 }
 \concept{visualization}

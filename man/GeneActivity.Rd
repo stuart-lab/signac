@@ -12,9 +12,9 @@ GeneActivity(
   extend.downstream = 0,
   biotypes = "protein_coding",
   max.width = 5e+05,
+  process_n = 2000,
   gene.id = FALSE,
-  verbose = TRUE,
-  ...
+  verbose = TRUE
 )
 }
 \arguments{
@@ -37,11 +37,12 @@ Setting this parameter can avoid quantifying extremely long transcripts that
 can add a relatively long amount of time. If NULL, do not filter genes based
 on width.}
 
+\item{process_n}{Number of regions to load into memory at a time, per thread.
+Processing more regions at once can be faster but uses more memory.}
+
 \item{gene.id}{Record gene IDs in output matrix rather than gene name.}
 
 \item{verbose}{Display messages}
-
-\item{...}{Additional options passed to \code{\link{FeatureMatrix}}}
 }
 \value{
 Returns a sparse matrix

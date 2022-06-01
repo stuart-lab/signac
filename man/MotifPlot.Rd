@@ -26,7 +26,7 @@ sequence motifs.
 }
 \examples{
 \donttest{
-motif.obj <- Seurat::GetAssayData(atac_small, slot = "motifs")
+motif.obj <- SeuratObject::GetAssayData(atac_small, slot = "motifs")
 MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
 }
 }

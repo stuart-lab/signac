@@ -18,7 +18,7 @@ NULL
 #' @export
 #' @return Returns a matrix
 #' @concept footprinting
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 GetFootprintData <- function(
   object,
   features,
@@ -88,8 +88,11 @@ GetFootprintData <- function(
   return(plot.data)
 }
 
-#' @param regions A set of genomic ranges containing the motif instances
-#' @param genome A \code{\link[BSgenome]{BSgenome}} object
+#' @param regions A set of genomic ranges containing the motif instances. These
+#' should all be the same width.
+#' @param genome A \code{BSgenome} object or any other object supported by
+#' \code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all
+#' supported object types.
 #' @param motif.name Name of a motif stored in the assay to footprint. If not
 #' supplied, must supply a set of regions.
 #' @param key Key to store positional enrichment information under.
@@ -104,6 +107,7 @@ GetFootprintData <- function(
 #' @importFrom future.apply future_lapply
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
+#' @importFrom GenomeInfoDb seqlengths
 #' @export
 #' @concept footprinting
 #' @rdname Footprint
@@ -140,7 +144,17 @@ Footprint.ChromatinAssay <- function(
       stop("Must set a key to store positional enrichment information")
     }
     # supplied regions, put into list
-    regionlist <- list(regions)
+    if (!inherits(x = regions, what = "list")) {
+      regionlist <- list(regions)
+    } else {
+      regionlist <- regions
+    }
+    all.widths <- sapply(X = regionlist, FUN = function(x) {
+      length(x = unique(x = width(x = x))) == 1
+    })
+    if (!all(all.widths)) {
+      stop("Manually-supplied regions must all have the same width.")
+    }
   }
   if (compute.expected) {
     # check that bias is computed
@@ -149,9 +163,15 @@ Footprint.ChromatinAssay <- function(
       if (verbose) {
         message("Computing Tn5 insertion bias")
       }
+      region.end <- seqlengths(x = genome)[1]
       object <- InsertionBias(
         object = object,
-        genome = genome
+        genome = genome,
+        region = paste0(
+          names(x = region.end),
+          "-1-",
+          as.character(x = region.end)
+        )
       )
     }
   }
@@ -193,7 +213,7 @@ Footprint.ChromatinAssay <- function(
 #' @method Footprint Seurat
 #' @export
 #' @concept footprinting
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 Footprint.Seurat <- function(
   object,
   genome,
@@ -221,8 +241,10 @@ Footprint.Seurat <- function(
   return(object)
 }
 
-#' @param genome A BSgenome object
-#' @param region Region to use when assessing bias. Default is human chromosome 1.
+#' @param genome A \code{BSgenome} object or any other object supported by
+#' \code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all
+#' supported object types.
+#' @param region Genomic region to use when assessing bias.
 #' @param verbose Display messages
 #' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #'
@@ -258,6 +280,9 @@ InsertionBias.ChromatinAssay <- function(
     stop("Please install Biostrings: BiocManager::install('Biostrings')")
   }
   chr.use <- unlist(x = strsplit(x = region, split = "-", fixed = TRUE))[[1]]
+  if (inherits(x = genome, what = "FaFile")) {
+    chr.use <- StringToGRanges(regions = region)
+  }
   reads <- MultiGetReadsInRegion(
     object = object,
     region = region,
@@ -278,9 +303,12 @@ InsertionBias.ChromatinAssay <- function(
   keep.seq <- !grepl(pattern = "N", x = names(x = seq.freq))
   insertion_hex_freq <- as.matrix(x = seq.freq[keep.seq])
   genome_freq <- Biostrings::oligonucleotideFrequency(
-    x = Biostrings::getSeq(x = genome, names = chr.use),
+    x = Biostrings::getSeq(x = genome, chr.use),
     width = 6
   )
+  if (inherits(x = genome_freq, what = "matrix")) {
+    genome_freq <- genome_freq[1, ]
+  }
   if (nrow(x = insertion_hex_freq) != length(x = genome_freq)) {
     stop("Not all hexamers represented in input region")
   }
@@ -293,7 +321,7 @@ InsertionBias.ChromatinAssay <- function(
 #' @param assay Name of assay to use
 #' @rdname InsertionBias
 #' @method InsertionBias Seurat
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @concept footprinting
 InsertionBias.Seurat <- function(
@@ -438,7 +466,7 @@ GetFootprintRegions <- function(
 # @param object A Seurat object
 # @param feature A vector of footprinted TFs
 # @param assay Name of assay to use
-#' @importFrom Seurat DefaultAssay GetAssayData
+#' @importFrom SeuratObject DefaultAssay GetAssayData
 GetMotifSize <- function(
   object,
   features,

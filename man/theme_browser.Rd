@@ -4,12 +4,14 @@
 \alias{theme_browser}
 \title{Genome browser theme}
 \usage{
-theme_browser(..., legend = TRUE)
+theme_browser(..., legend = TRUE, axis.text.y = FALSE)
 }
 \arguments{
 \item{...}{Additional arguments}
 
 \item{legend}{Display plot legend}
+
+\item{axis.text.y}{Display y-axis text}
 }
 \description{
 Theme applied to panels in the \code{\link{CoveragePlot}} function.

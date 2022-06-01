@@ -23,7 +23,7 @@ NULL
 #'
 #' @importFrom fastmatch fmatch
 #' @importFrom Matrix sparseMatrix
-#' @importFrom Seurat DefaultAssay GetAssayData AddMetaData
+#' @importFrom SeuratObject DefaultAssay GetAssayData AddMetaData
 #'
 #' @export
 #' @concept utilities
@@ -84,7 +84,7 @@ globalVariables(names = c("group", "readcount"), package = "Signac")
 #' @param group.by Grouping variable to use. Default is the active identities
 #' @param verbose Display messages
 #'
-#' @importFrom Seurat DefaultAssay Idents GetAssayData
+#' @importFrom SeuratObject DefaultAssay Idents GetAssayData
 #' @importFrom dplyr group_by summarize
 #' @export
 #' @concept utilities
@@ -131,7 +131,7 @@ AverageCounts <- function(
 #' for the peak to be called accessible
 #' @export
 #' @concept utilities
-#' @importFrom Seurat WhichCells DefaultAssay GetAssayData
+#' @importFrom SeuratObject WhichCells DefaultAssay GetAssayData
 #' @importFrom Matrix rowSums
 #' @return Returns a vector of peak names
 AccessiblePeaks <- function(
@@ -158,7 +158,7 @@ AccessiblePeaks <- function(
 #'
 #' @param object A Seurat object
 #' @param group.by A grouping variable. Default is the active identities
-#' @importFrom Seurat Idents
+#' @importFrom SeuratObject Idents
 #' @export
 #' @concept utilities
 #' @return Returns a vector
@@ -193,7 +193,7 @@ CellsPerGroup <- function(
 #' @importMethodsFrom GenomicRanges distanceToNearest
 #' @importFrom S4Vectors subjectHits mcols
 #' @importFrom methods is
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom GenomeInfoDb dropSeqlevels
 #' @return Returns a dataframe with the name of each region, the closest feature
 #' in the annotation, and the distance to the feature.
@@ -270,15 +270,16 @@ ClosestFeature <- function(
 #' Setting this parameter can avoid quantifying extremely long transcripts that
 #' can add a relatively long amount of time. If NULL, do not filter genes based
 #' on width.
+#' @param process_n Number of regions to load into memory at a time, per thread.
+#' Processing more regions at once can be faster but uses more memory.
 #' @param gene.id Record gene IDs in output matrix rather than gene name.
 #' @param verbose Display messages
-#' @param ... Additional options passed to \code{\link{FeatureMatrix}}
 #'
 #' @return Returns a sparse matrix
 #'
 #' @concept utilities
 #' @export
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 #' fragments <- CreateFragmentObject(
@@ -296,9 +297,9 @@ GeneActivity <- function(
   extend.downstream = 0,
   biotypes = "protein_coding",
   max.width = 500000,
+  process_n = 2000,
   gene.id = FALSE,
-  verbose = TRUE,
-  ...
+  verbose = TRUE
 ) {
   if (!is.null(x = features)) {
     if (length(x = features) == 0) {
@@ -311,6 +312,12 @@ GeneActivity <- function(
     stop("The requested assay is not a ChromatinAssay.")
   }
   annotation <- Annotation(object = object[[assay]])
+  # replace NA names with gene ID
+  annotation$gene_name <- ifelse(
+    test = is.na(x = annotation$gene_name) | (annotation$gene_name == ""),
+    yes = annotation$gene_id,
+    no = annotation$gene_name
+  )
   if (length(x = annotation) == 0) {
     stop("No gene annotations present in object")
   }
@@ -359,15 +366,9 @@ GeneActivity <- function(
   counts <- FeatureMatrix(
     fragments = frags,
     features = transcripts,
+    process_n = process_n,
     cells = cells,
-    verbose = verbose,
-    ...
-  )
-  # replace NA names with gene ID
-  transcripts$gene_name <- ifelse(
-    test = is.na(x = transcripts$gene_name),
-    yes = transcripts$gene_id,
-    no = transcripts$gene_name
+    verbose = verbose
   )
   # set row names
   gene.key <- transcripts$gene_name
@@ -390,6 +391,7 @@ GeneActivity <- function(
 #' @param verbose Display messages
 #'
 #' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo
+#' @importFrom pbapply pblapply
 #' @concept utilities
 #' @export
 GetGRangesFromEnsDb <- function(
@@ -409,22 +411,14 @@ GetGRangesFromEnsDb <- function(
   }
 
   # extract genes from each chromosome
-  if (verbose) {
-    tx <- sapply(X = seq_along(whole.genome), FUN = function(x){
-      biovizBase::crunch(
-        obj = ensdb,
-        which = whole.genome[x],
-        columns = c("tx_id", "gene_name", "gene_id", "gene_biotype"))
-    })
-  } else {
-    tx <- sapply(X = seq_along(whole.genome), FUN = function(x){
-      suppressMessages(expr = biovizBase::crunch(
-        obj = ensdb,
-        which = whole.genome[x],
-        columns = c("tx_id", "gene_name", "gene_id", "gene_biotype")))
-    })
-  }
-
+  my_lapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
+  tx <- my_lapply(X = seq_along(whole.genome), FUN = function(x){
+        suppressMessages(expr = biovizBase::crunch(
+          obj = ensdb,
+          which = whole.genome[x],
+          columns = c("tx_id", "gene_name", "gene_id", "gene_biotype")))
+      })
+  
   # combine
   tx <- do.call(what = c, args = tx)
   tx <- tx[tx$gene_biotype %in% biotypes]
@@ -479,7 +473,7 @@ GetTSSPositions <- function(ranges, biotypes = "protein_coding") {
 #'
 #' @importMethodsFrom GenomicRanges distanceToNearest
 #' @importFrom S4Vectors subjectHits queryHits mcols
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @concept utilities
 #' @return Returns a list of two character vectors containing the row names
@@ -675,7 +669,7 @@ GetCellsInRegion <- function(tabix, region, cells = NULL) {
 #' @importFrom IRanges findOverlaps
 #' @importFrom S4Vectors queryHits
 #' @importFrom Matrix colSums
-#' @importFrom Seurat GetAssayData
+#' @importFrom SeuratObject GetAssayData
 #'
 #' @export
 #' @concept utilities
@@ -716,7 +710,7 @@ CountsInRegion <- function(
 #' @param regions A GRanges object containing a set of genomic regions
 #' @param ... Additional arguments passed to \code{\link{CountsInRegion}}
 #' @importFrom Matrix colSums
-#' @importFrom Seurat GetAssayData DefaultAssay
+#' @importFrom SeuratObject GetAssayData DefaultAssay
 #'
 #' @export
 #' @concept utilities
@@ -814,7 +808,7 @@ IntersectMatrix <- function(
 #' @param gene Name of a gene to extract
 #' @param assay Name of assay to use
 #'
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges start end
 #' @importFrom GenomeInfoDb seqnames
@@ -874,7 +868,7 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
 #' @concept utilities
 #' @concept motifs
 #' @examples
-#' metafeatures <- Seurat::GetAssayData(
+#' metafeatures <- SeuratObject::GetAssayData(
 #'   object = atac_small[['peaks']], slot = 'meta.features'
 #' )
 #' query.feature <- metafeatures[1:10, ]
@@ -1056,7 +1050,7 @@ AddMissingCells <- function(x, cells) {
   return(x)
 }
 
-#' @importFrom Seurat DefaultAssay GetAssayData
+#' @importFrom SeuratObject DefaultAssay GetAssayData
 #' @importFrom Matrix Diagonal tcrossprod rowSums
 AverageCountMatrix <- function(
   object,
@@ -1299,7 +1293,7 @@ FindRegion <- function(
 # @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #
 #' @importFrom Rsamtools TabixFile scanTabix
-#' @importFrom Seurat Idents
+#' @importFrom SeuratObject Idents
 #' @importFrom fastmatch fmatch
 #
 # @return Returns a data frame
@@ -1352,7 +1346,7 @@ GetReadsInRegion <- function(
 # @param group.by Identity class to group cells by
 # @param idents which identities to include
 # @return Returns a named vector
-#' @importFrom Seurat Idents
+#' @importFrom SeuratObject Idents
 GetGroups <- function(
   object,
   group.by,
@@ -1380,7 +1374,7 @@ isRemote <- function(x) {
 # row merge list of matrices
 # @param mat.list list of sparse matrices
 # @param new.rownames rownames to assign merged matrix
-#' @importFrom Seurat RowMergeSparseMatrices
+#' @importFrom SeuratObject RowMergeSparseMatrices
 MergeMatrixParts <- function(mat.list, new.rownames) {
   # RowMergeSparseMatrices only exported in Seurat release Dec-2019 (3.1.2)
   merged.all <- mat.list[[1]]
@@ -1402,7 +1396,7 @@ MergeMatrixParts <- function(mat.list, new.rownames) {
 # @param fragment.list A list of Fragment objects. If NULL, pull them from the
 # object
 # @param assay Name of assay to use if supplying a Seurat object
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom Rsamtools TabixFile
 #' @importFrom GenomeInfoDb keepSeqlevels
 MultiGetReadsInRegion <- function(
@@ -1529,7 +1523,7 @@ SingleFileCutMatrix <- function(
 # @param group.by Name of grouping variable to use
 # @param verbose Display messages
 # @return Returns a sparse matrix
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom Rsamtools TabixFile seqnamesTabix
 #' @importFrom GenomeInfoDb keepSeqlevels
 CutMatrix <- function(
@@ -1589,7 +1583,7 @@ CutMatrix <- function(
 # @param cells Vector of cells to include
 # @param verbose Display messages
 #' @importFrom Rsamtools TabixFile seqnamesTabix
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom GenomeInfoDb keepSeqlevels
 MultiRegionCutMatrix <- function(
   object,
@@ -2187,4 +2181,56 @@ SparseRowVar <- function(x) {
 #' @importMethodsFrom Matrix t
 SparseColVar <- function(x) {
   return(SparseRowVar(x = t(x = x)))
+}
+
+# Replace non-zero entries in a sparse entries with non-zero ranks
+#
+# This method creates a rank matrix for a sparse matrix X using the following approach:
+# 1. Use non-zero entries in a column to calculate the ranks
+# 2. Add (z-1)/2 to the ranks (only non-zero entries are changed). z is the number of zeros
+# in the column
+# Since all the entries are shifted by the same constant (the zeros
+# are already shifted), the covariance matrix of this shifted matrix is
+# the same as the rank matrix of the entire matrix (where the zeros would
+# all also have a rank = (z+1)/2) where z is the number of zeros
+#
+# This rank matrix can then be used to calculate pearson correlation
+SparsifiedRanks <- function(X){
+  if (!inherits(x = X, what = "dgCMatrix")) {
+    X <- as(object = X, Class = "dgCMatrix")
+  }
+  non_zeros_per_col <- diff(x = X@p)
+  n_zeros_per_col <- nrow(x = X) - non_zeros_per_col
+  offsets <- (n_zeros_per_col - 1) / 2
+  x <- X@x
+  ## split entries to columns
+  col_lst <- split(
+    x = x,
+    f = rep.int(x = 1:ncol(x = X), times = non_zeros_per_col)
+  )
+  ## calculate sparsified ranks and do shifting
+  sparsified_ranks <- unlist(
+    x = lapply(
+      X = seq_along(col_lst),
+      FUN = function(i) rank(x = col_lst[[i]]) + offsets[i]
+      )
+    )
+  ## Create template rank matrix
+  X.ranks <- X
+  X.ranks@x <- sparsified_ranks
+  return(X.ranks)
+}
+
+SparseSpearmanCor <- function(X, Y = NULL, cov = FALSE) {
+  if (!requireNamespace(package = "qlcMatrix", quietly = TRUE)) {
+    stop("Please install qlcMatrix: install.packages('qlcMatrix')")
+  }
+  # Get sparsified ranks
+  rankX <- SparsifiedRanks(X = X)
+  if (is.null(Y)){
+    # Calculate pearson correlation on rank matrices
+    return (qlcMatrix::corSparse(X = rankX, cov = cov))
+    }
+  rankY <- SparsifiedRanks(X = Y)
+  return(qlcMatrix::corSparse(X = rankX, Y = rankY, cov = cov))
 }

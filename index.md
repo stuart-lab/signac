@@ -4,12 +4,14 @@
 
 # Signac
 
-Signac is an extension of [Seurat](https://github.com/satijalab/seurat) for the analysis, interpretation, and exploration of single-cell chromatin datasets.
+Signac is a comprehensive R package for the analysis of single-cell
+chromatin data.
 
 ## Features
 
 Signac is designed for the analysis of single-cell chromatin data, including scATAC-seq,
-single-cell targeted tagmentation methods such as scCUT&Tag and scACT-seq,
+single-cell targeted tagmentation methods such as [scCUT&Tag](https://www.nature.com/articles/s41467-019-09982-5)
+and [scNTT-seq](https://www.biorxiv.org/content/10.1101/2022.03.08.483436v1),
 and multimodal datasets that jointly measure chromatin state alongside other
 modalities.
 

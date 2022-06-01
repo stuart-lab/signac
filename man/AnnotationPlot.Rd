@@ -4,12 +4,15 @@
 \alias{AnnotationPlot}
 \title{Plot gene annotations}
 \usage{
-AnnotationPlot(object, region)
+AnnotationPlot(object, region, mode = "gene")
 }
 \arguments{
 \item{object}{A \code{\link[SeuratObject]{Seurat}} object}
 
 \item{region}{A genomic region to plot}
+
+\item{mode}{Display mode. Choose either "gene" or "transcript" to determine
+whether genes or transcripts are plotted.}
 }
 \value{
 Returns a \code{\link[ggplot2]{ggplot}} object

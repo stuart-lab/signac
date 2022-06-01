@@ -180,6 +180,7 @@ ConnectionsToLinks <- function(
 #' @param peak.slot Name of slot to pull chromatin data from
 #' @param expression.assay Name of assay containing gene expression information
 #' @param expression.slot Name of slot to pull expression data from
+#' @param method Correlation method to use. One of "pearson" or "spearman"
 #' @param gene.coords GRanges object containing coordinates of genes in the
 #' expression assay. If NULL, extract from gene annotations stored in the assay.
 #' @param distance Distance threshold for peaks to include in regression model
@@ -198,13 +199,12 @@ ConnectionsToLinks <- function(
 #' using gene IDs rather than gene names.
 #' @param verbose Display messages
 #'
-#' @importFrom Seurat GetAssayData
+#' @importFrom SeuratObject GetAssayData
 #' @importFrom stats pnorm sd
 #' @importFrom Matrix sparseMatrix rowSums
 #' @importFrom future.apply future_lapply
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
-#' @importFrom qlcMatrix corSparse
 #' @importMethodsFrom Matrix t
 #'
 #' @return Returns a Seurat object with the \code{Links} information set. This is
@@ -228,6 +228,7 @@ LinkPeaks <- function(
   expression.assay,
   peak.slot = "counts",
   expression.slot = "data",
+  method = "pearson",
   gene.coords = NULL,
   distance = 5e+05,
   min.distance = NULL,
@@ -239,6 +240,9 @@ LinkPeaks <- function(
   gene.id = FALSE,
   verbose = TRUE
 ) {
+  if (!requireNamespace(package = "qlcMatrix", quietly = TRUE)) {
+    stop("Please install qlcMatrix: install.packages('qlcMatrix')")
+  }
   if (!inherits(x = object[[peak.assay]], what = "ChromatinAssay")) {
     stop("The requested assay is not a ChromatinAssay")
   }
@@ -253,19 +257,38 @@ LinkPeaks <- function(
       min.distance <- NULL
     }
   }
+  features.match <- c("GC.percent", "count", "sequence.length")
+  if (method == "pearson") {
+    cor_method <- qlcMatrix::corSparse
+  } else if (method == "spearman") {
+    cor_method <- SparseSpearmanCor
+  } else {
+    stop("method can be one of 'pearson' or 'spearman'.")
+  }
 
   if (is.null(x = gene.coords)) {
+    annot <- Annotation(object = object[[peak.assay]])
+    if (is.null(x = annot)) {
+      stop("Gene annotations not found")
+    }
     gene.coords <- CollapseToLongestTranscript(
-      ranges = Annotation(object = object[[peak.assay]])
+      ranges = annot
     )
   }
   meta.features <- GetAssayData(
     object = object, assay = peak.assay, slot = "meta.features"
   )
-  features.match <- c("GC.percent", "count")
-  if (!("GC.percent" %in% colnames(x = meta.features))) {
-    stop("GC content per peak has not been computed.\n",
+  if (!(all(
+    c("GC.percent", "sequence.length") %in% colnames(x = meta.features)
+    ))) {
+    stop("DNA sequence information for each peak has not been computed.\n",
          "Run RegionsStats before calling this function.")
+  }
+  if (!("count" %in% colnames(x = meta.features))) {
+    data.use <- GetAssayData(object = object[[peak.assay]], slot = "counts")
+    hvf.info <- FindTopFeatures(object = data.use, verbose = FALSE)
+    hvf.info <- hvf.info[rownames(meta.features), , drop = FALSE]
+    meta.features <- cbind(meta.features, hvf.info)
   }
   peak.data <- GetAssayData(
     object = object, assay = peak.assay, slot = peak.slot
@@ -356,7 +379,7 @@ LinkPeaks <- function(
         return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
       } else {
         peak.access <- peak.data[, peak.use, drop = FALSE]
-        coef.result <- corSparse(
+        coef.result <- cor_method(
           X = peak.access,
           Y = gene.expression
         )
@@ -381,7 +404,7 @@ LinkPeaks <- function(
               MatchRegionStats(
                 meta.feature = meta.use,
                 query.feature = pk.use[x, , drop = FALSE],
-                features.match = c("GC.percent", "count", "sequence.length"),
+                features.match = features.match,
                 n = n_sample,
                 verbose = FALSE
               )
@@ -389,7 +412,7 @@ LinkPeaks <- function(
           )
           # run background correlations
           bg.access <- peak.data[, unlist(x = bg.peaks), drop = FALSE]
-          bg.coef <- corSparse(
+          bg.coef <- cor_method(
             X = bg.access,
             Y = gene.expression
           )

@@ -53,7 +53,8 @@ RegionMatrix(object, ...)
 
 \item{...}{Arguments passed to other methods}
 
-\item{regions}{A set of genomic ranges to quantify}
+\item{regions}{A \code{\link[GenomicRanges]{GRanges}} object containing the
+set of genomic ranges to quantify}
 
 \item{key}{Name to store resulting matrices under}
 

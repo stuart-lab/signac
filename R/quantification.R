@@ -13,7 +13,7 @@ NULL
 #' @param verbose Display messages
 #'
 #' @rdname AggregateTiles
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @method AggregateTiles Seurat
 #' @concept quantification
@@ -202,7 +202,7 @@ GenomeBinMatrix <- function(
 #' @param verbose Display messages
 #'
 #' @export
-#' @importFrom Seurat RowMergeSparseMatrices
+#' @importFrom SeuratObject RowMergeSparseMatrices
 #' @concept quantification
 #' @return Returns a sparse matrix
 #' @examples
@@ -269,7 +269,16 @@ FeatureMatrix <- function(
   if (length(x = mat.list) == 1) {
     return(mat.list[[1]])
   } else {
-    featmat <- Reduce(f = RowMergeSparseMatrices, x = mat.list)
+    # ensure all cells present, same order
+    all.cells <- unique(
+      x = unlist(x = lapply(X = mat.list, FUN = colnames))
+    )
+    mat.list <- lapply(
+      X = mat.list,
+      FUN = AddMissingCells,
+      cells = all.cells
+    )
+    featmat <- Reduce(f = `+`, x = mat.list)
     return(featmat)
   }
 }

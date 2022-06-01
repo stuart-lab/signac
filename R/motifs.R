@@ -71,13 +71,28 @@ AddMotifs.ChromatinAssay <- function(
   return(object)
 }
 
+#' @rdname AddMotifs
+#' @method AddMotifs Assay
+#' @concept motifs
+#' @export
+AddMotifs.Assay <- function(
+  object,
+  genome,
+  pfm,
+  verbose = TRUE,
+  ...
+) {
+  stop("Attempting to run AddMotifs on a standard Assay.\n",
+       "Please supply a ChromatinAssay instead.")
+}
+
 #' @param assay Name of assay to use. If NULL, use the default assay
 #' @param genome A \code{BSgenome}, \code{DNAStringSet}, \code{FaFile}, or
 #' string stating the genome build recognized by \code{getBSgenome}.
 #' @param pfm A \code{PFMatrixList} or \code{PWMatrixList} object containing
 #' position weight/frequency matrices to use
 #' @param verbose Display messages
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @rdname AddMotifs
 #' @method AddMotifs Seurat
 #' @concept motifs
@@ -106,7 +121,7 @@ AddMotifs.Seurat <- function(
   return(object)
 }
 
-#' @importFrom Seurat GetAssayData CreateAssayObject
+#' @importFrom SeuratObject GetAssayData CreateAssayObject
 #' @importFrom Matrix rowSums
 #'
 #' @concept motifs
@@ -186,7 +201,7 @@ RunChromVAR.ChromatinAssay <- function(
 #' @method RunChromVAR Seurat
 #' @rdname RunChromVAR
 #' @export
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @concept motifs
 #' @examples
 #' \dontrun{
@@ -237,12 +252,14 @@ globalVariables(names = "pvalue", package = "Signac")
 #' This can be added using the
 #'  \code{\link{RegionStats}} function. If NULL, use all features in the assay.
 #' @param verbose Display messages
+#' @param p.adjust.method Multiple testing correction method to be applied.
+#' Passed to \code{\link[stats]{p.adjust}}.
 #' @param ... Arguments passed to \code{\link{MatchRegionStats}}.
 #'
 #' @return Returns a data frame
 #'
 #' @importFrom Matrix colSums
-#' @importFrom stats phyper
+#' @importFrom stats phyper p.adjust
 #' @importFrom methods is
 #'
 #' @export
@@ -261,6 +278,7 @@ FindMotifs <- function(
   background = 40000,
   assay = NULL,
   verbose = TRUE,
+  p.adjust.method = "BH",
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
@@ -278,6 +296,14 @@ FindMotifs <- function(
     mf.choose <- meta.feature[
       setdiff(x = rownames(x = meta.feature), y = features), , drop = FALSE
     ]
+    missing.features <- setdiff(x = features, y = rownames(x = meta.feature))
+    if (length(x = missing.features) > 0) {
+      warning(
+        "The following features were not found in the assay: ",
+        missing.features,
+        "\nRemoving missing features", immediate. = TRUE)
+      features <- intersect(x = features, y = rownames(x = meta.feature))
+    }
     mf.query <- meta.feature[features, , drop = FALSE]
     background <- MatchRegionStats(
       meta.feature = mf.choose,
@@ -334,6 +360,7 @@ FindMotifs <- function(
     motif.name = as.vector(
       x = unlist(x = motif.names[names(x = query.counts)])
     ),
+    p.adjust = p.adjust(p = p.list, method = p.adjust.method),
     stringsAsFactors = FALSE
   )
   if (nrow(x = results) == 0) {
@@ -388,13 +415,24 @@ ConvertMotifID.Motif <- function(object, ...) {
 #' @export
 ConvertMotifID.ChromatinAssay <- function(object, ...) {
   motifs <- Motifs(object = object)
+  if (is.null(x = motifs)) {
+    stop("No motif information present in assay")
+  }
   return(ConvertMotifID(object = motifs, ...))
+}
+
+#' @method ConvertMotifID Assay
+#' @rdname ConvertMotifID
+#' @concept motifs
+#' @export
+ConvertMotifID.Assay <- function(object, ...) {
+  stop("Cannot run ConvertMotifID on a standard Assay object")
 }
 
 #' @param assay For \code{Seurat} object. Name of assay to use.
 #' If NULL, use the default assay
 #'
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #'
 #' @method ConvertMotifID Seurat
 #' @rdname ConvertMotifID
@@ -421,7 +459,7 @@ ConvertMotifID.Seurat <- function(object, assay = NULL, ...) {
 #' 
 #' @return Returns a list of sparse matrices
 #' 
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @export
 MotifCounts <- function(
   object,

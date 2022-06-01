@@ -84,7 +84,7 @@ AlleleFreq.default <- function(object, variants, ...) {
 }
 
 #' @rdname AlleleFreq
-#' @importFrom Seurat CreateAssayObject GetAssayData
+#' @importFrom SeuratObject CreateAssayObject GetAssayData
 #' @concept mito
 #' @export
 #' @method AlleleFreq Assay
@@ -98,7 +98,7 @@ AlleleFreq.Assay <- function(object, variants, ...) {
 #' @param assay Name of assay to use
 #' @param new.assay.name Name of new assay to store variant data in
 #' @rdname AlleleFreq
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @method AlleleFreq Seurat
 #' @concept mito
 #' @export
@@ -127,8 +127,7 @@ AlleleFreq.Seurat <- function(
 #' @param assay Name of assay to use
 #' @param group.by Grouping variable for cells
 #'
-#' @importFrom Seurat Idents
-#' @importFrom lsa cosine
+#' @importFrom SeuratObject Idents
 #' @importFrom Matrix rowMeans
 #' @importFrom stats dist hclust
 #'
@@ -139,6 +138,9 @@ AlleleFreq.Seurat <- function(
 #'
 #' @concept mito
 ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
+  if (!requireNamespace(package = "lsa", quietly = TRUE)) {
+    stop("Please install lsa: install.packages('lsa')")
+  }
   if (is.null(x = group.by)) {
     object$allele_ident_stash_clon <- Idents(object = object)
   } else {
@@ -157,8 +159,8 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
   object$allele_ident_stash_clon <- NULL
   # cluster
 
-  cos_matty <- cosine(x = matty)
-  cos_matty_t <- cosine(x = t(x = matty))
+  cos_matty <- lsa::cosine(x = matty)
+  cos_matty_t <- lsa::cosine(x = t(x = matty))
   # replace NaN with 0
   cos_matty[is.nan(x = cos_matty)] <- 0
   cos_matty_t[is.nan(x = cos_matty_t)] <- 0
@@ -191,7 +193,7 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
 #'
 #' @export
 #' @concept mito
-#' @importFrom Seurat DefaultAssay GetAssayData FindNeighbors FindClusters
+#' @importFrom SeuratObject DefaultAssay GetAssayData
 #' VariableFeatures
 FindClonotypes <- function(
   object,
@@ -202,6 +204,9 @@ FindClonotypes <- function(
   k = 10,
   algorithm = 3
 ) {
+  if (!requireNamespace(package = "Seurat", quietly = TRUE)) {
+    stop("Please install Seurat: install.packages('Seurat')")
+  }
   # get allele matrix
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   features <- SetIfNull(x = features, y = rownames(x = object[[assay]]))
@@ -209,12 +214,16 @@ FindClonotypes <- function(
   mat <- sqrt(x = t(x = mat))
 
   # construct neighbor graph
-  graph <- FindNeighbors(object = mat, k.param = k, annoy.metric = metric)
+  graph <- Seurat::FindNeighbors(
+    object = mat,
+    k.param = k,
+    annoy.metric = metric
+  )
   object[[paste0(assay, "_nn")]] <- graph$nn
   object[[paste0(assay, "_snn")]] <- graph$snn
 
   # cluster
-  object <- FindClusters(
+  object <- Seurat::FindClusters(
     object = object,
     graph.name = paste0(assay, "_snn"),
     resolution = resolution,
@@ -421,7 +430,7 @@ IdentifyVariants.default <- function(
   return(rbind(a.df, t.df, c.df, g.df))
 }
 
-#' @importFrom Seurat GetAssayData
+#' @importFrom SeuratObject GetAssayData
 #' @rdname IdentifyVariants
 #' @method IdentifyVariants Assay
 #' @concept mito
@@ -436,7 +445,7 @@ IdentifyVariants.Assay <- function(
   return(df)
 }
 
-#' @importFrom Seurat GetAssay DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @rdname IdentifyVariants
 #' @concept mito
@@ -449,7 +458,7 @@ IdentifyVariants.Seurat <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  assay.obj <- GetAssay(object = object, assay = assay)
+  assay.obj <- object[[assay]]
   df <- IdentifyVariants(object = assay.obj, refallele = refallele, ...)
   return(df)
 }

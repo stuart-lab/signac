@@ -29,8 +29,8 @@ test_that("LSI works", {
   )
 
   lsi <- suppressWarnings(RunSVD(object = mat))
-  embeddings <- Seurat::Embeddings(object = lsi)
-  loadings <- Seurat::Loadings(object = lsi)
+  embeddings <- SeuratObject::Embeddings(object = lsi)
+  loadings <- SeuratObject::Loadings(object = lsi)
 
   expect_equal(
     object = as.vector(embeddings[1, ]),

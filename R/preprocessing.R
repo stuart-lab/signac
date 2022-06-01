@@ -32,7 +32,7 @@ BinarizeCounts.default <- function(
 
 #' @rdname BinarizeCounts
 #' @method BinarizeCounts Assay
-#' @importFrom Seurat GetAssayData SetAssayData
+#' @importFrom SeuratObject GetAssayData SetAssayData
 #' @export
 #' @concept preprocessing
 #' @examples
@@ -58,7 +58,7 @@ BinarizeCounts.Assay <- function(
 #' and binarization will be applied to each.
 #' @rdname BinarizeCounts
 #' @method BinarizeCounts Seurat
-#' @importFrom Seurat GetAssay DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @concept preprocessing
 #' @examples
@@ -71,7 +71,7 @@ BinarizeCounts.Seurat <- function(
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   for (i in seq_along(along.with = assay)) {
-    assay.data <- GetAssay(object = object, assay = assay[[i]])
+    assay.data <- object[[assay[[i]]]]
     assay.data <- BinarizeCounts(
       object = assay.data,
       assay = assay[[i]],
@@ -175,7 +175,7 @@ CreateMotifMatrix <- function(
 #' @param assay Name of assay to use. Default is the active assay.
 #' @param n Number of features to retain (default 20000).
 #' @param verbose Display messages
-#' @importFrom Seurat DefaultAssay GetAssayData "VariableFeatures<-"
+#' @importFrom SeuratObject DefaultAssay GetAssayData "VariableFeatures<-"
 #' @return Returns a \code{\link[SeuratObject]{Seurat}} object with
 #' \code{\link[SeuratObject]{VariableFeatures}} set to the randomly sampled features.
 #' @export
@@ -240,7 +240,7 @@ FindTopFeatures.default <- function(
 }
 
 #' @rdname FindTopFeatures
-#' @importFrom Seurat GetAssayData VariableFeatures
+#' @importFrom SeuratObject GetAssayData VariableFeatures
 #' @export
 #' @method FindTopFeatures Assay
 #' @concept preprocessing
@@ -289,7 +289,7 @@ FindTopFeatures.Assay <- function(
 }
 
 #' @rdname FindTopFeatures
-#' @importFrom Seurat DefaultAssay GetAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @concept preprocessing
 #' @method FindTopFeatures Seurat
@@ -303,7 +303,7 @@ FindTopFeatures.Seurat <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object))
-  assay.data <- GetAssay(object = object, assay = assay)
+  assay.data <- object[[assay]]
   assay.data <- FindTopFeatures(
     object = assay.data,
     assay = assay,
@@ -326,7 +326,7 @@ FindTopFeatures.Seurat <- function(
 #' @param verbose Display messages
 #'
 #' @importFrom Matrix colSums
-#' @importFrom Seurat GetAssayData AddMetaData
+#' @importFrom SeuratObject GetAssayData AddMetaData
 #'
 #' @export
 #' @concept qc
@@ -375,7 +375,7 @@ globalVariables(names = "cell", package = "Signac")
 #' @export
 #' @concept qc
 #' @importFrom fastmatch fmatch
-#' @importFrom Seurat AddMetaData
+#' @importFrom SeuratObject AddMetaData
 #' @importFrom stats ecdf
 #'
 #' @examples
@@ -432,7 +432,9 @@ NucleosomeSignal <- function(
 }
 
 
-#' @param genome A BSgenome object
+#' @param genome A \code{BSgenome} object or any other object supported by
+#' \code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all
+#' supported object types.
 #' @param verbose Display messages
 #'
 #' @importMethodsFrom GenomicRanges width
@@ -460,7 +462,7 @@ RegionStats.default <- function(
     stop("Please install Biostrings: BiocManager::install('Biostrings')")
   }
   sequence.length <- width(x = object)
-  sequences <- BSgenome::getSeq(x = genome, names = object)
+  sequences <- Biostrings::getSeq(x = genome, object)
   gc <- Biostrings::letterFrequency(
     x = sequences, letters = 'CG'
   ) / sequence.length * 100
@@ -473,7 +475,7 @@ RegionStats.default <- function(
 #' @rdname RegionStats
 #' @method RegionStats ChromatinAssay
 #' @importFrom methods slot
-#' @importFrom Seurat GetAssayData
+#' @importFrom SeuratObject GetAssayData
 #' @export
 #' @concept motifs
 #' @examples
@@ -527,7 +529,7 @@ RegionStats.Seurat <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  assay.data <- GetAssay(object = object, assay = assay)
+  assay.data <- object[[assay]]
   assay.data <- RegionStats(
     object = assay.data,
     genome = genome,
@@ -691,7 +693,7 @@ RunTFIDF.Seurat <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object))
-  assay.data <- GetAssay(object = object, assay = assay)
+  assay.data <- object[[assay]]
   assay.data <- RunTFIDF(
     object = assay.data,
     assay = assay,

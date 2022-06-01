@@ -30,9 +30,6 @@ if (!requireNamespace("BSgenome.Mmusculus.UCSC.mm10", quietly = TRUE))
 
 if (!requireNamespace("chromVAR", quietly = TRUE))
     BiocManager::install("chromVAR")
-
-if (!requireNamespace("ggbio", quietly = TRUE))
-    BiocManager::install("ggbio")
 ```
 
 ```{r message=FALSE, warning=FALSE}

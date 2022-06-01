@@ -1,7 +1,7 @@
 Package: Signac
 Title: Analysis of Single-Cell Chromatin Data
-Version: 1.6.0
-Date: 2022-03-04
+Version: 1.7.0
+Date: 2022-05-31
 Authors@R: c(
   person(given = 'Tim', family = 'Stuart', email = 'tstuart@nygenome.org', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3044-0897')),
   person(given = 'Avi', family = 'Srivastava', email = 'asrivastava@nygenome.org', role = 'aut', comment = c(ORCID = '0000-0001-9798-2079')),
@@ -24,20 +24,18 @@ URL: https://github.com/timoast/signac, https://satijalab.org/signac
 BugReports: https://github.com/timoast/signac/issues
 LinkingTo: Rcpp
 Imports: 
-    GenomeInfoDb,
+    GenomeInfoDb (>= 1.29.3),
     GenomicRanges,
     IRanges,
     Matrix,
     Rsamtools,
     S4Vectors,
-    Seurat (>= 4.0.6),
     SeuratObject (>= 4.0.0),
     data.table,
     dplyr (>= 1.0.0),
     future,
     future.apply,
     ggplot2,
-    ggseqlogo,
     irlba,
     pbapply,
     tidyr,
@@ -45,17 +43,14 @@ Imports:
     stats,
     utils,
     BiocGenerics,
-    ggrepel,
     stringi,
     fastmatch,
-    lsa,
     RcppRoll,
     scales,
     Rcpp,
-    ggforce,
-    qlcMatrix,
     grid,
-    tidyselect
+    tidyselect,
+    vctrs
 Collate: 
     'RcppExports.R'
     'data.R'
@@ -80,6 +75,10 @@ Collate:
     'visualization.R'
     'zzz.R'
 Suggests: 
+    Seurat (>= 4.0.6),
+    ggforce,
+    ggrepel,
+    ggseqlogo,
     testthat (>= 2.1.0),
     chromVAR,
     SummarizedExperiment,
@@ -90,4 +89,6 @@ Suggests:
     miniUI,
     rtracklayer,
     biovizBase,
-    Biostrings
+    Biostrings,
+    lsa,
+    qlcMatrix

@@ -1,3 +1,32 @@
+# Signac 1.7.0
+
+New functionality:
+
+* Added `method` parameter to `LinkPeaks()` ([@saketkc](https://github.com/saketkc); [#1030](https://github.com/timoast/signac/pull/1030))
+* Added ability to plot transcript isoforms (set `annotation="transcript"` in `CoveragePlot()`)
+* Added multiple testing correction to `FindMotifs()`, and new `p.adjust` column in output dataframe
+* Added `p.adjust.method` parameter to `FindMotifs()` to control multiple testing correction method used
+
+Bug fixes:
+
+* Fixed bug in `CallPeaks()` when project name contained whitespace ([#981](https://github.com/timoast/signac/issues/981))
+* Fixed bug in `CoveragePlot()` when `tile=TRUE`
+* Fixed bug in `InsertionBias()` that set the coordinates beyond the end of some chromosomes ([#986](https://github.com/timoast/signac/issues/986))
+* Fixed bug in `BigwigTrack()` when supplying a single bigwig file ([#1053](https://github.com/timoast/signac/issues/1053))
+* Fixed bug in `GeneActivity()` when specifying biotypes ([#1058](https://github.com/timoast/signac/issues/1058))
+* Fixed bug in `GeneActivity()` when gene name is an empty string ([#1055](https://github.com/timoast/signac/issues/1055))
+* Fixed bug in `FeatureMatrix()` when using list of Fragment objects ([#1056](https://github.com/timoast/signac/issues/1056))
+* Fixed bug in `RegionMatrix()` when running on objects containing renamed cells ([#1076](https://github.com/timoast/signac/issues/1076))
+* Fixed bug in `Footprint()` when using a FASTA file ([#1092](https://github.com/timoast/signac/issues/1092))
+* Fixed bug in `Footprint()` when using list of genomic regions ([#1098](https://github.com/timoast/signac/issues/1098))
+* Add check for invalid features in `FindMotifs()` ([#1109](https://github.com/timoast/signac/issues/1109))
+
+Other changes:
+
+* Improved error message when no fragment file is supplied in `CallPeaks()` ([#1062](https://github.com/timoast/signac/issues/1062))
+* Moved `Seurat`, `ggforce`, `ggrepel`, `ggseqlogo`, `lsa`, `qlcMatrix` to suggested packages
+* Added progress bar to `GetGRangesFromEnsDb()`
+
 # Signac 1.6.0
 
 New functionality:

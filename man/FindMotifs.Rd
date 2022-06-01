@@ -10,6 +10,7 @@ FindMotifs(
   background = 40000,
   assay = NULL,
   verbose = TRUE,
+  p.adjust.method = "BH",
   ...
 )
 }
@@ -29,6 +30,9 @@ This can be added using the
 \item{assay}{Which assay to use. Default is the active assay}
 
 \item{verbose}{Display messages}
+
+\item{p.adjust.method}{Multiple testing correction method to be applied.
+Passed to \code{\link[stats]{p.adjust}}.}
 
 \item{...}{Arguments passed to \code{\link{MatchRegionStats}}.}
 }

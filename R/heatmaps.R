@@ -2,7 +2,8 @@
 #'
 NULL
 
-#' @param regions A set of genomic ranges to quantify
+#' @param regions A \code{\link[GenomicRanges]{GRanges}} object containing the
+#' set of genomic ranges to quantify
 #' @param key Name to store resulting matrices under
 #' @param assay Name of assay to use. If NULL, use the default assay
 #' @param group.by Grouping variable to use when aggregating data across cells.
@@ -15,7 +16,7 @@ NULL
 #' @method RegionMatrix Seurat
 #' @export
 #' @rdname RegionMatrix
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 RegionMatrix.Seurat <- function(
   object,
   regions,
@@ -55,7 +56,7 @@ RegionMatrix.Seurat <- function(
 
 #' @method RegionMatrix ChromatinAssay
 #' @export
-#' @importFrom Seurat GetAssayData
+#' @importFrom SeuratObject GetAssayData
 #' @rdname RegionMatrix
 #' @concept heatmap
 RegionMatrix.ChromatinAssay <- function(
@@ -160,12 +161,12 @@ RegionMatrix.default <- function(
   on_plus <- strand(x = regions) == "+" | strand(x = regions) == "*"
   plus.strand <- regions[on_plus, ]
   minus.strand <- regions[!on_plus, ]
-  
   for (i in seq_along(along.with = object)) {
     tmplist <- list()
     
     # open tabix connection
     fragfile <- GetFragmentData(object = object[[i]], slot = "path")
+    cellnames <- GetFragmentData(object = object[[i]], slot = "cells")
     tabix.file <- TabixFile(file = fragfile)
     open(con = tabix.file)
     
@@ -203,7 +204,11 @@ RegionMatrix.default <- function(
         for (cell in unique.groups) {
           cells.keep <- names(x = group.by[group.by == cell])
           subfrag <- res[
-            fmatch(x = res$cell, table = cells.keep, nomatch = 0L) > 0, ,
+            fmatch(
+              x = res$cell,
+              table = cellnames[cells.keep],
+              nomatch = 0L
+              ) > 0, ,
             drop = FALSE]
           startpos <- subfrag$start
           endpos <- subfrag$end

@@ -49,8 +49,7 @@ NULL
 #'
 #' @concept quantification
 #'
-#' @importFrom Seurat DefaultAssay
-#' @importFrom Seurat Project
+#' @importFrom SeuratObject DefaultAssay Project
 #' @importFrom GenomicRanges reduce
 #'
 #' @export
@@ -295,6 +294,8 @@ CallPeaks.default <- function(
     stop("MACS2 not found. Please install MACS:",
          "https://macs3-project.github.io/MACS/")
   }
+  name <- gsub(pattern = " ", replacement = "_", x = name)
+  name <- gsub(pattern = .Platform$file.sep, replacement = "_", x = name)
 
   # if list of paths given, collapse to a single space-separated string
   if (length(x = object) > 1) {
@@ -304,6 +305,9 @@ CallPeaks.default <- function(
     object <- Reduce(f = paste, x = object)
   } else {
     object <- paste0("'", object, "'")
+    if (object == "''") {
+      stop("No fragment files supplied")
+    }
   }
 
   broadstring <- ifelse(test = broad, yes = " --broad ", no = "")

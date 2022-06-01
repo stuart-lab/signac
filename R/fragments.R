@@ -193,7 +193,7 @@ FilterCells <- function(
 #' file to be unsorted.
 #' @param verbose Display messages
 #'
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @concept fragments
 #'
 #' @export
@@ -490,7 +490,7 @@ ValidateFragments <- function(
 #' @rdname Cells
 #' @concept fragments
 #' @method Cells Fragment
-#' @importFrom Seurat Cells
+#' @importFrom SeuratObject Cells
 #' @export
 Cells.Fragment <- function(x, ...) {
   cells <- slot(object = x, name = "cells")

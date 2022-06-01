@@ -25,8 +25,8 @@ RunChromVAR(object, ...)
 \item{...}{Additional arguments passed to
 \code{\link[chromVAR]{getBackgroundPeaks}}}
 
-\item{genome}{A \code{BSgenome}, \code{DNAStringSet}, \code{FaFile}, or
-string stating the genome build recognized by \code{getBSgenome}.}
+\item{genome}{A \code{BSgenome} object or string stating the genome build
+recognized by \code{getBSgenome}.}
 
 \item{motif.matrix}{A peak x motif matrix. If NULL, pull the peak x motif
 matrix from a Motif object stored in the assay.}

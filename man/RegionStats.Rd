@@ -20,7 +20,9 @@ RegionStats(object, ...)
 
 \item{...}{Arguments passed to other methods}
 
-\item{genome}{A BSgenome object}
+\item{genome}{A \code{BSgenome} object or any other object supported by
+\code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all
+supported object types.}
 
 \item{verbose}{Display messages}
 

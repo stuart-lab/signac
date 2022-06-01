@@ -22,7 +22,7 @@ test_that("DownsampleFeatures works", {
   set.seed(1)
   atac_ds <- DownsampleFeatures(object = atac_small, n = 5, verbose = FALSE)
   expect_equal(
-    object = Seurat::VariableFeatures(object = atac_ds),
+    object = SeuratObject::VariableFeatures(object = atac_ds),
     expected = c(
       "chr1-1804025-1804468",
       "chr1-2221250-2223390",
@@ -37,7 +37,7 @@ test_that("FindTopFeatures works", {
   VariableFeatures(atac_small) <- NULL
   atac_small <- FindTopFeatures(object = atac_small)
   expect_equal(
-    object = head(Seurat::VariableFeatures(object = atac_small)),
+    object = head(SeuratObject::VariableFeatures(object = atac_small)),
     expected = c("chr1-2157847-2188813",
                  "chr1-2471903-2481288",
                  "chr1-6843960-6846894",

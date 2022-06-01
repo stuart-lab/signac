@@ -41,14 +41,17 @@ Footprint(object, ...)
 
 \item{...}{Arguments passed to other methods}
 
-\item{genome}{A \code{\link[BSgenome]{BSgenome}} object}
+\item{genome}{A \code{BSgenome} object or any other object supported by
+\code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all
+supported object types.}
 
 \item{motif.name}{Name of a motif stored in the assay to footprint. If not
 supplied, must supply a set of regions.}
 
 \item{key}{Key to store positional enrichment information under.}
 
-\item{regions}{A set of genomic ranges containing the motif instances}
+\item{regions}{A set of genomic ranges containing the motif instances. These
+should all be the same width.}
 
 \item{assay}{Name of assay to use}
 

@@ -4,14 +4,20 @@
 NULL
 
 globalVariables(names = c("bin", "score", "bw"), package = "Signac")
-#' Plot data from BigWig
+#' Plot data from BigWig files
 #'
-#' Create a BigWig track. Note that this function does not work on windows.
+#' Create coverage tracks, heatmaps, or line plots from bigwig files.
+#' 
+#' Note that this function does not work on windows.
 #'
 #' @param region GRanges object specifying region to plot
-#' @param bigwig Path to a bigwig file
+#' @param bigwig List of bigwig file paths. List should be named, and the name
+#' of each element in the list of files will be displayed alongside the track
+#' in the final plot.
 #' @param smooth Number of bases to smooth data over (rolling mean). If NULL,
 #' do not apply smoothing.
+#' @param extend.upstream Number of bases to extend the region upstream.
+#' @param extend.downstream Number of bases to extend the region downstream.
 #' @param type Plot type. Can be one of "line", "heatmap", or "coverage"
 #' @param y_label Y-axis label
 #' @param bigwig.scale Scaling to apply to data from different bigwig files.
@@ -44,12 +50,15 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' @importFrom GenomicRanges start end seqnames width
 #' @importFrom dplyr slice_sample group_by mutate ungroup
 #' @concept visualization
+#' @return Returns a ggplot object
 #'
 #' @export
 BigwigTrack <- function(
   region,
   bigwig,
   smooth = 200,
+  extend.upstream = 0,
+  extend.downstream = 0,
   type = "coverage",
   y_label = "bigWig",
   bigwig.scale = "common",
@@ -57,6 +66,9 @@ BigwigTrack <- function(
   max.downsample = 3000,
   downsample.rate = 0.1
 ) {
+  if (!inherits(x = bigwig, what = "list")) {
+    bigwig <- list("bigWig" = bigwig)
+  }
   possible_types <- c("line", "heatmap", "coverage")
   if (!(type %in% possible_types)) {
     stop(
@@ -72,6 +84,13 @@ BigwigTrack <- function(
     message("Please install rtracklayer. http://www.bioconductor.org/packages/rtracklayer/")
     return(NULL)
   }
+  region <- FindRegion(
+    object = NULL,
+    region = region,
+    sep = c("-", "-"),
+    extend.upstream = extend.upstream,
+    extend.downstream = extend.downstream
+  )
   if (!inherits(x = region, what = "GRanges")) {
     stop("region should be a GRanges object")
   }
@@ -91,17 +110,17 @@ BigwigTrack <- function(
       stringsAsFactors = FALSE,
       bw = names(x = bigwig)[[i]]
     )
+    if (bigwig.scale == "separate") {
+      # scale to fraction of max for each separately
+      file.max <- max(region_data$score, na.rm = TRUE)
+      region_data$score <- region_data$score / file.max
+    }
     all.data <- rbind(all.data, region_data)
   }
+  all.data$bw <- factor(x = all.data$bw, levels = names(x = bigwig))
   window.size = width(x = region)
-  sampling <- min(max.downsample, window.size * downsample.rate)
+  sampling <- max(max.downsample, window.size * downsample.rate)
   coverages <- slice_sample(.data = all.data, n = sampling)
-  
-  if (bigwig.scale == "separate") {
-    # scale to fraction of max for each separately
-    file.max <- max(coverages$score, na.rm = TRUE)
-    coverages$score <- coverages$score / file.max
-  }
   
   covmax <- signif(x = max(coverages$score, na.rm = TRUE), digits = 2)
   if (is.null(x = ymax)) {
@@ -151,7 +170,7 @@ BigwigTrack <- function(
       scale_fill_grey()
   }
   chromosome <- as.character(x = seqnames(x = region))
-  p <- p + theme_browser() +
+  p <- p + theme_browser(axis.text.y = TRUE) +
     xlab(label = paste0(chromosome, " position (bp)")) +
     ylab(label = y_label)
   return(p)
@@ -172,7 +191,7 @@ globalVariables(names = c("Component", "counts"), package = "Signac")
 #' @param ... Additional arguments passed to \code{\link[stats]{cor}}
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
-#' @importFrom Seurat Embeddings DefaultAssay
+#' @importFrom SeuratObject Embeddings DefaultAssay
 #' @importFrom ggplot2 ggplot geom_point scale_x_continuous
 #' ylab ylim theme_light ggtitle aes
 #' @importFrom stats cor
@@ -227,8 +246,7 @@ globalVariables(
 #' @export
 #' @concept visualization
 #' @concept footprinting
-#' @importFrom Seurat DefaultAssay
-#' @importFrom ggrepel geom_label_repel
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom ggplot2 ggplot aes geom_line facet_wrap xlab ylab theme_classic
 #' theme element_blank geom_label guides guide_legend
 #' @importFrom dplyr group_by summarize top_n
@@ -353,7 +371,15 @@ PlotFootprint <- function(
       guides(color = guide_legend(override.aes = list(size = 1)))
     if (label) {
       if (repel) {
-        p <- p + geom_label_repel(box.padding = 0.5, show.legend = FALSE)
+        if (!requireNamespace(package = "ggrepel", quietly = TRUE)) {
+          warning("Please install ggrepel to enable repel=TRUE: ",
+                  "install.packages('ggrepel')")
+          p <- p + geom_label(show.legend = FALSE)
+        } else {
+          p <- p + ggrepel::geom_label_repel(
+            box.padding = 0.5, show.legend = FALSE
+          )
+        }
       } else {
         p <- p + geom_label(show.legend = FALSE)
       }
@@ -428,7 +454,7 @@ globalVariables(
 #' 
 #' @return Returns a ggplot2 object
 #' 
-#' @importFrom Seurat DefaultAssay GetAssayData SetQuantile
+#' @importFrom SeuratObject DefaultAssay GetAssayData
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer
@@ -546,7 +572,10 @@ RegionHeatmap <- function(
       
       # clip values
       if (!is.na(x = max.cutoff)) {
-        cutoff <- SetQuantile(cutoff = max.cutoff, data = smoothed)
+        if (!requireNamespace(package = "Seurat", quietly = TRUE)) {
+          stop("Please install Seurat: install.packages('Seurat')")
+        }
+        cutoff <- Seurat::SetQuantile(cutoff = max.cutoff, data = smoothed)
         smoothed[smoothed > cutoff] <- cutoff
       }
       
@@ -618,7 +647,7 @@ RegionHeatmap <- function(
   return(p)
 }
 
-#' @importFrom Seurat GetAssayData
+#' @importFrom SeuratObject GetAssayData
 get_heatmap_data <- function(
   object,
   key,
@@ -697,7 +726,7 @@ get_heatmap_data <- function(
 #' 
 #' @return Returns a ggplot2 object
 #' 
-#' @importFrom Seurat DefaultAssay GetAssayData
+#' @importFrom SeuratObject DefaultAssay GetAssayData
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer
@@ -822,7 +851,7 @@ globalVariables(
 )
 #' @importFrom ggplot2 ylab scale_fill_manual unit element_text theme
 #' @importMethodsFrom GenomicRanges start end
-#' @importFrom Seurat WhichCells Idents DefaultAssay Idents<-
+#' @importFrom SeuratObject WhichCells Idents DefaultAssay Idents<-
 SingleCoveragePlot <- function(
   object,
   region,
@@ -986,10 +1015,22 @@ SingleCoveragePlot <- function(
     ex.plot <- NULL
     widths <- NULL
   }
-  if (annotation) {
-    gene.plot <- AnnotationPlot(object = object[[assay[[1]]]], region = region)
+  if (is.logical(x = annotation)) {
+    if (annotation) {
+      gene.plot <- AnnotationPlot(
+        object = object[[assay[[1]]]],
+        region = region,
+        mode = "gene"
+      )
+    } else {
+      gene.plot <- NULL
+    }
   } else {
-    gene.plot <- NULL
+    gene.plot <- AnnotationPlot(
+      object = object[[assay[[1]]]],
+      region = region,
+      mode = annotation
+    )
   }
   if (links) {
     link.plot <- LinkPlot(object = object[[assay[[1]]]], region = region)
@@ -1020,8 +1061,9 @@ SingleCoveragePlot <- function(
   }
   if (tile) {
     # reuse cut matrix
+    # TODO implement for multi assay
     tile.df <- ComputeTile(
-      cutmatrix = cutmat[[1]],
+      cutmatrix = cm.list[[1]],
       groups = obj.groups,
       window = tile.size,
       n = tile.cells,
@@ -1073,7 +1115,7 @@ SingleCoveragePlot <- function(
   bulk.height <- (1 / nident) * 10
   bw.height <- 10
   heights <- SetIfNull(
-    x = heights, y = c(10, bulk.height, bw.height, 10, 2, 1, 1, 3)
+    x = heights, y = c(10, bulk.height, bw.height, 10, 3, 1, 1, 3)
   )
   p <- CombineTracks(
     plotlist = list(p, bulk.plot, bigwig.tracks, tile.plot, gene.plot,
@@ -1319,7 +1361,10 @@ CoverageTrack <- function(
 #' argument.
 #' @param expression.slot Name of slot to pull expression data from. Only needed
 #' if supplying the \code{features} argument.
-#' @param annotation Display gene annotations
+#' @param annotation Display gene annotations. Set to TRUE or FALSE to control
+#' whether genes models are displayed, or choose "transcript" to display all
+#' transcript isoforms, or "gene" to display gene models only (same as setting
+#' TRUE).
 #' @param peaks Display peaks
 #' @param peaks.group.by Grouping variable to color peaks by. Must be a variable
 #' present in the feature metadata. If NULL, do not color peaks by any variable.
@@ -1335,7 +1380,8 @@ CoverageTrack <- function(
 #' metadata column in the GRanges object named "color" containing the color to
 #' use for each region.
 #' @param links Display links
-#' @param tile Display per-cell fragment information in sliding windows.
+#' @param tile Display per-cell fragment information in sliding windows. If
+#' plotting multi-assay data, only the first assay is shown in the tile plot.
 #' @param tile.size Size of the sliding window for per-cell fragment tile plot
 #' @param tile.cells Number of cells to display fragment information for in tile
 #' plot.
@@ -1509,15 +1555,14 @@ CoveragePlot <- function(
 #' @param use.names Use motif names stored in the motif object
 #' @param ... Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}
 #'
-#' @importFrom ggseqlogo ggseqlogo
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @concept visualization
 #' @concept motifs
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
 #' \donttest{
-#' motif.obj <- Seurat::GetAssayData(atac_small, slot = "motifs")
+#' motif.obj <- SeuratObject::GetAssayData(atac_small, slot = "motifs")
 #' MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
 #' }
 MotifPlot <- function(
@@ -1527,6 +1572,9 @@ MotifPlot <- function(
   use.names = TRUE,
   ...
 ) {
+  if (!requireNamespace(package = "ggseqlogo", quietly = TRUE)) {
+    stop("Please install ggseqlogo: install.packages('ggseqlogo')")
+  }
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
     stop("The requested assay is not a ChromatinAssay.")
@@ -1541,7 +1589,7 @@ MotifPlot <- function(
       object = object, assay = assay, slot = "motif.names"
     )[motifs]
   }
-  p <- ggseqlogo(data = data.use, ...)
+  p <- ggseqlogo::ggseqlogo(data = data.use, ...)
   return(p)
 }
 
@@ -1564,7 +1612,7 @@ globalVariables(names = "group", package = "Signac")
 #'
 #' @importFrom ggplot2 ggplot geom_histogram theme_classic aes facet_wrap xlim
 #' scale_y_log10 theme element_blank
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #'
 #' @export
 #' @concept visualization
@@ -1648,7 +1696,7 @@ globalVariables(names = "norm.value", package = "Signac")
 #' @param group.by Set of identities to group cells by
 #' @param idents Set of identities to include in the plot
 #'
-#' @importFrom Seurat GetAssayData DefaultAssay
+#' @importFrom SeuratObject GetAssayData DefaultAssay
 #' @importFrom Matrix colMeans
 #' @importFrom ggplot2 ggplot aes geom_line xlab ylab theme_classic ggtitle
 #' theme element_blank
@@ -1812,7 +1860,7 @@ CombineTracks <- function(
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
 #' @concept visualization
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom S4Vectors mcols<-
 #' @importFrom GenomicRanges start end
 #' @importFrom IRanges subsetByOverlaps
@@ -1909,7 +1957,6 @@ PeakPlot <- function(
 #' @importFrom GenomeInfoDb seqnames
 #' @importFrom ggplot2 ggplot geom_hline aes theme_classic xlim
 #' ylab theme element_blank scale_color_gradient2 aes_string
-#' @importFrom ggforce geom_bezier
 #' @concept visualization
 #' @concept links
 LinkPlot <- function(object, region, min.cutoff = 0) {
@@ -1938,24 +1985,30 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
 
   # plot
   if (nrow(x = link.df) > 0) {
-    # convert to format for geom_bezier
-    link.df$group <- seq_len(length.out = nrow(x = link.df))
-    df <- data.frame(
-      x = c(link.df$start,
-            (link.df$start + link.df$end) / 2,
-            link.df$end),
-      y = c(rep(x = 0, nrow(x = link.df)),
-            rep(x = -1, nrow(x = link.df)),
-            rep(x = 0, nrow(x = link.df))),
-      group = rep(x = link.df$group, 3),
-      score = rep(link.df$score, 3)
-    )
-    p <- ggplot(data = df) +
-      geom_bezier(
-        mapping = aes_string(x = "x", y = "y", group = "group", color = "score")
-      ) +
-      geom_hline(yintercept = 0, color = 'grey') +
-      scale_color_gradient2(low = "red", mid = "grey", high = "blue")
+    if (!requireNamespace(package = "ggforce", quietly = TRUE)) {
+      warning("Please install ggforce to enable LinkPlot plotting: ",
+              "install.packages('ggforce')")
+      p <- ggplot(data = link.df)
+    } else {
+      # convert to format for geom_bezier
+      link.df$group <- seq_len(length.out = nrow(x = link.df))
+      df <- data.frame(
+        x = c(link.df$start,
+              (link.df$start + link.df$end) / 2,
+              link.df$end),
+        y = c(rep(x = 0, nrow(x = link.df)),
+              rep(x = -1, nrow(x = link.df)),
+              rep(x = 0, nrow(x = link.df))),
+        group = rep(x = link.df$group, 3),
+        score = rep(link.df$score, 3)
+      )
+      p <- ggplot(data = df) +
+        ggforce::geom_bezier(
+          mapping = aes_string(x = "x", y = "y", group = "group", color = "score")
+        ) +
+        geom_hline(yintercept = 0, color = 'grey') +
+        scale_color_gradient2(low = "red", mid = "grey", high = "blue")
+    }
   } else {
     p <- ggplot(data = link.df)
   }
@@ -1975,6 +2028,8 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
 #'
 #' @param object A \code{\link[SeuratObject]{Seurat}} object
 #' @param region A genomic region to plot
+#' @param mode Display mode. Choose either "gene" or "transcript" to determine
+#' whether genes or transcripts are plotted.
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
 #' @importFrom IRanges subsetByOverlaps
@@ -1990,7 +2045,16 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
 #' \donttest{
 #' AnnotationPlot(object = atac_small, region = c("chr1-29554-39554"))
 #' }
-AnnotationPlot <- function(object, region) {
+AnnotationPlot <- function(object, region, mode = "gene") {
+  if(mode == "gene") {
+    collapse_transcript <- TRUE
+    label <- "gene_name"
+  } else if (mode == "transcript") {
+    collapse_transcript <- FALSE
+    label <- "tx_id"
+  } else {
+    stop("Unknown mode requested, choose either 'gene' or 'transcript'")
+  }
   annotation <- Annotation(object = object)
   if (is.null(x = annotation)) {
     return(NULL)
@@ -2005,10 +2069,17 @@ AnnotationPlot <- function(object, region) {
   # get names of genes that overlap region, then subset to include only those
   # genes. This avoids truncating the gene if it runs outside the region
   annotation.subset <- subsetByOverlaps(x = annotation, ranges = region)
-  genes.keep <- unique(x = annotation.subset$gene_name)
-  annotation.subset <- annotation[
-    fmatch(x = annotation$gene_name, table = genes.keep, nomatch = 0L) > 0L
-  ]
+  if (mode == "gene") {
+    genes.keep <- unique(x = annotation.subset$gene_name)
+    annotation.subset <- annotation[
+      fmatch(x = annotation$gene_name, table = genes.keep, nomatch = 0L) > 0L
+    ]
+  } else {
+    tx.keep <- unique(x = annotation.subset$tx_id)
+    annotation.subset <- annotation[
+      fmatch(x = annotation$tx_id, table = tx.keep, nomatch = 0L) > 0L
+    ]
+  }
 
   if (length(x = annotation.subset) == 0) {
     # make empty plot
@@ -2018,7 +2089,8 @@ AnnotationPlot <- function(object, region) {
     annotation_df_list <- reformat_annotations(
       annotation = annotation.subset,
       start.pos = start.pos,
-      end.pos = end.pos
+      end.pos = end.pos,
+      collapse_transcript = collapse_transcript
     )
     p <- ggplot() +
       # exons
@@ -2032,7 +2104,7 @@ AnnotationPlot <- function(object, region) {
           color = "strand"
         ),
         show.legend = FALSE,
-        size = 5
+        size = 3
       ) +
       # gene body
       geom_segment(
@@ -2062,7 +2134,7 @@ AnnotationPlot <- function(object, region) {
           ends = "last",
           type = "open",
           angle = 45,
-          length = unit(x = 0.05, units = "inches")
+          length = unit(x = 0.04, units = "inches")
         ),
         show.legend = FALSE,
         size = 1/2
@@ -2083,7 +2155,7 @@ AnnotationPlot <- function(object, region) {
           ends = "first",
           type = "open",
           angle = 45,
-          length = unit(x = 0.05, units = "inches")
+          length = unit(x = 0.04, units = "inches")
         ),
         show.legend = FALSE,
         size = 1/2
@@ -2091,18 +2163,18 @@ AnnotationPlot <- function(object, region) {
     }
     # label genes
     n_stack <- max(annotation_df_list$labels$dodge)
-    annotation_df_list$labels$dodge <- annotation_df_list$labels$dodge + (n_stack * 0.2)
+    annotation_df_list$labels$dodge <- annotation_df_list$labels$dodge + 0.2
     p <- p + geom_text(
       data = annotation_df_list$labels,
-      mapping = aes_string(x = "position", y = "dodge", label = "gene_name"),
-      size = 3
+      mapping = aes_string(x = "position", y = "dodge", label = label),
+      size = 2.5
     )
-    y_limit <- c(0.9, n_stack + (n_stack * 0.5))
+    y_limit <- c(0.9, n_stack + 0.4)
   }
   p <- p +
     theme_classic() +
     ylab("Genes") +
-    xlab(label = paste0(chromosome, " position (kb)")) +
+    xlab(label = paste0(chromosome, " position (bp)")) +
     xlim(start.pos, end.pos) +
     ylim(y_limit) +
     theme(
@@ -2132,7 +2204,7 @@ globalVariables(names = "gene", package = "Signac")
 #' all identities
 #' @param slot Which slot to pull expression data from
 #'
-#' @importFrom Seurat GetAssayData DefaultAssay
+#' @importFrom SeuratObject GetAssayData DefaultAssay
 #' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic theme
 #' element_blank scale_y_discrete scale_x_continuous scale_fill_manual
 #' @importFrom scales hue_pal
@@ -2772,7 +2844,7 @@ VariantPlot <- function(
 #' @param cells Which cells to plot. Default all cells
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
-#' @importFrom Seurat DefaultAssay
+#' @importFrom SeuratObject DefaultAssay
 #' @importFrom ggplot2 xlab
 #' @importFrom GenomeInfoDb seqnames
 #'
@@ -2946,6 +3018,7 @@ CreateTilePlot <- function(df, n, legend = TRUE) {
 #'
 #' @param ... Additional arguments
 #' @param legend Display plot legend
+#' @param axis.text.y Display y-axis text
 #'
 #' @importFrom ggplot2 theme theme_classic element_blank element_text
 #' @export
@@ -2954,13 +3027,18 @@ CreateTilePlot <- function(df, n, legend = TRUE) {
 #' \donttest{
 #' PeakPlot(atac_small, region = "chr1-710000-715000") + theme_browser()
 #' }
-theme_browser <- function(..., legend = TRUE) {
+theme_browser <- function(..., legend = TRUE, axis.text.y = FALSE) {
   browser.theme <- theme_classic() +
     theme(
-      axis.text.y = element_blank(),
       strip.background = element_blank(),
       strip.text.y.left = element_text(angle = 0)
     )
+  if (!axis.text.y) {
+    browser.theme <- browser.theme +
+      theme(
+        axis.text.y = element_blank()
+      )
+  }
   if (!legend) {
     browser.theme <- browser.theme +
       theme(
@@ -2989,6 +3067,7 @@ split_body <- function(df, width = 1000) {
     start = starts,
     end = starts + 1,
     strand = df$strand[[1]],
+    tx_id = df$tx_id[[1]],
     gene_name = df$gene_name[[1]],
     gene_biotype = df$gene_biotype[[1]],
     type = "arrow"
@@ -2999,16 +3078,24 @@ split_body <- function(df, width = 1000) {
 reformat_annotations <- function(
   annotation,
   start.pos,
-  end.pos
+  end.pos,
+  collapse_transcript = TRUE
 ) {
   total.width <- end.pos - start.pos
   tick.freq <- total.width / 50
   annotation <- annotation[annotation$type == "exon"]
   exons <- as.data.frame(x = annotation)
-  annotation <- split(
-    x = annotation,
-    f = annotation$gene_name
-  )
+  if (collapse_transcript) {
+    annotation <- split(
+      x = annotation,
+      f = annotation$gene_name
+    )
+  } else {
+    annotation <- split(
+      x = annotation,
+      f = annotation$tx_id
+    )
+  }
   annotation <- lapply(X = annotation, FUN = as.data.frame)
 
   # add gene total start / end
@@ -3019,6 +3106,7 @@ reformat_annotations <- function(
       start = min(annotation[[i]]$start),
       end = max(annotation[[i]]$end),
       strand = annotation[[i]]$strand[[1]],
+      tx_id = annotation[[i]]$tx_id[[1]],
       gene_name = annotation[[i]]$gene_name[[1]],
       gene_biotype = annotation[[i]]$gene_biotype[[1]],
       type = "body"
@@ -3041,9 +3129,19 @@ reformat_annotations <- function(
   gene_bodies <- do.call(what = rbind, args = gene_bodies)
 
   # record if genes overlap
-  overlap_idx <- record_overlapping(annotation = gene_bodies, min.gapwidth = 1000)
-  gene_bodies$dodge <- overlap_idx[gene_bodies$gene_name]
-  exons$dodge <- overlap_idx[exons$gene_name]
+  overlap_idx <- record_overlapping(
+    annotation = gene_bodies,
+    min.gapwidth = 1000,
+    collapse_transcript = collapse_transcript
+  )
+  # overlap_idx <- overlap_idx
+  if (collapse_transcript) {
+    gene_bodies$dodge <- overlap_idx[gene_bodies$gene_name]
+    exons$dodge <- overlap_idx[exons$gene_name]
+  } else {
+    gene_bodies$dodge <- overlap_idx[gene_bodies$tx_id]
+    exons$dodge <- overlap_idx[exons$tx_id]
+  }
 
   label_df <- gene_bodies[gene_bodies$type == "body", ]
   label_df$width <- label_df$end - label_df$start
@@ -3063,9 +3161,12 @@ reformat_annotations <- function(
 }
 
 #' @importFrom GenomicRanges makeGRangesFromDataFrame reduce
-record_overlapping <- function(annotation, min.gapwidth = 1000) {
+record_overlapping <- function(
+  annotation,
+  min.gapwidth = 1000,
+  collapse_transcript = TRUE
+) {
   # convert back to granges
-  annotation.stash <- annotation
   annotation$strand <- "*"
   gr <- makeGRangesFromDataFrame(
     df = annotation[annotation$type == "body", ], keep.extra.columns = TRUE
@@ -3081,6 +3182,10 @@ record_overlapping <- function(annotation, min.gapwidth = 1000) {
       idx[[mrg[[j]]]] <- j
     }
   }
-  names(x = idx) <- gr$gene_name
+  if (collapse_transcript) {
+    names(x = idx) <- gr$gene_name
+  } else {
+    names(x = idx) <- gr$tx_id
+  }
   return(idx)
 }

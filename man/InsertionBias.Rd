@@ -24,9 +24,11 @@ InsertionBias(object, ...)
 
 \item{...}{Additional arguments passed to \code{\link{StringToGRanges}}}
 
-\item{genome}{A BSgenome object}
+\item{genome}{A \code{BSgenome} object or any other object supported by
+\code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all
+supported object types.}
 
-\item{region}{Region to use when assessing bias. Default is human chromosome 1.}
+\item{region}{Genomic region to use when assessing bias.}
 
 \item{verbose}{Display messages}
 

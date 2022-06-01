@@ -65,8 +65,7 @@ If you are studying an organism that does not have a `BSgenome` genome package
 or `EnsDB` annotation package available on BioConductor, you can still use your
 own GTF file or FASTA files with Signac.
 
-To create your own `BSgenome` data package, see this
-[vignette](https://www.bioconductor.org/packages/devel/bioc/vignettes/BSgenome/inst/doc/BSgenomeForge.pdf).
+### Gene annotation
 
 To use a GTF file, you can import it using `rtracklayer`, for example:
 
@@ -76,6 +75,22 @@ gene.coords <- gtf[gtf$type == 'gene']
 seqlevelsStyle(gene.coords) <- 'UCSC'
 gene.coords <- keepStandardChromosomes(gene.coords, pruning.mode = 'coarse')
 ```
+
+Alternatively, gene annotations for your species may be available on
+[`AnnotationHub`](https://bioconductor.org/packages/devel/bioc/vignettes/AnnotationHub/inst/doc/AnnotationHub.html).
+
+### Genome sequence
+
+You can use a FASTA file in place of a `BSgenome` package for functions that 
+require access to the genome sequence. To do so, index the FASTA file using
+`samtools faidx`, and then create a `FaFile` object using the Rsamtools package:
+
+```{r, eval=FALSE}
+fa <- Rsamtools::FaFile("path/to/fasta")
+```
+
+Alternatively, you can create your own `BSgenome` data package, see this
+[vignette](https://www.bioconductor.org/packages/devel/bioc/vignettes/BSgenome/inst/doc/BSgenomeForge.pdf).
 
 ## How should I cite Signac?
 
