@@ -20,7 +20,7 @@ plan()
 ```
 
 By default the plan is set to sequential processing (no parallelization). We can change this
-to `multicore`, `multiprocessor`, or `multisession` to get asynchronous processing, and set the 
+to `multicore` or `multisession` to get asynchronous processing, and set the 
 number of workers to change the number of cores used.
 
 ```{r, warning=FALSE, message=FALSE}
