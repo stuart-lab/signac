@@ -1,3 +1,9 @@
+# Unreleased
+
+Bug fixes:
+
+* Fixed bug in Motif object subsetting ([#1162](https://github.com/timoast/signac/issues/1162))
+
 # Signac 1.7.0
 
 New functionality:
