@@ -5,6 +5,7 @@ NULL
 #' @rdname AddMotifs
 #' @method AddMotifs default
 #' @concept motifs
+#' @importFrom methods slot
 #' @export
 AddMotifs.default <- function(
   object,
@@ -16,6 +17,13 @@ AddMotifs.default <- function(
   if (!requireNamespace("motifmatchr", quietly = TRUE)) {
     stop("Please install motifmatchr.\n",
          "https://www.bioconductor.org/packages/motifmatchr/")
+  }
+  if (is.null(x = names(x = pfm))) {
+    warning("No 'names' attribute found in PFMatrixList. ",
+            "Extracting names from individual entries.", immediate. = TRUE)
+    names(x = pfm) <- vapply(
+      X = pfm, FUN = slot, FUN.VALUE = "character", "name"
+    )
   }
   if (verbose) {
     message("Building motif matrix")
