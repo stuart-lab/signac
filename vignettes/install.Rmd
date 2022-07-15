@@ -56,8 +56,7 @@ FROM timoast/signac:latest
 ## Conda
 
 Signac can also be installed using conda. Note that if you use conda, you 
-should install all packages through conda rather than R itself. Make sure to 
-set up the conda channels first: http://bioconda.github.io/user/install.html#set-up-channels
+should install all packages through conda rather than R itself.
 
 ```{bash}
 conda install -c bioconda r-signac
