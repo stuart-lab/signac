@@ -419,7 +419,6 @@ da_peaks <- FindMarkers(
   object = pbmc,
   ident.1 = "CD4 Naive",
   ident.2 = "CD14 Mono",
-  min.pct = 0.05,
   test.use = 'LR',
   latent.vars = 'peak_region_fragments'
 )
@@ -468,8 +467,8 @@ by doing gene ontology enrichment analysis on the gene sets returned by
 package for example).
 
 ```{r, warning=FALSE, message=FALSE}
-open_cd4naive <- rownames(da_peaks[da_peaks$avg_log2FC > 0.5, ])
-open_cd14mono <- rownames(da_peaks[da_peaks$avg_log2FC < -0.5, ])
+open_cd4naive <- rownames(da_peaks[da_peaks$avg_log2FC > 3, ])
+open_cd14mono <- rownames(da_peaks[da_peaks$avg_log2FC < -3, ])
 
 closest_genes_cd4naive <- ClosestFeature(pbmc, regions = open_cd4naive)
 closest_genes_cd14mono <- ClosestFeature(pbmc, regions = open_cd14mono)
