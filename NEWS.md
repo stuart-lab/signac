@@ -4,6 +4,10 @@ Bug fixes:
 
 * Fixed bug in Motif object subsetting ([#1162](https://github.com/timoast/signac/issues/1162))
 
+Other changes:
+
+* Improved fold change calculation ([#1174](https://github.com/timoast/signac/issues/1174))
+
 # Signac 1.7.0
 
 New functionality:
