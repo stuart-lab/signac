@@ -1,14 +1,13 @@
 # dynamically exported, see zzz.R
 #' @method FoldChange ChromatinAssay
 #' @importFrom SeuratObject GetAssayData
-#' @importFrom Matrix rowSums
+#' @importFrom Matrix rowMeans
 FoldChange.ChromatinAssay <- function(
   object,
   cells.1,
   cells.2,
   features = NULL,
   slot = "data",
-  pseudocount.use = 1,
   fc.name = NULL,
   mean.fxn = NULL,
   base = 2,
@@ -19,9 +18,7 @@ FoldChange.ChromatinAssay <- function(
   }
   if (is.null(x = mean.fxn)) {
     mean.fxn <-  function(x) {
-      return(
-        log(x = (rowSums(x = x) + pseudocount.use) / length(x = x), base = base)
-        )
+      return(log(x = rowMeans(x = x) + 1/10000, base = base))
     }
   }
   # Omit the decimal value of e from the column name if base == exp(1)
