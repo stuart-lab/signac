@@ -26,7 +26,7 @@ SEXP groupCommand(
   // C based buffered string parsing
   char* cb_char;
   size_t line_counter {1};
-  uint32_t buffer_length = 256;
+  uint32_t buffer_length = 4096;
   char *buffer = new char[buffer_length];
 
   // Hash Map storing the count data
