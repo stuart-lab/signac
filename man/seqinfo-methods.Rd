@@ -95,53 +95,53 @@ Methods for accessing and modifying
 }
 \section{Functions}{
 \itemize{
-\item \code{seqinfo<-,ChromatinAssay-method}: set method for ChromatinAssay objects
+\item \code{seqinfo(ChromatinAssay) <- value}: set method for ChromatinAssay objects
 
-\item \code{seqlevels,ChromatinAssay-method}: get method for ChromatinAssay objects
+\item \code{seqlevels(ChromatinAssay)}: get method for ChromatinAssay objects
 
-\item \code{seqlevels<-,ChromatinAssay-method}: set method for ChromatinAssay objects
+\item \code{seqlevels(ChromatinAssay) <- value}: set method for ChromatinAssay objects
 
-\item \code{seqnames,ChromatinAssay-method}: get method for ChromatinAssay objects
+\item \code{seqnames(ChromatinAssay)}: get method for ChromatinAssay objects
 
-\item \code{seqnames<-,ChromatinAssay-method}: set method for ChromatinAssay objects
+\item \code{seqnames(ChromatinAssay) <- value}: set method for ChromatinAssay objects
 
-\item \code{seqlengths,ChromatinAssay-method}: get method for ChromatinAssay objects
+\item \code{seqlengths(ChromatinAssay)}: get method for ChromatinAssay objects
 
-\item \code{seqlengths<-,ChromatinAssay-method}: set method for ChromatinAssay objects
+\item \code{seqlengths(ChromatinAssay) <- value}: set method for ChromatinAssay objects
 
-\item \code{genome,ChromatinAssay-method}: get method for ChromatinAssay objects
+\item \code{genome(ChromatinAssay)}: get method for ChromatinAssay objects
 
-\item \code{genome<-,ChromatinAssay-method}: set method for ChromatinAssay objects
+\item \code{genome(ChromatinAssay) <- value}: set method for ChromatinAssay objects
 
-\item \code{isCircular,ChromatinAssay-method}: get method for ChromatinAssay objects
+\item \code{isCircular(ChromatinAssay)}: get method for ChromatinAssay objects
 
-\item \code{isCircular<-,ChromatinAssay-method}: set method for ChromatinAssay objects
+\item \code{isCircular(ChromatinAssay) <- value}: set method for ChromatinAssay objects
 
-\item \code{seqinfo,Seurat-method}: get method for Seurat objects
+\item \code{seqinfo(Seurat)}: get method for Seurat objects
 
-\item \code{seqinfo<-,Seurat-method}: set method for Seurat objects
+\item \code{seqinfo(Seurat) <- value}: set method for Seurat objects
 
-\item \code{seqlevels,Seurat-method}: get method for Seurat objects
+\item \code{seqlevels(Seurat)}: get method for Seurat objects
 
-\item \code{seqlevels<-,Seurat-method}: set method for Seurat objects
+\item \code{seqlevels(Seurat) <- value}: set method for Seurat objects
 
-\item \code{seqnames,Seurat-method}: get method for Seurat objects
+\item \code{seqnames(Seurat)}: get method for Seurat objects
 
-\item \code{seqnames<-,Seurat-method}: set method for Seurat objects
+\item \code{seqnames(Seurat) <- value}: set method for Seurat objects
 
-\item \code{seqlengths,Seurat-method}: get method for Seurat objects
+\item \code{seqlengths(Seurat)}: get method for Seurat objects
 
-\item \code{seqlengths<-,Seurat-method}: set method for Seurat objects
+\item \code{seqlengths(Seurat) <- value}: set method for Seurat objects
 
-\item \code{genome,Seurat-method}: get method for Seurat objects
+\item \code{genome(Seurat)}: get method for Seurat objects
 
-\item \code{genome<-,Seurat-method}: set method for Seurat objects
+\item \code{genome(Seurat) <- value}: set method for Seurat objects
 
-\item \code{isCircular,Seurat-method}: get method for Seurat objects
+\item \code{isCircular(Seurat)}: get method for Seurat objects
 
-\item \code{isCircular<-,Seurat-method}: set method for Seurat objects
+\item \code{isCircular(Seurat) <- value}: set method for Seurat objects
+
 }}
-
 \seealso{
 \itemize{
   \item{\link[GenomeInfoDb]{seqinfo} in the \pkg{GenomeInfoDb} package.}

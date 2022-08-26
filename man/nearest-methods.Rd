@@ -125,65 +125,65 @@ are available for \code{\link{ChromatinAssay}} objects.
 }
 \section{Functions}{
 \itemize{
-\item \code{precede,ChromatinAssay,ANY-method}: method for ChromatinAssay, ANY
+\item \code{precede(x = ChromatinAssay, subject = ANY)}: method for ChromatinAssay, ANY
 
-\item \code{precede,ChromatinAssay,ChromatinAssay-method}: method for ChromatinAssay, ChromatinAssay
+\item \code{precede(x = ChromatinAssay, subject = ChromatinAssay)}: method for ChromatinAssay, ChromatinAssay
 
-\item \code{precede,ANY,Seurat-method}: method for ANY, Seurat
+\item \code{precede(x = ANY, subject = Seurat)}: method for ANY, Seurat
 
-\item \code{precede,Seurat,ANY-method}: method for Seurat, ANY
+\item \code{precede(x = Seurat, subject = ANY)}: method for Seurat, ANY
 
-\item \code{precede,Seurat,Seurat-method}: method for Seurat, Seurat
+\item \code{precede(x = Seurat, subject = Seurat)}: method for Seurat, Seurat
 
-\item \code{follow,ANY,ChromatinAssay-method}: method for ANY, ChromatinAssay
+\item \code{follow(x = ANY, subject = ChromatinAssay)}: method for ANY, ChromatinAssay
 
-\item \code{follow,ChromatinAssay,ANY-method}: method for ChromatinAssay, ANY
+\item \code{follow(x = ChromatinAssay, subject = ANY)}: method for ChromatinAssay, ANY
 
-\item \code{follow,ChromatinAssay,ChromatinAssay-method}: method for ChromatinAssay, ChromatinAssay
+\item \code{follow(x = ChromatinAssay, subject = ChromatinAssay)}: method for ChromatinAssay, ChromatinAssay
 
-\item \code{follow,ANY,Seurat-method}: method for ANY, Seurat
+\item \code{follow(x = ANY, subject = Seurat)}: method for ANY, Seurat
 
-\item \code{follow,Seurat,ANY-method}: method for Seurat, ANY
+\item \code{follow(x = Seurat, subject = ANY)}: method for Seurat, ANY
 
-\item \code{follow,Seurat,Seurat-method}: method for Seurat, Seurat
+\item \code{follow(x = Seurat, subject = Seurat)}: method for Seurat, Seurat
 
-\item \code{nearest,ANY,ChromatinAssay-method}: method for ANY, ChromatinAssay
+\item \code{nearest(x = ANY, subject = ChromatinAssay)}: method for ANY, ChromatinAssay
 
-\item \code{nearest,ChromatinAssay,ANY-method}: method for ChromatinAssay, ANY
+\item \code{nearest(x = ChromatinAssay, subject = ANY)}: method for ChromatinAssay, ANY
 
-\item \code{nearest,ChromatinAssay,ChromatinAssay-method}: method for ChromatinAssay, ChromatinAssay
+\item \code{nearest(x = ChromatinAssay, subject = ChromatinAssay)}: method for ChromatinAssay, ChromatinAssay
 
-\item \code{nearest,ANY,Seurat-method}: method for ANY, Seurat
+\item \code{nearest(x = ANY, subject = Seurat)}: method for ANY, Seurat
 
-\item \code{nearest,Seurat,ANY-method}: method for Seurat, ANY
+\item \code{nearest(x = Seurat, subject = ANY)}: method for Seurat, ANY
 
-\item \code{nearest,Seurat,Seurat-method}: method for Seurat, Seurat
+\item \code{nearest(x = Seurat, subject = Seurat)}: method for Seurat, Seurat
 
-\item \code{distance,ANY,ChromatinAssay-method}: method for ANY, ChromatinAssay
+\item \code{distance(x = ANY, y = ChromatinAssay)}: method for ANY, ChromatinAssay
 
-\item \code{distance,ChromatinAssay,ANY-method}: method for ChromatinAssay, ANY
+\item \code{distance(x = ChromatinAssay, y = ANY)}: method for ChromatinAssay, ANY
 
-\item \code{distance,ChromatinAssay,ChromatinAssay-method}: method for ChromatinAssay, ChromatinAssay
+\item \code{distance(x = ChromatinAssay, y = ChromatinAssay)}: method for ChromatinAssay, ChromatinAssay
 
-\item \code{distance,ANY,Seurat-method}: method for ANY, Seurat
+\item \code{distance(x = ANY, y = Seurat)}: method for ANY, Seurat
 
-\item \code{distance,Seurat,ANY-method}: method for Seurat, ANY
+\item \code{distance(x = Seurat, y = ANY)}: method for Seurat, ANY
 
-\item \code{distance,Seurat,Seurat-method}: method for Seurat, Seurat
+\item \code{distance(x = Seurat, y = Seurat)}: method for Seurat, Seurat
 
-\item \code{distanceToNearest,ANY,ChromatinAssay-method}: method for ANY, ChromatinAssay
+\item \code{distanceToNearest(x = ANY, subject = ChromatinAssay)}: method for ANY, ChromatinAssay
 
-\item \code{distanceToNearest,ChromatinAssay,ANY-method}: method for ChromatinAssay, ANY
+\item \code{distanceToNearest(x = ChromatinAssay, subject = ANY)}: method for ChromatinAssay, ANY
 
-\item \code{distanceToNearest,ChromatinAssay,ChromatinAssay-method}: method for ChromatinAssay, ChromatinAssay
+\item \code{distanceToNearest(x = ChromatinAssay, subject = ChromatinAssay)}: method for ChromatinAssay, ChromatinAssay
 
-\item \code{distanceToNearest,ANY,Seurat-method}: method for ANY, Seurat
+\item \code{distanceToNearest(x = ANY, subject = Seurat)}: method for ANY, Seurat
 
-\item \code{distanceToNearest,Seurat,ANY-method}: method for Seurat, ANY
+\item \code{distanceToNearest(x = Seurat, subject = ANY)}: method for Seurat, ANY
 
-\item \code{distanceToNearest,Seurat,Seurat-method}: method for Seurat, Seurat
+\item \code{distanceToNearest(x = Seurat, subject = Seurat)}: method for Seurat, Seurat
+
 }}
-
 \seealso{
 \itemize{
   \item{\link[IRanges]{nearest-methods} in the \pkg{IRanges} package.}

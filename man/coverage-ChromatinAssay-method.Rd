@@ -42,11 +42,11 @@ This is the \code{coverage} method for \code{\link{ChromatinAssay}} objects.
 }
 \section{Functions}{
 \itemize{
-\item \code{coverage,ChromatinAssay-method}: method for ChromatinAssay objects
+\item \code{coverage(ChromatinAssay)}: method for ChromatinAssay objects
 
-\item \code{coverage,Seurat-method}: method for Seurat objects
+\item \code{coverage(Seurat)}: method for Seurat objects
+
 }}
-
 \seealso{
 \itemize{
   \item{\link[IRanges]{coverage-methods} in the \pkg{IRanges} package.}

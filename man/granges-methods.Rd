@@ -30,9 +30,9 @@ information stored in a \code{\link{ChromatinAssay}} object.
 }
 \section{Functions}{
 \itemize{
-\item \code{granges,Seurat-method}: method for Seurat objects
-}}
+\item \code{granges(Seurat)}: method for Seurat objects
 
+}}
 \examples{
 granges(atac_small)
 }

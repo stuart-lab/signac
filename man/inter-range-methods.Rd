@@ -66,29 +66,29 @@ are available for \code{\link{ChromatinAssay}} objects.
 }
 \section{Functions}{
 \itemize{
-\item \code{range,Seurat-method}: method for Seurat objects
+\item \code{range(Seurat)}: method for Seurat objects
 
-\item \code{reduce,ChromatinAssay-method}: method for ChromatinAssay objects
+\item \code{reduce(ChromatinAssay)}: method for ChromatinAssay objects
 
-\item \code{reduce,Seurat-method}: method for Seurat objects
+\item \code{reduce(Seurat)}: method for Seurat objects
 
-\item \code{gaps,ChromatinAssay-method}: method for ChromatinAssay objects
+\item \code{gaps(ChromatinAssay)}: method for ChromatinAssay objects
 
-\item \code{gaps,Seurat-method}: method for Seurat objects
+\item \code{gaps(Seurat)}: method for Seurat objects
 
-\item \code{disjoin,ChromatinAssay-method}: method for ChromatinAssay objects
+\item \code{disjoin(ChromatinAssay)}: method for ChromatinAssay objects
 
-\item \code{disjoin,Seurat-method}: method for Seurat objects
+\item \code{disjoin(Seurat)}: method for Seurat objects
 
-\item \code{isDisjoint,ChromatinAssay-method}: method for ChromatinAssay objects
+\item \code{isDisjoint(ChromatinAssay)}: method for ChromatinAssay objects
 
-\item \code{isDisjoint,Seurat-method}: method for Seurat objects
+\item \code{isDisjoint(Seurat)}: method for Seurat objects
 
-\item \code{disjointBins,ChromatinAssay-method}: method for ChromatinAssay objects
+\item \code{disjointBins(ChromatinAssay)}: method for ChromatinAssay objects
 
-\item \code{disjointBins,Seurat-method}: method for Seurat objects
+\item \code{disjointBins(Seurat)}: method for Seurat objects
+
 }}
-
 \seealso{
 \itemize{
   \item{\link[IRanges]{inter-range-methods} in the \pkg{IRanges} package.}

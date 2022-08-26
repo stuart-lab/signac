@@ -6,7 +6,7 @@
 \alias{Signac-package}
 \title{Signac: Analysis of Single-Cell Chromatin Data}
 \description{
-A framework for the analysis and exploration of single-cell chromatin data. The 'Signac' package contains functions for quantifying single-cell chromatin data, computing per-cell quality control metrics, dimension reduction and normalization, visualization, and DNA sequence motif analysis. Reference: Stuart et al. (2021) <doi:10.1038/s41592-021-01282-5>.
+A framework for the analysis and exploration of single-cell chromatin data. The 'Signac' package contains functions for quantifying single-cell chromatin data, computing per-cell quality control metrics, dimension reduction and normalization, visualization, and DNA sequence motif analysis. Reference: Stuart et al. (2021) \doi{10.1038/s41592-021-01282-5}.
 }
 \seealso{
 Useful links:

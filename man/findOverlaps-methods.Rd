@@ -154,29 +154,29 @@ directly on the Seurat object.
 }
 \section{Functions}{
 \itemize{
-\item \code{findOverlaps,ChromatinAssay,Vector-method}: method for ChromatinAssay, Vector
+\item \code{findOverlaps(query = ChromatinAssay, subject = Vector)}: method for ChromatinAssay, Vector
 
-\item \code{findOverlaps,ChromatinAssay,ChromatinAssay-method}: method for ChromatinAssay, ChromatinAssay
+\item \code{findOverlaps(query = ChromatinAssay, subject = ChromatinAssay)}: method for ChromatinAssay, ChromatinAssay
 
-\item \code{findOverlaps,Vector,Seurat-method}: method for Vector, Seurat
+\item \code{findOverlaps(query = Vector, subject = Seurat)}: method for Vector, Seurat
 
-\item \code{findOverlaps,Seurat,Vector-method}: method for Seurat, Vector
+\item \code{findOverlaps(query = Seurat, subject = Vector)}: method for Seurat, Vector
 
-\item \code{findOverlaps,Seurat,Seurat-method}: method for Seurat, Seurat
+\item \code{findOverlaps(query = Seurat, subject = Seurat)}: method for Seurat, Seurat
 
-\item \code{countOverlaps,Vector,ChromatinAssay-method}: method for Vector, ChromatinAssay
+\item \code{countOverlaps(query = Vector, subject = ChromatinAssay)}: method for Vector, ChromatinAssay
 
-\item \code{countOverlaps,ChromatinAssay,Vector-method}: method for ChromatinAssay, Vector
+\item \code{countOverlaps(query = ChromatinAssay, subject = Vector)}: method for ChromatinAssay, Vector
 
-\item \code{countOverlaps,ChromatinAssay,ChromatinAssay-method}: method for ChromatinAssay, ChromatinAssay
+\item \code{countOverlaps(query = ChromatinAssay, subject = ChromatinAssay)}: method for ChromatinAssay, ChromatinAssay
 
-\item \code{countOverlaps,Seurat,Vector-method}: method for Seurat, Vector
+\item \code{countOverlaps(query = Seurat, subject = Vector)}: method for Seurat, Vector
 
-\item \code{countOverlaps,Vector,Seurat-method}: method for Vector, Seurat
+\item \code{countOverlaps(query = Vector, subject = Seurat)}: method for Vector, Seurat
 
-\item \code{countOverlaps,Seurat,Seurat-method}: method for Seurat, Seurat
+\item \code{countOverlaps(query = Seurat, subject = Seurat)}: method for Seurat, Seurat
+
 }}
-
 \seealso{
 \itemize{
   \item{\link[IRanges]{findOverlaps-methods} in the \pkg{IRanges} package.}
