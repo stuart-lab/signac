@@ -884,8 +884,6 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
 #' @param motifs Which motifs to retain
 #' @param ... Arguments passed to other methods
 #'
-#' @aliases subset
-#' @rdname subset.Motif
 #' @method subset Motif
 #'
 #' @seealso \code{\link[base]{subset}}
@@ -988,8 +986,6 @@ subset.ChromatinAssay <- function(
 #' @param cells Vector of cells to retain
 #' @param ... Arguments passed to other methods
 #'
-#' @aliases subset
-#' @rdname subset.Fragment
 #' @method subset Fragment
 #'
 #' @importFrom fastmatch fmatch

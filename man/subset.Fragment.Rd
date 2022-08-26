@@ -2,7 +2,6 @@
 % Please edit documentation in R/objects.R
 \name{subset.Fragment}
 \alias{subset.Fragment}
-\alias{subset}
 \title{Subset a Fragment object}
 \usage{
 \method{subset}{Fragment}(x, cells = NULL, ...)

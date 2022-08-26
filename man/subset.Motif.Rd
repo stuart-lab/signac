@@ -2,7 +2,6 @@
 % Please edit documentation in R/objects.R
 \name{subset.Motif}
 \alias{subset.Motif}
-\alias{subset}
 \alias{[.Motif}
 \title{Subset a Motif object}
 \usage{
