@@ -268,11 +268,19 @@ CreateChromatinAssay <- function(
       FUN = AssignFragCellnames,
       cellnames = colnames(x = seurat.assay)
     )
+    # subset to cells in the assay
+    frags <- lapply(
+      X = fragments,
+      FUN = subset,
+      cells = colnames(x = seurat.assay)
+    )
    } else if (inherits(x = fragments, what = "Fragment")) {
     # single Fragment object supplied
     frags <- AssignFragCellnames(
       fragments = fragments, cellnames = colnames(x = seurat.assay)
     )
+    # subset to cells in the assay
+    frags <- subset(x = frags, cells = colnames(x = seurat.assay))
   } else {
     # path to fragment file supplied, create fragment object
     frags <- list()
@@ -955,10 +963,7 @@ subset.ChromatinAssay <- function(
   # subset cells in Fragments objects
   frags <- Fragments(object = x)
   for (i in seq_along(along.with = frags)) {
-    frag.cells <- GetFragmentData(object = frags[[i]], slot = "cells")
-    # there can be cells in the assay that are not in the fragment object
-    keep <- names(x = frag.cells) %in% cells
-    slot(object = frags[[i]], name = "cells") <- frag.cells[keep]
+    frags[[i]] <- subset(x = frags[[i]], cells = cells)
   }
 
   # convert standard assay to ChromatinAssay
@@ -973,6 +978,40 @@ subset.ChromatinAssay <- function(
     positionEnrichment = posmat
   )
   return(chromassay)
+}
+
+#' Subset a Fragment object
+#'
+#' Returns a subset of a \code{\link{Fragment-class}} object.
+#'
+#' @param x A Fragment object
+#' @param cells Vector of cells to retain
+#' @param ... Arguments passed to other methods
+#'
+#' @aliases subset
+#' @rdname subset.Fragment
+#' @method subset Fragment
+#'
+#' @importFrom fastmatch fmatch
+#' @seealso \code{\link[base]{subset}}
+#' @return Returns a subsetted \code{\link{Fragment}} object
+#' @export
+#' @concept fragments
+#' @examples
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' cells <- colnames(x = atac_small)
+#' names(x = cells) <- paste0("test_", cells)
+#' frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)
+#' subset(frags, head(names(cells)))
+subset.Fragment <- function(
+  x,
+  cells = NULL,
+  ...
+) {
+  frag.cells <- GetFragmentData(object = x, slot = "cells")
+  keep <- fmatch(x = names(x = frag.cells), table = cells, nomatch = 0L) > 0
+  slot(object = x, name = "cells") <- frag.cells[keep]
+  return(x)
 }
 
 #' @export
