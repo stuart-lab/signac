@@ -329,9 +329,9 @@ SingleFeatureMatrix <- function(
   verbose = TRUE
 ) {
   fragment.path <- GetFragmentData(object = fragment, slot = "path")
+  frag.cells <- GetFragmentData(object = fragment, slot = "cells")
   if (!is.null(cells)) {
     # only look for cells that are in the fragment file
-    frag.cells <- GetFragmentData(object = fragment, slot = "cells")
     if (is.null(x = frag.cells)) {
       # cells information not set in fragment object
       names(x = cells) <- cells
@@ -343,6 +343,12 @@ SingleFeatureMatrix <- function(
         nomatch = 0L
       ) > 0
       cells <- frag.cells[cell.idx]
+    }
+  } else {
+    # cells not set, but still need to only return cells that 
+    # are in the fragment objects, with cell names converted
+    if (!is.null(x = frag.cells)) {
+      cells <- frag.cells
     }
   }
   tbx <- TabixFile(file = fragment.path)
