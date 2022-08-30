@@ -3,10 +3,13 @@
 Bug fixes:
 
 * Fixed bug in Motif object subsetting ([#1162](https://github.com/timoast/signac/issues/1162))
+* Fixed bug in `FeatureMatrix()` where cell names would not be converted correctly when running
+with `cells=NULL` ([#1198](https://github.com/timoast/signac/issues/1198))
 
 Other changes:
 
 * Improved fold change calculation ([#1174](https://github.com/timoast/signac/issues/1174))
+* Added `subset()` method for `Fragment`-class objects
 
 # Signac 1.7.0
 
