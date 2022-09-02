@@ -16,6 +16,52 @@ read_vec <- c(5, 4, 2, 5, 3, 2, 3, 13, 1, 2, 6, 8, 5, 1, 8, 4, 6, 3, 1, 1, 2,
               4, 1, 4, 1, 8, 12, 1, 4, 4, 2, 19, 4, 3, 3, 1, 4, 3, 4, 1, 1,
               7, 1, 1, 1, 1, 1, 3, 2, 1, 3, 5, 2, 1)
 
+
+fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fpath_headered <- system.file("extdata", "fragments_header.tsv.gz", package="Signac")
+cells <- colnames(x = atac_small)
+names(x = cells) <- paste0("test_", cells)
+frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)
+frags_header <- CreateFragmentObject(path = fpath_headered, cells = cells, verbose = FALSE, tolerance = 0.5)
+
+test_that("Fragment head method works", {
+  expect_equal(
+    object = head(x = frags),
+    expected = structure(list(chrom = c("chr1", "chr1", "chr1", "chr1", "chr1", 
+                                        "chr1"), start = c(10245L, 55313L, 56455L, 60687L, 235723L, 237741L
+                                        ), end = c(10302L, 55699L, 56658L, 60726L, 235936L, 237772L), 
+                              barcode = c("AAAGATGAGGCTAAAT-1", "AAACTCGTCTGGCACG-1", "AAACTCGTCTGGCACG-1", 
+                                          "AAACTGCAGTCTGTGT-1", "AAACTGCTCCTATCCG-1", "AAAGGATTCCTTACGC-1"
+                              ), readCount = c(1L, 2L, 1L, 1L, 1L, 1L)), class = "data.frame", row.names = c(NA, 
+                                                                                                             -6L))
+  )
+  expect_equal(
+    object = head(x = frags_header),
+    expected = structure(list(chrom = c("chr1", "chr1", "chr1", "chr1", "chr1", 
+                                        "chr1"), start = c(10245L, 55313L, 56455L, 60687L, 235723L, 237741L
+                                        ), end = c(10302L, 55699L, 56658L, 60726L, 235936L, 237772L), 
+                              barcode = c("AAAGATGAGGCTAAAT-1", "AAACTCGTCTGGCACG-1", "AAACTCGTCTGGCACG-1", 
+                                          "AAACTGCAGTCTGTGT-1", "AAACTGCTCCTATCCG-1", "AAAGGATTCCTTACGC-1"
+                              ), readCount = c(1L, 2L, 1L, 1L, 1L, 1L)), class = "data.frame", row.names = c(NA, 
+                                                                                                             -6L))
+  )
+})
+
+test_that("Subset fragment object works", {
+  cells.use <- c("test_AAACGAAAGCGAGCTA-1", "test_AAACGAAAGGCTTCGC-1")
+  subs <- subset(frags, cells = cells.use)
+  expect_equal(
+    object = Cells(subs),
+    expected = c("test_AAACGAAAGCGAGCTA-1", "test_AAACGAAAGGCTTCGC-1")
+  )
+})
+
+test_that("UpdatePath works", {
+  expect_error(
+    object = UpdatePath(frags, new.path = "x")
+  )
+})
+
 test_that("CountFragments works", {
   fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
   fpath_headered <- system.file("extdata", "fragments_header.tsv.gz", package="Signac")
