@@ -1191,7 +1191,8 @@ CoverageTrack <- function(
     coverages <- coverages[!is.na(x = coverages$coverage), ]
     coverages <- group_by(.data = coverages, group)
     sampling <- min(max.downsample, window.size * downsample.rate)
-    coverages <- slice_sample(.data = coverages, n = sampling)
+    set.seed(seed = 1234)
+    coverages <- slice_sample(.data = coverages, n = as.integer(x = sampling))
     coverages$Assay <- names(x = cutmat)[[i]]
     if (multicov) {
       if (assay.scale == "separate") {
