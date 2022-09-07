@@ -2003,12 +2003,15 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
         group = rep(x = link.df$group, 3),
         score = rep(link.df$score, 3)
       )
+      min.color <- min(0, min(df$score))
       p <- ggplot(data = df) +
         ggforce::geom_bezier(
           mapping = aes_string(x = "x", y = "y", group = "group", color = "score")
         ) +
         geom_hline(yintercept = 0, color = 'grey') +
-        scale_color_gradient2(low = "red", mid = "grey", high = "blue")
+        scale_color_gradient2(low = "red", mid = "grey", high = "blue",
+                              limits = c(min.color, max(df$score)),
+                              n.breaks = 3)
     }
   } else {
     p <- ggplot(data = link.df)
