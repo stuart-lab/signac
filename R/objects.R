@@ -797,7 +797,7 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
 #' motif.obj <- SeuratObject::GetAssayData(
 #'   object = atac_small[['peaks']], slot = "motifs"
 #' )
-#' SetMotifData(object = motif.obj, slot = 'data', new.data = matrix())
+#' SetMotifData(object = motif.obj, slot = 'data', new.data = matrix(1:2))
 SetMotifData.Motif <- function(object, slot, new.data, ...) {
   if (!(slot %in% slotNames(x = object))) {
     stop("slot must be one of ",
@@ -824,14 +824,14 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
 #' @concept motifs
 #' @examples
 #' SetMotifData(
-#'   object = atac_small[['peaks']], slot = 'data', new.data = matrix()
+#'   object = atac_small[['peaks']], slot = 'data', new.data = matrix(1:2)
 #' )
 #' @method SetMotifData ChromatinAssay
 SetMotifData.ChromatinAssay <- function(object, slot, new.data, ...) {
   if (slot == "data") {
     if (
       !(inherits(x = new.data, what = "matrix") |
-        inherits(x = new.data, what = "dgCMatrix"))
+        inherits(x = new.data, what = "CsparseMatrix"))
       ) {
       stop("Data must be matrix or sparse matrix class. Supplied ",
            class(x = new.data))

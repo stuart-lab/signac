@@ -36,9 +36,9 @@ Set motif matrix for given assay
 motif.obj <- SeuratObject::GetAssayData(
   object = atac_small[['peaks']], slot = "motifs"
 )
-SetMotifData(object = motif.obj, slot = 'data', new.data = matrix())
+SetMotifData(object = motif.obj, slot = 'data', new.data = matrix(1:2))
 SetMotifData(
-  object = atac_small[['peaks']], slot = 'data', new.data = matrix()
+  object = atac_small[['peaks']], slot = 'data', new.data = matrix(1:2)
 )
 motif.matrix <- GetMotifData(object = atac_small)
 SetMotifData(
