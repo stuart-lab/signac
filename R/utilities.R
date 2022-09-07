@@ -1088,7 +1088,7 @@ BinaryIdentMatrix <- function(object, group.by = NULL, idents = NULL) {
   )
   colnames(x = ident.matrix) <- names(x = group.idents)
   rownames(x = ident.matrix) <- unique.groups
-  ident.matrix <- as(object = ident.matrix, Class = "dgCMatrix")
+  ident.matrix <- as(object = ident.matrix, Class = "CsparseMatrix")
   return(ident.matrix)
 }
 
@@ -2065,7 +2065,7 @@ MergeOverlappingRows <- function(
       }
       merged.mat <- Reduce(f = rbind, x = newmat)
       rownames(merged.mat) <- newmat.names
-      merged.mat <- as(object = merged.mat, Class = "dgCMatrix")
+      merged.mat <- as(object = merged.mat, Class = "CsparseMatrix")
 
       # remove rows from count matrix that were merged
       mat.rows <- seq_len(length.out = nrow(x = counts))
@@ -2105,7 +2105,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
     )
     rownames(x = featmat) <- GRangesToString(grange = regions)
     colnames(x = featmat) <- cells
-    featmat <- as(object = featmat, Class = "dgCMatrix")
+    featmat <- as(object = featmat, Class = "CsparseMatrix")
     return(featmat)
   } else if (all(nrep == 0)) {
     # no fragments, no cells requested
@@ -2116,7 +2116,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
       j = NULL
     )
     rownames(x = featmat) <- GRangesToString(grange = regions)
-    featmat <- as(object = featmat, Class = "dgCMatrix")
+    featmat <- as(object = featmat, Class = "CsparseMatrix")
     return(featmat)
   } else {
     # fragments detected
@@ -2138,7 +2138,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
       j = cells.in.regions,
       x = rep(x = 1, length(x = cells.in.regions))
     )
-    featmat <- as(Class = "dgCMatrix", object = featmat)
+    featmat <- as(Class = "CsparseMatrix", object = featmat)
     rownames(x = featmat) <- all.features[1:max(feature.vec)]
     colnames(x = featmat) <- names(x = cell.lookup)[1:max(cells.in.regions)]
     # add zero columns for missing cells
@@ -2154,7 +2154,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
         dims = c(length(x = missing.features), ncol(x = featmat))
       )
       rownames(x = null.mat) <- missing.features
-      null.mat <- as(object = null.mat, Class = "dgCMatrix")
+      null.mat <- as(object = null.mat, Class = "CsparseMatrix")
       featmat <- rbind(featmat, null.mat)
     }
     return(featmat)
@@ -2196,8 +2196,8 @@ SparseColVar <- function(x) {
 #
 # This rank matrix can then be used to calculate pearson correlation
 SparsifiedRanks <- function(X){
-  if (!inherits(x = X, what = "dgCMatrix")) {
-    X <- as(object = X, Class = "dgCMatrix")
+  if (!inherits(x = X, what = "CsparseMatrix")) {
+    X <- as(object = X, Class = "CsparseMatrix")
   }
   non_zeros_per_col <- diff(x = X@p)
   n_zeros_per_col <- nrow(x = X) - non_zeros_per_col

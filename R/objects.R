@@ -457,13 +457,13 @@ CreateMotifObject <- function(
   meta.data <- SetIfNull(x = meta.data, y = data.frame())
   if (
     !(inherits(x = data, what = "matrix") |
-      inherits(x = data, what = "dgCMatrix"))
+      inherits(x = data, what = "CsparseMatrix"))
     ) {
     stop("Data must be matrix or sparse matrix class. Supplied ",
          class(x = data))
   }
   if (inherits(x = data, what = "matrix")) {
-    data <- as(Class = "dgCMatrix", object = data)
+    data <- as(Class = "CsparseMatrix", object = data)
   }
   if ((nrow(x = data) > 0) & (length(x = pwm) > 0)) {
     if (!all(names(x = pwm) == colnames(x = data))) {
@@ -806,7 +806,7 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
   }
   if (slot == "data") {
     if (inherits(x = new.data, what = "matrix")) {
-      new.data <- as(Class = "dgCMatrix", object = new.data)
+      new.data <- as(Class = "CsparseMatrix", object = new.data)
     }
   }
   # TODO check that new data is compatible with existing slots
@@ -841,7 +841,7 @@ SetMotifData.ChromatinAssay <- function(object, slot, new.data, ...) {
            Column names in motif matrix should match row names in assay data")
     }
     if (inherits(x = new.data, what = "matrix")) {
-      new.data <- as(Class = "dgCMatrix", object = new.data)
+      new.data <- as(Class = "CsparseMatrix", object = new.data)
     }
   }
   motif.obj <- GetAssayData(object = object, slot = "motifs")

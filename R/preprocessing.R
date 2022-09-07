@@ -17,7 +17,7 @@ BinarizeCounts.default <- function(
   verbose = TRUE,
   ...
 ) {
-  if (inherits(x = object, what = "dgCMatrix")) {
+  if (inherits(x = object, what = "CsparseMatrix")) {
     slot(object = object, name = "x") <- rep.int(
       x = 1,
       times = length(
@@ -152,7 +152,7 @@ CreateMotifMatrix <- function(
       motif.matrix <- motifmatchr::motifCounts(object = motif_ix)
     } else {
       motif.matrix <- motifmatchr::motifMatches(object = motif_ix)
-      motif.matrix <- as(Class = "dgCMatrix", object = motif.matrix)
+      motif.matrix <- as(Class = "CsparseMatrix", object = motif.matrix)
     }
   }
   rownames(motif.matrix) <- GRangesToString(grange = features, sep = sep)
@@ -577,8 +577,8 @@ RunTFIDF.default <- function(
   if (inherits(x = object, what = "data.frame")) {
     object <- as.matrix(x = object)
   }
-  if (!inherits(x = object, what = "dgCMatrix")) {
-    object <- as(object = object, Class = "dgCMatrix")
+  if (!inherits(x = object, what = "CsparseMatrix")) {
+    object <- as(object = object, Class = "CsparseMatrix")
   }
   if (verbose) {
     message("Performing TF-IDF normalization")
@@ -667,7 +667,7 @@ RunTFIDF.Assay <- function(
     verbose = verbose,
     ...
   )
-  new.data <- as(object = new.data, Class = "dgCMatrix")
+  new.data <- as(object = new.data, Class = "CsparseMatrix")
   object <- SetAssayData(
     object = object,
     slot = "data",
