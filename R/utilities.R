@@ -901,7 +901,6 @@ MatchRegionStats <- function(
     warning("Requested more features than present in supplied data.
             Returning ", n, " features")
   }
-  # features.choose <- meta.feature[choosefrom, ]
   for (i in seq_along(along.with = features.match)) {
     featmatch <- features.match[[i]]
     if (!(featmatch %in% colnames(x = query.feature))) {
@@ -918,10 +917,11 @@ MatchRegionStats <- function(
     density.estimate <- density(
       x = query.feature[[featmatch]], kernel = "gaussian", bw = 1
     )
+    mf.use <- meta.feature[!is.na(x = meta.feature[[featmatch]]), ]
     weights <- approx(
       x = density.estimate$x,
       y = density.estimate$y,
-      xout = meta.feature[[featmatch]],
+      xout = mf.use[[featmatch]],
       yright = 0.0001,
       yleft = 0.0001
     )$y
@@ -932,11 +932,11 @@ MatchRegionStats <- function(
     }
   }
   feature.select <- sample.int(
-    n = nrow(x = meta.feature),
+    n = nrow(x = mf.use),
     size = n,
     prob = feature.weights
   )
-  feature.select <- rownames(x = meta.feature)[feature.select]
+  feature.select <- rownames(x = mf.use)[feature.select]
   return(feature.select)
 }
 
