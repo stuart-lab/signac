@@ -11,6 +11,8 @@ Other changes:
 * Improved fold change calculation ([#1174](https://github.com/timoast/signac/issues/1174))
 * Added `subset()` method for `Fragment`-class objects
 * Set random seed within `CoverageTrack` to enable reproducible coverage plots ([#](https://github.com/timoast/signac/issues/1206))
+* Add ability to plot region using gene name in `PeakPlot()`, `LinkPlot()`, and 
+`AnnotationPlot()` ([#919](https://github.com/timoast/signac/issues/919))
 
 # Signac 1.7.0
 
