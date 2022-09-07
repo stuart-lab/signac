@@ -1857,7 +1857,12 @@ CombineTracks <- function(
 #' ranges by. If NULL, do not color by any metadata variable.
 #' @param color Color to use. If \code{group.by} is not NULL, this can be a
 #' custom color scale (see examples).
-#'
+#' @param sep Separators to use for strings encoding genomic coordinates. First
+#' element is used to separate the chromosome from the coordinates, second
+#' element is used to separate the start from end coordinate.
+#' @param extend.upstream Number of bases to extend the region upstream.
+#' @param extend.downstream Number of bases to extend the region downstream.
+#' 
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
 #' @concept visualization
@@ -1885,7 +1890,10 @@ PeakPlot <- function(
   assay = NULL,
   peaks = NULL,
   group.by = NULL,
-  color = "dimgrey"
+  color = "dimgrey",
+  sep = c("-", "-"),
+  extend.upstream = 0,
+  extend.downstream = 0
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
@@ -1900,6 +1908,14 @@ PeakPlot <- function(
     md <- object[[assay]][[]]
     mcols(x = peaks) <- md
   }
+  region <- FindRegion(
+    object = object,
+    region = region,
+    sep = sep,
+    assay = assay[[1]],
+    extend.upstream = extend.upstream,
+    extend.downstream = extend.downstream
+  )
   # subset to covered range
   peak.intersect <- subsetByOverlaps(x = peaks, ranges = region)
   peak.df <- as.data.frame(x = peak.intersect)
@@ -1949,7 +1965,14 @@ PeakPlot <- function(
 #'
 #' @param object A \code{\link[SeuratObject]{Seurat}} object
 #' @param region A genomic region to plot
+#' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param min.cutoff Minimum absolute score for link to be plotted.
+#' @param sep Separators to use for strings encoding genomic coordinates. First
+#' element is used to separate the chromosome from the coordinates, second
+#' element is used to separate the start from end coordinate.
+#' @param extend.upstream Number of bases to extend the region upstream.
+#' @param extend.downstream Number of bases to extend the region downstream.
+#' 
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
@@ -1960,10 +1983,23 @@ PeakPlot <- function(
 #' ylab theme element_blank scale_color_gradient2 aes_string
 #' @concept visualization
 #' @concept links
-LinkPlot <- function(object, region, min.cutoff = 0) {
-  if (!inherits(x = region, what = "GRanges")) {
-    region <- StringToGRanges(regions = region)
-  }
+LinkPlot <- function(
+  object,
+  region,
+  assay = NULL,
+  min.cutoff = 0,
+  sep = c("-", "-"),
+  extend.upstream = 0,
+  extend.downstream = 0
+) {
+  region <- FindRegion(
+    object = object,
+    region = region,
+    sep = sep,
+    assay = assay,
+    extend.upstream = extend.upstream,
+    extend.downstream = extend.downstream
+  )
   chromosome <- seqnames(x = region)
 
   # extract link information
@@ -2032,8 +2068,15 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
 #'
 #' @param object A \code{\link[SeuratObject]{Seurat}} object
 #' @param region A genomic region to plot
+#' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param mode Display mode. Choose either "gene" or "transcript" to determine
 #' whether genes or transcripts are plotted.
+#' @param sep Separators to use for strings encoding genomic coordinates. First
+#' element is used to separate the chromosome from the coordinates, second
+#' element is used to separate the start from end coordinate.
+#' @param extend.upstream Number of bases to extend the region upstream.
+#' @param extend.downstream Number of bases to extend the region downstream.
+#' 
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
 #' @importFrom IRanges subsetByOverlaps
@@ -2049,7 +2092,15 @@ LinkPlot <- function(object, region, min.cutoff = 0) {
 #' \donttest{
 #' AnnotationPlot(object = atac_small, region = c("chr1-29554-39554"))
 #' }
-AnnotationPlot <- function(object, region, mode = "gene") {
+AnnotationPlot <- function(
+  object,
+  region,
+  assay = NULL,
+  mode = "gene",
+  sep = c("-", "-"),
+  extend.upstream = 0,
+  extend.downstream = 0
+) {
   if(mode == "gene") {
     collapse_transcript <- TRUE
     label <- "gene_name"
@@ -2063,9 +2114,14 @@ AnnotationPlot <- function(object, region, mode = "gene") {
   if (is.null(x = annotation)) {
     return(NULL)
   }
-  if (!inherits(x = region, what = "GRanges")) {
-    region <- StringToGRanges(regions = region)
-  }
+  region <- FindRegion(
+    object = object,
+    region = region,
+    sep = sep,
+    assay = assay,
+    extend.upstream = extend.upstream,
+    extend.downstream = extend.downstream
+  )
   start.pos <- start(x = region)
   end.pos <- end(x = region)
   chromosome <- seqnames(x = region)

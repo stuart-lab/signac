@@ -4,15 +4,33 @@
 \alias{AnnotationPlot}
 \title{Plot gene annotations}
 \usage{
-AnnotationPlot(object, region, mode = "gene")
+AnnotationPlot(
+  object,
+  region,
+  assay = NULL,
+  mode = "gene",
+  sep = c("-", "-"),
+  extend.upstream = 0,
+  extend.downstream = 0
+)
 }
 \arguments{
 \item{object}{A \code{\link[SeuratObject]{Seurat}} object}
 
 \item{region}{A genomic region to plot}
 
+\item{assay}{Name of assay to use. If NULL, use the default assay.}
+
 \item{mode}{Display mode. Choose either "gene" or "transcript" to determine
 whether genes or transcripts are plotted.}
+
+\item{sep}{Separators to use for strings encoding genomic coordinates. First
+element is used to separate the chromosome from the coordinates, second
+element is used to separate the start from end coordinate.}
+
+\item{extend.upstream}{Number of bases to extend the region upstream.}
+
+\item{extend.downstream}{Number of bases to extend the region downstream.}
 }
 \value{
 Returns a \code{\link[ggplot2]{ggplot}} object

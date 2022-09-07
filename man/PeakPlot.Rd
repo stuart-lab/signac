@@ -10,7 +10,10 @@ PeakPlot(
   assay = NULL,
   peaks = NULL,
   group.by = NULL,
-  color = "dimgrey"
+  color = "dimgrey",
+  sep = c("-", "-"),
+  extend.upstream = 0,
+  extend.downstream = 0
 )
 }
 \arguments{
@@ -29,6 +32,14 @@ ranges by. If NULL, do not color by any metadata variable.}
 
 \item{color}{Color to use. If \code{group.by} is not NULL, this can be a
 custom color scale (see examples).}
+
+\item{sep}{Separators to use for strings encoding genomic coordinates. First
+element is used to separate the chromosome from the coordinates, second
+element is used to separate the start from end coordinate.}
+
+\item{extend.upstream}{Number of bases to extend the region upstream.}
+
+\item{extend.downstream}{Number of bases to extend the region downstream.}
 }
 \value{
 Returns a \code{\link[ggplot2]{ggplot}} object
