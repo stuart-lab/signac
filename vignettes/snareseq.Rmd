@@ -148,6 +148,13 @@ Next we can annotate cell types in the dataset by transferring labels from an
 existing scRNA-seq dataset for the adult mouse brain, produced by the Allen
 Institute.
 
+You can download the raw data for this experiment from the Allen Institute
+[website](http://celltypes.brain-map.org/api/v2/well_known_file_download/694413985),
+and view the code used to construct this object on
+[GitHub](https://github.com/satijalab/Integration2019/blob/master/preprocessing_scripts/allen_brain.R). 
+Alternatively, you can download the pre-processed Seurat object
+[here](https://signac-objects.s3.amazonaws.com/allen_brain.rds).
+
 ```{r message=FALSE, warning=FALSE}
 # label transfer from Allen brain
 allen <- readRDS("../vignette_data/allen_brain.rds")
