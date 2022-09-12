@@ -102,6 +102,11 @@ reference:
   - contents:
     - has_concept("motifs")
 
+  - title: "Heatmaps"
+    desc: "Functions for single-cell heatmaps"
+  - contents:
+    - has_concept("heatmap")
+
   - title: "Mitochondrial lineage tracing"
     desc: "Functions for identifying cell lineages or clonotypes from mitochondrial mutations"
   - contents:
@@ -151,7 +156,11 @@ reference:
     desc: "Datasets included in Signac"
   - contents:
     - has_concept("data")
-
+  
+  - title: "internal"
+  - contents:
+    - has_concept("internal")
+  
 template:
   params:
     bootswatch: cosmo

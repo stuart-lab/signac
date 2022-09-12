@@ -16,3 +16,4 @@ Cells(x, ...) <- value
 \description{
 Set and get cell barcode information for a Fragment object
 }
+\concept{assay}

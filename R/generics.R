@@ -123,6 +123,7 @@ CallPeaks <- function(object, ...) {
 #' @param value A character vector of cell barcodes
 #' @param ... Arguments passed to other methods
 #' @export Cells<-
+#' @concept assay
 "Cells<-" <- function(x, ..., value) {
   UseMethod(generic = "Cells<-", object = x)
 }

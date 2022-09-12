@@ -35,3 +35,4 @@ Returns a list of sparse matrices
 Count the number of sequenced DNA fragments in a region surrounding each 
 instance of a given DNA sequence motif.
 }
+\concept{motifs}

@@ -468,6 +468,7 @@ ConvertMotifID.Seurat <- function(object, assay = NULL, ...) {
 #' @return Returns a list of sparse matrices
 #' 
 #' @importFrom SeuratObject DefaultAssay
+#' @concept motifs
 #' @export
 MotifCounts <- function(
   object,
