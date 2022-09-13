@@ -104,8 +104,20 @@ int splitFragments(
 
     cb_char = strtok ( buffer, "\t" );
 
+    if (cb_char == NULL) {
+      Rcpp::Rcerr << "Error: fragment file lines too long\n" << std::flush;
+      gzclose(ifileHandler);
+      return 1;
+    }
+    
     for (auto i=1; i<=3; i++) {
       cb_char = strtok (NULL, "\t");
+      
+      if (cb_char == NULL) {
+        Rcpp::Rcerr << "Error: fragment file lines too long\n" << std::flush;
+        gzclose(ifileHandler);
+        return 1;
+      }
 
       if(i == 3) {
         cb_seq.clear();

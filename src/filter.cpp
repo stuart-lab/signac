@@ -44,7 +44,7 @@ int filterCells(
 
   // char * to string extraction
   std::string cb_seq, line_seq;
-  cb_seq.reserve(32);
+  cb_seq.reserve(2048);
   line_seq.reserve(buffer_length);
 
   bool eof_check;
@@ -68,8 +68,21 @@ int filterCells(
     line_seq.append(buffer);
 
     cb_char = strtok ( buffer, "\t" );
+    
+    if (cb_char == NULL) {
+      Rcpp::Rcerr << "Error: fragment file lines too long\n" << std::flush;
+      gzclose(ifileHandler);
+      return (false);
+    }
+    
     for (auto i=1; i<=3; i++) {
       cb_char = strtok (NULL, "\t");
+      
+      if (cb_char == NULL) {
+        Rcpp::Rcerr << "Error: fragment file lines too long\n" << std::flush;
+        gzclose(ifileHandler);
+        return (false);
+      }
 
       if(i == 3) {
         cb_seq.clear();

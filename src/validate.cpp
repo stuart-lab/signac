@@ -29,7 +29,7 @@ bool validateCells(
   char* cb_char;
   size_t line_counter {1};
   size_t total_seen {0};
-  uint32_t buffer_length = 256;
+  uint32_t buffer_length = 4096;
   char *buffer = new char[buffer_length];
 
   // Hash Map storing the barcodes to look for
@@ -47,7 +47,7 @@ bool validateCells(
 
   // char * to string extraction
   std::string cb_seq, line_seq;
-  cb_seq.reserve(32);
+  cb_seq.reserve(2048);
   line_seq.reserve(buffer_length);
 
   // skip header if present
@@ -55,7 +55,7 @@ bool validateCells(
   while ((eof_check = gzgets(fileHandler, buffer, buffer_length)) !=0) {
     line_seq.clear();
     line_seq.append(buffer);
-
+    
     if (line_seq.at(0) != '#') {
       break;
     }
@@ -70,9 +70,22 @@ bool validateCells(
   // looping over the fragments file
   do {
     cb_char = strtok ( buffer, "\t" );
+    
+    if (cb_char == NULL) {
+      Rcpp::Rcerr << "Error: fragment file lines too long\n" << std::flush;
+      gzclose(fileHandler);
+      return (false);
+    }
 
     for (auto i=1; i<=3; i++) {
       cb_char = strtok (NULL, "\t");
+      
+      if (cb_char == NULL) {
+        Rcpp::Rcerr << "Error: fragment file lines too long\n" << std::flush;
+        gzclose(fileHandler);
+        return (false);
+      }
+      
       if(i == 3) {
         cb_seq.clear();
         cb_seq.append(cb_char);
