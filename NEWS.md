@@ -5,12 +5,13 @@ Bug fixes:
 * Fixed bug in Motif object subsetting ([#1162](https://github.com/timoast/signac/issues/1162))
 * Fixed bug in `FeatureMatrix()` where cell names would not be converted correctly when running
 with `cells=NULL` ([#1198](https://github.com/timoast/signac/issues/1198))
+* Fixed bug causing crash when fragment file line lengths are very large ([#723](https://github.com/timoast/signac/issues/723))
 
 Other changes:
 
 * Improved fold change calculation ([#1174](https://github.com/timoast/signac/issues/1174))
 * Added `subset()` method for `Fragment`-class objects
-* Set random seed within `CoverageTrack` to enable reproducible coverage plots ([#](https://github.com/timoast/signac/issues/1206))
+* Set random seed within `CoverageTrack` to enable reproducible coverage plots ([#1206](https://github.com/timoast/signac/issues/1206))
 * Add ability to plot region using gene name in `PeakPlot()`, `LinkPlot()`, and 
 `AnnotationPlot()` ([#919](https://github.com/timoast/signac/issues/919))
 
