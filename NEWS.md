@@ -1,4 +1,4 @@
-# Unreleased
+# Signac 1.8.0
 
 Bug fixes:
 
@@ -14,6 +14,7 @@ Other changes:
 * Set random seed within `CoverageTrack` to enable reproducible coverage plots ([#1206](https://github.com/timoast/signac/issues/1206))
 * Add ability to plot region using gene name in `PeakPlot()`, `LinkPlot()`, and 
 `AnnotationPlot()` ([#919](https://github.com/timoast/signac/issues/919))
+* Change `Motif` class definition to allow any `CsparseMatrix` in the data slot
 
 # Signac 1.7.0
 
