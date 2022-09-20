@@ -67,7 +67,7 @@ is to ensure that the same features are measured in each dataset. Here, we
 quantify the multiome peaks in the ATAC dataset to ensure that there are common features
 across the two datasets.
 
-```{r message=FALSE, warning=FALSE, cache=TRUE}
+```{r message=FALSE, warning=FALSE}
 # quantify multiome peaks in the scATAC-seq dataset
 counts <- FeatureMatrix(
   fragments = atac.frags,
