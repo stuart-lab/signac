@@ -68,7 +68,7 @@ with a Monocle 3 `CellDataSet` object. We will first make sure this branch is
 installed, then convert our `Seurat` object for the whole bone marrow dataset to
 `CellDataSet` format.
 
-```{r, eval=FALSE}
+```{r message=FALSE, warning=FALSE}
 # Install Cicero
 if (!requireNamespace("remotes", quietly = TRUE))
     install.packages("remotes")
