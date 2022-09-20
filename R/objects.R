@@ -60,7 +60,7 @@ Fragment <- setClass(
 Motif <- setClass(
   Class = "Motif",
   slots = list(
-    data = "dgCMatrix",
+    data = "CsparseMatrix",
     pwm = "list",
     motif.names = "list",
     positions = "ANY",
