@@ -7,7 +7,7 @@ output:
     self_contained: True
 ---
 
-```{r packages, cache=FALSE, message=FALSE, warning = FALSE, echo = TRUE}
+```{r packages, message=FALSE, warning = FALSE, echo = TRUE}
 library(Signac)
 library(Seurat)
 library(ggplot2)
@@ -141,7 +141,7 @@ function in Signac allows the output from `mgatk` to be read directly into R in
 a convenient format for downstream analysis with Signac. Here, we load the data
 and add it to the Seurat object as a new assay.
 
-```{r process_mito, cache=TRUE, message=FALSE, warning = FALSE, echo = TRUE}
+```{r process_mito, message=FALSE, warning = FALSE, echo = TRUE}
 # load mgatk output
 mito.data <- ReadMGATK(dir = "../vignette_data/mito/crc/")
 
@@ -193,7 +193,7 @@ To help interpret these clusters of cells, and assign a cell type label, we'll
 estimate gene activities by summing the DNA accessibility in the gene body and
 promoter region.
 
-```{r setup_gene_activity, cache=FALSE, message=FALSE, warning = FALSE, echo = TRUE}
+```{r setup_gene_activity, message=FALSE, warning = FALSE, echo = TRUE}
 # compute gene accessibility
 gene.activities <- GeneActivity(crc)
 
@@ -523,6 +523,7 @@ DefaultAssay(tf1) <- "peaks"
 
 # find peaks specific to one clone
 markers.fast <- FoldChange(tf1, ident.1 = 2)
+markers.fast <- markers.fast[order(markers.fast$avg_log2FC, decreasing = TRUE), ] # sort by fold change
 head(markers.fast)
 ```
 
