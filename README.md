@@ -14,7 +14,7 @@ normalization, dimension reduction, clustering, differential activity,
 and more.
 
 Documentation and tutorials can be found at
-<https://satijalab.org/signac/>
+<https://stuartlab.org/signac/>
 
 ## Installation
 
@@ -36,18 +36,18 @@ remotes::install_github("timoast/signac", ref = "develop")
 ## Release notes
 
 For a changelog please see the [NEWS
-file](https://github.com/timoast/signac/blob/develop/NEWS.md), also
+file](https://github.com/stuart-lab/signac/blob/develop/NEWS.md), also
 available on the [Signac
-website](https://satijalab.org/signac/news/index.html).
+website](https://stuartlab.org/signac/news/index.html).
 
 ## Getting help
 
 If you encounter a bug or have a feature request, please open an
-[issue](https://github.com/timoast/signac/issues).
+[issue](https://github.com/stuart-lab/signac/issues).
 
 If you would like to discuss questions related to single-cell analysis,
 you can open a
-[discussion](https://github.com/timoast/signac/discussions).
+[discussion](https://github.com/stuart-lab/signac/discussions).
 
 ## Citing Signac
 

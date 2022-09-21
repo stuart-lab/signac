@@ -22,7 +22,7 @@ the devtools package:
 ```{r}
 if (!requireNamespace("devtools", quietly = TRUE))
     install.packages("devtools")
-devtools::install_github("timoast/signac", ref = "develop")
+devtools::install_github("stuart-lab/signac", ref = "develop")
 ```
 
 ## Old versions
