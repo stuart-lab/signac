@@ -51,10 +51,10 @@ navbar:
     - text: "Archive"
       href: articles/archive.html
     - text: "Discussions"
-      href: https://github.com/timoast/signac/discussions
+      href: https://github.com/stuart-lab/signac/discussions
   right:
     - icon: fa-github
-      href: https://github.com/timoast/signac
+      href: https://github.com/stuart-lab/signac
 
 reference:
   - title: "Object interaction"

@@ -11,9 +11,9 @@ A framework for the analysis and exploration of single-cell chromatin data. The 
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/timoast/signac}
-  \item \url{https://satijalab.org/signac}
-  \item Report bugs at \url{https://github.com/timoast/signac/issues}
+  \item \url{https://github.com/stuart-lab/signac}
+  \item \url{https://stuartlab.org/signac}
+  \item Report bugs at \url{https://github.com/stuart-lab/signac/issues}
 }
 
 }

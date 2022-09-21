@@ -1,4 +1,4 @@
-[![R-CMD-check](https://github.com/timoast/signac/workflows/R-CMD-check/badge.svg)](https://github.com/timoast/signac/actions)
+[![R-CMD-check](https://github.com/stuart-lab/signac/workflows/R-CMD-check/badge.svg)](https://github.com/stuart-lab/signac/actions)
 [![CRAN Version](https://www.r-pkg.org/badges/version/Signac)](https://cran.r-project.org/package=Signac)
 [![CRAN Downloads](https://cranlogs.r-pkg.org/badges/Signac)](https://cran.r-project.org/package=Signac)
 
