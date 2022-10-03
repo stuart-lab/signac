@@ -1538,6 +1538,9 @@ CutMatrix <- function(
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   fragments <- Fragments(object = object[[assay]])
+  if (length(x = fragments) == 0) {
+    stop("No fragment information found for requested assay")
+  }
   res <- list()
   for (i in seq_along(along.with = fragments)) {
     fragment.path <- GetFragmentData(object = fragments[[i]], slot = "path")
