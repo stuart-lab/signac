@@ -1,3 +1,9 @@
+# Unreleased
+
+Other changes:
+
+* Improved error message when no fragment file information stored ([#1236](https://github.com/stuart-lab/signac/issues/1236))
+
 # Signac 1.8.0
 
 Bug fixes:
