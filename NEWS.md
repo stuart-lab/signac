@@ -1,5 +1,9 @@
 # Unreleased
 
+Bug fixes:
+
+* Fixed Motif object subsetting when using only one feature ([#1266](https://github.com/stuart-lab/signac/discussions/1266))
+
 Other changes:
 
 * Improved error message when no fragment file information stored ([#1236](https://github.com/stuart-lab/signac/issues/1236))
