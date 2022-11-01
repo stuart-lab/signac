@@ -179,6 +179,10 @@ RunChromVAR.ChromatinAssay <- function(
     object = chromvar.obj,
     genome = genome
   )
+  # Remove NA values https://github.com/GreenleafLab/chromVAR/issues/26
+  row.data <- data.frame(SummarizedExperiment::rowData(x = chromvar.obj))
+  row.data[is.na(x = row.data)] <- 0
+  SummarizedExperiment::rowData(x = chromvar.obj) <- row.data
   if (verbose) {
     message("Selecting background regions")
   }
