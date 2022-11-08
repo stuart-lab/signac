@@ -40,6 +40,11 @@ file](https://github.com/stuart-lab/signac/blob/develop/NEWS.md), also
 available on the [Signac
 website](https://stuartlab.org/signac/news/index.html).
 
+## Contributing
+
+We welcome contributions to the Signac package. Please see the
+[./CONTRIBUTING.md](contribution guide) for more information.
+
 ## Getting help
 
 If you encounter a bug or have a feature request, please open an
