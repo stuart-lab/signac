@@ -55,7 +55,7 @@ To contribute a change to Signac, you follow these steps:
 1. Clone your forked version of the repository
 1. Run `git checkout develop` to change to the develop branch
 1. Create a new branch for your changes (`git checkout -b <new branch name>`)
-1. Add your changes to the branch (`git commit <files to commit`)
+1. Add your changes to the branch (`git commit <files to commit>`)
 1. Push your branch to github (`git push`)
 1. Open a pull request (PR) in the Signac repository
 
