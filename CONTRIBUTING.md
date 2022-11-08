@@ -13,7 +13,8 @@ you agree to abide by its terms.
 
 GitHub issues are intended for filing bug reports, feature requests, or
 requests for changes to the documentation. For general discussion of analysis
-steps, opening a discussion topic is preferred.
+steps, opening a discussion topic on the Signac
+[discussion forum](https://github.com/stuart-lab/signac/discussions) is preferred.
 
 When filing a bug report, it is extremely useful if you can include a minimal 
 reproducible example so that we can quickly verify the problem, and then figure 
