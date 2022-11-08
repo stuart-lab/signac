@@ -32,8 +32,24 @@ Signac currently supports the following features:
 * Seamless interface with [Seurat](https://satijalab.org/seurat), [SeuratWrappers](https://github.com/satijalab/seurat-wrappers), [SeuratDisk](https://github.com/mojaveazure/seurat-disk), and [SeuratData](https://github.com/satijalab/seurat-data) functionality
 * Interoperability with [Bioconductor](https://bioconductor.org/) tools
 
-Please see the Signac [vignettes](articles/overview.html) page for examples.
+Check out the Signac [vignettes](articles/overview.html) page for in-depth 
+tutorials.
 
-For installation instructions see the [install](articles/install.html) page.
+## Quick installation
 
+```r
+setRepositories(ind=1:3)
+install.packages("Signac")
+```
+
+For full installation instructions see the [install](articles/install.html) page.
+
+## Getting help
+
+If you encounter a bug or have a feature request, please open an
+[issue](https://github.com/stuart-lab/signac/issues).
+
+If you would like to discuss questions related to single-cell analysis,
+you can open a
+[discussion](https://github.com/stuart-lab/signac/discussions).
 
