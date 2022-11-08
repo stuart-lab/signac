@@ -4,6 +4,8 @@ home:
   links:
     - text: Contributors
       href: https://github.com/stuart-lab/signac/graphs/contributors
+    - text: Roadmap
+      href: https://github.com/orgs/stuart-lab/projects/1
 
 navbar:
   title: "Signac"
