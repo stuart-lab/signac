@@ -1,5 +1,10 @@
 url: https://satijalab.org/signac
 
+home:
+  links:
+    - text: Contributors
+      href: https://github.com/stuart-lab/signac/graphs/contributors
+
 navbar:
   title: "Signac"
   left:
@@ -160,7 +165,7 @@ reference:
   - title: "internal"
   - contents:
     - has_concept("internal")
-  
+
 template:
   params:
     bootswatch: cosmo
