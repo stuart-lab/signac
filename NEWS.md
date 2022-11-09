@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Fixed Motif object subsetting when using only one feature ([#1266](https://github.com/stuart-lab/signac/discussions/1266))
+* Avoid error in chromVAR when matrix contains NA values ([#1254](https://github.com/stuart-lab/signac/issues/1254))
 
 Other changes:
 
