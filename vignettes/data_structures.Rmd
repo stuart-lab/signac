@@ -67,8 +67,11 @@ A `ChromatinAssay` object can be constructed using the
 
 ```{r}
 # get some data to use in the following examples
-counts <- GetAssayData(atac_small, slot = "counts")
+counts <- LayerData(atac_small, layer = "counts")
 ```
+
+Note that older versions of Seurat (<5) use the `GetAssayData()` function
+instead of `LayerData()`.
 
 ```{r}
 # create a standalone ChromatinAssay object
@@ -109,19 +112,21 @@ defined in `Seurat`. For example:
 ## Getting
 
 # access the data slot, found in standard Assays and ChromatinAssays
-data <- GetAssayData(atac_small, slot = "data")
+data <- LayerData(atac_small, layer = "data")
 
 # access the bias slot, unique to the ChromatinAssay
-bias <- GetAssayData(atac_small, slot = "bias")
+bias <- LayerData(atac_small, layer = "bias")
 
 ## Setting
 
 # set the data slot
-atac_small <- SetAssayData(atac_small, slot = "data", new.data = data)
+LayerData(atac_small, layer = "data") <- data
+# atac_small <- SetAssayData(atac_small, slot = "data", new.data = data)
 
 # set the bias slot
 bias <- rep(1, 100)  # create a dummy bias vector
-atac_small <- SetAssayData(atac_small, slot = "bias", new.data = bias)
+LayerData(atac_small, layer = "bias") <- bias
+# atac_small <- SetAssayData(atac_small, slot = "bias", new.data = bias)
 ```
 
 We also have a variety of convenience functions defined for getting/setting 
@@ -356,7 +361,8 @@ assign the subsetted list to the assay using the `Seurat::SetAssayData()`
 function. For example:
 
 ```{r}
-chrom_assay <- SetAssayData(chrom_assay, slot = "fragments", new.data = fragments)
+LayerData(chrom_assay, layer = "fragments") <- fragments
+# chrom_assay <- SetAssayData(chrom_assay, slot = "fragments", new.data = fragments)
 Fragments(chrom_assay)
 ```
 
