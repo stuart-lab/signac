@@ -50,7 +50,8 @@ Imports:
     Rcpp,
     grid,
     tidyselect,
-    vctrs
+    vctrs,
+    lifecycle
 Collate: 
     'RcppExports.R'
     'data.R'
