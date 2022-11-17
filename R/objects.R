@@ -534,6 +534,19 @@ GetAssayData.ChromatinAssay <- function(
   return(methods::slot(object = object, name = layer))
 }
 
+#' @importFrom SeuratObject LayerData
+#' @method LayerData ChromatinAssay
+#' @export
+#' @concept assay
+LayerData.ChromatinAssay <- function(
+    object,
+    layer = "data",
+    assay = NULL,
+    ...
+) {
+  return(GetAssayData(object, layer = layer))
+}
+
 #' Get Fragment object data
 #'
 #' Extract data from a \code{\link{Fragment-class}} object
@@ -791,6 +804,16 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
   } else if (slot == "links") {
     slot(object = object, name = slot) <- new.data
   }
+  return(object)
+}
+
+#' @importFrom SeuratObject LayerData<- SetAssayData
+#' @method LayerData<- ChromatinAssay
+#' @concept assay
+#' @export
+"LayerData<-.ChromatinAssay" <- function(object, layer, ..., value) {
+  object <- SetAssayData(object = object, slot = layer, new.data = value)
+  # validObject(object = object)
   return(object)
 }
 
