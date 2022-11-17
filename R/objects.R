@@ -511,22 +511,27 @@ CreateMotifObject <- function(
 
 #' @importFrom SeuratObject GetAssayData
 #' @method GetAssayData ChromatinAssay
+#' @importFrom lifecycle deprecated is_present
 #' @export
 #' @concept assay
 GetAssayData.ChromatinAssay <- function(
   object,
-  slot = "data",
+  layer = "data",
   assay = NULL,
+  slot = deprecated(),
   ...
 ) {
-  if (!(slot %in% slotNames(x = object))) {
+  if (is_present(arg = slot)) {
+    layer <- slot
+  }
+  if (!(layer %in% slotNames(x = object))) {
     stop(
-      "slot must be one of ",
+      "layer must be one of ",
       paste(slotNames(x = object), collapse = ", "),
       call. = FALSE
     )
   }
-  return(slot(object = object, name = slot))
+  return(methods::slot(object = object, name = layer))
 }
 
 #' Get Fragment object data
