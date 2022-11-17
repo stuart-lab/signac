@@ -1337,6 +1337,10 @@ merge.ChromatinAssay <- function(
       )
     }
   }
+  keys <- unlist(sapply(X = assays, FUN = Key))
+  if (length(x = unique(x = keys)) == 1) {
+    Key(object = new.assay) <- keys[1]
+  }
   return(new.assay)
 }
 
