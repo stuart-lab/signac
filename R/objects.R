@@ -1042,7 +1042,7 @@ subset.Fragment <- function(
 #' @concept assay
 #' @method merge ChromatinAssay
 #' @importFrom GenomicRanges union findOverlaps
-#' @importFrom SeuratObject RowMergeSparseMatrices
+#' @importFrom SeuratObject RowMergeSparseMatrices Key Key<-
 #' @importFrom S4Vectors subjectHits queryHits mcols
 #' @importMethodsFrom GenomeInfoDb merge
 merge.ChromatinAssay <- function(
@@ -1364,6 +1364,10 @@ merge.ChromatinAssay <- function(
         validate.fragments = FALSE
       )
     }
+  }
+  keys <- unlist(x = sapply(X = assays, FUN = Key))
+  if (length(x = unique(x = keys)) == 1) {
+    Key(object = new.assay) <- keys[1]
   }
   return(new.assay)
 }
