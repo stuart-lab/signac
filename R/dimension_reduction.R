@@ -76,6 +76,12 @@ RunSVD.default <- function(
   irlba.work = n * 3,
   ...
 ) {
+  if (is.null(x = rownames(x = object))) {
+    rownames(x = object) <- seq_len(length.out = nrow(x = object))
+  }
+  if (is.null(x = colnames(x = object))) {
+    colnames(x = object) <- seq_len(length.out = ncol(x = object))
+  }
   n <- min(n, (ncol(x = object) - 1))
   if (verbose) {
     message("Running SVD")
