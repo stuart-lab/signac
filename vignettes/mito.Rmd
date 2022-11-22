@@ -149,11 +149,11 @@ mito.data <- ReadMGATK(dir = "../vignette_data/mito/crc/")
 mito <- CreateAssayObject(counts = mito.data$counts)
 
 # Subset to cell present in the scATAC-seq assat
-mito <- subset(mito, cells = colnames(crc))
+mito <- subset(mito, cells = Cells(crc))
 
 # add assay and metadata to the seurat object
 crc[["mito"]] <- mito
-crc <- AddMetaData(crc, metadata = mito.data$depth, col.name = "mtDNA_depth")
+crc <- AddMetaData(crc, metadata = mito.data$depth[Cells(mito), ], col.name = "mtDNA_depth")
 ```
 
 We can look at the mitochondrial sequencing depth for each cell, and further
