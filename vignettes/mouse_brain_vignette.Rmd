@@ -27,7 +27,7 @@ wget http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh
 </details>
 
 This vignette echoes the commands run in the introductory Signac vignette on
-[human PBMC](https://satijalab.org/signac/articles/pbmc_vignette.html). We
+[human PBMC](pbmc_vignette.html). We
 provide the same analysis in a different system to demonstrate performance and
 applicability to other tissue types, and to provide an example from another
 species.
