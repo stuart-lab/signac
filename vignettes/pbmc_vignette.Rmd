@@ -253,7 +253,7 @@ DimPlot(object = pbmc, label = TRUE) + NoLegend()
 
 The UMAP visualization reveals the presence of multiple cell groups in human 
 blood. If you are familiar with our
-[scRNA-seq analyses of PBMC](https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html),
+[scRNA-seq analyses of PBMC](https://satijalab.org/seurat/articles/pbmc3k_tutorial.html),
 you may even recognize the presence of certain myeloid and lymphoid populations
 in the scATAC-seq data. However, annotating and interpreting clusters is more
 challenging in scATAC-seq data as much less is known about the functional roles
@@ -285,8 +285,8 @@ pbmc[['RNA']] <- CreateAssayObject(counts = gene.activities)
 pbmc <- NormalizeData(
   object = pbmc,
   assay = 'RNA',
-  normalization.method = 'LogNormalize',
-  scale.factor = median(pbmc$nCount_RNA)
+  normalization.method = 'LogNormalize'
+  # scale.factor = median(pbmc$nCount_RNA)
 )
 ```
 
@@ -334,7 +334,10 @@ Alternatively, you can download the pre-processed Seurat object
 ```{r warning=FALSE, message=FALSE}
 # Load the pre-processed scRNA-seq data for PBMCs
 pbmc_rna <- readRDS("../vignette_data/pbmc_10k_v3.rds")
+pbmc_rna <- UpdateSeuratObject(pbmc_rna)
+```
 
+```{r}
 transfer.anchors <- FindTransferAnchors(
   reference = pbmc_rna,
   query = pbmc,
@@ -398,44 +401,47 @@ pbmc <- RenameIdents(
 ## Find differentially accessible peaks between clusters
 
 To find differentially accessible regions between clusters of cells, we can
-perform a differential accessibility (DA) test. We utilize logistic regression
-for DA, as suggested by
+perform a differential accessibility (DA) test. A simple approach is to perform
+a Wilcoxon rank sum test, and the [presto](https://github.com/immunogenomics/presto)
+package has implemented an extremely fast Wilcoxon test that can be run on a
+Seurat object.
+
+Another approach for differential testing is to utilize logistic regression
+for, as suggested by
 [Ntranos et al. 2018](https://www.biorxiv.org/content/10.1101/258566v2)
-for scRNA-seq data, and add the total number of fragments as a latent variable
-to mitigate the effect of differential sequencing depth on the result.
-For sparse data (such as scATAC-seq), we find it is often necessary
-to lower the `min.pct` threshold in `FindMarkers()` from the default (0.1, which
-was designed for scRNA-seq data). Here we
-will focus on comparing Naive CD4 cells and CD14 monocytes, but any groups of
-cells can be compared using these methods. We can also visualize these marker
+for scRNA-seq data. One advantage of this approach is we can include latent
+variables, such as sequencing depth or batch. However, the LR test can take
+significantly longer to run than the Wilcoxon test. 
+
+We can also visualize these marker
 peaks on a violin plot, feature plot, dot plot, heat map, or any
-[visualization tool in Seurat](https://satijalab.org/seurat/v3.0/visualization_vignette.html).
+[visualization tool in Seurat](https://satijalab.org/seurat/articles/visualization_vignette.html).
 
 ```{r message=TRUE, warning=FALSE}
 # change back to working with peaks instead of gene activities
 DefaultAssay(pbmc) <- 'peaks'
 
-da_peaks <- FindMarkers(
-  object = pbmc,
-  ident.1 = "CD4 Naive",
-  ident.2 = "CD14 Mono",
-  test.use = 'LR',
-  latent.vars = 'peak_region_fragments'
-)
+da_results <- presto::wilcoxauc(pbmc, seurat_assay = "peaks")
 
-head(da_peaks)
+# filter top DA peaks and sort
+da_results <- da_results[da_results$padj < 0.01 & abs(da_results$logFC) > 0.5, ]
+da_results <- da_results[order(da_results$logFC, decreasing = TRUE), ]
+
+# focus on CD4 naive cells as an example
+cd4_da <- da_results[da_results$group == "CD4 Naive", ]
+head(cd4_da)
 ```
 
 ```{r, cache=FALSE, fig.width=12}
 plot1 <- VlnPlot(
   object = pbmc,
-  features = rownames(da_peaks)[1],
+  features = cd4_da$feature[1],
   pt.size = 0.1,
   idents = c("CD4 Naive","CD14 Mono")
 )
 plot2 <- FeaturePlot(
   object = pbmc,
-  features = rownames(da_peaks)[1],
+  features = cd4_da$feature[1],
   pt.size = 0.1
 )
 
@@ -467,8 +473,8 @@ by doing gene ontology enrichment analysis on the gene sets returned by
 package for example).
 
 ```{r, warning=FALSE, message=FALSE}
-open_cd4naive <- rownames(da_peaks[da_peaks$avg_log2FC > 3, ])
-open_cd14mono <- rownames(da_peaks[da_peaks$avg_log2FC < -3, ])
+open_cd4naive <- rownames(fc[fc$avg_log2FC > 3, ])
+open_cd14mono <- rownames(fc[fc$avg_log2FC < -3, ])
 
 closest_genes_cd4naive <- ClosestFeature(pbmc, regions = open_cd4naive)
 closest_genes_cd14mono <- ClosestFeature(pbmc, regions = open_cd14mono)
@@ -501,7 +507,7 @@ levels(pbmc) <- c("CD4 Naive","CD4 Memory","CD8 Naive","CD8 Effector","DN T","NK
 
 CoveragePlot(
   object = pbmc,
-  region = rownames(da_peaks)[1],
+  region = cd4_da$feature[1],
   extend.upstream = 40000,
   extend.downstream = 20000
 )
