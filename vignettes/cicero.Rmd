@@ -30,6 +30,7 @@ First we will load their dataset and perform some standard preprocessing using
 Signac.
 
 ```{r include=FALSE}
+setRepositories(ind=1:3)
 if (!requireNamespace("remotes", quietly = TRUE))
     install.packages("remotes")
 
