@@ -22,6 +22,8 @@
 
 on:
   push:
+    branches:
+      - '!seurat5'
   pull_request:
 
 name: R-CMD-check
