@@ -72,7 +72,6 @@ metadata <- read.csv(
 chrom_assay <- CreateChromatinAssay(
   counts = counts,
   sep = c(":", "-"),
-  genome = "hg19",
   fragments = '../vignette_data/atac_v1_pbmc_10k_fragments.tsv.gz',
   min.cells = 10,
   min.features = 200
@@ -224,7 +223,7 @@ pbmc
 
 * Normalization: Signac performs term frequency-inverse document frequency (TF-IDF) normalization. This is a two-step normalization procedure, that both normalizes across cells to correct for differences in cellular sequencing depth, and across peaks to give higher values to more rare peaks.
 
-* Feature selection: The low dynamic range of scATAC-seq data makes it challenging to perform variable feature selection, as we do for scRNA-seq. Instead, we can choose to use only the top _n_% of features (peaks) for dimensional reduction, or remove features present in less than _n_ cells with the `FindTopFeatures()` function. Here, we will all features, though we note that we see very similar results when using only a subset of features (try setting min.cutoff to 'q75' to use the top 25% all peaks), with faster runtimes. Features used for dimensional reduction are automatically set as `VariableFeatures()` for the Seurat object by this function.
+* Feature selection: The low dynamic range of scATAC-seq data makes it challenging to perform variable feature selection, as we do for scRNA-seq. Instead, we can choose to use only the top _n_% of features (peaks) for dimensional reduction, or remove features present in less than _n_ cells with the `FindTopFeatures()` function. Here we will use all features, though we have seen very similar results when using only a subset of features (try setting min.cutoff to 'q75' to use the top 25% all peaks), with faster runtimes. Features used for dimensional reduction are automatically set as `VariableFeatures()` for the Seurat object by this function.
 
 * Dimension reduction: We next run singular value decomposition (SVD) on the TD-IDF matrix, using the features (peaks) selected above. This returns a reduced dimension representation of the object (for users who are more familiar with scRNA-seq, you can think of this as analogous to the output of PCA).
 
@@ -248,12 +247,14 @@ DepthCor(pbmc)
 ```
 
 Here we see there is a very strong correlation between the first LSI component
-and the total number of counts for the cell, so we will perform downstream steps
-without this component.
+and the total number of counts for the cell. We will perform downstream steps
+without this component as we don't want to group cells together based on their
+total sequencing depth, but rather by their patterns of accessibility at
+cell-type-specific peaks.
 
 ## Non-linear dimension reduction and clustering
 
-Now that the cells are embedded in a low-dimensional space, we can use methods
+Now that the cells are embedded in a low-dimensional space we can use methods
 commonly applied for the analysis of scRNA-seq data to perform graph-based
 clustering and non-linear dimension reduction for visualization. The functions
 `RunUMAP()`, `FindNeighbors()`, and `FindClusters()` all come from the Seurat
@@ -269,15 +270,15 @@ DimPlot(object = pbmc, label = TRUE) + NoLegend()
 ## Create a gene activity matrix
 
 The UMAP visualization reveals the presence of multiple cell groups in human 
-blood. If you are familiar with our
-[scRNA-seq analyses of PBMC](https://satijalab.org/seurat/v3.0/pbmc3k_tutorial.html),
-you may even recognize the presence of certain myeloid and lymphoid populations
+blood. If you are familiar with 
+[scRNA-seq analyses of PBMC](https://satijalab.org/seurat/articles/pbmc3k_tutorial.html),
+you may recognize the presence of certain myeloid and lymphoid populations
 in the scATAC-seq data. However, annotating and interpreting clusters is more
 challenging in scATAC-seq data as much less is known about the functional roles
-of noncoding genomic regions than is known about protein coding regions (genes). 
+of noncoding genomic regions than is known about protein coding regions (genes).
 
-However, we can try to quantify the activity of each gene in the genome by
-assessing the chromatin accessibility associated with each gene, and create a
+We can try to quantify the activity of each gene in the genome by
+assessing the chromatin accessibility associated with the gene, and create a
 new gene activity assay derived from the scATAC-seq data. Here we will use a
 simple approach of summing the fragments intersecting the gene body and promoter
 region (we also recommend exploring the
@@ -415,44 +416,54 @@ pbmc <- RenameIdents(
 ## Find differentially accessible peaks between clusters
 
 To find differentially accessible regions between clusters of cells, we can
-perform a differential accessibility (DA) test. We utilize logistic regression
-for DA, as suggested by
+perform a differential accessibility (DA) test. A simple approach is to perform
+a Wilcoxon rank sum test, and the [presto](https://github.com/immunogenomics/presto)
+package has implemented an extremely fast Wilcoxon test that can be run on a
+Seurat object.
+
+Another approach for differential testing is to utilize logistic regression
+for, as suggested by
 [Ntranos et al. 2018](https://www.biorxiv.org/content/10.1101/258566v2)
-for scRNA-seq data, and add the total number of fragments as a latent variable
-to mitigate the effect of differential sequencing depth on the result.
-For sparse data (such as scATAC-seq), we find it is often necessary
-to lower the `min.pct` threshold in `FindMarkers()` from the default (0.1, which
-was designed for scRNA-seq data). Here we
-will focus on comparing Naive CD4 cells and CD14 monocytes, but any groups of
-cells can be compared using these methods. We can also visualize these marker
+for scRNA-seq data. One advantage of this approach is we can include latent
+variables, such as sequencing depth or batch. However, the LR test can take
+significantly longer to run than the Wilcoxon test. 
+
+We can also visualize these marker
 peaks on a violin plot, feature plot, dot plot, heat map, or any
-[visualization tool in Seurat](https://satijalab.org/seurat/v3.0/visualization_vignette.html).
+[visualization tool in Seurat](https://satijalab.org/seurat/articles/visualization_vignette.html).
+
+```{r include=FALSE}
+# install presto package
+if (!requireNamespace("presto", quietly = TRUE)) {
+  install.packages('presto')
+}
+```
 
 ```{r message=TRUE, warning=FALSE}
 # change back to working with peaks instead of gene activities
 DefaultAssay(pbmc) <- 'peaks'
 
-da_peaks <- FindMarkers(
-  object = pbmc,
-  ident.1 = "CD4 Naive",
-  ident.2 = "CD14 Mono",
-  test.use = 'LR',
-  latent.vars = 'peak_region_fragments'
-)
+da_results <- presto::wilcoxauc(pbmc, seurat_assay = "peaks")
 
-head(da_peaks)
+# filter top DA peaks and sort
+da_results <- da_results[da_results$padj < 0.01 & abs(da_results$logFC) > 0.5, ]
+da_results <- da_results[order(da_results$logFC, decreasing = TRUE), ]
+
+# focus on CD4 naive cells as an example
+cd4_da <- da_results[da_results$group == "CD4 Naive", ]
+head(cd4_da)
 ```
 
-```{r cache=FALSE, fig.width=12}
+```{r, cache=FALSE, fig.width=12}
 plot1 <- VlnPlot(
   object = pbmc,
-  features = rownames(da_peaks)[1],
+  features = cd4_da$feature[1],
   pt.size = 0.1,
   idents = c("CD4 Naive","CD14 Mono")
 )
 plot2 <- FeaturePlot(
   object = pbmc,
-  features = rownames(da_peaks)[1],
+  features = cd4_da$feature[1],
   pt.size = 0.1
 )
 
@@ -512,13 +523,13 @@ important information including gene annotation, peak coordinates, and genomic
 links (if they're stored in the object). See the
 [visualization vignette](visualization.html) for more information.
 
-```{r message=FALSE, warning=FALSE, out.width="90%", fig.height=6}
+```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=6}
 # set plotting order
 levels(pbmc) <- c("CD4 Naive","CD4 Memory","CD8 Naive","CD8 Effector","DN T","NK CD56bright","NK CD56Dim","pre-B",'pro-B',"pDC","DC","CD14 Mono",'CD16 Mono')
 
 CoveragePlot(
   object = pbmc,
-  region = rownames(da_peaks)[1],
+  region = cd4_da$feature[1],
   extend.upstream = 40000,
   extend.downstream = 20000
 )

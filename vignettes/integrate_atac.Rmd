@@ -65,7 +65,8 @@ atac.frags <- CreateFragmentObject(path = fragpath, cells = atac.cells)
 An important first step in any integrative analysis of single-cell chromatin data
 is to ensure that the same features are measured in each dataset. Here, we
 quantify the multiome peaks in the ATAC dataset to ensure that there are common features
-across the two datasets.
+across the two datasets. See the [merge vignette](merging.html) for more
+information about merging chromatin assays.
 
 ```{r message=FALSE, warning=FALSE}
 # quantify multiome peaks in the scATAC-seq dataset
