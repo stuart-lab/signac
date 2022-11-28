@@ -1587,10 +1587,13 @@ MotifPlot <- function(
   if (length(x = data.use) == 0) {
     stop("Position weight matrix list for the requested assay is empty")
   }
-  if (!(motifs %in% names(x = data.use))) {
-    # try looking up ID
-    motifs <- ConvertMotifID(object = object, name = motifs)
-  } 
+  missing.motifs <- !(motifs %in% names(x = data.use))
+  for (i in seq_along(along.with = motifs)) {
+    if (missing.motifs[i]) {
+      # try looking up ID
+      motifs[i] <- ConvertMotifID(object = object, name = motifs[i])
+    }
+  }
   data.use <- data.use[motifs]
   if (use.names) {
     names(x = data.use) <- GetMotifData(
