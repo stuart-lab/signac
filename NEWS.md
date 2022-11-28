@@ -9,6 +9,7 @@ Bug fixes:
 Other changes:
 
 * Improved error message when no fragment file information stored ([#1236](https://github.com/stuart-lab/signac/issues/1236))
+* Add `tol` parameter to `RunSVD()` to control the `irlba::irlba()` `tol` parameter
 
 # Signac 1.8.0
 

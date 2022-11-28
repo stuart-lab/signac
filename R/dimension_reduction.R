@@ -52,6 +52,8 @@ Jaccard <- function(x, y) {
 #' @param irlba.work work parameter for \code{\link[irlba]{irlba}}.
 #' Working subspace dimension, larger values can speed convergence at the
 #' cost of more memory use.
+#' @param tol Tolerance (tol) parameter for \code{\link[irlba]{irlba}}. Larger
+#' values speed up convergence due to greater amount of allowed error.
 #' @param verbose Print messages
 #'
 #' @importFrom irlba irlba
@@ -74,13 +76,14 @@ RunSVD.default <- function(
   scale.max = NULL,
   verbose = TRUE,
   irlba.work = n * 3,
+  tol = 1e-05,
   ...
 ) {
   n <- min(n, (ncol(x = object) - 1))
   if (verbose) {
     message("Running SVD")
   }
-  components <- irlba(A = t(x = object), nv = n, work = irlba.work)
+  components <- irlba(A = t(x = object), nv = n, work = irlba.work, tol = tol)
   feature.loadings <- components$v
   sdev <- components$d / sqrt(x = max(1, nrow(x = object) - 1))
   cell.embeddings <- components$u

@@ -18,6 +18,7 @@ RunSVD(object, ...)
   scale.max = NULL,
   verbose = TRUE,
   irlba.work = n * 3,
+  tol = 1e-05,
   ...
 )
 
@@ -66,6 +67,9 @@ Default (NULL) is no clipping.}
 \item{irlba.work}{work parameter for \code{\link[irlba]{irlba}}.
 Working subspace dimension, larger values can speed convergence at the
 cost of more memory use.}
+
+\item{tol}{Tolerance (tol) parameter for \code{\link[irlba]{irlba}}. Larger
+values speed up convergence due to greater amount of allowed error.}
 
 \item{features}{Which features to use. If NULL, use variable features}
 
