@@ -4,10 +4,12 @@ Bug fixes:
 
 * Fixed Motif object subsetting when using only one feature ([#1266](https://github.com/stuart-lab/signac/discussions/1266))
 * Avoid error in chromVAR when matrix contains NA values ([#1254](https://github.com/stuart-lab/signac/issues/1254))
+* Fixed error in `CoveragePlot()` when setting `show.bulk=TRUE` ([#1294](https://github.com/stuart-lab/signac/issues/1294))
 
 Other changes:
 
 * Improved error message when no fragment file information stored ([#1236](https://github.com/stuart-lab/signac/issues/1236))
+* Add `tol` parameter to `RunSVD()` to control the `irlba::irlba()` `tol` parameter
 
 # Signac 1.8.0
 

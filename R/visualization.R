@@ -1091,11 +1091,10 @@ SingleCoveragePlot <- function(
     bulk.scale.factor <- suppressWarnings(reads.per.group * cells.per.group)
     bulk.groups <- rep(x = "All cells", length(x = obj.groups))
     names(x = bulk.groups) <- names(x = obj.groups)
-
     bulk.plot <- CoverageTrack(
-      cutmat = cutmat[[1]],
+      cutmat = cm.list,
       region = region,
-      group.scale.factors = bulk.scale.factor,
+      group.scale.factors = list(bulk.scale.factor),
       scale.factor = scale.factor,
       window = window,
       ymax = ymax,
