@@ -1563,7 +1563,7 @@ CoveragePlot <- function(
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
 #' \donttest{
-#' motif.obj <- SeuratObject::GetAssayData(atac_small, slot = "motifs")
+#' motif.obj <- Motifs(atac_small)
 #' MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
 #' }
 MotifPlot <- function(
