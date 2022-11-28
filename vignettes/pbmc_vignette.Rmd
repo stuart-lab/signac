@@ -42,7 +42,6 @@ library(GenomeInfoDb)
 library(EnsDb.Hsapiens.v75)
 library(ggplot2)
 library(patchwork)
-set.seed(1234)
 ```
 
 ## Pre-processing workflow
@@ -69,7 +68,6 @@ metadata <- read.csv(
 chrom_assay <- CreateChromatinAssay(
   counts = counts,
   sep = c(":", "-"),
-  genome = 'hg19',
   fragments = '../vignette_data/atac_v1_pbmc_10k_fragments.tsv.gz',
   min.cells = 10,
   min.features = 200
@@ -207,7 +205,7 @@ pbmc
 
 * Normalization: Signac performs term frequency-inverse document frequency (TF-IDF) normalization. This is a two-step normalization procedure, that both normalizes across cells to correct for differences in cellular sequencing depth, and across peaks to give higher values to more rare peaks.
 
-* Feature selection: The low dynamic range of scATAC-seq data makes it challenging to perform variable feature selection, as we do for scRNA-seq. Instead, we can choose to use only the top _n_% of features (peaks) for dimensional reduction, or remove features present in less than _n_ cells with the `FindTopFeatures()` function. Here, we will all features, though we note that we see very similar results when using only a subset of features (try setting min.cutoff to 'q75' to use the top 25% all peaks), with faster runtimes. Features used for dimensional reduction are automatically set as `VariableFeatures()` for the Seurat object by this function.
+* Feature selection: The low dynamic range of scATAC-seq data makes it challenging to perform variable feature selection, as we do for scRNA-seq. Instead, we can choose to use only the top _n_% of features (peaks) for dimensional reduction, or remove features present in less than _n_ cells with the `FindTopFeatures()` function. Here we will use all features, though we have seen very similar results when using only a subset of features (try setting min.cutoff to 'q75' to use the top 25% all peaks), with faster runtimes. Features used for dimensional reduction are automatically set as `VariableFeatures()` for the Seurat object by this function.
 
 * Dimension reduction: We next run singular value decomposition (SVD) on the TD-IDF matrix, using the features (peaks) selected above. This returns a reduced dimension representation of the object (for users who are more familiar with scRNA-seq, you can think of this as analogous to the output of PCA).
 
@@ -231,12 +229,14 @@ DepthCor(pbmc)
 ```
 
 Here we see there is a very strong correlation between the first LSI component
-and the total number of counts for the cell, so we will perform downstream steps
-without this component.
+and the total number of counts for the cell. We will perform downstream steps
+without this component as we don't want to group cells together based on their
+total sequencing depth, but rather by their patterns of accessibility at
+cell-type-specific peaks.
 
 ## Non-linear dimension reduction and clustering
 
-Now that the cells are embedded in a low-dimensional space, we can use methods
+Now that the cells are embedded in a low-dimensional space we can use methods
 commonly applied for the analysis of scRNA-seq data to perform graph-based
 clustering and non-linear dimension reduction for visualization. The functions
 `RunUMAP()`, `FindNeighbors()`, and `FindClusters()` all come from the Seurat
@@ -252,15 +252,15 @@ DimPlot(object = pbmc, label = TRUE) + NoLegend()
 ## Create a gene activity matrix
 
 The UMAP visualization reveals the presence of multiple cell groups in human 
-blood. If you are familiar with our
+blood. If you are familiar with 
 [scRNA-seq analyses of PBMC](https://satijalab.org/seurat/articles/pbmc3k_tutorial.html),
-you may even recognize the presence of certain myeloid and lymphoid populations
+you may recognize the presence of certain myeloid and lymphoid populations
 in the scATAC-seq data. However, annotating and interpreting clusters is more
 challenging in scATAC-seq data as much less is known about the functional roles
-of noncoding genomic regions than is known about protein coding regions (genes). 
+of noncoding genomic regions than is known about protein coding regions (genes).
 
-However, we can try to quantify the activity of each gene in the genome by
-assessing the chromatin accessibility associated with each gene, and create a
+We can try to quantify the activity of each gene in the genome by
+assessing the chromatin accessibility associated with the gene, and create a
 new gene activity assay derived from the scATAC-seq data. Here we will use a
 simple approach of summing the fragments intersecting the gene body and promoter
 region (we also recommend exploring the
@@ -416,6 +416,13 @@ significantly longer to run than the Wilcoxon test.
 We can also visualize these marker
 peaks on a violin plot, feature plot, dot plot, heat map, or any
 [visualization tool in Seurat](https://satijalab.org/seurat/articles/visualization_vignette.html).
+
+```{r include=FALSE}
+# install presto package
+if (!requireNamespace("presto", quietly = TRUE)) {
+  install.packages('presto')
+}
+```
 
 ```{r message=TRUE, warning=FALSE}
 # change back to working with peaks instead of gene activities
