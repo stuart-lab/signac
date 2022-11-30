@@ -267,8 +267,11 @@ FindTopFeatures.Assay <- function(
     verbose = verbose,
     ...
   )
-  object[names(x = hvf.info)] <- hvf.info
-  # object[[names(x = hvf.info)]] <- hvf.info
+  if (packageVersion(pkg = "SeuratObject") < "4.9.9") {
+    object[[names(x = hvf.info)]] <- hvf.info
+  } else {
+    object[names(x = hvf.info)] <- hvf.info
+  }
   if (is.null(x = min.cutoff)) {
     VariableFeatures(object = object) <- rownames(x = hvf.info)
   } else if (is.numeric(x = min.cutoff)) {
