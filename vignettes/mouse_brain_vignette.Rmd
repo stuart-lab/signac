@@ -253,6 +253,7 @@ Alternatively, you can download the pre-processed Seurat object
 ```{r warning=FALSE, message=FALSE}
 # Load the pre-processed scRNA-seq data
 allen_rna <- readRDS("../vignette_data/allen_brain.rds")
+allen_rna <- UpdateSeuratObject(allen_rna)
 allen_rna <- FindVariableFeatures(
   object = allen_rna,
   nfeatures = 5000
