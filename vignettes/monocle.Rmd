@@ -67,7 +67,7 @@ cells <- read.table(paste0(filepath, ".cell_barcodes.txt.gz"), header = TRUE, st
 rownames(cells) <- make.unique(cells$Barcodes)
 
 mtx <- readMM(file = paste0(filepath, ".mtx"))
-mtx <- as(object = mtx, Class = "dgCMatrix")
+mtx <- as(object = mtx, Class = "CsparseMatrix")
 colnames(mtx) <- rownames(cells)
 rownames(mtx) <- peaks$Feature
 ```
@@ -98,7 +98,9 @@ cluster_names <- c("HSC",	"MEP",	"CMP-BMP",	"LMPP",	"CLP",	"Pro-B",	"Pre-B",	"GM
                   "Naive-CD8-T3",	"Central-memory-CD8-T",	"Effector-memory-CD8-T",	"Gamma delta T")
 num.labels <- length(cluster_names)
 names(cluster_names) <- paste0( rep("Cluster", num.labels), seq(num.labels) )
-bone$celltype <- cluster_names[as.character(bone$Clusters)]
+new.md <- cluster_names[as.character(bone$Clusters)]
+names(new.md) <- Cells(bone)
+bone$celltype <- new.md
 
 bone[["ATAC"]]
 ```
