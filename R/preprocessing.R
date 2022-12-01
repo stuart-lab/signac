@@ -241,6 +241,7 @@ FindTopFeatures.default <- function(
 
 #' @rdname FindTopFeatures
 #' @importFrom SeuratObject GetAssayData VariableFeatures
+#' @importFrom utils packageVersion
 #' @export
 #' @method FindTopFeatures Assay
 #' @concept preprocessing
