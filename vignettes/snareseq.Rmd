@@ -158,6 +158,7 @@ Alternatively, you can download the pre-processed Seurat object
 ```{r message=FALSE, warning=FALSE}
 # label transfer from Allen brain
 allen <- readRDS("../vignette_data/allen_brain.rds")
+allen <- UpdateSeuratObject(allen)
 
 # use the RNA assay in the SNARE-seq data for integration with scRNA-seq
 DefaultAssay(snare) <- 'RNA'
