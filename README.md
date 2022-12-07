@@ -1,4 +1,4 @@
-# Signac
+# Signac <img src="man/figures/logo.png" style="float:right; height:100px;" />
 
 [![R-CMD-check](https://github.com/stuart-lab/signac/workflows/R-CMD-check/badge.svg)](https://github.com/stuart-lab/signac/actions)
 [![CRAN
