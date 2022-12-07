@@ -9,6 +9,7 @@ PlotFootprint(
   features,
   assay = NULL,
   group.by = NULL,
+  split.by = NULL,
   idents = NULL,
   label = TRUE,
   repel = TRUE,
@@ -26,6 +27,10 @@ PlotFootprint(
 \item{assay}{Name of assay to use}
 
 \item{group.by}{A grouping variable}
+
+\item{split.by}{A metadata variable to split the plot by. For example,
+grouping by "celltype" and splitting by "batch" will create separate plots
+for each celltype and batch.}
 
 \item{idents}{Set of identities to include in the plot}
 

@@ -910,6 +910,7 @@ SingleCoveragePlot <- function(
   bigwig.type = "coverage",
   bigwig.scale = "common",
   group.by = NULL,
+  split.by = NULL,
   window = 100,
   extend.upstream = 0,
   extend.downstream = 0,
@@ -954,6 +955,14 @@ SingleCoveragePlot <- function(
     extend.upstream = extend.upstream,
     extend.downstream = extend.downstream
   )
+  if (!is.null(x = split.by)) {
+    # combine split.by and group.by information
+    grouping.var <- Idents(object = object)
+    combined.var <- paste0(object[[split.by]][, 1], "_", grouping.var)
+    object$grouping_tmp <- combined.var
+    Idents(object = object) <- "grouping_tmp"
+    group.by <- "grouping_tmp"
+  }
   cells.per.group <- CellsPerGroup(
     object = object,
     group.by = group.by
@@ -1445,6 +1454,9 @@ CoverageTrack <- function(
 #' sequences in each group.
 #' @param group.by Name of one or more metadata columns to group (color) the
 #' cells by. Default is the current cell identities
+#' @param split.by A metadata variable to split the tracks by. For example,
+#' grouping by "celltype" and splitting by "batch" will create separate tracks
+#' for each combination of celltype and batch.
 #' @param sep Separators to use for strings encoding genomic coordinates. First
 #' element is used to separate the chromosome from the coordinates, second
 #' element is used to separate the start from end coordinate.
@@ -1517,6 +1529,7 @@ CoveragePlot <- function(
   bigwig.scale = "common",
   heights = NULL,
   group.by = NULL,
+  split.by = NULL,
   window = 100,
   extend.upstream = 0,
   extend.downstream = 0,
@@ -1560,6 +1573,7 @@ CoveragePlot <- function(
         bigwig.type = bigwig.type,
         bigwig.scale = bigwig.scale,
         group.by = group.by,
+        split.by = split.by,
         window = window,
         ymax = ymax,
         scale.factor = scale.factor,

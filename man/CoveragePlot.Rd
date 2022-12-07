@@ -30,6 +30,7 @@ CoveragePlot(
   bigwig.scale = "common",
   heights = NULL,
   group.by = NULL,
+  split.by = NULL,
   window = 100,
   extend.upstream = 0,
   extend.downstream = 0,
@@ -132,6 +133,10 @@ annotations, peaks, links).}
 
 \item{group.by}{Name of one or more metadata columns to group (color) the
 cells by. Default is the current cell identities}
+
+\item{split.by}{A metadata variable to split the tracks by. For example,
+grouping by "celltype" and splitting by "batch" will create separate tracks
+for each combination of celltype and batch.}
 
 \item{window}{Smoothing window size}
 
