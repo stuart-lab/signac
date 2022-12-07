@@ -49,6 +49,10 @@ GetFootprintData <- function(
     } else {
       fp <- positionEnrichment[[x]]
       # extract expected
+      if (!("expected" %in% rownames(x = fp))) {
+        warning("Footprint data incomplete for ", x)
+        return()
+      }
       expected <- fp["expected", ]
       # remove expected and motif position from main matrix
       fp <- fp[1:(nrow(x = fp) - 2), ]
