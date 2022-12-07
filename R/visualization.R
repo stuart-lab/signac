@@ -290,7 +290,6 @@ PlotFootprint <- function(
     features = features,
     assay = assay,
     group.by = group.by,
-    split.by = split.by,
     idents = idents
   )
   if (length(x = plot.data) == 1) {
