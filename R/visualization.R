@@ -232,6 +232,9 @@ globalVariables(
 #' @param features A vector of features to plot
 #' @param assay Name of assay to use
 #' @param group.by A grouping variable
+#' @param split.by A metadata variable to split the plot by. For example,
+#' grouping by "celltype" and splitting by "batch" will create separate plots
+#' for each celltype and batch.
 #' @param idents Set of identities to include in the plot
 #' @param show.expected Plot the expected Tn5 integration frequency below the
 #' main footprint plot
@@ -256,6 +259,7 @@ PlotFootprint <- function(
   features,
   assay = NULL,
   group.by = NULL,
+  split.by = NULL,
   idents = NULL,
   label = TRUE,
   repel = TRUE,
@@ -265,8 +269,20 @@ PlotFootprint <- function(
   label.idents = NULL
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  splitby_str <- "__signac_tmp__"
   if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
     stop("The requested assay is not a ChromatinAssay.")
+  }
+  if (!is.null(x = split.by)) {
+    if (is.null(x = group.by)) {
+      grouping.var <- Idents(object = object)
+    } else {
+      grouping.var <- object[[group.by]][, 1]
+    }
+    # combine split.by and group.by information
+    combined.var <- paste0(object[[split.by]][, 1], splitby_str, grouping.var)
+    object$grouping_tmp <- combined.var
+    group.by <- "grouping_tmp"
   }
   # TODO add option to show variance among cells
   plot.data <- GetFootprintData(
@@ -276,6 +292,9 @@ PlotFootprint <- function(
     group.by = group.by,
     idents = idents
   )
+  if (length(x = plot.data) == 1) {
+    stop("Footprinting data not found")
+  }
   motif.sizes <- GetMotifSize(
     object = object,
     features = features,
@@ -310,6 +329,13 @@ PlotFootprint <- function(
     } else {
       stop("Unknown normalization method requested")
     }
+  }
+  
+  # split back into group.by and split.by
+  if (!is.null(x = split.by)) {
+    splitvar <- strsplit(x = obs[['group']], split = splitby_str)
+    obs[['group']] <- sapply(X = splitvar, FUN = `[[`, 2)
+    obs[['split']] <- sapply(X = splitvar, FUN =`[[`, 1)
   }
 
   # find flanking accessibility for each group and each feature
@@ -369,6 +395,9 @@ PlotFootprint <- function(
       ggtitle(label = features[[i]]) +
       ylim(c(axis.min, axis.max)) +
       guides(color = guide_legend(override.aes = list(size = 1)))
+    if (!is.null(x = split.by)) {
+      p <- p + facet_wrap(facets = ~split)
+    }
     if (label) {
       if (repel) {
         if (!requireNamespace(package = "ggrepel", quietly = TRUE)) {
@@ -385,26 +414,30 @@ PlotFootprint <- function(
       }
     }
     if (show.expected) {
-      df <- expect[expect$feature == features[[i]], ]
-      p1 <- ggplot(
-        data = df,
-        mapping = aes(x = position, y = norm.value)
-      ) +
-        geom_line(size = 0.2) +
-        xlab("Distance from motif") +
-        ylab(label = "Expected\nTn5 enrichment") +
-        theme_classic()
-
-      # remove x-axis labels from top plot
-      p <- p + theme(
-        axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.line.x.bottom = element_blank(),
-        axis.ticks.x.bottom = element_blank()
-      )
-      p <- p + p1 + plot_layout(ncol = 1, heights = c(3, 1))
-      plotlist[[i]] <- p
+      if (!is.null(x = split.by)) {
+        warning("Cannot plot expected enrichment with split.by")
+      } else {
+        df <- expect[expect$feature == features[[i]], ]
+        p1 <- ggplot(
+          data = df,
+          mapping = aes(x = position, y = norm.value)
+        ) +
+          geom_line(size = 0.2) +
+          xlab("Distance from motif") +
+          ylab(label = "Expected\nTn5 enrichment") +
+          theme_classic()
+        
+        # remove x-axis labels from top plot
+        p <- p + theme(
+          axis.title.x = element_blank(),
+          axis.text.x = element_blank(),
+          axis.line.x.bottom = element_blank(),
+          axis.ticks.x.bottom = element_blank()
+        )
+        p <- p + p1 + plot_layout(ncol = 1, heights = c(3, 1))
+      }
     }
+    plotlist[[i]] <- p
   }
   plots <- wrap_plots(plotlist)
   return(plots)
@@ -877,6 +910,7 @@ SingleCoveragePlot <- function(
   bigwig.type = "coverage",
   bigwig.scale = "common",
   group.by = NULL,
+  split.by = NULL,
   window = 100,
   extend.upstream = 0,
   extend.downstream = 0,
@@ -921,6 +955,14 @@ SingleCoveragePlot <- function(
     extend.upstream = extend.upstream,
     extend.downstream = extend.downstream
   )
+  if (!is.null(x = split.by)) {
+    # combine split.by and group.by information
+    grouping.var <- Idents(object = object)
+    combined.var <- paste0(object[[split.by]][, 1], "_", grouping.var)
+    object$grouping_tmp <- combined.var
+    Idents(object = object) <- "grouping_tmp"
+    group.by <- "grouping_tmp"
+  }
   cells.per.group <- CellsPerGroup(
     object = object,
     group.by = group.by
@@ -1412,6 +1454,9 @@ CoverageTrack <- function(
 #' sequences in each group.
 #' @param group.by Name of one or more metadata columns to group (color) the
 #' cells by. Default is the current cell identities
+#' @param split.by A metadata variable to split the tracks by. For example,
+#' grouping by "celltype" and splitting by "batch" will create separate tracks
+#' for each combination of celltype and batch.
 #' @param sep Separators to use for strings encoding genomic coordinates. First
 #' element is used to separate the chromosome from the coordinates, second
 #' element is used to separate the start from end coordinate.
@@ -1484,6 +1529,7 @@ CoveragePlot <- function(
   bigwig.scale = "common",
   heights = NULL,
   group.by = NULL,
+  split.by = NULL,
   window = 100,
   extend.upstream = 0,
   extend.downstream = 0,
@@ -1527,6 +1573,7 @@ CoveragePlot <- function(
         bigwig.type = bigwig.type,
         bigwig.scale = bigwig.scale,
         group.by = group.by,
+        split.by = split.by,
         window = window,
         ymax = ymax,
         scale.factor = scale.factor,
