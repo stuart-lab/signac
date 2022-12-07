@@ -37,8 +37,7 @@ all the cells. To call peaks on each annotated cell type, we can use the
 ```{r message=FALSE, warning=FALSE, cache=TRUE}
 peaks <- CallPeaks(
   object = pbmc,
-  group.by = "predicted.id",
-  macs2.path = "/home/stuartt/miniconda3/envs/signac/bin/macs2"
+  group.by = "predicted.id"
 )
 ```
 

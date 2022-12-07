@@ -124,7 +124,7 @@ rare cell populations.
 
 ```{r message=FALSE, warning=FALSE}
 # call peaks using MACS2
-peaks <- CallPeaks(pbmc, macs2.path = "/home/stuartt/miniconda3/envs/signac/bin/macs2")
+peaks <- CallPeaks(pbmc)
 
 # remove peaks on nonstandard chromosomes and in genomic blacklist regions
 peaks <- keepStandardChromosomes(peaks, pruning.mode = "coarse")
