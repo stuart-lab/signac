@@ -2,7 +2,7 @@
 [![CRAN Version](https://www.r-pkg.org/badges/version/Signac)](https://cran.r-project.org/package=Signac)
 [![CRAN Downloads](https://cranlogs.r-pkg.org/badges/Signac)](https://cran.r-project.org/package=Signac)
 
-# Signac
+# Signac <img src="man/figures/logo.png" style="float:right; height:100px;" />
 
 Signac is a comprehensive R package for the analysis of single-cell
 chromatin data.
