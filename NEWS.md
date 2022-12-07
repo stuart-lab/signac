@@ -10,6 +10,7 @@ Other changes:
 
 * Improved error message when no fragment file information stored ([#1236](https://github.com/stuart-lab/signac/issues/1236))
 * Add `tol` parameter to `RunSVD()` to control the `irlba::irlba()` `tol` parameter
+* Added `split.by` parameters to `CoveragePlot()` and `PlotFootprint()` ([#523](https://github.com/stuart-lab/signac/issues/523))
 
 # Signac 1.8.0
 
