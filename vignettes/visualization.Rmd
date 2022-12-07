@@ -12,6 +12,7 @@ To demonstrate we'll use the human PBMC dataset processed in
 
 ```{r message=FALSE, warning=FALSE}
 library(Signac)
+library(ggplot2)
 
 # load PBMC dataset
 pbmc <- readRDS("../vignette_data/pbmc.rds")
@@ -49,6 +50,25 @@ CoveragePlot(
   peaks = FALSE
 )
 ```
+
+## Customizing plots
+
+All of the plots returned by Signac functions are `ggplot2` or `patchwork`
+objects, and so you can use standard functions from `ggplot2` or other packages
+to further modify or customize them. For example, if we wanted to adjust the
+color of the tracks generated in the plot above, we can use the `scale_fill_`
+functions in `ggplot2`, for example `scale_fill_brewer()`:
+
+```{r}
+cov_plot + scale_fill_brewer(type = "seq", palette = 1)
+```
+
+```{r}
+cov_plot + scale_fill_brewer(type = "qual", palette = 1)
+```
+
+Note that for plots that are combined using Patchwork, the `&` operator can be
+used to apply the aesthetic adjustment to all of the plots in the object.
 
 ## Plotting gene annotations
 
