@@ -23,7 +23,15 @@ genomic location of features in the object}
 information about the genome sequence used.}
 
 \item{\code{annotation}}{A  \code{\link[GenomicRanges]{GRanges}} object containing
-genomic annotations}
+genomic annotations. This should be a GRanges object with the following 
+columns:
+\itemize{
+  \item{tx_id: Transcript ID}
+  \item{gene_name: Gene name}
+  \item{gene_id: Gene ID}
+  \item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
+  \item{type: Annotation type (e.g. "exon", "gap")}
+}}
 
 \item{\code{bias}}{A vector containing Tn5 integration bias information
 (frequency of Tn5 integration at different kmers)}
