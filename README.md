@@ -43,7 +43,8 @@ website](https://stuartlab.org/signac/news/index.html).
 ## Contributing
 
 We welcome contributions to the Signac package. Please see the
-[contribution guide](./CONTRIBUTING.md) for more information.
+[contribution guide](https://github.com/stuart-lab/signac/blob/develop/CONTRIBUTING.md)
+for more information.
 
 ## Getting help
 
