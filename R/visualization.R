@@ -940,7 +940,7 @@ SingleCoveragePlot <- function(
       stop("Requested assay is not a ChromatinAssay.")
     }
   })
-  if(length(Cells(object)) > length(Cells(object[[assay[[1]]]]))) {
+  if(length(colnames(object)) > length(colnames(object[[assay[[1]]]]))) {
     object <- UpdateChromatinObject(object = object,
                                     chromatin.assay = assay, 
                                     expression.assay = expression.assay,
