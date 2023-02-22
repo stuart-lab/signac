@@ -4,14 +4,44 @@
 \name{ChromatinAssay-class}
 \alias{ChromatinAssay-class}
 \alias{ChromatinAssay}
+\alias{ChromatinAssay5-class}
+\alias{ChromatinAssay5}
 \title{The ChromatinAssay class}
 \description{
 The ChromatinAssay object is an extended \code{\link[SeuratObject]{Assay}}
+for the storage and analysis of single-cell chromatin data.
+
+The ChromatinAssay5 object is an extended \code{\link[SeuratObject]{Assay5}}
 for the storage and analysis of single-cell chromatin data.
 }
 \section{Slots}{
 
 \describe{
+\item{\code{ranges}}{A \code{\link[GenomicRanges]{GRanges}} object describing the
+genomic location of features in the object}
+
+\item{\code{motifs}}{A \code{\link{Motif}} object}
+
+\item{\code{fragments}}{A list of \code{\link{Fragment}} objects.}
+
+\item{\code{seqinfo}}{A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
+information about the genome sequence used.}
+
+\item{\code{annotation}}{A  \code{\link[GenomicRanges]{GRanges}} object containing
+genomic annotations}
+
+\item{\code{bias}}{A vector containing Tn5 integration bias information
+(frequency of Tn5 integration at different kmers)}
+
+\item{\code{positionEnrichment}}{A named list of matrices containing positional
+enrichment scores for Tn5 integration (for example, enrichment at the TSS)}
+
+\item{\code{links}}{A \code{\link[GenomicRanges]{GRanges}} object describing linked
+genomic positions, such as co-accessible sites or enhancer-gene regulatory
+relationships. This should be a \code{GRanges} object, where the start and
+end coordinates are the two linked genomic positions, and must contain a
+"score" metadata column.}
+
 \item{\code{ranges}}{A \code{\link[GenomicRanges]{GRanges}} object describing the
 genomic location of features in the object}
 

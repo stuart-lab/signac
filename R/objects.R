@@ -111,6 +111,49 @@ ChromatinAssay <- setClass(
   )
 )
 
+#' The ChromatinAssay5 class
+#'
+#' The ChromatinAssay5 object is an extended \code{\link[SeuratObject]{Assay5}}
+#' for the storage and analysis of single-cell chromatin data.
+#'
+#' @slot ranges A \code{\link[GenomicRanges]{GRanges}} object describing the
+#' genomic location of features in the object
+#' @slot motifs A \code{\link{Motif}} object
+#' @slot fragments A list of \code{\link{Fragment}} objects.
+#' @slot seqinfo A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
+#' information about the genome sequence used.
+#' @slot annotation A  \code{\link[GenomicRanges]{GRanges}} object containing
+#' genomic annotations
+#' @slot bias A vector containing Tn5 integration bias information
+#' (frequency of Tn5 integration at different kmers)
+#' @slot positionEnrichment A named list of matrices containing positional
+#' enrichment scores for Tn5 integration (for example, enrichment at the TSS)
+#' @slot links A \code{\link[GenomicRanges]{GRanges}} object describing linked
+#' genomic positions, such as co-accessible sites or enhancer-gene regulatory
+#' relationships. This should be a \code{GRanges} object, where the start and
+#' end coordinates are the two linked genomic positions, and must contain a
+#' "score" metadata column.
+#'
+#' @name ChromatinAssay5-class
+#' @rdname ChromatinAssay-class
+#' @importClassesFrom SeuratObject Assay5
+#' @exportClass ChromatinAssay5
+#' @concept assay
+ChromatinAssay5 <- setClass(
+  Class = "ChromatinAssay5",
+  contains = "Assay5",
+  slots = list(
+    "ranges" = "GRanges",
+    "motifs" = "ANY",
+    "fragments" = "list",
+    "seqinfo" = "ANY",
+    "annotation" = "ANY",
+    "bias" = "ANY",
+    "positionEnrichment" = "list",
+    "links" = "GRanges"
+  )
+)
+
 #' Create ChromatinAssay object
 #'
 #' Create a \code{\link{ChromatinAssay}} object from a count matrix or
@@ -183,6 +226,7 @@ CreateChromatinAssay <- function(
   positionEnrichment = NULL,
   sep = c("-", "-"),
   validate.fragments = TRUE,
+  type = 'v3',
   verbose = TRUE,
   ...
 ) {
@@ -238,19 +282,41 @@ CreateChromatinAssay <- function(
   new.rownames <- GRangesToString(grange = ranges, sep = c("-", "-"))
   rownames(x = data.use) <- new.rownames
   if (!missing(x = counts)) {
-    seurat.assay <- CreateAssayObject(
-      counts = data.use,
-      data = data,
-      min.cells = -1,
-      min.features = -1 # min cell/feature filtering already done
-    )
+    if (type == 'v3') {
+      seurat.assay <- CreateAssayObject(
+        counts = data.use,
+        data = data,
+        min.cells = -1,
+        min.features = -1 # min cell/feature filtering already done
+      )
+    } else if (type == 'v5') {
+      seurat.assay <- CreateAssay5Object(
+        counts = data.use,
+        layer = "counts",
+        min.cells = -1,
+        min.features = -1
+      )
+    } else {
+      stop ("Unknown type requested")
+    }
   } else {
-    seurat.assay <- CreateAssayObject(
-      counts = counts,
-      data = data.use,
-      min.cells = min.cells,
-      min.features = min.features
-    )
+    if (type == 'v3') {
+      seurat.assay <- CreateAssayObject(
+        counts = counts,
+        data = data.use,
+        min.cells = min.cells,
+        min.features = min.features
+      )
+    } else if (type == 'v5') {
+      seurat.assay <- CreateAssay5Object(
+        counts = data.use,
+        layer = "data",
+        min.cells = min.cells,
+        min.features = min.features
+      )
+    } else {
+      stop("Unknown type requested")
+    }
   }
   if (inherits(x = fragments, what = "list")) {
     # check each object in the list is a fragment object
