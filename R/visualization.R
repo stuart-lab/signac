@@ -940,6 +940,12 @@ SingleCoveragePlot <- function(
       stop("Requested assay is not a ChromatinAssay.")
     }
   })
+  if(length(colnames(object)) > length(colnames(object[[assay[[1]]]]))) {
+    object <- UpdateChromatinObject(object = object,
+                                    chromatin.assay = assay, 
+                                    expression.assay = expression.assay,
+                                    features = features)
+  }
   if (!is.null(x = group.by)) {
     Idents(object = object) <- group.by
   }
@@ -2355,6 +2361,7 @@ ExpressionPlot <- function(
     group.by = group.by,
     idents = NULL
   )
+  obj.groups <- obj.groups[colnames(object[[assay]])] 
   # if levels set, define colors based on all groups
   levels.use <- levels(x = obj.groups)
   if (!is.null(x = levels.use)) {
