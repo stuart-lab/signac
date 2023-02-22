@@ -1,4 +1,4 @@
-# Unreleased
+# Signac 1.9.0
 
 Bug fixes:
 
