@@ -561,37 +561,45 @@ UpdateChromatinObject <- function(
       new.object[[chromatin.assay[[i]]]] <- object[[chromatin.assay[[i]]]]
     }
   }
-  # Add expression assay if applicable 
+  # Add expression assay if applicable and if Seurat Object v5 is loaded
   if (!is.null(features)){
     if (!is.null(expression.assay)){
-      if (!(expression.assay %in% Assays(object))){
-        stop("The requested assay is not in the object.")
-      }
-      if (!all(colnames(new.object) %in% colnames(object[[expression.assay]]))){
-        stop("Chromatin and expression assays have different cells.")
-      }
-      # Convert BP Cells to sparse matrix 
-      for (i in Layers(object[[expression.assay]])){
-        layer.data <- LayerData(object = object, 
-                                assay = expression.assay, 
-                                layer = i)
-        if(inherits(layer.data, what = "IterableMatrix")) {
-          warning("Converting IterableMatrix to sparse dgCMatrix", 
-                  call. = FALSE)
-          LayerData(object = object, 
-                    assay = expression.assay, 
-                    layer = i) <- as(object = layer.data, 
-                                     Class = "dgCMatrix")
+      if (utils::packageVersion("SeuratObject") >= package_version("4.9.9")) {
+        if (!(expression.assay %in% Assays(object))){
+          stop("The requested assay is not in the object.")
         }
-      }
-      # Subset expression data if necessary
-      if(!suppressWarnings(all(colnames(object[[expression.assay]]) == colnames(new.object)))){
-        warning("Subsetting expression assay to have same cells as chromatin assay.", 
-                call. = FALSE)
-        new.object[[expression.assay]] <- subset(x = object[[expression.assay]], 
-                                                 cells = colnames(new.object))
+        if (!all(colnames(new.object) %in% colnames(object[[expression.assay]]))){
+          stop("Chromatin and expression assays have different cells.")
+        }
+        # Convert BP Cells to sparse matrix 
+        for (i in SeuratObject::Layers(object[[expression.assay]])){
+          layer.data <- SeuratObject::LayerData(object = object, 
+                                  assay = expression.assay, 
+                                  layer = i)
+          if(inherits(layer.data, what = "IterableMatrix")) {
+            warning("Converting IterableMatrix to sparse dgCMatrix", 
+                    call. = FALSE)
+            SeuratObject::LayerData(object = object, 
+                      assay = expression.assay, 
+                      layer = i) <- as(object = layer.data, 
+                                       Class = "dgCMatrix")
+          }
+        }
+        # Subset expression data if necessary
+        if(!suppressWarnings(all(colnames(object[[expression.assay]]) == colnames(new.object)))){
+          warning("Subsetting expression assay to have same cells as chromatin assay.", 
+                  call. = FALSE)
+          new.object[[expression.assay]] <- subset(x = object[[expression.assay]], 
+                                                   cells = colnames(new.object))
+        } else {
+          new.object[[expression.assay]] <- object[[expression.assay]]
+        }
       } else {
-        new.object[[expression.assay]] <- object[[expression.assay]]
+        warning("Cannot access layers if SeuratObject version is not 5.0.0 or greater.", 
+                "Please update SeuratObject to also visualize expression data when your",
+                "object has layers with different numbers of cells.", 
+                call. = FALSE, 
+                immediate. = TRUE)
       }
     }
   }
