@@ -564,6 +564,7 @@ corresponding to the fraction of reads in peaks for each cell.
 ```{r, eval=FALSE}
 # not run
 total_fragments <- CountFragments("'../vignette_data/atac_v1_pbmc_10k_fragments.tsv.gz'")
+rownames(total_fragments) <- total_fragments$CB
 pbmc$fragments <- total_fragments[colnames(pbmc), "frequency_count"]
 
 pbmc <- FRiP(
