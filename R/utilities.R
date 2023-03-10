@@ -1336,18 +1336,21 @@ GetReadsInRegion <- function(
       reads <- reads[reads$cell %in% cells, ]
     }
     if (nrow(reads) == 0) {
+      reads$ident <- integer()
+      reads$length <- numeric()
       return(reads)
     }
     reads$length <- reads$end - reads$start
   } else {
     reads <- data.frame(
-      "chr" = "",
-      "start" = "",
-      "end" = "",
-      "cell" = "",
-      "count" = ""
+      "chr" = character(),
+      "start" = numeric(),
+      "end" = numeric(),
+      "cell" = character(),
+      "count" = numeric(),
+      "ident" = integer(),
+      "length" = numeric()
     )
-    reads <- reads[-1, ]
   }
   return(reads)
 }
