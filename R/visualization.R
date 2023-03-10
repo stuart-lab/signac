@@ -2397,6 +2397,18 @@ ExpressionPlot <- function(
       df <- rbind(df, df.1)
     }
   }
+  missing.levels <- setdiff(x = levels(x = df$group), y = unique(x = df$group))
+  if (length(x = missing.levels) > 0) {
+    # fill missing idents with zero
+    for (i in features) {
+      df.1 <- data.frame(
+        gene = i,
+        expression = 0,
+        group = missing.levels
+      )
+      df <- rbind(df, df.1)
+    }
+  }
   p.list <- list()
   lower.limit <- ifelse(test = slot == "scale.data", yes = NA, no = 0)
   for (i in seq_along(along.with = features)) {
