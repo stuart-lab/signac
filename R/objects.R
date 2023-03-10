@@ -517,22 +517,22 @@ CreateMotifObject <- function(
   return(motif.obj)
 }
 
-#' Update chromatin object 
-#'
-#' Create a new \code{\link[SeuratObject]} with the cells only in the 
-#' chromatin/expression assays. This is used for V5 objects, such as an 
-#' extended reference object, that can have more cells in the whole object 
-#' than are in the chromatin assay. 
-#'
-#' @param object A \code{\link[SeuratObject]}
-#' @param chromatin.assay A list of the name(s) of the chromatin assay 
-#' @param expression.assay The name of the expression assay
-#' @param features NULL or a list of features. If features is not null, 
-#' the expression assay will be added to the object 
-#' @return Returns a new \code{\link[SeuratObject]} that only contains 
-#' the cells in the chromatin assay 
-#' @concept visualization
-#' @examples
+# Update chromatin object 
+#
+# Create a new \code{\link[SeuratObject]} with the cells only in the 
+# chromatin/expression assays. This is used for V5 objects, such as an 
+# extended reference object, that can have more cells in the whole object 
+# than are in the chromatin assay. 
+#
+# @param object A \code{\link[SeuratObject]}
+# @param chromatin.assay A list of the name(s) of the chromatin assay 
+# @param expression.assay The name of the expression assay
+# @param features NULL or a list of features. If features is not null, 
+# the expression assay will be added to the object 
+# @return Returns a new \code{\link[SeuratObject]} that only contains 
+# the cells in the chromatin assay 
+# @concept visualization
+# @examples
 UpdateChromatinObject <- function(
   object, 
   chromatin.assay, 
