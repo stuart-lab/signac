@@ -517,6 +517,96 @@ CreateMotifObject <- function(
   return(motif.obj)
 }
 
+# Update chromatin object 
+#
+# Create a new \code{\link[SeuratObject]} with the cells only in the 
+# chromatin/expression assays. This is used for V5 objects, such as an 
+# extended reference object, that can have more cells in the whole object 
+# than are in the chromatin assay. 
+#
+# @param object A \code{\link[SeuratObject]}
+# @param chromatin.assay A list of the name(s) of the chromatin assay 
+# @param expression.assay The name of the expression assay
+# @param features NULL or a list of features. If features is not null, 
+# the expression assay will be added to the object 
+# @return Returns a new \code{\link[SeuratObject]} that only contains 
+# the cells in the chromatin assay 
+# @concept visualization
+# @examples
+UpdateChromatinObject <- function(
+  object, 
+  chromatin.assay, 
+  expression.assay = NULL,
+  features = NULL
+) {
+  op <- options(Seurat.object.assay.calcn = FALSE)
+  on.exit(expr = options(op), add = TRUE)
+  lapply(X = chromatin.assay, FUN = function(x) {
+    if (!(x %in% Assays(object))) {
+      stop("The requested assay is not in the object.")
+    }
+  })
+  # Create new seurat object 
+  new.object <- CreateSeuratObject(
+    counts = object[[chromatin.assay[[1]]]], 
+    assay = chromatin.assay[[1]],
+    meta.data = slot(object, name = "meta.data")
+  )
+  if (length(chromatin.assay) > 1){
+    for (i in 2:length(chromatin.assay)){
+      if (!identical(colnames(new.object[[chromatin.assay[[1]]]]), 
+                     colnames(object[[chromatin.assay[[i]]]]))) {
+        stop("All chromatin assays must have the same cells.")
+      }
+      new.object[[chromatin.assay[[i]]]] <- object[[chromatin.assay[[i]]]]
+    }
+  }
+  # Add expression assay if applicable and if Seurat Object v5 is loaded
+  if (!is.null(features)){
+    if (!is.null(expression.assay)){
+      if (utils::packageVersion("SeuratObject") >= package_version("4.9.9")) {
+        if (!(expression.assay %in% Assays(object))){
+          stop("The requested assay is not in the object.")
+        }
+        if (!all(colnames(new.object) %in% colnames(object[[expression.assay]]))){
+          stop("Chromatin and expression assays have different cells.")
+        }
+        # Convert BP Cells to sparse matrix 
+        for (i in SeuratObject::Layers(object[[expression.assay]])){
+          layer.data <- SeuratObject::LayerData(object = object, 
+                                  assay = expression.assay, 
+                                  layer = i)
+          if(inherits(layer.data, what = "IterableMatrix")) {
+            warning("Converting IterableMatrix to sparse dgCMatrix", 
+                    call. = FALSE)
+            SeuratObject::LayerData(object = object, 
+                      assay = expression.assay, 
+                      layer = i) <- as(object = layer.data, 
+                                       Class = "dgCMatrix")
+          }
+        }
+        # Subset expression data if necessary
+        if(!suppressWarnings(all(colnames(object[[expression.assay]]) == colnames(new.object)))){
+          warning("Subsetting expression assay to have same cells as chromatin assay.", 
+                  call. = FALSE)
+          new.object[[expression.assay]] <- subset(x = object[[expression.assay]], 
+                                                   cells = colnames(new.object))
+        } else {
+          new.object[[expression.assay]] <- object[[expression.assay]]
+        }
+      } else {
+        warning("Cannot access layers if SeuratObject version is not 5.0.0 or greater.", 
+                "Please update SeuratObject to also visualize expression data when your",
+                "object has layers with different numbers of cells.", 
+                call. = FALSE, 
+                immediate. = TRUE)
+      }
+    }
+  }
+  return(new.object)
+}
+
+
 #' @importFrom SeuratObject GetAssayData
 #' @method GetAssayData ChromatinAssay
 #' @importFrom lifecycle deprecated is_present
