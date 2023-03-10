@@ -1810,7 +1810,7 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
   }
   original_names = names(reads)
   reads <- unlist(x = reads, use.names = FALSE)
-  if (length(x = reads) == 0 | is.na(original_names)) {
+  if (length(x = reads) == 0 | is.null(x = original_names)) {
     df <- data.frame(
       "chr" = "",
       "start" = "",
