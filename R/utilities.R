@@ -2237,3 +2237,174 @@ SparseSpearmanCor <- function(X, Y = NULL, cov = FALSE) {
   rankY <- SparsifiedRanks(X = Y)
   return(qlcMatrix::corSparse(X = rankX, Y = rankY, cov = cov))
 }
+
+# Export bigwig file for each group of bed file present in outdir
+# @param object The seurat object
+# @param assay The assay of the fragment file
+# @param group.by The metadata used to split the fragment file
+# @param idents The idents from the group.by to be exported
+# @param normMethod Normalization method for the biwig files
+# It can be the name of any quantitative column in the @meta.data
+# or ncells as the number of cells
+# @param tileSize The size of the tiles in the bigwig file
+# @param minCells The minimum of cells in a group to be exported
+# @param cutoff The maximum number of fragment in a given tile
+# @param chromosome The chromosomes to be exported 
+# @param threads Number of threads
+# @param outdir The output directory for bigwig file
+# Also used as output directory for SlitFragment function
+# @param verbose Display messages
+#' @importFrom GenomicRanges seqlengths GRanges slidingWindows
+#' @importFrom future plan
+#' @importFrom future.apply future_lapply
+
+ExportGroupBW  <- function(
+  object = NULL,
+  assay = "peaks",
+  group.by = "seurat_clusters",
+  idents = c(0,2),
+  normMethod = "TSS.enrichment",
+  tileSize = 100,
+  minCells = 5,
+  cutoff = 4,
+  chromosome = "primary",
+  threads = NULL,
+  outdir = NULL,
+  verbose=TRUE
+  ){
+  
+    DefaultAssay(object) <- assay
+  
+    GroupsNames <- names(table(object@meta.data[,group.by])[table(object@meta.data[,group.by]) > minCells])
+    GroupsNames <- GroupsNames[GroupsNames %in% idents]
+       
+    #Column to normalized by
+    if (normMethod == 'ncells'){
+      normBy <- normMethod
+    } else{
+      normBy <- object@meta.data[, normMethod, drop=FALSE]
+    }
+    
+    #Get chromosome information
+    if(chromosome=="primary"){
+      prim_chr <- names(seqlengths(object)[!grepl("_alt|_fix|_random|chrUn", names(seqlengths(object)))])
+      seqlevels(object) <- prim_chr
+    }
+    availableChr <- names(seqlengths(object))
+    chromLengths <- seqlengths(object)
+    chromSizes <- GRanges(seqnames = availableChr, IRanges(start = rep(1, length(availableChr)), end = as.numeric(chromLengths)))
+
+    if (verbose) {
+      message("Creation of tiles")
+    }
+    
+    #Create tiles for each chromosome, from GenomicRanges
+    tiles <- unlist(slidingWindows(chromSizes, width = tileSize, step = tileSize))
+    
+    if (verbose) {
+      message("Bigwig files generation at ", outdir)
+    }
+    
+    #Set number of thread in future
+    plan("multicore", workers = threads)
+    
+    #Run the creation of bigwig for each cellgroups
+    covFiles <- future_lapply(GroupsNames, CreateBWGroup, availableChr, chromLengths, tiles, normBy, tileSize, normMethod, cutoff, outdir)
+
+    covFiles
+
+  }
+
+# Helper function for ExportGroupBW
+# @param groupNamei The group to be exported
+# @param availableChr Chromosomes to be processed
+# @param chromLengths Chromosomes lengths
+# @param tiles The tiles object
+# @param normBy A vector of values to normalized the cells by
+# or ncells as number of cells normalization
+# @param tileSize The size of the tiles in the bigwig file
+# @param normMethod Normalization method for the biwig files
+# It can be the name of any quantitative column in the @meta.data
+# or ncells as the number of cells
+# @param cutoff The maximum number of fragment in a given tile
+# @param outdir The output directory for bigwig file
+# Also used as output directory for SlitFragment function
+#' @importFrom rtracklayer import export.bw
+#' @importFrom GenomicRanges seqnames seqlengths GRanges coverage
+#' @importFrom BiocGenerics which
+#' @importFrom S4Vectors match
+#' @importFrom Matrix sparseMatrix rowSums
+CreateBWGroup <- function(groupNamei, availableChr, chromLengths, tiles, normBy, tileSize, normMethod, cutoff, outdir){
+
+  #Read the fragments file associated to the group
+  fragi <- rtracklayer::import(paste0(outdir, "/", groupNamei, ".bed"),format = "bed")
+
+  cellGroupi <- unique(fragi$name)
+
+  #Open the writting bigwig file
+  covFile <- file.path(outdir, paste0(groupNamei, "-TileSize-",tileSize,"-normMethod-",normMethod,".bw"))
+
+  covList <- lapply(seq_along(availableChr), function(k){
+
+    fragik <- fragi[seqnames(fragi) == availableChr[k],]
+    tilesk <- tiles[BiocGenerics::which(seqnames(tiles) %bcin% availableChr[k])]
+
+    if(length(fragik) == 0){
+      tilesk$reads <- 0
+    #If fragments
+    }else{
+
+      #N Tiles
+      nTiles <- chromLengths[availableChr[k]] / tileSize
+      #Add one tile if there is extra bases
+      if (nTiles%%1 != 0) {
+        nTiles <- trunc(nTiles) + 1
+      }
+
+      #Create Sparse Matrix
+      matchID <- S4Vectors::match(mcols(fragik)$name, cellGroupi)
+
+      #For each tiles of this chromosome, create start tile and end tile row, set the associated counts matching with the fragments
+      mat <- Matrix::sparseMatrix(
+        i = c(trunc(start(fragik) / tileSize), trunc(end(fragik) / tileSize)) + 1,
+        j = as.vector(c(matchID, matchID)),
+        x = rep(1,  2*length(fragik)),
+        dims = c(nTiles, length(cellGroupi)))
+
+      #Max count for a cells in a tile is set to cutoff (4)
+      if(!is.null(cutoff)){
+        mat@x[mat@x > cutoff] <- cutoff
+      }
+
+      #Sums the cells
+      mat <- Matrix::rowSums(mat)
+
+      tilesk$reads <- mat
+
+      #Normalization of counts by the sum of readsintss for each cells in group
+      if(normMethod == "ncells"){
+        tilesk$reads <- tilesk$reads / length(cellGroupi)
+      }else if(tolower(normMethod) %in% c("none")){
+      }else{
+        tilesk$reads <- tilesk$reads * 10^4 / sum(normBy[cellGroupi, 1])
+      }
+    }
+
+    tilesk <- coverage(tilesk, weight = tilesk$reads)[[availableChr[k]]]
+
+    tilesk
+
+  })
+
+  names(covList) <- availableChr
+
+  covList <- as(covList, "RleList")
+
+  rtracklayer::export.bw(object = covList, con = covFile)
+
+  covFile
+}
+
+# Helper function for CreateBWGroup
+#' @importFrom S4Vectors match
+'%bcin%' <- function(x, table) S4Vectors::match(x, table, nomatch = 0) > 0
