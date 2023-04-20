@@ -4,6 +4,7 @@ Bug fixes:
 
 * Fixed error in `GetReadsInRegion()` when no fragments present that overlap the region (@rockweiler; [#1348](https://github.com/stuart-lab/signac/pull/1348))
 * Make motif names unique to avoid errors in motif-related functions ([#1311](https://github.com/stuart-lab/signac/issues/1311))
+* Ignore missing seqnames when constructing a Motif object ([#1381](https://github.com/stuart-lab/signac/issues/1381))
 
 # Signac 1.9.0
 
