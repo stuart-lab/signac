@@ -2249,7 +2249,8 @@ SparseSpearmanCor <- function(X, Y = NULL, cov = FALSE) {
 # @param tileSize The size of the tiles in the bigwig file
 # @param minCells The minimum of cells in a group to be exported
 # @param cutoff The maximum number of fragment in a given tile
-# @param chromosome The chromosomes to be exported 
+# @param chromosome A chromosomes vector to be exported, standard
+# chromosomes can be fetched via standardChromosomes()
 # @param threads Number of threads
 # @param outdir The output directory for bigwig file
 # Also used as output directory for SlitFragment function
@@ -2260,36 +2261,48 @@ SparseSpearmanCor <- function(X, Y = NULL, cov = FALSE) {
 
 ExportGroupBW  <- function(
   object = NULL,
-  assay = "peaks",
-  group.by = "seurat_clusters",
-  idents = c(0,2),
-  normMethod = "TSS.enrichment",
+  assay = NULL,
+  group.by = NULL,
+  idents = NULL,
+  normMethod = "nCount_peaks",
   tileSize = 100,
   minCells = 5,
-  cutoff = 4,
-  chromosome = "primary",
+  cutoff = NULL,
+  chromosome = NULL,
   threads = NULL,
   outdir = NULL,
   verbose=TRUE
   ){
   
+    if (!requireNamespace("rtracklayer", quietly = TRUE)) { 
+      message("Please install rtracklayer. http://www.bioconductor.org/packages/rtracklayer/") 
+      return(NULL) 
+    } 
+  
+    assay <- assay %||% DefaultAssay(object = object)
     DefaultAssay(object) <- assay
   
-    GroupsNames <- names(table(object@meta.data[,group.by])[table(object@meta.data[,group.by]) > minCells])
+    group.by <- group.by %||% 'ident'
+    Idents(object = object) <- group.by
+  
+    idents <- idents %||% levels(object = object)
+    levels(object = object) <- idents
+  
+    GroupsNames <- names(table(object[[group.by]])[table(object[[group.by]]) > minCells])
     GroupsNames <- GroupsNames[GroupsNames %in% idents]
        
     #Column to normalized by
     if (normMethod == 'ncells'){
       normBy <- normMethod
     } else{
-      normBy <- object@meta.data[, normMethod, drop=FALSE]
+      normBy <- object[[normMethod, drop=FALSE]]
     }
     
     #Get chromosome information
-    if(chromosome=="primary"){
-      prim_chr <- names(seqlengths(object)[!grepl("_alt|_fix|_random|chrUn", names(seqlengths(object)))])
-      seqlevels(object) <- prim_chr
+    if(!is.null(chromosome)){
+      seqlevels(object) <- chromosome
     }
+
     availableChr <- names(seqlengths(object))
     chromLengths <- seqlengths(object)
     chromSizes <- GRanges(seqnames = availableChr, IRanges(start = rep(1, length(availableChr)), end = as.numeric(chromLengths)))
@@ -2304,10 +2317,7 @@ ExportGroupBW  <- function(
     if (verbose) {
       message("Bigwig files generation at ", outdir)
     }
-    
-    #Set number of thread in future
-    plan("multicore", workers = threads)
-    
+        
     #Run the creation of bigwig for each cellgroups
     covFiles <- future_lapply(GroupsNames, CreateBWGroup, availableChr, chromLengths, tiles, normBy, tileSize, normMethod, cutoff, outdir)
 
@@ -2337,7 +2347,7 @@ ExportGroupBW  <- function(
 CreateBWGroup <- function(groupNamei, availableChr, chromLengths, tiles, normBy, tileSize, normMethod, cutoff, outdir){
 
   #Read the fragments file associated to the group
-  fragi <- rtracklayer::import(paste0(outdir, "/", groupNamei, ".bed"),format = "bed")
+  fragi <- rtracklayer::import(paste0(outdir, .Platform$file.sep, groupNamei, ".bed"),format = "bed")
 
   cellGroupi <- unique(fragi$name)
 
@@ -2347,8 +2357,8 @@ CreateBWGroup <- function(groupNamei, availableChr, chromLengths, tiles, normBy,
   covList <- lapply(seq_along(availableChr), function(k){
 
     fragik <- fragi[seqnames(fragi) == availableChr[k],]
-    tilesk <- tiles[BiocGenerics::which(seqnames(tiles) %bcin% availableChr[k])]
-
+    tilesk <- tiles[BiocGenerics::which(S4Vectors::match(seqnames(tiles), availableChr[k], nomatch = 0) > 0)]
+    
     if(length(fragik) == 0){
       tilesk$reads <- 0
     #If fragments
@@ -2402,9 +2412,5 @@ CreateBWGroup <- function(groupNamei, availableChr, chromLengths, tiles, normBy,
 
   rtracklayer::export.bw(object = covList, con = covFile)
 
-  covFile
+  return(covFile)
 }
-
-# Helper function for CreateBWGroup
-#' @importFrom S4Vectors match
-'%bcin%' <- function(x, table) S4Vectors::match(x, table, nomatch = 0) > 0
