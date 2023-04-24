@@ -119,7 +119,7 @@ BigwigTrack <- function(
   }
   all.data$bw <- factor(x = all.data$bw, levels = names(x = bigwig))
   window.size = width(x = region)
-  sampling <- max(max.downsample, window.size * downsample.rate)
+  sampling <- ceiling(x = max(max.downsample, window.size * downsample.rate))
   coverages <- slice_sample(.data = all.data, n = sampling)
   
   covmax <- signif(x = max(coverages$score, na.rm = TRUE), digits = 2)
