@@ -6,6 +6,10 @@ Bug fixes:
 * Make motif names unique to avoid errors in motif-related functions ([#1311](https://github.com/stuart-lab/signac/issues/1311))
 * Ignore missing seqnames when constructing a Motif object ([#1381](https://github.com/stuart-lab/signac/issues/1381))
 
+Other changes:
+
+* Improved documentation for `AddMotifs()` function ([#1361](https://github.com/stuart-lab/signac/issues/1361))
+
 # Signac 1.9.0
 
 Bug fixes:
