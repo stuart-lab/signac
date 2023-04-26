@@ -46,7 +46,6 @@ library(Signac)
 library(Seurat)
 library(ggplot2)
 library(EnsDb.Mmusculus.v79)
-set.seed(1234)
 
 # load processed data matrices for each assay
 rna <- Read10X("../vignette_data/snare-seq/GSE126074_AdBrainCortex_rna/", gene.column = 1)
@@ -65,8 +64,9 @@ snare[['ATAC']] <- CreateChromatinAssay(
 # extract gene annotations from EnsDb
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Mmusculus.v79)
 
-# change to UCSC style since the data was mapped to hg19
-seqlevelsStyle(annotations) <- 'UCSC'
+# change to UCSC style since the data was mapped to mm10
+seqlevels(annotations) <- paste0('chr', seqlevels(annotations))
+genome(annotations) <- "mm10"
 
 # add the gene information to the object
 Annotation(snare[["ATAC"]]) <- annotations
@@ -221,7 +221,7 @@ saveRDS(object = snare, file = "../vignette_data/snare.rds")
 
 <details>
   <summary>**Session Info**</summary>
-  
+
 ```{r}
 sessionInfo()
 ```

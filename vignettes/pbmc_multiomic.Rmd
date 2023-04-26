@@ -18,7 +18,7 @@ Genomic Multiome dataset for human PBMCs.
 
 You can download the required data by running the following lines in a shell:
 
-```{sh, eval=FALSE}
+```{sh eval=FALSE}
 wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_10k/pbmc_granulocyte_sorted_10k_filtered_feature_bc_matrix.h5
 wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_10k/pbmc_granulocyte_sorted_10k_atac_fragments.tsv.gz
 wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_10k/pbmc_granulocyte_sorted_10k_atac_fragments.tsv.gz.tbi
@@ -45,8 +45,6 @@ library(Signac)
 library(Seurat)
 library(EnsDb.Hsapiens.v86)
 library(BSgenome.Hsapiens.UCSC.hg38)
-
-set.seed(1234)
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -58,7 +56,7 @@ fragpath <- "../vignette_data/multiomic/pbmc_granulocyte_sorted_10k_atac_fragmen
 ```{r message=FALSE, warning=FALSE}
 # get gene annotations for hg38
 annotation <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
-seqlevelsStyle(annotation) <- "UCSC"
+seqlevels(annotation) <- paste0('chr', seqlevels(annotation))
 
 # create a Seurat object containing the RNA adata
 pbmc <- CreateSeuratObject(
@@ -150,7 +148,7 @@ pbmc[["peaks"]] <- CreateChromatinAssay(
 We can normalize the gene expression data using SCTransform, and reduce the dimensionality
 using PCA.
 
-```{r message=FALSE, warning=FALSE, results='hide'}
+```{r results='hide', message=FALSE, warning=FALSE}
 DefaultAssay(pbmc) <- "RNA"
 pbmc <- SCTransform(pbmc)
 pbmc <- RunPCA(pbmc)
@@ -316,7 +314,7 @@ saveRDS(object = pbmc, file = "../vignette_data/pbmc_multiomic.rds")
 
 <details>
   <summary>**Session Info**</summary>
-  
+
 ```{r}
 sessionInfo()
 ```

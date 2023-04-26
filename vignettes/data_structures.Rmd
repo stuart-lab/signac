@@ -137,7 +137,8 @@ library(EnsDb.Hsapiens.v75)
 gene.ranges <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
 
 # convert to UCSC style
-seqlevelsStyle(gene.ranges) <- "UCSC"
+seqlevels(gene.ranges) <- paste0('chr', seqlevels(gene.ranges))
+genome(gene.ranges) <- "hg19"
 
 # set gene annotations
 Annotation(atac_small) <- gene.ranges
@@ -566,7 +567,7 @@ methods(class = 'Motif')
 
 <details>
   <summary>**Session Info**</summary>
-  
+
 ```{r}
 sessionInfo()
 ```

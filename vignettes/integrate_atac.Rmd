@@ -25,7 +25,7 @@ dataset.
 
 The PBMC multiome and scATAC-seq data can be downloaded from the 10x website:
 
-```{bash, eval=FALSE}
+```{bash eval=FALSE}
 # multiome
 wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_10k/pbmc_granulocyte_sorted_10k_filtered_feature_bc_matrix.h5
 wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_10k/pbmc_granulocyte_sorted_10k_atac_fragments.tsv.gz
@@ -208,7 +208,7 @@ by each of these functions, you can pass parameters through `MapQuery()` to each
 using the `transferdata.args`, `integrateembeddings.args`, and `projectumap.args` arguments
 for `MapQuery()`, or you can run each of the functions yourself. For example:
 
-```{r, eval=FALSE}
+```{r eval=FALSE}
 pbmc.atac <- TransferData(
   anchorset = transfer.anchors, 
   reference = pbmc.multi,
@@ -296,7 +296,7 @@ saveRDS(object = pbmc.atac, file = "../vignette_data/pbmc_atac_integration.rds")
 
 <details>
   <summary>**Session Info**</summary>
-  
+
 ```{r}
 sessionInfo()
 ```
