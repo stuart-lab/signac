@@ -36,6 +36,7 @@ Imports:
     future,
     future.apply,
     ggplot2,
+    rlang,
     irlba,
     pbapply,
     tidyr,
@@ -91,4 +92,5 @@ Suggests:
     biovizBase,
     Biostrings,
     lsa,
-    qlcMatrix
+    qlcMatrix,
+    MASS
