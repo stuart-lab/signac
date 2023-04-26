@@ -235,7 +235,7 @@ get_density <- function(x, y, ...) {
   if (!requireNamespace("MASS", quietly = TRUE)) {
     stop("Please install MASS: install.packages('MASS')")
   }
-  dens <- kde2d(x = x, y = y, ...)
+  dens <- MASS::kde2d(x = x, y = y, ...)
   ix <- findInterval(x = x, vec = dens$x)
   iy <- findInterval(x = y, vec = dens$y)
   ii <- cbind(ix, iy)
