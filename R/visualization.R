@@ -235,6 +235,9 @@ get_density <- function(x, y, ...) {
   if (!requireNamespace("MASS", quietly = TRUE)) {
     stop("Please install MASS: install.packages('MASS')")
   }
+  if (!is.numeric(x = x) | !is.numeric(x = y)) {
+      stop("Must supply numeric values")
+  }
   dens <- MASS::kde2d(x = x, y = y, ...)
   ix <- findInterval(x = x, vec = dens$x)
   iy <- findInterval(x = y, vec = dens$y)
@@ -264,6 +267,7 @@ globalVariables(".data")
 #' theme_bw scale_x_log10 scale_y_log10 geom_vline geom_hline labs
 #' @importFrom rlang .data
 #' @importFrom stats quantile
+#' @export
 DensityScatter <- function(
     object,
     x,
@@ -273,6 +277,12 @@ DensityScatter <- function(
     quantiles = NULL
 ) {
     md <- object[[]]
+    if (!(x %in% colnames(x = md))) {
+        stop(x, " not found")
+    }
+    if (!(y %in% colnames(x = md))) {
+        stop(y, " not found")
+    }
     log10p <- function(x) {
         return(log10(x = x + 1))
     }
