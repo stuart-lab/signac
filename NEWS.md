@@ -1,5 +1,9 @@
 # Unreleased
 
+New functionality:
+
+* Added `DensityScatter()` function
+
 Bug fixes:
 
 * Fixed error in `GetReadsInRegion()` when no fragments present that overlap the region (@rockweiler; [#1348](https://github.com/stuart-lab/signac/pull/1348))
