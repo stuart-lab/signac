@@ -95,7 +95,7 @@ RegionMatrix.ChromatinAssay <- function(
   )
   
   # get normalization factors
-  cells.per.group <- cells.per.group <- table(group.by, useNA = "always")
+  cells.per.group <- table(group.by, useNA = "always")
   lut <- as.vector(x = cells.per.group)
   names(x = lut) <- names(x = cells.per.group)
   
