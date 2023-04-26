@@ -22,7 +22,7 @@ datasets provided by 10x Genomics:
 
 To download the required data, run the following lines in a shell:
 
-```{bash, eval=FALSE}
+```{bash eval=FALSE}
 # 500 cell
 wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_500_nextgem/atac_pbmc_500_nextgem_fragments.tsv.gz
 wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_500_nextgem/atac_pbmc_500_nextgem_fragments.tsv.gz.tbi
@@ -66,7 +66,12 @@ Another option is to use the `disjoin` function, that will
 create distinct non-overlapping sets of peaks. Here is a visual example to 
 illustrate the difference between `reduce` and `disjoin`:
 
-```{r, echo=FALSE, include=FALSE}
+```{r include=FALSE, echo=FALSE}
+if (!requireNamespace("ggbio", quietly = TRUE))
+    BiocManager::install("ggbio")
+```
+
+```{r include=FALSE, echo=FALSE}
 library(GenomicRanges)
 library(ggplot2)
 library(ggbio)
@@ -78,7 +83,7 @@ gr <- GRanges(seqnames = "chr1", ranges = IRanges(start = c(20, 70, 300), end = 
 gr
 ```
 
-```{r fig.height=1, fig.width=6, echo=FALSE}
+```{r echo=FALSE, fig.height=1, fig.width=6}
 ggplot(gr) + geom_segment(size = 5) + theme_classic() + ggtitle("Ranges") + ylab("")
 ggplot(reduce(gr)) + geom_segment(size = 5) + theme_classic() + ggtitle("Reduce") + ylab("")
 ggplot(disjoin(gr)) + geom_segment(size = 5) + theme_classic() + ggtitle("Disjoin") + ylab("")
@@ -101,7 +106,7 @@ library(Seurat)
 library(GenomicRanges)
 library(future)
 
-plan("multiprocess", workers = 4)
+plan("multicore", workers = 4)
 options(future.globals.maxSize = 50000 * 1024^2) # for 50 Gb RAM
 ```
 
@@ -309,7 +314,7 @@ cell names in each fragment file. We can check that functions that pull data
 from the fragment files work as expected on the merged object by plotting a 
 region of the genome:
 
-```{r coverageplot, message=FALSE, warning=FALSE, cache=FALSE, out.width='90%', fig.height=4}
+```{r coverageplot, message=FALSE, warning=FALSE, cache=FALSE, out.width="90%", fig.height=4}
 CoveragePlot(
   object = combined,
   group.by = 'dataset',
@@ -384,7 +389,7 @@ DimPlot(combined, group.by = 'dataset', pt.size = 0.1)
 
 <details>
   <summary>**Session Info**</summary>
-  
+
 ```{r}
 sessionInfo()
 ```
