@@ -2280,7 +2280,7 @@ ExportGroupBW  <- function(
     } 
   
     assay <- assay %||% DefaultAssay(object = object)
-    DefaultAssay(object) <- assay
+    DefaultAssay(object = object) <- assay
   
     group.by <- group.by %||% 'ident'
     Idents(object = object) <- group.by
@@ -2290,12 +2290,34 @@ ExportGroupBW  <- function(
   
     GroupsNames <- names(table(object[[group.by]])[table(object[[group.by]]) > minCells])
     GroupsNames <- GroupsNames[GroupsNames %in% idents]
+  
+    #Check if output files already exist
+    lapply(GroupsNames, function(x){
+      if (file.exists(paste0(outdir, .Platform$file.sep, x, ".bed"))){
+        message(sprintf("The group \"%s\" is already present in the destination folder and will be overwritten !",x))
+      }
+    })      
+      
+    #Splitting fragments file for each idents in group.by
+    SplitFragments(
+      object = object,
+      assay = assay,
+      group.by = group.by,
+      idents = idents,
+      outdir = outdir,
+      file.suffix = "",
+      append = TRUE,
+      buffer_length = 256L,
+      verbose = verbose
+    )
        
     #Column to normalized by
-    if (normMethod == 'ncells'){
-      normBy <- normMethod
-    } else{
-      normBy <- object[[normMethod, drop=FALSE]]
+    if(!is.null(normMethod)){
+      if (normMethod == 'ncells'){
+        normBy <- normMethod
+      } else{
+        normBy <- object[[normMethod, drop=FALSE]]
+      }
     }
     
     #Get chromosome information
@@ -2319,7 +2341,14 @@ ExportGroupBW  <- function(
     }
         
     #Run the creation of bigwig for each cellgroups
-    covFiles <- future_lapply(GroupsNames, CreateBWGroup, availableChr, chromLengths, tiles, normBy, tileSize, normMethod, cutoff, outdir)
+  
+    if (nbrOfWorkers() > 1) { 
+      mylapply <- future_lapply 
+    } else { 
+      mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply) 
+    } 
+  
+    covFiles <- mylapply(GroupsNames, CreateBWGroup, availableChr, chromLengths, tiles, normBy, tileSize, normMethod, cutoff, outdir)
 
     covFiles
 
@@ -2381,7 +2410,7 @@ CreateBWGroup <- function(groupNamei, availableChr, chromLengths, tiles, normBy,
         x = rep(1,  2*length(fragik)),
         dims = c(nTiles, length(cellGroupi)))
 
-      #Max count for a cells in a tile is set to cutoff (4)
+      #Max count for a cells in a tile is set to cutoff
       if(!is.null(cutoff)){
         mat@x[mat@x > cutoff] <- cutoff
       }
@@ -2392,11 +2421,15 @@ CreateBWGroup <- function(groupNamei, availableChr, chromLengths, tiles, normBy,
       tilesk$reads <- mat
 
       #Normalization of counts by the sum of readsintss for each cells in group
-      if(normMethod == "ncells"){
-        tilesk$reads <- tilesk$reads / length(cellGroupi)
-      }else if(tolower(normMethod) %in% c("none")){
-      }else{
-        tilesk$reads <- tilesk$reads * 10^4 / sum(normBy[cellGroupi, 1])
+      if(!is.null(normMethod)){
+        if(normMethod == "ncells"){
+          tilesk$reads <- tilesk$reads / length(cellGroupi)
+        }else if(tolower(normMethod) %in% c("none")){
+        }else{
+          if(!is.null(normBy)){
+            tilesk$reads <- tilesk$reads * 10^4 / sum(normBy[cellGroupi, 1])
+          }
+        }
       }
     }
 
