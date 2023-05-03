@@ -2244,8 +2244,8 @@ SparseSpearmanCor <- function(X, Y = NULL, cov = FALSE) {
 # @param group.by The metadata used to split the fragment file
 # @param idents The idents from the group.by to be exported
 # @param normMethod Normalization method for the biwig files
-# It can be the name of any quantitative column in the @meta.data
-# or ncells as the number of cells
+# It can be RC, ncells, none or the name of any quantitative column
+# in the @meta.data
 # @param tileSize The size of the tiles in the bigwig file
 # @param minCells The minimum of cells in a group to be exported
 # @param cutoff The maximum number of fragment in a given tile
@@ -2264,7 +2264,7 @@ ExportGroupBW  <- function(
   assay = NULL,
   group.by = NULL,
   idents = NULL,
-  normMethod = "nCount_peaks",
+  normMethod = "RC",
   tileSize = 100,
   minCells = 5,
   cutoff = NULL,
@@ -2313,7 +2313,7 @@ ExportGroupBW  <- function(
        
     #Column to normalized by
     if(!is.null(normMethod)){
-      if (normMethod == 'ncells'){
+      if (tolower(normMethod) %in% ('rc', 'ncells', 'none')){
         normBy <- normMethod
       } else{
         normBy <- object[[normMethod, drop=FALSE]]
@@ -2363,8 +2363,8 @@ ExportGroupBW  <- function(
 # or ncells as number of cells normalization
 # @param tileSize The size of the tiles in the bigwig file
 # @param normMethod Normalization method for the biwig files
-# It can be the name of any quantitative column in the @meta.data
-# or ncells as the number of cells
+# It can be RC, ncells, none or the name of any quantitative column
+# in the @meta.data
 # @param cutoff The maximum number of fragment in a given tile
 # @param outdir The output directory for bigwig file
 # Also used as output directory for SlitFragment function
@@ -2379,7 +2379,7 @@ CreateBWGroup <- function(groupNamei, availableChr, chromLengths, tiles, normBy,
   fragi <- rtracklayer::import(paste0(outdir, .Platform$file.sep, groupNamei, ".bed"),format = "bed")
 
   cellGroupi <- unique(fragi$name)
-
+  
   #Open the writting bigwig file
   covFile <- file.path(outdir, paste0(groupNamei, "-TileSize-",tileSize,"-normMethod-",normMethod,".bw"))
 
@@ -2420,11 +2420,13 @@ CreateBWGroup <- function(groupNamei, availableChr, chromLengths, tiles, normBy,
 
       tilesk$reads <- mat
 
-      #Normalization of counts by the sum of readsintss for each cells in group
+      #Normalization
       if(!is.null(normMethod)){
-        if(normMethod == "ncells"){
+        if(tolower(normMethod) == "rc"){
+          tilesk$reads <- tilesk$reads * 10^4 / length(fragi$name)
+        }else if(tolower(normMethod) == "ncells"){
           tilesk$reads <- tilesk$reads / length(cellGroupi)
-        }else if(tolower(normMethod) %in% c("none")){
+        }else if(tolower(normMethod) == "none"){
         }else{
           if(!is.null(normBy)){
             tilesk$reads <- tilesk$reads * 10^4 / sum(normBy[cellGroupi, 1])
