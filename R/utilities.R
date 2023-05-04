@@ -2238,29 +2238,36 @@ SparseSpearmanCor <- function(X, Y = NULL, cov = FALSE) {
   return(qlcMatrix::corSparse(X = rankX, Y = rankY, cov = cov))
 }
 
-# Export bigwig file for each group of bed file present in outdir
-# @param object The seurat object
-# @param assay The assay of the fragment file
-# @param group.by The metadata used to split the fragment file
-# @param idents The idents from the group.by to be exported
-# @param normMethod Normalization method for the biwig files
-# It can be RC, ncells, none or the name of any quantitative column
-# in the @meta.data
-# @param tileSize The size of the tiles in the bigwig file
-# @param minCells The minimum of cells in a group to be exported
-# @param cutoff The maximum number of fragment in a given tile
-# @param chromosome A chromosomes vector to be exported, standard
-# chromosomes can be fetched via standardChromosomes()
-# @param threads Number of threads
-# @param outdir The output directory for bigwig file
-# Also used as output directory for SlitFragment function
-# @param verbose Display messages
+#' Export bigwig file for each group of bed file present in outdir
+#'
+#' @param object The seurat object
+#' @param assay The assay of the fragment file
+#' @param group.by The metadata used to split the fragment file
+#' @param idents The idents from the group.by to be exported
+#' @param normMethod Normalization method for the biwig files. Deafult 'RC'.
+'RC' will divide the number of fragments in a tile by the number of fragments in the group. A scaling factor of 10^4 will be applied
+'ncells' will divide the number of fragments in a tile by the number of cell in the group.
+'none' will apply no normalization method.
+A vector of values for each cell can also be passed as a meta.data column name. A scaling factor of 10^4 will be applied
+#' @param tileSize The size of the tiles in the bigwig file
+#' @param minCells The minimum of cells in a group to be exported
+#' @param cutoff The maximum number of fragment in a given tile
+#' @param chromosome A chromosomes vector to be exported
+#' @param outdir The output directory for bigwig file
+#' @param verbose Display messages
+#'
 #' @importFrom GenomicRanges seqlengths GRanges slidingWindows
 #' @importFrom future plan
 #' @importFrom future.apply future_lapply
-
+#' @importFrom pbapply pbapply
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' ExportGroupBW(object, assay = "peaks", group.by = "seurat_clusters", idents=NULL, normMethod = "RC", tileSize = 100, minCells = 5, cutoff = NULL, chromosome = NULL, outdir = getwd(), verbose=TRUE)
 ExportGroupBW  <- function(
-  object = NULL,
+  object,
   assay = NULL,
   group.by = NULL,
   idents = NULL,
@@ -2269,24 +2276,27 @@ ExportGroupBW  <- function(
   minCells = 5,
   cutoff = NULL,
   chromosome = NULL,
-  threads = NULL,
   outdir = NULL,
   verbose=TRUE
   ){
   
+    #Check if temporary directory exist
+    if (!dir.exists(outdir)){
+      dir.create(outdir)
+    }
+  
     if (!requireNamespace("rtracklayer", quietly = TRUE)) { 
       message("Please install rtracklayer. http://www.bioconductor.org/packages/rtracklayer/") 
       return(NULL) 
-    } 
+    }
   
     assay <- assay %||% DefaultAssay(object = object)
     DefaultAssay(object = object) <- assay
-  
+      
     group.by <- group.by %||% 'ident'
     Idents(object = object) <- group.by
   
-    idents <- idents %||% levels(object = object)
-    levels(object = object) <- idents
+    idents <- idents %||% levels(object)
   
     GroupsNames <- names(table(object[[group.by]])[table(object[[group.by]]) > minCells])
     GroupsNames <- GroupsNames[GroupsNames %in% idents]
@@ -2295,6 +2305,7 @@ ExportGroupBW  <- function(
     lapply(GroupsNames, function(x){
       if (file.exists(paste0(outdir, .Platform$file.sep, x, ".bed"))){
         message(sprintf("The group \"%s\" is already present in the destination folder and will be overwritten !",x))
+        file.remove(paste0(outdir, .Platform$file.sep, x, ".bed"))
       }
     })      
       
@@ -2313,7 +2324,7 @@ ExportGroupBW  <- function(
        
     #Column to normalized by
     if(!is.null(normMethod)){
-      if (tolower(normMethod) %in% ('rc', 'ncells', 'none')){
+      if (tolower(normMethod) %in% c('rc', 'ncells', 'none')){
         normBy <- normMethod
       } else{
         normBy <- object[[normMethod, drop=FALSE]]
@@ -2328,7 +2339,7 @@ ExportGroupBW  <- function(
     availableChr <- names(seqlengths(object))
     chromLengths <- seqlengths(object)
     chromSizes <- GRanges(seqnames = availableChr, IRanges(start = rep(1, length(availableChr)), end = as.numeric(chromLengths)))
-
+    
     if (verbose) {
       message("Creation of tiles")
     }
@@ -2346,33 +2357,41 @@ ExportGroupBW  <- function(
       mylapply <- future_lapply 
     } else { 
       mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply) 
-    } 
-  
+    }
+    
     covFiles <- mylapply(GroupsNames, CreateBWGroup, availableChr, chromLengths, tiles, normBy, tileSize, normMethod, cutoff, outdir)
 
     covFiles
 
   }
 
-# Helper function for ExportGroupBW
-# @param groupNamei The group to be exported
-# @param availableChr Chromosomes to be processed
-# @param chromLengths Chromosomes lengths
-# @param tiles The tiles object
-# @param normBy A vector of values to normalized the cells by
-# or ncells as number of cells normalization
-# @param tileSize The size of the tiles in the bigwig file
-# @param normMethod Normalization method for the biwig files
-# It can be RC, ncells, none or the name of any quantitative column
-# in the @meta.data
-# @param cutoff The maximum number of fragment in a given tile
-# @param outdir The output directory for bigwig file
-# Also used as output directory for SlitFragment function
+#' Helper function for ExportGroupBW
+#'
+#' @param groupNamei The group to be exported
+#' @param availableChr Chromosomes to be processed
+#' @param chromLengths Chromosomes lengths
+#' @param tiles The tiles object
+#' @param normBy A vector of values to normalized the cells by
+#' @param tileSize The size of the tiles in the bigwig file
+#' @param normMethod Normalization method for the biwig files
+'RC' will divide the number of fragments in a tile by the number of fragments in the group. A scaling factor of 10^4 will be applied
+'ncells' will divide the number of fragments in a tile by the number of cell in the group.
+'none' will apply no normalization method.
+A vector of values for each cell can also be passed as a meta.data column name. A scaling factor of 10^4 will be applied
+#' @param cutoff The maximum number of fragment in a given tile
+#' @param outdir The output directory for bigwig file
+#'
 #' @importFrom rtracklayer import export.bw
 #' @importFrom GenomicRanges seqnames seqlengths GRanges coverage
 #' @importFrom BiocGenerics which
 #' @importFrom S4Vectors match
 #' @importFrom Matrix sparseMatrix rowSums
+#'
+#' @return The names of the exported files
+#' @export
+#'
+#' @examples
+#' CreateBWGroup(group, availableChr, chromLengths, tiles, normBy, tileSize, normMethod, cutoff, getwd())
 CreateBWGroup <- function(groupNamei, availableChr, chromLengths, tiles, normBy, tileSize, normMethod, cutoff, outdir){
 
   #Read the fragments file associated to the group
@@ -2407,7 +2426,7 @@ CreateBWGroup <- function(groupNamei, availableChr, chromLengths, tiles, normBy,
       mat <- Matrix::sparseMatrix(
         i = c(trunc(start(fragik) / tileSize), trunc(end(fragik) / tileSize)) + 1,
         j = as.vector(c(matchID, matchID)),
-        x = rep(1,  2*length(fragik)),
+        x = rep(1, 2*length(fragik)),
         dims = c(nTiles, length(cellGroupi)))
 
       #Max count for a cells in a tile is set to cutoff
