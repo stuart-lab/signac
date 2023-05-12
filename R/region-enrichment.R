@@ -136,7 +136,7 @@ TSSEnrichment <- function(
   
   # Take signal value at center of distribution after normalization as
   # TSS enrichment score, average the 1000 bases at the center
-  object$TSS.enrichment <- rowMeans(x = norm.matrix[, 500:1500], na.rm = TRUE)
+  object$TSS.enrichment <- apply(norm.matrix[, 500:1500], 1, max, na.rm=TRUE)
   e.dist <- ecdf(x = object$TSS.enrichment)
   object$TSS.percentile <- round(
     x = e.dist(object$TSS.enrichment),
@@ -212,8 +212,8 @@ TSSFast <- function(
   )
   centers <- Extend(
     x = tss.positions,
-    upstream = 500,
-    downstream = 500,
+    upstream = 0,
+    downstream = 0,
     from.midpoint = TRUE
   )
   
@@ -296,7 +296,7 @@ TSSFast <- function(
   center.norm <- center.counts / flank.mean
   
   # compute TSS enrichment score and add to object
-  object$TSS.enrichment <- center.norm / 1001
+  object$TSS.enrichment <- center.norm / 1
   e.dist <- ecdf(x = object$TSS.enrichment)
   object$TSS.percentile <- round(
     x = e.dist(object$TSS.enrichment),
