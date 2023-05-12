@@ -98,7 +98,8 @@ TSSEnrichment <- function(
       assay = assay,
       tss.positions = tss.positions,
       process_n = process_n,
-      verbose = verbose
+      verbose = verbose,
+      region_extension = region_extension
     )
     return(object)
   }
@@ -193,7 +194,8 @@ TSSFast <- function(
   tss.positions,
   assay = NULL,
   process_n = 2000,
-  verbose = TRUE
+  verbose = TRUE,
+  region_extension = 1000
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   
@@ -206,14 +208,14 @@ TSSFast <- function(
   # get regions
   upstream.flank <- Extend(
     x = tss.positions,
-    upstream = 1000,
-    downstream = -901,
+    upstream = region_extension,
+    downstream = -1 * (region_extension - 99),
     from.midpoint = TRUE
   )
   downstream.flank <- Extend(
     x = tss.positions,
-    upstream = -901,
-    downstream = 1000,
+    upstream = -1 * (region_extension - 99),
+    downstream = region_extension,
     from.midpoint = TRUE
   )
   centers <- Extend(
