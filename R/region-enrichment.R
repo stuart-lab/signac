@@ -25,6 +25,8 @@ NULL
 #' @param process_n Number of regions to process at a time if using \code{fast}
 #' option.
 #' @param verbose Display messages
+#' @param region_extension Distance extended upstream and downstream from TSS
+#' in which to calculate enrichment and background.
 #'
 #' @importFrom Matrix rowMeans
 #' @importFrom methods slot
@@ -55,7 +57,8 @@ TSSEnrichment <- function(
   assay = NULL,
   cells = NULL,
   process_n = 2000,
-  verbose = TRUE
+  verbose = TRUE,
+  region_extension = 1000
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
@@ -95,15 +98,16 @@ TSSEnrichment <- function(
       assay = assay,
       tss.positions = tss.positions,
       process_n = process_n,
-      verbose = verbose
+      verbose = verbose,
+      region_extension = region_extension
     )
     return(object)
   }
   
   tss.positions <- Extend(
     x = tss.positions,
-    upstream = 1000,
-    downstream = 1000,
+    upstream = region_extension,
+    downstream = region_extension,
     from.midpoint = TRUE
   )
   cutmatrix <- CreateRegionPileupMatrix(
@@ -119,7 +123,9 @@ TSSEnrichment <- function(
   if (verbose) {
     message("Computing mean insertion frequency in flanking regions")
   }
-  flanking.mean <- rowMeans(x = cutmatrix[, c(1:100, 1902:2001)])
+  total_region_length <- (2 * region_extension) + 1
+  right_flank <- seq.int(from = (total_region_length - 99), to = total_region_length)
+  flanking.mean <- rowMeans(x = cutmatrix[, c(1:100, right_flank)])
   
   # if the flanking mean is 0 for any cells, the enrichment score will be zero.
   # instead replace with the mean from the whole population
@@ -135,8 +141,9 @@ TSSEnrichment <- function(
   norm.matrix <- cutmatrix / flanking.mean
   
   # Take signal value at center of distribution after normalization as
-  # TSS enrichment score, average the 1000 bases at the center
-  object$TSS.enrichment <- rowMeans(x = norm.matrix[, 500:1500], na.rm = TRUE)
+  # TSS enrichment score, average the 1001 bases at the center
+  center_region <- seq.int(from = (region_extension - 500), to = (region_extension + 500))
+  object$TSS.enrichment <- rowMeans(x = norm.matrix[, center_region], na.rm = TRUE)
   e.dist <- ecdf(x = object$TSS.enrichment)
   object$TSS.percentile <- round(
     x = e.dist(object$TSS.enrichment),
@@ -151,9 +158,9 @@ TSSEnrichment <- function(
   # encode motif position as additional row in matrix
   motif.vec <- t(x = matrix(
     data = c(
-      rep(x = 0, 1000),
+      rep(x = 0, region_extension),
       1,
-      rep(x = 0, 1000)
+      rep(x = 0, region_extension)
     )
   )
   )
@@ -187,7 +194,8 @@ TSSFast <- function(
   tss.positions,
   assay = NULL,
   process_n = 2000,
-  verbose = TRUE
+  verbose = TRUE,
+  region_extension = 1000
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   
@@ -200,14 +208,14 @@ TSSFast <- function(
   # get regions
   upstream.flank <- Extend(
     x = tss.positions,
-    upstream = 1000,
-    downstream = -901,
+    upstream = region_extension,
+    downstream = -1 * (region_extension - 99),
     from.midpoint = TRUE
   )
   downstream.flank <- Extend(
     x = tss.positions,
-    upstream = -901,
-    downstream = 1000,
+    upstream = -1 * (region_extension - 99),
+    downstream = region_extension,
     from.midpoint = TRUE
   )
   centers <- Extend(
