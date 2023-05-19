@@ -268,6 +268,7 @@ globalVariables(".data")
 #' @importFrom rlang .data
 #' @importFrom stats quantile
 #' @export
+#' @concept visualization
 DensityScatter <- function(
     object,
     x,
