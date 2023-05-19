@@ -138,6 +138,16 @@ CreateMotifMatrix <- function(
     stop("Please install motifmatchr.
          https://www.bioconductor.org/packages/motifmatchr/")
   }
+
+  # genome can be string
+  if (is.character(x = genome)) {
+      if (!requireNamespace("BSgenome", quietly = TRUE)) {
+        stop("Please install BSgenome.
+             https://www.bioconductor.org/packages/BSgenome/")
+      }
+      genome <- BSgenome::getBSgenome(genome = genome)
+  }
+
   # check that all seqnames in features are in genome
   # remove missing, replace later with zeros and show warning
   miss_sn <- !(as.character(seqnames(x = features)) %in% seqlevels(x = genome))
