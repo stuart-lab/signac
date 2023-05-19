@@ -10,6 +10,7 @@ Bug fixes:
 * Make motif names unique to avoid errors in motif-related functions ([#1311](https://github.com/stuart-lab/signac/issues/1311))
 * Ignore missing seqnames when constructing a Motif object ([#1381](https://github.com/stuart-lab/signac/issues/1381))
 * Fixed error in `BigwigTrack()` ([#1389](https://github.com/stuart-lab/signac/issues/1389))
+* Fixed bug in `RegionMatrix()` where regions on minus strand were not handled correctly ([#1368](https://github.com/stuart-lab/signac/issues/1368))
 
 Other changes:
 
