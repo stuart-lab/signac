@@ -2169,6 +2169,7 @@ PeakPlot <- function(
 #' element is used to separate the start from end coordinate.
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
+#' @param scale.linewidth Scale thickness of the line according to link score.
 #' 
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
@@ -2187,7 +2188,8 @@ LinkPlot <- function(
   min.cutoff = 0,
   sep = c("-", "-"),
   extend.upstream = 0,
-  extend.downstream = 0
+  extend.downstream = 0,
+  scale.linewidth = FALSE
 ) {
   region <- FindRegion(
     object = object,
@@ -2237,10 +2239,18 @@ LinkPlot <- function(
         score = rep(link.df$score, 3)
       )
       min.color <- min(0, min(df$score))
-      p <- ggplot(data = df) +
-        ggforce::geom_bezier(
-          mapping = aes_string(x = "x", y = "y", group = "group", color = "score")
-        ) +
+      if (scale.linewidth) {
+        p <- ggplot(data = df) +
+          ggforce::geom_bezier(
+            mapping = aes_string(x = "x", y = "y", group = "group", color = "score", linewidth = "score")
+          )
+      } else {
+        p <- ggplot(data = df) +
+          ggforce::geom_bezier(
+            mapping = aes_string(x = "x", y = "y", group = "group", color = "score")
+          )
+      }
+      p <- p +
         geom_hline(yintercept = 0, color = 'grey') +
         scale_color_gradient2(low = "red", mid = "grey", high = "blue",
                               limits = c(min.color, max(df$score)),
