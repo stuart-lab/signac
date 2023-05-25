@@ -31,3 +31,4 @@ Returns a ggplot object
 Create a scatterplot using variables in the object metadata
 and color cells by the density of points in the x-y space.
 }
+\concept{visualization}
