@@ -3,6 +3,7 @@
 New functionality:
 
 * Added `DensityScatter()` function
+* Added `scale.linewidth` parameter to `LinkPlot()` ([#1412](https://github.com/stuart-lab/signac/issues/1412))
 
 Bug fixes:
 
