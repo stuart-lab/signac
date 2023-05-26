@@ -159,6 +159,15 @@ pbmc$pct_reads_in_peaks <- pbmc$peak_region_fragments / pbmc$passed_filters * 10
 pbmc$blacklist_ratio <- pbmc$blacklist_region_fragments / pbmc$peak_region_fragments
 ```
 
+The relationship between variables stored in the object metadata can
+be visualized using the `DensityScatter()` function. This can also be used
+to quickly find suitable cutoff values for different QC metrics by setting
+`quantiles=TRUE`:
+
+```{r}
+DensityScatter(pbmc, x = 'nCount_peaks', y = 'TSS.enrichment', log_x = TRUE, quantiles = TRUE)
+```
+
 We can inspect the TSS enrichment scores by grouping the cells based on the
 score and plotting the accessibility signal over all TSS sites. Setting the 
 `fast=TRUE` option in `TSSEnrichment()` will only compute the TSS enrichment
@@ -168,7 +177,7 @@ not allow downstream plotting of the TSS enrichment signal for different groups
 of cells using the `TSSPlot()` function, shown here:
 
 ```{r message=FALSE, warning=FALSE}
-pbmc$high.tss <- ifelse(pbmc$TSS.enrichment > 2, 'High', 'Low')
+pbmc$high.tss <- ifelse(pbmc$TSS.enrichment > 3, 'High', 'Low')
 TSSPlot(pbmc, group.by = 'high.tss') + NoLegend()
 ```
 
@@ -183,22 +192,12 @@ pbmc$nucleosome_group <- ifelse(pbmc$nucleosome_signal > 4, 'NS > 4', 'NS < 4')
 FragmentHistogram(object = pbmc, group.by = 'nucleosome_group')
 ```
 
-The relationship between variables stored in the object metadata can also
-be visualized using the `DensityScatter()` function. This can also be used
-to quickly find suitable cutoff values for different QC metrics by setting
-`quantiles=TRUE`:
-
-```{r}
-DensityScatter(pbmc, x = 'nCount_peaks', y = 'TSS.enrichment', log_x = TRUE, quantiles = TRUE)
-```
-
-We can also plot the distribution of each QC metric separately:
+We can plot the distribution of each QC metric separately using a violin plot:
 
 ```{r message=FALSE, warning=FALSE, fig.width=18, fig.height=6}
 VlnPlot(
   object = pbmc,
-  features = c('pct_reads_in_peaks', 'peak_region_fragments',
-               'TSS.enrichment', 'blacklist_ratio', 'nucleosome_signal'),
+  features = c('nCount_peaks', 'TSS.enrichment', 'blacklist_ratio', 'nucleosome_signal', 'pct_reads_in_peaks'),
   pt.size = 0.1,
   ncol = 5
 )
@@ -209,12 +208,12 @@ Finally we remove cells that are outliers for these QC metrics.
 ```{r}
 pbmc <- subset(
   x = pbmc,
-  subset = peak_region_fragments > 3000 &
-    peak_region_fragments < 20000 &
+  subset = nCount_peaks > 3000 &
+    nCount_peaks < 30000 &
     pct_reads_in_peaks > 15 &
     blacklist_ratio < 0.05 &
     nucleosome_signal < 4 &
-    TSS.enrichment > 2
+    TSS.enrichment > 3
 )
 pbmc
 ```
@@ -385,85 +384,62 @@ plot2 <- DimPlot(
 plot1 + plot2
 ```
 
-You can see that the scRNA-based classifications are entirely consistent with
-the UMAP visualization, computed only on the scATAC-seq data. We can now easily
-annotate our scATAC-seq-derived clusters (alternatively, we could use the RNA
-classifications themselves). We note that cluster 14 maps to CD4 Memory T cells,
-but is a very small cluster with lower QC metrics. As this group is likely
-representing low-quality cells, we remove it from downstream analysis. 
+You can see that the scRNA-based classifications are consistent with
+the UMAP visualization that was computed using the scATAC-seq data. Notice
+that we do not predict any platelet cells in the scATAC-seq dataset, which
+is expected as platelets are not nucleated and would not be detected by scATAC-seq.
 
-```{r cache=FALSE}
-pbmc <- subset(pbmc, idents = 14, invert = TRUE)
-pbmc <- RenameIdents(
-  object = pbmc,
-  '0' = 'CD14 Mono',
-  '1' = 'CD4 Memory',
-  '2' = 'CD8 Effector',
-  '3' = 'CD4 Naive',
-  '4' = 'CD14 Mono',
-  '5' = 'DN T',
-  '6' = 'CD8 Naive',
-  '7' = 'NK CD56Dim',
-  '8' = 'pre-B',
-  '9' = 'CD16 Mono',
-  '10' = 'pro-B',
-  '11' = 'DC',
-  '12' = 'NK CD56bright',
-  '13' = 'pDC'
-)
-```
+To combine our scATAC-seq clustering and label tranfer results we can reassign
+cluster names to the most common predicted label for that clusters. Alternatively,
+we could proceed by use the per-cell predicted labels themselves.
 
-## Find differentially accessible peaks between clusters
-
-To find differentially accessible regions between clusters of cells, we can
-perform a differential accessibility (DA) test. A simple approach is to perform
-a Wilcoxon rank sum test, and the [presto](https://github.com/immunogenomics/presto)
-package has implemented an extremely fast Wilcoxon test that can be run on a
-Seurat object.
-
-Another approach for differential testing is to utilize logistic regression
-for, as suggested by
-[Ntranos et al. 2018](https://www.biorxiv.org/content/10.1101/258566v2)
-for scRNA-seq data. One advantage of this approach is we can include latent
-variables, such as sequencing depth or batch. However, the LR test can take
-significantly longer to run than the Wilcoxon test. 
-
-We can also visualize these marker
-peaks on a violin plot, feature plot, dot plot, heat map, or any
-[visualization tool in Seurat](https://satijalab.org/seurat/articles/visualization_vignette.html).
-
-```{r include=FALSE}
-# install presto package
-if (!requireNamespace("presto", quietly = TRUE)) {
-  install.packages('presto')
+```{r}
+# replace each label with its most likely prediction
+for(i in levels(pbmc)) {
+  cells_to_reid <- WhichCells(pbmc, idents = i)
+  newid <- names(which.max(table(pbmc$predicted.id[cells_to_reid])))
+  Idents(pbmc, cells = cells_to_reid) <- newid
 }
 ```
+
+## Find differentially accessible peaks between cell types
+
+To find differentially accessible regions between clusters of cells, we can
+perform a differential accessibility (DA) test. We utilize logistic regression
+for DA, as suggested by
+[Ntranos et al. 2018](https://www.biorxiv.org/content/10.1101/258566v2)
+for scRNA-seq data, and add the total number of fragments as a latent variable
+to mitigate the effect of differential sequencing depth on the result.
+Here we will focus on comparing Naive CD4 cells and CD14 monocytes, but any groups of
+cells can be compared using these methods. We can also visualize these marker
+peaks on a violin plot, feature plot, dot plot, heat map, or any
+[visualization tool in Seurat](https://satijalab.org/seurat/articles/visualization_vignette.html).
 
 ```{r message=TRUE, warning=FALSE}
 # change back to working with peaks instead of gene activities
 DefaultAssay(pbmc) <- 'peaks'
 
-da_results <- presto::wilcoxauc(pbmc, seurat_assay = "peaks")
+da_peaks <- FindMarkers(
+  object = pbmc,
+  ident.1 = "CD4 Naive",
+  ident.2 = "CD14+ Monocytes",
+  test.use = 'LR',
+  latent.vars = 'nCount_peaks'
+)
 
-# filter top DA peaks and sort
-da_results <- da_results[da_results$padj < 0.01 & abs(da_results$logFC) > 0.5, ]
-da_results <- da_results[order(da_results$logFC, decreasing = TRUE), ]
-
-# focus on CD4 naive cells as an example
-cd4_da <- da_results[da_results$group == "CD4 Naive", ]
-head(cd4_da)
+head(da_peaks)
 ```
 
 ```{r, cache=FALSE, fig.width=12}
 plot1 <- VlnPlot(
   object = pbmc,
-  features = cd4_da$feature[1],
+  features = rownames(da_peaks)[1],
   pt.size = 0.1,
-  idents = c("CD4 Naive","CD14 Mono")
+  idents = c("CD4 Naive","CD14+ Monocytes")
 )
 plot2 <- FeaturePlot(
   object = pbmc,
-  features = cd4_da$feature[1],
+  features = rownames(da_peaks)[1],
   pt.size = 0.1
 )
 
@@ -479,7 +455,9 @@ useful way to quickly explore data, and can be performed using the `FoldChange()
 function in Seurat.
 
 ```{r message=FALSE, warning=FALSE}
-fc <- FoldChange(pbmc, ident.1 = "CD4 Naive", ident.2 = "CD14 Mono")
+fc <- FoldChange(pbmc, ident.1 = "CD4 Naive", ident.2 = "CD14+ Monocytes")
+# order by fold change
+fc <- fc[order(fc$avg_log2FC, decreasing = TRUE), ]
 head(fc)
 ```
 
@@ -525,11 +503,11 @@ links (if they're stored in the object). See the
 
 ```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=6}
 # set plotting order
-levels(pbmc) <- c("CD4 Naive","CD4 Memory","CD8 Naive","CD8 Effector","DN T","NK CD56bright","NK CD56Dim","pre-B",'pro-B',"pDC","DC","CD14 Mono",'CD16 Mono')
+levels(pbmc) <- c("CD4 Naive","CD4 Memory","CD8 Naive","CD8 effector","Double negative T cell","NK dim","pre-B cell",'B cell progenitor',"pDC","Dendritic cell","CD14+ Monocytes",'CD16+ Monocytes')
 
 CoveragePlot(
   object = pbmc,
-  region = cd4_da$feature[1],
+  region = rownames(da_peaks)[1],
   extend.upstream = 40000,
   extend.downstream = 20000
 )

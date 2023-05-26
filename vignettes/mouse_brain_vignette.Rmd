@@ -310,7 +310,7 @@ to annotate them!
 # replace each label with its most likely prediction
 for(i in levels(brain)) {
   cells_to_reid <- WhichCells(brain, idents = i)
-  newid <- names(sort(table(brain$predicted.id[cells_to_reid]),decreasing=TRUE))[1]
+  newid <- names(which.max(table(brain$predicted.id[cells_to_reid])))
   Idents(brain, cells = cells_to_reid) <- newid
 }
 ```
@@ -328,9 +328,8 @@ da_peaks <- FindMarkers(
   object = brain,
   ident.1 = c("L2/3 IT"), 
   ident.2 = c("L4", "L5 IT", "L6 IT"),
-  min.pct = 0.05,
   test.use = 'LR',
-  latent.vars = 'peak_region_fragments'
+  latent.vars = 'nCount_peaks'
 )
 
 head(da_peaks)
@@ -353,8 +352,8 @@ plot1 | plot2
 ```
 
 ```{r warning=FALSE, message=FALSE}
-open_l23 <- rownames(da_peaks[da_peaks$avg_log2FC > 0.25, ])
-open_l456 <- rownames(da_peaks[da_peaks$avg_log2FC < -0.25, ])
+open_l23 <- rownames(da_peaks[da_peaks$avg_log2FC > 3, ])
+open_l456 <- rownames(da_peaks[da_peaks$avg_log2FC < 3, ])
 closest_l23 <- ClosestFeature(brain, open_l23)
 closest_l456 <- ClosestFeature(brain, open_l456)
 head(closest_l23)
