@@ -90,7 +90,6 @@ jobs:
       - name: Query dependencies
         run: |
           install.packages('remotes')
-          remotes::install_github("r-lib/remotes")
           saveRDS(remotes::dev_package_deps(), ".github/depends.Rds", version = 2)
         shell: Rscript {0}
 
