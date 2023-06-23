@@ -3,7 +3,7 @@ title: "Analyzing adult mouse brain scATAC-seq"
 output: html_document
 date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 ---
-  
+
 ```{r init, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -17,7 +17,7 @@ vignette, all available through the 10x Genomics website.
 
 To download the required data, run the following lines in a shell:
 
-```{bash, eval=FALSE}
+```{bash eval=FALSE}
 wget http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh_5k/atac_v1_adult_brain_fresh_5k_filtered_peak_bc_matrix.h5
 wget http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh_5k/atac_v1_adult_brain_fresh_5k_singlecell.csv
 wget http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh_5k/atac_v1_adult_brain_fresh_5k_fragments.tsv.gz
@@ -38,23 +38,18 @@ analyzing mouse data.
 ```{r include=FALSE}
 if (!requireNamespace("EnsDb.Mmusculus.v79", quietly = TRUE))
     BiocManager::install("EnsDb.Mmusculus.v79")
-
-if (!requireNamespace("GenomeInfoDb", quietly = TRUE))
-    BiocManager::install("GenomeInfoDb")
 ```
 
 ```{r setup, message=FALSE}
 library(Signac)
 library(Seurat)
-library(GenomeInfoDb)
 library(EnsDb.Mmusculus.v79)
 library(ggplot2)
 library(patchwork)
-set.seed(1234)
 ```
 
 ## Pre-processing workflow
-  
+
 ```{r}
 counts <- Read10X_h5("../vignette_data/atac_v1_adult_brain_fresh_5k_filtered_peak_bc_matrix.h5")
 metadata <- read.csv(
@@ -87,7 +82,8 @@ directly from the object.
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Mmusculus.v79)
 
 # change to UCSC style since the data was mapped to hg19
-seqlevelsStyle(annotations) <- 'UCSC'
+seqlevels(annotations) <- paste0('chr', seqlevels(annotations))
+genome(annotations) <- "mm10"
 
 # add the gene information to the object
 Annotation(brain) <- annotations
@@ -210,7 +206,7 @@ DimPlot(object = brain, label = TRUE) + NoLegend()
 
 ## Create a gene activity matrix
 
-```{r, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 # compute gene activities
 gene.activities <- GeneActivity(brain)
 
@@ -224,7 +220,7 @@ brain <- NormalizeData(
 )
 ```
 
-```{r, fig.width=12, fig.height=10}
+```{r fig.width=12, fig.height=10}
 DefaultAssay(brain) <- 'RNA'
 FeaturePlot(
   object = brain,
@@ -314,7 +310,7 @@ to annotate them!
 # replace each label with its most likely prediction
 for(i in levels(brain)) {
   cells_to_reid <- WhichCells(brain, idents = i)
-  newid <- names(sort(table(brain$predicted.id[cells_to_reid]),decreasing=TRUE))[1]
+  newid <- names(which.max(table(brain$predicted.id[cells_to_reid])))
   Idents(brain, cells = cells_to_reid) <- newid
 }
 ```
@@ -332,9 +328,8 @@ da_peaks <- FindMarkers(
   object = brain,
   ident.1 = c("L2/3 IT"), 
   ident.2 = c("L4", "L5 IT", "L6 IT"),
-  min.pct = 0.05,
   test.use = 'LR',
-  latent.vars = 'peak_region_fragments'
+  latent.vars = 'nCount_peaks'
 )
 
 head(da_peaks)
@@ -356,15 +351,15 @@ plot2 <- FeaturePlot(
 plot1 | plot2
 ```
 
-```{r, warning=FALSE, message=FALSE}
-open_l23 <- rownames(da_peaks[da_peaks$avg_log2FC > 0.25, ])
-open_l456 <- rownames(da_peaks[da_peaks$avg_log2FC < -0.25, ])
+```{r warning=FALSE, message=FALSE}
+open_l23 <- rownames(da_peaks[da_peaks$avg_log2FC > 3, ])
+open_l456 <- rownames(da_peaks[da_peaks$avg_log2FC < 3, ])
 closest_l23 <- ClosestFeature(brain, open_l23)
 closest_l456 <- ClosestFeature(brain, open_l456)
 head(closest_l23)
 ```
 
-```{r, warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE}
 head(closest_l456)
 ```
 
@@ -376,7 +371,7 @@ function. These represent pseudo-bulk accessibility tracks, where signal from
 all cells within a group have been averaged together to visualize the DNA 
 accessibility in a region.
 
-```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=10}
+```{r message=FALSE, warning=FALSE, out.width="90%", fig.height=10}
 # set plotting order
 levels(brain) <- c("L2/3 IT","L4","L5 IT","L5 PT","L6 CT", "L6 IT","NP","Sst","Pvalb","Vip","Lamp5","Meis2","Oligo","Astro","Endo","VLMC","Macrophage")
 
@@ -389,13 +384,13 @@ CoveragePlot(
 )
 ```
 
-```{r message=FALSE, warning=FALSE, echo=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 saveRDS(object = brain, file = "../vignette_data/adult_mouse_brain.rds")
 ```
 
 <details>
   <summary>**Session Info**</summary>
-  
+
 ```{r}
 sessionInfo()
 ```

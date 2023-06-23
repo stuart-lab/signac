@@ -6,6 +6,7 @@ NULL
 #' @method AddMotifs default
 #' @concept motifs
 #' @importFrom methods slot
+#' @importFrom GenomeInfoDb seqlevels seqnames
 #' @export
 AddMotifs.default <- function(
   object,
@@ -37,9 +38,14 @@ AddMotifs.default <- function(
   if (verbose) {
     message("Finding motif positions")
   }
+  
+  # for positions, a list of granges is returned
+  # each element of list is a PFM name
+  # each entry in granges is the position within a feature that matches motif
+  obj_keep <- as.character(seqnames(x = object)) %in% seqlevels(x = genome)
   motif.positions <- motifmatchr::matchMotifs(
     pwms = pfm,
-    subject = object,
+    subject = object[obj_keep],
     out = 'positions',
     genome = genome
   )

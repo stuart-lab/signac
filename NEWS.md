@@ -1,3 +1,22 @@
+# Signac 1.10.0
+
+New functionality:
+
+* Added `DensityScatter()` function
+* Added `scale.linewidth` parameter to `LinkPlot()` ([#1412](https://github.com/stuart-lab/signac/issues/1412))
+
+Bug fixes:
+
+* Fixed error in `GetReadsInRegion()` when no fragments present that overlap the region (@rockweiler; [#1348](https://github.com/stuart-lab/signac/pull/1348))
+* Make motif names unique to avoid errors in motif-related functions ([#1311](https://github.com/stuart-lab/signac/issues/1311))
+* Ignore missing seqnames when constructing a Motif object ([#1381](https://github.com/stuart-lab/signac/issues/1381))
+* Fixed error in `BigwigTrack()` ([#1389](https://github.com/stuart-lab/signac/issues/1389))
+* Fixed bug in `RegionMatrix()` where regions on minus strand were not handled correctly ([#1368](https://github.com/stuart-lab/signac/issues/1368))
+
+Other changes:
+
+* Improved documentation for `AddMotifs()` function ([#1361](https://github.com/stuart-lab/signac/issues/1361))
+
 # Signac 1.9.0
 
 Bug fixes:

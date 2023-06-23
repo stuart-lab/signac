@@ -7,7 +7,7 @@ output:
     self_contained: True
 ---
 
-```{r packages, message=FALSE, warning = FALSE, echo = TRUE}
+```{r packages, message=FALSE, warning=FALSE, echo=TRUE}
 library(Signac)
 library(Seurat)
 library(ggplot2)
@@ -34,7 +34,7 @@ https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE142745
 
 The required files can be downloaded by running the following lines in a shell:
 
-```{bash, eval=FALSE}
+```{bash eval=FALSE}
 # ATAC data
 wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.filtered_peak_bc_matrix.h5
 wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.singlecell.csv
@@ -64,8 +64,8 @@ epithelial cells and tumor infiltrating immune cells.
 
 First we load the scATAC-seq data and create a Seurat object following the 
 standard workflow for scATAC-seq data.
-  
-```{r importData, message=FALSE, warning = FALSE}
+
+```{r importData, message=FALSE, warning=FALSE}
 # load counts and metadata from cellranger-atac
 counts <- Read10X_h5(filename = "../vignette_data/mito/CRC_v12-mtMask_mgatk.filtered_peak_bc_matrix.h5")
 metadata <- read.csv(
@@ -78,7 +78,8 @@ metadata <- read.csv(
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
 
 # change to UCSC style since the data was mapped to hg19
-seqlevelsStyle(annotations) <- 'UCSC'
+seqlevels(annotations) <- paste0('chr', seqlevels(annotations))
+genome(annotations) <- "hg19"
 
 # create object
 crc_assay <- CreateChromatinAssay(
@@ -114,7 +115,7 @@ crc <- TSSEnrichment(crc)
 crc <- NucleosomeSignal(crc)
 ```
 
-```{r fig.width=8, fig.height = 8, message=FALSE, warning=FALSE}
+```{r fig.width=8, fig.height=8, message=FALSE, warning=FALSE}
 # visualize QC metrics for each cell
 VlnPlot(crc, c("TSS.enrichment", "nCount_peaks", "nucleosome_signal", "pct_reads_in_peaks", "pct_reads_in_DNase", "blacklist_ratio"), pt.size = 0, ncol = 3)
 ```
@@ -141,7 +142,7 @@ function in Signac allows the output from `mgatk` to be read directly into R in
 a convenient format for downstream analysis with Signac. Here, we load the data
 and add it to the Seurat object as a new assay.
 
-```{r process_mito, message=FALSE, warning = FALSE, echo = TRUE}
+```{r process_mito, message=FALSE, warning=FALSE, echo=TRUE}
 # load mgatk output
 mito.data <- ReadMGATK(dir = "../vignette_data/mito/crc/")
 
@@ -193,7 +194,7 @@ To help interpret these clusters of cells, and assign a cell type label, we'll
 estimate gene activities by summing the DNA accessibility in the gene body and
 promoter region.
 
-```{r setup_gene_activity, message=FALSE, warning = FALSE, echo = TRUE}
+```{r setup_gene_activity, message=FALSE, warning=FALSE, echo=TRUE}
 # compute gene accessibility
 gene.activities <- GeneActivity(crc)
 
@@ -218,7 +219,7 @@ We note the following markers for different cell types in the CRC dataset:
 - IL1RL1 is a basophil marker
 - GATA3 is a Tcell maker
 
-```{r viz_gene_activitites, message=FALSE, warning = FALSE, fig.width=8, fig.height=8}
+```{r viz_gene_activitites, message=FALSE, warning=FALSE, fig.width=8, fig.height=8}
 DefaultAssay(crc) <- 'RNA'
 
 FeaturePlot(
@@ -248,7 +249,7 @@ One of the myeloid clusters has a lower percentage of fragments in peaks, as
 well as a lower overall mitochondrial sequencing depth and a different
 nucleosome banding pattern.
 
-```{r cell_filtering_recap, message=FALSE, warning = FALSE}
+```{r cell_filtering_recap, message=FALSE, warning=FALSE}
 p1 <- FeatureScatter(crc, "mtDNA_depth", "pct_reads_in_peaks") + ggtitle("") + scale_x_log10()
 p2 <- FeatureScatter(crc, "mtDNA_depth", "nucleosome_signal") + ggtitle("") + scale_x_log10()
 
@@ -268,7 +269,7 @@ and cluster the cells into clonotypes based on the frequency of these variants
 in the cells. Signac utilizes the principles established in the original
 mtscATAC-seq work of identifying high-quality variants.  
 
-```{r call_variants, message=FALSE, warning = FALSE}
+```{r call_variants, message=FALSE, warning=FALSE}
 variable.sites <- IdentifyVariants(crc, assay = "mito", refallele = mito.data$refallele)
 VariantPlot(variants = variable.sites)
 ```
@@ -290,7 +291,7 @@ subclones, these are not particularly useful.
 Based on these thresholds, we can filter out a set of informative
 mitochondrial variants that differ across the cells.
 
-```{r look_at_variants, message=FALSE, warning = FALSE}
+```{r look_at_variants, message=FALSE, warning=FALSE}
 # Establish a filtered data frame of variants based on this processing
 high.conf <- subset(
   variable.sites, subset = n_cells_conf_detected >= 5 &
@@ -335,7 +336,7 @@ the standard functions in Seurat to visualize how these allele frequencies are
 distributed across the cells. Here we visualize a subset of the variants using 
 `FeaturePlot()` and `DoHeatmap()`.
 
-```{r visualize variants, message=FALSE, warning = FALSE}
+```{r visualize variants, message=FALSE, warning=FALSE}
 DefaultAssay(crc) <- "alleles"
 alleles.view <- c("12889G>A", "16147C>T", "9728C>T", "9804G>A")
 FeaturePlot(
@@ -380,7 +381,7 @@ accessibility differences utilizing the multimodal capabilities of Signac.
 
 To download the data from Zenodo run the following in a shell:
 
-```{bash, eval=FALSE}
+```{bash eval=FALSE}
 # ATAC data
 wget https://zenodo.org/record/3977808/files/TF1.filtered.fragments.tsv.gz
 wget https://zenodo.org/record/3977808/files/TF1.filtered.fragments.tsv.gz.tbi
@@ -541,7 +542,7 @@ CoveragePlot(
 ```
 <details>
   <summary>**Session Info**</summary>
-  
+
 ```{r}
 sessionInfo()
 ```

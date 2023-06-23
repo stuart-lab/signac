@@ -43,6 +43,12 @@ Construct a \code{\link{Motif}} object containing DNA sequence motif
 information and add it to an existing Seurat object or ChromatinAssay.
 If running on a Seurat object, \code{AddMotifs} will also run
 \code{\link{RegionStats}} to compute the GC content of each peak and store
-the results in the feature metadata.
+the results in the feature metadata. PFMs or PWMs are matched to the genome
+sequence using the \code{\link[motifmatchr]{matchMotifs}} function with
+default parameters to construct a matrix of motif positions in genomic
+regions.
+}
+\seealso{
+\pkg{motifmatchr}
 }
 \concept{motifs}

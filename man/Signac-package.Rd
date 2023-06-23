@@ -20,7 +20,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Tim Stuart \email{tstuart@nygenome.org} (\href{https://orcid.org/0000-0002-3044-0897}{ORCID})
+\strong{Maintainer}: Tim Stuart \email{stuartt@gis.a-star.edu.sg} (\href{https://orcid.org/0000-0002-3044-0897}{ORCID})
 
 Authors:
 \itemize{

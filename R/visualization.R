@@ -119,7 +119,7 @@ BigwigTrack <- function(
   }
   all.data$bw <- factor(x = all.data$bw, levels = names(x = bigwig))
   window.size = width(x = region)
-  sampling <- max(max.downsample, window.size * downsample.rate)
+  sampling <- ceiling(x = max(max.downsample, window.size * downsample.rate))
   coverages <- slice_sample(.data = all.data, n = sampling)
   
   covmax <- signif(x = max(coverages$score, na.rm = TRUE), digits = 2)
@@ -220,6 +220,148 @@ DepthCor <- function(object, assay = NULL, reduction = 'lsi', n = 10, ...) {
     ggtitle("Correlation between depth and reduced dimension components",
             subtitle = paste0("Assay: ", assay, "\t", "Reduction: ", reduction))
   return(p)
+}
+
+# Get density of points in 2 dimensions.
+#
+# Credit to Kamil Slowikowski
+# https://slowkow.com/notes/ggplot2-color-by-density/
+#
+# @param x A numeric vector.
+# @param y A numeric vector.
+# @param n Create a square n by n grid to compute density.
+# @return The density within each square.
+get_density <- function(x, y, ...) {
+  if (!requireNamespace("MASS", quietly = TRUE)) {
+    stop("Please install MASS: install.packages('MASS')")
+  }
+  if (!is.numeric(x = x) | !is.numeric(x = y)) {
+      stop("Must supply numeric values")
+  }
+  dens <- MASS::kde2d(x = x, y = y, ...)
+  ix <- findInterval(x = x, vec = dens$x)
+  iy <- findInterval(x = y, vec = dens$y)
+  ii <- cbind(ix, iy)
+  return(dens$z[ii])
+}
+
+globalVariables(".data")
+#' Scatterplot colored by point density
+#' 
+#' Create a scatterplot using variables in the object metadata
+#' and color cells by the density of points in the x-y space.
+#'
+#' @param object A Seurat object
+#' @param x Name of metadata variable to plot on x axis
+#' @param y Name of metadata variable to plot on y axis
+#' @param log_x log10 transform x values
+#' @param log_y log10 transform y values
+#' @param quantiles Vector of quantiles to display
+#' for x and y data distribution. Must be integer values
+#' between 0 and 100.
+#' TRUE can be passed as a shorthand way to set
+#' \code{c(5, 10, 90, 95)}. If FALSE or NULL, no quantile
+#' information is displayed
+#' @return Returns a ggplot object
+#' @importFrom ggplot2 ggplot aes geom_point scale_color_viridis_c
+#' theme_bw scale_x_log10 scale_y_log10 geom_vline geom_hline labs
+#' @importFrom rlang .data
+#' @importFrom stats quantile
+#' @export
+#' @concept visualization
+DensityScatter <- function(
+    object,
+    x,
+    y,
+    log_x = FALSE,
+    log_y = FALSE,
+    quantiles = NULL
+) {
+    md <- object[[]]
+    if (!(x %in% colnames(x = md))) {
+        stop(x, " not found")
+    }
+    if (!(y %in% colnames(x = md))) {
+        stop(y, " not found")
+    }
+    log10p <- function(x) {
+        return(log10(x = x + 1))
+    }
+    null_fn <- function(x) {
+        return(x)
+    }
+    logfnx <- ifelse(test = log_x, yes = log10p, no = null_fn)
+    logfny <- ifelse(test = log_y, yes = log10p, no = null_fn)
+    # logfny <- null_fn
+    md$Density <- get_density(
+        x = logfnx(md[[x]]),
+        y = logfny(md[[y]]),
+        n = 1000,
+        h = c(1,1)
+    )
+    md <- md[order(md$Density), ]
+    # quantiles
+    use_quantile <- FALSE
+    if (!is.null(x = quantiles)) {
+        use_quantile <- TRUE
+        # set default if TRUE passed
+        if (is.logical(x = quantiles)) {
+            if (quantiles) {
+                quantiles <- c(5, 10, 90, 95)
+            } else {
+                use_quantile <- FALSE
+            }
+        }
+        # make sure integers between 0 and 100
+        if (!(all(quantiles >= 0) & all(quantiles <= 100))) {
+            warning("Quantile values must be between 0 and 100",
+                    immediate. = TRUE)
+            use_quantile <- FALSE
+        }
+        if (any(sapply(X = quantiles, FUN = function(x) x %% 1 != 0))) {
+            warning("Quantile values must be integers",
+                    immediate. = TRUE)
+            use_quantile <- FALSE
+        }
+    }
+    if (use_quantile) {
+        # convert to string
+        quantiles <- paste0(quantiles, '%')
+
+        # quantiles for x and y
+        x_quant <- quantile(x = md[[x]], probs = seq(0, 1, 0.01))
+        y_quant <- quantile(x = md[[y]], probs = seq(0, 1, 0.01))
+        xlines <- x_quant[quantiles]
+        ylines <- y_quant[quantiles]
+
+        # round
+        xlines <- round(x = xlines, digits = 2)
+        ylines <- round(x = ylines, digits = 2)
+    }        
+    p <- ggplot(
+           data = md,
+           mapping = aes(x = .data[[x]], y = .data[[y]], color = .data[["Density"]])
+         ) +
+           geom_point(size = 1) +
+           scale_color_viridis_c(option = "B") +
+           theme_bw()
+    if (log_x) {
+        p <- p + scale_x_log10()
+    }
+    if (log_y) {
+        p <- p + scale_y_log10()
+    }
+    if (use_quantile) {
+        p <- p +
+          geom_vline(xintercept = unname(obj = xlines), color = "red") +
+          geom_hline(yintercept = unname(obj = ylines), color = "red") +
+          labs(title = "Quantiles",
+               subtitle = paste0(x, ": ", paste0(names(x = xlines), ":",
+                                                 xlines, collapse = " "), "\n",
+                                 y, ": ", paste0(names(x = ylines), ":",
+                                                 ylines, collapse = " ")))
+    }
+    return(p)
 }
 
 globalVariables(
@@ -2028,6 +2170,7 @@ PeakPlot <- function(
 #' element is used to separate the start from end coordinate.
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
+#' @param scale.linewidth Scale thickness of the line according to link score.
 #' 
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
@@ -2046,7 +2189,8 @@ LinkPlot <- function(
   min.cutoff = 0,
   sep = c("-", "-"),
   extend.upstream = 0,
-  extend.downstream = 0
+  extend.downstream = 0,
+  scale.linewidth = FALSE
 ) {
   region <- FindRegion(
     object = object,
@@ -2096,10 +2240,18 @@ LinkPlot <- function(
         score = rep(link.df$score, 3)
       )
       min.color <- min(0, min(df$score))
-      p <- ggplot(data = df) +
-        ggforce::geom_bezier(
-          mapping = aes_string(x = "x", y = "y", group = "group", color = "score")
-        ) +
+      if (scale.linewidth) {
+        p <- ggplot(data = df) +
+          ggforce::geom_bezier(
+            mapping = aes_string(x = "x", y = "y", group = "group", color = "score", linewidth = "score")
+          )
+      } else {
+        p <- ggplot(data = df) +
+          ggforce::geom_bezier(
+            mapping = aes_string(x = "x", y = "y", group = "group", color = "score")
+          )
+      }
+      p <- p +
         geom_hline(yintercept = 0, color = 'grey') +
         scale_color_gradient2(low = "red", mid = "grey", high = "blue",
                               limits = c(min.color, max(df$score)),

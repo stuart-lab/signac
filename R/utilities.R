@@ -1319,25 +1319,39 @@ GetReadsInRegion <- function(
     x = seqlevels(x = region),
     y = seqnamesTabix(file = tabix.file)
   )
-  region <- keepSeqlevels(
-    x = region,
-    value = common.seqlevels,
-    pruning.mode = "coarse"
-  )
-  reads <- scanTabix(file = tabix.file, param = region)
-  reads <- TabixOutputToDataFrame(reads = reads)
-  reads <- reads[
-    fmatch(x = reads$cell, table = cellmap, nomatch = 0L) > 0,
-  ]
-  # convert cell names to match names in object
-  reads$cell <- file.to.object[reads$cell]
-  if (!is.null(x = cells)) {
-    reads <- reads[reads$cell %in% cells, ]
+  if (length(common.seqlevels) != 0) {
+    region <- keepSeqlevels(
+      x = region,
+      value = common.seqlevels,
+      pruning.mode = "coarse"
+    )
+    reads <- scanTabix(file = tabix.file, param = region)
+    reads <- TabixOutputToDataFrame(reads = reads)
+    reads <- reads[
+      fmatch(x = reads$cell, table = cellmap, nomatch = 0L) > 0,
+    ]
+    # convert cell names to match names in object
+    reads$cell <- file.to.object[reads$cell]
+    if (!is.null(x = cells)) {
+      reads <- reads[reads$cell %in% cells, ]
+    }
+    if (nrow(reads) == 0) {
+      reads$ident <- integer()
+      reads$length <- numeric()
+      return(reads)
+    }
+    reads$length <- reads$end - reads$start
+  } else {
+    reads <- data.frame(
+      "chr" = character(),
+      "start" = numeric(),
+      "end" = numeric(),
+      "cell" = character(),
+      "count" = numeric(),
+      "ident" = integer(),
+      "length" = numeric()
+    )
   }
-  if (nrow(reads) == 0) {
-    return(reads)
-  }
-  reads$length <- reads$end - reads$start
   return(reads)
 }
 
@@ -1794,8 +1808,9 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
   if (record.ident) {
     nrep <- elementNROWS(x = reads)
   }
+  original_names = names(reads)
   reads <- unlist(x = reads, use.names = FALSE)
-  if (length(x = reads) == 0) {
+  if (length(x = reads) == 0 | is.null(x = original_names)) {
     df <- data.frame(
       "chr" = "",
       "start" = "",

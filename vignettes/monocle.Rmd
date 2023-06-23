@@ -32,6 +32,8 @@ First we will load the dataset and perform some standard preprocessing using
 Signac.
 
 ```{r include=FALSE}
+setRepositories(ind=1:3)
+
 if (!requireNamespace("remotes", quietly = TRUE))
     install.packages("remotes")
 
@@ -56,7 +58,6 @@ library(monocle3)
 library(Matrix)
 library(ggplot2)
 library(patchwork)
-set.seed(1234)
 ```
 
 ```{r}
@@ -114,7 +115,8 @@ library(EnsDb.Hsapiens.v75)
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
 
 # change to UCSC style since the data was mapped to hg19
-seqlevelsStyle(annotations) <- 'UCSC'
+seqlevels(annotations) <- paste0('chr', seqlevels(annotations))
+genome(annotations) <- "hg19"
 
 # add the gene information to the object
 Annotation(bone) <- annotations
@@ -213,7 +215,7 @@ and build the trajectories using Monocle 3. We'll do this separately for
 erythroid and lymphoid lineages, but you could explore other strategies building
 a trajectory for all lineages together.
 
-```{r message=FALSE, warning=FALSE, results='hide'}
+```{r results='hide', message=FALSE, warning=FALSE}
 erythroid.cds <- as.cell_data_set(erythroid)
 erythroid.cds <- cluster_cells(cds = erythroid.cds, reduction_method = "UMAP")
 erythroid.cds <- learn_graph(erythroid.cds, use_partition = TRUE)
@@ -276,7 +278,7 @@ bone <- AddMetaData(
 FeaturePlot(bone, c("Erythroid", "Lymphoid"), pt.size = 0.1) & scale_color_viridis_c()
 ```
 
-```{r, include=FALSE}
+```{r include=FALSE}
 saveRDS(object = bone, file = "../vignette_data/cd34.rds")
 ```
 
@@ -289,7 +291,7 @@ use Monocle please cite the
 
 <details>
   <summary>**Session Info**</summary>
-  
+
 ```{r}
 sessionInfo()
 ```

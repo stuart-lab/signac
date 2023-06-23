@@ -30,6 +30,8 @@ First we will load their dataset and perform some standard preprocessing using
 Signac.
 
 ```{r include=FALSE}
+setRepositories(ind=1:3)
+
 if (!requireNamespace("remotes", quietly = TRUE))
     install.packages("remotes")
 
@@ -97,7 +99,7 @@ We highly recommend that you explore the [Cicero website](https://cole-trapnell-
 [paper](https://doi.org/10.1016/j.molcel.2018.06.044), and documentation for
 more information.
 
-```{r, cache=TRUE}
+```{r cache=TRUE}
 # get the chromosome sizes from the Seurat object
 genome <- seqlengths(bone)
 
@@ -162,7 +164,7 @@ Cicero please cite the [Cicero paper](https://doi.org/10.1016/j.molcel.2018.06.0
 
 <details>
   <summary>**Session Info**</summary>
-  
+
 ```{r}
 sessionInfo()
 ```
