@@ -29,6 +29,14 @@ AddMotifs.default <- function(
   if (verbose) {
     message("Building motif matrix")
   }
+  # genome can be string
+  if (is.character(x = genome)) {
+    if (!requireNamespace("BSgenome", quietly = TRUE)) {
+      stop("Please install BSgenome.
+             https://www.bioconductor.org/packages/BSgenome/")
+    }
+    genome <- BSgenome::getBSgenome(genome = genome)
+  }
   motif.matrix <- CreateMotifMatrix(
     features = object,
     pwm = pfm,
