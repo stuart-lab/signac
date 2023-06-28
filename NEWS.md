@@ -1,3 +1,9 @@
+# Unreleased
+
+Bug fixes:
+
+* Fix error when supplying genome string to `AddMotifs()` function ([#1437](https://github.com/stuart-lab/signac/issues/1437))
+
 # Signac 1.10.0
 
 New functionality:
