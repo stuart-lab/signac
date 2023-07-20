@@ -228,7 +228,7 @@ pbmc
 
 The combined steps of TF-IDF followed by SVD are known as latent semantic
 indexing (LSI), and were first introduced for the analysis of scATAC-seq data by
-[Cusanovich et al. 2015](https://science.sciencemag.org/content/367/6473/45.full).
+[Cusanovich et al. 2015](https://www.science.org/doi/10.1126/science.aab1601).
 
 ```{r message=FALSE, warning=FALSE}
 pbmc <- RunTFIDF(pbmc)
