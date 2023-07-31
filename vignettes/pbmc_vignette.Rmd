@@ -88,6 +88,49 @@ pbmc <- CreateSeuratObject(
 pbmc
 ```
 
+<details>
+  <summary>**What if I don't have an H5 file?**</summary>
+  
+If you do not have the `.h5` file, you can still run an analysis. You may have
+data that is formatted as three files, a counts file (`.mtx`), a cell barcodes
+file, and a peaks file. If this is the case you can load the data using the 
+`Matrix::readMM()` function:
+
+```{r eval=FALSE}
+counts <- Matrix::readMM("filtered_peak_bc_matrix/matrix.mtx")
+barcodes <- readLines("filtered_peak_bc_matrix/barcodes.tsv")
+peaks <- read.table("filtered_peak_bc_matrix/peaks.bed", sep="\t")
+peaknames <- paste(peaks$V1, peaks$V2, peaks$V3, sep="-")
+
+colnames(counts) <- barcodes
+rownames(counts) <- peaknames
+```
+
+Alternatively, you might only have a fragment file. In this case you can create
+a count matrix using the `FeatureMatrix()` function:
+
+```{r eval=FALSE}
+fragpath <- './data/atac_v1_pbmc_10k_fragments.tsv.gz'
+
+# Define cells
+# If you already have a list of cell barcodes to use you can skip this step
+total_counts <- CountFragments(fragpath)
+cutoff <- 1000 # Change this number depending on your dataset!
+barcodes <- total_counts[total_counts$frequency_count > cutoff, ]$CB
+
+# Create a fragment object
+frags <- CreateFragmentObject(path = fragpath, cells = barcodes)
+
+# First call peaks on the dataset
+# If you already have a set of peaks you can skip this step
+peaks <- CallPeaks(frags)
+
+# Quantify fragments in each peak
+counts <- FeatureMatrix(fragments = frags, features = peaks, cells = barcodes)
+```
+
+</details>
+
 The ATAC-seq data is stored using a custom assay, the `ChromatinAssay`. This
 enables some specialized functions for analysing genomic single-cell assays such
 as scATAC-seq. By printing the assay we can see some of the additional
