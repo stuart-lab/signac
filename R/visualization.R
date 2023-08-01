@@ -2550,6 +2550,9 @@ ExpressionPlot <- function(
     }
   }
   missing.levels <- setdiff(x = levels(x = df$group), y = unique(x = df$group))
+  if (!is.null(x = idents)) {
+    missing.levels <- intersect(x = missing.levels, y = idents)
+  }
   if (length(x = missing.levels) > 0) {
     # fill missing idents with zero
     for (i in features) {
