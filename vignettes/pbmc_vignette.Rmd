@@ -345,8 +345,8 @@ pbmc[['RNA']] <- CreateAssayObject(counts = gene.activities)
 pbmc <- NormalizeData(
   object = pbmc,
   assay = 'RNA',
-  normalization.method = 'LogNormalize'
-  # scale.factor = median(pbmc$nCount_RNA)
+  normalization.method = 'LogNormalize',
+  scale.factor = median(pbmc$nCount_RNA)
 )
 ```
 
@@ -557,7 +557,7 @@ levels(pbmc) <- c("CD4 Naive","CD4 Memory","CD8 Naive","CD8 effector","Double ne
 
 CoveragePlot(
   object = pbmc,
-  region = cd4_da$feature[1],
+  region = rownames(da_peaks)[1],
   extend.upstream = 40000,
   extend.downstream = 20000
 )

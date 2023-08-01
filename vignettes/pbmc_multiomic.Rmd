@@ -27,6 +27,9 @@ wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_1
 </details>
 
 ```{r include=FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
 if (!requireNamespace("EnsDb.Hsapiens.v86", quietly = TRUE))
     BiocManager::install("EnsDb.Hsapiens.v86")
 
@@ -38,6 +41,9 @@ if (!requireNamespace("remotes", quietly = TRUE))
 
 if (!requireNamespace("SeuratDisk", quietly = TRUE))
     remotes::install_github("mojaveazure/seurat-disk")
+
+if (!requireNamespace("glmGamPoi", quietly = TRUE))
+    BiocManager::install("glmGamPoi")
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -184,6 +190,7 @@ library(SeuratDisk)
 
 # load PBMC reference
 reference <- LoadH5Seurat("../vignette_data/multiomic/pbmc_multimodal.h5seurat")
+reference <- UpdateSeuratObject(reference)
 
 DefaultAssay(pbmc) <- "SCT"
 
