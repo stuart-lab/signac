@@ -540,8 +540,7 @@ CreateMotifObject <- function(
 # the expression assay will be added to the object 
 # @return Returns a new \code{\link[SeuratObject]} that only contains 
 # the cells in the chromatin assay 
-# @concept visualization
-# @examples
+#' @importFrom SeuratObject Assays CreateSeuratObject
 UpdateChromatinObject <- function(
   object, 
   chromatin.assay, 
