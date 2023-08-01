@@ -20,3 +20,7 @@ Dockerfile
 benchmark/
 .dockerignore
 CONTRIBUTING.md
+.ipynb_checkpoints/
+build.sh
+^.*\\.err$
+^.*\\.out$

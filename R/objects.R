@@ -501,6 +501,15 @@ CreateMotifObject <- function(
     pwm <- lapply(X = pwm.converted, FUN = "[[", 1)
     motif.names <- lapply(X = pwm.converted, FUN = "[[", 2)
   }
+  # ensure names are unique
+  motif.id <- names(x = motif.names)
+  mn.stash <- as.character(x = motif.names)
+  mn.unique <- make.unique(names = as.character(motif.names))
+  if (!identical(x = mn.stash, y = mn.unique)) {
+    warning("Non-unique motif names supplied, making unique", immediate. = TRUE)
+  }
+  motif.names <- as.list(x = mn.unique)
+  names(x = motif.names) <- motif.id
   pwm <- SetIfNull(x = pwm, y = list())
   if (is.null(x = motif.names)) {
     motif.names <- as.list(x = names(x = pwm))

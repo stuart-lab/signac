@@ -39,7 +39,6 @@ library(JASPAR2020)
 library(TFBSTools)
 library(BSgenome.Mmusculus.UCSC.mm10)
 library(patchwork)
-set.seed(1234)
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -72,10 +71,10 @@ mouse_brain <- AddMotifs(
 )
 ```
 
-To facilitate motif analysis in Signac, we have create the `Motif` class to
+To facilitate motif analysis in Signac, we have created the `Motif` class to
 store all the required information, including a list of position weight matrices
 (PWMs) or position frequency matrices (PFMs) and a motif occurrence matrix.
-Here, the `AddMotifs()` function construct a `Motif` object and adds it to our
+Here, the `AddMotifs()` function constructs a `Motif` object and adds it to our
 mouse brain dataset, along with other information such as the base composition
 of each peak. A motif object can be added to any Seurat assay using the `SetAssayData()`
 function. See the [object interaction vignette](data_structures.html) for
@@ -233,7 +232,7 @@ MotifPlot(
 
 <details>
   <summary>**Session Info**</summary>
-  
+
 ```{r}
 sessionInfo()
 ```

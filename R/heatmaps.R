@@ -95,7 +95,7 @@ RegionMatrix.ChromatinAssay <- function(
   )
   
   # get normalization factors
-  cells.per.group <- cells.per.group <- table(group.by, useNA = "always")
+  cells.per.group <- table(group.by, useNA = "always")
   lut <- as.vector(x = cells.per.group)
   names(x = lut) <- names(x = cells.per.group)
   
@@ -182,75 +182,59 @@ RegionMatrix.default <- function(
         ncol = ncol.mat
       )
     }
-
-    # get fragments in region
-    if (length(x = plus.strand) > 0) {
-      frags_plus <- scanTabix(file = tabix.file, param = plus.strand)
+    
+    if (length(x = regions) > 0) {
+      frags <- scanTabix(file = tabix.file, param = regions)
+      res <- TabixOutputToDataFrame(
+        reads = frags, record.ident = TRUE
+      )
       
-      for (j in seq_along(along.with = frags_plus)) {
-        if (length(x = frags_plus[[j]]) == 0) {
-          next
-        }
-        res <- TabixOutputToDataFrame(reads = frags_plus[[j]])
-        
+      # assign counts to cell groups
+      for (j in unique(x = res$ident)) { # for each region
+        res_region <- res[res$ident == j, ]
         # subtract start from fragment position
-        res$start <- res$start - start(x = plus.strand[j])
-        res$end <- res$end - start(x = plus.strand[j])
+        on_plus <- as.logical(strand(x = regions[j]) == "+" |
+                                strand(x = regions[j]) == "*")
+        res_region$start <- res_region$start - start(x = regions[j])
+        res_region$end <- res_region$end - start(x = regions[j])
         
         # remove out of bounds positions
-        res <- res[res$start > 0 & res$start < ncol.mat, , drop = FALSE]
-        res <- res[res$end > 0 & res$end < ncol.mat, , drop = FALSE]
-        
+        res_region <- res_region[
+          res_region$start > 0 & res_region$start < ncol.mat, , drop = FALSE
+        ]
+        res_region <- res_region[
+          res_region$end > 0 & res_region$end < ncol.mat, , drop = FALSE
+        ]
         for (cell in unique.groups) {
           cells.keep <- names(x = group.by[group.by == cell])
-          subfrag <- res[
+          subfrag <- res_region[
             fmatch(
-              x = res$cell,
+              x = res_region$cell,
               table = cellnames[cells.keep],
               nomatch = 0L
-              ) > 0, ,
+            ) > 0, ,
             drop = FALSE]
-          startpos <- subfrag$start
-          endpos <- subfrag$end
-          tmplist[[cell]][j, startpos] <- tmplist[[cell]][j, startpos] + 1
-          tmplist[[cell]][j, endpos] <- tmplist[[cell]][j, endpos] + 1
-        }
-      }
-    }
-    
-    if (length(x = minus.strand) > 0) {
-      frags_minus <- scanTabix(file = tabix.file, param = minus.strand)
-      close(con = tabix.file)
-      for (j in seq_along(along.with = frags_minus)) {
-        if (length(x = frags_minus[[j]]) == 0) {
-          next
-        }
-        res <- TabixOutputToDataFrame(reads = frags_minus[[j]])
-
-        # subtract start from fragment position
-        res$start <- res$start - start(x = minus.strand[j])
-        res$end <- res$end - start(x = minus.strand[j])
-        
-        # remove out of bounds positions
-        res <- res[res$start > 0 & res$start < ncol.mat, , drop = FALSE]
-        res <- res[res$end > 0 & res$end < ncol.mat, , drop = FALSE]
-        
-        for (cell in unique.groups) {
-          cells.keep <- names(x = group.by[group.by == cell])
-          subfrag <- res[
-            fmatch(x = res$cell, table = cells.keep, nomatch = 0L) > 0, ,
-            drop = FALSE]
-          startpos <- total_bases - subfrag$start
-          endpos <- total_bases - subfrag$end
-          tmplist[[cell]][j, startpos] <- tmplist[[cell]][j, startpos] + 1
-          tmplist[[cell]][j, endpos] <- tmplist[[cell]][j, endpos] + 1
+          if (nrow(x = subfrag) > 0) {
+            if (on_plus) {
+              startpos <- subfrag$start
+              endpos <- subfrag$end
+            } else {
+              # reverse for minus strand
+              startpos <- total_bases - subfrag$start
+              endpos <- total_bases - subfrag$end
+            }
+            tmplist[[cell]][j, startpos] <- tmplist[[cell]][j, startpos] + 1
+            tmplist[[cell]][j, endpos] <- tmplist[[cell]][j, endpos] + 1
+          }
         }
       }
     }
     
     if (i == 1) {
+      # one fragment file
       matlist <- tmplist
     } else {
+      # sum acros fragment files
       for (cell in unique.groups) {
         matlist[[cell]] <- matlist[[cell]] + tmplist[[cell]]
       }

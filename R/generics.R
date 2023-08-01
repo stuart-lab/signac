@@ -4,7 +4,10 @@
 #' information and add it to an existing Seurat object or ChromatinAssay.
 #' If running on a Seurat object, \code{AddMotifs} will also run
 #' \code{\link{RegionStats}} to compute the GC content of each peak and store
-#' the results in the feature metadata.
+#' the results in the feature metadata. PFMs or PWMs are matched to the genome
+#' sequence using the \code{\link[motifmatchr]{matchMotifs}} function with
+#' default parameters to construct a matrix of motif positions in genomic
+#' regions.
 #'
 #' @param object A Seurat object or ChromatinAssay object
 #' @param ... Additional arguments passed to other methods
@@ -13,6 +16,7 @@
 #' @return When running on a \code{ChromatinAssay} or \code{Seurat} object,
 #' returns a modified version of the input object. When running on a matrix,
 #' returns a \code{Motif} object.
+#' @seealso \pkg{motifmatchr}
 AddMotifs <- function(object, ...) {
   UseMethod(generic = "AddMotifs", object = object)
 }

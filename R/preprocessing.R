@@ -138,6 +138,26 @@ CreateMotifMatrix <- function(
     stop("Please install motifmatchr.
          https://www.bioconductor.org/packages/motifmatchr/")
   }
+
+  # genome can be string
+  if (is.character(x = genome)) {
+      if (!requireNamespace("BSgenome", quietly = TRUE)) {
+        stop("Please install BSgenome.
+             https://www.bioconductor.org/packages/BSgenome/")
+      }
+      genome <- BSgenome::getBSgenome(genome = genome)
+  }
+
+  # check that all seqnames in features are in genome
+  # remove missing, replace later with zeros and show warning
+  miss_sn <- !(as.character(seqnames(x = features)) %in% seqlevels(x = genome))
+  if (sum(miss_sn) > 0) {
+    warning("Not all seqlevels present in supplied genome",
+            immediate. = TRUE)
+    # remove from features and remember original order
+    feature_order <- features
+    features <- features[!miss_sn]
+  }
   motif_ix <- motifmatchr::matchMotifs(
     pwms = pwm,
     subject = features,
@@ -162,6 +182,21 @@ CreateMotifMatrix <- function(
     colnames(x = motif.matrix) <- vapply(
       X = pwm, FUN = slot, FUN.VALUE = "character", "name"
     )
+  }
+  # add missing features
+  if (sum(miss_sn) > 0) {
+    replacement_matrix <- sparseMatrix(
+      i = sum(miss_sn),
+      j = ncol(x = motif.matrix)
+    )
+    rownames(x = replacement_matrix) <- GRangesToString(
+      grange = feature_order[miss_sn], sep = sep
+    )
+    colnames(x = replacement_matrix) <- colnames(x = motif.matrix)
+    motif.matrix <- rbind(motif.matrix, replacement_matrix)
+    motif.matrix <- motif.matrix[GRangesToString(
+      grange = feature_order, sep = sep
+      ), ]
   }
   return(motif.matrix)
 }
@@ -206,9 +241,9 @@ DownsampleFeatures <- function(
 #' for the object. This can be a percentile specified as 'q' followed by the
 #' minimum percentile, for example 'q5' to set the top 95\% most common features
 #' as the VariableFeatures for the object. Alternatively, this can be an integer
-#' specifying the minimum number of cells containing the feature for the feature
+#' specifying the minimum number of counts for the feature
 #' to be included in the set of VariableFeatures. For example, setting to 10
-#' will include features in >10 cells in the set of VariableFeatures. If NULL,
+#' will include features with >10 total counts in the set of VariableFeatures. If NULL,
 #' include all features in VariableFeatures. If NA, VariableFeatures will not be
 #' altered, and only the feature metadata will be updated with the total counts
 #' and percentile rank for each feature.

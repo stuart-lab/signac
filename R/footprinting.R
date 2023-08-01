@@ -16,7 +16,15 @@ NULL
 #' @param group.by A grouping variable
 #' @param idents Set of identities to group cells by
 #' @export
-#' @return Returns a matrix
+#' @return Returns a data.frame with the following columns:
+#' \itemize{
+#'   \item{group: Cell group (determined by group.by parameter}
+#'   \item{position: Position relative to motif center}
+#'   \item{count: Normalized Tn5 insertion counts at each position}
+#'   \item{norm.value: Normalized Tn5 insertion counts at each position (same as count)}
+#'   \item{feature: Name of the footprinted motif}
+#'   \item{class: observed or expected}
+#'  }
 #' @concept footprinting
 #' @importFrom SeuratObject DefaultAssay
 GetFootprintData <- function(
