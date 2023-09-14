@@ -105,7 +105,7 @@ object[["peaks"]] <- CreateChromatinAssay(counts = counts, genome = "hg19")
 ### Getting and setting `ChromatinAssay` data
 
 We can get/set data for the `ChromatinAssay` in much the same way we do for a
-standard `Assay` object: using the `GetAssayData` and `SetAssayData` functions
+standard `Assay` object: using the `LayerData` function
 defined in `Seurat`. For example:
 
 ```{r}
@@ -358,7 +358,7 @@ Fragments(chrom_assay)
 To remove a subset of `Fragment` object from the list of `Fragment` objects
 stored in the `ChromatinAssay`, you will need to extract the list of `Fragment`
 objects using the `Fragments()` function, subset the list of objects, then
-assign the subsetted list to the assay using the `Seurat::SetAssayData()`
+assign the subsetted list to the assay using the `LayerData()`
 function. For example:
 
 ```{r}
