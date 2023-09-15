@@ -10,6 +10,13 @@ Here we demonstrate parallelization of the `FeatureMatrix` function and show som
 The [Seurat](https://satijalab.org/seurat/) package also uses `future` for 
 parallelization, and you can see the Seurat [vignette](https://satijalab.org/seurat/v3.1/future_vignette.html) for more information.
 
+The following functions currently enable parallelization in Signac:
+
+* Quantification (FeatureMatrix and related functions)
+* TSS enrichment
+* Footprinting
+* LinkPeaks
+
 ## How to enable parallelization in Signac
 
 Parallelization can be enabled simply by importing the `future` package and setting the `plan`.
