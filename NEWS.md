@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Fix error when supplying genome string to `AddMotifs()` function ([#1437](https://github.com/stuart-lab/signac/issues/1437))
+* Fix error in quantification with multiple fragment files ([#1474](https://github.com/stuart-lab/signac/issues/1474))
 
 Other changes:
 

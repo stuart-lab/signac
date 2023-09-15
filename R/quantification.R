@@ -269,14 +269,15 @@ FeatureMatrix <- function(
   if (length(x = mat.list) == 1) {
     return(mat.list[[1]])
   } else {
-    # ensure all cells present, same order
+    # ensure all cells and features present, same order
     all.cells <- unique(
       x = unlist(x = lapply(X = mat.list, FUN = colnames))
     )
     mat.list <- lapply(
       X = mat.list,
-      FUN = AddMissingCells,
-      cells = all.cells
+      FUN = AddMissing,
+      cells = all.cells,
+      features = GRangesToString(grange = features, sep = c("-", "-"))
     )
     featmat <- Reduce(f = `+`, x = mat.list)
     return(featmat)
@@ -400,8 +401,9 @@ SingleFeatureMatrix <- function(
     )
     matrix.parts <- lapply(
       X = matrix.parts,
-      FUN = AddMissingCells,
-      cells = all.cells
+      FUN = AddMissing,
+      cells = all.cells,
+      features = NULL
     )
   }
   featmat <- do.call(what = rbind, args = matrix.parts)
