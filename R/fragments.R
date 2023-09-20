@@ -318,10 +318,7 @@ CreateFragmentObject <- function(
   if (!file.exists(path) & !is.remote) {
     stop("Fragment file does not exist.")
   }
-  index.file <- paste0(path, ".tbi")
-  if (!file.exists(index.file) & !is.remote) {
-    stop("Fragment file is not indexed.")
-  }
+  index.file <- GetIndexFile(fragment = path, verbose = verbose)
   if (is.remote) {
     con <- gzcon(con = url(description = path))
   } else {
@@ -571,3 +568,31 @@ AssignFragCellnames <- function(fragments, cellnames) {
   }
   return(fragments)
 }
+
+# Get index file path
+# checks csi and tbi extensions
+# tbi used if both present
+# @param fragment fragment file path
+# @param verbose display messages
+# @return returns the index file path
+GetIndexFile <- function(fragment, verbose = TRUE) {
+  is.remote <- isRemote(x = fragment)
+  index.filepaths <- c(paste0(fragment, ".tbi"),
+                       paste0(fragment, ".csi"))
+  index.file <- index.filepaths[file.exists(index.filepaths)]
+  if (length(x = index.file) == 0 & !is.remote) {
+    stop("Fragment file is not indexed.")
+  } else if(length(x = index.file) == 0) {
+    if (verbose) {
+      message("Fragment file is on a remote server")
+    }
+    index.file = paste0(fragment, ".tbi")
+  } else if (length(x = index.file) == 2) {
+    if (verbose) {
+      message("TBI and CSI index both present, using TBI index")
+    }
+    index.file <- index.file[1]
+  }
+  return(index.file)
+}
+

@@ -270,7 +270,10 @@ TSSFast <- function(
     } else {
       cellmap <- cellmap[intersect(names(x = cellmap), colnames(x = object))]
     }
-    tbx <- TabixFile(file = tbx.path)
+    tbx <- TabixFile(
+      file = tbx.path,
+      index = GetIndexFile(fragment = tbx.path, verbose = FALSE)
+    )
     # iterate over chunked ranges
     res <- mylapply(
       X = seq_along(along.with = centers),

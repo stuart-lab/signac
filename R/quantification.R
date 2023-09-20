@@ -352,7 +352,10 @@ SingleFeatureMatrix <- function(
       cells <- frag.cells
     }
   }
-  tbx <- TabixFile(file = fragment.path)
+  tbx <- TabixFile(
+    file = fragment.path,
+    index = GetIndexFile(fragment = fragment.path, verbose = FALSE)
+  )
   features <- keepSeqlevels(
     x = features,
     value = intersect(

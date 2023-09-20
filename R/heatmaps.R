@@ -167,7 +167,10 @@ RegionMatrix.default <- function(
     # open tabix connection
     fragfile <- GetFragmentData(object = object[[i]], slot = "path")
     cellnames <- GetFragmentData(object = object[[i]], slot = "cells")
-    tabix.file <- TabixFile(file = fragfile)
+    tabix.file <- TabixFile(
+      file = fragfile,
+      index = GetIndexFile(fragment = fragfile, verbose = FALSE)
+    )
     open(con = tabix.file)
     
     # initialize empty matrix for each group of cells
