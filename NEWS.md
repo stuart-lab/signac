@@ -8,6 +8,7 @@ Bug fixes:
 Other changes:
 
 * Added `region_extension` parameter to `TSSEnrichment()` function to enable changing the size of the region used to compute TSS enrichment scores ([#1444](https://github.com/stuart-lab/signac/pull/1402); @twmcart)
+* Allow fragment files with a CSI index ([#1494](https://github.com/stuart-lab/signac/issues/1494))
 
 # Signac 1.10.0
 
