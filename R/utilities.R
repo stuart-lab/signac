@@ -1033,8 +1033,8 @@ NonOverlapping <- function(x, all.features) {
 }
 
 #' @importFrom Matrix sparseMatrix
-AddMissingCells <- function(x, cells) {
-  # add columns with zeros for cells not in matrix
+AddMissing <- function(x, cells, features = NULL) {
+  # add columns with zeros for cells or features not in matrix
   missing.cells <- setdiff(x = cells, y = colnames(x = x))
   if (!(length(x = missing.cells) == 0)) {
     null.mat <- sparseMatrix(
@@ -1047,6 +1047,20 @@ AddMissingCells <- function(x, cells) {
     x <- cbind(x, null.mat)
   }
   x <- x[, cells, drop = FALSE]
+  if (!is.null(x = features)) {
+    missing.features <- setdiff(x = features, y = rownames(x = x))
+    if (!(length(x = missing.features) == 0)) {
+      null.mat <- sparseMatrix(
+        i = c(),
+        j = c(),
+        dims = c(length(x = missing.features), ncol(x = x))
+      )
+      rownames(x = null.mat) <- missing.features
+      colnames(x = null.mat) <- colnames(x = x)
+      x <- rbind(x, null.mat)
+    }
+    x <- x[features, , drop = FALSE]
+  }
   return(x)
 }
 
@@ -1437,7 +1451,10 @@ MultiGetReadsInRegion <- function(
   for (i in seq_along(along.with = fragment.list)) {
     tbx.path <- GetFragmentData(object = fragment.list[[i]], slot = "path")
     cellmap <- GetFragmentData(object = fragment.list[[i]], slot = "cells")
-    tabix.file <- TabixFile(file = tbx.path)
+    tabix.file <- TabixFile(
+      file = tbx.path,
+      index = GetIndexFile(fragment = tbx.path, verbose = FALSE)
+    )
     open(con = tabix.file)
     reads <- GetReadsInRegion(
       cellmap = cellmap,
@@ -1559,7 +1576,10 @@ CutMatrix <- function(
   for (i in seq_along(along.with = fragments)) {
     fragment.path <- GetFragmentData(object = fragments[[i]], slot = "path")
     cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
-    tabix.file <- TabixFile(file = fragment.path)
+    tabix.file <- TabixFile(
+      file = fragment.path,
+      index = GetIndexFile(fragment = fragment.path, verbose = FALSE)
+    )
     open(con = tabix.file)
     # remove regions that aren't in the fragment file
     seqnames.in.both <- intersect(
@@ -1627,7 +1647,10 @@ MultiRegionCutMatrix <- function(
       cellmap <- colnames(x = object)
       names(x = cellmap) <- cellmap
     }
-    tabix.file <- TabixFile(file = frag.path)
+    tabix.file <- TabixFile(
+      file = frag.path,
+      index = GetIndexFile(fragment = frag.path, verbose = FALSE)
+    )
     open(con = tabix.file)
     # remove regions that aren't in the fragment file
     common.seqlevels <- intersect(
@@ -2161,7 +2184,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
     colnames(x = featmat) <- names(x = cell.lookup)[1:max(cells.in.regions)]
     # add zero columns for missing cells
     if (!is.null(x = cells)) {
-      featmat <- AddMissingCells(x = featmat, cells = cells)
+      featmat <- AddMissing(x = featmat, cells = cells, features = NULL)
     }
     # add zero rows for missing features
     missing.features <- all.features[!(all.features %in% rownames(x = featmat))]
