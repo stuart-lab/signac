@@ -195,7 +195,7 @@ Installation instructions for SeuratDisk can be found [here](https://github.com/
 library(SeuratDisk)
 
 # load PBMC reference
-reference <- LoadH5Seurat("../vignette_data/multiomic/pbmc_multimodal.h5seurat", assays = "SCT", reductions = 'spca')
+reference <- LoadH5Seurat("../vignette_data/multiomic/pbmc_multimodal.h5seurat", assays = list("SCT" = "counts"), reductions = 'spca')
 
 DefaultAssay(pbmc) <- "SCT"
 
