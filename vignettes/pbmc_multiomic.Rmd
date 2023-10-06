@@ -127,14 +127,26 @@ peaks <- CallPeaks(pbmc)
 # remove peaks on nonstandard chromosomes and in genomic blacklist regions
 peaks <- keepStandardChromosomes(peaks, pruning.mode = "coarse")
 peaks <- subsetByOverlaps(x = peaks, ranges = blacklist_hg38_unified, invert = TRUE)
+```
 
+```{r include=FALSE}
+gc()
+```
+
+```{r message=FALSE, warning=FALSE}
 # quantify counts in each peak
 macs2_counts <- FeatureMatrix(
   fragments = Fragments(pbmc),
   features = peaks,
   cells = colnames(pbmc)
 )
+```
 
+```{r include=FALSE}
+gc()
+```
+
+```{r}
 # create a new assay using the MACS2 peak set and add it to the Seurat object
 pbmc[["peaks"]] <- CreateChromatinAssay(
   counts = macs2_counts,
@@ -183,7 +195,7 @@ Installation instructions for SeuratDisk can be found [here](https://github.com/
 library(SeuratDisk)
 
 # load PBMC reference
-reference <- LoadH5Seurat("../vignette_data/multiomic/pbmc_multimodal.h5seurat")
+reference <- LoadH5Seurat("../vignette_data/multiomic/pbmc_multimodal.h5seurat", assays = "SCT", reductions = 'spca')
 
 DefaultAssay(pbmc) <- "SCT"
 
