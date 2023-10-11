@@ -477,6 +477,15 @@ packages. Position frequency matrices for motifs can be loaded using the
 or the [chromVARmotifs](https://github.com/GreenleafLab/chromVARmotifs) package.
 For example:
 
+```{r include=FALSE}
+if (!requireNamespace("JASPAR2020", quietly = TRUE))
+    BiocManager::install("JASPAR2020")
+if (!requireNamespace("TFBSTools", quietly = TRUE))
+    BiocManager::install("TFBSTools")
+if (!requireNamespace("motifmatchr", quietly = TRUE))
+    BiocManager::install("motifmatchr")
+```
+
 ```{r message=FALSE, warning=FALSE}
 library(JASPAR2020)
 library(TFBSTools)
