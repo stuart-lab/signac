@@ -484,6 +484,8 @@ if (!requireNamespace("TFBSTools", quietly = TRUE))
     BiocManager::install("TFBSTools")
 if (!requireNamespace("motifmatchr", quietly = TRUE))
     BiocManager::install("motifmatchr")
+if (!requireNamespace("BSgenome.Hsapiens.UCSC.hg19", quietly = TRUE))
+    BiocManager::install("BSgenome.Hsapiens.UCSC.hg19")
 ```
 
 ```{r message=FALSE, warning=FALSE}
