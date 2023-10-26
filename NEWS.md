@@ -1,3 +1,9 @@
+# Unreleased
+
+Bug fixes:
+
+* Fixed bug in fragment file filtering with `FilterCells()` ([#1509](https://github.com/stuart-lab/signac/issues/1509))
+
 # Signac 1.11.0
 
 Bug fixes:
