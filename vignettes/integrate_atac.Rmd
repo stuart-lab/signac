@@ -266,7 +266,7 @@ parameter to a list of values.
 # predict gene expression values
 rna <- TransferData(
   anchorset = transfer.anchors,
-  refdata = GetAssayData(pbmc.multi, assay = "RNA", slot = "data"),
+  refdata = LayerData(pbmc.multi, assay = "SCT", layer = "data"),
   weight.reduction = pbmc.atac[["lsi"]],
   dims = 2:30
 )
