@@ -255,7 +255,7 @@ DownsampleFeatures <- function(
 #' @export
 #' @concept preprocessing
 #' @examples
-#' FindTopFeatures(object = atac_small[['peaks']][])
+#' FindTopFeatures(object = atac_small[['peaks']]['data'])
 FindTopFeatures.default <- function(
   object,
   assay = NULL,
