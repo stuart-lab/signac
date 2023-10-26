@@ -63,6 +63,7 @@ int filterCells(
     return 1;
   }
 
+  line_seq.clear();
   // looping over the fragments file
   do {
     line_seq.append(buffer);
