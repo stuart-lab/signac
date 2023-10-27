@@ -4,6 +4,7 @@
 \alias{IdentifyVariants}
 \alias{IdentifyVariants.default}
 \alias{IdentifyVariants.Assay}
+\alias{IdentifyVariants.StdAssay}
 \alias{IdentifyVariants.Seurat}
 \title{Identify mitochondrial variants}
 \usage{
@@ -19,6 +20,8 @@ IdentifyVariants(object, ...)
 )
 
 \method{IdentifyVariants}{Assay}(object, refallele, ...)
+
+\method{IdentifyVariants}{StdAssay}(object, refallele, ...)
 
 \method{IdentifyVariants}{Seurat}(object, refallele, assay = NULL, ...)
 }

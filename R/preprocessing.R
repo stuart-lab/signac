@@ -325,6 +325,30 @@ FindTopFeatures.Assay <- function(
 }
 
 #' @rdname FindTopFeatures
+#' @importFrom SeuratObject GetAssayData VariableFeatures
+#' @importFrom utils packageVersion
+#' @export
+#' @method FindTopFeatures StdAssay
+#' @concept preprocessing
+#' @examples
+#' FindTopFeatures(object = atac_small[['peaks']])
+FindTopFeatures.StdAssay <- function(
+    object,
+    assay = NULL,
+    min.cutoff = "q5",
+    verbose = TRUE,
+    ...
+) {
+  FindTopFeatures.Assay(
+    object = object,
+    assay = assay,
+    min.cutoff = min.cutoff,
+    verbose = verbose,
+    ...
+  )
+}
+
+#' @rdname FindTopFeatures
 #' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @concept preprocessing
@@ -728,6 +752,32 @@ RunTFIDF.Assay <- function(
     new.data = new.data
   )
   return(object)
+}
+
+#' @rdname RunTFIDF
+#' @method RunTFIDF StdAssay
+#' @export
+#' @concept preprocessing
+#' @examples
+#' RunTFIDF(atac_small[['peaks']])
+RunTFIDF.StdAssay <- function(
+    object,
+    assay = NULL,
+    method = 1,
+    scale.factor = 1e4,
+    idf = NULL,
+    verbose = TRUE,
+    ...
+) {
+  RunTFIDF.Assay(
+    object = object,
+    assay = assay,
+    method = method,
+    scale.factor = scale.factor,
+    idf = idf,
+    verbose = verbose,
+    ...
+  )
 }
 
 #' @param assay Name of assay to use

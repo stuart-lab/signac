@@ -95,6 +95,18 @@ AlleleFreq.Assay <- function(object, variants, ...) {
   return(allele.assay)
 }
 
+#' @rdname AlleleFreq
+#' @importFrom SeuratObject CreateAssayObject GetAssayData
+#' @concept mito
+#' @export
+#' @method AlleleFreq StdAssay
+AlleleFreq.StdAssay <- function(object, variants, ...) {
+  mat <- GetAssayData(object = object, layer = "counts")
+  allele.freq <- AlleleFreq(object = mat, variants = variants, ...)
+  allele.assay <- CreateAssayObject(counts = allele.freq)
+  return(allele.assay)
+}
+
 #' @param assay Name of assay to use
 #' @param new.assay.name Name of new assay to store variant data in
 #' @rdname AlleleFreq
@@ -441,6 +453,21 @@ IdentifyVariants.Assay <- function(
   ...
 ) {
   counts <- GetAssayData(object = object, slot = 'counts')
+  df <- IdentifyVariants(object = counts, refallele = refallele, ...)
+  return(df)
+}
+
+#' @importFrom SeuratObject GetAssayData
+#' @rdname IdentifyVariants
+#' @method IdentifyVariants StdAssay
+#' @concept mito
+#' @export
+IdentifyVariants.StdAssay <- function(
+    object,
+    refallele,
+    ...
+) {
+  counts <- GetAssayData(object = object, layer = 'counts')
   df <- IdentifyVariants(object = counts, refallele = refallele, ...)
   return(df)
 }

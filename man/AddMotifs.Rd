@@ -5,6 +5,7 @@
 \alias{AddMotifs.default}
 \alias{AddMotifs.ChromatinAssay}
 \alias{AddMotifs.Assay}
+\alias{AddMotifs.StdAssay}
 \alias{AddMotifs.Seurat}
 \title{Add DNA sequence motif information}
 \usage{
@@ -15,6 +16,8 @@ AddMotifs(object, ...)
 \method{AddMotifs}{ChromatinAssay}(object, genome, pfm, verbose = TRUE, ...)
 
 \method{AddMotifs}{Assay}(object, genome, pfm, verbose = TRUE, ...)
+
+\method{AddMotifs}{StdAssay}(object, genome, pfm, verbose = TRUE, ...)
 
 \method{AddMotifs}{Seurat}(object, genome, pfm, assay = NULL, verbose = TRUE, ...)
 }

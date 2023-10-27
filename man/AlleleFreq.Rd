@@ -4,6 +4,7 @@
 \alias{AlleleFreq}
 \alias{AlleleFreq.default}
 \alias{AlleleFreq.Assay}
+\alias{AlleleFreq.StdAssay}
 \alias{AlleleFreq.Seurat}
 \title{Compute allele frequencies per cell}
 \usage{
@@ -12,6 +13,8 @@ AlleleFreq(object, ...)
 \method{AlleleFreq}{default}(object, variants, ...)
 
 \method{AlleleFreq}{Assay}(object, variants, ...)
+
+\method{AlleleFreq}{StdAssay}(object, variants, ...)
 
 \method{AlleleFreq}{Seurat}(object, variants, assay = NULL, new.assay.name = "alleles", ...)
 }

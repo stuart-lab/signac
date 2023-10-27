@@ -163,6 +163,37 @@ RunSVD.Assay <- function(
   return(reduction.data)
 }
 
+#' @param features Which features to use. If NULL, use variable features
+#'
+#' @rdname RunSVD
+#' @importFrom SeuratObject VariableFeatures GetAssayData
+#' @export
+#' @concept dimension_reduction
+#' @method RunSVD StdAssay
+#' @examples
+#' RunSVD(atac_small[['peaks']])
+RunSVD.StdAssay <- function(
+    object,
+    assay = NULL,
+    features = NULL,
+    n = 50,
+    reduction.key = "LSI_",
+    scale.max = NULL,
+    verbose = TRUE,
+    ...
+) {
+  RunSVD.Assay(
+    object = object,
+    assay = assay,
+    features = features,
+    n = n,
+    reduction.key = reduction.key,
+    scale.max = scale.max,
+    verbose = verbose,
+    ...
+  )
+}
+
 #' @param reduction.name Name for stored dimension reduction object.
 #' Default 'svd'
 #' @rdname RunSVD

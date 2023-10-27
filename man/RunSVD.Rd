@@ -4,6 +4,7 @@
 \alias{RunSVD}
 \alias{RunSVD.default}
 \alias{RunSVD.Assay}
+\alias{RunSVD.StdAssay}
 \alias{RunSVD.Seurat}
 \title{Run singular value decomposition}
 \usage{
@@ -23,6 +24,17 @@ RunSVD(object, ...)
 )
 
 \method{RunSVD}{Assay}(
+  object,
+  assay = NULL,
+  features = NULL,
+  n = 50,
+  reduction.key = "LSI_",
+  scale.max = NULL,
+  verbose = TRUE,
+  ...
+)
+
+\method{RunSVD}{StdAssay}(
   object,
   assay = NULL,
   features = NULL,
@@ -85,6 +97,7 @@ Run partial singular value decomposition using \code{\link[irlba]{irlba}}
 \examples{
 x <- matrix(data = rnorm(100), ncol = 10)
 RunSVD(x)
+RunSVD(atac_small[['peaks']])
 RunSVD(atac_small[['peaks']])
 RunSVD(atac_small)
 }

@@ -108,6 +108,21 @@ AddMotifs.Assay <- function(
        "Please supply a ChromatinAssay instead.")
 }
 
+#' @rdname AddMotifs
+#' @method AddMotifs StdAssay
+#' @concept motifs
+#' @export
+AddMotifs.StdAssay <- function(
+    object,
+    genome,
+    pfm,
+    verbose = TRUE,
+    ...
+) {
+  stop("Attempting to run AddMotifs on an Assay5 assay.\n",
+       "Please supply a ChromatinAssay instead.")
+}
+
 #' @param assay Name of assay to use. If NULL, use the default assay
 #' @param genome A \code{BSgenome}, \code{DNAStringSet}, \code{FaFile}, or
 #' string stating the genome build recognized by \code{getBSgenome}.
@@ -453,6 +468,14 @@ ConvertMotifID.ChromatinAssay <- function(object, ...) {
 #' @export
 ConvertMotifID.Assay <- function(object, ...) {
   stop("Cannot run ConvertMotifID on a standard Assay object")
+}
+
+#' @method ConvertMotifID StdAssay
+#' @rdname ConvertMotifID
+#' @concept motifs
+#' @export
+ConvertMotifID.StdAssay <- function(object, ...) {
+  stop("Cannot run ConvertMotifID on an Assay5 object")
 }
 
 #' @param assay For \code{Seurat} object. Name of assay to use.
