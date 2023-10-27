@@ -87,7 +87,6 @@ crc_assay <- CreateChromatinAssay(
   sep = c(":", "-"),
   annotation = annotations,
   min.cells = 10,
-  genome = "hg19",
   fragments = '../vignette_data/mito/CRC_v12-mtMask_mgatk.fragments.tsv.gz'
 )
 crc <- CreateSeuratObject(
@@ -181,7 +180,7 @@ crc <- FindTopFeatures(crc, min.cutoff = 10)
 crc <- RunSVD(crc)
 crc <- RunUMAP(crc, reduction = "lsi", dims = 2:50)
 crc <- FindNeighbors(crc, reduction = "lsi", dims = 2:50)
-crc <- FindClusters(crc, resolution = 0.5, algorithm = 3)
+crc <- FindClusters(crc, resolution = 0.7, algorithm = 3)
 ```
 
 ```{r message=FALSE, warning=FALSE}
