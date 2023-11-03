@@ -2372,7 +2372,7 @@ ExportGroupBW  <- function(
     mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply) 
   }
   covFiles <- mylapply(
-    x = GroupsNames,
+    GroupsNames,
     FUN = CreateBWGroup,
     availableChr,
     chromLengths,
