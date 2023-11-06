@@ -764,18 +764,28 @@ RenameCells.Fragment <- function(object, new.names, ...) {
 
 #' @importFrom SeuratObject SetAssayData
 #' @importFrom GenomeInfoDb genome Seqinfo
+#' @importFrom lifecycle deprecated is_present
 #' @method SetAssayData ChromatinAssay
 #' @concept assay
 #' @export
-SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
-  if (!(slot %in% slotNames(x = object))) {
+SetAssayData.ChromatinAssay <- function(
+    object,
+    layer,
+    new.data,
+    slot = deprecated(),
+    ...
+) {
+  if (is_present(arg = slot)) {
+    layer <- slot
+  }
+  if (!(layer %in% slotNames(x = object))) {
     stop(
-      "slot must be one of ",
+      "layer must be one of ",
       paste(slotNames(x = object), collapse = ", "),
       call. = FALSE
     )
   }
-  if (slot %in% c("counts", "data", "scale.data")) {
+  if (layer %in% c("counts", "data", "scale.data")) {
     if (!(is(object = new.data, class2 = "AnyMatrix"))) {
       stop("Data must be a matrix or sparseMatrix")
     }
@@ -783,7 +793,7 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
       stop("Number of columns in the provided matrix does not match
            the number of cells in the object")
     }
-    if (slot %in% c("counts", "data")) {
+    if (layer %in% c("counts", "data")) {
       if (nrow(x = object) != nrow(x = new.data)) {
         stop("Number of rows in provided matrix does not match
            the number of rows in the object")
@@ -795,19 +805,19 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
              the number of rows in the object")
       }
     }
-    slot(object = object, name = slot) <- new.data
-  } else if (slot == "seqinfo") {
+    slot(object = object, name = layer) <- new.data
+  } else if (layer == "seqinfo") {
     if (inherits(x = new.data, what = "Seqinfo")) {
-      slot(object = object, name = slot) <- new.data
+      slot(object = object, name = layer) <- new.data
     } else if (is(object = new.data, class2 = "character")) {
-      slot(object = object, name = slot) <- Seqinfo(genome = new.data)
+      slot(object = object, name = layer) <- Seqinfo(genome = new.data)
     } else if(is.null(x = new.data)) {
-      slot(object = object, name = slot) <- NULL
+      slot(object = object, name = layer) <- NULL
     } else {
       stop("Unknown object supplied. Choose a Seqinfo object or the name
            of a UCSC genome")
     }
-  } else if (slot == "fragments") {
+  } else if (layer == "fragments") {
     if (inherits(x = new.data, what = "list")) {
       # check that it's a list containing fragment class objects
       for (i in seq_along(new.data)) {
@@ -819,7 +829,7 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
       # single fragment object
       new.data <- list(new.data)
     }
-    frag.list <- GetAssayData(object = object, slot = "fragments")
+    frag.list <- GetAssayData(object = object, layer = "fragments")
     if (length(x = frag.list) != 0) {
       warning("Overwriting existing fragment objects")
     }
@@ -836,23 +846,23 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
         stop("Annotation genome does not match genome of the object")
         }
     }
-    slot(object = object, name = slot) <- new.data
-  } else if (slot == "bias") {
+    slot(object = object, name = layer) <- new.data
+  } else if (layer == "bias") {
     if (!is(object = new.data, class2 = "vector")) {
       stop("Bias must be provided as a vector")
     }
-    slot(object = object, name = slot) <- new.data
-  } else if (slot == "positionEnrichment") {
+    slot(object = object, name = layer) <- new.data
+  } else if (layer == "positionEnrichment") {
     if (inherits(x = new.data, what = "list")) {
       # list of position enrichment matrices being added
       if (length(x = new.data) == 0) {
         # if list is empty, assign and overwrite slot
-        slot(object = object, name = slot) <- new.data
+        slot(object = object, name = layer) <- new.data
       } else if (is.null(x = names(x = new.data))) {
         stop("If supplying a list of position enrichment matrices,
              each element must be named")
       } else {
-        current.data <- GetAssayData(object = object, slot = slot)
+        current.data <- GetAssayData(object = object, layer = layer)
         if (length(x = current.data) != 0) {
           warning("Overwriting current list of position enrichement matrices")
         }
@@ -863,7 +873,7 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
               )
           }
         }
-        slot(object = object, name = slot) <- new.data
+        slot(object = object, name = layer) <- new.data
       }
     } else if (!is(object = new.data, class2 = "AnyMatrix")) {
       stop("Position enrichment must be provided as a matrix or sparseMatrix")
@@ -875,19 +885,19 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
       } else {
         key <- args$key
       }
-      current.pos <- slot(object = object, name = slot)
+      current.pos <- slot(object = object, name = layer)
       current.pos[[key]] <- new.data
-      slot(object = object, name = slot) <- current.pos
+      slot(object = object, name = layer) <- current.pos
     }
-  } else if (slot == "ranges") {
+  } else if (layer == "ranges") {
     if (!is(object = new.data, class2 = "GRanges")) {
       stop("Must provide a GRanges object")
     } else if (length(x = new.data) != nrow(x = object)) {
       stop("Number of ranges provided is not equal to the number
            of features in the assay")
     }
-    slot(object = object, name = slot) <- new.data
-  } else if (slot == "motifs") {
+    slot(object = object, name = layer) <- new.data
+  } else if (layer == "motifs") {
     if (!inherits(x = new.data, what = "Motif")) {
       stop("Must provide a Motif class object")
     }
@@ -906,9 +916,9 @@ SetAssayData.ChromatinAssay <- function(object, slot, new.data, ...) {
         new.data <- new.data[keep.features, ]
       }
     }
-    slot(object = object, name = slot) <- new.data
-  } else if (slot == "links") {
-    slot(object = object, name = slot) <- new.data
+    slot(object = object, name = layer) <- new.data
+  } else if (layer == "links") {
+    slot(object = object, name = layer) <- new.data
   }
   return(object)
 }
