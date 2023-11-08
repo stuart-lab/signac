@@ -97,8 +97,14 @@ Run partial singular value decomposition using \code{\link[irlba]{irlba}}
 \examples{
 x <- matrix(data = rnorm(100), ncol = 10)
 RunSVD(x)
+\dontrun{
 RunSVD(atac_small[['peaks']])
+}
+\dontrun{
 RunSVD(atac_small[['peaks']])
+}
+\dontrun{
 RunSVD(atac_small)
+}
 }
 \concept{dimension_reduction}

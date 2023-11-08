@@ -134,7 +134,9 @@ RunSVD.default <- function(
 #' @concept dimension_reduction
 #' @method RunSVD Assay
 #' @examples
+#' \dontrun{
 #' RunSVD(atac_small[['peaks']])
+#' }
 RunSVD.Assay <- function(
   object,
   assay = NULL,
@@ -171,7 +173,9 @@ RunSVD.Assay <- function(
 #' @concept dimension_reduction
 #' @method RunSVD StdAssay
 #' @examples
+#' \dontrun{
 #' RunSVD(atac_small[['peaks']])
+#' }
 RunSVD.StdAssay <- function(
     object,
     assay = NULL,
@@ -200,7 +204,9 @@ RunSVD.StdAssay <- function(
 #' @export
 #' @concept dimension_reduction
 #' @examples
+#' \dontrun{
 #' RunSVD(atac_small)
+#' }
 #' @method RunSVD Seurat
 RunSVD.Seurat <- function(
   object,
