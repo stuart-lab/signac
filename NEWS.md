@@ -1,4 +1,4 @@
-# Unreleased
+# 1.12.0
 
 Bug fixes:
 
