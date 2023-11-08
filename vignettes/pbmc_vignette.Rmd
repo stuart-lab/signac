@@ -553,7 +553,7 @@ links (if they're stored in the object). See the
 
 ```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=6}
 # set plotting order
-levels(pbmc) <- c("CD4 Naive","CD4 Memory","CD8 Naive","CD8 effector","Double negative T cell","NK dim","pre-B cell",'B cell progenitor',"pDC","Dendritic cell","CD14+ Monocytes",'CD16+ Monocytes')
+levels(pbmc) <- c("CD4 Naive","CD4 Memory","CD8 Naive","CD8 effector","Double negative T cell","NK dim", "NK bright", "pre-B cell",'B cell progenitor',"pDC","CD14+ Monocytes",'CD16+ Monocytes')
 
 CoveragePlot(
   object = pbmc,
