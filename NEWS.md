@@ -1,4 +1,4 @@
-# 1.12.0
+# Signac 1.12.0
 
 Bug fixes:
 
