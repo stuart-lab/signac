@@ -516,7 +516,7 @@ LinksToGRanges <- function(linkmat, gene.coords, sep = c("-", "-")) {
   midpoints <- start(x = peak.ranges) + (width(x = peak.ranges) / 2)
 
   # convert to triplet form
-  dgtm <- as(object = linkmat, Class = "dgTMatrix")
+  dgtm <- as(object = linkmat, Class = "TsparseMatrix")
 
   # create dataframe
   df <- data.frame(
