@@ -1,3 +1,9 @@
+# Unreleased
+
+Other changes:
+
+* Add ability to plot links for certain genes only in `CoveragePlot()` ([#1459](https://github.com/stuart-lab/signac/issues/1459))
+
 # Signac 1.12.0
 
 Bug fixes:
