@@ -107,7 +107,11 @@ highlighted in grey. To change the color of the highlighting, include a
 metadata column in the GRanges object named "color" containing the color to
 use for each region.}
 
-\item{links}{Display links}
+\item{links}{Display links. This can be a TRUE/FALSE value which will 
+determine whether a links track is displayed, and if TRUE links for all genes
+in the plotted region will be shown. Alternatively, a character vector can be
+provided, giving a list of gene names to plot links for. If this is provided,
+only links for those genes will be displayed in the plot.}
 
 \item{tile}{Display per-cell fragment information in sliding windows. If
 plotting multi-assay data, only the first assay is shown in the tile plot.}
