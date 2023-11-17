@@ -71,9 +71,6 @@ To use a GTF file, you can import it using `rtracklayer`, for example:
 
 ```{r, eval=FALSE}
 gtf <- rtracklayer::import('genes.gtf')
-gene.coords <- gtf[gtf$type == 'gene']
-seqlevelsStyle(gene.coords) <- 'UCSC'
-gene.coords <- keepStandardChromosomes(gene.coords, pruning.mode = 'coarse')
 ```
 
 Alternatively, gene annotations for your species may be available on
