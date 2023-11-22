@@ -662,7 +662,7 @@ LayerData.ChromatinAssay <- function(
 #' @export
 #' @concept assay
 GetFragmentData <- function(object, slot = "path") {
-  return(slot(object = object, name = slot))
+  return(methods::slot(object = object, name = slot))
 }
 
 #' @param slot Information to pull from object (data, pwm, meta.data)
@@ -676,7 +676,7 @@ GetFragmentData <- function(object, slot = "path") {
 #' )
 #' GetMotifData(object = motif.obj)
 GetMotifData.Motif <- function(object, slot = "data", ...) {
-  return(slot(object = object, name = slot))
+  return(methods::slot(object = object, name = slot))
 }
 
 #' @importFrom SeuratObject GetAssayData
@@ -805,14 +805,14 @@ SetAssayData.ChromatinAssay <- function(
              the number of rows in the object")
       }
     }
-    slot(object = object, name = layer) <- new.data
+    methods::slot(object = object, name = layer) <- new.data
   } else if (layer == "seqinfo") {
     if (inherits(x = new.data, what = "Seqinfo")) {
-      slot(object = object, name = layer) <- new.data
+      methods::slot(object = object, name = layer) <- new.data
     } else if (is(object = new.data, class2 = "character")) {
-      slot(object = object, name = layer) <- Seqinfo(genome = new.data)
+      methods::slot(object = object, name = layer) <- Seqinfo(genome = new.data)
     } else if(is.null(x = new.data)) {
-      slot(object = object, name = layer) <- NULL
+      methods::slot(object = object, name = layer) <- NULL
     } else {
       stop("Unknown object supplied. Choose a Seqinfo object or the name
            of a UCSC genome")
@@ -833,8 +833,8 @@ SetAssayData.ChromatinAssay <- function(
     if (length(x = frag.list) != 0) {
       warning("Overwriting existing fragment objects")
     }
-    slot(object = object, name = "fragments") <- new.data
-  } else if (slot == "annotation") {
+    methods::slot(object = object, name = "fragments") <- new.data
+  } else if (layer == "annotation") {
     if (!is(object = new.data, class2 = "GRanges")) {
       stop("Must provide a GRanges object")
     }
@@ -846,18 +846,18 @@ SetAssayData.ChromatinAssay <- function(
         stop("Annotation genome does not match genome of the object")
         }
     }
-    slot(object = object, name = layer) <- new.data
+    methods::slot(object = object, name = layer) <- new.data
   } else if (layer == "bias") {
     if (!is(object = new.data, class2 = "vector")) {
       stop("Bias must be provided as a vector")
     }
-    slot(object = object, name = layer) <- new.data
+    methods::slot(object = object, name = layer) <- new.data
   } else if (layer == "positionEnrichment") {
     if (inherits(x = new.data, what = "list")) {
       # list of position enrichment matrices being added
       if (length(x = new.data) == 0) {
         # if list is empty, assign and overwrite slot
-        slot(object = object, name = layer) <- new.data
+        methods::slot(object = object, name = layer) <- new.data
       } else if (is.null(x = names(x = new.data))) {
         stop("If supplying a list of position enrichment matrices,
              each element must be named")
@@ -873,7 +873,7 @@ SetAssayData.ChromatinAssay <- function(
               )
           }
         }
-        slot(object = object, name = layer) <- new.data
+        methods::slot(object = object, name = layer) <- new.data
       }
     } else if (!is(object = new.data, class2 = "AnyMatrix")) {
       stop("Position enrichment must be provided as a matrix or sparseMatrix")
@@ -885,9 +885,9 @@ SetAssayData.ChromatinAssay <- function(
       } else {
         key <- args$key
       }
-      current.pos <- slot(object = object, name = layer)
+      current.pos <- methods::slot(object = object, name = layer)
       current.pos[[key]] <- new.data
-      slot(object = object, name = layer) <- current.pos
+      methods::slot(object = object, name = layer) <- current.pos
     }
   } else if (layer == "ranges") {
     if (!is(object = new.data, class2 = "GRanges")) {
@@ -896,7 +896,7 @@ SetAssayData.ChromatinAssay <- function(
       stop("Number of ranges provided is not equal to the number
            of features in the assay")
     }
-    slot(object = object, name = layer) <- new.data
+    methods::slot(object = object, name = layer) <- new.data
   } else if (layer == "motifs") {
     if (!inherits(x = new.data, what = "Motif")) {
       stop("Must provide a Motif class object")
@@ -916,9 +916,9 @@ SetAssayData.ChromatinAssay <- function(
         new.data <- new.data[keep.features, ]
       }
     }
-    slot(object = object, name = layer) <- new.data
+    methods::slot(object = object, name = layer) <- new.data
   } else if (layer == "links") {
-    slot(object = object, name = layer) <- new.data
+    methods::slot(object = object, name = layer) <- new.data
   }
   return(object)
 }
@@ -956,7 +956,7 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
   # TODO check that new data is compatible with existing slots
   # rownames of data must match rownames of meta.data and names of pwm, if not
   # empty
-  slot(object = object, name = slot) <- new.data
+  methods::slot(object = object, name = slot) <- new.data
   return(object)
 }
 
