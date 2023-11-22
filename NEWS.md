@@ -1,5 +1,9 @@
 # Unreleased
 
+Bug fixes:
+
+* Fix bug in `SetAssayData()` for `ChromatinAssay` objects ([#1538](https://github.com/stuart-lab/signac/issues/1538))
+
 Other changes:
 
 * Add ability to plot links for certain genes only in `CoveragePlot()` ([#1459](https://github.com/stuart-lab/signac/issues/1459))
