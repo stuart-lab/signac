@@ -28,24 +28,24 @@ NULL
 #' @export
 #' @concept utilities
 AddChromatinModule <- function(
-  object,
-  features,
-  genome,
-  assay = NULL,
-  verbose = TRUE,
-  ...
+    object,
+    features,
+    genome,
+    assay = NULL,
+    verbose = TRUE,
+    ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
     stop("The requested assay is not a ChromatinAssay.")
   }
-
+  
   # first find index of each feature
   feat.idx <- sapply(X = features, FUN = fmatch, rownames(x = object[[assay]]))
   j <- sapply(X = seq_along(along.with = features), FUN = function(x) {
     rep(x = x, length(x = features[[x]]))
   })
-
+  
   # construct sparse matrix with features
   mat <- sparseMatrix(
     i = unlist(x = feat.idx, use.names = FALSE),
@@ -55,7 +55,7 @@ AddChromatinModule <- function(
   )
   rownames(x = mat) <- rownames(x = object[[assay]])
   colnames(x = mat) <- names(x = features)
-
+  
   # run chromVAR
   cv <- RunChromVAR(
     object = object[[assay]],
@@ -64,7 +64,7 @@ AddChromatinModule <- function(
     verbose = verbose,
     ...
   )
-
+  
   # add module scores to metadata
   chromvar.data <- GetAssayData(object = cv, slot = "data")
   object <- AddMetaData(
@@ -92,10 +92,10 @@ globalVariables(names = c("group", "readcount"), package = "Signac")
 #' @examples
 #' AverageCounts(atac_small)
 AverageCounts <- function(
-  object,
-  assay = NULL,
-  group.by = NULL,
-  verbose = TRUE
+    object,
+    assay = NULL,
+    group.by = NULL,
+    verbose = TRUE
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (is.null(x = group.by)) {
@@ -135,11 +135,11 @@ AverageCounts <- function(
 #' @importFrom Matrix rowSums
 #' @return Returns a vector of peak names
 AccessiblePeaks <- function(
-  object,
-  assay = NULL,
-  idents = NULL,
-  cells = NULL,
-  min.cells = 10
+    object,
+    assay = NULL,
+    idents = NULL,
+    cells = NULL,
+    min.cells = 10
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   cells <- SetIfNull(x = cells, y = WhichCells(object, idents = idents))
@@ -165,8 +165,8 @@ AccessiblePeaks <- function(
 #' @examples
 #' CellsPerGroup(atac_small)
 CellsPerGroup <- function(
-  object,
-  group.by = NULL
+    object,
+    group.by = NULL
 ) {
   if (is.null(x = group.by)) {
     cellgroups <- Idents(object = object)
@@ -207,10 +207,10 @@ CellsPerGroup <- function(
 #' )
 #' }
 ClosestFeature <- function(
-  object,
-  regions,
-  annotation = NULL,
-  ...
+    object,
+    regions,
+    annotation = NULL,
+    ...
 ) {
   if (!is(object = regions, class2 = 'GRanges')) {
     regions <- StringToGRanges(regions = regions, ...)
@@ -290,16 +290,16 @@ ClosestFeature <- function(
 #' Fragments(atac_small) <- fragments
 #' GeneActivity(atac_small)
 GeneActivity <- function(
-  object,
-  assay = NULL,
-  features = NULL,
-  extend.upstream = 2000,
-  extend.downstream = 0,
-  biotypes = "protein_coding",
-  max.width = 500000,
-  process_n = 2000,
-  gene.id = FALSE,
-  verbose = TRUE
+    object,
+    assay = NULL,
+    features = NULL,
+    extend.upstream = 2000,
+    extend.downstream = 0,
+    biotypes = "protein_coding",
+    max.width = 500000,
+    process_n = 2000,
+    gene.id = FALSE,
+    verbose = TRUE
 ) {
   if (!is.null(x = features)) {
     if (length(x = features) == 0) {
@@ -334,7 +334,7 @@ GeneActivity <- function(
       stop("No genes remaining after filtering for requested biotypes")
     }
   }
-
+  
   # filter genes if provided
   if (!is.null(x = features)) {
     transcripts <- transcripts[transcripts$gene_name %in% features]
@@ -349,14 +349,14 @@ GeneActivity <- function(
       stop("No genes remaining after filtering for max.width")
     }
   }
-
+  
   # extend to include promoters
   transcripts <- Extend(
     x = transcripts,
     upstream = extend.upstream,
     downstream = extend.downstream
   )
-
+  
   # quantify
   frags <- Fragments(object = object[[assay]])
   if (length(x = frags) == 0) {
@@ -375,7 +375,7 @@ GeneActivity <- function(
   names(x = gene.key) <- GRangesToString(grange = transcripts)
   rownames(x = counts) <- as.vector(x = gene.key[rownames(x = counts)])
   counts <- counts[rownames(x = counts) != "", ]
-
+  
   return(counts)
 }
 
@@ -395,10 +395,10 @@ GeneActivity <- function(
 #' @concept utilities
 #' @export
 GetGRangesFromEnsDb <- function(
-  ensdb,
-  standard.chromosomes = TRUE,
-  biotypes = c("protein_coding", "lincRNA", "rRNA", "processed_transcript"),
-  verbose = TRUE
+    ensdb,
+    standard.chromosomes = TRUE,
+    biotypes = c("protein_coding", "lincRNA", "rRNA", "processed_transcript"),
+    verbose = TRUE
 ) {
   if (!requireNamespace("biovizBase", quietly = TRUE)) {
     stop("Please install biovizBase\n",
@@ -409,15 +409,15 @@ GetGRangesFromEnsDb <- function(
   if (standard.chromosomes) {
     whole.genome <- keepStandardChromosomes(whole.genome, pruning.mode = "coarse")
   }
-
+  
   # extract genes from each chromosome
   my_lapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
   tx <- my_lapply(X = seq_along(whole.genome), FUN = function(x){
-        suppressMessages(expr = biovizBase::crunch(
-          obj = ensdb,
-          which = whole.genome[x],
-          columns = c("tx_id", "gene_name", "gene_id", "gene_biotype")))
-      })
+    suppressMessages(expr = biovizBase::crunch(
+      obj = ensdb,
+      which = whole.genome[x],
+      columns = c("tx_id", "gene_name", "gene_id", "gene_biotype")))
+  })
   
   # combine
   tx <- do.call(what = c, args = tx)
@@ -486,12 +486,12 @@ GetTSSPositions <- function(ranges, biotypes = "protein_coding") {
 #'   assay.2 = 'bins'
 #' )
 GetIntersectingFeatures <- function(
-  object.1,
-  object.2,
-  assay.1 = NULL,
-  assay.2 = NULL,
-  distance = 0,
-  verbose = TRUE
+    object.1,
+    object.2,
+    assay.1 = NULL,
+    assay.2 = NULL,
+    distance = 0,
+    verbose = TRUE
 ) {
   assay.1 <- SetIfNull(x = assay.1, y = DefaultAssay(object = object.1))
   assay.2 <- SetIfNull(x = assay.2, y = DefaultAssay(object = object.2))
@@ -591,10 +591,10 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
 #' @examples
 #' Extend(x = blacklist_hg19, upstream = 100, downstream = 100)
 Extend <- function(
-  x,
-  upstream = 0,
-  downstream = 0,
-  from.midpoint = FALSE
+    x,
+    upstream = 0,
+    downstream = 0,
+    from.midpoint = FALSE
 ) {
   if (any(strand(x = x) == "*")) {
     warning("'*' ranges were treated as '+'")
@@ -683,10 +683,10 @@ GetCellsInRegion <- function(tabix, region, cells = NULL) {
 #' )
 #' }
 CountsInRegion <- function(
-  object,
-  assay,
-  regions,
-  ...
+    object,
+    assay,
+    regions,
+    ...
 ) {
   if (!is(object = object[[assay]], class2 = "ChromatinAssay")) {
     stop("Must supply a ChromatinAssay")
@@ -724,10 +724,10 @@ CountsInRegion <- function(
 #' )
 #' }
 FractionCountsInRegion <- function(
-  object,
-  regions,
-  assay = NULL,
-  ...
+    object,
+    regions,
+    assay = NULL,
+    ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   reads.in.region <- CountsInRegion(
@@ -772,12 +772,12 @@ FractionCountsInRegion <- function(
 #' "chr1-762106-763359","chr1-779589-780271")
 #' IntersectMatrix(matrix = counts, regions = blacklist_hg19)
 IntersectMatrix <- function(
-  matrix,
-  regions,
-  invert = FALSE,
-  sep = c("-", "-"),
-  verbose = TRUE,
-  ...
+    matrix,
+    regions,
+    invert = FALSE,
+    sep = c("-", "-"),
+    verbose = TRUE,
+    ...
 ) {
   if (is(object = regions, class2 = "character")) {
     regions <- StringToGRanges(regions = regions, sep = sep)
@@ -880,12 +880,12 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
 #'   n = 10
 #' )
 MatchRegionStats <- function(
-  meta.feature,
-  query.feature,
-  features.match = c("GC.percent"),
-  n = 10000,
-  verbose = TRUE,
-  ...
+    meta.feature,
+    query.feature,
+    features.match = c("GC.percent"),
+    n = 10000,
+    verbose = TRUE,
+    ...
 ) {
   if (!inherits(x = meta.feature, what = 'data.frame')) {
     stop("meta.feature should be a data.frame")
@@ -997,11 +997,11 @@ UnifyPeaks <- function(object.list, mode = "reduce") {
 #' @examples
 #' SubsetMatrix(mat = volcano)
 SubsetMatrix <- function(
-  mat,
-  min.rows = 1,
-  min.cols = 1,
-  max.row.val = 10,
-  max.col.val = NULL
+    mat,
+    min.rows = 1,
+    min.cols = 1,
+    max.row.val = 10,
+    max.col.val = NULL
 ) {
   rowcount <- rowSums(mat > 0)
   colcount <- colSums(mat > 0)
@@ -1067,10 +1067,10 @@ AddMissing <- function(x, cells, features = NULL) {
 #' @importFrom SeuratObject DefaultAssay GetAssayData
 #' @importFrom Matrix Diagonal tcrossprod rowSums
 AverageCountMatrix <- function(
-  object,
-  assay = NULL,
-  group.by = NULL,
-  idents = NULL
+    object,
+    assay = NULL,
+    group.by = NULL,
+    idents = NULL
 ) {
   assay = SetIfNull(x = assay, y = DefaultAssay(object = object))
   countmatrix <- GetAssayData(object = object[[assay]], slot = "counts")
@@ -1256,12 +1256,12 @@ ExtractFragments <- function(fragments, n = NULL, verbose = TRUE) {
 # convert region argument to genomic coordinates
 # region can be a string, name of a gene, or GRanges object
 FindRegion <- function(
-  object,
-  region,
-  sep = c("-", "-"),
-  assay = NULL,
-  extend.upstream = 0,
-  extend.downstream = 0
+    object,
+    region,
+    sep = c("-", "-"),
+    assay = NULL,
+    extend.upstream = 0,
+    extend.downstream = 0
 ) {
   if (!is(object = region, class2 = "GRanges")) {
     # first try to convert to coordinates, if not lookup gene
@@ -1312,16 +1312,16 @@ FindRegion <- function(
 #
 # @return Returns a data frame
 GetReadsInRegion <- function(
-  cellmap,
-  region,
-  tabix.file,
-  cells = NULL,
-  verbose = TRUE,
-  ...
+    cellmap,
+    region,
+    tabix.file,
+    cells = NULL,
+    verbose = TRUE,
+    ...
 ) {
   file.to.object <- names(x = cellmap)
   names(x = file.to.object) <- cellmap
-
+  
   if (verbose) {
     message("Extracting reads in requested region")
   }
@@ -1376,9 +1376,9 @@ GetReadsInRegion <- function(
 # @return Returns a named vector
 #' @importFrom SeuratObject Idents
 GetGroups <- function(
-  object,
-  group.by,
-  idents
+    object,
+    group.by,
+    idents
 ) {
   if (is.null(x = group.by)) {
     obj.groups <- Idents(object = object)
@@ -1428,11 +1428,11 @@ MergeMatrixParts <- function(mat.list, new.rownames) {
 #' @importFrom Rsamtools TabixFile
 #' @importFrom GenomeInfoDb keepSeqlevels
 MultiGetReadsInRegion <- function(
-  object,
-  region,
-  fragment.list = NULL,
-  assay = NULL,
-  ...
+    object,
+    region,
+    fragment.list = NULL,
+    assay = NULL,
+    ...
 ) {
   if (inherits(x = object, what = "Seurat")) {
     # pull the assay
@@ -1488,11 +1488,11 @@ MultiGetReadsInRegion <- function(
 #' @importMethodsFrom GenomicRanges width start end
 # @return Returns a sparse matrix
 SingleFileCutMatrix <- function(
-  cellmap,
-  region,
-  cells = NULL,
-  tabix.file,
-  verbose = TRUE
+    cellmap,
+    region,
+    cells = NULL,
+    tabix.file,
+    verbose = TRUE
 ) {
   # if multiple regions supplied, must be the same width
   cells <- SetIfNull(x = cells, y = names(x = cellmap))
@@ -1525,7 +1525,7 @@ SingleFileCutMatrix <- function(
     )
     cut.df <- cut.df[
       (cut.df$position > 0) & (cut.df$position <= width(x = region)[[1]]),
-      ]
+    ]
     cell.vector <- seq_along(along.with = cells)
     names(x = cell.vector) <- cells
     cell.matrix.info <- cell.vector[cut.df$cell]
@@ -1558,12 +1558,12 @@ SingleFileCutMatrix <- function(
 #' @importFrom Rsamtools TabixFile seqnamesTabix
 #' @importFrom GenomeInfoDb keepSeqlevels
 CutMatrix <- function(
-  object,
-  region,
-  group.by = NULL,
-  assay = NULL,
-  cells = NULL,
-  verbose = TRUE
+    object,
+    region,
+    group.by = NULL,
+    assay = NULL,
+    cells = NULL,
+    verbose = TRUE
 ) {
   # run SingleFileCutMatrix for each fragment file and combine results
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
@@ -1623,13 +1623,13 @@ CutMatrix <- function(
 #' @importFrom SeuratObject DefaultAssay
 #' @importFrom GenomeInfoDb keepSeqlevels
 MultiRegionCutMatrix <- function(
-  object,
-  regions,
-  group.by = NULL,
-  fragments = NULL,
-  assay = NULL,
-  cells = NULL,
-  verbose = FALSE
+    object,
+    regions,
+    group.by = NULL,
+    fragments = NULL,
+    assay = NULL,
+    cells = NULL,
+    verbose = FALSE
 ) {
   if (inherits(x = object, what = "Seurat")) {
     assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
@@ -1689,11 +1689,11 @@ MultiRegionCutMatrix <- function(
 # @param verbose Display messages
 #' @importMethodsFrom GenomicRanges strand
 CreateRegionPileupMatrix <- function(
-  object,
-  regions,
-  assay = NULL,
-  cells = NULL,
-  verbose = TRUE
+    object,
+    regions,
+    assay = NULL,
+    cells = NULL,
+    verbose = TRUE
 ) {
   if (length(x = regions) == 0) {
     stop("No regions supplied")
@@ -1702,7 +1702,7 @@ CreateRegionPileupMatrix <- function(
   on_plus <- strand(x = regions) == "+" | strand(x = regions) == "*"
   plus.strand <- regions[on_plus, ]
   minus.strand <- regions[!on_plus, ]
-
+  
   # get cut matrices for each strand
   if (verbose) {
     message("Finding + strand cut sites")
@@ -1724,7 +1724,7 @@ CreateRegionPileupMatrix <- function(
     cells = cells,
     verbose = FALSE
   )
-
+  
   # reverse minus strand and add together
   if (is.null(x = cut.matrix.plus)) {
     full.matrix <- cut.matrix.minus[, rev(x = colnames(x = cut.matrix.minus))]
@@ -1760,12 +1760,12 @@ CreateRegionPileupMatrix <- function(
 # @param scale.factor Scaling factor to use. If NULL (default), will use the
 # median normalization factor for all the groups.
 ApplyMatrixByGroup <- function(
-  mat,
-  groups,
-  fun,
-  normalize = TRUE,
-  group.scale.factors = NULL,
-  scale.factor = NULL
+    mat,
+    groups,
+    fun,
+    normalize = TRUE,
+    group.scale.factors = NULL,
+    scale.factor = NULL
 ) {
   if (normalize) {
     if (is.null(x = group.scale.factors) | is.null(x = scale.factor)) {
@@ -1778,13 +1778,13 @@ ApplyMatrixByGroup <- function(
   }
   ngroup <- length(x = all.groups)
   npos <- ncol(x = mat)
-
+  
   group <- unlist(
     x = lapply(X = all.groups, FUN = function(x) rep(x, npos))
   )
   position <- rep(x = as.numeric(x = colnames(x = mat)), ngroup)
   count <- vector(mode = "numeric", length = npos * ngroup)
-
+  
   for (i in seq_along(along.with = all.groups)) {
     grp <- all.groups[[i]]
     if (is.na(x = grp)) {
@@ -1799,13 +1799,13 @@ ApplyMatrixByGroup <- function(
     }
     count[((i - 1) * npos + 1):((i * npos))] <- totals
   }
-
+  
   # construct dataframe
   coverages <- data.frame(
     "group" = group, "position" = position, "count" = count,
     stringsAsFactors = FALSE
   )
-
+  
   if (normalize) {
     scale.factor <- SetIfNull(
       x = scale.factor, y = median(x = group.scale.factors)
@@ -1934,12 +1934,12 @@ IsMatrixEmpty <- function(x) {
 # information
 GetRowsToMerge <- function(assay.list, all.ranges, reduced.ranges) {
   revmap <- as.vector(x = reduced.ranges$revmap)
-
+  
   # get indices of ranges that changed
   revmap.lengths <- sapply(X = revmap, FUN = length)
   changed.ranges <- which(x = revmap.lengths > 1)
   grange.string <- GRangesToString(grange = reduced.ranges[changed.ranges])
-
+  
   # preallocate
   offsets <- list()
   results <- list()
@@ -1958,7 +1958,7 @@ GetRowsToMerge <- function(assay.list, all.ranges, reduced.ranges) {
     results[['matrix']][[i]] <- matrix.indices
     results[['grange']][[i]] <- granges
   }
-
+  
   # find sets of ranges for each dataset
   counter <- vector(mode = "numeric", length = length(x = assay.list))
   for (x in seq_along(along.with = changed.ranges)) {
@@ -1994,16 +1994,16 @@ GetRowsToMerge <- function(assay.list, all.ranges, reduced.ranges) {
 #' @importFrom Matrix rowSums
 #' @importMethodsFrom Matrix t
 MergeOverlappingRows <- function(
-  mergeinfo,
-  assay.list,
-  slot = "counts",
-  verbose = TRUE
+    mergeinfo,
+    assay.list,
+    slot = "counts",
+    verbose = TRUE
 ) {
   merge.counts <- list()
   for (i in seq_along(along.with = assay.list)) {
     # get count matrix
     counts <- GetAssayData(object = assay.list[[i]], slot = slot)
-
+    
     if (nrow(x = counts) == 0) {
       # no counts, only data
       # skip row merge and return empty counts matrices
@@ -2015,15 +2015,15 @@ MergeOverlappingRows <- function(
       )
       return(merge.counts)
     }
-
+    
     # transpose for faster access since matrix is column major
     counts <- t(x = counts)
-
+    
     # get rows to merge
     mrows <- mergeinfo$matrix[[i]]
     new.rownames <- mergeinfo$grange[[i]]
     nrep <- rle(x = new.rownames)
-
+    
     # allocate
     todelete <- c()
     newmat <- vector(
@@ -2081,13 +2081,13 @@ MergeOverlappingRows <- function(
     to.rename.names <- to.rename.names[1:idx.counter]
     newmat <- newmat[1:(y - 1)]
     newmat.names <- newmat.names[1:(y - 1)]
-
+    
     # transpose back
     counts <- t(x = counts)
-
+    
     # rename matrix rows that weren't merged
     rownames(counts)[to.rename.idx] <- to.rename.names
-
+    
     if (y == 1) {
       # no rows were merged, can return counts
       merge.counts[[i]] <- counts
@@ -2107,12 +2107,12 @@ MergeOverlappingRows <- function(
       merged.mat <- Reduce(f = rbind, x = newmat)
       rownames(merged.mat) <- newmat.names
       merged.mat <- as(object = merged.mat, Class = "CsparseMatrix")
-
+      
       # remove rows from count matrix that were merged
       mat.rows <- seq_len(length.out = nrow(x = counts))
       tokeep <- setdiff(mat.rows, todelete)
       counts <- counts[tokeep, ]
-
+      
       # add new merged rows to counts
       counts <- rbind(counts, merged.mat)
       merge.counts[[i]] <- counts
@@ -2254,8 +2254,8 @@ SparsifiedRanks <- function(X){
     x = lapply(
       X = seq_along(col_lst),
       FUN = function(i) rank(x = col_lst[[i]]) + offsets[i]
-      )
     )
+  )
   ## Create template rank matrix
   X.ranks <- X
   X.ranks@x <- sparsified_ranks
@@ -2271,7 +2271,247 @@ SparseSpearmanCor <- function(X, Y = NULL, cov = FALSE) {
   if (is.null(Y)){
     # Calculate pearson correlation on rank matrices
     return (qlcMatrix::corSparse(X = rankX, cov = cov))
-    }
+  }
   rankY <- SparsifiedRanks(X = Y)
   return(qlcMatrix::corSparse(X = rankX, Y = rankY, cov = cov))
+}
+
+#' Export bigwig files for groups of cells
+#'
+#' @param object A Seurat object
+#' @param assay Name of assay to use
+#' @param group.by The metadata variable used to group the cells
+#' @param idents Identities to include (defined by group.by parameter)
+#' @param normMethod Normalization method for the bigwig files. Deafult 'RC'.
+#' 'RC' will divide the number of fragments in a tile by the total number of
+#' fragments in the group. A scaling factor of 10^4 will be applied. 
+#' 'ncells' will divide the number of fragments in a tile by the number of cell
+#' in the group. 'none' will apply no normalization method. 
+#' A vector of values for each cell can also be passed as a metadata column
+#' name. A scaling factor of 10^4 will be applied
+#' @param tileSize The size of the tiles in the bigwig file
+#' @param minCells The minimum of cells in a group to be exported
+#' @param cutoff The maximum number of fragments in a given genomic tile
+#' @param chromosome A chromosomes vector to be exported
+#' @param outdir The output directory for bigwig file
+#' @param verbose Display messages
+#'
+#' @importFrom GenomicRanges seqlengths GRanges slidingWindows
+#' @importFrom future plan
+#' @importFrom future.apply future_lapply
+#' @importFrom pbapply pbapply
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' ExportGroupBW(object, assay = "peaks")
+#' }
+ExportGroupBW  <- function(
+    object,
+    assay = NULL,
+    group.by = NULL,
+    idents = NULL,
+    normMethod = "RC",
+    tileSize = 100,
+    minCells = 5,
+    cutoff = NULL,
+    chromosome = NULL,
+    outdir = NULL,
+    verbose=TRUE
+) {
+  # Check if temporary directory exist
+  if (!dir.exists(outdir)){
+    dir.create(outdir)
+  }
+  if (!requireNamespace("rtracklayer", quietly = TRUE)) { 
+    message("Please install rtracklayer. http://www.bioconductor.org/packages/rtracklayer/") 
+    return(NULL) 
+  }
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  DefaultAssay(object = object) <- assay
+  group.by <- SetIfNull(x = group.by, y = 'ident')
+  Idents(object = object) <- group.by
+  idents <- SetIfNull(x = idents, y = levels(x = object))
+  GroupsNames <- names(x = table(object[[group.by]])[table(object[[group.by]]) > minCells])
+  GroupsNames <- GroupsNames[GroupsNames %in% idents]
+  # Check if output files already exist
+  lapply(X = GroupsNames, FUN = function(x) {
+    fn <- paste0(outdir, .Platform$file.sep, x, ".bed")
+    if (file.exists(fn)) {
+      message(sprintf("The group \"%s\" is already present in the destination folder and will be overwritten !",x))
+      file.remove(fn)
+    }
+  })      
+  # Splitting fragments file for each idents in group.by
+  SplitFragments(
+    object = object,
+    assay = assay,
+    group.by = group.by,
+    idents = idents,
+    outdir = outdir,
+    file.suffix = "",
+    append = TRUE,
+    buffer_length = 256L,
+    verbose = verbose
+  )
+  # Column to normalized by
+  if(!is.null(x = normMethod)) {
+    if (tolower(x = normMethod) %in% c('rc', 'ncells', 'none')){
+      normBy <- normMethod
+    } else{
+      normBy <- object[[normMethod, drop = FALSE]]
+    }
+  }
+  # Get chromosome information
+  if(!is.null(x = chromosome)){
+    seqlevels(object) <- chromosome
+  }
+  availableChr <- names(x = seqlengths(object))
+  chromLengths <- seqlengths(object)
+  chromSizes <- GRanges(
+    seqnames = availableChr,
+    ranges = IRanges(
+      start = rep(1, length(x = availableChr)),
+      end = as.numeric(x = chromLengths)
+      )
+    )
+  
+  if (verbose) {
+    message("Creating tiles")
+  }
+  # Create tiles for each chromosome, from GenomicRanges
+  tiles <- unlist(
+    x = slidingWindows(x = chromSizes, width = tileSize, step = tileSize)
+  )
+  if (verbose) {
+    message("Creating bigwig files at ", outdir)
+  }
+  # Run the creation of bigwig for each cellgroups
+  if (nbrOfWorkers() > 1) { 
+    mylapply <- future_lapply 
+  } else { 
+    mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply) 
+  }
+  covFiles <- mylapply(
+    GroupsNames,
+    FUN = CreateBWGroup,
+    availableChr,
+    chromLengths,
+    tiles,
+    normBy,
+    tileSize,
+    normMethod,
+    cutoff,
+    outdir
+  )
+  return(covFiles)
+}
+
+# Helper function for ExportGroupBW
+#
+# @param groupNamei The group to be exported
+# @param availableChr Chromosomes to be processed
+# @param chromLengths Chromosomes lengths
+# @param tiles The tiles object
+# @param normBy A vector of values to normalized the cells by
+# @param tileSize The size of the tiles in the bigwig file
+# @param normMethod Normalization method for the bigwig files
+# 'RC' will divide the number of fragments in a tile by the number of fragments
+# in the group. A scaling factor of 10^4 will be applied
+# 'ncells' will divide the number of fragments in a tile by the number of cell
+# in the group. 'none' will apply no normalization method. A vector of values
+# for each cell can also be passed as a meta.data column name. A scaling factor
+# of 10^4 will be applied
+# @param cutoff The maximum number of fragment in a given tile
+# @param outdir The output directory for bigwig file
+#
+#' @importFrom rtracklayer import export.bw
+#' @importFrom GenomicRanges seqnames seqlengths GRanges coverage
+#' @importFrom BiocGenerics which
+#' @importFrom S4Vectors match
+#' @importFrom Matrix sparseMatrix rowSums
+CreateBWGroup <- function(
+    groupNamei,
+    availableChr,
+    chromLengths,
+    tiles,
+    normBy,
+    tileSize,
+    normMethod,
+    cutoff,
+    outdir
+) {
+  if (!requireNamespace("rtracklayer", quietly = TRUE)) { 
+    message("Please install rtracklayer. http://www.bioconductor.org/packages/rtracklayer/") 
+    return(NULL) 
+  }
+  normMethod <- tolower(x = normMethod)
+  # Read the fragments file associated to the group
+  fragi <- rtracklayer::import(
+    paste0(outdir, .Platform$file.sep, groupNamei, ".bed"), format = "bed"
+  )
+  cellGroupi <- unique(x = fragi$name)
+  # Open the writing bigwig file
+  covFile <- file.path(
+    outdir,
+    paste0(groupNamei, "-TileSize-",tileSize,"-normMethod-",normMethod,".bw")
+  )
+  
+  covList <- lapply(X = seq_along(availableChr), FUN = function(k) {
+    fragik <- fragi[seqnames(fragi) == availableChr[k],]
+    tilesk <- tiles[BiocGenerics::which(S4Vectors::match(seqnames(tiles), availableChr[k], nomatch = 0) > 0)]
+    if (length(x = fragik) == 0) {
+      tilesk$reads <- 0
+      # If fragments
+    } else {
+      # N Tiles
+      nTiles <- chromLengths[availableChr[k]] / tileSize
+      # Add one tile if there is extra bases
+      if (nTiles%%1 != 0) {
+        nTiles <- trunc(x = nTiles) + 1
+      }
+      # Create Sparse Matrix
+      matchID <- S4Vectors::match(mcols(fragik)$name, cellGroupi)
+      
+      # For each tiles of this chromosome, create start tile and end tile row,
+      # set the associated counts matching with the fragments
+      mat <- sparseMatrix(
+        i = c(trunc(x = start(x = fragik) / tileSize),
+              trunc(x = end(x = fragik) / tileSize)) + 1,
+        j = as.vector(x = c(matchID, matchID)),
+        x = rep(1, 2*length(x = fragik)),
+        dims = c(nTiles, length(x = cellGroupi))
+      )
+      
+      # Max count for a cells in a tile is set to cutoff
+      if (!is.null(x = cutoff)){
+        mat@x[mat@x > cutoff] <- cutoff
+      }
+      # Sums the cells
+      mat <- rowSums(x = mat)
+      tilesk$reads <- mat
+      # Normalization
+      if (!is.null(x = normMethod)) {
+        if (normMethod == "rc") {
+          tilesk$reads <- tilesk$reads * 10^4 / length(fragi$name)
+        } else if (normMethod == "ncells") {
+          tilesk$reads <- tilesk$reads / length(cellGroupi)
+        } else if (normMethod == "none") {
+        } else {
+          if (!is.null(x = normBy)){
+            tilesk$reads <- tilesk$reads * 10^4 / sum(normBy[cellGroupi, 1])
+          }
+        }
+      }
+    }
+    tilesk <- coverage(tilesk, weight = tilesk$reads)[[availableChr[k]]]
+    tilesk
+  })
+  
+  names(covList) <- availableChr
+  covList <- as(object = covList, Class = "RleList")
+  rtracklayer::export.bw(object = covList, con = covFile)
+  return(covFile)
 }
