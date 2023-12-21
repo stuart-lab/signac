@@ -244,12 +244,6 @@ TSSFast <- function(
   # iterate over fragment files and parts of region
   if (verbose) {
     message("Extracting fragments at TSSs")
-    pb <- txtProgressBar(
-      min = 1,
-      max = length(x = centers),
-      style = 3,
-      file = stderr()
-    )
   }
   
   if (nbrOfWorkers() > 1) {
@@ -305,6 +299,9 @@ TSSFast <- function(
   flank.mean[flank.counts == 0] <- mean(x = flank.mean, na.rm = TRUE)
   
   center.norm <- center.counts / flank.mean
+  
+  # replace NA with 0
+  center.norm[is.na(center.norm)] <- 0
   
   # compute TSS enrichment score and add to object
   object$TSS.enrichment <- center.norm / 1001
