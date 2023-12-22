@@ -93,5 +93,4 @@ Suggests:
     biovizBase,
     Biostrings,
     lsa,
-    qlcMatrix,
     MASS
