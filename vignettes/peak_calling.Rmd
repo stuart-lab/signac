@@ -17,7 +17,7 @@ MACS2. This can be done using [pip](https://pypi.org/project/MACS2/) or
 from [source](https://github.com/macs3-project/MACS).
 
 In this demonstration we use scATAC-seq data for human PBMCs. See our
-[vignette](pbmc_vignette.Rmd) for the code used to generate this object,
+[vignette](pbmc_vignette.html) for the code used to generate this object,
 and links to the raw data. First, load the required packages and the
 pre-computed Seurat object:
 
