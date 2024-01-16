@@ -433,7 +433,7 @@ ValidateCells <- function(
 #' @importFrom tools md5sum
 ValidateHash <- function(object, verbose = TRUE) {
   path <- GetFragmentData(object = object, slot = "path")
-  index.file <- paste0(path, ".tbi")
+  index.file <- GetIndexFile(fragment = path, verbose = verbose)
   is.remote <- isRemote(x = path)
   # if remote, return TRUE
   if (is.remote) {
@@ -534,7 +534,7 @@ UpdatePath <- function(object, new.path, verbose = TRUE) {
   new.is.remote <- isRemote(x = new.path)
   if (!new.is.remote) {
     new.path <- normalizePath(path = new.path, mustWork = TRUE)
-    index.file <- paste0(new.path, ".tbi")
+    index.file <- GetIndexFile(fragment = new.path, verbose = verbose)
     if (!file.exists(new.path)) {
       stop("Fragment file not found")
     } else if (!file.exists(index.file)) {
