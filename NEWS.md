@@ -4,6 +4,7 @@ Bug fixes:
 
 * Fix bug in `SetAssayData()` for `ChromatinAssay` objects ([#1538](https://github.com/stuart-lab/signac/issues/1538))
 * Fix bug in `TSSEnrichment()` causing error on small example dataset ([#1563](https://github.com/stuart-lab/signac/issues/1563))
+* Fix errors when using a CSI index ([#1494](https://github.com/stuart-lab/signac/issues/1494))
 
 Other changes:
 
