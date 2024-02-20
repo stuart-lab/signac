@@ -255,15 +255,15 @@ allen_rna <- FindVariableFeatures(
   nfeatures = 5000
 )
 
-transfer.anchors <- FindTransferAnchors(
+transfer.anchors30 <- FindTransferAnchors(
   reference = allen_rna,
   query = brain,
   reduction = 'cca',
-  dims = 1:40
+  dims = 1:30
 )
 
 predicted.labels <- TransferData(
-  anchorset = transfer.anchors,
+  anchorset = transfer.anchors30,
   refdata = allen_rna$subclass,
   weight.reduction = brain[['lsi']],
   dims = 2:30
@@ -279,42 +279,8 @@ plot2 <- DimPlot(brain, group.by = 'predicted.id', label = TRUE, repel = TRUE) +
 plot1 + plot2
 ```
 
-<details>
-  <summary>**Why did we change default parameters?**</summary>
-
-We changed default parameters for `FindIntegrationAnchors()` and
-`FindVariableFeatures()` (including more features and dimensions). You can run
-the analysis both ways, and observe very similar results. However, when using
-default parameters we mislabel cluster 11 cells as Vip-interneurons, when they
-are in fact a Meis2 expressing CGE-derived interneuron population recently
-described by [us](https://www.nature.com/articles/nature25999) and
-[others](https://www.nature.com/articles/ncomms14219). The reason is that this
-subset is exceptionally rare in the scRNA-seq data (0.3%), and so the genes
-define this subset (for example, *Meis2*) were too lowly expressed to be
-selected in the initial set of variable features. We therefore need more genes
-and dimensions to facilitate cross-modality mapping. Interestingly, this subset
-is 10-fold more abundant in the scATAC-seq data compared to the scRNA-seq data
-(see [this paper](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0209648)
-for possible explanations.)
-
-</details>
-
-You can see that the RNA-based classifications are entirely consistent with the
-UMAP visualization, computed only on the ATAC-seq data. We can now easily
-annotate our scATAC-seq derived clusters (alternately, we could use the RNA
-classifications themselves). We note three small clusters (13, 20, 21) which
-represent subdivisions of the scRNA-seq labels. Try transferring the cluster
-label (which shows finer distinctions) from the allen scRNA-seq dataset,
-to annotate them!
-
-```{r}
-# replace each label with its most likely prediction
-for(i in levels(brain)) {
-  cells_to_reid <- WhichCells(brain, idents = i)
-  newid <- names(which.max(table(brain$predicted.id[cells_to_reid])))
-  Idents(brain, cells = cells_to_reid) <- newid
-}
-```
+You can see that the RNA-based classifications are consistent with the
+UMAP visualization, computed only on the ATAC-seq data.
 
 ## Find differentially accessible peaks between clusters
 
@@ -324,6 +290,7 @@ different layers of the cortex.
 ```{r message=TRUE, warning=FALSE}
 #switch back to working with peaks instead of gene activities
 DefaultAssay(brain) <- 'peaks'
+Idents(brain) <- "predicted.id"
 
 da_peaks <- FindMarkers(
   object = brain,
@@ -373,12 +340,13 @@ all cells within a group have been averaged together to visualize the DNA
 accessibility in a region.
 
 ```{r message=FALSE, warning=FALSE, out.width="90%", fig.height=10}
-# set plotting order
-levels(brain) <- c("L2/3 IT","L4","L5 IT","L5 PT","L6 CT", "L6 IT","NP","Sst","Pvalb","Vip","Lamp5","Meis2","Oligo","Astro","Endo","VLMC","Macrophage")
+# show cell types with at least 50 cells
+idents.plot <- names(which(table(Idents(brain)) > 50))
 
 CoveragePlot(
   object = brain,
   region = c("Neurod6", "Gad2"),
+  idents = idents.plot,
   extend.upstream = 1000,
   extend.downstream = 1000,
   ncol = 1
