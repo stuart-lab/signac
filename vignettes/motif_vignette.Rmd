@@ -107,7 +107,7 @@ da_peaks <- FindMarkers(
 )
 
 # get top differentially accessible peaks
-top.da.peak <- rownames(da_peaks[da_peaks$p_val < 0.005, ])
+top.da.peak <- rownames(da_peaks[da_peaks$p_val < 0.005 & da_peaks$pct.1 > 0.2, ])
 ```
 
 <details>
@@ -130,7 +130,7 @@ from this larger set using `MatchRegionStats()`.
 open.peaks <- AccessiblePeaks(mouse_brain, idents = c("Pvalb", "Sst"))
 
 # match the overall GC content in the peak set
-meta.feature <- GetAssayData(mouse_brain, assay = "peaks", slot = "meta.features")
+meta.feature <- GetAssayData(mouse_brain, assay = "peaks", layer = "meta.features")
 peaks.matched <- MatchRegionStats(
   meta.feature = meta.feature[open.peaks, ],
   query.feature = meta.feature[top.da.peak, ],
@@ -165,10 +165,10 @@ MotifPlot(
 )
 ```
 
-We and others have previously shown that Mef-family motifs, particularly
+Mef-family motifs, particularly
 *Mef2c*, are enriched in Pvalb-specific peaks in scATAC-seq data
 (https://doi.org/10.1016/j.cell.2019.05.031; https://doi.org/10.1101/615179),
-and further shown that *Mef2c* is required for the development of Pvalb
+and *Mef2c* is required for the development of Pvalb
 interneurons (https://www.nature.com/articles/nature25999). Here our results are 
 consistent with these findings, and we observe a strong enrichment of Mef-family
 motifs in the top results from `FindMotifs()`.
