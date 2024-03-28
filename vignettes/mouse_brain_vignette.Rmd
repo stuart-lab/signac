@@ -255,7 +255,7 @@ allen_rna <- FindVariableFeatures(
   nfeatures = 5000
 )
 
-transfer.anchors30 <- FindTransferAnchors(
+transfer.anchors <- FindTransferAnchors(
   reference = allen_rna,
   query = brain,
   reduction = 'cca',
@@ -263,7 +263,7 @@ transfer.anchors30 <- FindTransferAnchors(
 )
 
 predicted.labels <- TransferData(
-  anchorset = transfer.anchors30,
+  anchorset = transfer.anchors,
   refdata = allen_rna$subclass,
   weight.reduction = brain[['lsi']],
   dims = 2:30
