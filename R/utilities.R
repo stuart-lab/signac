@@ -948,6 +948,8 @@ MatchRegionStats <- function(
   if (length(x = features.match) == 0) {
     stop("Must supply at least one sequence characteristic to match")
   }
+  # remove features that have NA for any of the features to match
+  meta.feature <- meta.feature[rowSums(is.na(meta.feature[, features.match])) == 0, ,]
   if (nrow(x = meta.feature) < n) {
     n <- nrow(x = meta.feature)
     warning("Requested more features than present in supplied data.
@@ -969,11 +971,10 @@ MatchRegionStats <- function(
     density.estimate <- density(
       x = query.feature[[featmatch]], kernel = "gaussian", bw = 1
     )
-    mf.use <- meta.feature[!is.na(x = meta.feature[[featmatch]]), ]
     weights <- approx(
       x = density.estimate$x,
       y = density.estimate$y,
-      xout = mf.use[[featmatch]],
+      xout = meta.feature[[featmatch]],
       yright = 0.0001,
       yleft = 0.0001
     )$y
@@ -984,11 +985,11 @@ MatchRegionStats <- function(
     }
   }
   feature.select <- sample.int(
-    n = nrow(x = mf.use),
+    n = nrow(x = meta.feature),
     size = n,
     prob = feature.weights
   )
-  feature.select <- rownames(x = mf.use)[feature.select]
+  feature.select <- rownames(x = meta.feature)[feature.select]
   return(feature.select)
 }
 
