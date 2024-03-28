@@ -421,7 +421,10 @@ FindExpectedInsertions <- function(dna.sequence, bias, verbose = TRUE) {
   j <- j[1:(current.pos - 1)]
 
   # construct matrix
-  hexamer.matrix <- sparseMatrix(i = i, j = j, x = x)
+  hexamer.matrix <- sparseMatrix(
+    i = i, j = j, x = x,
+    dims = c(length(x = hex.key), total.hexamer.positions)
+  )
   rownames(hexamer.matrix) <- names(x = hex.key)
   colnames(hexamer.matrix) <- seq_len(length.out = total.hexamer.positions)
   hexamer.matrix <- as.matrix(x = hexamer.matrix)
