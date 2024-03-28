@@ -425,6 +425,11 @@ PlotFootprint <- function(
     combined.var <- paste0(object[[split.by]][, 1], splitby_str, grouping.var)
     object$grouping_tmp <- combined.var
     group.by <- "grouping_tmp"
+    if (!is.null(x = idents)) {
+      # adjust idents parameter with new split.by information
+      idents.keep <- combined.var[grouping.var %in% idents]
+      idents <- unique(x = idents.keep)
+    }
   }
   # TODO add option to show variance among cells
   plot.data <- GetFootprintData(
@@ -1110,11 +1115,17 @@ SingleCoveragePlot <- function(
     object$grouping_tmp <- combined.var
     Idents(object = object) <- "grouping_tmp"
     group.by <- "grouping_tmp"
+    if (!is.null(x = idents)) {
+      # adjust idents parameter with new split.by information
+      idents.keep <- combined.var[grouping.var %in% idents]
+      idents <- unique(x = idents.keep)
+    }
   }
   cells.per.group <- CellsPerGroup(
     object = object,
     group.by = group.by
   )
+  
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
