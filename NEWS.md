@@ -11,6 +11,7 @@ Other changes:
 
 * Add ability to plot links for certain genes only in `CoveragePlot()` ([#1459](https://github.com/stuart-lab/signac/issues/1459))
 * Add `corSparse()`, remove qlcMatrix from suggested packages ([#1570](https://github.com/stuart-lab/signac/issues/1570)) 
+* Update documentation for `GetLinkedPeaks()` and `GetLinkedGenes()` ([#1654](https://github.com/stuart-lab/signac/issues/1654))
 
 # Signac 1.12.0
 
