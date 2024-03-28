@@ -7,6 +7,7 @@ Bug fixes:
 * Fix errors when using a CSI index ([#1494](https://github.com/stuart-lab/signac/issues/1494))
 * Fix error in `Footprint()` when running on a small number of regions ([#1614](https://github.com/stuart-lab/signac/issues/1614))
 * Fix error in `CoveragePlot()` and `PlotFootprint()` when setting both `ident` and `split.by` parameters ([#1660](https://github.com/stuart-lab/signac/issues/1660))
+* Fix bug in `MatchRegionStats()` when NA values are present in only some of the feature metadata rows ([#1655](https://github.com/stuart-lab/signac/issues/1655))
 
 Other changes:
 
