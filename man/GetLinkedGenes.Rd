@@ -17,7 +17,15 @@ GetLinkedGenes(object, features, assay = NULL, min.abs.score = 0)
 be returned}
 }
 \description{
-Find genes linked to a given set of peaks
+Retrieve peak-gene links for a given set of genes. Links must be first
+obtained by running the \code{LinkPeaks} function.
+}
+\details{
+This function is designed to obtain the stored results from running the
+\code{LinkPeaks} function. Alternatively, custom peak-gene linkage methods
+can be used as long as they store the gene name, peak name, and a peak-gene
+score information as metadata columns named "gene," "peak," and "score"
+respectively.
 }
 \seealso{
 GetLinkedPeaks
