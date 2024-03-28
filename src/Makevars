@@ -1,1 +1,1 @@
-PKG_LIBS = $(PKG_LIBS) -lz
+PKG_LIBS = -lz
