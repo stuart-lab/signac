@@ -949,7 +949,7 @@ MatchRegionStats <- function(
     stop("Must supply at least one sequence characteristic to match")
   }
   # remove features that have NA for any of the features to match
-  meta.feature <- meta.feature[rowSums(is.na(meta.feature[, features.match])) == 0, ,]
+  meta.feature <- na.omit(object = meta.feature[, features.match, drop = FALSE])
   if (nrow(x = meta.feature) < n) {
     n <- nrow(x = meta.feature)
     warning("Requested more features than present in supplied data.
