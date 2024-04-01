@@ -94,7 +94,18 @@ DefaultAssay(pbmc) <- "ATAC"
 
 pbmc <- NucleosomeSignal(pbmc)
 pbmc <- TSSEnrichment(pbmc)
+```
 
+The relationship between variables stored in the object metadata can
+be visualized using the `DensityScatter()` function. This can also be used
+to quickly find suitable cutoff values for different QC metrics by setting
+`quantiles=TRUE`:
+
+```{r}
+DensityScatter(pbmc, x = 'nCount_ATAC', y = 'TSS.enrichment', log_x = TRUE, quantiles = TRUE)
+```
+
+```{r}
 VlnPlot(
   object = pbmc,
   features = c("nCount_RNA", "nCount_ATAC", "TSS.enrichment", "nucleosome_signal"),
@@ -109,57 +120,62 @@ pbmc <- subset(
   x = pbmc,
   subset = nCount_ATAC < 100000 &
     nCount_RNA < 25000 &
-    nCount_ATAC > 1000 &
+    nCount_ATAC > 1800 &
     nCount_RNA > 1000 &
     nucleosome_signal < 2 &
     TSS.enrichment > 1
 )
 pbmc
 ```
-## Peak calling
+<!-- ## Peak calling -->
 
-The set of peaks identified using Cellranger often merges distinct peaks that are
-close together. This can create a problem for certain analyses, particularly motif 
-enrichment analysis and peak-to-gene linkage. To identify a more accurate set of peaks,
-we can call peaks using MACS2 with the `CallPeaks()` function. Here we call peaks
-on all cells together, but we could identify peaks for each group of cells separately
-by setting the `group.by` parameter, and this can help identify peaks specific to
-rare cell populations. 
+<!-- The set of peaks identified using Cellranger often merges distinct peaks that are -->
+<!-- close together. This can create a problem for certain analyses, particularly motif  -->
+<!-- enrichment analysis and peak-to-gene linkage. To identify a more accurate set of peaks, -->
+<!-- we can call peaks using MACS2 with the `CallPeaks()` function. Here we call peaks -->
+<!-- on all cells together, but we could identify peaks for each group of cells separately -->
+<!-- by setting the `group.by` parameter, and this can help identify peaks specific to -->
+<!-- rare cell populations.  -->
 
-```{r message=FALSE, warning=FALSE}
-# call peaks using MACS2
-peaks <- CallPeaks(pbmc)
+<!-- ```{r include=FALSE} -->
+<!-- old_path <- Sys.getenv("PATH") -->
+<!-- Sys.setenv(PATH = paste(old_path, "/Users/stuartt/mambaforge/bin", sep = ":")) -->
+<!-- ``` -->
 
-# remove peaks on nonstandard chromosomes and in genomic blacklist regions
-peaks <- keepStandardChromosomes(peaks, pruning.mode = "coarse")
-peaks <- subsetByOverlaps(x = peaks, ranges = blacklist_hg38_unified, invert = TRUE)
-```
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- # call peaks using MACS2 -->
+<!-- peaks <- CallPeaks(pbmc) -->
 
-```{r include=FALSE}
-gc()
-```
+<!-- # remove peaks on nonstandard chromosomes and in genomic blacklist regions -->
+<!-- peaks <- keepStandardChromosomes(peaks, pruning.mode = "coarse") -->
+<!-- peaks <- subsetByOverlaps(x = peaks, ranges = blacklist_hg38_unified, invert = TRUE) -->
+<!-- ``` -->
 
-```{r message=FALSE, warning=FALSE}
-# quantify counts in each peak
-macs2_counts <- FeatureMatrix(
-  fragments = Fragments(pbmc),
-  features = peaks,
-  cells = colnames(pbmc)
-)
-```
+<!-- ```{r include=FALSE} -->
+<!-- gc() -->
+<!-- ``` -->
 
-```{r include=FALSE}
-gc()
-```
+<!-- ```{r message=FALSE, warning=FALSE} -->
+<!-- # quantify counts in each peak -->
+<!-- macs2_counts <- FeatureMatrix( -->
+<!--   fragments = Fragments(pbmc), -->
+<!--   features = peaks, -->
+<!--   cells = colnames(pbmc) -->
+<!-- ) -->
+<!-- ``` -->
 
-```{r}
-# create a new assay using the MACS2 peak set and add it to the Seurat object
-pbmc[["peaks"]] <- CreateChromatinAssay(
-  counts = macs2_counts,
-  fragments = fragpath,
-  annotation = annotation
-)
-```
+<!-- ```{r include=FALSE} -->
+<!-- gc() -->
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- # create a new assay using the MACS2 peak set and add it to the Seurat object -->
+<!-- pbmc[["peaks"]] <- CreateChromatinAssay( -->
+<!--   counts = macs2_counts, -->
+<!--   fragments = fragpath, -->
+<!--   annotation = annotation -->
+<!-- ) -->
+<!-- ``` -->
 
 ## Gene expression data processing
 
@@ -178,7 +194,7 @@ Here we process the DNA accessibility assay the same way we would process a
 scATAC-seq dataset, by performing latent semantic indexing (LSI).
 
 ```{r message=FALSE, warning=FALSE}
-DefaultAssay(pbmc) <- "peaks"
+DefaultAssay(pbmc) <- "ATAC"
 pbmc <- FindTopFeatures(pbmc, min.cutoff = 5)
 pbmc <- RunTFIDF(pbmc)
 pbmc <- RunSVD(pbmc)
@@ -231,14 +247,8 @@ pbmc <- AddMetaData(
 # set the cell identities to the cell type predictions
 Idents(pbmc) <- "predicted.id"
 
-# set a reasonable order for cell types to be displayed when plotting
-levels(pbmc) <- c("CD4 Naive", "CD4 TCM", "CD4 CTL", "CD4 TEM", "CD4 Proliferating",
-                  "CD8 Naive", "dnT",
-                 "CD8 TEM", "CD8 TCM", "CD8 Proliferating", "MAIT", "NK", "NK_CD56bright",
-                 "NK Proliferating", "gdT",
-                 "Treg", "B naive", "B intermediate", "B memory", "Plasmablast",
-                 "CD14 Mono", "CD16 Mono",
-                 "cDC1", "cDC2", "pDC", "HSPC", "Eryth", "ASDC", "ILC", "Platelet")
+# remove low-quality predictions
+pbmc <- pbmc[, pbmc$prediction.score.max > 0.5]
 ```
 
 ## Joint UMAP visualization
@@ -268,7 +278,6 @@ pbmc <- RunUMAP(
 DimPlot(pbmc, label = TRUE, repel = TRUE, reduction = "umap") + NoLegend()
 ```
 
-
 ## Linking peaks to genes
 
 For each gene, we can find the set of peaks that may regulate the gene by by
@@ -282,7 +291,7 @@ peak-gene links for a subset of genes as an example. The same function can be us
 to find links for all genes by omitting the `genes.use` parameter:
 
 ```{r message=FALSE, warning=FALSE}
-DefaultAssay(pbmc) <- "peaks"
+DefaultAssay(pbmc) <- "ATAC"
 
 # first compute the GC content for each peak
 pbmc <- RegionStats(pbmc, genome = BSgenome.Hsapiens.UCSC.hg38)
@@ -290,7 +299,7 @@ pbmc <- RegionStats(pbmc, genome = BSgenome.Hsapiens.UCSC.hg38)
 # link peaks to genes
 pbmc <- LinkPeaks(
   object = pbmc,
-  peak.assay = "peaks",
+  peak.assay = "ATAC",
   expression.assay = "SCT",
   genes.use = c("LYZ", "MS4A1")
 )
