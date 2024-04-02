@@ -11,7 +11,7 @@ chromatin data.
 
 Signac is designed for the analysis of single-cell chromatin data, including scATAC-seq,
 single-cell targeted tagmentation methods such as [scCUT&Tag](https://www.nature.com/articles/s41467-019-09982-5)
-and [scNTT-seq](https://www.biorxiv.org/content/10.1101/2022.03.08.483436v1),
+and [scNTT-seq](https://www.nature.com/articles/s41587-022-01588-5),
 and multimodal datasets that jointly measure chromatin state alongside other
 modalities.
 
