@@ -268,6 +268,7 @@ ClosestFeature <- function(
 #' @param Y A matrix
 #' @param cov return covariance matrix
 #' @export
+#' @keywords internal
 #' @author Michael Cysouw, Karsten Looschen
 #' @importMethodsFrom Matrix colMeans
 # covmat uses E[(X-muX)'(Y-muY)] = E[X'Y] - muX'muY

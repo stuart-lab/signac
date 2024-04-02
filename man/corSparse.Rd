@@ -25,3 +25,4 @@ and the qlcMatrix package.
 \author{
 Michael Cysouw, Karsten Looschen
 }
+\keyword{internal}
