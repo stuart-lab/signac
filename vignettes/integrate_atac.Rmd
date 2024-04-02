@@ -82,8 +82,8 @@ atac.assay <- CreateChromatinAssay(
   min.features = 1000,
   fragments = atac.frags
 )
-pbmc.atac <- CreateSeuratObject(counts = atac.assay, assay = "peaks")
-pbmc.atac <- subset(pbmc.atac, nCount_peaks > 2000 & nCount_peaks < 30000)
+pbmc.atac <- CreateSeuratObject(counts = atac.assay, assay = "ATAC")
+pbmc.atac <- subset(pbmc.atac, nCount_ATAC > 2000 & nCount_ATAC < 30000)
 
 # compute LSI
 pbmc.atac <- FindTopFeatures(pbmc.atac, min.cutoff = 10)
