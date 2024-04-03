@@ -261,7 +261,7 @@ ClosestFeature <- function(
 #' columns of two sparse matrices.
 #' 
 #' Originally from 
-#' \url{http://stackoverflow.com/questions/5888287/running-cor-or-any-variant-over-a-sparse-matrix-in-r}
+#' \url{https://stackoverflow.com/questions/5888287/running-cor-or-any-variant-over-a-sparse-matrix-in-r}
 #' and the qlcMatrix package.
 #' 
 #' @param X A matrix

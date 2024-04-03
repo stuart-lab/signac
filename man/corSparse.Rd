@@ -19,7 +19,7 @@ columns of two sparse matrices.
 }
 \details{
 Originally from 
-\url{http://stackoverflow.com/questions/5888287/running-cor-or-any-variant-over-a-sparse-matrix-in-r}
+\url{https://stackoverflow.com/questions/5888287/running-cor-or-any-variant-over-a-sparse-matrix-in-r}
 and the qlcMatrix package.
 }
 \author{
