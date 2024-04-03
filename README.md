@@ -84,7 +84,7 @@ al. 2021](https://doi.org/10.1038/s41592-021-01282-5)
 ## Related packages
 
 -   [Seurat](https://github.com/satijalab/seurat)
--   [SeuratObject](https://github.com/mojaveazure/seurat-object)
+-   [SeuratObject](https://github.com/satijalab/seurat-object)
 -   [SeuratDisk](https://github.com/mojaveazure/seurat-disk)
 -   [SeuratData](https://github.com/satijalab/seurat-data)
 -   [SeuratWrappers](https://github.com/satijalab/seurat-wrappers)
