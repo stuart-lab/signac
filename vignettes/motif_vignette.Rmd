@@ -158,7 +158,7 @@ knitr::kable(head(enriched.motifs))
 We can also plot the position weight matrices for the motifs, so we can
 visualize the different motif sequences.
 
-```{r}
+```{r warning=FALSE}
 MotifPlot(
   object = mouse_brain,
   motifs = head(rownames(enriched.motifs))
