@@ -1,4 +1,4 @@
-FROM satijalab/seurat:latest
+FROM satijalab/seurat:5.0.0
 
 RUN apt-get update --fix-missing \
   && apt-get install -y libbz2-dev liblzma-dev \
