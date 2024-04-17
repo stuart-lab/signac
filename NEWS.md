@@ -1,3 +1,7 @@
+# Unreleased
+
+* Add informative error message for `ClosestFeature()` when gene annotations are not present in the object ([#1681](https://github.com/stuart-lab/signac/issues/1681))
+
 # Signac 1.13.0
 
 Bug fixes:
