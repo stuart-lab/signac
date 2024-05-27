@@ -78,6 +78,16 @@ test_that("FeatureMatrix works", {
     verbose = FALSE
   )
   expect_identical(object = fm, expected = computed_fmat)
+  
+  # different sep
+  fm2 <- FeatureMatrix(
+    fragments = fragments,
+    features = granges(atac_small),
+    sep = c(":", "-"),
+    verbose = FALSE
+  )
+  rownames(computed_fmat) <- GRangesToString(StringToGRanges(rownames(computed_fmat)), sep = c(":", "-"))
+  expect_identical(object = fm2, expected = computed_fmat)
 })
 
 test_that("NucleosomeSignal works", {

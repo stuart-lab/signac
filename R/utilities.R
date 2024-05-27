@@ -227,6 +227,9 @@ ClosestFeature <- function(
     stop("No query regions supplied")
   }
   annotation <- SetIfNull(x = annotation, y = Annotation(object = object))
+  if (is.null(x = annotation)) {
+    stop("No annotations present for the requested assay")
+  }
   missing_seqlevels <- setdiff(
     x = seqlevels(x = regions), y = seqlevels(x = annotation)
   )

@@ -277,7 +277,7 @@ FeatureMatrix <- function(
       X = mat.list,
       FUN = AddMissing,
       cells = all.cells,
-      features = GRangesToString(grange = features, sep = c("-", "-"))
+      features = GRangesToString(grange = features, sep = sep)
     )
     featmat <- Reduce(f = `+`, x = mat.list)
     return(featmat)
