@@ -41,7 +41,7 @@ GetFootprintData <- function(
   positionEnrichment <- GetAssayData(
     object = object,
     assay = assay,
-    slot = "positionEnrichment"
+    layer = "positionEnrichment"
   )
   obj.groups <- GetGroups(
     object = object,
@@ -170,7 +170,7 @@ Footprint.ChromatinAssay <- function(
   }
   if (compute.expected) {
     # check that bias is computed
-    bias <- GetAssayData(object = object, slot = "bias")
+    bias <- GetAssayData(object = object, layer = "bias")
     if (is.null(x = bias)) {
       if (verbose) {
         message("Computing Tn5 insertion bias")
@@ -212,7 +212,7 @@ Footprint.ChromatinAssay <- function(
   for (i in seq_along(along.with = matrices)) {
     object <- SetAssayData(
       object = object,
-      slot = "positionEnrichment",
+      layer = "positionEnrichment",
       new.data = matrices[[i]],
       key = key[[i]]
     )
@@ -326,7 +326,7 @@ InsertionBias.ChromatinAssay <- function(
   }
   insertion_hex_freq <- insertion_hex_freq[names(x = genome_freq), ]
   bias <- insertion_hex_freq / genome_freq
-  object <- SetAssayData(object = object, slot = "bias", new.data = bias)
+  object <- SetAssayData(object = object, layer = "bias", new.data = bias)
   return(object)
 }
 
@@ -491,7 +491,7 @@ GetMotifSize <- function(
   positionEnrichment <- GetAssayData(
     object = object,
     assay = assay,
-    slot = "positionEnrichment"
+    layer = "positionEnrichment"
   )
   sizes <- c()
   for (i in features) {
@@ -545,7 +545,7 @@ RunFootprint <- function(
     )
   )
   if (compute.expected) {
-    bias <- GetAssayData(object = object, slot = "bias")
+    bias <- GetAssayData(object = object, layer = "bias")
     if (is.null(x = bias)) {
       stop("Insertion bias not computed")
     } else {

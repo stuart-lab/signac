@@ -109,7 +109,7 @@ RegionMatrix.ChromatinAssay <- function(
   
   # assigning a list using SetAssayData will overwrite the whole slot
   # temporary solution
-  if (key %in% names(GetAssayData(object, slot = "positionEnrichment"))) {
+  if (key %in% names(GetAssayData(object, layer = "positionEnrichment"))) {
     warning("Requested name is already present, overwriting existing data")
   }
   object@positionEnrichment[[key]] <- matlist

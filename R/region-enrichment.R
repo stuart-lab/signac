@@ -174,7 +174,7 @@ TSSEnrichment <- function(
   object <- suppressWarnings(SetAssayData(
     object = object,
     assay = assay,
-    slot = "positionEnrichment",
+    layer = "positionEnrichment",
     new.data = norm.matrix,
     key = "TSS"
   ))

@@ -287,7 +287,7 @@ LinkPeaks <- function(
     )
   }
   meta.features <- GetAssayData(
-    object = object, assay = peak.assay, slot = "meta.features"
+    object = object, assay = peak.assay, layer = "meta.features"
   )
   if (!(all(
     c("GC.percent", "sequence.length") %in% colnames(x = meta.features)
@@ -296,20 +296,20 @@ LinkPeaks <- function(
          "Run RegionsStats before calling this function.")
   }
   if (!("count" %in% colnames(x = meta.features))) {
-    data.use <- GetAssayData(object = object[[peak.assay]], slot = "counts")
+    data.use <- GetAssayData(object = object[[peak.assay]], layer = "counts")
     hvf.info <- FindTopFeatures(object = data.use, verbose = FALSE)
     hvf.info <- hvf.info[rownames(meta.features), , drop = FALSE]
     meta.features <- cbind(meta.features, hvf.info)
   }
   peak.data <- GetAssayData(
-    object = object, assay = peak.assay, slot = peak.slot
+    object = object, assay = peak.assay, layer = peak.slot
   )
   # # depends on SeuratObject v5
   # if (!(expression.slot %in% Layers(object = object))) {
   #   stop("Requested expression layer not found")
   # }
   expression.data <- GetAssayData(
-    object = object, assay = expression.assay, slot = expression.slot
+    object = object, assay = expression.assay, layer = expression.slot
   )
   peakcounts <- rowSums(x = peak.data > 0)
   genecounts <- rowSums(x = expression.data > 0)

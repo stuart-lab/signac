@@ -52,7 +52,7 @@ setMethod(
     x,
     value
   ) {
-    x <- SetAssayData(object = x, slot = "seqinfo", new.data = value)
+    x <- SetAssayData(object = x, layer = "seqinfo", new.data = value)
     x
   }
 )
@@ -85,7 +85,7 @@ setMethod(
   ) {
     sinfo <- seqinfo(x = x)
     seqlevels(x = sinfo) <- value
-    x <- SetAssayData(object = x, slot = "seqinfo", new.data = sinfo)
+    x <- SetAssayData(object = x, layer = "seqinfo", new.data = sinfo)
     return(x)
   }
 )
@@ -118,7 +118,7 @@ setMethod(
   ) {
     sinfo <- seqinfo(x = x)
     seqnames(x = sinfo) <- value
-    x <- SetAssayData(object = x, slot = "seqinfo", new.data = sinfo)
+    x <- SetAssayData(object = x, layer = "seqinfo", new.data = sinfo)
     return(x)
   }
 )
@@ -155,7 +155,7 @@ setMethod(
   ) {
     sinfo <- seqinfo(x = x)
     seqlengths(x = sinfo) <- value
-    x <- SetAssayData(object = x, slot = "seqinfo", new.data = sinfo)
+    x <- SetAssayData(object = x, layer = "seqinfo", new.data = sinfo)
     return(x)
   }
 )
@@ -187,7 +187,7 @@ setMethod(
   definition = function(
     x, value
   ) {
-    x <- SetAssayData(object = x, slot = "seqinfo", new.data = value)
+    x <- SetAssayData(object = x, layer = "seqinfo", new.data = value)
     return(x)
   }
 )
@@ -220,7 +220,7 @@ setMethod(
   ) {
     sinfo <- seqinfo(x = x)
     isCircular(x = sinfo) <- value
-    x <- SetAssayData(object = x, slot = "seqinfo", new.data = sinfo)
+    x <- SetAssayData(object = x, layer = "seqinfo", new.data = sinfo)
     return(x)
   }
 )
@@ -362,7 +362,7 @@ setMethod(
   definition = function(
     x, value
   ) {
-    x <- SetAssayData(object = x, slot = "seqinfo", new.data = value)
+    x <- SetAssayData(object = x, layer = "seqinfo", new.data = value)
   }
 )
 

@@ -87,7 +87,7 @@ AddMotifs.ChromatinAssay <- function(
   )
   object <- SetAssayData(
     object = object,
-    slot = 'motifs',
+    layer = 'motifs',
     new.data = motif
   )
   return(object)
@@ -187,7 +187,7 @@ RunChromVAR.ChromatinAssay <- function(
     x = motif.matrix,
     y = GetMotifData(object = object, slot = "data")
   )
-  peak.matrix <- GetAssayData(object = object, slot = "counts")
+  peak.matrix <- GetAssayData(object = object, layer = "counts")
   if (!(all(peak.matrix@x == floor(peak.matrix@x)))) {
     warning("Count matrix contains non-integer values.
             ChromVAR should only be run on integer counts.")
@@ -332,7 +332,7 @@ FindMotifs <- function(
     meta.feature <- GetAssayData(
       object = object,
       assay = assay,
-      slot = "meta.features"
+      layer = "meta.features"
     )
     mf.choose <- meta.feature[
       setdiff(x = rownames(x = meta.feature), y = features), , drop = FALSE
