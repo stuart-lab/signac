@@ -1,5 +1,8 @@
 # Unreleased
 
+* Change to SeuratObject v5.0.2 dependency
+* Increase R dependency to 4.1
+* Deprecate `CoverageBrowser()`
 * Add informative error message for `ClosestFeature()` when gene annotations are not present in the object ([#1681](https://github.com/stuart-lab/signac/issues/1681))
 
 # Signac 1.13.0
