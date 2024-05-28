@@ -2639,6 +2639,7 @@ CoverageBrowser <- function(
   sep = c("-", "-"),
   ...
 ) {
+  .Deprecated("CoveragePlot")
   if (!requireNamespace("shiny", quietly = TRUE)) {
     stop("Please install shiny. https://shiny.rstudio.com/")
   }
