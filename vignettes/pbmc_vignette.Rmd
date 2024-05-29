@@ -53,31 +53,12 @@ wget https://cf.10xgenomics.com/samples/cell-atac/2.1.0/10k_pbmc_ATACv2_nextgem_
 First load in Signac, Seurat, and some other packages we will be using for
 analyzing human data.
 
-Multiple patches are released for each genome assembly. When dealing with mapped 
-data (such as the 10x Genomics files we will be using), it is advisable to use 
-the annotations from the same assembly patch that was used to perform the mapping.
-
-From the [dataset summary](https://cf.10xgenomics.com/samples/cell-atac/2.1.0/10k_pbmc_ATACv2_nextgem_Chromium_Controller/10k_pbmc_ATACv2_nextgem_Chromium_Controller_web_summary.html), 
-we can see that the reference package 10x Genomics used to perform 
-the mapping was “GRCh38-2020-A”, which [corresponds to](https://www.10xgenomics.com/support/software/cell-ranger/downloads/cr-ref-build-steps#ref-2020-a) the Ensembl v98 patch release. 
-For more information on the various Ensembl releases, you can refer to [this site](https://www.ensembl.org/info/website/archives/assembly.html).
-
 ```{r setup, message=FALSE}
 library(Signac)
 library(Seurat)
 
 library(ggplot2)
 library(patchwork)
-```
-
-```{r warning=FALSE}
-library(AnnotationHub)
-ah <- AnnotationHub()
-query(ah, "EnsDb.Hsapiens.v98")
-```
-
-```{r message=FALSE, warning=FALSE}
-ensdb_v98 <- ah[["AH75011"]]
 ```
 
 ## Pre-processing workflow
@@ -183,9 +164,44 @@ about the `ChromatinAssay` class.
 granges(pbmc)
 ```
 
+We then remove the features that correspond to chromosome scaffolds e.g. (KI270713.1)
+or other sequences instead of the (22+2) standard chromosomes. The seqlevels corresponding 
+to these non-standard sequences are no longer in use and thus dropped.
+
+```{r}
+standard_granges <- keepStandardChromosomes(granges(pbmc), pruning.mode="coarse")
+standard_features <- sapply(as.character(standard_granges), function(x) {gsub(":", "-", x)})
+
+pbmc <- subset(pbmc, features = standard_features)
+
+# Drop unused seqlevels
+seqlevels(pbmc@assays$peaks@ranges) <- seqlevelsInUse(granges(pbmc))
+seqlevels(granges(pbmc))
+```
+
 We can also add gene annotations to the `pbmc` object for the human genome.
 This will allow downstream functions to pull the gene annotation information
 directly from the object.
+
+Multiple patches are released for each genome assembly. When dealing with mapped 
+data (such as the 10x Genomics files we will be using), it is advisable to use 
+the annotations from the same assembly patch that was used to perform the mapping.
+
+From the [dataset summary](https://cf.10xgenomics.com/samples/cell-atac/2.1.0/10k_pbmc_ATACv2_nextgem_Chromium_Controller/10k_pbmc_ATACv2_nextgem_Chromium_Controller_web_summary.html), 
+we can see that the reference package 10x Genomics used to perform 
+the mapping was “GRCh38-2020-A”, which [corresponds to](https://www.10xgenomics.com/support/software/cell-ranger/downloads/cr-ref-build-steps#ref-2020-a) the Ensembl v98 patch release. 
+For more information on the various Ensembl releases, you can refer to [this site](https://www.ensembl.org/info/website/archives/assembly.html).
+
+```{r warning=FALSE, message=FALSE}
+library(AnnotationHub)
+ah <- AnnotationHub()
+# Search for the Ensembl 98 EnsDb for Homo sapiens on AnnotationHub
+query(ah, "EnsDb.Hsapiens.v98")
+```
+
+```{r message=FALSE, warning=FALSE}
+ensdb_v98 <- ah[["AH75011"]]
+```
 
 ```{r annotations, message=FALSE, warning=FALSE, cache=FALSE}
 # extract gene annotations from EnsDb
@@ -290,9 +306,9 @@ Finally we remove cells that are outliers for these QC metrics.
 pbmc <- subset(
   x = pbmc,
   subset = nCount_peaks > 9000 &
-    nCount_peaks < 50000 &
-    pct_reads_in_peaks > 25 &
-    blacklist_ratio < 0.05 &
+    nCount_peaks < 100000 &
+    pct_reads_in_peaks > 40 &
+    blacklist_ratio < 0.01 &
     nucleosome_signal < 4 &
     TSS.enrichment > 4
 )
