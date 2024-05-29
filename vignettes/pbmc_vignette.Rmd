@@ -656,8 +656,46 @@ head(closest_genes_cd14mono)
 
 We could follow up with this result by doing gene ontology enrichment analysis
 on the gene sets returned by `ClosestFeature()`,and there are many R packages
-that can do this (see the[`GOstats`](https://bioconductor.org/packages/release/bioc/html/GOstats.html)
-package for example).
+that can do this (see the[`GOstats`](https://bioconductor.org/packages/release/bioc/html/GOstats.html) or [`clusterProfiler`](https://bioconductor.org/packages/release/bioc/html/clusterProfiler.html)
+packages for example).
+
+<details>
+
+  <summary>**GO enrichment analysis with clusterProfiler**</summary>
+
+```{r message=FALSE}
+## FOR ENRICHMENT ANALYSIS
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(enrichplot)
+```
+
+```{r fig.width=12, fig.height=10, message=FALSE, warning=FALSE}
+cd4naive_ego <- enrichGO(gene = closest_genes_cd4naive$gene_id,
+                keyType = "ENSEMBL",
+                OrgDb = org.Hs.eg.db,
+                ont = "BP",
+                pAdjustMethod = "BH",
+                pvalueCutoff = 0.05,
+                qvalueCutoff = 0.05,
+                readable = TRUE)
+
+barplot(cd4naive_ego,showCategory = 20)
+```
+
+```{r fig.width=12, fig.height=10, message=FALSE, warning=FALSE}
+cd14mono_ego <- enrichGO(gene = closest_genes_cd14mono$gene_id,
+                keyType = "ENSEMBL",
+                OrgDb = org.Hs.eg.db,
+                ont = "BP",
+                pAdjustMethod = "BH",
+                pvalueCutoff = 0.05,
+                qvalueCutoff = 0.05,
+                readable = TRUE)
+
+barplot(cd14mono_ego,showCategory = 20)
+```
+</details>
 
 ## Plotting genomic regions
 
