@@ -586,8 +586,9 @@ da_peaks <- FindMarkers(
   ident.1 = "CD4 Naive",
   ident.2 = "CD14+ Monocytes",
   test.use = 'wilcox',
-  min.pct = 0.3
+  min.pct = 0.1
 )
+
 head(da_peaks)
 ```
 
@@ -612,7 +613,7 @@ lr_da_peaks <- FindMarkers(
   ident.2 = "CD14+ Monocytes",
   test.use = 'LR',
   latent.vars = 'nCount_peaks',
-  min.pct = 0.3
+  min.pct = 0.1
 )
 head(lr_da_peaks)
 ```
@@ -653,70 +654,10 @@ head(closest_genes_cd4naive)
 head(closest_genes_cd14mono)
 ```
 
-In the absence of scRNA-seq data, we could follow up with this result by doing 
-gene ontology enrichment analysis on the gene sets returned by `ClosestFeature()`, 
-and there are many R packages that can do this (see the[`GOstats`](https://bioconductor.org/packages/release/bioc/html/GOstats.html)
+We could follow up with this result by doing gene ontology enrichment analysis
+on the gene sets returned by `ClosestFeature()`,and there are many R packages
+that can do this (see the[`GOstats`](https://bioconductor.org/packages/release/bioc/html/GOstats.html)
 package for example).
-
-Since we have access to a companion scRNA-seq dataset, we can cross-reference 
-differences in gene expression with the patterns of differential accessibility in
-peaks around DEGs. The `FindMarkers()` function can be similarly applied 
-to the Seurat object containing the scRNA-seq data for comparison of CD4 cells
-and CD14 monocytes to obtain a set of DEGs (as opposed to DA peaks).
-
-```{r warning=FALSE, message=FALSE}
-de_genes <- FindMarkers(
-  object = pbmc_rna,
-  ident.1 = "CD4 Naive",
-  ident.2 = "CD14+ Monocytes",
-  test.use = 'wilcox',
-  min_pct = 0.3
-)
-
-head(de_genes)
-
-upgenes_cd4naive <- de_genes[de_genes$avg_log2FC > 1, ]
-upgenes_cd14mono <- de_genes[de_genes$avg_log2FC < -1, ]
-```
-
-LEF1 is one such DEG thus identified that could be interesting to scrutinise 
-further. Apart from showing highly significant differential expression and a 
-fairly large log2fold change, it is also recognised as a marker gene for CD4 
-naive cells in the [Azimuth web application](https://azimuth.hubmapconsortium.org/references/#Human%20-%20PBMC), 
-which is a part of the NIH Human Biomolecular Atlas Project (HuBMAP) and hosts 
-a number of molecular reference maps. In CD4 naive cells, there are 46 DA peaks 
-close to LEF1.
-
-```{r warning=FALSE, message=FALSE}
-head(upgenes_cd4naive, 20)
-```
-
-```{r, max.height='350px'}
-# Define the gene name of interest
-cd4naive_goi <- "LEF1"
-
-cd4naive_goi_da <- closest_genes_cd4naive[which(closest_genes_cd4naive$gene_name == cd4naive_goi), ]
-print(cd4naive_goi_da)
-print(dim(cd4naive_goi_da))
-
-```
-
-Another such DEG is FCN1, which is recognised as a marker gene for CD14 monocytes 
-in Azimuth. In CD14 monocytes, there are 14 DA peaks close to FCN1.
-
-```{r warning=FALSE, message=FALSE}
-head(upgenes_cd14mono, 20)
-```
-
-```{r, max.height='350px'}
-# Define the gene name of interest
-cd14mono_goi <- "FCN1"
-
-cd14mono_goi_da <- closest_genes_cd14mono[which(closest_genes_cd14mono$gene_name == cd14mono_goi), ]
-print(cd14mono_goi_da)
-print(dim(cd14mono_goi_da))
-
-```
 
 ## Plotting genomic regions
 
@@ -731,35 +672,9 @@ important information including gene annotation, peak coordinates, and genomic
 links (if they're stored in the object). See the
 [visualization vignette](visualization.html) for more information.
 
-We first define a simple function that accepts a dataframe of DA peaks and returns 
-the genomic region spanned by the features of interest as a (string) range that 
-delimits the bounds of coverage plot. The DA peaks are also returned as a list 
-of GRanges which can be accepted by `CoveragePlot()` for highlighting.
-
-```{r}
-
-get_combined_span_string <- function(da_peaks) {
-  query_regions <- StringToGRanges(da_peaks$query_region)
-  closest_regions <- StringToGRanges(da_peaks$query_region)
-  
-  # Combine the GRanges objects
-  all_roi <- c(query_regions, closest_regions)
-  
-  # Get the overall span for the current chromosome
-  chromosome <- as.character(seqnames(all_roi))[1]
-  overall_start <- min(start(all_roi))
-  overall_end <- max(end(all_roi))
-  
-  combined_span_string <- paste0(chromosome, "-", overall_start, "-", overall_end)
-  
-  # Return a list with query regions and the combined span string
-  return(list(query_regions = query_regions, combined_span_string = combined_span_string))
-}
-
-```
-
 We can then visualize the DA peaks open in CD4 naive cells and CD14 monocytes, 
-near LEF1 and FCN1 respectively. The DA peaks are highlighted in grey.
+near some key marker genes for these cell types, CD4 and FCN1 respectively.
+Here we'll highlight the DA peaks regions in grey.
 
 ```{r message=FALSE, warning=FALSE}
 # set plotting order
@@ -767,34 +682,25 @@ levels(pbmc) <- sort(levels(pbmc))
 ```
 
 ```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=6}
-cd4naive_goi_roi <- get_combined_span_string(cd4naive_goi_da)
-
-## region to plot, as a string
-cd4naive_roi_span <- cd4naive_goi_roi$combined_span_string
-## list of DA peak spans, as GRanges
-cd4naive_da_peak_list <- cd4naive_goi_roi$query_regions
+# find DA peaks overlapping gene of interest
+regions_highlight <- subsetByOverlaps(StringToGRanges(open_cd4naive), LookupGeneCoords(pbmc, "CD4"))
 
 CoveragePlot(
   object = pbmc,
-  region = cd4naive_roi_span,
-  region.highlight = cd4naive_da_peak_list,
+  region = "CD4",
+  region.highlight = regions_highlight,
   extend.upstream = 1000,
   extend.downstream = 1000
 )
 ```
 
 ```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=6}
-cd14mono_goi_roi <- get_combined_span_string(cd14mono_goi_da)
-
-## region to plot, as a string
-cd14mono_roi_span <- cd14mono_goi_roi$combined_span_string
-## list of DA peak spans, as GRanges
-cd14mono_da_peak_list <- cd14mono_goi_roi$query_regions
+regions_highlight <- subsetByOverlaps(StringToGRanges(open_cd14mono), LookupGeneCoords(pbmc, "FCN1"))
 
 CoveragePlot(
   object = pbmc,
-  region = cd14mono_roi_span,
-  region.highlight = cd14mono_da_peak_list,
+  region = "FCN1",
+  region.highlight = regions_highlight,
   extend.upstream = 1000,
   extend.downstream = 1000
 )
