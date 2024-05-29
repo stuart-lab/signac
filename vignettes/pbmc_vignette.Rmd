@@ -493,7 +493,11 @@ by scATAC-seq. It is possible that the cells predicted to be platelets could
 instead be the platelet-precursors megakaryocytes, which largely reside in the 
 bone marrow but are rarely found in the peripheral blood of healthy patients, 
 such as the individual these PBMCs were drawn from. Given the already extreme 
-rarity of megakaryocytes within normal blood marrow (< 0.1%), this scenario seems unlikely.  
+rarity of megakaryocytes within normal bone marrow (< 0.1%), this scenario seems unlikely.  
+
+<details>
+
+<summary>**A closer look at the "platelets"**</summary>
 
 Plotting the prediction score for the cells assigned to each label reveals that 
 the “platelet” cells received relatively low scores (< 0.8), indicating a low confidence 
@@ -521,8 +525,9 @@ ordered_platelet_scores_df <- platelet_scores[, ordered_columns]
 
 print(ordered_platelet_scores_df)
 ```
+</details>
 
-As there are only a very small number of cells classified as “platelets” (> 20), 
+As there are only a very small number of cells classified as “platelets” (< 20), 
 it is difficult to figure out their precise cellular identity. We will thus remove the cells classified as “platelets”.
 
 ```{r}
@@ -538,6 +543,16 @@ table(pbmc$predicted.id)
 For downstream analyses, we can simply reassign the identities of each cell 
 from their UMAP cluster index to the per-cell predicted labels. It is also 
 possible to consider merging the cluster indexes and predicted labels.
+
+```{r}
+# replace cluster names with the per-cell predicted labels
+predicted_labels <- unique(pbmc$predicted.id)
+
+for(newid in predicted_labels) {
+  cells_to_reid <- which(pbmc$predicted.id == newid)
+  Idents(pbmc, cells = cells_to_reid) <- newid
+}
+```
 
 <details>
 
@@ -558,17 +573,6 @@ for(i in levels(pbmc)) {
 
 </details>
 
-
-```{r}
-# replace cluster names with the per-cell predicted labels
-predicted_labels <- unique(pbmc$predicted.id)
-
-for(newid in predicted_labels) {
-  cells_to_reid <- which(pbmc$predicted.id == newid)
-  Idents(pbmc, cells = cells_to_reid) <- newid
-}
-```
-
 ## Find differentially accessible peaks between cell types
 
 To find differentially accessible regions between clusters of cells, we can
@@ -582,8 +586,8 @@ Seurat object.
 <summary>**Install presto**</summary>
 
 ```{r eval=FALSE}
-install.packages('devtools')
-devtools::install_github('immunogenomics/presto')
+install.packages('remotes')
+remotes::install_github('immunogenomics/presto')
 ```
 
 </details>
@@ -602,7 +606,8 @@ da_peaks <- FindMarkers(
   object = pbmc,
   ident.1 = "CD4 Naive",
   ident.2 = "CD14+ Monocytes",
-  test.use = 'wilcox'
+  test.use = 'wilcox',
+  min.pct=0.3
 )
 head(da_peaks)
 ```
@@ -627,7 +632,8 @@ lr_da_peaks <- FindMarkers(
   ident.1 = "CD4 Naive",
   ident.2 = "CD14+ Monocytes",
   test.use = 'LR',
-  latent.vars = 'nCount_peaks'
+  latent.vars = 'nCount_peaks',
+  min.pct=0.3
 )
 head(lr_da_peaks)
 ```
@@ -660,6 +666,7 @@ function in Seurat.
 
 ```{r message=FALSE, warning=FALSE}
 fc <- FoldChange(pbmc, ident.1 = "CD4 Naive", ident.2 = "CD14+ Monocytes")
+fc <- fc[fc$pct.1 > 0.3 | fc$pct.2 > 0.3, ]
 # order by fold change
 fc <- fc[order(fc$avg_log2FC, decreasing = TRUE), ]
 head(fc)
@@ -692,7 +699,8 @@ de_genes <- FindMarkers(
   object = pbmc_rna,
   ident.1 = "CD4 Naive",
   ident.2 = "CD14+ Monocytes",
-  test.use = 'wilcox'
+  test.use = 'wilcox',
+  min_pct = 0.3
 )
 
 head(de_genes)
