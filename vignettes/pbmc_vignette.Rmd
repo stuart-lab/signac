@@ -281,7 +281,8 @@ VlnPlot(
 )
 ```
 
-Finally we remove cells that are outliers for these QC metrics.
+Finally we remove cells that are outliers for these QC metrics. The exact QC
+thresholds used will need to be adjusted according to your dataset.
 
 ```{r}
 pbmc <- subset(
@@ -509,7 +510,11 @@ print(ordered_platelet_scores_df)
 </details>
 
 As there are only a very small number of cells classified as “platelets” (< 20), 
-it is difficult to figure out their precise cellular identity. We will thus remove the cells classified as “platelets”.
+it is difficult to figure out their precise cellular identity. Larger datasets 
+would be required to confidently identify specific peaks for this population of
+cells, and further analysis performed to correctly annotate them.
+For downstream analysis we will thus remove the extremely rare cell states that
+were predicted, retaining only cell annotations with >20 cells total.
 
 ```{r}
 predicted_id_counts <- table(pbmc$predicted.id)
@@ -526,13 +531,8 @@ from their UMAP cluster index to the per-cell predicted labels. It is also
 possible to consider merging the cluster indexes and predicted labels.
 
 ```{r}
-# replace cluster names with the per-cell predicted labels
-predicted_labels <- unique(pbmc$predicted.id)
-
-for(newid in predicted_labels) {
-  cells_to_reid <- which(pbmc$predicted.id == newid)
-  Idents(pbmc, cells = cells_to_reid) <- newid
-}
+# change cell identities to the per-cell predicted labels
+Idents(pbmc) <- pbmc$predicted.id
 ```
 
 <details>
@@ -567,7 +567,8 @@ Seurat object.
 <summary>**Install presto**</summary>
 
 ```{r eval=FALSE}
-install.packages('remotes')
+if (!requireNamespace("remotes", quietly = TRUE))
+  install.packages('remotes')
 remotes::install_github('immunogenomics/presto')
 ```
 
@@ -588,7 +589,7 @@ da_peaks <- FindMarkers(
   ident.1 = "CD4 Naive",
   ident.2 = "CD14+ Monocytes",
   test.use = 'wilcox',
-  min.pct=0.3
+  min.pct = 0.3
 )
 head(da_peaks)
 ```
@@ -614,7 +615,7 @@ lr_da_peaks <- FindMarkers(
   ident.2 = "CD14+ Monocytes",
   test.use = 'LR',
   latent.vars = 'nCount_peaks',
-  min.pct=0.3
+  min.pct = 0.3
 )
 head(lr_da_peaks)
 ```
