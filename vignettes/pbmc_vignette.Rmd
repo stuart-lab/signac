@@ -492,14 +492,13 @@ VlnPlot(pbmc, 'prediction.score.max', group.by = 'predicted.id')
 
 ```{r max.height='300px'}
 # Identify the metadata columns that start with "prediction.score."
-metadata_attributes <- colnames(pbmc@meta.data)
+metadata_attributes <- colnames(pbmc[[]])
 prediction_score_attributes <- grep("^prediction.score.", metadata_attributes, value = TRUE)
 prediction_score_attributes <- setdiff(prediction_score_attributes, "prediction.score.max")
-print(prediction_score_attributes)
 
 # Extract the prediction score attributes for these cells
 predicted_platelets <- which(pbmc$predicted.id == "Platelet")
-platelet_scores <- pbmc@meta.data[predicted_platelets, prediction_score_attributes]
+platelet_scores <- pbmc[[]][predicted_platelets, prediction_score_attributes]
 
 # Order the columns by their average values in descending order
 ordered_columns <- names(sort(colMeans(platelet_scores, na.rm = TRUE), decreasing = TRUE))
@@ -521,9 +520,7 @@ predicted_id_counts <- table(pbmc$predicted.id)
 
 # Identify the predicted.id values that have more than 20 cells
 major_predicted_ids <- names(predicted_id_counts[predicted_id_counts > 20])
-
-pbmc <- subset(pbmc, subset = predicted.id %in% major_predicted_ids)
-table(pbmc$predicted.id)
+pbmc <- pbmc[, pbmc$predicted.id %in% major_predicted_ids]
 ```
 
 For downstream analyses, we can simply reassign the identities of each cell 
