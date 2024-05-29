@@ -56,7 +56,7 @@ analyzing human data.
 ```{r setup, message=FALSE}
 library(Signac)
 library(Seurat)
-
+library(GenomicRanges)
 library(ggplot2)
 library(patchwork)
 ```
@@ -165,18 +165,11 @@ granges(pbmc)
 ```
 
 We then remove the features that correspond to chromosome scaffolds e.g. (KI270713.1)
-or other sequences instead of the (22+2) standard chromosomes. The seqlevels corresponding 
-to these non-standard sequences are no longer in use and thus dropped.
+or other sequences instead of the (22+2) standard chromosomes.
 
 ```{r}
-standard_granges <- keepStandardChromosomes(granges(pbmc), pruning.mode="coarse")
-standard_features <- sapply(as.character(standard_granges), function(x) {gsub(":", "-", x)})
-
-pbmc <- subset(pbmc, features = standard_features)
-
-# Drop unused seqlevels
-seqlevels(pbmc@assays$peaks@ranges) <- seqlevelsInUse(granges(pbmc))
-seqlevels(granges(pbmc))
+peaks.keep <- seqnames(granges(pbmc)) %in% standardChromosomes(granges(pbmc))
+pbmc <- pbmc[as.vector(peaks.keep), ]
 ```
 
 We can also add gene annotations to the `pbmc` object for the human genome.
@@ -195,6 +188,7 @@ For more information on the various Ensembl releases, you can refer to [this sit
 ```{r warning=FALSE, message=FALSE}
 library(AnnotationHub)
 ah <- AnnotationHub()
+
 # Search for the Ensembl 98 EnsDb for Homo sapiens on AnnotationHub
 query(ah, "EnsDb.Hsapiens.v98")
 ```
