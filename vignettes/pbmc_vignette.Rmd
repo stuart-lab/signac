@@ -237,7 +237,7 @@ datasets using Signac (more information at the end of this document).
 pbmc <- NucleosomeSignal(object = pbmc)
 
 # compute TSS enrichment score per cell
-pbmc <- TSSEnrichment(object = pbmc, fast = FALSE)
+pbmc <- TSSEnrichment(object = pbmc)
 
 # add fraction of reads in peaks
 pbmc$pct_reads_in_peaks <- pbmc$peak_region_fragments / pbmc$passed_filters * 100
@@ -257,19 +257,6 @@ to quickly find suitable cutoff values for different QC metrics by setting
 
 ```{r}
 DensityScatter(pbmc, x = 'nCount_peaks', y = 'TSS.enrichment', log_x = TRUE, quantiles = TRUE)
-```
-
-We can inspect the TSS enrichment scores by grouping the cells based on the
-score and plotting the accessibility signal over all TSS sites. Setting the 
-`fast=TRUE` option in `TSSEnrichment()` will only compute the TSS enrichment
-score without storing the entire cell by position matrix of Tn5 insertion
-frequency for each cell, and can save memory. However, setting `fast=TRUE` will
-not allow downstream plotting of the TSS enrichment signal for different groups
-of cells using the `TSSPlot()` function, shown here:
-
-```{r message=FALSE, warning=FALSE}
-pbmc$high.tss <- ifelse(pbmc$TSS.enrichment > 4, 'High', 'Low')
-TSSPlot(pbmc, group.by = 'high.tss') + NoLegend()
 ```
 
 We can also look at the fragment length periodicity for all the cells, and group
