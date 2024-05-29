@@ -635,22 +635,6 @@ plot2 <- FeaturePlot(
 plot1 | plot2
 ```
 
-Another way to find DA regions between two groups of cells is to look at the
-fold change accessibility between two groups of cells. This can be much faster
-than running more sophisticated DA tests, but is not able to account for
-latent variables such as differences in the total sequencing depth between
-cells, and does not perform any statistical test. However, this can still be a
-useful way to quickly explore data, and can be performed using the `FoldChange()`
-function in Seurat.
-
-```{r message=FALSE, warning=FALSE}
-fc <- FoldChange(pbmc, ident.1 = "CD4 Naive", ident.2 = "CD14+ Monocytes")
-fc <- fc[fc$pct.1 > 0.3 | fc$pct.2 > 0.3, ]
-# order by fold change
-fc <- fc[order(fc$avg_log2FC, decreasing = TRUE), ]
-head(fc)
-```
-
 Peak coordinates can be difficult to interpret alone. We can find the closest
 gene to each of these peaks using the `ClosestFeature()` function. 
 
@@ -662,14 +646,21 @@ closest_genes_cd4naive <- ClosestFeature(pbmc, regions = open_cd4naive)
 closest_genes_cd14mono <- ClosestFeature(pbmc, regions = open_cd14mono)
 ```
 
+```{r}
+head(closest_genes_cd4naive)
+```
+```{r}
+head(closest_genes_cd14mono)
+```
+
 In the absence of scRNA-seq data, we could follow up with this result by doing 
 gene ontology enrichment analysis on the gene sets returned by `ClosestFeature()`, 
 and there are many R packages that can do this (see the[`GOstats`](https://bioconductor.org/packages/release/bioc/html/GOstats.html)
 package for example).
 
 Since we have access to a companion scRNA-seq dataset, we can cross-reference 
-experimentally recorded differences in gene expression with the patterns of 
-DA peaks around DEGs. The `FindMarkers()` function can be similarly applied 
+differences in gene expression with the patterns of differential accessibility in
+peaks around DEGs. The `FindMarkers()` function can be similarly applied 
 to the Seurat object containing the scRNA-seq data for comparison of CD4 cells
 and CD14 monocytes to obtain a set of DEGs (as opposed to DA peaks).
 
