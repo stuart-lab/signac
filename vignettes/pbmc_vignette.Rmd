@@ -8,10 +8,6 @@ date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{css, echo=FALSE}
-pre, code {white-space:pre !important; overflow-x:auto}
-```
-
 ```{r, include=FALSE}
 options(width = 600)
 local({
