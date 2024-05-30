@@ -659,8 +659,19 @@ packages for example).
 
   <summary>**GO enrichment analysis with clusterProfiler**</summary>
 
+
+```{r include=FALSE}
+if (!requireNamespace("clusterProfiler", quietly = TRUE))
+  BiocManager::install("clusterProfiler")
+
+if (!requireNamespace("org.Hs.eg.db", quietly = TRUE))
+  BiocManager::install("org.Hs.eg.db")
+
+if (!requireNamespace("enrichplot", quietly = TRUE))
+  BiocManager::install("enrichplot")
+```
+
 ```{r message=FALSE}
-## FOR ENRICHMENT ANALYSIS
 library(clusterProfiler)
 library(org.Hs.eg.db)
 library(enrichplot)
