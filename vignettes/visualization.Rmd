@@ -28,10 +28,14 @@ The main plotting function in Signac is `CoveragePlot()`, and this computes the
 averaged frequency of sequenced DNA fragments for different groups of cells
 within a given genomic region. 
 
+```{r}
+roi = "chr2-86784605-86808396"
+```
+
 ```{r message=FALSE, warning=FALSE}
 cov_plot <- CoveragePlot(
   object = pbmc,
-  region = "chr2-87011729-87035519",
+  region = roi,
   annotation = FALSE,
   peaks = FALSE
 )
@@ -78,7 +82,7 @@ Gene annotations within a given genomic region can be plotted using the
 ```{r message=FALSE, warning=FALSE}
 gene_plot <- AnnotationPlot(
   object = pbmc,
-  region = "chr2-87011729-87035519"
+  region = roi
 )
 gene_plot
 ```
@@ -91,7 +95,7 @@ function.
 ```{r message=FALSE, warning=FALSE}
 peak_plot <- PeakPlot(
   object = pbmc,
-  region = "chr2-87011729-87035519"
+  region = roi
 )
 peak_plot
 ```
@@ -127,7 +131,7 @@ Links(pbmc) <- links
 ```{r message=FALSE, warning=FALSE}
 link_plot <- LinkPlot(
   object = pbmc,
-  region = "chr2-87011729-87035519"
+  region = roi
 )
 link_plot
 ```
@@ -143,7 +147,7 @@ function.
 ```{r message=FALSE, warning=FALSE}
 tile_plot <- TilePlot(
   object = pbmc,
-  region = "chr2-87011729-87035519",
+  region = roi,
   idents = c("CD4 Memory", "CD8 Effector")
 )
 tile_plot
@@ -219,7 +223,7 @@ single function call:
 ```{r fig.height=10, message=FALSE, warning=FALSE}
 CoveragePlot(
   object = pbmc,
-  region = "chr2-87011729-87035519",
+  region = roi,
   features = "CD8A",
   annotation = TRUE,
   peaks = TRUE,
