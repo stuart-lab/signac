@@ -32,9 +32,10 @@ wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_1
 wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_10k/pbmc_granulocyte_sorted_10k_atac_fragments.tsv.gz.tbi
 
 # scATAC
-# https://www.10xgenomics.com/datasets/10-k-peripheral-blood-mononuclear-cells-pbm-cs-from-a-healthy-donor-next-gem-v-1-1-1-1-standard-2-0-0
-wget https://cf.10xgenomics.com/samples/cell-atac/2.0.0/atac_pbmc_10k_nextgem/atac_pbmc_10k_nextgem_fragments.tsv.gz
-wget https://cf.10xgenomics.com/samples/cell-atac/2.0.0/atac_pbmc_10k_nextgem/atac_pbmc_10k_nextgem_fragments.tsv.gz.tbi
+wget https://cf.10xgenomics.com/samples/cell-atac/2.1.0/10k_pbmc_ATACv2_nextgem_Chromium_Controller/10k_pbmc_ATACv2_nextgem_Chromium_Controller_filtered_peak_bc_matrix.h5
+wget https://cf.10xgenomics.com/samples/cell-atac/2.1.0/10k_pbmc_ATACv2_nextgem_Chromium_Controller/10k_pbmc_ATACv2_nextgem_Chromium_Controller_singlecell.csv
+wget https://cf.10xgenomics.com/samples/cell-atac/2.1.0/10k_pbmc_ATACv2_nextgem_Chromium_Controller/10k_pbmc_ATACv2_nextgem_Chromium_Controller_fragments.tsv.gz
+wget https://cf.10xgenomics.com/samples/cell-atac/2.1.0/10k_pbmc_ATACv2_nextgem_Chromium_Controller/10k_pbmc_ATACv2_nextgem_Chromium_Controller_fragments.tsv.gz.tbi
 ```
 
 </details>
@@ -42,8 +43,8 @@ wget https://cf.10xgenomics.com/samples/cell-atac/2.0.0/atac_pbmc_10k_nextgem/at
 ## Preprocessing
 
 Here we'll load the PBMC multiome data pre-processed in our
-[multiome vignette](pbmc_multiomic.html), and create a new object from
-the scATAC-seq data:
+[multiome vignette](pbmc_multiomic.html) and the PBMC scATAC-seq data from our
+[PBMC vignette](pbmc_vignette.html):
 
 ```{r message=FALSE, warning=FALSE}
 library(Signac)
@@ -53,14 +54,8 @@ library(ggplot2)
 # load the pre-processed multiome data
 pbmc.multi <- readRDS("../vignette_data/pbmc_multiomic.rds")
 
-# process the scATAC data
-# first count fragments per cell
-fragpath <- "../vignette_data/atac_pbmc_10k_nextgem_fragments.tsv.gz"
-fragcounts <- CountFragments(fragments = fragpath)
-atac.cells <- fragcounts[fragcounts$frequency_count > 2000, "CB"]
-
-# create the fragment object
-atac.frags <- CreateFragmentObject(path = fragpath, cells = atac.cells)
+# load the pre-processed atac data
+pbmc.atac <- readRDS("../vignette_data/pbmc.rds")
 ```
 
 An important first step in any integrative analysis of single-cell chromatin data
@@ -72,21 +67,19 @@ information about merging chromatin assays.
 ```{r message=FALSE, warning=FALSE}
 # quantify multiome peaks in the scATAC-seq dataset
 counts <- FeatureMatrix(
-  fragments = atac.frags,
+  fragments = Fragments(pbmc.atac),
   features = granges(pbmc.multi),
-  cells = atac.cells
+  cells = colnames(pbmc.atac)
 )
 
-# create object
-atac.assay <- CreateChromatinAssay(
+# add new assay with multiome peaks
+pbmc.atac[['ATAC']] <- CreateChromatinAssay(
   counts = counts,
-  min.features = 1000,
-  fragments = atac.frags
+  fragments = Fragments(pbmc.atac)
 )
-pbmc.atac <- CreateSeuratObject(counts = atac.assay, assay = "ATAC")
-pbmc.atac <- subset(pbmc.atac, nCount_ATAC > 2000 & nCount_ATAC < 30000)
 
 # compute LSI
+DefaultAssay(pbmc.atac) <- "ATAC"
 pbmc.atac <- FindTopFeatures(pbmc.atac, min.cutoff = 10)
 pbmc.atac <- RunTFIDF(pbmc.atac)
 pbmc.atac <- RunSVD(pbmc.atac)
