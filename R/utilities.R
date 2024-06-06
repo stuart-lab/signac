@@ -204,11 +204,12 @@ CellsPerGroup <- function(
 #' to similarity ordering.
 #' 
 #' @examples
-#' Idents(atac_small) <- sample(1:10, ncol(atac_small), replace = TRUE)
-#' atac_small <- SortIdents(object = atac_small)
-#' print(levels(Idents(atac_small)))
+#' atac_small$test <- sample(1:10, ncol(atac_small), replace = TRUE)
+#' atac_small <- SortIdents(object = atac_small, label = 'test')
+#' print(levels(atac_small$test))
 #'
 #' @importFrom stats dist hclust
+#' @importFrom SeuratObject Layers Idents Idents<- DefaultAssay LayerData
 #
 #' @export
 SortIdents <- function(
