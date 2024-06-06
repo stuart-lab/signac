@@ -66,7 +66,7 @@ AddChromatinModule <- function(
   )
 
   # add module scores to metadata
-  chromvar.data <- GetAssayData(object = cv, slot = "data")
+  chromvar.data <- GetAssayData(object = cv, layer = "data")
   object <- AddMetaData(
     object = object,
     metadata = as.data.frame(x = t(x = chromvar.data))
@@ -146,7 +146,7 @@ AccessiblePeaks <- function(
   open.peaks <- GetAssayData(
     object = object,
     assay = assay,
-    slot = "counts"
+    layer = "counts"
   )[, cells]
   peaks <- names(x = which(x = rowSums(x = open.peaks > 0) > min.cells))
   return(peaks)
@@ -557,8 +557,8 @@ GetIntersectingFeatures <- function(
   if (!inherits(x = object.2[[assay.2]], what = "ChromatinAssay")) {
     stop("Requested assay in object 2 is not a ChromatinAssay")
   }
-  regions.1 <- GetAssayData(object = object.1, assay = assay.1, slot = "ranges")
-  regions.2 <- GetAssayData(object = object.2, assay = assay.2, slot = "ranges")
+  regions.1 <- GetAssayData(object = object.1, assay = assay.1, layer = "ranges")
+  regions.2 <- GetAssayData(object = object.2, assay = assay.2, layer = "ranges")
   if (verbose) {
     message("Intersecting regions across objects")
   }
@@ -747,11 +747,11 @@ CountsInRegion <- function(
   if (!is(object = object[[assay]], class2 = "ChromatinAssay")) {
     stop("Must supply a ChromatinAssay")
   }
-  obj.granges <- GetAssayData(object = object, assay = assay, slot = "ranges")
+  obj.granges <- GetAssayData(object = object, assay = assay, layer = "ranges")
   overlaps <- findOverlaps(query = obj.granges, subject = regions, ...)
   hit.regions <- queryHits(x = overlaps)
   data.matrix <- GetAssayData(
-    object = object, assay = assay, slot = "counts"
+    object = object, assay = assay, layer = "counts"
   )[hit.regions, , drop = FALSE]
   return(colSums(data.matrix))
 }
@@ -793,7 +793,7 @@ FractionCountsInRegion <- function(
     ...
   )
   total.reads <- colSums(x = GetAssayData(
-    object = object, assay = assay, slot = "counts"
+    object = object, assay = assay, layer = "counts"
   ))
   return(reads.in.region / total.reads)
 }
@@ -925,7 +925,7 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
 #' @concept motifs
 #' @examples
 #' metafeatures <- SeuratObject::GetAssayData(
-#'   object = atac_small[['peaks']], slot = 'meta.features'
+#'   object = atac_small[['peaks']], layer = 'meta.features'
 #' )
 #' query.feature <- metafeatures[1:10, ]
 #' features.choose <- metafeatures[11:nrow(metafeatures), ]
@@ -1130,7 +1130,7 @@ AverageCountMatrix <- function(
   idents = NULL
 ) {
   assay = SetIfNull(x = assay, y = DefaultAssay(object = object))
-  countmatrix <- GetAssayData(object = object[[assay]], slot = "counts")
+  countmatrix <- GetAssayData(object = object[[assay]], layer = "counts")
   ident.matrix <- BinaryIdentMatrix(
     object = object,
     group.by = group.by,
@@ -1174,12 +1174,12 @@ BinaryIdentMatrix <- function(object, group.by = NULL, idents = NULL) {
 #' @importFrom Matrix colSums
 #
 CalcN <- function(object) {
-  if (IsMatrixEmpty(x = GetAssayData(object = object, slot = "counts"))) {
+  if (IsMatrixEmpty(x = GetAssayData(object = object, layer = "counts"))) {
     return(NULL)
   }
   return(list(
     nCount = colSums(x = object, slot = "counts"),
-    nFeature = colSums(x = GetAssayData(object = object, slot = "counts") > 0)
+    nFeature = colSums(x = GetAssayData(object = object, layer = "counts") > 0)
   ))
 }
 
@@ -2059,7 +2059,7 @@ MergeOverlappingRows <- function(
   merge.counts <- list()
   for (i in seq_along(along.with = assay.list)) {
     # get count matrix
-    counts <- GetAssayData(object = assay.list[[i]], slot = slot)
+    counts <- GetAssayData(object = assay.list[[i]], layer = slot)
 
     if (nrow(x = counts) == 0) {
       # no counts, only data

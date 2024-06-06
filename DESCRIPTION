@@ -1,6 +1,6 @@
 Package: Signac
 Title: Analysis of Single-Cell Chromatin Data
-Version: 1.13.9000
+Version: 1.13.9001
 Date: 2024-04-17
 Authors@R: c(
   person(given = 'Tim', family = 'Stuart', email = 'stuartt@gis.a-star.edu.sg', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3044-0897')),
@@ -14,7 +14,7 @@ Description: A framework for the analysis and exploration of single-cell chromat
     and normalization, visualization, and DNA sequence motif analysis.
     Reference: Stuart et al. (2021) <doi:10.1038/s41592-021-01282-5>.
 Depends:
-    R (>= 4.0.0),
+    R (>= 4.1.0),
     methods
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -30,7 +30,7 @@ Imports:
     Matrix,
     Rsamtools,
     S4Vectors,
-    SeuratObject (>= 4.0.0),
+    SeuratObject (>= 5.0.2),
     data.table,
     dplyr (>= 1.0.0),
     future,
@@ -77,7 +77,7 @@ Collate:
     'visualization.R'
     'zzz.R'
 Suggests: 
-    Seurat (>= 4.0.6),
+    Seurat (>= 5.0.2),
     ggforce,
     ggrepel,
     ggseqlogo,

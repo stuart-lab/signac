@@ -1,0 +1,10 @@
+details {
+  background-color: #f0f8ff;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+pre, code {
+  white-space: pre !important;
+  overflow-x: auto;
+}

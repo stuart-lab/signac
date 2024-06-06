@@ -837,13 +837,13 @@ get_heatmap_data <- function(
   # each assay will set its own max value
   
   if (!(key %in% names(x = GetAssayData(
-    object = object, slot = "positionEnrichment"
+    object = object, layer = "positionEnrichment"
   )))) {
     stop("Requested key is not present in the assay")
   }
   matlist <- GetAssayData(
     object = object,
-    slot = "positionEnrichment"
+    layer = "positionEnrichment"
   )[[key]]
   
   # extract RegionMatrix parameters
@@ -1946,7 +1946,7 @@ TSSPlot <- function(
   positionEnrichment <- GetAssayData(
     object = object,
     assay = assay,
-    slot = "positionEnrichment"
+    layer = "positionEnrichment"
   )
   if (!("TSS" %in% names(x = positionEnrichment))) {
     stop("Position enrichment matrix not present in assay")
@@ -2528,7 +2528,7 @@ ExpressionPlot <- function(
   data.plot <- GetAssayData(
     object = object,
     assay = assay,
-    slot = slot
+    layer = slot
   )[features, ]
   obj.groups <- GetGroups(
     object = object,
@@ -2639,6 +2639,7 @@ CoverageBrowser <- function(
   sep = c("-", "-"),
   ...
 ) {
+  .Deprecated("CoveragePlot")
   if (!requireNamespace("shiny", quietly = TRUE)) {
     stop("Please install shiny. https://shiny.rstudio.com/")
   }

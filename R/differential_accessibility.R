@@ -28,7 +28,7 @@ FoldChange.ChromatinAssay <- function(
     no = base
   )
   fc.name <- SetIfNull(x = fc.name, y = paste0("avg_log", base.text, "FC"))
-  data <- GetAssayData(object = object, slot = slot)
+  data <- GetAssayData(object = object, layer = slot)
   Seurat::FoldChange(
     object = data,
     cells.1 = cells.1,

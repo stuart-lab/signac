@@ -150,7 +150,7 @@ RunSVD.Assay <- function(
   features <- SetIfNull(x = features, y = VariableFeatures(object = object))
   data.use <- GetAssayData(
     object = object,
-    slot = "data"
+    layer = "data"
   )[features, ]
   reduction.data <- RunSVD(
     object = data.use,
