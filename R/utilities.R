@@ -180,6 +180,115 @@ CellsPerGroup <- function(
   return(lut)
 }
 
+#' Sorts Cell Types by Similarity Using Hierarchical Clustering
+#'
+#' Compute distance matrix from a feature/cell type matrix and 
+#' perform hierarchical clustering to order cell types. 
+#'
+#' @param object A Seurat object containing single-cell data.
+#' @param layer The layer of the data to use (default is "data").
+#' @param assay Name of assay to use. If NULL, use the default assay
+#' @param label Metadata attribute to use for cell type labels. If NULL, 
+#' uses Idents.
+#' @param dendrogram Logical, whether to plot the dendrogram (default is TRUE).
+#' @param method The distance method to use for hierarchical clustering
+#' (default is 'euclidean', other options from dist{stats} are 'maximum',
+#' 'manhattan', 'canberra', 'binary' and 'minkowski').
+#' @param verbose Display messages
+#' 
+#' @return The Seurat object with cell types reordered by similarity, either 
+#' in the Idents or specified metadata attribute.
+#' 
+#' @examples
+#' \dontrun{
+#' data("pbmc_small")
+#' pbmc_small <- SortCellTypes(object = pbmc_small)
+#' print(levels(Idents(pbmc_small)))
+#' }
+#'
+#' @importFrom stats dist hclust
+#
+#' @export
+
+SortCellTypes <- function(
+    object,
+    layer = "data",
+    assay = NULL,
+    label = NULL,
+    dendrogram = TRUE,
+    method = 'euclidean',
+    verbose = TRUE
+){
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))  
+  feat_cell_matrix <- LayerData(object, layer=layer, assay=assay)
+  
+  if (verbose) {
+    message("Shape of feature /cell matrix: ",
+            nrow(feat_cell_matrix), " x ", ncol(feat_cell_matrix))
+  }
+  
+  if (is.null(x = label)) {
+    cell_types <- Idents(object = object)
+    uniq_cell_types = unique(cell_types)
+  } else {
+    cell_types <- object[[label]]
+    uniq_cell_types = unique(cell_types[, 1])
+  }
+  
+  # Initialize a one-hot matrix with rows representing cells 
+  # and columns representing cell types
+  one_hot_matrix <- matrix(0,
+                           nrow = ncol(feat_cell_matrix),
+                           ncol = length(uniq_cell_types),
+                           dimnames = list(colnames(feat_cell_matrix),
+                                           uniq_cell_types)
+  )
+  
+  # Fill in the one-hot matrix
+  for (i in seq_along(uniq_cell_types)) {
+    # convert to character in case the level of a factor is returned
+    cell_type <- as.character(uniq_cell_types[i])
+    one_hot_matrix[cell_types == cell_type, i] <- 1
+  }
+  cell_type_counts = colSums(one_hot_matrix)
+  
+  if (verbose) {
+    message("Shape of one-hot matrix: ",
+            nrow(one_hot_matrix), " x ", ncol(one_hot_matrix))
+  }
+  
+  # Aggregate (sum) features by label
+  # Normalize by number of cells per label
+  bulk_matrix <- sweep(feat_cell_matrix %*% one_hot_matrix, 2,
+                       cell_type_counts, FUN = "/")
+  
+  if (verbose) {
+    message("Shape of aggregated and normalized matrix: ",
+            nrow(bulk_matrix), " x ", ncol(bulk_matrix))
+  } 
+  
+  # Calculate distance matrix and perform hierarchical clustering
+  distance_matrix <- dist(t(bulk_matrix), method = method)  
+  hc <- hclust(distance_matrix)
+  
+  if (dendrogram){
+    plot(hc, main = "Hierarchical Clustering Dendrogram", 
+         xlab = "Cell Types",
+         sub = "", cex = 0.9)
+  }
+  
+  ordered_cell_types <- uniq_cell_types[hc$order]
+  if (is.null(x = label)) {
+    Idents(object) <- factor(Idents(object), 
+                             levels = ordered_cell_types)
+  } else {
+    object@meta.data[[label]] <- factor(object@meta.data[[label]], 
+                                        levels = ordered_cell_types)
+  }
+  
+  return(object)
+}
+
 #' Closest Feature
 #'
 #' Find the closest feature to a given set of genomic regions
