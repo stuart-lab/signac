@@ -717,14 +717,17 @@ important information including gene annotation, peak coordinates, and genomic
 links (if they're stored in the object). See the
 [visualization vignette](visualization.html) for more information.
 
+For plotting purposes, it's nice to have related cell types grouped together. We
+can automatically sort the plotting order according to similarities across the 
+annotated cell types by running the `SortIdents()` function:
+
+```{r message=FALSE, warning=FALSE}
+pbmc <- SortIdents(pbmc)
+```
+
 We can then visualize the DA peaks open in CD4 naive cells and CD14 monocytes, 
 near some key marker genes for these cell types, CD4 and FCN1 respectively.
 Here we'll highlight the DA peaks regions in grey.
-
-```{r message=FALSE, warning=FALSE}
-# set plotting order
-levels(pbmc) <- sort(levels(pbmc))
-```
 
 ```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=6}
 # find DA peaks overlapping gene of interest
