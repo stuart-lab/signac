@@ -15,6 +15,22 @@ test_that("CellsPerGroup works", {
   )
 })
 
+test_that("SortIdents works",{
+  set.seed(1)
+  atac_small$test <- sample(1:10, ncol(atac_small), replace = TRUE)
+  atac_small <- SortIdents(object = atac_small, label = "test")
+  expect_equal(
+    object = levels(atac_small$test),
+    expected = c("3", "2", "8", "5", "6", "9", "7", "10", "4", "1")
+  )
+  Idents(atac_small) <- sample(1:10, ncol(atac_small), replace = TRUE)
+  atac_small <- SortIdents(object = atac_small)
+  expect_equal(
+    object = levels(Idents(atac_small)),
+    expected = c("1", "7", "8", "4", "5", "10", "6", "9", "3", "2")
+  )
+})
+
 test_that("GRanges conversion works", {
   correct_string <- c("chr1-1-10", "chr2-12-3121")
   correct_ranges <- GRanges(
