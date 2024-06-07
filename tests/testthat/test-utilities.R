@@ -21,13 +21,13 @@ test_that("SortIdents works",{
   atac_small <- SortIdents(object = atac_small, label = "test")
   expect_equal(
     object = levels(atac_small$test),
-    expected = c("3", "2", "8", "5", "6", "9", "7", "10", "4", "1")
+    expected = c("10", "6", "3", "7", "9", "5", "4", "8", "1", "2")
   )
   Idents(atac_small) <- sample(1:10, ncol(atac_small), replace = TRUE)
   atac_small <- SortIdents(object = atac_small)
   expect_equal(
     object = levels(Idents(atac_small)),
-    expected = c("1", "7", "8", "4", "5", "10", "6", "9", "3", "2")
+    expected = c("1", "9", "10", "2", "3", "5", "4", "7", "6", "8")
   )
 })
 
