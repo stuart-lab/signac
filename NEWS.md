@@ -1,5 +1,12 @@
 # Unreleased
 
+New features:
+
+* Added `SortIdents()` function to automatically order cell metadata according
+to similarity ([@JavenTyr](https://github.com/JavenTyr))
+
+Other changes:
+
 * Change to SeuratObject v5.0.2 dependency
 * Increase R dependency to 4.1
 * Deprecate `CoverageBrowser()`

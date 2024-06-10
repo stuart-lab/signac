@@ -180,6 +180,136 @@ CellsPerGroup <- function(
   return(lut)
 }
 
+#' Sorts cell metadata variable by similarity using hierarchical clustering
+#'
+#' Compute distance matrix from a feature/variable matrix and 
+#' perform hierarchical clustering to order variables (for example, cell types)
+#' according to their similarity. 
+#'
+#' @param object A Seurat object containing single-cell data.
+#' @param layer The layer of the data to use (default is "data").
+#' @param assay Name of assay to use. If NULL, use the default assay
+#' @param label Metadata attribute to sort. If NULL, 
+#' uses the active identities.
+#' @param dendrogram Logical, whether to plot the dendrogram (default is FALSE).
+#' @param method The distance method to use for hierarchical clustering
+#' (default is 'euclidean', other options from dist{stats} are 'maximum',
+#' 'manhattan', 'canberra', 'binary' and 'minkowski').
+#' @param verbose Display messages
+#' 
+#' @return The Seurat object with metadata variable reordered by similarity.
+#' If the metadata variable was a character vector, it will be converted to a
+#' factor and the factor levels set according to the similarity ordering. If
+#' active identities were used (label=NULL), the levels will be updated according
+#' to similarity ordering.
+#' 
+#' @examples
+#' atac_small$test <- sample(1:10, ncol(atac_small), replace = TRUE)
+#' atac_small <- SortIdents(object = atac_small, label = 'test')
+#' print(levels(atac_small$test))
+#'
+#' @importFrom stats dist hclust
+#' @importFrom SeuratObject Layers Idents Idents<- DefaultAssay LayerData
+#
+#' @export
+SortIdents <- function(
+    object,
+    layer = "data",
+    assay = NULL,
+    label = NULL,
+    dendrogram = FALSE,
+    method = 'euclidean',
+    verbose = TRUE
+){
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!(layer %in% Layers(object = object[[assay]]))) {
+    stop("Requested layer is not present in ", assay)
+  }
+  allowed.methods <- c("euclidean", "maximum", "manhattan",
+                       "canberra", "binary", "minkowski")
+  if (!(method %in% allowed.methods)) {
+    stop("Selected method must be one of: ",
+         paste(allowed.methods, collapse = ", "))
+  }
+  feat_cell_matrix <- LayerData(object, layer = layer, assay = assay)
+  
+  if (is.null(x = label)) {
+    cell_types <- Idents(object = object)
+    uniq_cell_types = unique(x = cell_types)
+  } else {
+    if (length(x = label) > 1) {
+      stop("Label must be a single character vector or NULL")
+    }
+    if (!(label %in% colnames(x = object[[]]))) {
+      stop("Requested metadata '", label, "' not present in object")
+    }
+    cell_types <- object[[label]]
+    uniq_cell_types = unique(x = cell_types[, 1])
+  }
+  
+  if (length(x = uniq_cell_types) / ncol(x = object) > 0.7) {
+    stop("Most cells have a different value for the requested metadata variable.
+           Are you sure this is a categorical variable?")
+  }
+  if (length(x = uniq_cell_types) < 3) {
+    stop("Must have more than three different variables")
+  }
+  
+  # Initialize a one-hot matrix with rows representing cells 
+  # and columns representing cell types
+  one_hot_matrix <- matrix(data = 0,
+                           nrow = ncol(x = feat_cell_matrix),
+                           ncol = length(x = uniq_cell_types),
+                           dimnames = list(colnames(x = feat_cell_matrix),
+                                           uniq_cell_types)
+  )
+  
+  # Fill in the one-hot matrix
+  for (i in seq_along(along.with = uniq_cell_types)) {
+    # convert to character in case the level of a factor is returned
+    cell_type <- as.character(x = uniq_cell_types[i])
+    one_hot_matrix[cell_types == cell_type, i] <- 1
+  }
+  cell_type_counts = colSums(x = one_hot_matrix)
+  
+  if (verbose) {
+    message("Creating pseudobulk profiles for ", ncol(x = one_hot_matrix),
+            " variables across ", nrow(x = feat_cell_matrix), " features")
+  }
+  
+  # Aggregate (sum) features by label
+  # Normalize by number of cells per label
+  bulk_matrix <- sweep(x = feat_cell_matrix %*% one_hot_matrix, MARGIN = 2,
+                       cell_type_counts, FUN = "/")
+  
+  # Calculate distance matrix and perform hierarchical clustering
+  if (verbose) {
+    message("Computing ", method, " distance between pseudobulk profiles")
+  }
+  distance_matrix <- dist(x = t(x = bulk_matrix), method = method)
+  if (verbose) {
+    message("Clustering distance matrix")
+  }
+  hc <- hclust(d = distance_matrix)
+  
+  if (dendrogram){
+    plot(hc, main = paste0("Assay: ", assay, "   Layer: ", layer), 
+         xlab = SetIfNull(x = label, y = "Idents"),
+         sub = "", cex = 0.9)
+  }
+  
+  ordered_cell_types <- uniq_cell_types[hc$order]
+  if (is.null(x = label)) {
+    Idents(object = object) <- factor(x = Idents(object = object), 
+                                      levels = ordered_cell_types)
+  } else {
+    object[[label]] <- factor(x = object[[label]][, 1], 
+                              levels = ordered_cell_types)
+  }
+  
+  return(object)
+}
+
 #' Closest Feature
 #'
 #' Find the closest feature to a given set of genomic regions
