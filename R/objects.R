@@ -307,6 +307,31 @@ CreateChromatinAssay <- function(
     }
   }
 
+  if (!is.null(x = motifs)) {
+    # pre-computed motif object, make sure features are formatted the same
+    # as peak matrix and subset features
+    if (!inherits(x = motifs, what = "Motif")) {
+      stop("Provided motif object is not a Motif-class object")
+    }
+    if (!(all(rownames(x = motifs) == rownames(x = seurat.assay)))) {
+      # rownames don't match
+      motif.mat <- GetMotifData(object = motifs)
+      motif.granges <- StringToGRanges(
+        regions = rownames(x = motifs), sep = sep
+      )
+      rownames(x = motif.mat) <- GRangesToString(grange = motif.granges)
+      # subset
+      if (!all(rownames(x = seurat.assay) %in% rownames(x = motif.mat))) {
+        warning("Some peak regions missing from supplied motif object. ",
+                "Motif information will not be added")
+        motifs <- NULL
+      }
+      motif.mat <- motif.mat[rownames(x = seurat.assay), ]
+      motifs <- SetMotifData(
+        object = motifs, slot = "data", new.data = motif.mat
+      )
+    }
+  }
   chrom.assay <- as.ChromatinAssay(
     x = seurat.assay,
     ranges = ranges,
