@@ -311,8 +311,8 @@ InsertionBias.ChromatinAssay <- function(
   insertions <- Extend(x = insertions, upstream = 3, downstream = 2)
   sequences <- as.vector(x = Biostrings::getSeq(x = genome, insertions))
   seq.freq <- table(sequences)
-  # remove sequences containing N
-  keep.seq <- !grepl(pattern = "N", x = names(x = seq.freq))
+  # remove sequences containing non-ATCG characters
+  keep.seq <- !grepl(pattern = "[^ATCG]", x = names(x = seq.freq))
   insertion_hex_freq <- as.matrix(x = seq.freq[keep.seq])
   genome_freq <- Biostrings::oligonucleotideFrequency(
     x = Biostrings::getSeq(x = genome, chr.use),
@@ -411,6 +411,10 @@ FindExpectedInsertions <- function(dna.sequence, bias, verbose = TRUE) {
     # append
     x[current.pos:end.pos] <- as.numeric(x = frequencies)
     j[current.pos:end.pos] <- jj
+    
+    # remove frequencies not present in hex.key
+    frequencies <- frequencies[names(x = frequencies) %in% names(x = hex.key)]
+    
     i[current.pos:end.pos] <- as.vector(x = hex.key[names(x = frequencies)])
     # shift current position
     current.pos <- end.pos + 1
