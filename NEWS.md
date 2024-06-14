@@ -11,7 +11,8 @@ Other changes:
 * Increase R dependency to 4.1
 * Deprecate `CoverageBrowser()`
 * Add informative error message for `ClosestFeature()` when gene annotations are not present in the object ([#1681](https://github.com/stuart-lab/signac/issues/1681))
-* FIx error in `CreateChromatinAssay()` when supplying a pre-computed Motif object ([#1657](https://github.com/stuart-lab/signac/issues/1657))
+* Fix error in `CreateChromatinAssay()` when supplying a pre-computed Motif object ([#1657](https://github.com/stuart-lab/signac/issues/1657))
+* Fix error in `CoveragePlot()` when combining `cells` and `group.by` parameters ([#1724](https://github.com/stuart-lab/signac/issues/1724))
 
 # Signac 1.13.0
 
