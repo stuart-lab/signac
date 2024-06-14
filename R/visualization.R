@@ -1131,6 +1131,10 @@ SingleCoveragePlot <- function(
     group.by = group.by,
     idents = idents
   )
+  
+  # subset to used cells
+  obj.groups <- obj.groups[cells]
+  
   cm.list <- list()
   sf.list <- list()
   gsf.list <- list()
