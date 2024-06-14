@@ -312,7 +312,7 @@ InsertionBias.ChromatinAssay <- function(
   sequences <- as.vector(x = Biostrings::getSeq(x = genome, insertions))
   seq.freq <- table(sequences)
   # remove sequences containing non-ATCG characters
-  keep.seq <- !grepl(pattern = "[^ATCG]", x = names(x = seq.freq))
+  keep.seq <- !grepl(pattern = "[^ATCGatcg]", x = names(x = seq.freq))
   insertion_hex_freq <- as.matrix(x = seq.freq[keep.seq])
   genome_freq <- Biostrings::oligonucleotideFrequency(
     x = Biostrings::getSeq(x = genome, chr.use),
