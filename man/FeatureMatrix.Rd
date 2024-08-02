@@ -22,7 +22,9 @@ the fragment object will still be searched.}
 
 \item{features}{A GRanges object containing a set of genomic intervals.
 These will form the rows of the matrix, with each entry recording the number
-of unique reads falling in the genomic region for each cell.}
+of unique reads falling in the genomic region for each cell. If a genomic 
+region provided is on a chromosome that is not present in the fragment file,
+it will not be included in the returned matrix.}
 
 \item{cells}{Vector of cells to include. If NULL, include all cells found
 in the fragments file}

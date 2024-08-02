@@ -191,7 +191,9 @@ GenomeBinMatrix <- function(
 #' the fragment object will still be searched.
 #' @param features A GRanges object containing a set of genomic intervals.
 #' These will form the rows of the matrix, with each entry recording the number
-#' of unique reads falling in the genomic region for each cell.
+#' of unique reads falling in the genomic region for each cell. If a genomic 
+#' region provided is on a chromosome that is not present in the fragment file,
+#' it will not be included in the returned matrix.
 #' @param cells Vector of cells to include. If NULL, include all cells found
 #' in the fragments file
 #' @param process_n Number of regions to load into memory at a time, per thread.
@@ -356,6 +358,7 @@ SingleFeatureMatrix <- function(
     file = fragment.path,
     index = GetIndexFile(fragment = fragment.path, verbose = FALSE)
   )
+  n_feat_start <- length(x = features)
   features <- keepSeqlevels(
     x = features,
     value = intersect(
@@ -367,7 +370,16 @@ SingleFeatureMatrix <- function(
   if (length(x = features) == 0) {
     stop("No matching chromosomes found in fragment file.")
   }
-
+  n_removed <- n_feat_start - length(x = features)
+  if (n_removed > 0) {
+    if (n_removed == 1) {
+      warning(n_removed, " feature is on a seqname not present in ",
+              "the fragment file. This will be removed.")
+    } else {
+      warning(n_removed, " features are on seqnames not present in ",
+              "the fragment file. These will be removed.")
+    }
+  }
   feature.list <- ChunkGRanges(
     granges = features,
     nchunk = ceiling(x = length(x = features) / process_n)
