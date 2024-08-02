@@ -13,6 +13,8 @@ Other changes:
 * Add informative error message for `ClosestFeature()` when gene annotations are not present in the object ([#1681](https://github.com/stuart-lab/signac/issues/1681))
 * Fix error in `CreateChromatinAssay()` when supplying a pre-computed Motif object ([#1657](https://github.com/stuart-lab/signac/issues/1657))
 * Fix error in `CoveragePlot()` when combining `cells` and `group.by` parameters ([#1724](https://github.com/stuart-lab/signac/issues/1724))
+* Added warning in `FeatureMatrix()` when requested features are on seqnames not
+present in the fragment file ([#1754](https://github.com/stuart-lab/signac/issues/1754))
 
 # Signac 1.13.0
 
