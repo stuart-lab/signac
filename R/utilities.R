@@ -210,7 +210,7 @@ CellsPerGroup <- function(
 #'
 #' @importFrom stats dist hclust
 #' @importFrom SeuratObject Layers Idents Idents<- DefaultAssay LayerData
-#
+#' @concept utilities
 #' @export
 SortIdents <- function(
     object,
