@@ -6,6 +6,11 @@ output:
   html_document:
     self_contained: True
 ---
+```{r, include=FALSE}
+if (!requireNamespace(package = "EnsDb.Hsapiens.v75", quietly = TRUE)) {
+  BiocManager::install("EnsDb.Hsapiens.v75")
+}
+```
 
 ```{r packages, message=FALSE, warning=FALSE, echo=TRUE}
 library(Signac)
