@@ -119,12 +119,7 @@ information about the TSS enrichment score
 enrichment score for each cell using the `TSSEnrichment()` function in Signac.
 
 ```{r message=FALSE, warning=FALSE}
-brain <- TSSEnrichment(brain, fast = FALSE)
-```
-
-```{r message=FALSE, warning=FALSE}
-brain$high.tss <- ifelse(brain$TSS.enrichment > 2, 'High', 'Low')
-TSSPlot(brain, group.by = 'high.tss') + NoLegend()
+brain <- TSSEnrichment(brain)
 ```
 
 ```{r message=FALSE, warning=FALSE, fig.width=18, fig.height=6}
@@ -297,8 +292,8 @@ da_peaks <- FindMarkers(
   object = brain,
   ident.1 = c("L2/3 IT"), 
   ident.2 = c("L4", "L5 IT", "L6 IT"),
-  test.use = 'LR',
-  latent.vars = 'nCount_peaks'
+  test.use = 'wilcox',
+  min.pct = 0.1
 )
 
 head(da_peaks)
