@@ -36,6 +36,11 @@ To load the count data, we can use the `Read10X()` function from Seurat by first
 placing the `barcodes.tsv.gz`, `matrix.mtx.gz`, and `features.tsv.gz` files into
 a separate folder.
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "../vignette_data/snare-seq")
+```
+
 ```{r include=FALSE}
 if (!requireNamespace("EnsDb.Mmusculus.v79", quietly = TRUE))
     BiocManager::install("EnsDb.Mmusculus.v79")
@@ -48,9 +53,9 @@ library(ggplot2)
 library(EnsDb.Mmusculus.v79)
 
 # load processed data matrices for each assay
-rna <- Read10X("../vignette_data/snare-seq/GSE126074_AdBrainCortex_rna/", gene.column = 1)
-atac <- Read10X("../vignette_data/snare-seq/GSE126074_AdBrainCortex_atac/", gene.column = 1)
-fragments <- "../vignette_data/snare-seq/fragments.sort.bed.gz"
+rna <- Read10X("GSE126074_AdBrainCortex_rna/", gene.column = 1)
+atac <- Read10X("GSE126074_AdBrainCortex_atac/", gene.column = 1)
+fragments <- "fragments.sort.bed.gz"
 
 # create a Seurat object and add the assays
 snare <- CreateSeuratObject(counts = rna)
@@ -157,7 +162,7 @@ Alternatively, you can download the pre-processed Seurat object
 
 ```{r message=FALSE, warning=FALSE}
 # label transfer from Allen brain
-allen <- readRDS("../vignette_data/allen_brain.rds")
+allen <- readRDS("allen_brain.rds")
 allen <- UpdateSeuratObject(allen)
 
 # use the RNA assay in the SNARE-seq data for integration with scRNA-seq
@@ -217,7 +222,7 @@ CoveragePlot(snare, region = "chr2-22620000-22660000", features = "Gad2")
 ```
 
 ```{r include=FALSE}
-saveRDS(object = snare, file = "../vignette_data/snare.rds")
+saveRDS(object = snare, file = "snare.rds")
 ```
 
 <details>

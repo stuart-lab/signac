@@ -4,6 +4,12 @@ date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 output: html_document
 ---
 
+
+```{r init, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "../vignette_data/bmmc")
+```
+
 ```{r message=FALSE, warning=FALSE}
 library(Signac)
 library(Seurat)
@@ -15,7 +21,7 @@ For this vignette we'll use the dataset introduced and pre-processed in the
 [trajectory building vignette](monocle.html).
 
 ```{r}
-bone <- readRDS("../vignette_data/cd34.rds")
+bone <- readRDS("cd34.rds")
 DimPlot(bone, label = TRUE)
 ```
 

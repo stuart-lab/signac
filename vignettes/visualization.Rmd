@@ -10,12 +10,17 @@ genome-browser-track style plots with Signac.
 To demonstrate we'll use the human PBMC dataset processed in
 [this vignette](pbmc_vignette.html).
 
+```{r init, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "../vignette_data/pbmc_vignette")
+```
+
 ```{r message=FALSE, warning=FALSE}
 library(Signac)
 library(ggplot2)
 
 # load PBMC dataset
-pbmc <- readRDS("../vignette_data/pbmc.rds")
+pbmc <- readRDS("pbmc.rds")
 ```
 
 There are several different genome browser style plot types available in Signac,

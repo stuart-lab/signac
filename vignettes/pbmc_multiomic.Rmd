@@ -6,6 +6,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "../vignette_data/pbmc_multiome")
+options(future.globals.maxSize = 20 * 1024 ^ 3)
 ```
 
 In this vignette, we'll demonstrate how to jointly analyze a single-cell dataset
@@ -55,8 +57,8 @@ library(BSgenome.Hsapiens.UCSC.hg38)
 
 ```{r message=FALSE, warning=FALSE}
 # load the RNA and ATAC data
-counts <- Read10X_h5("../vignette_data/multiomic/pbmc_granulocyte_sorted_10k_filtered_feature_bc_matrix.h5")
-fragpath <- "../vignette_data/multiomic/pbmc_granulocyte_sorted_10k_atac_fragments.tsv.gz"
+counts <- Read10X_h5("pbmc_granulocyte_sorted_10k_filtered_feature_bc_matrix.h5")
+fragpath <- "pbmc_granulocyte_sorted_10k_atac_fragments.tsv.gz"
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -217,7 +219,7 @@ Installation instructions for SeuratDisk can be found [here](https://github.com/
 library(SeuratDisk)
 
 # load PBMC reference
-reference <- LoadH5Seurat("../vignette_data/multiomic/pbmc_multimodal.h5seurat", assays = list("SCT" = "counts"), reductions = 'spca')
+reference <- LoadH5Seurat("pbmc_multimodal.h5seurat", assays = list("SCT" = "counts"), reductions = 'spca')
 reference <- UpdateSeuratObject(reference)
 
 DefaultAssay(pbmc) <- "SCT"
@@ -336,7 +338,7 @@ patchwork::wrap_plots(p1, p2, ncol = 1)
 ```
 
 ```{r include=FALSE}
-saveRDS(object = pbmc, file = "../vignette_data/pbmc_multiomic.rds")
+saveRDS(object = pbmc, file = "pbmc_multiomic.rds")
 ```
 
 

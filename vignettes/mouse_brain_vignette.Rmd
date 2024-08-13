@@ -6,6 +6,7 @@ date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 
 ```{r init, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "../vignette_data/mouse_brain")
 ```
 
 For this tutorial, we will be analyzing a single-cell ATAC-seq dataset of adult
@@ -51,9 +52,9 @@ library(patchwork)
 ## Pre-processing workflow
 
 ```{r}
-counts <- Read10X_h5("../vignette_data/atac_v1_adult_brain_fresh_5k_filtered_peak_bc_matrix.h5")
+counts <- Read10X_h5("atac_v1_adult_brain_fresh_5k_filtered_peak_bc_matrix.h5")
 metadata <- read.csv(
-  file = "../vignette_data/atac_v1_adult_brain_fresh_5k_singlecell.csv",
+  file = "atac_v1_adult_brain_fresh_5k_singlecell.csv",
   header = TRUE,
   row.names = 1
 )
@@ -62,7 +63,7 @@ brain_assay <- CreateChromatinAssay(
   counts = counts,
   sep = c(":", "-"),
   genome = "mm10",
-  fragments = '../vignette_data/atac_v1_adult_brain_fresh_5k_fragments.tsv.gz',
+  fragments = 'atac_v1_adult_brain_fresh_5k_fragments.tsv.gz',
   min.cells = 1
 )
 brain <- CreateSeuratObject(
@@ -248,7 +249,7 @@ Alternatively, you can download the pre-processed Seurat object
 
 ```{r warning=FALSE, message=FALSE}
 # Load the pre-processed scRNA-seq data
-allen_rna <- readRDS("../vignette_data/allen_brain.rds")
+allen_rna <- readRDS("allen_brain.rds")
 allen_rna <- UpdateSeuratObject(allen_rna)
 allen_rna <- FindVariableFeatures(
   object = allen_rna,
@@ -354,7 +355,7 @@ CoveragePlot(
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-saveRDS(object = brain, file = "../vignette_data/adult_mouse_brain.rds")
+saveRDS(object = brain, file = "adult_mouse_brain.rds")
 ```
 
 <details>

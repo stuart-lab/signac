@@ -6,6 +6,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "../vignette_data")
 ```
 
 Here we demonstrate the integration of multiple single-cell chromatin datasets
@@ -52,10 +53,10 @@ library(Seurat)
 library(ggplot2)
 
 # load the pre-processed multiome data
-pbmc.multi <- readRDS("../vignette_data/pbmc_multiomic.rds")
+pbmc.multi <- readRDS("pbmc_multiome/pbmc_multiomic.rds")
 
 # load the pre-processed atac data
-pbmc.atac <- readRDS("../vignette_data/pbmc.rds")
+pbmc.atac <- readRDS("pbmc_vignette/pbmc.rds")
 ```
 
 An important first step in any integrative analysis of single-cell chromatin data
@@ -286,7 +287,7 @@ FeaturePlot(
 ```
 
 ```{r include=FALSE}
-saveRDS(object = pbmc.atac, file = "../vignette_data/pbmc_atac_integration.rds")
+saveRDS(object = pbmc.atac, file = "pbmc_atac_integration.rds")
 ```
 
 <details>

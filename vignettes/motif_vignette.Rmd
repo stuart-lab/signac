@@ -6,6 +6,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "../vignette_data/mouse_brain")
 ```
 
 In this tutorial, we will perform DNA sequence motif analysis in Signac. We will
@@ -42,7 +43,7 @@ library(patchwork)
 ```
 
 ```{r message=FALSE, warning=FALSE}
-mouse_brain <- readRDS("../vignette_data/adult_mouse_brain.rds")
+mouse_brain <- readRDS("adult_mouse_brain.rds")
 mouse_brain
 ```
 

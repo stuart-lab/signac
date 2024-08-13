@@ -29,6 +29,11 @@ create the object from raw data.
 First we will load their dataset and perform some standard preprocessing using
 Signac.
 
+```{r init, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "../vignette_data/bmmc")
+```
+
 ```{r include=FALSE}
 setRepositories(ind=1:3)
 if (!requireNamespace("remotes", quietly = TRUE))
@@ -57,7 +62,7 @@ library(patchwork)
 
 ```{r}
 # load the object created in the Monocle 3 vignette
-bone <- readRDS("../vignette_data/cd34.rds")
+bone <- readRDS("cd34.rds")
 ```
 
 ## Create the Cicero object
@@ -152,7 +157,7 @@ CoveragePlot(bone, region = "chr1-40189344-40252549")
 ```
 
 ```{r include=FALSE}
-saveRDS(object = bone, file = "../vignette_data/cd34.rds")
+saveRDS(object = bone, file = "cd34.rds")
 ```
 
 ## Acknowledgements
