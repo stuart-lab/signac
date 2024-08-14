@@ -314,6 +314,8 @@ we could use the `CoverageBrowser()` function in an interactive analysis:
 idents.plot <- c("B naive", "B intermediate", "B memory",
                  "CD14 Mono", "CD16 Mono", "CD8 TEM", "CD8 Naive")
 
+pbmc <- SortIdents(pbmc)
+
 p1 <- CoveragePlot(
   object = pbmc,
   region = "MS4A1",

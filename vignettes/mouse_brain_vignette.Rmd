@@ -338,6 +338,7 @@ accessibility in a region.
 ```{r message=FALSE, warning=FALSE, out.width="90%", fig.height=10}
 # show cell types with at least 50 cells
 idents.plot <- names(which(table(Idents(brain)) > 50))
+brain <- SortIdents(brain)
 
 CoveragePlot(
   object = brain,
