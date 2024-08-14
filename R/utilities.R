@@ -193,8 +193,8 @@ CellsPerGroup <- function(
 #' uses the active identities.
 #' @param dendrogram Logical, whether to plot the dendrogram (default is FALSE).
 #' @param method The distance method to use for hierarchical clustering
-#' (default is 'euclidean', other options from dist{stats} are 'maximum',
-#' 'manhattan', 'canberra', 'binary' and 'minkowski').
+#' (default is 'euclidean', other options from \code{\link[stats]{dist}} are
+#' 'maximum', 'manhattan', 'canberra', 'binary' and 'minkowski').
 #' @param verbose Display messages
 #' 
 #' @return The Seurat object with metadata variable reordered by similarity.
