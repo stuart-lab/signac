@@ -56,9 +56,9 @@
 
 \item{na.rm}{Ignored}
 
-\item{drop.empty.ranges}{See \code{?\link{IRanges}{inter-range-methods}}}
+\item{drop.empty.ranges}{See \code{?\link[IRanges]{inter-range-methods}}}
 
-\item{start, end}{See \code{?\link{IRanges}{inter-range-methods}}}
+\item{start, end}{See \code{?\link[IRanges]{inter-range-methods}}}
 }
 \description{
 The \code{range, reduce, gaps, disjoin, isDisjoint, disjointBins} methods

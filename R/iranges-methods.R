@@ -801,7 +801,7 @@ setMethod(
   }
 )
 
-#' @param drop.empty.ranges See \code{?\link{IRanges}{inter-range-methods}}
+#' @param drop.empty.ranges See \code{?\link[IRanges]{inter-range-methods}}
 #' @aliases reduce
 #' @describeIn inter-range-methods method for ChromatinAssay objects
 #' @exportMethod reduce
@@ -831,7 +831,7 @@ setMethod(
   }
 )
 
-#' @param start,end See \code{?\link{IRanges}{inter-range-methods}}
+#' @param start,end See \code{?\link[IRanges]{inter-range-methods}}
 #' @aliases gaps
 #' @describeIn inter-range-methods method for ChromatinAssay objects
 #' @exportMethod gaps
