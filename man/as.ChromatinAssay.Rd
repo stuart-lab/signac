@@ -31,7 +31,14 @@ as.ChromatinAssay(x, ...)
 information about the genome used. Alternatively, the name of a UCSC genome
 can be provided and the sequence information will be downloaded from UCSC.}
 
-\item{annotation}{Genomic annotation}
+\item{annotation}{Genomic annotation. It must have the following columns:
+\itemize{
+  \item{tx_id or transcript_id: Transcript ID}
+  \item{gene_name: Gene name}
+  \item{gene_id: Gene ID}
+  \item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
+  \item{type: Annotation type (e.g. "exon", "gap")}
+}}
 
 \item{motifs}{A \code{\link{Motif}} object}
 
