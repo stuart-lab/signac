@@ -3125,7 +3125,7 @@ VariantPlot <- function(
       yintercept = vmr.threshold, color = "black", linetype = 2
       ) +
     scale_color_manual(values = c("black", "firebrick")) +
-    scale_y_log10(labels = comma) +
+    scale_y_log10(labels = comma) +   # depend on the range of vmr. if vmr range is small, scale_y_continuous is more commanded.
     theme_classic() +
     theme(legend.position = "none")
   return(p)
