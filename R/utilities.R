@@ -1161,6 +1161,28 @@ UnifyPeaks <- function(object.list, mode = "reduce") {
   }
 }
 
+#' Read counts
+#' 
+#' Read count matrix from mtx file
+#' 
+#' @param dir Path to directory containing the matrix.mtx,
+#' barcodes.tsv, and features.tsv files
+#' @concept utilities
+#' @export
+#' @return Returns a sparse matrix
+#' @importFrom Matrix readMM
+ReadCounts <- function(dir) {
+  counts <- readMM(paste0(dir, "matrix.mtx.gz"))
+  if (file.exists(paste0(dir, "barcodes.tsv.gz"))) {
+    colnames(counts) <- readLines(paste0(dir, "barcodes.tsv.gz"))
+  } else {
+    colnames(counts) <- readLines(paste0(dir, "barcodes.tsv"))
+  }
+  rownames(counts) <- readLines(paste0(dir, "features.tsv.gz"))
+  counts <- as(counts, "CsparseMatrix")
+  return(counts)
+}
+
 #' Subset matrix rows and columns
 #'
 #' Subset the rows and columns of a matrix by removing
