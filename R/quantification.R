@@ -191,9 +191,13 @@ GenomeBinMatrix <- function(
 #' the fragment object will still be searched.
 #' @param features A GRanges object containing a set of genomic intervals.
 #' These will form the rows of the matrix, with each entry recording the number
-#' of unique reads falling in the genomic region for each cell. If a genomic 
-#' region provided is on a chromosome that is not present in the fragment file,
-#' it will not be included in the returned matrix.
+#' of unique reads falling in the genomic region for each cell.
+#' @param keep_all_features By default, if a genomic region provided is on a
+#' chromosome that is not present in the fragment file,
+#' it will not be included in the returned matrix. Set `keep_all_features` to
+#' TRUE to force output to include all features in the input ranges. Note that
+#' features on chromosomes that are not present in the fragment file will be 
+#' filled with zero counts.
 #' @param cells Vector of cells to include. If NULL, include all cells found
 #' in the fragments file
 #' @param process_n Number of regions to load into memory at a time, per thread.
@@ -217,6 +221,7 @@ GenomeBinMatrix <- function(
 FeatureMatrix <- function(
   fragments,
   features,
+  keep_all_features = FALSE,
   cells = NULL,
   process_n = 2000,
   sep = c("-", "-"),
@@ -261,6 +266,7 @@ FeatureMatrix <- function(
       SingleFeatureMatrix(
         fragment = fragments[[x]],
         features = features,
+        keep_all_features = keep_all_features,
         cells = cells,
         sep = sep,
         verbose = verbose,
@@ -326,6 +332,7 @@ CombineTiles <- function(bins) {
 SingleFeatureMatrix <- function(
   fragment,
   features,
+  keep_all_features = FALSE,
   cells = NULL,
   process_n = 2000,
   sep = c("-", "-"),
@@ -359,6 +366,11 @@ SingleFeatureMatrix <- function(
     index = GetIndexFile(fragment = fragment.path, verbose = FALSE)
   )
   n_feat_start <- length(x = features)
+  if (keep_all_features) {
+    features_to_get <- GRangesToString(grange = features, sep = sep)
+  } else {
+    features_to_get <- NULL
+  }
   features <- keepSeqlevels(
     x = features,
     value = intersect(
@@ -371,7 +383,7 @@ SingleFeatureMatrix <- function(
     stop("No matching chromosomes found in fragment file.")
   }
   n_removed <- n_feat_start - length(x = features)
-  if (n_removed > 0) {
+  if (n_removed > 0 && ! keep_all_features) {
     if (n_removed == 1) {
       warning(n_removed, " feature is on a seqname not present in ",
               "the fragment file. This will be removed.")
@@ -418,7 +430,14 @@ SingleFeatureMatrix <- function(
       X = matrix.parts,
       FUN = AddMissing,
       cells = all.cells,
-      features = NULL
+      features = features_to_get
+    )
+  } else if (keep_all_features) {
+    matrix.parts <- lapply(
+      X = matrix.parts,
+      FUN = AddMissing,
+      cells = NULL,
+      features = features_to_get
     )
   }
   featmat <- do.call(what = rbind, args = matrix.parts)
@@ -429,7 +448,11 @@ SingleFeatureMatrix <- function(
     colnames(x = featmat) <- unname(obj = cell.convert[colnames(x = featmat)])
   }
   # reorder features
-  feat.str <- GRangesToString(grange = features, sep = sep)
+  if (keep_all_features) {
+    feat.str <- features_to_get
+  } else {
+    feat.str <- GRangesToString(grange = features, sep = sep)
+  }
   featmat <- featmat[feat.str, , drop=FALSE]
   return(featmat)
 }

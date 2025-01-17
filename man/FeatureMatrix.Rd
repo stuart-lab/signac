@@ -7,6 +7,7 @@
 FeatureMatrix(
   fragments,
   features,
+  keep_all_features = FALSE,
   cells = NULL,
   process_n = 2000,
   sep = c("-", "-"),
@@ -22,9 +23,14 @@ the fragment object will still be searched.}
 
 \item{features}{A GRanges object containing a set of genomic intervals.
 These will form the rows of the matrix, with each entry recording the number
-of unique reads falling in the genomic region for each cell. If a genomic 
-region provided is on a chromosome that is not present in the fragment file,
-it will not be included in the returned matrix.}
+of unique reads falling in the genomic region for each cell.}
+
+\item{keep_all_features}{By default, if a genomic region provided is on a
+chromosome that is not present in the fragment file,
+it will not be included in the returned matrix. Set `keep_all_features` to
+TRUE to force output to include all features in the input ranges. Note that
+features on chromosomes that are not present in the fragment file will be 
+filled with zero counts.}
 
 \item{cells}{Vector of cells to include. If NULL, include all cells found
 in the fragments file}

@@ -82,7 +82,7 @@ directly from the object.
 # extract gene annotations from EnsDb
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Mmusculus.v79)
 
-# change to UCSC style since the data was mapped to hg19
+# change to UCSC style since the data was mapped to mm10
 seqlevels(annotations) <- paste0('chr', seqlevels(annotations))
 genome(annotations) <- "mm10"
 

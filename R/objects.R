@@ -225,12 +225,15 @@ CreateChromatinAssay <- function(
   if (!is.null(x = annotation) & !inherits(x = annotation, what = "GRanges")) {
     stop("Annotation must be a GRanges object.")
   }
-  if (!any(c("tx_id", "transcript_id") %in% colnames(x = mcols(x = annotation)))) {
-    stop("Annotation must have transcript id stored in `tx_id` or `transcript_id`.")
+  if (!is.null(x = annotation)) {
+    if (!any(c("tx_id", "transcript_id") %in% colnames(x = mcols(x = annotation)))) {
+      stop("Annotation must have transcript id stored in `tx_id` or `transcript_id`.")
+    }
+    if (any(!c("gene_name", "gene_id", "gene_biotype", "type") %in% colnames(x = mcols(x = annotation)))) {
+      stop("Annotation must have `gene_name`, `gene_id`, `gene_biotype` and `type`.")
+    }
   }
-  if (any(!c("gene_name", "gene_id", "gene_biotype", "type") %in% colnames(x = mcols(x = annotation)))) {
-    stop("Annotation must have `gene_name`, `gene_id`, `gene_biotype` and `type`.")
-  }
+
   # remove low-count cells
   ncount.cell <- colSums(x = data.use > 0)
   data.use <- data.use[, ncount.cell >= min.features]
@@ -808,7 +811,7 @@ RenameCells.Fragment <- function(object, new.names, ...) {
   return(object)
 }
 
-#' @importFrom SeuratObject SetAssayData
+#' @importFrom SeuratObject SetAssayData CheckFeaturesNames
 #' @importFrom GenomeInfoDb genome Seqinfo
 #' @importFrom lifecycle deprecated is_present
 #' @importFrom S4Vectors mcols
@@ -957,9 +960,19 @@ SetAssayData.ChromatinAssay <- function(
     if (!inherits(x = new.data, what = "Motif")) {
       stop("Must provide a Motif class object")
     }
+    # Set the feature names compatible with Seurat
+    new.data <- SetMotifData(
+      object = new.data,
+      slot = "data",
+      new.data = CheckFeaturesNames(
+        data = GetMotifData(object = new.data, slot = "data")
+        )
+    )
+    
     # TODO allow mismatching row names, but check that the genomic ranges
     # are equivalent. Requires adding a granges slot to the motif class
-    if (!all(rownames(x = object) == rownames(x = new.data))) {
+    if (nrow(x = object) != nrow(x = new.data) ||
+        !all(rownames(x = object) == rownames(x = new.data))) {
       keep.features <- intersect(x = rownames(x = new.data),
                                  y = rownames(x = object))
       if (length(x = keep.features) == 0) {
@@ -968,8 +981,17 @@ SetAssayData.ChromatinAssay <- function(
       }
       else {
         warning("Features do not match in ChromatinAssay and Motif object.
-                Subsetting the Motif object.")
+                Subsetting/Filling the Motif object.")
         new.data <- new.data[keep.features, ]
+        
+        new.data <- SetMotifData(
+          object = new.data,
+          slot = "data",
+          new.data = AddMissing(
+            GetMotifData(object = new.data, slot = "data"),
+            features = rownames(x = object)
+          )
+        )
       }
     }
     methods::slot(object = object, name = layer) <- new.data
@@ -1023,8 +1045,11 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
 #' @export
 #' @concept motifs
 #' @examples
+#' new.data <- matrix(sample(c(0, 1), size = nrow(atac_small[["peaks"]]) * 10,
+#'                    replace = TRUE), nrow = nrow(atac_small[["peaks"]]))
+#' rownames(new.data) <- rownames(atac_small[["peaks"]])
 #' SetMotifData(
-#'   object = atac_small[['peaks']], slot = 'data', new.data = matrix(1:2)
+#'   object = atac_small[['peaks']], slot = 'data', new.data = new.data
 #' )
 #' @method SetMotifData ChromatinAssay
 SetMotifData.ChromatinAssay <- function(object, slot, new.data, ...) {

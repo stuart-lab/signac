@@ -1242,20 +1242,22 @@ NonOverlapping <- function(x, all.features) {
 }
 
 #' @importFrom Matrix sparseMatrix
-AddMissing <- function(x, cells, features = NULL) {
+AddMissing <- function(x, cells = NULL, features = NULL) {
   # add columns with zeros for cells or features not in matrix
-  missing.cells <- setdiff(x = cells, y = colnames(x = x))
-  if (!(length(x = missing.cells) == 0)) {
-    null.mat <- sparseMatrix(
-      i = c(),
-      j = c(),
-      dims = c(nrow(x = x), length(x = missing.cells))
-    )
-    rownames(x = null.mat) <- rownames(x = x)
-    colnames(x = null.mat) <- missing.cells
-    x <- cbind(x, null.mat)
+  if (!is.null(cells)) {
+    missing.cells <- setdiff(x = cells, y = colnames(x = x))
+    if (!(length(x = missing.cells) == 0)) {
+      null.mat <- sparseMatrix(
+        i = c(),
+        j = c(),
+        dims = c(nrow(x = x), length(x = missing.cells))
+      )
+      rownames(x = null.mat) <- rownames(x = x)
+      colnames(x = null.mat) <- missing.cells
+      x <- cbind(x, null.mat)
+    }
+    x <- x[, cells, drop = FALSE]
   }
-  x <- x[, cells, drop = FALSE]
   if (!is.null(x = features)) {
     missing.features <- setdiff(x = features, y = rownames(x = x))
     if (!(length(x = missing.features) == 0)) {
