@@ -1001,9 +1001,11 @@ RegionPlot <- function(
           )
         )
       }
-      # fix bin label
-      df$bin <- (df$bin - (upstream/window)) * window
     }
+    
+    # fix bin label
+    df$bin <- (df$bin - (upstream/window)) * window
+
     df$assay <- assay[[j]]
     all.assay <- rbind(all.assay, df)
   }
