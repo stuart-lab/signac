@@ -426,8 +426,9 @@ PearsonResidualVar.default <- function(
   resid_sums <- vector(mode = 'numeric', length = nrow(x = object))
   resid_sum_square <- vector(mode = 'numeric', length = nrow(x = object))
   nbatch <- ceiling(N / ncell.batch)
+  if (nbatch <= 1) verbose <- FALSE
 
-  if (verbose & nbatch > 1) pb <- txtProgressBar(min = 1, max = nbatch, style = 3)
+  if (verbose) pb <- txtProgressBar(min = 1, max = nbatch, style = 3)
   for (i in seq_len(length.out = nbatch)) {
     
     cells.interval.start <- 1 + ((i - 1) * ncell.batch)
