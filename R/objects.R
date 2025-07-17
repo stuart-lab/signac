@@ -502,6 +502,7 @@ setAs(
 #'     replace = TRUE),
 #'   ncol = 5
 #' )
+#' rownames(motif.matrix) <- 1:nrow(motif.matrix)
 #' motif <- CreateMotifObject(data = motif.matrix)
 CreateMotifObject <- function(
   data = NULL,
@@ -541,6 +542,9 @@ CreateMotifObject <- function(
     if (length(x = motif.names) != length(x = pwm)) {
       stop("Number of motif names supplied does not match the number of motifs")
     }
+  }
+  if (is.null(x = rownames(x = data))) {
+    stop("Row names of data matrix cannot be NULL")
   }
   if (
     inherits(x = pwm, what = "PFMatrixList") |
