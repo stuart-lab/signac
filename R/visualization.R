@@ -627,6 +627,8 @@ globalVariables(
 #' @param idents Cell identities to include. Note that cells cannot be
 #' regrouped, this will require re-running \code{RegionMatrix} to generate a 
 #' new set of matrices
+#' @param group.order Order of groups to be shown in the plot. This should be a 
+#' character vector. If NULL, the group order will not be changed.
 #' @param nrow Number of rows to use when creating plot. If NULL, chosen
 #' automatically by ggplot2
 #' 
@@ -651,6 +653,7 @@ RegionHeatmap <- function(
   key,
   assay = NULL,
   idents = NULL,
+  group.order = NULL,
   normalize = TRUE,
   upstream = 3000,
   downstream = 3000,
@@ -783,6 +786,16 @@ RegionHeatmap <- function(
   }
   
   maxval <- max(all.assay$value)
+  
+  if (!is.null(x = group.order)) {
+    if (length(x = group.order) != length(x = unique(x = all.assay$group))) {
+      warning("Incorrect number of groups provided in group.order parameter.",
+              " Groups will not be reordered")
+    } else{
+      all.assay$group <- factor(x = all.assay$group, levels = group.order)
+    }
+  }
+  
   # create separate heatmap for each assay so that color scales are different
   plist <- list()
   for (i in seq_along(along.with = assay)) {
@@ -899,6 +912,8 @@ get_heatmap_data <- function(
 #' @param idents Cell identities to include. Note that cells cannot be
 #' regrouped, this will require re-running \code{RegionMatrix} to generate a 
 #' new set of matrices
+#' @param group.order Order of groups to be shown in the plot. This should be a 
+#' character vector. If NULL, the group order will not be changed.
 #' @param nrow Number of rows to use when creating plot. If NULL, chosen
 #' automatically by ggplot2
 #' 
@@ -921,6 +936,7 @@ RegionPlot <- function(
   key,
   assay = NULL,
   idents = NULL,
+  group.order = NULL,
   normalize = TRUE,
   upstream = NULL,
   downstream = NULL,
@@ -1008,6 +1024,15 @@ RegionPlot <- function(
 
     df$assay <- assay[[j]]
     all.assay <- rbind(all.assay, df)
+  }
+  
+  if (!is.null(x = group.order)) {
+    if (length(x = group.order) != length(x = unique(x = all.assay$group))) {
+      warning("Incorrect number of groups provided in group.order parameter.",
+              " Groups will not be reordered")
+    } else{
+      all.assay$group <- factor(x = all.assay$group, levels = group.order)
+    }
   }
 
   p <- ggplot(

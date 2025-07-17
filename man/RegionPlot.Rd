@@ -9,6 +9,7 @@ RegionPlot(
   key,
   assay = NULL,
   idents = NULL,
+  group.order = NULL,
   normalize = TRUE,
   upstream = NULL,
   downstream = NULL,
@@ -30,6 +31,9 @@ defined by the first assay in the list}
 \item{idents}{Cell identities to include. Note that cells cannot be
 regrouped, this will require re-running \code{RegionMatrix} to generate a 
 new set of matrices}
+
+\item{group.order}{Order of groups to be shown in the plot. This should be a 
+character vector. If NULL, the group order will not be changed.}
 
 \item{normalize}{Normalize by number of cells in each group}
 
