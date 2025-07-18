@@ -679,7 +679,9 @@ RegionHeatmap <- function(
       stop("Wrong number of colors supplied. Must give one color per assay")
     }
     colors_all <- cols
-    if (!all(names(x = colors_all) %in% assay)) {
+    if (is.null(x = names(x = colors_all))) {
+      names(x = colors_all) <- assay
+    } else if (!all(names(x = colors_all) %in% assay)) {
       names(x = colors_all) <- assay
     }
   }
