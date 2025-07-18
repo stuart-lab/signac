@@ -599,12 +599,12 @@ GetGRangesFromEnsDb <- function(
   # extract genes from each chromosome
   my_lapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
   tx <- my_lapply(X = seq_along(whole.genome), FUN = function(x){
-        suppressMessages(expr = biovizBase::crunch(
-          obj = ensdb,
-          which = whole.genome[x],
-          columns = c("tx_id", "gene_name", "gene_id", "gene_biotype")))
-      })
-  
+    suppressMessages(expr = biovizBase::crunch(
+      obj = ensdb,
+      which = whole.genome[x],
+      columns = c("tx_id", "gene_name", "gene_id", "gene_biotype")))
+  })
+
   # combine
   tx <- do.call(what = c, args = tx)
   tx <- tx[tx$gene_biotype %in% biotypes]
@@ -1714,7 +1714,7 @@ SingleFileCutMatrix <- function(
     )
     cut.df <- cut.df[
       (cut.df$position > 0) & (cut.df$position <= width(x = region)[[1]]),
-      ]
+    ]
     cell.vector <- seq_along(along.with = cells)
     names(x = cell.vector) <- cells
     cell.matrix.info <- cell.vector[cut.df$cell]
@@ -2192,7 +2192,6 @@ MergeOverlappingRows <- function(
   for (i in seq_along(along.with = assay.list)) {
     # get count matrix
     counts <- GetAssayData(object = assay.list[[i]], layer = slot)
-
     if (nrow(x = counts) == 0) {
       # no counts, only data
       # skip row merge and return empty counts matrices
@@ -2443,8 +2442,8 @@ SparsifiedRanks <- function(X){
     x = lapply(
       X = seq_along(col_lst),
       FUN = function(i) rank(x = col_lst[[i]]) + offsets[i]
-      )
     )
+  )
   ## Create template rank matrix
   X.ranks <- X
   X.ranks@x <- sparsified_ranks
@@ -2457,7 +2456,7 @@ SparseSpearmanCor <- function(X, Y = NULL, cov = FALSE) {
   if (is.null(Y)){
     # Calculate pearson correlation on rank matrices
     return (corSparse(X = rankX, cov = cov))
-    }
+  }
   rankY <- SparsifiedRanks(X = Y)
   return(corSparse(X = rankX, Y = rankY, cov = cov))
 }

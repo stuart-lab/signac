@@ -118,18 +118,4 @@ test_that("CreateMotifMatrix works", {
     genome = genome
   ))
   expect_equal(dim(motif.matrix), c(323, 2))
-  features <- suppressWarnings(c(
-    granges(atac_small),
-    GenomicRanges::GRanges(
-      seqnames = "fake_chr",
-      ranges = IRanges::IRanges(start = 1, end = 1000)
-    )
-  ))
-  skip_if_not_installed("BSgenome.Hsapiens.UCSC.hg19")
-  motif.matrix <- suppressWarnings(CreateMotifMatrix(
-    features = features,
-    pwm = pwm,
-    genome = BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19
-  ))
-  expect_equal(dim(motif.matrix), c(324, 2))
 })

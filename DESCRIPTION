@@ -55,6 +55,7 @@ Imports:
     lifecycle
 Collate: 
     'RcppExports.R'
+    'bigwig.R'
     'data.R'
     'differential_accessibility.R'
     'generics.R'
