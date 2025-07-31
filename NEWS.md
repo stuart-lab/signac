@@ -1,3 +1,7 @@
+New features:
+
+* Added `RunFragtk()` function to run `fragtk matrix` command within R
+
 # Unreleased
 
 New features:
