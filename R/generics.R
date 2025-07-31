@@ -275,6 +275,26 @@ IdentifyVariants <- function(object, ...) {
   UseMethod(generic = "IdentifyVariants", object = object)
 }
 
+#' Compute analytic Pearson residual variance
+#' 
+#' Find the top features for a given assay based on analytic Pearson residual
+#' variance. This function computes the Pearson residual variance for each
+#' feature without constructing the entire dense matrix of Pearson residuals to
+#' reduce the memory required.
+#'
+#' @param object A Seurat object
+#' @param ... Arguments passed to other methods
+#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @rdname PearsonResidualVar
+#' @export PearsonResidualVar
+#' @references
+#' Lause, J., Berens, P. & Kobak, D. Analytic Pearson residuals for
+#' normalization of single-cell RNA-seq UMI data. Genome Biol 22, 258 (2021).
+#' \url{https://doi.org/10.1186/s13059-021-02451-7}
+PearsonResidualVar <- function(object, ...) {
+  UseMethod(generic = "PearsonResidualVar", object = object)
+}
+
 #' Region enrichment analysis
 #'
 #' Count fragments within a set of regions for different groups of
