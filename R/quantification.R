@@ -292,6 +292,139 @@ FeatureMatrix <- function(
   }
 }
 
+#' Run fragtk matrix
+#' 
+#' Wrapper function to run \code{fragtk matrix} and return the output as a sparse
+#' matrix in R.
+#' 
+#' See \url{https://crates.io/crates/fragtk} for fragtk documentation.
+#' 
+#' @param fragments A list of Fragment objects or fragment file paths
+#' @param features A GRanges object containing a set of genomic intervals to
+#' quantify. These genomic ranges will be passed to the `--bed` argument in
+#' `fragtk matrix`
+#' @param cells List of cells to include
+#' @param group Group genomic ranges according to a grouping variable. If NULL,
+#' no grouping variable is used. If a character string is provided, this should
+#' match a column in the provided GRanges object supplied in the `features`
+#' parameter.
+#' @param pic Use paired insertion counting
+#' @param fragtk.path Path to fragtk executable. If NULL, try to find fragtk
+#' automatically.
+#' @param outdir Path for output directory
+#' @param cleanup Remove output files created by fragtk
+#' @param verbose Display messages
+#' 
+#' @importFrom S4Vectors mcols
+#' @importFrom Matrix readMM
+#' 
+#' @return Returns a CsparseMatrix
+#' @export
+RunFragtk <- function(
+    fragments,
+    features,
+    cells,
+    group = FALSE,
+    pic = TRUE,
+    fragtk.path = NULL,
+    outdir = tempdir(),
+    cleanup = TRUE,
+    verbose = TRUE
+) {
+  # find fragtk
+  fragtk.path <- SetIfNull(
+    x = fragtk.path,
+    y = unname(obj = Sys.which(names = "fragtk"))
+  )
+  if (nchar(x = fragtk.path) == 0) {
+    stop("fragtk not found. Please install fragtk:",
+         "https://crates.io/crates/fragtk")
+  }
+  
+  if (!dir.exists(paths = outdir)) {
+    stop("Requested output directory does not exist")
+  }
+  
+  # temp files
+  bed.path <- tempfile(pattern = "signac_fragtk_bed", tmpdir = outdir)
+  cells.path <- tempfile(pattern = "signac_fragtk_cells", tmpdir = outdir)
+  out.path <- tempfile(pattern = "signac_fragtk_matrix", tmpdir = outdir)
+  
+  additional.args <- ""
+  
+  # write cells and regions files
+  feat <- as.data.frame(features)[, 1:3]
+  if (group) {
+    feat$group <- mcols(features)[[group]]
+    additional.args <- paste0(additional.args, " --group")
+  }
+  if (pic) {
+    additional.args <- paste0(additional.args, " --pic")
+  }
+  write.table(
+    x = feat,
+    file = bed.path,
+    sep = "\t",
+    row.names = FALSE,
+    col.names = FALSE,
+    quote = FALSE
+  )
+  writeLines(text = cells, con = cells.path)
+  
+  # call fragtk
+  cmd <- paste0(
+    fragtk.path,
+    " matrix --fragments ",
+    fragments,
+    " --bed ",
+    bed.path,
+    " --cells ",
+    cells.path,
+    " --outdir ",
+    out.path,
+    " ",
+    additional.args
+  )
+  
+  system(
+    command = cmd,
+    wait = TRUE,
+    ignore.stderr = !verbose,
+    ignore.stdout = !verbose
+  )
+  
+  # read results
+  if (verbose) {
+    message("Loading count matrix")
+  }
+  matrix.file <- paste0(out.path, .Platform$file.sep, "matrix.mtx.gz")
+  rownames.file <- paste0(out.path, .Platform$file.sep, "features.tsv.gz")
+  colnames.file <- paste0(out.path, .Platform$file.sep, "barcodes.tsv.gz")
+  
+  counts <- readMM(file = matrix.file)
+  rownames(counts) <- readLines(rownames.file)
+  colnames(counts) <- readLines(colnames.file)
+  counts <- as(object = counts, Class = "CsparseMatrix")
+  
+  # remove temp files
+  if (cleanup) {
+    files.to.remove <- c(
+      cells.path,
+      bed.path,
+      matrix.file,
+      rownames.file,
+      colnames.file
+    )
+    for (i in files.to.remove) {
+      if (file.exists(i)) {
+        file.remove(i)
+      }
+    }
+    unlink(x = out.path, recursive = TRUE)
+  }
+  return(counts)
+}
+
 #### Not Exported ####
 
 # matrix multiplication method for summing matrix rows
