@@ -52,7 +52,8 @@ Imports:
     grid,
     tidyselect,
     vctrs,
-    lifecycle
+    lifecycle,
+    sparseMatrixStats
 Collate: 
     'RcppExports.R'
     'data.R'
