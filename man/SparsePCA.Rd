@@ -94,7 +94,7 @@ Returns a \code{\link[SeuratObject]{Seurat}} object
 }
 \description{
 Compute principal components using \code{\link[irlba]{irlba}}. This function
-is similar to the \code{\link{Seurat::RunPCA}} function but uses implicit
+is similar to the \code{\link{RunPCA}} function but uses implicit
 scaling and centering of the data matrix to compute PCA faster and using less
 memory. The scaled and centered data matrix is not stored, and the
 \code{\link{ScaleData}} function does not need to be run before using this
