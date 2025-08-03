@@ -494,25 +494,31 @@ PearsonResidualVar.Assay <- function(
     verbose = verbose,
     ...
   )
-  object[[names(x = hvf.info)]] <- hvf.info
   if (is.na(x = nfeatures)) {
     # don't change the variable features
+    object[[names(x = hvf.info)]] <- hvf.info
     return(object)
   } else {
     if (!is.null(x = min.counts)) {
       # filter based on min.count
-      hvf.info <- hvf.info[hvf.info$count > min.counts, ]
+      hvf.info.filt <- hvf.info[hvf.info$count > min.counts, ]
+    } else {
+      hvf.info.filt <- hvf.info
     }
     # order based on residual variance
     # set top n as variable features
-    hvf.info <- hvf.info[order(hvf.info$ResidualVariance, decreasing = TRUE), ]
-    if (nfeatures > nrow(x = hvf.info)) {
-      nfeatures <- nrow(x = hvf.info)
+    hvf.info.filt <- hvf.info.filt[
+      order(hvf.info.filt$ResidualVariance, decreasing = TRUE), 
+    ]
+    if (nfeatures > nrow(x = hvf.info.filt)) {
+      nfeatures <- nrow(x = hvf.info.filt)
       warning("Requested more features than are available. ",
               "Returning ", nfeatures, " variable features")
     }
-    top_features <- head(x = rownames(x = hvf.info), n = nfeatures)
+    top_features <- head(x = rownames(x = hvf.info.filt), n = nfeatures)
     VariableFeatures(object = object) <- top_features
+    hvf.info$variable <- rownames(x = hvf.info) %in% top_features
+    object[[names(x = hvf.info)]] <- hvf.info
     return(object)
   }
 }
