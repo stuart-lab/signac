@@ -354,10 +354,30 @@ RunFragtk <- function(
   
   # write cells and regions files
   feat <- as.data.frame(features)[, 1:3]
-  if (group) {
-    feat$group <- mcols(features)[[group]]
-    additional.args <- paste0(additional.args, " --group")
+  if (is.logical(x = group)) {
+    if (group) {
+      # passed group=TRUE, assume group by the 4th bed column
+      if (verbose) {
+        message("Grouping regions by column: ", names(mcols(features))[1])
+      }
+      feat$group <- mcols(features)[[1]]
+      additional.args <- paste0(additional.args, " --group")
+    }
+  } else {
+    if (is.character(x = group)) {
+      # passed column name
+      if (!(group %in% names(mcols(features)))) {
+        stop("Requested grouping column '", group, "' does not exist")
+      } else {
+        if (verbose) {
+          message("Grouping regions by column: ", group)
+        }
+        feat$group <- mcols(features)[[group]]
+        additional.args <- paste0(additional.args, " --group")
+      }
+    }
   }
+  
   if (pic) {
     additional.args <- paste0(additional.args, " --pic")
   }
