@@ -7,6 +7,7 @@ NULL
 #' @concept qc
 #' @rdname ATACqc
 #' @method ATACqc ChromatinAssay
+#' @importFrom utils write.table
 ATACqc.ChromatinAssay <- function(
     object,
     fragtk.path = NULL,
