@@ -308,7 +308,7 @@ SparsePCA.default <- function(
   rownames(x = emb) <- colnames(x = object)
   colnames(x = emb) <- colnames(x = loadings)
   sdev <- pcs$d/sqrt(x = max(1, ncol(x = object) - 1))
-  dr <- Seurat::CreateDimReducObject(
+  dr <- CreateDimReducObject(
     embeddings = emb,
     loadings = loadings,
     assay = assay,
