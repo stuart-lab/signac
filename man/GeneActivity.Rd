@@ -69,6 +69,6 @@ fragments <- CreateFragmentObject(
   validate.fragments = FALSE
 )
 Fragments(atac_small) <- fragments
-GeneActivity(atac_small)
+GeneActivity(atac_small, fragtk=FALSE)
 }
 \concept{utilities}

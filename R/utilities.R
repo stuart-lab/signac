@@ -483,7 +483,7 @@ corSparse <- function(X, Y = NULL, cov = FALSE) {
 #'   validate.fragments = FALSE
 #' )
 #' Fragments(atac_small) <- fragments
-#' GeneActivity(atac_small)
+#' GeneActivity(atac_small, fragtk=FALSE)
 GeneActivity <- function(
   object,
   assay = NULL,
