@@ -13,7 +13,8 @@ ATACqc.ChromatinAssay <- function(
     fragtk.path = NULL,
     outdir = tempdir(),
     cleanup = TRUE,
-    verbose = TRUE
+    verbose = TRUE,
+    ...
 ) {
 
   # find fragtk
@@ -115,7 +116,8 @@ ATACqc.Seurat <- function(
   fragtk.path = NULL,
   outdir = tempdir(),
   cleanup = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
   assay <- SetIfNull(
     x = assay,

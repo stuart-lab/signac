@@ -13,7 +13,8 @@ ATACqc(object, ...)
   fragtk.path = NULL,
   outdir = tempdir(),
   cleanup = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 )
 
 \method{ATACqc}{Seurat}(
@@ -22,7 +23,8 @@ ATACqc(object, ...)
   fragtk.path = NULL,
   outdir = tempdir(),
   cleanup = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 )
 }
 \arguments{
