@@ -225,7 +225,8 @@ GenomeBinMatrix <- function(
 #' fragments <- CreateFragmentObject(fpath)
 #' FeatureMatrix(
 #'   fragments = fragments,
-#'   features = granges(atac_small)
+#'   features = granges(atac_small),
+#'   fragtk = FALSE
 #' )
 FeatureMatrix <- function(
   fragments,
