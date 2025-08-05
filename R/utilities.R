@@ -458,6 +458,15 @@ corSparse <- function(X, Y = NULL, cov = FALSE) {
 #' on width.
 #' @param process_n Number of regions to load into memory at a time, per thread.
 #' Processing more regions at once can be faster but uses more memory.
+#' @param fragtk Use \code{fragtk} for fast and memory-efficient data
+#' quantification. Can be TRUE/FALSE or a character vector. If TRUE,
+#' \code{fragtk} will be used and attempt to find the \code{fragtk} executable
+#' in the path. If FALSE, use the R implementation to produce the data matrix.
+#' If a character vector is provided, this should be the path to the
+#' \code{fragtk} executable and \code{fragtk} will be used. Note that
+#' \code{fragtk} uses the Paired Insertion Counting method, whereas the R
+#' implementation counts insertions. See
+#' \url{https://crates.io/crates/fragtk} for fragtk documentation.
 #' @param gene.id Record gene IDs in output matrix rather than gene name.
 #' @param verbose Display messages
 #'
@@ -484,6 +493,7 @@ GeneActivity <- function(
   biotypes = "protein_coding",
   max.width = 500000,
   process_n = 2000,
+  fragtk = TRUE,
   gene.id = FALSE,
   verbose = TRUE
 ) {
@@ -554,6 +564,7 @@ GeneActivity <- function(
     features = transcripts,
     process_n = process_n,
     cells = cells,
+    fragtk = fragtk,
     verbose = verbose
   )
   # set row names
