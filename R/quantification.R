@@ -192,6 +192,15 @@ GenomeBinMatrix <- function(
 #' @param features A GRanges object containing a set of genomic intervals.
 #' These will form the rows of the matrix, with each entry recording the number
 #' of unique reads falling in the genomic region for each cell.
+#' @param fragtk Use \code{fragtk} for fast and memory-efficient data
+#' quantification. Can be TRUE/FALSE or a character vector. If TRUE,
+#' \code{fragtk} will be used and attempt to find the \code{fragtk} executable
+#' in the path. If FALSE, use the R implementation to produce the data matrix.
+#' If a character vector is provided, this should be the path to the
+#' \code{fragtk} executable and \code{fragtk} will be used. Note that
+#' \code{fragtk} uses the Paired Insertion Counting method, whereas the R
+#' implementation counts insertions. See
+#' \url{https://crates.io/crates/fragtk} for fragtk documentation.
 #' @param keep_all_features By default, if a genomic region provided is on a
 #' chromosome that is not present in the fragment file,
 #' it will not be included in the returned matrix. Set `keep_all_features` to
@@ -221,6 +230,7 @@ GenomeBinMatrix <- function(
 FeatureMatrix <- function(
   fragments,
   features,
+  fragtk = TRUE,
   keep_all_features = FALSE,
   cells = NULL,
   process_n = 2000,
@@ -260,19 +270,53 @@ FeatureMatrix <- function(
     obj.use <- seq_along(along.with = fragments)
   }
   # create a matrix from each fragment file
-  mat.list <- sapply(
-    X = obj.use,
-    FUN = function(x) {
-      SingleFeatureMatrix(
-        fragment = fragments[[x]],
-        features = features,
-        keep_all_features = keep_all_features,
-        cells = cells,
-        sep = sep,
-        verbose = verbose,
-        process_n = process_n
-      )
-    })
+  fragtk.path <- NULL
+  if (is.character(x = fragtk)) {
+    # fragtk is the path to executable
+    fragtk.path <- fragtk
+    fragtk <- TRUE
+  }
+  if (fragtk) {
+    # run fragtk on each fragment file
+    # update cell names in output matrix
+    mat.list <- sapply(
+      X = obj.use,
+      FUN = function(x) {
+        cell.vec <- GetFragmentData(
+          object = fragments[[x]],
+          slot = "cells"
+        )
+        mat <- RunFragtk(
+          fragments = GetFragmentData(
+            object = fragments[[x]],
+            slot = "path"
+          ),
+          features = features,
+          cells = cell.vec,
+          fragtk.path = fragtk.path,
+          verbose = verbose,
+          cleanup = TRUE
+        )
+        colnames(x = mat) <- names(x = cell.vec)
+        mat
+      }
+    )
+  } else {
+    mat.list <- sapply(
+      X = obj.use,
+      FUN = function(x) {
+        SingleFeatureMatrix(
+          fragment = fragments[[x]],
+          features = features,
+          keep_all_features = keep_all_features,
+          cells = cells,
+          sep = sep,
+          verbose = verbose,
+          process_n = process_n
+        )
+      })
+  }
+
   # merge all the matrices
   if (length(x = mat.list) == 1) {
     return(mat.list[[1]])
