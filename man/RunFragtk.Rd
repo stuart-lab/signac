@@ -51,3 +51,4 @@ matrix in R.
 \details{
 See \url{https://crates.io/crates/fragtk} for fragtk documentation.
 }
+\concept{quantification}

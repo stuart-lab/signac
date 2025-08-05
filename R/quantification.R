@@ -318,6 +318,8 @@ FeatureMatrix <- function(
 #' @importFrom S4Vectors mcols
 #' @importFrom Matrix readMM
 #' 
+#' @concept quantification
+#' 
 #' @return Returns a CsparseMatrix
 #' @export
 RunFragtk <- function(
