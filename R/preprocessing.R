@@ -3,6 +3,134 @@
 #'
 NULL
 
+#' @export
+#' @concept qc
+#' @rdname ATACqc
+#' @method ATACqc ChromatinAssay
+ATACqc.ChromatinAssay <- function(
+    object,
+    fragtk.path = NULL,
+    outdir = tempdir(),
+    cleanup = TRUE,
+    verbose = TRUE
+) {
+
+  # find fragtk
+  fragtk.path <- SetIfNull(
+    x = fragtk.path,
+    y = unname(obj = Sys.which(names = "fragtk"))
+  )
+  if (nchar(x = fragtk.path) == 0) {
+    stop("fragtk not found. Please install fragtk:",
+         "https://crates.io/crates/fragtk")
+  }
+  
+  if (!dir.exists(paths = outdir)) {
+    stop("Requested output directory does not exist")
+  }
+  
+  # get tss positions
+  tss <- GetTSSPositions(ranges = Annotation(object = object))
+  
+  # temp files
+  tss.path <- tempfile(pattern = "signac_fragtk_tss", tmpdir = outdir)
+  out.path <- tempfile(pattern = "signac_fragtk_qc", tmpdir = outdir)
+  
+  # write tss
+  write.table(
+    x = as.data.frame(x = tss),
+    file = tss.path,
+    sep = "\t",
+    row.names = FALSE,
+    col.names = FALSE,
+    quote = FALSE
+  )
+  
+  # fragments
+  frags <- Fragments(object = object)
+  
+  results <- data.frame()
+  
+  for (i in seq_along(along.with = frags)) {
+    fragments <- frags[[i]]@path
+    if (verbose) {
+      message("Processing ", fragments)
+    }
+    # call fragtk qc
+    cmd <- paste0(
+      fragtk.path,
+      " qc --fragments ",
+      fragments,
+      " --bed ",
+      tss.path,
+      " --outfile ",
+      out.path
+    )
+    
+    system(
+      command = cmd,
+      wait = TRUE,
+      ignore.stderr = !verbose,
+      ignore.stdout = !verbose
+    )
+    
+    # load results
+    md <- read.table(file = out.path, header = TRUE, row.names = 1, sep = "\t")
+    
+    # convert cell names
+    cellconvert <- frags[[i]]@cells
+    cc <- names(x = cellconvert)
+    names(x = cc) <- cellconvert
+    
+    md <- md[cellconvert, ]
+    rownames(x = md) <- cc[rownames(x = md)]
+    
+    # concat across fragment files
+    results <- rbind(results, md)
+  }
+  
+  # remove temp files
+  if (cleanup) {
+    files.to.remove <- c(tss.path, out.path)
+    for (i in files.to.remove) {
+      if (file.exists(i)) {
+        file.remove(i)
+      }
+    }
+  }
+  
+  return(results)
+}
+
+#' @param assay Name of assay to use. If NULL, use the default assay.
+#' @rdname ATACqc
+#' @method ATACqc Seurat
+#' @importFrom SeuratObject AddMetaData DefaultAssay
+#' @export
+#' @concept qc
+ATACqc.Seurat <- function(
+  object,
+  assay = NULL,
+  fragtk.path = NULL,
+  outdir = tempdir(),
+  cleanup = TRUE,
+  verbose = TRUE
+) {
+  assay <- SetIfNull(
+    x = assay,
+    y = DefaultAssay(object = object)
+  )
+  md <- ATACqc(
+    object = object[[assay]],
+    fragtk.path = fragtk.path,
+    outdir = outdir,
+    cleanup = cleanup,
+    verbose = verbose
+  )
+  object <- AddMetaData(object = object, metadata = md)
+  return(object)
+}
+
 #' @param verbose Display messages
 #' @rdname BinarizeCounts
 #' @importFrom methods is slot "slot<-"

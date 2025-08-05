@@ -35,6 +35,25 @@ AggregateTiles <- function(object, ...) {
   UseMethod(generic = "AggregateTiles", object = object)
 }
 
+#' Compute scATAC-seq QC metrics
+#' 
+#' Wrapper function to run \code{fragtk qc} and add the metadata to the Seurat
+#' object.
+#' 
+#' @param object A Seurat object or
+#' @param fragtk.path Path to fragtk executable. If NULL, try to find fragtk
+#' automatically.
+#' @param outdir Path for output directory
+#' @param cleanup Remove output files created by fragtk
+#' @param verbose Display messages
+#' @param ... Arguments passed to other methods
+#' 
+#' @export ATACqc
+#' @rdname ATACqc
+ATACqc <- function(object, ...) {
+  UseMethod(generic = "ATACqc", object = object)
+}
+
 #' Convert objects to a ChromatinAssay
 #' @param x An object to convert to class \code{\link{ChromatinAssay}}
 #' @param ... Arguments passed to other methods
