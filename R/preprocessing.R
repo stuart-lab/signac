@@ -54,7 +54,7 @@ ATACqc.ChromatinAssay <- function(
   results <- data.frame()
   
   for (i in seq_along(along.with = frags)) {
-    fragments <- frags[[i]]@path
+    fragments <- GetFragmentData(object = frags[[i]], slot = "path")
     if (verbose) {
       message("Processing ", fragments)
     }
@@ -80,7 +80,7 @@ ATACqc.ChromatinAssay <- function(
     md <- read.table(file = out.path, header = TRUE, row.names = 1, sep = "\t")
     
     # convert cell names
-    cellconvert <- frags[[i]]@cells
+    cellconvert <- GetFragmentData(object = frags[[i]], slot = "cells")
     cc <- names(x = cellconvert)
     names(x = cc) <- cellconvert
     
