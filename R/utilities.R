@@ -636,6 +636,9 @@ GetGRangesFromEnsDb <- function(
 #' @export
 #' @concept utilities
 GetTSSPositions <- function(ranges, biotypes = "protein_coding") {
+  if (is.null(x = ranges)) {
+    stop("No genomic ranges provided")
+  }
   if (!("gene_biotype" %in% colnames(x = mcols(x = ranges)))) {
     stop("Gene annotation does not contain gene_biotype information")
   }
