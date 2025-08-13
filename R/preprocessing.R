@@ -525,9 +525,9 @@ PearsonResidualVar.default <- function(
     object,
     assay = NULL,
     nfeatures = 20000,
-    min.counts = 10,
+    min.counts = 100,
     ncell.batch = 100,
-    theta = 100,
+    theta = 10,
     verbose = TRUE,
     ...
 ) {
@@ -603,8 +603,9 @@ PearsonResidualVar.Assay <- function(
     object,
     assay = NULL,
     nfeatures = 20000,
-    theta = 100,
-    min.counts = 10,
+    theta = 10,
+    min.counts = 100,
+    weight.mean = 0.5,
     ncell.batch = 100,
     verbose = TRUE,
     ...
@@ -632,14 +633,22 @@ PearsonResidualVar.Assay <- function(
   } else {
     if (!is.null(x = min.counts)) {
       # filter based on min.count
-      hvf.info.filt <- hvf.info[hvf.info$count > min.counts, ]
+      hvf.info.filt <- hvf.info[hvf.info$count > min.counts, , drop = FALSE]
     } else {
       hvf.info.filt <- hvf.info
     }
     # order based on residual variance
     # set top n as variable features
+    res_rank <- rank(
+      x = -hvf.info.filt$ResidualVariance, ties.method = "average"
+    )
+    mean_rank <- rank(
+      x = -hvf.info.filt$mean, ties.method = "average"
+    )
+    combined_rank <- (weight.mean * mean_rank) + ((1 - weight.mean) * res_rank)
+    hvf.info.filt$ranking <- combined_rank
     hvf.info.filt <- hvf.info.filt[
-      order(hvf.info.filt$ResidualVariance, decreasing = TRUE), 
+      order(hvf.info.filt$ranking, decreasing = FALSE), 
     ]
     if (nfeatures > nrow(x = hvf.info.filt)) {
       nfeatures <- nrow(x = hvf.info.filt)
@@ -665,8 +674,9 @@ PearsonResidualVar.Assay <- function(
 PearsonResidualVar.StdAssay <- function(
     object,
     assay = NULL,
-    min.counts = 10,
-    theta = 100,
+    min.counts = 100,
+    weight.mean = 0.5,
+    theta = 10,
     ncell.batch = 100,
     verbose = TRUE,
     ...
@@ -675,6 +685,7 @@ PearsonResidualVar.StdAssay <- function(
     object = object,
     assay = assay,
     min.counts = min.counts,
+    weight.mean = weight.mean,
     theta = theta,
     ncell.batch = ncell.batch,
     verbose = verbose,
@@ -683,6 +694,9 @@ PearsonResidualVar.StdAssay <- function(
 }
 
 #' @rdname PearsonResidualVar
+#' @param weight.mean Weighting to apply to the feature mean relative to the
+#' Pearson residual variance for ranking features. \code{weight.mean=0} will
+#' rank features based on the Pearson residual variance only.
 #' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @concept preprocessing
@@ -692,8 +706,9 @@ PearsonResidualVar.StdAssay <- function(
 PearsonResidualVar.Seurat <- function(
     object,
     assay = NULL,
-    min.counts = 10,
-    theta = 100,
+    min.counts = 100,
+    weight.mean = 0.5,
+    theta = 10,
     ncell.batch = 100,
     verbose = TRUE,
     ...
@@ -704,6 +719,7 @@ PearsonResidualVar.Seurat <- function(
     object = assay.data,
     assay = assay,
     min.counts = min.counts,
+    weight.mean = weight.mean,
     ncell.batch = ncell.batch,
     theta = theta,
     verbose = verbose,

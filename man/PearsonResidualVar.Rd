@@ -14,9 +14,9 @@ PearsonResidualVar(object, ...)
   object,
   assay = NULL,
   nfeatures = 20000,
-  min.counts = 10,
+  min.counts = 100,
   ncell.batch = 100,
-  theta = 100,
+  theta = 10,
   verbose = TRUE,
   ...
 )
@@ -25,8 +25,9 @@ PearsonResidualVar(object, ...)
   object,
   assay = NULL,
   nfeatures = 20000,
-  theta = 100,
-  min.counts = 10,
+  theta = 10,
+  min.counts = 100,
+  weight.mean = 0.5,
   ncell.batch = 100,
   verbose = TRUE,
   ...
@@ -35,8 +36,9 @@ PearsonResidualVar(object, ...)
 \method{PearsonResidualVar}{StdAssay}(
   object,
   assay = NULL,
-  min.counts = 10,
-  theta = 100,
+  min.counts = 100,
+  weight.mean = 0.5,
+  theta = 10,
   ncell.batch = 100,
   verbose = TRUE,
   ...
@@ -45,8 +47,9 @@ PearsonResidualVar(object, ...)
 \method{PearsonResidualVar}{Seurat}(
   object,
   assay = NULL,
-  min.counts = 10,
-  theta = 100,
+  min.counts = 100,
+  weight.mean = 0.5,
+  theta = 10,
   ncell.batch = 100,
   verbose = TRUE,
   ...
@@ -69,6 +72,10 @@ increases speed but uses more memory.}
 \item{theta}{Theta value for analytic Pearson residual calculation}
 
 \item{verbose}{Display messages}
+
+\item{weight.mean}{Weighting to apply to the feature mean relative to the
+Pearson residual variance for ranking features. \code{weight.mean=0} will
+rank features based on the Pearson residual variance only.}
 }
 \value{
 Returns a \code{\link[SeuratObject]{Seurat}} object
