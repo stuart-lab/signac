@@ -28,6 +28,7 @@ test_that("AddMotifs works with fakechr", {
     fragments = fragments,
     features = features,
     keep_all_features = TRUE,
+    fragtk = FALSE,
     verbose = FALSE
   )
   expect_warning(object <- CreateChromatinAssay(

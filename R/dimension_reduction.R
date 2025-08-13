@@ -234,3 +234,206 @@ RunSVD.Seurat <- function(
   object[[reduction.name]] <- reduction.data
   return(object)
 }
+
+#' @param assay Which assay to use. If NULL, use the default assay
+#' @param n Number of singular values to compute
+#' @param weight.by.var Weight PCs by variance explained
+#' @param reduction.key Key for dimension reduction object
+#' @param irlba.work work parameter for \code{\link[irlba]{irlba}}.
+#' Working subspace dimension, larger values can speed convergence at the
+#' cost of more memory use.
+#' @param tol Tolerance (tol) parameter for \code{\link[irlba]{irlba}}. Larger
+#' values speed up convergence due to greater amount of allowed error.
+#' @param verbose Print messages
+#'
+#' @importFrom irlba irlba
+#' @importFrom stats sd
+#' @importFrom SeuratObject CreateDimReducObject
+#' @importFrom sparseMatrixStats rowVars
+#' @importMethodsFrom Matrix t
+#'
+#' @rdname SparsePCA
+#' @export
+#' @concept dimension_reduction
+#' @examples
+#' x <- matrix(data = rnorm(100), ncol = 10)
+#' SparsePCA(x)
+SparsePCA.default <- function(
+    object,
+    assay = NULL,
+    n = 50,
+    weight.by.var = TRUE,
+    reduction.key = "PCA_",
+    irlba.work = n * 3,
+    tol = 1e-05,
+    verbose = TRUE,
+    ...
+) {
+  if (is.null(x = rownames(x = object))) {
+    rownames(x = object) <- seq_len(length.out = nrow(x = object))
+  }
+  if (is.null(x = colnames(x = object))) {
+    colnames(x = object) <- seq_len(length.out = ncol(x = object))
+  }
+  n <- min(n, (ncol(x = object) - 1))
+  if (verbose) {
+    message("Running PCA")
+  }
+  
+  d_rowmeans <- rowMeans(x = object)
+  d_sd <- sqrt(x = sparseMatrixStats::rowVars(x = object))
+  nz_var <- d_sd > 0
+  if (verbose) {
+    if (sum(nz_var) != nrow(x = object)) {
+      message("Retaining ", sum(nz_var), " features with non-zero variance")
+    }
+  }
+  object <- object[nz_var, ]
+  d_rowmeans <- d_rowmeans[nz_var]
+  d_sd <- d_sd[nz_var]
+  pcs <- irlba::irlba(
+    A = t(x = object),
+    scale = d_sd,
+    center = d_rowmeans,
+    nv = n,
+    work = irlba.work,
+    tol = tol
+  )
+  if (weight.by.var) {
+    emb <- pcs$u %*% diag(pcs$d)
+  }
+  loadings <- pcs$v
+  rownames(x = loadings) <- rownames(x = object)
+  colnames(x = loadings) <- paste0(reduction.key, 1:n)
+  rownames(x = emb) <- colnames(x = object)
+  colnames(x = emb) <- colnames(x = loadings)
+  sdev <- pcs$d/sqrt(x = max(1, ncol(x = object) - 1))
+  dr <- CreateDimReducObject(
+    embeddings = emb,
+    loadings = loadings,
+    assay = assay,
+    stdev = sdev,
+    key = reduction.key
+  )
+  return(dr)
+}
+
+#' @param features Which features to use. If NULL, use variable features
+#'
+#' @rdname SparsePCA
+#' @export
+#' @concept dimension_reduction
+#' @method SparsePCA StdAssay
+#' @examples
+#' \dontrun{
+#' SparsePCA(atac_small[['peaks']])
+#' }
+SparsePCA.StdAssay <- function(
+    object,
+    assay = NULL,
+    features = NULL,
+    n = 50,
+    weight.by.var = TRUE,
+    irlba.work = n * 3,
+    tol = 1e-05,
+    reduction.key = "PCA_",
+    verbose = TRUE,
+    ...
+) {
+  SparsePCA.Assay(
+    object = object,
+    assay = assay,
+    features = features,
+    n = n,
+    weight.by.var = weight.by.var,
+    irlba.work = irlba.work,
+    tol = tol,
+    reduction.key = reduction.key,
+    verbose = verbose,
+    ...
+  )
+}
+
+#' @param features Which features to use. If NULL, use variable features
+#'
+#' @rdname SparsePCA
+#' @importFrom SeuratObject VariableFeatures GetAssayData
+#' @export
+#' @concept dimension_reduction
+#' @method SparsePCA Assay
+#' @examples
+#' \dontrun{
+#' SparsePCA(atac_small[['peaks']])
+#' }
+SparsePCA.Assay <- function(
+    object,
+    assay = NULL,
+    features = NULL,
+    n = 50,
+    weight.by.var = TRUE,
+    irlba.work = n * 3,
+    tol = 1e-05,
+    reduction.key = "PCA_",
+    verbose = TRUE,
+    ...
+) {
+  features <- SetIfNull(x = features, y = VariableFeatures(object = object))
+  data.use <- GetAssayData(
+    object = object,
+    layer = "data"
+  )[features, ]
+  reduction.data <- SparsePCA(
+    object = data.use,
+    assay = assay,
+    features = features,
+    n = n,
+    weight.by.var = weight.by.var,
+    irlba.work = irlba.work,
+    tol = tol,
+    reduction.key = reduction.key,
+    verbose = verbose,
+    ...
+  )
+  return(reduction.data)
+}
+
+#' @param reduction.name Name for stored dimension reduction object.
+#' Default 'pca'
+#' @rdname SparsePCA
+#' @export
+#' @concept dimension_reduction
+#' @examples
+#' \dontrun{
+#' SparsePCA(atac_small)
+#' }
+#' @method SparsePCA Seurat
+SparsePCA.Seurat <- function(
+    object,
+    assay = NULL,
+    features = NULL,
+    n = 50,
+    weight.by.var = TRUE,
+    irlba.work = n * 3,
+    tol = 1e-05,
+    reduction.key = "PCA_",
+    reduction.name = "pca",
+    verbose = TRUE,
+    ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay.data <- object[[assay]]
+  reduction.data <- SparsePCA(
+    object = assay.data,
+    assay = assay,
+    features = features,
+    n = n,
+    weight.by.var = weight.by.var,
+    irlba.work = irlba.work,
+    tol = tol,
+    reduction.key = reduction.key,
+    verbose = verbose,
+    ...
+  )
+  object[[reduction.name]] <- reduction.data
+  return(object)
+}

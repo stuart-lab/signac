@@ -1,9 +1,19 @@
+New features:
+
+* Added `RunFragtk()` function to run `fragtk matrix` command within R
+
 # Unreleased
+
+New features:
+
+* Added `group.order` parameter to `RegionPlot()` and `RegionHeatmap()` functions to control order of plotted groups ([#1745](https://github.com/stuart-lab/signac/issues/1745))
 
 Other changes:
 
 * Improve error messages for `FindMotifs()` ([#1788](https://github.com/stuart-lab/signac/issues/1788))
 * Add documentation about the required format for gene annotations, and ensure this format is present when creating the assay ([#1797](https://github.com/stuart-lab/signac/pull/1797); [@lldelisle](https://github.com/lldelisle))
+* Fix error in `RegionPlot()` x-axis ([@cmf1997](https://github.com/cmf1997); [#1899](https://github.com/stuart-lab/signac/pull/1899))
+* Add an option to force `FeatureMatrix()` to return as many rows as input granges ([@lldelisle](https://github.com/lldelisle); [#1803](https://github.com/stuart-lab/signac/pull/1803))
 
 # Signac 1.14.0
 

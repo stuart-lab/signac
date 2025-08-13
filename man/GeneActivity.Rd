@@ -13,6 +13,7 @@ GeneActivity(
   biotypes = "protein_coding",
   max.width = 5e+05,
   process_n = 2000,
+  fragtk = TRUE,
   gene.id = FALSE,
   verbose = TRUE
 )
@@ -40,6 +41,16 @@ on width.}
 \item{process_n}{Number of regions to load into memory at a time, per thread.
 Processing more regions at once can be faster but uses more memory.}
 
+\item{fragtk}{Use \code{fragtk} for fast and memory-efficient data
+quantification. Can be TRUE/FALSE or a character vector. If TRUE,
+\code{fragtk} will be used and attempt to find the \code{fragtk} executable
+in the path. If FALSE, use the R implementation to produce the data matrix.
+If a character vector is provided, this should be the path to the
+\code{fragtk} executable and \code{fragtk} will be used. Note that
+\code{fragtk} uses the Paired Insertion Counting method, whereas the R
+implementation counts insertions. See
+\url{https://crates.io/crates/fragtk} for fragtk documentation.}
+
 \item{gene.id}{Record gene IDs in output matrix rather than gene name.}
 
 \item{verbose}{Display messages}
@@ -58,6 +69,6 @@ fragments <- CreateFragmentObject(
   validate.fragments = FALSE
 )
 Fragments(atac_small) <- fragments
-GeneActivity(atac_small)
+GeneActivity(atac_small, fragtk=FALSE)
 }
 \concept{utilities}

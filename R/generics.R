@@ -35,6 +35,25 @@ AggregateTiles <- function(object, ...) {
   UseMethod(generic = "AggregateTiles", object = object)
 }
 
+#' Compute scATAC-seq QC metrics
+#' 
+#' Wrapper function to run \code{fragtk qc} and add the metadata to the Seurat
+#' object.
+#' 
+#' @param object A Seurat object or
+#' @param fragtk.path Path to fragtk executable. If NULL, try to find fragtk
+#' automatically.
+#' @param outdir Path for output directory
+#' @param cleanup Remove output files created by fragtk
+#' @param verbose Display messages
+#' @param ... Arguments passed to other methods
+#' 
+#' @export ATACqc
+#' @rdname ATACqc
+ATACqc <- function(object, ...) {
+  UseMethod(generic = "ATACqc", object = object)
+}
+
 #' Convert objects to a ChromatinAssay
 #' @param x An object to convert to class \code{\link{ChromatinAssay}}
 #' @param ... Arguments passed to other methods
@@ -275,6 +294,26 @@ IdentifyVariants <- function(object, ...) {
   UseMethod(generic = "IdentifyVariants", object = object)
 }
 
+#' Compute analytic Pearson residual variance
+#' 
+#' Find the top features for a given assay based on analytic Pearson residual
+#' variance. This function computes the Pearson residual variance for each
+#' feature without constructing the entire dense matrix of Pearson residuals to
+#' reduce the memory required.
+#'
+#' @param object A Seurat object
+#' @param ... Arguments passed to other methods
+#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @rdname PearsonResidualVar
+#' @export PearsonResidualVar
+#' @references
+#' Lause, J., Berens, P. & Kobak, D. Analytic Pearson residuals for
+#' normalization of single-cell RNA-seq UMI data. Genome Biol 22, 258 (2021).
+#' \url{https://doi.org/10.1186/s13059-021-02451-7}
+PearsonResidualVar <- function(object, ...) {
+  UseMethod(generic = "PearsonResidualVar", object = object)
+}
+
 #' Region enrichment analysis
 #'
 #' Count fragments within a set of regions for different groups of
@@ -372,4 +411,22 @@ RunTFIDF <- function(object, ...) {
 #' @export SetMotifData
 SetMotifData <- function(object, ...) {
   UseMethod(generic = "SetMotifData", object = object)
+}
+
+#' Compute principal components
+#'
+#' Compute principal components using \code{\link[irlba]{irlba}}. This function
+#' is similar to the \code{\link[Seurat]{RunPCA}} function but uses implicit
+#' scaling and centering of the data matrix to compute PCA faster and using less
+#' memory. The scaled and centered data matrix is not stored, and the
+#' \code{\link[Seurat]{ScaleData}} function does not need to be run before using
+#' this function.
+#'
+#' @param object A Seurat object
+#' @param ... Arguments passed to other methods
+#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @rdname SparsePCA
+#' @export SparsePCA
+SparsePCA <- function(object, ...) {
+  UseMethod(generic = "SparsePCA", object = object)
 }

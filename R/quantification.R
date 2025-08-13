@@ -192,6 +192,15 @@ GenomeBinMatrix <- function(
 #' @param features A GRanges object containing a set of genomic intervals.
 #' These will form the rows of the matrix, with each entry recording the number
 #' of unique reads falling in the genomic region for each cell.
+#' @param fragtk Use \code{fragtk} for fast and memory-efficient data
+#' quantification. Can be TRUE/FALSE or a character vector. If TRUE,
+#' \code{fragtk} will be used and attempt to find the \code{fragtk} executable
+#' in the path. If FALSE, use the R implementation to produce the data matrix.
+#' If a character vector is provided, this should be the path to the
+#' \code{fragtk} executable and \code{fragtk} will be used. Note that
+#' \code{fragtk} uses the Paired Insertion Counting method, whereas the R
+#' implementation counts insertions. See
+#' \url{https://crates.io/crates/fragtk} for fragtk documentation.
 #' @param keep_all_features By default, if a genomic region provided is on a
 #' chromosome that is not present in the fragment file,
 #' it will not be included in the returned matrix. Set `keep_all_features` to
@@ -216,11 +225,13 @@ GenomeBinMatrix <- function(
 #' fragments <- CreateFragmentObject(fpath)
 #' FeatureMatrix(
 #'   fragments = fragments,
-#'   features = granges(atac_small)
+#'   features = granges(atac_small),
+#'   fragtk = FALSE
 #' )
 FeatureMatrix <- function(
   fragments,
   features,
+  fragtk = TRUE,
   keep_all_features = FALSE,
   cells = NULL,
   process_n = 2000,
@@ -260,19 +271,53 @@ FeatureMatrix <- function(
     obj.use <- seq_along(along.with = fragments)
   }
   # create a matrix from each fragment file
-  mat.list <- sapply(
-    X = obj.use,
-    FUN = function(x) {
-      SingleFeatureMatrix(
-        fragment = fragments[[x]],
-        features = features,
-        keep_all_features = keep_all_features,
-        cells = cells,
-        sep = sep,
-        verbose = verbose,
-        process_n = process_n
-      )
-    })
+  fragtk.path <- NULL
+  if (is.character(x = fragtk)) {
+    # fragtk is the path to executable
+    fragtk.path <- fragtk
+    fragtk <- TRUE
+  }
+  if (fragtk) {
+    # run fragtk on each fragment file
+    # update cell names in output matrix
+    mat.list <- sapply(
+      X = obj.use,
+      FUN = function(x) {
+        cell.vec <- GetFragmentData(
+          object = fragments[[x]],
+          slot = "cells"
+        )
+        mat <- RunFragtk(
+          fragments = GetFragmentData(
+            object = fragments[[x]],
+            slot = "path"
+          ),
+          features = features,
+          cells = cell.vec,
+          fragtk.path = fragtk.path,
+          verbose = verbose,
+          cleanup = TRUE
+        )
+        colnames(x = mat) <- names(x = cell.vec)
+        mat
+      }
+    )
+  } else {
+    mat.list <- sapply(
+      X = obj.use,
+      FUN = function(x) {
+        SingleFeatureMatrix(
+          fragment = fragments[[x]],
+          features = features,
+          keep_all_features = keep_all_features,
+          cells = cells,
+          sep = sep,
+          verbose = verbose,
+          process_n = process_n
+        )
+      })
+  }
+
   # merge all the matrices
   if (length(x = mat.list) == 1) {
     return(mat.list[[1]])
@@ -290,6 +335,161 @@ FeatureMatrix <- function(
     featmat <- Reduce(f = `+`, x = mat.list)
     return(featmat)
   }
+}
+
+#' Run fragtk matrix
+#' 
+#' Wrapper function to run \code{fragtk matrix} and return the output as a sparse
+#' matrix in R.
+#' 
+#' See \url{https://crates.io/crates/fragtk} for fragtk documentation.
+#' 
+#' @param fragments A list of Fragment objects or fragment file paths
+#' @param features A GRanges object containing a set of genomic intervals to
+#' quantify. These genomic ranges will be passed to the `--bed` argument in
+#' `fragtk matrix`
+#' @param cells List of cells to include
+#' @param group Group genomic ranges according to a grouping variable. If NULL,
+#' no grouping variable is used. If a character string is provided, this should
+#' match a column in the provided GRanges object supplied in the `features`
+#' parameter.
+#' @param pic Use paired insertion counting
+#' @param fragtk.path Path to fragtk executable. If NULL, try to find fragtk
+#' automatically.
+#' @param outdir Path for output directory
+#' @param cleanup Remove output files created by fragtk
+#' @param verbose Display messages
+#' 
+#' @importFrom S4Vectors mcols
+#' @importFrom Matrix readMM
+#' 
+#' @concept quantification
+#' 
+#' @return Returns a CsparseMatrix
+#' @export
+RunFragtk <- function(
+    fragments,
+    features,
+    cells,
+    group = FALSE,
+    pic = TRUE,
+    fragtk.path = NULL,
+    outdir = tempdir(),
+    cleanup = TRUE,
+    verbose = TRUE
+) {
+  # find fragtk
+  fragtk.path <- SetIfNull(
+    x = fragtk.path,
+    y = unname(obj = Sys.which(names = "fragtk"))
+  )
+  if (nchar(x = fragtk.path) == 0) {
+    stop("fragtk not found. Please install fragtk:",
+         "https://crates.io/crates/fragtk")
+  }
+  
+  if (!dir.exists(paths = outdir)) {
+    stop("Requested output directory does not exist")
+  }
+  
+  # temp files
+  bed.path <- tempfile(pattern = "signac_fragtk_bed", tmpdir = outdir)
+  cells.path <- tempfile(pattern = "signac_fragtk_cells", tmpdir = outdir)
+  out.path <- tempfile(pattern = "signac_fragtk_matrix", tmpdir = outdir)
+  
+  additional.args <- ""
+  
+  # write cells and regions files
+  feat <- as.data.frame(features)[, 1:3]
+  if (is.logical(x = group)) {
+    if (group) {
+      # passed group=TRUE, assume group by the 4th bed column
+      if (verbose) {
+        message("Grouping regions by column: ", names(mcols(features))[1])
+      }
+      feat$group <- mcols(features)[[1]]
+      additional.args <- paste0(additional.args, " --group")
+    }
+  } else {
+    if (is.character(x = group)) {
+      # passed column name
+      if (!(group %in% names(mcols(features)))) {
+        stop("Requested grouping column '", group, "' does not exist")
+      } else {
+        if (verbose) {
+          message("Grouping regions by column: ", group)
+        }
+        feat$group <- mcols(features)[[group]]
+        additional.args <- paste0(additional.args, " --group")
+      }
+    }
+  }
+  
+  if (pic) {
+    additional.args <- paste0(additional.args, " --pic")
+  }
+  write.table(
+    x = feat,
+    file = bed.path,
+    sep = "\t",
+    row.names = FALSE,
+    col.names = FALSE,
+    quote = FALSE
+  )
+  writeLines(text = cells, con = cells.path)
+  
+  # call fragtk
+  cmd <- paste0(
+    fragtk.path,
+    " matrix --fragments ",
+    fragments,
+    " --bed ",
+    bed.path,
+    " --cells ",
+    cells.path,
+    " --outdir ",
+    out.path,
+    " ",
+    additional.args
+  )
+  
+  system(
+    command = cmd,
+    wait = TRUE,
+    ignore.stderr = !verbose,
+    ignore.stdout = !verbose
+  )
+  
+  # read results
+  if (verbose) {
+    message("Loading count matrix")
+  }
+  matrix.file <- paste0(out.path, .Platform$file.sep, "matrix.mtx.gz")
+  rownames.file <- paste0(out.path, .Platform$file.sep, "features.tsv.gz")
+  colnames.file <- paste0(out.path, .Platform$file.sep, "barcodes.tsv.gz")
+  
+  counts <- readMM(file = matrix.file)
+  rownames(counts) <- readLines(rownames.file)
+  colnames(counts) <- readLines(colnames.file)
+  counts <- as(object = counts, Class = "CsparseMatrix")
+  
+  # remove temp files
+  if (cleanup) {
+    files.to.remove <- c(
+      cells.path,
+      bed.path,
+      matrix.file,
+      rownames.file,
+      colnames.file
+    )
+    for (i in files.to.remove) {
+      if (file.exists(i)) {
+        file.remove(i)
+      }
+    }
+    unlink(x = out.path, recursive = TRUE)
+  }
+  return(counts)
 }
 
 #### Not Exported ####

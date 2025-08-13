@@ -75,6 +75,7 @@ test_that("FeatureMatrix works", {
   fm <- FeatureMatrix(
     fragments = fragments,
     features = granges(atac_small),
+    fragtk = FALSE,
     verbose = FALSE
   )
   expect_identical(object = fm, expected = computed_fmat)
@@ -84,6 +85,7 @@ test_that("FeatureMatrix works", {
     fragments = fragments,
     features = granges(atac_small),
     sep = c(":", "-"),
+    fragtk = FALSE,
     verbose = FALSE
   )
   rownames(computed_fmat) <- GRangesToString(StringToGRanges(rownames(computed_fmat)), sep = c(":", "-"))
