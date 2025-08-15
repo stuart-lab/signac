@@ -829,7 +829,13 @@ GetCellsInRegion <- function(tabix, region, cells = NULL) {
     region <- StringToGRanges(regions = region)
   }
   reads <- scanTabix(file = tabix, param = region)
-  reads <- lapply(X = reads, FUN = ExtractCell)
+  s <- reads[[which(x = lengths(x = reads) > 0)[1]]]
+  if (length(x = s) > 0) {
+    ncol_frags <- lengths(x = gregexpr(pattern = "\t", text = s[1]))[[1]] + 1
+  } else {
+    ncol_frags <- 5
+  }
+  reads <- lapply(X = reads, FUN = ExtractCell, ncol = ncol_frags)
   if (!is.null(x = cells)) {
     reads <- sapply(X = reads, FUN = function(x) {
       x <- x[fmatch(x = x, table = cells, nomatch = 0L) > 0L]
@@ -1384,16 +1390,17 @@ ChunkGRanges <- function(granges, nchunk) {
 # vectors (output of \code{\link{scanTabix}})
 #
 # @param x List of character vectors
+# @param ncol Number of columns in the fragment file
 # @return Returns a string
 #' @importFrom stringi stri_split_fixed
-ExtractCell <- function(x) {
+ExtractCell <- function(x, ncol=5) {
   if (length(x = x) == 0) {
     return(NULL)
   } else {
     x <- stri_split_fixed(str = x, pattern = "\t")
     n <- length(x = x)
     x <- unlist(x = x)
-    return(unlist(x = x)[5 * (1:n) - 1])
+    return(unlist(x = x)[ncol * (1:n) - (ncol-4)])
   }
 }
 
