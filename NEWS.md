@@ -4,6 +4,10 @@ New features:
 
 * Added `group.order` parameter to `RegionPlot()` and `RegionHeatmap()` functions to control order of plotted groups ([#1745](https://github.com/stuart-lab/signac/issues/1745))
 
+Bug fixes:
+
+* Fix object subsetting when `RegionMatrix()` position enrichment information is present in the object.
+
 Other changes:
 
 * Enable using a 6-column fragment file ([#1945](https://github.com/stuart-lab/signac/issues/1945))
