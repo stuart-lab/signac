@@ -2,14 +2,26 @@
 % Please edit documentation in R/generics.R, R/preprocessing.R
 \name{ATACqc}
 \alias{ATACqc}
+\alias{ATACqc.default}
 \alias{ATACqc.ChromatinAssay}
 \alias{ATACqc.Seurat}
 \title{Compute scATAC-seq QC metrics}
 \usage{
 ATACqc(object, ...)
 
+\method{ATACqc}{default}(
+  object,
+  annotations,
+  fragtk.path = NULL,
+  outdir = tempdir(),
+  cleanup = TRUE,
+  verbose = TRUE,
+  ...
+)
+
 \method{ATACqc}{ChromatinAssay}(
   object,
+  annotations = NULL,
   fragtk.path = NULL,
   outdir = tempdir(),
   cleanup = TRUE,
@@ -19,6 +31,7 @@ ATACqc(object, ...)
 \method{ATACqc}{Seurat}(
   object,
   assay = NULL,
+  annotations = NULL,
   fragtk.path = NULL,
   outdir = tempdir(),
   cleanup = TRUE,
@@ -26,9 +39,14 @@ ATACqc(object, ...)
 )
 }
 \arguments{
-\item{object}{A Seurat object or}
+\item{object}{A Seurat object, ChromatinAssay object, or path to a fragment
+file.}
 
 \item{...}{Arguments passed to other methods}
+
+\item{annotations}{\code{\link[GenomicRanges]{GRanges}} object containing
+gene annotations. If NULL, attempt to extract this from the ChromatinAssay
+object if provided.}
 
 \item{fragtk.path}{Path to fragtk executable. If NULL, try to find fragtk
 automatically.}

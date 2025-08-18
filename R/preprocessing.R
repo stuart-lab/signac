@@ -6,15 +6,14 @@ NULL
 #' @export
 #' @concept qc
 #' @rdname ATACqc
-#' @method ATACqc ChromatinAssay
-ATACqc.ChromatinAssay <- function(
+ATACqc.default <- function(
     object,
+    annotations,
     fragtk.path = NULL,
     outdir = tempdir(),
     cleanup = TRUE,
     verbose = TRUE
 ) {
-
   # find fragtk
   fragtk.path <- SetIfNull(
     x = fragtk.path,
@@ -24,13 +23,14 @@ ATACqc.ChromatinAssay <- function(
     stop("fragtk not found. Please install fragtk:",
          "https://crates.io/crates/fragtk")
   }
-  
   if (!dir.exists(paths = outdir)) {
     stop("Requested output directory does not exist")
   }
   
-  # get tss positions
-  tss <- GetTSSPositions(ranges = Annotation(object = object))
+  object <- normalizePath(path = object, mustWork = TRUE)
+  
+  # get tss positions from annotations
+  tss <- GetTSSPositions(ranges = annotations)
   
   # temp files
   tss.path <- tempfile(pattern = "signac_fragtk_tss", tmpdir = outdir)
@@ -46,49 +46,27 @@ ATACqc.ChromatinAssay <- function(
     quote = FALSE
   )
   
-  # fragments
-  frags <- Fragments(object = object)
+  # call fragtk qc
+  cmd <- paste0(
+    fragtk.path,
+    " qc --fragments ",
+    object,
+    " --bed ",
+    tss.path,
+    " --outfile ",
+    out.path
+  )
   
-  results <- data.frame()
+  system(
+    command = cmd,
+    wait = TRUE,
+    ignore.stderr = !verbose,
+    ignore.stdout = !verbose
+  )
   
-  for (i in seq_along(along.with = frags)) {
-    fragments <- frags[[i]]@path
-    if (verbose) {
-      message("Processing ", fragments)
-    }
-    # call fragtk qc
-    cmd <- paste0(
-      fragtk.path,
-      " qc --fragments ",
-      fragments,
-      " --bed ",
-      tss.path,
-      " --outfile ",
-      out.path
-    )
-    
-    system(
-      command = cmd,
-      wait = TRUE,
-      ignore.stderr = !verbose,
-      ignore.stdout = !verbose
-    )
-    
-    # load results
-    md <- read.table(file = out.path, header = TRUE, row.names = 1, sep = "\t")
-    
-    # convert cell names
-    cellconvert <- frags[[i]]@cells
-    cc <- names(x = cellconvert)
-    names(x = cc) <- cellconvert
-    
-    md <- md[cellconvert, ]
-    rownames(x = md) <- cc[rownames(x = md)]
-    
-    # concat across fragment files
-    results <- rbind(results, md)
-  }
-  
+  # load results
+  md <- read.table(file = out.path, header = TRUE, row.names = 1, sep = "\t")
+
   # remove temp files
   if (cleanup) {
     files.to.remove <- c(tss.path, out.path)
@@ -99,6 +77,54 @@ ATACqc.ChromatinAssay <- function(
     }
   }
   
+  return(md)
+}
+
+#' @export
+#' @concept qc
+#' @rdname ATACqc
+#' @method ATACqc ChromatinAssay
+#' @importFrom utils write.table
+ATACqc.ChromatinAssay <- function(
+    object,
+    annotations = NULL,
+    fragtk.path = NULL,
+    outdir = tempdir(),
+    cleanup = TRUE,
+    verbose = TRUE,
+    ...
+) {
+  
+  annotations <- SetIfNull(x = annotations, y = Annotation(object = object))
+  frags <- Fragments(object = object)
+  
+  results <- data.frame()
+  
+  for (i in seq_along(along.with = frags)) {
+    fragments <- GetFragmentData(object = frags[[i]], slot = "path")
+    if (verbose) {
+      message("Processing ", fragments)
+    }
+    
+    md <- ATACqc(
+      object = fragments,
+      fragtk.path = fragtk.path,
+      annotations = annotations,
+      outdir = outdir,
+      cleanup = cleanup,
+      verbose = verbose
+    )
+    
+    # convert cell names
+    cellconvert <- GetFragmentData(object = frags[[i]], slot = "cells")
+    cc <- names(x = cellconvert)
+    names(x = cc) <- cellconvert
+    md <- md[cellconvert, ]
+    rownames(x = md) <- cc[rownames(x = md)]
+    
+    # concat across fragment files
+    results <- rbind(results, md)
+  }
   return(results)
 }
 
@@ -111,6 +137,7 @@ ATACqc.ChromatinAssay <- function(
 ATACqc.Seurat <- function(
   object,
   assay = NULL,
+  annotations = NULL,
   fragtk.path = NULL,
   outdir = tempdir(),
   cleanup = TRUE,
@@ -123,6 +150,7 @@ ATACqc.Seurat <- function(
   md <- ATACqc(
     object = object[[assay]],
     fragtk.path = fragtk.path,
+    annotations = annotations,
     outdir = outdir,
     cleanup = cleanup,
     verbose = verbose
