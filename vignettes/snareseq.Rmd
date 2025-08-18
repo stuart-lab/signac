@@ -222,7 +222,7 @@ CoveragePlot(snare, region = "chr2-22620000-22660000", features = "Gad2")
 ```
 
 ```{r include=FALSE}
-saveRDS(object = snare, file = "snare.rds")
+qs2::qs_save(object = snare, file = "snare.qs2", nthreads = 4)
 ```
 
 <details>

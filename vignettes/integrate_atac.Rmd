@@ -53,10 +53,10 @@ library(Seurat)
 library(ggplot2)
 
 # load the pre-processed multiome data
-pbmc.multi <- readRDS("pbmc_multiome/pbmc_multiomic.rds")
+pbmc.multi <- qs2::qs_read("multiomic/pbmc_multiomic.qs2")
 
 # load the pre-processed atac data
-pbmc.atac <- readRDS("pbmc_vignette/pbmc.rds")
+pbmc.atac <- qs2::qs_read("pbmc_vignette/pbmc.qs2")
 ```
 
 An important first step in any integrative analysis of single-cell chromatin data
@@ -287,7 +287,7 @@ FeaturePlot(
 ```
 
 ```{r include=FALSE}
-saveRDS(object = pbmc.atac, file = "pbmc_atac_integration.rds")
+qs2::qs_save(object = pbmc.atac, file = "pbmc_atac_integration.qs2", nthreads = 4)
 ```
 
 <details>

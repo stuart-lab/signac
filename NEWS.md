@@ -8,8 +8,13 @@ New features:
 
 * Added `group.order` parameter to `RegionPlot()` and `RegionHeatmap()` functions to control order of plotted groups ([#1745](https://github.com/stuart-lab/signac/issues/1745))
 
+Bug fixes:
+
+* Fix object subsetting when `RegionMatrix()` position enrichment information is present in the object.
+
 Other changes:
 
+* Enable using a 6-column fragment file ([#1945](https://github.com/stuart-lab/signac/issues/1945))
 * Improve error messages for `FindMotifs()` ([#1788](https://github.com/stuart-lab/signac/issues/1788))
 * Add documentation about the required format for gene annotations, and ensure this format is present when creating the assay ([#1797](https://github.com/stuart-lab/signac/pull/1797); [@lldelisle](https://github.com/lldelisle))
 * Fix error in `RegionPlot()` x-axis ([@cmf1997](https://github.com/cmf1997); [#1899](https://github.com/stuart-lab/signac/pull/1899))

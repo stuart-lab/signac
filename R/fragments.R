@@ -24,6 +24,8 @@ head.Fragment <- function(x, n = 6L, ...) {
   df <- read.table(file = fpath, nrows = n, ...)
   if (ncol(x = df) == 5) {
     colnames(x = df) <- c("chrom", "start", "end", "barcode", "readCount")
+  } else if(ncol(x = df) == 6) {
+    colnames(x = df) <- c("chrom", "start", "end", "barcode", "readCount", "strand")
   }
   return(df)
 }
@@ -329,7 +331,9 @@ CreateFragmentObject <- function(
     if (grepl(pattern = '^#', x = i)) {
       next
     } else {
-      if (length(x = strsplit(x = i, split = "\t")[[1]]) != 5) {
+      ncol_frag <- length(x = strsplit(x = i, split = "\t")[[1]])
+      if (!(ncol_frag == 5 | ncol_frag == 6)) {
+        # cellranger-atac v2.2 introduces strand column in fragment file
         stop("Incorrect number of columns found in fragment file")
       } else {
         break

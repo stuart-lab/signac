@@ -7,7 +7,7 @@ output: html_document
 
 ```{r init, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data/bmmc")
+knitr::opts_knit$set(root.dir = "../vignette_data/GSE129785")
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -21,7 +21,7 @@ For this vignette we'll use the dataset introduced and pre-processed in the
 [trajectory building vignette](monocle.html).
 
 ```{r}
-bone <- readRDS("cd34.rds")
+bone <- qs2::qs_read("cd34.qs2")
 DimPlot(bone, label = TRUE)
 ```
 
