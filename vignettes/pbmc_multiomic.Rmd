@@ -6,7 +6,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data/pbmc_multiome")
+knitr::opts_knit$set(root.dir = "../vignette_data/multiomic")
 options(future.globals.maxSize = 20 * 1024 ^ 3)
 ```
 
@@ -235,7 +235,7 @@ transfer_anchors <- FindTransferAnchors(
 )
 
 predictions <- TransferData(
-  anchorset = transfer_anchors, 
+  anchorset = transfer_anchors,
   refdata = reference$celltype.l2,
   weight.reduction = pbmc[['pca']],
   dims = 1:50
@@ -340,7 +340,7 @@ patchwork::wrap_plots(p1, p2, ncol = 1)
 ```
 
 ```{r include=FALSE}
-saveRDS(object = pbmc, file = "pbmc_multiomic.rds")
+qs2::qs_save(object = pbmc, file = "pbmc_multiomic.qs2", nthreads = 4)
 ```
 
 

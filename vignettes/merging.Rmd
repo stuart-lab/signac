@@ -324,7 +324,7 @@ CoveragePlot(
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-saveRDS(object = combined, file = "pbmc_combined.rds")
+qs2::qs_save(object = combined, file = "pbmc_combined.qs2", nthreads = 4)
 ```
 
 ## Merging without a common feature set

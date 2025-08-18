@@ -20,7 +20,7 @@ library(Signac)
 library(ggplot2)
 
 # load PBMC dataset
-pbmc <- readRDS("pbmc.rds")
+pbmc <- qs2::qs_read("pbmc.qs2")
 ```
 
 There are several different genome browser style plot types available in Signac,
