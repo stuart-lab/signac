@@ -40,9 +40,13 @@ AggregateTiles <- function(object, ...) {
 #' Wrapper function to run \code{fragtk qc} and add the metadata to the Seurat
 #' object.
 #' 
-#' @param object A Seurat object or
+#' @param object A Seurat object, ChromatinAssay object, or path to a fragment
+#' file.
 #' @param fragtk.path Path to fragtk executable. If NULL, try to find fragtk
 #' automatically.
+#' @param annotations \code{\link[GenomicRanges]{GRanges}} object containing
+#' gene annotations. If NULL, attempt to extract this from the ChromatinAssay
+#' object if provided.
 #' @param outdir Path for output directory
 #' @param cleanup Remove output files created by fragtk
 #' @param verbose Display messages
