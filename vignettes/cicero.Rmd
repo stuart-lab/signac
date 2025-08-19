@@ -31,7 +31,7 @@ Signac.
 
 ```{r init, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data/bmmc")
+knitr::opts_knit$set(root.dir = "../vignette_data/GSE129785")
 ```
 
 ```{r include=FALSE}
@@ -62,7 +62,7 @@ library(patchwork)
 
 ```{r}
 # load the object created in the Monocle 3 vignette
-bone <- readRDS("cd34.rds")
+bone <- qs2::qs_read("cd34.qs2")
 ```
 
 ## Create the Cicero object
@@ -157,7 +157,7 @@ CoveragePlot(bone, region = "chr1-40189344-40252549")
 ```
 
 ```{r include=FALSE}
-saveRDS(object = bone, file = "cd34.rds")
+qs2::qs_save(object = bone, file = "cd34.qs2", nthreads = 4)
 ```
 
 ## Acknowledgements

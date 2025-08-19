@@ -26,7 +26,7 @@ pre-computed Seurat object:
 library(Signac)
 library(Seurat)
 
-pbmc <- readRDS("pbmc.rds")
+pbmc <- qs2::qs_read("pbmc.qs2")
 DimPlot(pbmc)
 ```
 
@@ -38,7 +38,8 @@ all the cells. To call peaks on each annotated cell type, we can use the
 ```{r message=FALSE, warning=FALSE, cache=TRUE}
 peaks <- CallPeaks(
   object = pbmc,
-  group.by = "predicted.id"
+  group.by = "predicted.id",
+  macs2.path = "/Users/tim/mambaforge/bin/macs3"
 )
 ```
 

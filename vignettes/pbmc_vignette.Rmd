@@ -23,6 +23,11 @@ local({
 })
 ```
 
+```{r include=FALSE}
+if (!requireNamespace(package = 'qs2', quietly = TRUE))
+  install.packages('qs2')
+```
+
 For this tutorial, we will be analyzing a single-cell ATAC-seq dataset of human
 peripheral blood mononuclear cells (PBMCs) provided by 10x Genomics. The
 following files are used in this vignette, all available through the 10x
@@ -845,7 +850,7 @@ pbmc$blacklist_fraction <- FractionCountsInRegion(
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-saveRDS(object = pbmc, file = "pbmc.rds")
+qs2::qs_save(object = pbmc, file = "pbmc.qs2")
 ```
 
 </details>

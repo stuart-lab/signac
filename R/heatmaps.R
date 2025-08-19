@@ -112,6 +112,7 @@ RegionMatrix.ChromatinAssay <- function(
   if (key %in% names(GetAssayData(object, layer = "positionEnrichment"))) {
     warning("Requested name is already present, overwriting existing data")
   }
+  # TODO use the SetAssayData function here
   object@positionEnrichment[[key]] <- matlist
   return(object)
 }

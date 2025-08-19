@@ -1184,7 +1184,24 @@ subset.ChromatinAssay <- function(
   cells <- SetIfNull(x = cells, y = colnames(x = x))
   posmat <- GetAssayData(object = x, layer = "positionEnrichment")
   for (i in seq_along(along.with = posmat)) {
-    posmat[[i]] <- posmat[[i]][cells, ]
+    # TODO need to make the formatting for positionEnrichment slot better defined
+    # currently the RegionMatrix and Footprint functions write differently
+    # formatted information
+    # regionmatrix is group x position
+    # footprint is cell x position
+    if (inherits(x = posmat[[i]], what = 'list')) {
+      # from RegionMatrix
+      # group x position matrix
+      # do not subset as we don't have per-cell information here
+      next
+    } else {
+      # from Footprint
+      # cell x position matrix
+      # with expected and motif position rows
+      added_rows <- c("expected", "motif")
+      added_rows <- added_rows[added_rows %in% rownames(x = posmat[[i]])]
+      posmat[[i]] <- posmat[[i]][c(cells, added_rows), ]
+    }
   }
 
   # subset cells in Fragments objects
@@ -1201,9 +1218,11 @@ subset.ChromatinAssay <- function(
     annotation = Annotation(object = x),
     motifs = motifs,
     fragments = frags,
-    bias = GetAssayData(object = x, layer = "bias"),
-    positionEnrichment = posmat
+    bias = GetAssayData(object = x, layer = "bias")
   )
+  # TODO fix how the RegionMatrix and Footprint functions use positionEnrichment
+  # then can use the positionEnrichment parameter in as.ChromatinAssay
+  chromassay@positionEnrichment <- posmat
   return(chromassay)
 }
 

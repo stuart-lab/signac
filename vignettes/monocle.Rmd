@@ -33,7 +33,7 @@ Signac.
 
 ```{r init, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data/bmmc")
+knitr::opts_knit$set(root.dir = "../vignette_data/GSE129785")
 ```
 
 ```{r include=FALSE}
@@ -49,6 +49,7 @@ if (!requireNamespace("leidenbase", quietly = TRUE))
     remotes::install_github("cole-trapnell-lab/leidenbase")
 
 if (!requireNamespace("monocle3", quietly = TRUE))
+    install.packages("BPCells", repos = c("https://bnprks.r-universe.dev", "https://cloud.r-project.org"))
     remotes::install_github("cole-trapnell-lab/monocle3")
 
 if (!requireNamespace("EnsDb.Hsapiens.v75", quietly = TRUE))
@@ -243,7 +244,7 @@ reproducibility. This file can be downloaded [here](https://www.dropbox.com/s/w5
 
 ```{r}
 # load the pre-selected HSCs
-hsc <- readLines("hsc_cells.txt")
+hsc <- readLines("../hsc_cells.txt")
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -286,7 +287,7 @@ FeaturePlot(bone, c("Erythroid", "Lymphoid"), pt.size = 0.1) & scale_color_virid
 ```
 
 ```{r include=FALSE}
-saveRDS(object = bone, file = "cd34.rds")
+qs2::qs_save(object = bone, file = "cd34.qs2", nthreads = 4)
 ```
 
 ## Acknowledgements
