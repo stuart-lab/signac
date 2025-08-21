@@ -3,6 +3,11 @@
 New features:
 
 * Added `RunFragtk()` function to run `fragtk matrix` command within R
+* Added `fragtk` parameter to `GeneActivity()`
+* Added `fragtk` parameter to `FeatureMatrix()`
+* Added `PearsonResidualVar()` function to compute Pearson residual variances
+* Added `SparsePCA()` function to compute PCA dimension reduction without storing standardized matrix
+* Added `ATACqc()` function to run `fragtk qc`
 
 # Signac 1.15.0
 
