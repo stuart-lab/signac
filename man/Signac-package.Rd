@@ -20,11 +20,11 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Tim Stuart \email{stuartt@gis.a-star.edu.sg} (\href{https://orcid.org/0000-0002-3044-0897}{ORCID})
+\strong{Maintainer}: Tim Stuart \email{stuartt@a-star.edu.sg} (\href{https://orcid.org/0000-0002-3044-0897}{ORCID})
 
 Authors:
 \itemize{
-  \item Avi Srivastava \email{asrivastava@nygenome.org} (\href{https://orcid.org/0000-0001-9798-2079}{ORCID})
+  \item Avi Srivastava \email{asrivastava@wistar.org} (\href{https://orcid.org/0000-0001-9798-2079}{ORCID})
 }
 
 Other contributors:
