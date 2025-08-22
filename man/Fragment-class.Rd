@@ -12,15 +12,22 @@ fragment files.
 \section{Slots}{
 
 \describe{
-\item{\code{path}}{Path to the fragment file on disk.
+\item{\code{file.path}}{Path to the fragment file on disk.
 See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}}
+
+\item{\code{file.index}}{Path to the fragment file index on disk.}
 
 \item{\code{hash}}{A vector of two md5sums: first element is the md5sum of the
 fragment file, the second element is the md5sum of the index.}
 
 \item{\code{cells}}{A named vector of cells where each element is the cell barcode
 as it appears in the fragment file, and the name of each element is the
-corresponding cell barcode as stored in the ChromatinAssay object.}
+corresponding cell barcode as stored in the ChromatinAssay5 object.}
+
+\item{\code{seqnames}}{A named vector of sequence names (eg, chromosome name) where
+each element is the sequence name as it appears in the fragment file, and the
+name of each element is the corresponding sequence name as stored in the 
+ChromatinAssay5 object.}
 }}
 
 \concept{fragments}

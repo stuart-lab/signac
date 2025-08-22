@@ -2,7 +2,7 @@
 % Please edit documentation in R/objects.R
 \name{CreateChromatinAssay}
 \alias{CreateChromatinAssay}
-\title{Create ChromatinAssay object}
+\title{Create ChromatinAssay5 object}
 \usage{
 CreateChromatinAssay(
   counts,
@@ -89,7 +89,7 @@ fragment file.}
 \item{...}{Additional arguments passed to \code{\link{CreateFragmentObject}}}
 }
 \description{
-Create a \code{\link{ChromatinAssay}} object from a count matrix or
+Create a \code{\link{ChromatinAssay5}} object from a count matrix or
 normalized data matrix. The expected format of the input matrix is features x
 cells. A set of genomic ranges must be supplied along with the matrix, with
 the length of the ranges equal to the number of rows in the matrix. If a set
