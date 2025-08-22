@@ -9,6 +9,10 @@ New features:
 * Added `SparsePCA()` function to compute PCA dimension reduction without storing standardized matrix
 * Added `ATACqc()` function to run `fragtk qc`
 
+Bug fixes:
+
+* Check that `macs2` exists at the `macs2.path` in `CallPeaks()` ([#1678](https://github.com/stuart-lab/signac/issues/1678))
+
 # Signac 1.15.0
 
 New features:

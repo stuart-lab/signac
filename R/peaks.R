@@ -83,7 +83,8 @@ CallPeaks.Seurat <- function(
       x = macs2.path,
       y = unname(obj = Sys.which(names = "macs2"))
     )
-    if (nchar(x = macs2.path) == 0) {
+    macs.exists <- file.exists(macs2.path)
+    if (nchar(x = macs2.path) == 0 | !macs.exists) {
       stop("MACS2 not found. Please install MACS:",
            "https://macs3-project.github.io/MACS/")
     }
