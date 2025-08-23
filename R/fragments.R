@@ -425,17 +425,22 @@ SeuratObject::Cells
 #' object. An MD5 hash will be computed using the new path and compared to the
 #' hash stored in the Fragment object to verify that the files are the same.
 #'
-#' @param object A \code{\link{Fragment}} object
-#' @param new.path Path to the fragment file
-#' @param verbose Display messages
+#' @param object A \code{\link{Fragment}} object.
+#' @param new.path Path to the fragment file.
+#' @param new.index.path Path to the fragment file index. If NULL, the index is
+#' assumed to be in the same directory as the fragment file.
+#' @param verbose Display messages.
 #'
 #' @concept fragments
 #' @export
-UpdatePath <- function(object, new.path, verbose = TRUE) {
+UpdatePath <- function(object, new.path, new.index.path = NULL, verbose = TRUE) {
   new.is.remote <- isRemote(x = new.path)
   if (!new.is.remote) {
     new.path <- normalizePath(path = new.path, mustWork = TRUE)
-    index.file <- GetIndexFile(fragment = new.path, verbose = verbose)
+    index.file <- SetIfNull(
+      x = new.index.path,
+      y = GetIndexFile(fragment = new.path, verbose = verbose)
+    )
     if (!file.exists(new.path)) {
       stop("Fragment file not found")
     } else if (!file.exists(index.file)) {
