@@ -135,7 +135,7 @@ GRangesAssay <- setClass(
   contains = "ChromatinAssay5",
   slots = list(
     "ranges" = "GRanges",
-    "motifs" = "Motif",
+    "motifs" = "ANY",
     "links" = "GRanges"
   )
 )
