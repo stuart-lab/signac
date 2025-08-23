@@ -107,7 +107,6 @@ ChromatinAssay5 <- setClass(
   contains = "Assay5",
   slots = list(
     "fragments" = "list",
-    "seqinfo" = "ANY",
     "annotation" = "ANY",
     "bias" = "ANY",
     "positionEnrichment" = "list"
