@@ -6,16 +6,17 @@
 #' @useDynLib Signac
 NULL
 
-
-#' Create ChromatinAssay5 object
-#'
-#' Create a \code{\link{ChromatinAssay5}} object from a count matrix or
+#' Create GRangesAssay object
+#' 
+#' Create a \code{\link{GRangesAssay}} object from a count matrix or
 #' normalized data matrix. The expected format of the input matrix is features x
-#' cells. A set of genomic ranges must be supplied along with the matrix, with
+#' cells.
+#' 
+#' A set of genomic ranges must be supplied along with the matrix, with
 #' the length of the ranges equal to the number of rows in the matrix. If a set
 #' of genomic ranges are not supplied, they will be extracted from the
 #' row names of the matrix.
-#'
+#' 
 #' @param counts Unnormalized data (raw counts)
 #' @param data Normalized data; if provided, do not pass counts
 #' @param min.cells Include features detected in at least this many cells.
@@ -40,9 +41,6 @@ NULL
 #' created using the \code{\link{CreateFragmentObject}} and
 #' \code{\link{Fragments}} functions. Alternatively, a list of
 #' \code{\link{Fragment}} objects can be provided.
-#' @param genome A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
-#' information about the genome used. Alternatively, the name of a UCSC genome
-#' can be provided and the sequence information will be downloaded from UCSC.
 #' @param annotation A set of \code{\link[GenomicRanges]{GRanges}} containing
 #' annotations for the genome used. It must have the following columns:
 #' \itemize{
@@ -52,6 +50,7 @@ NULL
 #'   \item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
 #'   \item{type: Annotation type (e.g. "exon", "gap")}
 #' }
+#' @param links Genomic links
 #' @param bias A Tn5 integration bias matrix
 #' @param positionEnrichment A named list of matrices containing positional
 #' signal enrichment information for each cell. Should be a cell x position
@@ -65,30 +64,31 @@ NULL
 #' @param verbose Display messages
 #' @param ... Additional arguments passed to \code{\link{CreateFragmentObject}}
 #'
-#' @importFrom SeuratObject CreateAssayObject
+#' @importFrom SeuratObject CreateAssay5Object
 #' @importFrom Matrix rowSums colSums
 #' @importFrom GenomicRanges isDisjoint
 #' @importFrom S4Vectors mcols
 #' @concept assay
+#' @seealso \code{\link{CreateChromatinAssay5}}
 #'
 #' @export
-CreateChromatinAssay <- function(
-  counts,
-  data,
-  min.cells = 0,
-  min.features = 0,
-  max.cells = NULL,
-  ranges = NULL,
-  motifs = NULL,
-  fragments = NULL,
-  genome = NULL,
-  annotation = NULL,
-  bias = NULL,
-  positionEnrichment = NULL,
-  sep = c("-", "-"),
-  validate.fragments = TRUE,
-  verbose = TRUE,
-  ...
+CreateGRangesAssay <- function(
+    counts,
+    data,
+    min.cells = 0,
+    min.features = 0,
+    max.cells = NULL,
+    ranges = NULL,
+    motifs = NULL,
+    fragments = NULL,
+    annotation = NULL,
+    links = NULL,
+    bias = NULL,
+    positionEnrichment = NULL,
+    sep = c("-", "-"),
+    validate.fragments = TRUE,
+    verbose = TRUE,
+    ...
 ) {
   if (missing(x = counts) && missing(x = data)) {
     stop("Must provide either 'counts' or 'data'")
@@ -110,6 +110,140 @@ CreateChromatinAssay <- function(
   if (!isDisjoint(x = ranges)) {
     warning("Overlapping ranges supplied. Ranges should be non-overlapping.")
   }
+  chrom.assay <- CreateChromatinAssay5(
+    counts = counts,
+    data = data,
+    min.cells = min.cells,
+    min.features = min.features,
+    max.cells = max.cells,
+    fragments = fragments,
+    annotation = annotation,
+    bias = bias,
+    positionEnrichment = positionEnrichment,
+    validate.fragments = validate.fragments,
+    verbose = verbose
+  )
+  
+  features.keep <- rownames(x = data.use) %in% rownames(x = chrom.assay)
+  # subset ranges if there are features removed
+  ranges <- ranges[features.keep, ]
+  
+  # TODO move this to the conversion method
+  # re-assign row names of matrix so that it's a known granges transformation
+  new.rownames <- GRangesToString(grange = ranges, sep = c("-", "-"))
+  rownames(x = data.use) <- new.rownames
+  
+  if (!is.null(x = motifs)) {
+    # pre-computed motif object, make sure features are formatted the same
+    # as peak matrix and subset features
+    if (!inherits(x = motifs, what = "Motif")) {
+      stop("Provided motif object is not a Motif-class object")
+    }
+    if (!(all(rownames(x = motifs) == rownames(x = chrom.assay)))) {
+      # rownames don't match
+      motif.mat <- GetMotifData(object = motifs)
+      motif.granges <- StringToGRanges(
+        regions = rownames(x = motifs), sep = sep
+      )
+      rownames(x = motif.mat) <- GRangesToString(grange = motif.granges)
+      # subset
+      if (!all(rownames(x = chrom.assay) %in% rownames(x = motif.mat))) {
+        warning("Some peak regions missing from supplied motif object. ",
+                "Motif information will not be added")
+        motifs <- NULL
+      }
+      motif.mat <- motif.mat[rownames(x = chrom.assay), ]
+      motifs <- SetMotifData(
+        object = motifs, slot = "data", new.data = motif.mat
+      )
+    }
+  }
+  granges.assay <- as.GRangesAssay(
+    x = chrom.assay,
+    ranges = ranges,
+    motifs = motifs,
+    links = links
+  )
+  return(granges.assay )
+}
+
+#' Create ChromatinAssay5 object
+#'
+#' Create a \code{\link{ChromatinAssay5}} object from a count matrix or
+#' normalized data matrix. The expected format of the input matrix is features x
+#' cells.
+#'
+#' @param counts Unnormalized data (raw counts)
+#' @param data Normalized data; if provided, do not pass counts
+#' @param min.cells Include features detected in at least this many cells.
+#' Will subset the counts matrix as well.
+#' To reintroduce excluded features, create a new object with a lower cutoff.
+#' @param max.cells Include features detected in less than this many cells.
+#' Will subset the counts matrix as well.
+#' To reintroduce excluded features, create a new object with a higher cutoff.
+#' This can be useful for chromatin assays where certain artefactual loci
+#' accumulate reads in all cells. A percentage cutoff can also be set using
+#' 'q' followed by the percentage of cells, for example 'q90' will discard
+#' features detected in 90 percent of cells.
+#' If NULL (default), do not apply any maximum value.
+#' @param min.features Include cells where at least this many features are
+#' detected.
+#' @param fragments Path to a tabix-indexed fragments file for the data
+#' contained in the input matrix. If multiple fragment files are required,
+#' you can add additional \code{\link{Fragment}} object to the assay after it is
+#' created using the \code{\link{CreateFragmentObject}} and
+#' \code{\link{Fragments}} functions. Alternatively, a list of
+#' \code{\link{Fragment}} objects can be provided.
+#' @param annotation A set of \code{\link[GenomicRanges]{GRanges}} containing
+#' annotations for the genome used. It must have the following columns:
+#' \itemize{
+#'   \item{tx_id or transcript_id: Transcript ID}
+#'   \item{gene_name: Gene name}
+#'   \item{gene_id: Gene ID}
+#'   \item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
+#'   \item{type: Annotation type (e.g. "exon", "gap")}
+#' }
+#' @param bias A Tn5 integration bias matrix
+#' @param positionEnrichment A named list of matrices containing positional
+#' signal enrichment information for each cell. Should be a cell x position
+#' matrix, centered on an element of interest (for example, TSS sites).
+#' @param validate.fragments Check that cells in the assay are present in the
+#' fragment file.
+#' @param verbose Display messages
+#' @param ... Additional arguments passed to \code{\link{CreateFragmentObject}}
+#'
+#' @importFrom SeuratObject CreateAssayObject
+#' @importFrom Matrix rowSums colSums
+#' @importFrom S4Vectors mcols
+#' @concept assay
+#'
+#' @export
+CreateChromatinAssay5 <- function(
+  counts,
+  data,
+  min.cells = 0,
+  min.features = 0,
+  max.cells = NULL,
+  fragments = NULL,
+  annotation = NULL,
+  bias = NULL,
+  positionEnrichment = NULL,
+  validate.fragments = TRUE,
+  verbose = TRUE,
+  ...
+) {
+  if (missing(x = counts) && missing(x = data)) {
+    stop("Must provide either 'counts' or 'data'")
+  } else if (!missing(x = counts) && !missing(x = data)) {
+    stop("Either 'counts' or 'data' must be missing; both cannot be provided")
+  } else if (!missing(x = counts)) {
+    data.use <- counts
+    data <- NULL
+  } else {
+    data.use <- data
+    counts <- NULL
+  }
+
   if (!is.null(x = annotation) & !inherits(x = annotation, what = "GRanges")) {
     stop("Annotation must be a GRanges object.")
   }
@@ -146,19 +280,15 @@ CreateChromatinAssay <- function(
     stop("No features retained due to minimum cell cutoff supplied")
   }
   data.use <- data.use[features.keep, ]
-  ranges <- ranges[features.keep, ]
-  # re-assign row names of matrix so that it's a known granges transformation
-  new.rownames <- GRangesToString(grange = ranges, sep = c("-", "-"))
-  rownames(x = data.use) <- new.rownames
   if (!missing(x = counts)) {
-    seurat.assay <- CreateAssayObject(
+    seurat.assay <- CreateAssay5Object(
       counts = data.use,
       data = data,
       min.cells = -1,
       min.features = -1 # min cell/feature filtering already done
     )
   } else {
-    seurat.assay <- CreateAssayObject(
+    seurat.assay <- CreateAssay5Object(
       counts = counts,
       data = data.use,
       min.cells = min.cells,
@@ -171,7 +301,7 @@ CreateChromatinAssay <- function(
     # so don't validate cells here, we can assume that was done in
     # individual object creation
     obj.class <- sapply(
-      X = fragments, FUN = function(x) inherits(x = x, what = "Fragment")
+      X = fragments, FUN = function(x) inherits(x = x, what = "Fragment2")
     )
     if (!all(obj.class)) {
       stop("All objects in fragments list must be Fragment-class objects")
@@ -187,7 +317,7 @@ CreateChromatinAssay <- function(
       FUN = subset,
       cells = colnames(x = seurat.assay)
     )
-   } else if (inherits(x = fragments, what = "Fragment")) {
+   } else if (inherits(x = fragments, what = "Fragment2")) {
     # single Fragment object supplied
     frags <- AssignFragCellnames(
       fragments = fragments, cellnames = colnames(x = seurat.assay)
@@ -211,37 +341,8 @@ CreateChromatinAssay <- function(
       }
     }
   }
-
-  if (!is.null(x = motifs)) {
-    # pre-computed motif object, make sure features are formatted the same
-    # as peak matrix and subset features
-    if (!inherits(x = motifs, what = "Motif")) {
-      stop("Provided motif object is not a Motif-class object")
-    }
-    if (!(all(rownames(x = motifs) == rownames(x = seurat.assay)))) {
-      # rownames don't match
-      motif.mat <- GetMotifData(object = motifs)
-      motif.granges <- StringToGRanges(
-        regions = rownames(x = motifs), sep = sep
-      )
-      rownames(x = motif.mat) <- GRangesToString(grange = motif.granges)
-      # subset
-      if (!all(rownames(x = seurat.assay) %in% rownames(x = motif.mat))) {
-        warning("Some peak regions missing from supplied motif object. ",
-                "Motif information will not be added")
-        motifs <- NULL
-      }
-      motif.mat <- motif.mat[rownames(x = seurat.assay), ]
-      motifs <- SetMotifData(
-        object = motifs, slot = "data", new.data = motif.mat
-      )
-    }
-  }
-  chrom.assay <- as.ChromatinAssay(
+  chrom.assay <- as.ChromatinAssay5(
     x = seurat.assay,
-    ranges = ranges,
-    seqinfo = genome,
-    motifs = motifs,
     fragments = frags,
     annotation = annotation,
     bias = bias,
@@ -250,43 +351,58 @@ CreateChromatinAssay <- function(
   return(chrom.assay)
 }
 
+#' @method as.GRangesAssay Assay5
+#' @export
+#' @concept assay
+as.GRangesAssay.Assay5 <- function(
+    x,
+    annotation = NULL,
+    fragments = NULL,
+    bias = NULL,
+    positionEnrichment = NULL,
+    ranges = NULL,
+    motifs = NULL,
+    links = NULL,
+    sep = c("-", "-"),
+    ...
+) {
+  x <- as.ChromatinAssay5(
+    object = x,
+    annotation = annotation,
+    fragments = fragments,
+    bias = bias,
+    positionEnrichment = positionEnrichment,
+  )
+  x <- as.GRangesAssay(
+    object = x,
+    ranges = ranges,
+    motifs = motifs,
+    links = links,
+    sep = sep
+  )
+  return(x)
+}
+
 #' @param ranges A GRanges object
-#' @param seqinfo A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
-#' information about the genome used. Alternatively, the name of a UCSC genome
-#' can be provided and the sequence information will be downloaded from UCSC.
-#' @param annotation Genomic annotation. It must have the following columns:
-#' \itemize{
-#'   \item{tx_id or transcript_id: Transcript ID}
-#'   \item{gene_name: Gene name}
-#'   \item{gene_id: Gene ID}
-#'   \item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
-#'   \item{type: Annotation type (e.g. "exon", "gap")}
-#' }
 #' @param motifs A \code{\link{Motif}} object
-#' @param fragments A list of \code{\link{Fragment}} objects
-#' @param bias Tn5 integration bias matrix
-#' @param positionEnrichment A named list of position enrichment matrices.
+#' @param links Genomic links TODO
 #' @param sep Characters used to separate the chromosome, start, and end
 #' coordinates in the row names of the data matrix
 #'
-#' @rdname as.ChromatinAssay
+#' @rdname as.GRangesAssay
 #' @export
-#' @method as.ChromatinAssay Assay
+#' @method as.GRangesAssay ChromatinAssay5
 #' @concept assay
 #'
-as.ChromatinAssay.Assay <- function(
-  x,
-  ranges = NULL,
-  seqinfo = NULL,
-  annotation = NULL,
-  motifs = NULL,
-  fragments = NULL,
-  bias = NULL,
-  positionEnrichment = NULL,
-  sep = c("-", "-"),
-  ...
+as.GRangesAssay.ChromatinAssay5 <- function(
+    x,
+    ranges = NULL,
+    motifs = NULL,
+    links = NULL,
+    sep = c("-", "-"),
+    ...
 ) {
-  new.assay <- as(object = x, Class = "ChromatinAssay")
+  new.assay <- as(object = x, Class = "GRangesAssay")
   ranges <- SetIfNull(
     x = ranges,
     y = StringToGRanges(regions = rownames(x = x), sep = sep)
@@ -296,6 +412,49 @@ as.ChromatinAssay.Assay <- function(
     layer = "ranges",
     new.data = ranges
   )
+  if (!is.null(x = motifs)) {
+    new.assay <- SetAssayData(
+      object = new.assay,
+      layer = "motifs",
+      new.data = motifs
+    )
+  }
+  if (!is.null(x = links)) {
+    new.assay <- SetAssayData(
+      object = new.assay,
+      layer = "links",
+      new.data = links
+    )
+  }
+  return(new.assay)
+}
+
+#' @param annotation Genomic annotation. It must have the following columns:
+#' \itemize{
+#'   \item{tx_id or transcript_id: Transcript ID}
+#'   \item{gene_name: Gene name}
+#'   \item{gene_id: Gene ID}
+#'   \item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
+#'   \item{type: Annotation type (e.g. "exon", "gap")}
+#' }
+#' @param fragments A list of \code{\link{Fragment}} objects
+#' @param bias Tn5 integration bias matrix
+#' @param positionEnrichment A named list of position enrichment matrices.
+#'
+#' @rdname as.ChromatinAssay5
+#' @export
+#' @method as.ChromatinAssay5 Assay5
+#' @concept assay
+#'
+as.ChromatinAssay5.Assay5 <- function(
+  x,
+  annotation = NULL,
+  fragments = NULL,
+  bias = NULL,
+  positionEnrichment = NULL,
+  ...
+) {
+  new.assay <- as(object = x, Class = "ChromatinAssay5")
   if (!is.null(x = fragments)) {
     new.assay <- SetAssayData(
       object = new.assay,
@@ -303,25 +462,11 @@ as.ChromatinAssay.Assay <- function(
       new.data = fragments
     )
   }
-  if (!is.null(x = seqinfo)) {
-    new.assay <- SetAssayData(
-      object = new.assay,
-      layer = "seqinfo",
-      new.data = seqinfo
-    )
-  }
   if (!is.null(x = annotation)) {
     new.assay <- SetAssayData(
       object = new.assay,
       layer = "annotation",
       new.data = annotation
-    )
-  }
-  if (!is.null(x = motifs)) {
-    new.assay <- SetAssayData(
-      object = new.assay,
-      layer = "motifs",
-      new.data = motifs
     )
   }
   if (!is.null(x = bias)) {
@@ -342,8 +487,8 @@ as.ChromatinAssay.Assay <- function(
 }
 
 setAs(
-  from = "Assay",
-  to = "ChromatinAssay",
+  from = "ChromatinAssay5",
+  to = "GRangesAssay",
   def = function(from) {
     object.list <- sapply(
       X = slotNames(x = from),
@@ -354,7 +499,28 @@ setAs(
     )
     object.list <- c(
       list(
-        "Class" = "ChromatinAssay"
+        "Class" = "GRangesAssay"
+      ),
+      object.list
+    )
+    return(do.call(what = "new", args = object.list))
+  }
+)
+
+setAs(
+  from = "Assay5",
+  to = "ChromatinAssay5",
+  def = function(from) {
+    object.list <- sapply(
+      X = slotNames(x = from),
+      FUN = slot,
+      object = from,
+      simplify = FALSE,
+      USE.NAMES = TRUE
+    )
+    object.list <- c(
+      list(
+        "Class" = "ChromatinAssay5"
       ),
       object.list
     )
@@ -1099,7 +1265,7 @@ subset.ChromatinAssay <- function(
   }
 
   # convert standard assay to ChromatinAssay
-  chromassay <- as.ChromatinAssay(
+  chromassay <- as.ChromatinAssay5(
     x = standardassay,
     ranges = ranges.keep,
     seqinfo = seqinfo(x = x),
@@ -1109,7 +1275,7 @@ subset.ChromatinAssay <- function(
     bias = GetAssayData(object = x, layer = "bias")
   )
   # TODO fix how the RegionMatrix and Footprint functions use positionEnrichment
-  # then can use the positionEnrichment parameter in as.ChromatinAssay
+  # then can use the positionEnrichment parameter in as.ChromatinAssay5
   chromassay@positionEnrichment <- posmat
   return(chromassay)
 }
@@ -1196,7 +1362,7 @@ merge.ChromatinAssay <- function(
       )
       # Covert placeholder assays to ChromatinAssay
       converted <- sapply(
-        X = converted, FUN = function(x) as.ChromatinAssay(x = x)
+        X = converted, FUN = function(x) as.ChromatinAssay5(x = x)
       )
       # Replace original assays
       assays[placeholders] <- converted
