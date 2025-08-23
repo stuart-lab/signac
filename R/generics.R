@@ -59,12 +59,21 @@ ATACqc <- function(object, ...) {
 }
 
 #' Convert objects to a ChromatinAssay
-#' @param x An object to convert to class \code{\link{ChromatinAssay}}
+#' @param x An object to convert to class \code{\link{ChromatinAssay5}}
 #' @param ... Arguments passed to other methods
-#' @rdname as.ChromatinAssay
-#' @export as.ChromatinAssay
-as.ChromatinAssay <- function(x, ...) {
-  UseMethod(generic = "as.ChromatinAssay", object = x)
+#' @rdname as.ChromatinAssay5
+#' @export as.ChromatinAssay5
+as.ChromatinAssay5 <- function(x, ...) {
+  UseMethod(generic = "as.ChromatinAssay5", object = x)
+}
+
+#' Convert objects to a GRangesAssay
+#' @param x An object to convert to class \code{\link{GRangesAssay}}
+#' @param ... Arguments passed to other methods
+#' @rdname as.GRangesAssay
+#' @export as.GRangesAssay
+as.GRangesAssay <- function(x, ...) {
+  UseMethod(generic = "as.GRangesAssay", object = x)
 }
 
 #' Compute allele frequencies per cell
