@@ -1898,12 +1898,7 @@ setMethod(
       "\n"
     )
     cat(
-      "Links present:",
-      ifelse(
-        test = is.null(x = Links(object = object)),
-        yes = FALSE,
-        no = TRUE
-      ),
+      "Links present:", length(x = Links(object = object)),
       "\n"
     )
     cat(
