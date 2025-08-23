@@ -538,8 +538,9 @@ setAs(
 #' is also performed to ensure that the expected cells are present in the
 #' fragment file.
 #'
-#' @param path A path to the fragment file. The file should contain a tabix
-#' index in the same directory.
+#' @param path A path to the fragment file.
+#' @param index Path to the fragment file index. If NULL, the index file is
+#' assumed to be in the same directory as the fragment file.
 #' @param cells A named character vector containing cell barcodes contained in
 #' the fragment file. This does not need to be all cells in the fragment file,
 #' but there should be no cells in the vector that are not present in the
@@ -549,6 +550,12 @@ setAs(
 #' Each element of the vector should be a cell barcode that appears in the
 #' fragment file, and the name of each element should be the corresponding cell
 #' name in the object.
+#' @param seqnames A named vector of sequence names (eg, chromosome name) where
+#' each element is the sequence name as it appears in the fragment file, and the
+#' name of each element is the corresponding sequence name as stored in the
+#' object. If NULL, the sequence names are assumed to be the same in the
+#' fragment file and object.
+#' 
 #' @param validate.fragments Check that expected cells are present in the
 #' fragment file.
 #' @param verbose Display messages
@@ -565,7 +572,9 @@ setAs(
 #' frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)
 CreateFragmentObject <- function(
     path,
+    index = NULL,
     cells = NULL,
+    seqnames = NULL,
     validate.fragments = TRUE,
     verbose = TRUE,
     ...
@@ -579,7 +588,13 @@ CreateFragmentObject <- function(
   if (!file.exists(path) & !is.remote) {
     stop("Fragment file does not exist.")
   }
-  index.file <- GetIndexFile(fragment = path, verbose = verbose)
+  index.file <- SetIfNull(
+    x = index,
+    y = GetIndexFile(fragment = path, verbose = verbose)
+  )
+  if (!file.exists(index.file) & !is.remote) {
+    stop("Fragment file index does not exist.")
+  }
   if (is.remote) {
     con <- gzcon(con = url(description = path))
   } else {
@@ -605,6 +620,12 @@ CreateFragmentObject <- function(
       names(x = cells) <- cells
     }
   }
+  if (!is.null(x = seqnames)) {
+    if (is.null(names(x = seqnames))) {
+      # assume seqnames are as they appear in the assay
+      names(x = seqnames) <- seqnames
+    }
+  }
   # compute hash of the file and index
   if (verbose) {
     message("Computing hash")
@@ -616,10 +637,12 @@ CreateFragmentObject <- function(
   hashes <- md5sum(files = c(path, index.file))
   # create object
   frags <- new(
-    Class = "Fragment",
-    path = path,
+    Class = "Fragment2",
+    file.path = path,
+    file.index = index.file,
     hash = unname(obj = hashes),
-    cells = cells
+    cells = cells,
+    seqnames = seqnames
   )
   # validate cells
   if (!is.null(x = cells) & validate.fragments) {
