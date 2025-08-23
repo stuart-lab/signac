@@ -849,11 +849,11 @@ UpdateChromatinObject <- function(
 
 
 #' @importFrom SeuratObject GetAssayData
-#' @method GetAssayData ChromatinAssay
+#' @method GetAssayData ChromatinAssay5
 #' @importFrom lifecycle deprecated is_present
 #' @export
 #' @concept assay
-GetAssayData.ChromatinAssay <- function(
+GetAssayData.ChromatinAssay5 <- function(
   object,
   layer = "data",
   assay = NULL,
@@ -874,10 +874,10 @@ GetAssayData.ChromatinAssay <- function(
 }
 
 #' @importFrom SeuratObject LayerData
-#' @method LayerData ChromatinAssay
+#' @method LayerData ChromatinAssay5
 #' @export
 #' @concept assay
-LayerData.ChromatinAssay <- function(
+LayerData.ChromatinAssay5 <- function(
     object,
     layer = "data",
     assay = NULL,
@@ -915,9 +915,9 @@ GetMotifData.Motif <- function(object, slot = "data", ...) {
 #' @importFrom SeuratObject GetAssayData
 #' @rdname GetMotifData
 #' @concept motifs
-#' @method GetMotifData ChromatinAssay
+#' @method GetMotifData ChromatinAssay5
 #' @export
-GetMotifData.ChromatinAssay <- function(object, slot = "data", ...) {
+GetMotifData.ChromatinAssay5 <- function(object, slot = "data", ...) {
   motif.obj <- GetAssayData(object = object, slot = "motifs")
   if (is.null(x = motif.obj)) {
     stop("Motif object not present in assay")
@@ -945,9 +945,9 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = "data", ...) {
 
 #' @importFrom SeuratObject RenameCells GetAssayData
 #' @concept assay
-#' @method RenameCells ChromatinAssay
+#' @method RenameCells ChromatinAssay5
 #' @export
-RenameCells.ChromatinAssay <- function(object, new.names = NULL, ...) {
+RenameCells.ChromatinAssay5 <- function(object, new.names = NULL, ...) {
   names(x = new.names) <- colnames(x = object)
   for (i in seq_along(along.with = Fragments(object = object))) {
     slot(object = object, name = "fragments")[[i]] <- RenameCells(
@@ -1203,10 +1203,10 @@ SetAssayData.ChromatinAssay5 <- function(
 }
 
 #' @importFrom SeuratObject LayerData<- SetAssayData
-#' @method LayerData<- ChromatinAssay
+#' @method LayerData<- ChromatinAssay5
 #' @concept assay
 #' @export
-"LayerData<-.ChromatinAssay" <- function(object, layer, ..., value) {
+"LayerData<-.ChromatinAssay5" <- function(object, layer, ..., value) {
   object <- SetAssayData(object = object, layer = layer, new.data = value)
   # validObject(object = object)
   return(object)
@@ -1252,8 +1252,8 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
 #' SetMotifData(
 #'   object = atac_small[['peaks']], slot = 'data', new.data = new.data
 #' )
-#' @method SetMotifData ChromatinAssay
-SetMotifData.ChromatinAssay <- function(object, slot, new.data, ...) {
+#' @method SetMotifData ChromatinAssay5
+SetMotifData.ChromatinAssay5 <- function(object, slot, new.data, ...) {
   if (slot == "data") {
     if (
       !(inherits(x = new.data, what = "matrix") |
@@ -1346,8 +1346,8 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
 #' @export
 #' @importClassesFrom SeuratObject Assay
 #' @concept assay
-#' @method subset ChromatinAssay
-subset.ChromatinAssay <- function(
+#' @method subset ChromatinAssay5
+subset.ChromatinAssay5 <- function(
   x,
   features = NULL,
   cells = NULL,
@@ -1457,12 +1457,12 @@ subset.Fragment <- function(
 
 #' @export
 #' @concept assay
-#' @method merge ChromatinAssay
+#' @method merge ChromatinAssay5
 #' @importFrom GenomicRanges union findOverlaps
 #' @importFrom SeuratObject RowMergeSparseMatrices Key Key<-
 #' @importFrom S4Vectors subjectHits queryHits mcols
 #' @importMethodsFrom GenomeInfoDb merge
-merge.ChromatinAssay <- function(
+merge.ChromatinAssay5 <- function(
   x = NULL,
   y = NULL,
   add.cell.ids = NULL,
@@ -1473,7 +1473,7 @@ merge.ChromatinAssay <- function(
 
   # if any are standard Assay class, coerce all to Assay and run merge
   isChromatin <- sapply(
-    X = assays, FUN = function(x) inherits(x = x, what = "ChromatinAssay")
+    X = assays, FUN = function(x) inherits(x = x, what = "ChromatinAssay5")
   )
   if (!all(isChromatin)) {
     # check that the non-chromatinassays have >1 feature
@@ -1481,7 +1481,7 @@ merge.ChromatinAssay <- function(
     if (all(nfeature > 1)) {
       # genuine assays, coerce to standard assay and run merge.Assay
       warning(
-        "Some assays are not ChromatinAssay class, ",
+        "Some assays are not ChromatinAssay5 class, ",
         "coercing ChromatinAssays to standard Assay"
       )
       assays <- sapply(
@@ -1667,15 +1667,12 @@ merge.ChromatinAssay <- function(
     # bias, motifs, positionEnrichment, metafeatures not kept
     # scaledata only kept if features exactly identical
     if (nrow(x = merged.counts) > 0) {
-      new.assay <- CreateChromatinAssay(
+      new.assay <- CreateChromatinAssay5(
         counts = merged.counts,
         min.cells = -1,
         min.features = -1,
         max.cells = NULL,
-        ranges = reduced.ranges,
-        motifs = NULL,
         fragments = all.frag,
-        genome = seqinfo.use,
         annotation = annot.use,
         bias = NULL,
         validate.fragments = FALSE
@@ -1684,15 +1681,12 @@ merge.ChromatinAssay <- function(
         object = new.assay, layer = "data", new.data = merged.data
       )
     } else {
-      new.assay <- CreateChromatinAssay(
+      new.assay <- CreateChromatinAssay5(
         data = merged.data,
         min.cells = -1,
         min.features = -1,
         max.cells = NULL,
-        ranges = reduced.ranges,
-        motifs = NULL,
         fragments = all.frag,
-        genome = seqinfo.use,
         annotation = annot.use,
         bias = NULL,
         validate.fragments = FALSE
@@ -1743,15 +1737,12 @@ merge.ChromatinAssay <- function(
         mat.list = merged.data,
         new.rownames = new.rownames
       )
-      new.assay <- CreateChromatinAssay(
+      new.assay <- CreateChromatinAssay5(
         counts = merged.counts,
         min.cells = -1,
         min.features = -1,
         max.cells = NULL,
-        ranges = reduced.ranges,
-        motifs = NULL,
         fragments = all.frag,
-        genome = seqinfo.use,
         annotation = annot.use,
         bias = NULL,
         validate.fragments = FALSE
@@ -1767,15 +1758,12 @@ merge.ChromatinAssay <- function(
       # create new ChromatinAssay object
       # bias, motifs, positionEnrichment, metafeatures not kept
       # need to keep data otherwise integration doesn't work
-      new.assay <- CreateChromatinAssay(
+      new.assay <- CreateChromatinAssay5(
         data = merged.data,
         min.cells = 0,
         min.features = 0,
         max.cells = NULL,
-        ranges = reduced.ranges,
-        motifs = NULL,
         fragments = all.frag,
-        genome = seqinfo.use,
         annotation = annot.use,
         bias = NULL,
         validate.fragments = FALSE
@@ -1956,18 +1944,23 @@ setMethod(
 )
 
 #' @rdname Annotation
-#' @method Annotation ChromatinAssay
+#' @method Annotation ChromatinAssay5
 #' @export
 #' @concept assay
 #' @examples
 #' \donttest{
 #' Annotation(atac_small[["peaks"]])
 #' }
+Annotation.ChromatinAssay5 <- function(object, ...) {
+  return(slot(object = object, name = "annotation"))
+}
+
+#' @method Annotation ChromatinAssay
 Annotation.ChromatinAssay <- function(object, ...) {
   return(slot(object = object, name = "annotation"))
 }
 
-#' @param object A Seurat object or ChromatinAssay object
+#' @param object A Seurat, GRangesAssay, or ChromatinAssay5 object
 #' @importFrom SeuratObject DefaultAssay
 #' @rdname Annotation
 #' @method Annotation Seurat
@@ -1983,17 +1976,22 @@ Annotation.Seurat <- function(object, ...) {
 }
 
 #' @rdname Fragments
-#' @method Fragments ChromatinAssay
+#' @method Fragments ChromatinAssay5
 #' @export
 #' @concept assay
 #' @concept fragments
 #' @examples
 #' Fragments(atac_small[["peaks"]])
+Fragments.ChromatinAssay5 <- function(object, ...) {
+  return(slot(object, name = "fragments"))
+}
+
+#' @method Fragments ChromatinAssay
 Fragments.ChromatinAssay <- function(object, ...) {
   return(slot(object, name = "fragments"))
 }
 
-#' @param object A Seurat object or ChromatinAssay object
+#' @param object A Seurat, GRangesAssay, or ChromatinAssay5 object
 #' @importFrom SeuratObject DefaultAssay
 #' @rdname Fragments
 #' @method Fragments Seurat
@@ -2008,17 +2006,22 @@ Fragments.Seurat <- function(object, ...) {
 }
 
 #' @rdname Motifs
-#' @method Motifs ChromatinAssay
+#' @method Motifs ChromatinAssay5
 #' @export
 #' @concept assay
 #' @concept motifs
 #' @examples
 #' Motifs(atac_small[["peaks"]])
+Motifs.ChromatinAssay5 <- function(object, ...) {
+  return(slot(object = object, name = "motifs"))
+}
+
+#' @method Motifs ChromatinAssay
 Motifs.ChromatinAssay <- function(object, ...) {
   return(slot(object = object, name = "motifs"))
 }
 
-#' @param object A Seurat object
+#' @param object A Seurat, GRangesAssay, or ChromatinAssay5 object
 #' @rdname Motifs
 #' @importFrom SeuratObject DefaultAssay
 #' @method Motifs Seurat
@@ -2033,17 +2036,22 @@ Motifs.Seurat <- function(object, ...) {
 }
 
 #' @rdname Links
-#' @method Links ChromatinAssay
+#' @method Links ChromatinAssay5
 #' @export
 #' @concept assay
 #' @concept links
 #' @examples
 #' Links(atac_small[["peaks"]])
+Links.ChromatinAssay5 <- function(object, ...) {
+  return(slot(object = object, name = "links"))
+}
+
+#' @method Links ChromatinAssay
 Links.ChromatinAssay <- function(object, ...) {
   return(slot(object = object, name = "links"))
 }
 
-#' @param object A Seurat object
+#' @param object A Seurat, GRangesAssay, or ChromatinAssay5 object
 #' @rdname Links
 #' @method Links Seurat
 #' @importFrom SeuratObject DefaultAssay
@@ -2073,13 +2081,13 @@ dim.Motif <- function(x) {
 
 #' @export
 #' @rdname Motifs
-#' @method Motifs<- ChromatinAssay
+#' @method Motifs<- ChromatinAssay5
 #' @concept assay
 #' @concept motifs
 #' @examples
 #' motifs <- Motifs(atac_small)
 #' Motifs(atac_small[["peaks"]]) <- motifs
-"Motifs<-.ChromatinAssay" <- function(object, ..., value) {
+"Motifs<-.ChromatinAssay5" <- function(object, ..., value) {
   object <- SetAssayData(object = object, layer = "motifs", new.data = value)
   return(object)
 }
@@ -2101,13 +2109,13 @@ dim.Motif <- function(x) {
 
 #' @export
 #' @rdname Links
-#' @method Links<- ChromatinAssay
+#' @method Links<- ChromatinAssay5
 #' @concept assay
 #' @concept links
 #' @examples
 #' links <- Links(atac_small)
 #' Links(atac_small[["peaks"]]) <- links
-"Links<-.ChromatinAssay" <- function(object, ..., value) {
+"Links<-.ChromatinAssay5" <- function(object, ..., value) {
   object <- SetAssayData(object = object, layer = "links", new.data = value)
   return(object)
 }
@@ -2129,11 +2137,11 @@ dim.Motif <- function(x) {
 #' @export
 #' @rdname Annotation
 #' @concept assay
-#' @method Annotation<- ChromatinAssay
+#' @method Annotation<- ChromatinAssay5
 #' @examples
 #' genes <- Annotation(atac_small)
 #' Annotation(atac_small[["peaks"]]) <- genes
-"Annotation<-.ChromatinAssay" <- function(object, ..., value) {
+"Annotation<-.ChromatinAssay5" <- function(object, ..., value) {
   object <- SetAssayData(object = object, layer = "annotation", new.data = value)
   return(object)
 }
@@ -2153,7 +2161,7 @@ dim.Motif <- function(x) {
 }
 
 #' @export
-#' @method Fragments<- ChromatinAssay
+#' @method Fragments<- ChromatinAssay5
 #' @rdname Fragments
 #' @importFrom SeuratObject SetAssayData
 #' @concept assay
@@ -2166,7 +2174,7 @@ dim.Motif <- function(x) {
 #'   validate.fragments = FALSE
 #' )
 #' Fragments(atac_small[["bins"]]) <- fragments
-"Fragments<-.ChromatinAssay" <- function(object, ..., value) {
+"Fragments<-.ChromatinAssay5" <- function(object, ..., value) {
   if (is.null(x = value)) {
     slot(object = object, name = "fragments") <- list()
     return(object)
@@ -2207,8 +2215,8 @@ dim.Motif <- function(x) {
   return(object)
 }
 
-# Add a single Fragment object to a ChromatinAssay
-# @param object A \code{\link{ChromatinAssay}} object
+# Add a single Fragment object to a ChromatinAssay5
+# @param object A \code{\link{ChromatinAssay5}} object
 # @param fragments A \code{\link{Fragment}} object
 AddFragments <- function(object, fragments) {
   # validate hash
