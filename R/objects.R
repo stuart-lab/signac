@@ -99,17 +99,6 @@ CreateGRangesAssay <- function(
   } else {
     data.use <- data
   }
-  if (!is.null(x = ranges)) {
-    if (length(x = ranges) != nrow(x = data.use)) {
-      stop("Length of supplied genomic ranges does not match number
-           of rows in matrix")
-    }
-  } else {
-    ranges <- StringToGRanges(regions = rownames(x = data.use), sep = sep)
-  }
-  if (!isDisjoint(x = ranges)) {
-    warning("Overlapping ranges supplied. Ranges should be non-overlapping.")
-  }
   chrom.assay <- CreateChromatinAssay5(
     counts = counts,
     data = data,
@@ -123,16 +112,11 @@ CreateGRangesAssay <- function(
     validate.fragments = validate.fragments,
     verbose = verbose
   )
-  
   features.keep <- rownames(x = data.use) %in% rownames(x = chrom.assay)
   # subset ranges if there are features removed
-  ranges <- ranges[features.keep, ]
-  
-  # TODO move this to the conversion method
-  # re-assign row names of matrix so that it's a known granges transformation
-  new.rownames <- GRangesToString(grange = ranges, sep = c("-", "-"))
-  rownames(x = data.use) <- new.rownames
-  
+  if (!is.null(x = ranges)) {
+    ranges <- ranges[features.keep, ]
+  }
   if (!is.null(x = motifs)) {
     # pre-computed motif object, make sure features are formatted the same
     # as peak matrix and subset features
@@ -162,9 +146,10 @@ CreateGRangesAssay <- function(
     x = chrom.assay,
     ranges = ranges,
     motifs = motifs,
-    links = links
+    links = links,
+    sep = sep
   )
-  return(granges.assay )
+  return(granges.assay)
 }
 
 #' Create ChromatinAssay5 object
@@ -402,6 +387,22 @@ as.GRangesAssay.ChromatinAssay5 <- function(
     sep = c("-", "-"),
     ...
 ) {
+  if (!is.null(x = ranges)) {
+    if (length(x = ranges) != nrow(x = x)) {
+      stop("Length of supplied genomic ranges does not match number
+           of rows in matrix")
+    }
+  } else {
+    ranges <- StringToGRanges(regions = rownames(x = x), sep = sep)
+  }
+  if (!isDisjoint(x = ranges)) {
+    warning("Overlapping ranges supplied. Ranges should be non-overlapping.")
+  }
+  
+  # re-assign row names of matrix so that it's a known granges transformation
+  new.rownames <- GRangesToString(grange = ranges, sep = c("-", "-"))
+  rownames(x = x) <- new.rownames
+  
   new.assay <- as(object = x, Class = "GRangesAssay")
   ranges <- SetIfNull(
     x = ranges,
@@ -1075,7 +1076,7 @@ SetAssayData.GRangesAssay <- function(
   } else if (layer == "links") {
     methods::slot(object = object, name = layer) <- new.data
   }
-  return()
+  return(object)
 }
 
 #' @importFrom SeuratObject SetAssayData CheckFeaturesNames
@@ -1861,6 +1862,63 @@ setMethod(
 
 setMethod(
   f = "show",
+  signature = "GRangesAssay",
+  definition = function(object) {
+    cat(
+      "GRangesAssay data with",
+      nrow(x = object),
+      "features for",
+      ncol(x = object),
+      "cells\n"
+    )
+    cat(
+      "Variable features:",
+      length(x = VariableFeatures(object = object)),
+      "\n"
+    )
+    cat(
+      "Annotation present:",
+      ifelse(
+        test = is.null(x = Annotation(object = object)), yes = FALSE, no = TRUE
+      ),
+      "\n"
+    )
+    cat(
+      "Fragment files:",
+      length(x = Fragments(object = object)),
+      "\n"
+    )
+    cat(
+      "Motifs present:",
+      ifelse(
+        test = is.null(x = Motifs(object = object)),
+        yes = FALSE,
+        no = TRUE
+      ),
+      "\n"
+    )
+    cat(
+      "Links present:",
+      ifelse(
+        test = is.null(x = Links(object = object)),
+        yes = FALSE,
+        no = TRUE
+      ),
+      "\n"
+    )
+    cat(
+      "Position enrichment matrices:",
+      length(x = GetAssayData(
+        object = object,
+        layer = "positionEnrichment"
+      )),
+      "\n"
+    )
+  }
+)
+
+setMethod(
+  f = "show",
   signature = "ChromatinAssay5",
   definition = function(object) {
     cat(
@@ -2006,13 +2064,13 @@ Fragments.Seurat <- function(object, ...) {
 }
 
 #' @rdname Motifs
-#' @method Motifs ChromatinAssay5
+#' @method Motifs GRangesAssay
 #' @export
 #' @concept assay
 #' @concept motifs
 #' @examples
 #' Motifs(atac_small[["peaks"]])
-Motifs.ChromatinAssay5 <- function(object, ...) {
+Motifs.GRangesAssay <- function(object, ...) {
   return(slot(object = object, name = "motifs"))
 }
 
@@ -2021,7 +2079,7 @@ Motifs.ChromatinAssay <- function(object, ...) {
   return(slot(object = object, name = "motifs"))
 }
 
-#' @param object A Seurat, GRangesAssay, or ChromatinAssay5 object
+#' @param object A Seurat or GRangesAssay or object
 #' @rdname Motifs
 #' @importFrom SeuratObject DefaultAssay
 #' @method Motifs Seurat
@@ -2036,13 +2094,13 @@ Motifs.Seurat <- function(object, ...) {
 }
 
 #' @rdname Links
-#' @method Links ChromatinAssay5
+#' @method Links GRangesAssay
 #' @export
 #' @concept assay
 #' @concept links
 #' @examples
 #' Links(atac_small[["peaks"]])
-Links.ChromatinAssay5 <- function(object, ...) {
+Links.GRangesAssay <- function(object, ...) {
   return(slot(object = object, name = "links"))
 }
 
@@ -2051,7 +2109,7 @@ Links.ChromatinAssay <- function(object, ...) {
   return(slot(object = object, name = "links"))
 }
 
-#' @param object A Seurat, GRangesAssay, or ChromatinAssay5 object
+#' @param object A Seurat or GRangesAssay object
 #' @rdname Links
 #' @method Links Seurat
 #' @importFrom SeuratObject DefaultAssay
@@ -2081,13 +2139,13 @@ dim.Motif <- function(x) {
 
 #' @export
 #' @rdname Motifs
-#' @method Motifs<- ChromatinAssay5
+#' @method Motifs<- GRangesAssay
 #' @concept assay
 #' @concept motifs
 #' @examples
 #' motifs <- Motifs(atac_small)
 #' Motifs(atac_small[["peaks"]]) <- motifs
-"Motifs<-.ChromatinAssay5" <- function(object, ..., value) {
+"Motifs<-.GRangesAssay" <- function(object, ..., value) {
   object <- SetAssayData(object = object, layer = "motifs", new.data = value)
   return(object)
 }
@@ -2109,13 +2167,13 @@ dim.Motif <- function(x) {
 
 #' @export
 #' @rdname Links
-#' @method Links<- ChromatinAssay5
+#' @method Links<- GRangesAssay
 #' @concept assay
 #' @concept links
 #' @examples
 #' links <- Links(atac_small)
 #' Links(atac_small[["peaks"]]) <- links
-"Links<-.ChromatinAssay5" <- function(object, ..., value) {
+"Links<-.GRangesAssay" <- function(object, ..., value) {
   object <- SetAssayData(object = object, layer = "links", new.data = value)
   return(object)
 }
