@@ -307,7 +307,7 @@ ValidateCells <- function(
     return(TRUE)
   }
   max.lines <- SetIfNull(x = max.lines, y = 0)
-  filepath <- GetFragmentData(object = object, slot = "path")
+  filepath <- GetFragmentData(object = object, slot = "file.path")
   filepath <- normalizePath(path = filepath, mustWork = TRUE)
   is.remote <- isRemote(x = filepath)
   find_n <- as.integer(x = length(x = cells) * (1 - tolerance))
