@@ -80,8 +80,6 @@ Motif <- setClass(
 #' not require that the stored features are genomic ranges.
 #'
 #' @slot fragments A list of \code{\link{Fragment}} objects.
-#' @slot seqinfo A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
-#' information about the genome sequence used.
 #' @slot annotation A  \code{\link[GenomicRanges]{GRanges}} object containing
 #' genomic annotations. This should be a GRanges object with the following 
 #' columns:
