@@ -3,9 +3,9 @@
 \name{Annotation}
 \alias{Annotation}
 \alias{Annotation<-}
-\alias{Annotation.ChromatinAssay}
+\alias{Annotation.ChromatinAssay5}
 \alias{Annotation.Seurat}
-\alias{Annotation<-.ChromatinAssay}
+\alias{Annotation<-.ChromatinAssay5}
 \alias{Annotation<-.Seurat}
 \title{Annotation}
 \usage{
@@ -13,16 +13,16 @@ Annotation(object, ...)
 
 Annotation(object, ...) <- value
 
-\method{Annotation}{ChromatinAssay}(object, ...)
+\method{Annotation}{ChromatinAssay5}(object, ...)
 
 \method{Annotation}{Seurat}(object, ...)
 
-\method{Annotation}{ChromatinAssay}(object, ...) <- value
+\method{Annotation}{ChromatinAssay5}(object, ...) <- value
 
 \method{Annotation}{Seurat}(object, ...) <- value
 }
 \arguments{
-\item{object}{A Seurat object or ChromatinAssay object}
+\item{object}{A Seurat, GRangesAssay, or ChromatinAssay5 object}
 
 \item{...}{Arguments passed to other methods}
 

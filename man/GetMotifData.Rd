@@ -3,7 +3,7 @@
 \name{GetMotifData}
 \alias{GetMotifData}
 \alias{GetMotifData.Motif}
-\alias{GetMotifData.ChromatinAssay}
+\alias{GetMotifData.ChromatinAssay5}
 \alias{GetMotifData.Seurat}
 \title{Retrieve a motif matrix}
 \usage{
@@ -11,7 +11,7 @@ GetMotifData(object, ...)
 
 \method{GetMotifData}{Motif}(object, slot = "data", ...)
 
-\method{GetMotifData}{ChromatinAssay}(object, slot = "data", ...)
+\method{GetMotifData}{ChromatinAssay5}(object, slot = "data", ...)
 
 \method{GetMotifData}{Seurat}(object, assay = NULL, slot = "data", ...)
 }

@@ -3,7 +3,7 @@
 \name{SetMotifData}
 \alias{SetMotifData}
 \alias{SetMotifData.Motif}
-\alias{SetMotifData.ChromatinAssay}
+\alias{SetMotifData.ChromatinAssay5}
 \alias{SetMotifData.Seurat}
 \title{Set motif data}
 \usage{
@@ -11,7 +11,7 @@ SetMotifData(object, ...)
 
 \method{SetMotifData}{Motif}(object, slot, new.data, ...)
 
-\method{SetMotifData}{ChromatinAssay}(object, slot, new.data, ...)
+\method{SetMotifData}{ChromatinAssay5}(object, slot, new.data, ...)
 
 \method{SetMotifData}{Seurat}(object, assay = NULL, ...)
 }
