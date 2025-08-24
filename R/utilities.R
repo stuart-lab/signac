@@ -1024,8 +1024,8 @@ IntersectMatrix <- function(
 #' LookupGeneCoords(atac_small, gene = "MIR1302-10")
 LookupGeneCoords <- function(object, gene, assay = NULL) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5")
   }
   annotations <- Annotation(object = object[[assay]])
   isgene <- annotations$gene_name == gene
@@ -1784,12 +1784,10 @@ CutMatrix <- function(
   }
   res <- list()
   for (i in seq_along(along.with = fragments)) {
-    fragment.path <- GetFragmentData(object = fragments[[i]], slot = "path")
+    fragment.path <- GetFragmentData(object = fragments[[i]], slot = "file.path")
+    index.path <- GetFragmentData(object = fragments[[i]], slot = "file.index")
     cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
-    tabix.file <- TabixFile(
-      file = fragment.path,
-      index = GetIndexFile(fragment = fragment.path, verbose = FALSE)
-    )
+    tabix.file <- TabixFile(file = fragment.path, index = index.path)
     open(con = tabix.file)
     # remove regions that aren't in the fragment file
     seqnames.in.both <- intersect(
