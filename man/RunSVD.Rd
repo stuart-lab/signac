@@ -3,7 +3,7 @@
 \name{RunSVD}
 \alias{RunSVD}
 \alias{RunSVD.default}
-\alias{RunSVD.Assay}
+\alias{RunSVD.Assay5}
 \alias{RunSVD.StdAssay}
 \alias{RunSVD.Seurat}
 \title{Run singular value decomposition}
@@ -23,9 +23,10 @@ RunSVD(object, ...)
   ...
 )
 
-\method{RunSVD}{Assay}(
+\method{RunSVD}{Assay5}(
   object,
   assay = NULL,
+  layer = "data",
   features = NULL,
   n = 50,
   reduction.key = "LSI_",
@@ -37,6 +38,7 @@ RunSVD(object, ...)
 \method{RunSVD}{StdAssay}(
   object,
   assay = NULL,
+  layer = "data",
   features = NULL,
   n = 50,
   reduction.key = "LSI_",
@@ -49,6 +51,7 @@ RunSVD(object, ...)
   object,
   assay = NULL,
   features = NULL,
+  layer = "data",
   n = 50,
   reduction.key = "LSI_",
   reduction.name = "lsi",

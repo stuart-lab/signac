@@ -3,7 +3,7 @@
 \name{FindTopFeatures}
 \alias{FindTopFeatures}
 \alias{FindTopFeatures.default}
-\alias{FindTopFeatures.Assay}
+\alias{FindTopFeatures.Assay5}
 \alias{FindTopFeatures.StdAssay}
 \alias{FindTopFeatures.Seurat}
 \title{Find most frequently observed features}
@@ -12,11 +12,32 @@ FindTopFeatures(object, ...)
 
 \method{FindTopFeatures}{default}(object, assay = NULL, min.cutoff = "q5", verbose = TRUE, ...)
 
-\method{FindTopFeatures}{Assay}(object, assay = NULL, min.cutoff = "q5", verbose = TRUE, ...)
+\method{FindTopFeatures}{Assay5}(
+  object,
+  assay = NULL,
+  layer = "counts",
+  min.cutoff = "q5",
+  verbose = TRUE,
+  ...
+)
 
-\method{FindTopFeatures}{StdAssay}(object, assay = NULL, min.cutoff = "q5", verbose = TRUE, ...)
+\method{FindTopFeatures}{StdAssay}(
+  object,
+  assay = NULL,
+  layer = "counts",
+  min.cutoff = "q5",
+  verbose = TRUE,
+  ...
+)
 
-\method{FindTopFeatures}{Seurat}(object, assay = NULL, min.cutoff = "q5", verbose = TRUE, ...)
+\method{FindTopFeatures}{Seurat}(
+  object,
+  assay = NULL,
+  layer = "counts",
+  min.cutoff = "q5",
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{A Seurat object}
