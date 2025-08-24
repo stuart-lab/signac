@@ -997,6 +997,10 @@ SetAssayData.GRangesAssay <- function(
     slot = deprecated(),
     ...
 ) {
+  if (layer %in% c("counts", "data", "scale.data",
+                   "fragments", "annotation", "bias", "positionEnrichment")) {
+    return(NextMethod())
+  }
   if (is_present(arg = slot)) {
     layer <- slot
   }
@@ -1007,12 +1011,6 @@ SetAssayData.GRangesAssay <- function(
       call. = FALSE
     )
   }
-  
-  if (layer %in% c("counts", "data", "scale.data",
-                   "fragments", "annotation", "bias", "positionEnrichment")) {
-    NextMethod() 
-  }
-  
   if (layer == "ranges") {
     if (!is(object = new.data, class2 = "GRanges")) {
       stop("Must provide a GRanges object")
