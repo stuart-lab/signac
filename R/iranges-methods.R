@@ -6,7 +6,6 @@
 #' reduce disjoin gaps isDisjoint disjointBins
 NULL
 
-setOldClass(Classes = "GRangesAssay")
 
 ## Nearest methods
 
