@@ -433,21 +433,23 @@ FindTopFeatures.default <- function(
 }
 
 #' @rdname FindTopFeatures
-#' @importFrom SeuratObject GetAssayData VariableFeatures
+#' @importFrom SeuratObject LayerData VariableFeatures
 #' @importFrom utils packageVersion
 #' @export
-#' @method FindTopFeatures Assay
+#' @method FindTopFeatures Assay5
 #' @concept preprocessing
 #' @examples
 #' FindTopFeatures(object = atac_small[['peaks']])
-FindTopFeatures.Assay <- function(
+FindTopFeatures.Assay5 <- function(
   object,
   assay = NULL,
+  layer = "counts",
   min.cutoff = "q5",
   verbose = TRUE,
   ...
 ) {
-  data.use <- GetAssayData(object = object, layer = "counts")
+  # TODO enable running across list of layers
+  data.use <- LayerData(object = object, layer = layer)
   if (IsMatrixEmpty(x = data.use)) {
     if (verbose) {
       message("Count slot empty")
@@ -493,13 +495,15 @@ FindTopFeatures.Assay <- function(
 FindTopFeatures.StdAssay <- function(
     object,
     assay = NULL,
+    layer = "counts",
     min.cutoff = "q5",
     verbose = TRUE,
     ...
 ) {
-  FindTopFeatures.Assay(
+  FindTopFeatures.Assay5(
     object = object,
     assay = assay,
+    layer = layer,
     min.cutoff = min.cutoff,
     verbose = verbose,
     ...
@@ -516,6 +520,7 @@ FindTopFeatures.StdAssay <- function(
 FindTopFeatures.Seurat <- function(
   object,
   assay = NULL,
+  layer = "counts",
   min.cutoff = "q5",
   verbose = TRUE,
   ...
@@ -525,6 +530,7 @@ FindTopFeatures.Seurat <- function(
   assay.data <- FindTopFeatures(
     object = assay.data,
     assay = assay,
+    layer = layer,
     min.cutoff = min.cutoff,
     verbose = verbose,
     ...
