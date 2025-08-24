@@ -848,6 +848,34 @@ UpdateChromatinObject <- function(
   return(new.object)
 }
 
+#' @importFrom SeuratObject GetAssayData
+#' @method GetAssayData GRangesAssay
+#' @importFrom lifecycle deprecated is_present
+#' @export
+#' @concept assay
+GetAssayData.GRangesAssay <- function(
+    object,
+    layer = "data",
+    assay = NULL,
+    slot = deprecated(),
+    ...
+) {
+  if (is_present(arg = slot)) {
+    layer <- slot
+  }
+  if (layer %in% c("counts", "data", "scale.data", "meta.data", "misc", "key")) {
+    return(NextMethod())
+  }
+  if (!(layer %in% slotNames(x = object))) {
+    stop(
+      "layer must be one of ",
+      paste(slotNames(x = object), collapse = ", "),
+      call. = FALSE
+    )
+  }
+  return(methods::slot(object = object, name = layer))
+}
+
 
 #' @importFrom SeuratObject GetAssayData
 #' @method GetAssayData ChromatinAssay5
@@ -863,6 +891,9 @@ GetAssayData.ChromatinAssay5 <- function(
 ) {
   if (is_present(arg = slot)) {
     layer <- slot
+  }
+  if (layer %in% c("counts", "data", "scale.data", "meta.data", "misc", "key")) {
+    return(NextMethod())
   }
   if (!(layer %in% slotNames(x = object))) {
     stop(
@@ -997,7 +1028,7 @@ SetAssayData.GRangesAssay <- function(
     slot = deprecated(),
     ...
 ) {
-  if (layer %in% c("counts", "data", "scale.data",
+  if (layer %in% c("counts", "data", "scale.data", "meta.data", "misc", "key",
                    "fragments", "annotation", "bias", "positionEnrichment")) {
     return(NextMethod())
   }
@@ -1039,11 +1070,11 @@ SetAssayData.GRangesAssay <- function(
       keep.features <- intersect(x = rownames(x = new.data),
                                  y = rownames(x = object))
       if (length(x = keep.features) == 0) {
-        stop("No features in common between the ChromatinAssay
+        stop("No features in common between the GRangesAssay
              and Motif objects")
       }
       else {
-        warning("Features do not match in ChromatinAssay and Motif object.
+        warning("Features do not match in GRangesAssay and Motif object.
                 Subsetting/Filling the Motif object.")
         new.data <- new.data[keep.features, ]
         
@@ -1088,28 +1119,8 @@ SetAssayData.ChromatinAssay5 <- function(
       call. = FALSE
     )
   }
-  if (layer %in% c("counts", "data", "scale.data")) {
+  if (layer %in% c("counts", "data", "scale.data", "meta.data", "misc", "key")) {
     NextMethod()
-    # if (!(is(object = new.data, class2 = "AnyMatrix"))) {
-    #   stop("Data must be a matrix or sparseMatrix")
-    # }
-    # if (ncol(x = object) != ncol(x = new.data)) {
-    #   stop("Number of columns in the provided matrix does not match
-    #        the number of cells in the object")
-    # }
-    # if (layer %in% c("counts", "data")) {
-    #   if (nrow(x = object) != nrow(x = new.data)) {
-    #     stop("Number of rows in provided matrix does not match
-    #        the number of rows in the object")
-    #   }
-    # } else {
-    #   # scale data
-    #   if (nrow(x = object) < nrow(x = new.data)) {
-    #     stop("Number of rows in provided matrix is greater than
-    #          the number of rows in the object")
-    #   }
-    # }
-    # methods::slot(object = object, name = layer) <- new.data
   } else if (layer == "fragments") {
     if (inherits(x = new.data, what = "list")) {
       # check that it's a list containing fragment class objects
