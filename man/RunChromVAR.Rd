@@ -2,13 +2,13 @@
 % Please edit documentation in R/generics.R, R/motifs.R
 \name{RunChromVAR}
 \alias{RunChromVAR}
-\alias{RunChromVAR.ChromatinAssay}
+\alias{RunChromVAR.GRangesAssay}
 \alias{RunChromVAR.Seurat}
 \title{Run chromVAR}
 \usage{
 RunChromVAR(object, ...)
 
-\method{RunChromVAR}{ChromatinAssay}(object, genome, motif.matrix = NULL, verbose = TRUE, ...)
+\method{RunChromVAR}{GRangesAssay}(object, genome, motif.matrix = NULL, verbose = TRUE, ...)
 
 \method{RunChromVAR}{Seurat}(
   object,

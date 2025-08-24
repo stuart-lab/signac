@@ -2,13 +2,13 @@
 % Please edit documentation in R/generics.R, R/footprinting.R
 \name{Footprint}
 \alias{Footprint}
-\alias{Footprint.ChromatinAssay}
+\alias{Footprint.ChromatinAssay5}
 \alias{Footprint.Seurat}
 \title{Transcription factor footprinting analysis}
 \usage{
 Footprint(object, ...)
 
-\method{Footprint}{ChromatinAssay}(
+\method{Footprint}{ChromatinAssay5}(
   object,
   genome,
   motif.name = NULL,

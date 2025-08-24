@@ -4,7 +4,7 @@
 \alias{ConvertMotifID}
 \alias{ConvertMotifID.default}
 \alias{ConvertMotifID.Motif}
-\alias{ConvertMotifID.ChromatinAssay}
+\alias{ConvertMotifID.GRangesAssay}
 \alias{ConvertMotifID.Assay}
 \alias{ConvertMotifID.StdAssay}
 \alias{ConvertMotifID.Seurat}
@@ -16,7 +16,7 @@ ConvertMotifID(object, ...)
 
 \method{ConvertMotifID}{Motif}(object, ...)
 
-\method{ConvertMotifID}{ChromatinAssay}(object, ...)
+\method{ConvertMotifID}{GRangesAssay}(object, ...)
 
 \method{ConvertMotifID}{Assay}(object, ...)
 

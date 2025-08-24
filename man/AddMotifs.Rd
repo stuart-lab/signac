@@ -3,7 +3,7 @@
 \name{AddMotifs}
 \alias{AddMotifs}
 \alias{AddMotifs.default}
-\alias{AddMotifs.ChromatinAssay}
+\alias{AddMotifs.GRangesAssay}
 \alias{AddMotifs.Assay}
 \alias{AddMotifs.StdAssay}
 \alias{AddMotifs.Seurat}
@@ -13,7 +13,7 @@ AddMotifs(object, ...)
 
 \method{AddMotifs}{default}(object, genome, pfm, verbose = TRUE, ...)
 
-\method{AddMotifs}{ChromatinAssay}(object, genome, pfm, verbose = TRUE, ...)
+\method{AddMotifs}{GRangesAssay}(object, genome, pfm, verbose = TRUE, ...)
 
 \method{AddMotifs}{Assay}(object, genome, pfm, verbose = TRUE, ...)
 
