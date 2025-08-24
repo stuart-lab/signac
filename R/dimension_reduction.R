@@ -89,7 +89,18 @@ RunSVD.default <- function(
   if (verbose) {
     message("Running SVD")
   }
-  components <- irlba(A = t(x = object), nv = n, work = irlba.work, tol = tol)
+  
+  if (inherits(x = object, what = 'matrix')) {
+    svd.function <- irlba
+  } else if (inherits(x = object, what = 'sparseMatrix')) {
+    svd.function <- irlba
+  } else if (inherits(x = object, what = 'IterableMatrix')) {
+    svd.function <- function(A, nv, ...) BPCells::svds(A=A, k = nv)
+  } else {
+    stop("Unknown matrix format")
+  }
+  
+  components <- svd.function(A = t(x = object), nv = n, work = irlba.work, tol = tol)
   feature.loadings <- components$v
   sdev <- components$d / sqrt(x = max(1, nrow(x = object) - 1))
   cell.embeddings <- components$u
@@ -126,20 +137,71 @@ RunSVD.default <- function(
   return(reduction.data)
 }
 
+# from SeuratObject (not exported)
+PrepDR5 <- function(object, features = NULL, layer = 'scale.data', verbose = TRUE) {
+  layer <- layer[1L]
+  olayer <- layer
+  layer <- Layers(object = object, search = layer)
+  if (is.null(layer)) {
+    abort(paste0("No layer matching pattern '", olayer, "' not found. Please run ScaleData and retry"))
+  }
+  data.use <- LayerData(object = object, layer = layer)
+  features <- features %||% VariableFeatures(object = object)
+  if (!length(x = features)) {
+    stop("No variable features, run FindVariableFeatures() or provide a vector of features", call. = FALSE)
+  }
+  if (is(data.use, "IterableMatrix")) {
+    features.var <- BPCells::matrix_stats(matrix=data.use, row_stats="variance")$row_stats["variance",]
+  } else {
+    features.var <- apply(X = data.use, MARGIN = 1L, FUN = var)
+  }
+  features.keep <- features[features.var > 0]
+  if (!length(x = features.keep)) {
+    stop("None of the requested features have any variance", call. = FALSE)
+  } else if (length(x = features.keep) < length(x = features)) {
+    exclude <- setdiff(x = features, y = features.keep)
+    if (isTRUE(x = verbose)) {
+      warning(
+        "The following ",
+        length(x = exclude),
+        " features requested have zero variance; running reduction without them: ",
+        paste(exclude, collapse = ', '),
+        call. = FALSE,
+        immediate. = TRUE
+      )
+    }
+  }
+  features <- features.keep
+  features <- features[!is.na(x = features)]
+  features.use <- features[features %in% rownames(data.use)]
+  if(!isTRUE(all.equal(features, features.use))) {
+    missing_features <- setdiff(features, features.use)
+    if(length(missing_features) > 0) {
+      warning_message <- paste("The following features were not available: ",
+                               paste(missing_features, collapse = ", "),
+                               ".", sep = "")
+      warning(warning_message, immediate. = TRUE)
+    }
+  }
+  data.use <- data.use[features.use, ]
+  return(data.use)
+}
+
 #' @param features Which features to use. If NULL, use variable features
 #'
 #' @rdname RunSVD
 #' @importFrom SeuratObject VariableFeatures GetAssayData
 #' @export
 #' @concept dimension_reduction
-#' @method RunSVD Assay
+#' @method RunSVD Assay5
 #' @examples
 #' \dontrun{
 #' RunSVD(atac_small[['peaks']])
 #' }
-RunSVD.Assay <- function(
+RunSVD.Assay5 <- function(
   object,
   assay = NULL,
+  layer = "data",
   features = NULL,
   n = 50,
   reduction.key = "LSI_",
@@ -147,11 +209,17 @@ RunSVD.Assay <- function(
   verbose = TRUE,
   ...
 ) {
-  features <- SetIfNull(x = features, y = VariableFeatures(object = object))
-  data.use <- GetAssayData(
+  data.use <- PrepDR5(
     object = object,
-    layer = "data"
-  )[features, ]
+    features = features,
+    layer = layer,
+    verbose = verbose
+  )
+  # features <- SetIfNull(x = features, y = VariableFeatures(object = object))
+  # data.use <- GetAssayData(
+  #   object = object,
+  #   layer = "data"
+  # )[features, ]
   reduction.data <- RunSVD(
     object = data.use,
     assay = assay,
@@ -179,6 +247,7 @@ RunSVD.Assay <- function(
 RunSVD.StdAssay <- function(
     object,
     assay = NULL,
+    layer = "data",
     features = NULL,
     n = 50,
     reduction.key = "LSI_",
@@ -186,10 +255,11 @@ RunSVD.StdAssay <- function(
     verbose = TRUE,
     ...
 ) {
-  RunSVD.Assay(
+  RunSVD.Assay5(
     object = object,
     assay = assay,
     features = features,
+    layer = layer,
     n = n,
     reduction.key = reduction.key,
     scale.max = scale.max,
@@ -212,6 +282,7 @@ RunSVD.Seurat <- function(
   object,
   assay = NULL,
   features = NULL,
+  layer = "data",
   n = 50,
   reduction.key = "LSI_",
   reduction.name = "lsi",
@@ -225,6 +296,7 @@ RunSVD.Seurat <- function(
     object = assay.data,
     assay = assay,
     features = features,
+    layer = layer,
     n = n,
     reduction.key = reduction.key,
     scale.max = scale.max,
