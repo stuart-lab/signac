@@ -1103,35 +1103,51 @@ RunTFIDF.default <- function(
 }
 
 #' @rdname RunTFIDF
-#' @method RunTFIDF Assay
+#' @method RunTFIDF Assay5
 #' @export
 #' @concept preprocessing
+#' @importFrom SeuratObject LayerData Layers
 #' @examples
 #' RunTFIDF(atac_small[['peaks']])
-RunTFIDF.Assay <- function(
+RunTFIDF.Assay5 <- function(
   object,
   assay = NULL,
   method = 1,
   scale.factor = 1e4,
   idf = NULL,
+  layer = "counts",
+  save = "data",
   verbose = TRUE,
   ...
 ) {
-  new.data <- RunTFIDF(
-    object = GetAssayData(object = object, layer = "counts"),
-    method = method,
-    assay = assay,
-    scale.factor = scale.factor,
-    idf = idf,
-    verbose = verbose,
-    ...
-  )
-  new.data <- as(object = new.data, Class = "CsparseMatrix")
-  object <- SetAssayData(
-    object = object,
-    layer = "data",
-    new.data = new.data
-  )
+  olayer <- layer <- unique(x = layer)
+  layer <- Layers(object = object, search = layer)
+  if (length(x = save) != length(x = layer)) {
+    save <- make.unique(names = gsub(
+      pattern = olayer,
+      replacement = save,
+      x = layer
+    ))
+  }
+  for (i in seq_along(along.with = layer)) {
+    l <- layer[i]
+    if (verbose) {
+      message("Processing layer: ", l)
+    }
+    LayerData(
+      object = object,
+      layer = save[i],
+      features = Features(x = object, layer = l),
+      cells = Cells(x = object, layer = l)
+    ) <- RunTFIDF(
+      object = LayerData(object = object, layer = l, fast = NA),
+      method = method,
+      scale.factor = scale.factor,
+      idf = idf,
+      verbose = verbose,
+      ...
+    )
+  }
   return(object)
 }
 
@@ -1147,15 +1163,19 @@ RunTFIDF.StdAssay <- function(
     method = 1,
     scale.factor = 1e4,
     idf = NULL,
+    layer = "counts",
+    save = "data",
     verbose = TRUE,
     ...
 ) {
-  RunTFIDF.Assay(
+  RunTFIDF.Assay5(
     object = object,
     assay = assay,
     method = method,
     scale.factor = scale.factor,
     idf = idf,
+    layer = layer,
+    save = save,
     verbose = verbose,
     ...
   )
@@ -1174,6 +1194,8 @@ RunTFIDF.Seurat <- function(
   method = 1,
   scale.factor = 1e4,
   idf = NULL,
+  layer = "counts",
+  save = "data",
   verbose = TRUE,
   ...
 ) {
@@ -1185,6 +1207,8 @@ RunTFIDF.Seurat <- function(
     method = method,
     scale.factor = scale.factor,
     idf = idf,
+    layer = layer,
+    save = save,
     verbose = verbose,
     ...
   )
