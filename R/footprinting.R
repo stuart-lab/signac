@@ -35,8 +35,8 @@ GetFootprintData <- function(
   idents = NULL
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5")
   }
   positionEnrichment <- GetAssayData(
     object = object,
@@ -123,8 +123,8 @@ GetFootprintData <- function(
 #' @export
 #' @concept footprinting
 #' @rdname Footprint
-#' @method Footprint ChromatinAssay
-Footprint.ChromatinAssay <- function(
+#' @method Footprint ChromatinAssay5
+Footprint.ChromatinAssay5 <- function(
   object,
   genome,
   motif.name = NULL,
@@ -265,7 +265,7 @@ Footprint.Seurat <- function(
 #' @export
 #' @concept footprinting
 #' @rdname InsertionBias
-#' @method InsertionBias ChromatinAssay
+#' @method InsertionBias ChromatinAssay5
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Mmusculus.UCSC.mm10)
@@ -281,7 +281,7 @@ Footprint.Seurat <- function(
 #'  region = region.use
 #' )
 #' }
-InsertionBias.ChromatinAssay <- function(
+InsertionBias.ChromatinAssay5 <- function(
   object,
   genome,
   region = 'chr1-1-249250621',
