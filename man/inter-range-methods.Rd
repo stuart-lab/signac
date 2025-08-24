@@ -3,51 +3,51 @@
 \name{inter-range-methods}
 \alias{inter-range-methods}
 \alias{range}
-\alias{range,ChromatinAssay-method}
+\alias{range,GRangesAssay-method}
 \alias{range,Seurat-method}
-\alias{reduce,ChromatinAssay-method}
+\alias{reduce,GRangesAssay-method}
 \alias{reduce}
 \alias{reduce,Seurat-method}
-\alias{gaps,ChromatinAssay-method}
+\alias{gaps,GRangesAssay-method}
 \alias{gaps}
 \alias{gaps,Seurat-method}
-\alias{disjoin,ChromatinAssay-method}
+\alias{disjoin,GRangesAssay-method}
 \alias{disjoin}
 \alias{disjoin,Seurat-method}
-\alias{isDisjoint,ChromatinAssay-method}
+\alias{isDisjoint,GRangesAssay-method}
 \alias{isDisjoint}
 \alias{isDisjoint,Seurat-method}
-\alias{disjointBins,ChromatinAssay-method}
+\alias{disjointBins,GRangesAssay-method}
 \alias{disjointBins}
 \alias{disjointBins,Seurat-method}
-\title{Inter-range transformations for ChromatinAssay objects}
+\title{Inter-range transformations for GRangesAssay objects}
 \usage{
-\S4method{range}{ChromatinAssay}(x, ..., with.revmap = FALSE, na.rm = FALSE)
+\S4method{range}{GRangesAssay}(x, ..., with.revmap = FALSE, na.rm = FALSE)
 
 \S4method{range}{Seurat}(x, ..., with.revmap = FALSE, na.rm = FALSE)
 
-\S4method{reduce}{ChromatinAssay}(x, drop.empty.ranges = FALSE, ...)
+\S4method{reduce}{GRangesAssay}(x, drop.empty.ranges = FALSE, ...)
 
 \S4method{reduce}{Seurat}(x, drop.empty.ranges = FALSE, ...)
 
-\S4method{gaps}{ChromatinAssay}(x, start = NA, end = NA)
+\S4method{gaps}{GRangesAssay}(x, start = NA, end = NA)
 
 \S4method{gaps}{Seurat}(x, start = NA, end = NA)
 
-\S4method{disjoin}{ChromatinAssay}(x, ...)
+\S4method{disjoin}{GRangesAssay}(x, ...)
 
 \S4method{disjoin}{Seurat}(x, ...)
 
-\S4method{isDisjoint}{ChromatinAssay}(x, ...)
+\S4method{isDisjoint}{GRangesAssay}(x, ...)
 
 \S4method{isDisjoint}{Seurat}(x, ...)
 
-\S4method{disjointBins}{ChromatinAssay}(x, ...)
+\S4method{disjointBins}{GRangesAssay}(x, ...)
 
 \S4method{disjointBins}{Seurat}(x, ...)
 }
 \arguments{
-\item{x}{A \code{\link{ChromatinAssay}} object}
+\item{x}{A \code{\link{GRangesAssay}} object}
 
 \item{...}{Additional arguments}
 
@@ -62,29 +62,29 @@
 }
 \description{
 The \code{range, reduce, gaps, disjoin, isDisjoint, disjointBins} methods
-are available for \code{\link{ChromatinAssay}} objects.
+are available for \code{\link{GRangesAssay}} objects.
 }
 \section{Functions}{
 \itemize{
 \item \code{range(Seurat)}: method for Seurat objects
 
-\item \code{reduce(ChromatinAssay)}: method for ChromatinAssay objects
+\item \code{reduce(GRangesAssay)}: method for GRangesAssay objects
 
 \item \code{reduce(Seurat)}: method for Seurat objects
 
-\item \code{gaps(ChromatinAssay)}: method for ChromatinAssay objects
+\item \code{gaps(GRangesAssay)}: method for GRangesAssay objects
 
 \item \code{gaps(Seurat)}: method for Seurat objects
 
-\item \code{disjoin(ChromatinAssay)}: method for ChromatinAssay objects
+\item \code{disjoin(GRangesAssay)}: method for GRangesAssay objects
 
 \item \code{disjoin(Seurat)}: method for Seurat objects
 
-\item \code{isDisjoint(ChromatinAssay)}: method for ChromatinAssay objects
+\item \code{isDisjoint(GRangesAssay)}: method for GRangesAssay objects
 
 \item \code{isDisjoint(Seurat)}: method for Seurat objects
 
-\item \code{disjointBins(ChromatinAssay)}: method for ChromatinAssay objects
+\item \code{disjointBins(GRangesAssay)}: method for GRangesAssay objects
 
 \item \code{disjointBins(Seurat)}: method for Seurat objects
 
@@ -94,7 +94,7 @@ are available for \code{\link{ChromatinAssay}} objects.
   \item{\link[IRanges]{inter-range-methods} in the \pkg{IRanges} package.}
   \item{\link[GenomicRanges]{inter-range-methods} in the \pkg{GenomicRanges}
   package}
-  \item{\link{ChromatinAssay-class}}
+  \item{\link{GRangesAssay-class}}
  }
 }
 \concept{inter_range}

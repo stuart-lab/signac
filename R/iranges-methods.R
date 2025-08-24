@@ -6,21 +6,21 @@
 #' reduce disjoin gaps isDisjoint disjointBins
 NULL
 
-setOldClass(Classes = "ChromatinAssay")
+setOldClass(Classes = "GRangesAssay")
 
 ## Nearest methods
 
 # precede
 
-#' Find the nearest range neighbors for ChromatinAssay objects
+#' Find the nearest range neighbors for GRangesAssay objects
 #'
 #' The \code{precede, follow, nearest, distance, distanceToNearest} methods
-#' are available for \code{\link{ChromatinAssay}} objects.
+#' are available for \code{\link{GRangesAssay}} objects.
 #'
 #' @name nearest-methods
-#' @param x A query \code{\link{ChromatinAssay}} object
+#' @param x A query \code{\link{GRangesAssay}} object
 #' @param subject The subject \code{\link[GenomicRanges]{GRanges}} or
-#' \code{\link{ChromatinAssay}} object. If missing, \code{x} is used as the
+#' \code{\link{GRangesAssay}} object. If missing, \code{x} is used as the
 #' subject.
 #' @param select Logic for handling ties.
 #' See \code{\link[GenomicRanges]{nearest-methods}} in the \pkg{GenomicRanges}
@@ -29,19 +29,19 @@ setOldClass(Classes = "ChromatinAssay")
 #' should be ignored.
 #' @param ... Additional arguments for methods
 #'
-#' @aliases precede precede,ANY,ChromatinAssay-method
+#' @aliases precede precede,ANY,GRangesAssay-method
 #' @seealso
 #' \itemize{
 #'   \item{\link[IRanges]{nearest-methods} in the \pkg{IRanges} package.}
 #'   \item{\link[GenomicRanges]{nearest-methods} in the \pkg{GenomicRanges}
 #'   package}
-#'   \item{\link{ChromatinAssay-class}}
+#'   \item{\link{GRangesAssay-class}}
 #'  }
 #' @exportMethod precede
 #' @concept nearest
 setMethod(
   f = "precede",
-  signature = c("ANY", "ChromatinAssay"),
+  signature = c("ANY", "GRangesAssay"),
   definition = function(
     x, subject, select = c("arbitrary", "all"), ignore.strand = FALSE
   ) {
@@ -50,11 +50,11 @@ setMethod(
   }
 )
 
-#' @describeIn nearest-methods method for ChromatinAssay, ANY
+#' @describeIn nearest-methods method for GRangesAssay, ANY
 #' @concept nearest
 setMethod(
   f = "precede",
-  signature = c("ChromatinAssay", "ANY"),
+  signature = c("GRangesAssay", "ANY"),
   definition = function(
     x, subject, select = c("arbitrary", "all"), ignore.strand = FALSE
   ) {
@@ -63,11 +63,11 @@ setMethod(
   }
 )
 
-#' @describeIn nearest-methods method for ChromatinAssay, ChromatinAssay
+#' @describeIn nearest-methods method for GRangesAssay, GRangesAssay
 #' @concept nearest
 setMethod(
   f = "precede",
-  signature = c("ChromatinAssay", "ChromatinAssay"),
+  signature = c("GRangesAssay", "GRangesAssay"),
   definition = function(
     x, subject, select = c("arbitrary", "all"), ignore.strand = FALSE
   ) {
@@ -124,12 +124,12 @@ setMethod(
 # follow
 
 #' @aliases follow
-#' @describeIn nearest-methods method for ANY, ChromatinAssay
+#' @describeIn nearest-methods method for ANY, GRangesAssay
 #' @exportMethod follow
 #' @concept nearest
 setMethod(
   f = "follow",
-  signature = c("ANY", "ChromatinAssay"),
+  signature = c("ANY", "GRangesAssay"),
   definition = function(
     x, subject, select = c("arbitrary", "all"), ignore.strand = FALSE
   ) {
@@ -138,11 +138,11 @@ setMethod(
   }
 )
 
-#' @describeIn nearest-methods method for ChromatinAssay, ANY
+#' @describeIn nearest-methods method for GRangesAssay, ANY
 #' @concept nearest
 setMethod(
   f = "follow",
-  signature = c("ChromatinAssay", "ANY"),
+  signature = c("GRangesAssay", "ANY"),
   definition = function(
     x, subject, select = c("arbitrary", "all"), ignore.strand = FALSE
   ) {
@@ -151,11 +151,11 @@ setMethod(
   }
 )
 
-#' @describeIn nearest-methods method for ChromatinAssay, ChromatinAssay
+#' @describeIn nearest-methods method for GRangesAssay, GRangesAssay
 #' @concept nearest
 setMethod(
   f = "follow",
-  signature = c("ChromatinAssay", "ChromatinAssay"),
+  signature = c("GRangesAssay", "GRangesAssay"),
   definition = function(
     x, subject, select = c("arbitrary", "all"), ignore.strand = FALSE
   ) {
@@ -210,12 +210,12 @@ setMethod(
 )
 
 #' @aliases nearest
-#' @describeIn nearest-methods method for ANY, ChromatinAssay
+#' @describeIn nearest-methods method for ANY, GRangesAssay
 #' @exportMethod nearest
 #' @concept nearest
 setMethod(
   f = "nearest",
-  signature = c("ANY", "ChromatinAssay"),
+  signature = c("ANY", "GRangesAssay"),
   definition = function(
     x, subject, select = c("arbitrary", "all"), ignore.strand = FALSE
   ) {
@@ -224,11 +224,11 @@ setMethod(
   }
 )
 
-#' @describeIn nearest-methods method for ChromatinAssay, ANY
+#' @describeIn nearest-methods method for GRangesAssay, ANY
 #' @concept nearest
 setMethod(
   f = "nearest",
-  signature = c("ChromatinAssay", "ANY"),
+  signature = c("GRangesAssay", "ANY"),
   definition = function(
     x, subject, select = c("arbitrary", "all"), ignore.strand = FALSE
   ) {
@@ -237,11 +237,11 @@ setMethod(
   }
 )
 
-#' @describeIn nearest-methods method for ChromatinAssay, ChromatinAssay
+#' @describeIn nearest-methods method for GRangesAssay, GRangesAssay
 #' @concept nearest
 setMethod(
   f = "nearest",
-  signature = c("ChromatinAssay", "ChromatinAssay"),
+  signature = c("GRangesAssay", "GRangesAssay"),
   definition = function(
     x, subject, select = c("arbitrary", "all"), ignore.strand = FALSE
   ) {
@@ -296,16 +296,16 @@ setMethod(
 )
 
 #' @param y For the \code{distance} method, a
-#' \code{\link[GenomicRanges]{GRanges}} object or a \code{\link{ChromatinAssay}}
+#' \code{\link[GenomicRanges]{GRanges}} object or a \code{\link{GRangesAssay}}
 #' object
 #'
 #' @aliases distance
 #' @exportMethod distance
-#' @describeIn nearest-methods method for ANY, ChromatinAssay
+#' @describeIn nearest-methods method for ANY, GRangesAssay
 #' @concept nearest
 setMethod(
   f = "distance",
-  signature = c("ANY", "ChromatinAssay"),
+  signature = c("ANY", "GRangesAssay"),
   definition = function(
     x, y, ignore.strand = FALSE, ...
   ) {
@@ -314,11 +314,11 @@ setMethod(
   }
 )
 
-#' @describeIn nearest-methods method for ChromatinAssay, ANY
+#' @describeIn nearest-methods method for GRangesAssay, ANY
 #' @concept nearest
 setMethod(
   f = "distance",
-  signature = c("ChromatinAssay", "ANY"),
+  signature = c("GRangesAssay", "ANY"),
   definition = function(
     x, y, ignore.strand = FALSE, ...
   ) {
@@ -327,11 +327,11 @@ setMethod(
   }
 )
 
-#' @describeIn nearest-methods method for ChromatinAssay, ChromatinAssay
+#' @describeIn nearest-methods method for GRangesAssay, GRangesAssay
 #' @concept nearest
 setMethod(
   f = "distance",
-  signature = c("ChromatinAssay", "ChromatinAssay"),
+  signature = c("GRangesAssay", "GRangesAssay"),
   definition = function(
     x, y, ignore.strand = FALSE, ...
   ) {
@@ -387,11 +387,11 @@ setMethod(
 
 #' @aliases distanceToNearest
 #' @exportMethod distanceToNearest
-#' @describeIn nearest-methods method for ANY, ChromatinAssay
+#' @describeIn nearest-methods method for ANY, GRangesAssay
 #' @concept nearest
 setMethod(
   f = "distanceToNearest",
-  signature = c("ANY", "ChromatinAssay"),
+  signature = c("ANY", "GRangesAssay"),
   definition = function(
     x, subject, ignore.strand = FALSE, ...
   ) {
@@ -400,11 +400,11 @@ setMethod(
   }
 )
 
-#' @describeIn nearest-methods method for ChromatinAssay, ANY
+#' @describeIn nearest-methods method for GRangesAssay, ANY
 #' @concept nearest
 setMethod(
   f = "distanceToNearest",
-  signature = c("ChromatinAssay", "ANY"),
+  signature = c("GRangesAssay", "ANY"),
   definition = function(
     x, subject, ignore.strand = FALSE, ...
   ) {
@@ -413,11 +413,11 @@ setMethod(
   }
 )
 
-#' @describeIn nearest-methods method for ChromatinAssay, ChromatinAssay
+#' @describeIn nearest-methods method for GRangesAssay, GRangesAssay
 #' @concept nearest
 setMethod(
   f = "distanceToNearest",
-  signature = c("ChromatinAssay", "ChromatinAssay"),
+  signature = c("GRangesAssay", "GRangesAssay"),
   definition = function(
     x, subject, ignore.strand = FALSE, ...
   ) {
@@ -473,37 +473,37 @@ setMethod(
 
 ## Find overlaps methods
 
-#' Find overlapping ranges for ChromatinAssay objects
+#' Find overlapping ranges for GRangesAssay objects
 #'
 #' The \code{findOverlaps, countOverlaps} methods are available for
-#' \code{\link{ChromatinAssay}} objects. This allows finding overlaps between
-#' genomic ranges and the ranges stored in the ChromatinAssay.
+#' \code{\link{GRangesAssay}} objects. This allows finding overlaps between
+#' genomic ranges and the ranges stored in the GRangesAssay
 #'
-#' If a ChromatinAssay is set as the default assay in a
+#' If a GRangesAssay is set as the default assay in a
 #' \code{\link[SeuratObject]{Seurat}} object, you can also call \code{findOverlaps}
 #' directly on the Seurat object.
 #'
-#' @param query,subject A \code{\link{ChromatinAssay}} object
+#' @param query,subject A \code{\link{GRangesAssay}} object
 #' @param maxgap,minoverlap,type,select,ignore.strand See
 #' \code{?\link[GenomicRanges]{findOverlaps}} in the \pkg{GenomicRanges} and
 #' \pkg{IRanges} packages.
 #' @return See \code{\link[GenomicRanges]{findOverlaps}}
 #'
 #' @name findOverlaps-methods
-#' @aliases findOverlaps findOverlaps,Vector,ChromatinAssay-method
+#' @aliases findOverlaps findOverlaps,Vector,GRangesAssay-method
 #' @seealso
 #' \itemize{
 #'   \item{\link[IRanges]{findOverlaps-methods} in the \pkg{IRanges} package.}
 #'   \item{\link[GenomicRanges]{findOverlaps-methods} in the \pkg{GenomicRanges}
 #'   package}
-#'   \item{\link{ChromatinAssay-class}}
+#'   \item{\link{GRangesAssay-class}}
 #'  }
 #'
 #' @exportMethod findOverlaps
 #' @concept overlaps
 setMethod(
   f = "findOverlaps",
-  signature = c("Vector", "ChromatinAssay"),
+  signature = c("Vector", "GRangesAssay"),
   definition = function(
     query, subject, maxgap = -1L, minoverlap = 0L,
     type = c("any", "start", "end", "within", "equal"),
@@ -515,11 +515,11 @@ setMethod(
   }
 )
 
-#' @describeIn findOverlaps-methods method for ChromatinAssay, Vector
+#' @describeIn findOverlaps-methods method for GRangesAssay, Vector
 #' @concept overlaps
 setMethod(
   f = "findOverlaps",
-  signature = c("ChromatinAssay", "Vector"),
+  signature = c("GRangesAssay", "Vector"),
   definition = function(
     query, subject, maxgap = -1L, minoverlap = 0L,
     type = c("any", "start", "end", "within", "equal"),
@@ -531,11 +531,11 @@ setMethod(
   }
 )
 
-#' @describeIn findOverlaps-methods method for ChromatinAssay, ChromatinAssay
+#' @describeIn findOverlaps-methods method for GRangesAssay, GRangesAssay
 #' @concept overlaps
 setMethod(
   f = "findOverlaps",
-  signature = c("ChromatinAssay", "ChromatinAssay"),
+  signature = c("GRangesAssay", "GRangesAssay"),
   definition = function(
     query, subject, maxgap = -1L, minoverlap = 0L,
     type = c("any", "start", "end", "within", "equal"),
@@ -602,11 +602,11 @@ setMethod(
 )
 
 #' @aliases countOverlaps
-#' @describeIn findOverlaps-methods method for Vector, ChromatinAssay
+#' @describeIn findOverlaps-methods method for Vector, GRangesAssay
 #' @concept overlaps
 setMethod(
   f = "countOverlaps",
-  signature = c("Vector", "ChromatinAssay"),
+  signature = c("Vector", "GRangesAssay"),
   definition = function(
     query, subject, maxgap = -1L, minoverlap = 0L,
     type = c("any", "start", "end", "within", "equal"),
@@ -617,11 +617,11 @@ setMethod(
   }
 )
 
-#' @describeIn findOverlaps-methods method for ChromatinAssay, Vector
+#' @describeIn findOverlaps-methods method for GRangesAssay, Vector
 #' @concept overlaps
 setMethod(
   f = "countOverlaps",
-  signature = c("ChromatinAssay", "Vector"),
+  signature = c("GRangesAssay", "Vector"),
   definition = function(
     query, subject, maxgap = -1L, minoverlap = 0L,
     type = c("any", "start", "end", "within", "equal"),
@@ -632,11 +632,11 @@ setMethod(
   }
 )
 
-#' @describeIn findOverlaps-methods method for ChromatinAssay, ChromatinAssay
+#' @describeIn findOverlaps-methods method for GRangesAssay, GRangesAssay
 #' @concept overlaps
 setMethod(
   f = "countOverlaps",
-  signature = c("ChromatinAssay", "ChromatinAssay"),
+  signature = c("GRangesAssay", "GRangesAssay"),
   definition = function(
     query, subject, maxgap = -1L, minoverlap = 0L,
     type = c("any", "start", "end", "within", "equal"),
@@ -701,10 +701,10 @@ setMethod(
 
 ## Coverage methods
 
-#' Coverage of a ChromatinAssay object
+#' Coverage of a GRangesAssay object
 #'
-#' This is the \code{coverage} method for \code{\link{ChromatinAssay}} objects.
-#' @param x A \code{\link{ChromatinAssay}} object
+#' This is the \code{coverage} method for \code{\link{GRangesAssay}} objects.
+#' @param x A \code{\link{GRangesAssay}} object
 #' @param shift How much each range should be shifted before coverage is
 #' computed. See \code{\link[IRanges]{coverage}} in the \pkg{IRanges} package.
 #' @param weight Assigns weight to each range in \code{x}.
@@ -720,14 +720,14 @@ setMethod(
 #'   \item{\link[IRanges]{coverage-methods} in the \pkg{IRanges} package.}
 #'   \item{\link[GenomicRanges]{coverage-methods} in the \pkg{GenomicRanges}
 #'   package}
-#'   \item{\link{ChromatinAssay-class}}
+#'   \item{\link{GRangesAssay-class}}
 #'  }
 #' @exportMethod coverage
-#' @describeIn coverage-ChromatinAssay-method method for ChromatinAssay objects
+#' @describeIn coverage-GRangesAssay-method method for GRangesAssay objects
 #' @concept coverage
 setMethod(
   f = "coverage",
-  signature = "ChromatinAssay",
+  signature = "GRangesAssay",
   definition = function(
     x, shift = 0L, width = NULL, weight = 1L,
     method = c("auto", "sort", "hash")
@@ -737,7 +737,7 @@ setMethod(
   }
 )
 
-#' @describeIn coverage-ChromatinAssay-method method for Seurat objects
+#' @describeIn coverage-GRangesAssay-method method for Seurat objects
 #' @concept coverage
 setMethod(
   f = "coverage",
@@ -754,31 +754,31 @@ setMethod(
 
 ## inter-range methods
 
-#' Inter-range transformations for ChromatinAssay objects
+#' Inter-range transformations for GRangesAssay objects
 #'
 #' The \code{range, reduce, gaps, disjoin, isDisjoint, disjointBins} methods
-#' are available for \code{\link{ChromatinAssay}} objects.
+#' are available for \code{\link{GRangesAssay}} objects.
 #'
 #' @name inter-range-methods
-#' @param x A \code{\link{ChromatinAssay}} object
+#' @param x A \code{\link{GRangesAssay}} object
 #' @param ... Additional arguments
 #' @param with.revmap See \code{\link[IRanges]{inter-range-methods}} in the
 #' \pkg{IRanges} packages
 #' @param na.rm Ignored
 #'
-#' @aliases range range,ChromatinAssay-method
+#' @aliases range range,GRangesAssay-method
 #' @seealso
 #' \itemize{
 #'   \item{\link[IRanges]{inter-range-methods} in the \pkg{IRanges} package.}
 #'   \item{\link[GenomicRanges]{inter-range-methods} in the \pkg{GenomicRanges}
 #'   package}
-#'   \item{\link{ChromatinAssay-class}}
+#'   \item{\link{GRangesAssay-class}}
 #'  }
 #' @exportMethod range
 #' @concept inter_range
 setMethod(
   f = "range",
-  signature = "ChromatinAssay",
+  signature = "GRangesAssay",
   definition = function(
     x, ..., with.revmap = FALSE, na.rm = FALSE
   ) {
@@ -803,12 +803,12 @@ setMethod(
 
 #' @param drop.empty.ranges See \code{?\link[IRanges]{inter-range-methods}}
 #' @aliases reduce
-#' @describeIn inter-range-methods method for ChromatinAssay objects
+#' @describeIn inter-range-methods method for GRangesAssay objects
 #' @exportMethod reduce
 #' @concept inter_range
 setMethod(
   f = "reduce",
-  signature = "ChromatinAssay",
+  signature = "GRangesAssay",
   definition = function(
     x, drop.empty.ranges = FALSE, ...
   ) {
@@ -833,12 +833,12 @@ setMethod(
 
 #' @param start,end See \code{?\link[IRanges]{inter-range-methods}}
 #' @aliases gaps
-#' @describeIn inter-range-methods method for ChromatinAssay objects
+#' @describeIn inter-range-methods method for GRangesAssay objects
 #' @exportMethod gaps
 #' @concept inter_range
 setMethod(
   f = "gaps",
-  signature = "ChromatinAssay",
+  signature = "GRangesAssay",
   definition = function(
     x, start = NA, end = NA
   ) {
@@ -862,12 +862,12 @@ setMethod(
 )
 
 #' @aliases disjoin
-#' @describeIn inter-range-methods method for ChromatinAssay objects
+#' @describeIn inter-range-methods method for GRangesAssay objects
 #' @exportMethod disjoin
 #' @concept inter_range
 setMethod(
   f = "disjoin",
-  signature = "ChromatinAssay",
+  signature = "GRangesAssay",
   definition = function(x, ...) {
     x <- granges(x = x)
     callGeneric()
@@ -887,12 +887,12 @@ setMethod(
 )
 
 #' @aliases isDisjoint
-#' @describeIn inter-range-methods method for ChromatinAssay objects
+#' @describeIn inter-range-methods method for GRangesAssay objects
 #' @exportMethod isDisjoint
 #' @concept inter_range
 setMethod(
   f = "isDisjoint",
-  signature = "ChromatinAssay",
+  signature = "GRangesAssay",
   definition = function(x, ...) {
     x <- granges(x = x)
     callGeneric()
@@ -912,12 +912,12 @@ setMethod(
 )
 
 #' @aliases disjointBins
-#' @describeIn inter-range-methods method for ChromatinAssay objects
+#' @describeIn inter-range-methods method for GRangesAssay objects
 #' @exportMethod disjointBins
 #' @concept inter_range
 setMethod(
   f = "disjointBins",
-  signature = "ChromatinAssay",
+  signature = "GRangesAssay",
   definition = function(x, ...) {
     x <- granges(x = x)
     callGeneric()
