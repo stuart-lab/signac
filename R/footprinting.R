@@ -120,6 +120,7 @@ GetFootprintData <- function(
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
 #' @importFrom GenomeInfoDb seqlengths
+#' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @concept footprinting
 #' @rdname Footprint
@@ -138,13 +139,18 @@ Footprint.ChromatinAssay5 <- function(
   verbose = TRUE,
   ...
 ) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (is.null(x = motif.name) & is.null(x = regions)) {
     stop("Must supply the name of a motif or a set of regions")
   } else if (!is.null(x = motif.name) & !is.null(x = regions)) {
     stop("Supplied both a motif name and set of regions. Choose one only.")
   } else if (!is.null(x = motif.name)) {
-    # pull motif positions from object
-    motif.obj <- Motifs(object = object)
+    if (!inherits(x = object[[assay]], what = "GRangesAssay")) {
+      stop("Must supply motif positions")
+    } else {
+      # pull motif positions from object
+      motif.obj <- Motifs(object = object)
+    }
     if (length(x = motif.name) != length(x = key)) {
       stop("A Key needs to be supplied for each motif")
     }
