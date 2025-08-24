@@ -941,7 +941,7 @@ RegionStats.default <- function(
 }
 
 #' @rdname RegionStats
-#' @method RegionStats ChromatinAssay
+#' @method RegionStats GRangesAssay
 #' @importFrom methods slot
 #' @importFrom SeuratObject GetAssayData
 #' @export
@@ -954,7 +954,7 @@ RegionStats.default <- function(
 #'   genome = BSgenome.Hsapiens.UCSC.hg19
 #' )
 #' }
-RegionStats.ChromatinAssay <- function(
+RegionStats.GRangesAssay <- function(
   object,
   genome,
   verbose = TRUE,
@@ -968,10 +968,11 @@ RegionStats.ChromatinAssay <- function(
     ...
   )
   rownames(x = feature.metadata) <- rownames(x = object)
-  meta.data <- GetAssayData(object = object, layer = "meta.features")
+  meta.data <- object[[]]
   feature.metadata <- feature.metadata[rownames(x = meta.data), ]
   meta.data <- cbind(meta.data, feature.metadata)
-  slot(object = object, name = "meta.features") <- meta.data
+  object[[names(x = meta.data)]] <- NULL
+  object[[names(x = meta.data)]] <- meta.data
   return(object)
 }
 
