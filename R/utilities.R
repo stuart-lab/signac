@@ -36,8 +36,8 @@ AddChromatinModule <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5.")
   }
 
   # first find index of each feature
@@ -143,7 +143,7 @@ AccessiblePeaks <- function(
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   cells <- SetIfNull(x = cells, y = WhichCells(object, idents = idents))
-  open.peaks <- GetAssayData(
+  open.peaks <- LayerData(
     object = object,
     assay = assay,
     layer = "counts"
@@ -437,69 +437,6 @@ GetTSSPositions <- function(ranges, biotypes = "protein_coding") {
   return(tss)
 }
 
-#' Find intersecting regions between two objects
-#'
-#' Intersects the regions stored in the rownames of two objects and
-#' returns a vector containing the names of rows that intersect
-#' for each object. The order of the row names return corresponds
-#' to the intersecting regions, i.e. the nth feature of the first vector
-#' will intersect the nth feature in the second vector. A distance
-#' parameter can be given, in which case features within the given
-#' distance will be called as intersecting.
-#'
-#' @param object.1 The first Seurat object
-#' @param object.2 The second Seurat object
-#' @param assay.1 Name of the assay to use in the first object. If NULL, use
-#' the default assay
-#' @param assay.2 Name of the assay to use in the second object. If NULL, use
-#' the default assay
-#' @param distance Maximum distance between regions allowed for an intersection
-#' to be recorded. Default is 0.
-#' @param verbose Display messages
-#'
-#' @importMethodsFrom GenomicRanges distanceToNearest
-#' @importFrom S4Vectors subjectHits queryHits mcols
-#' @importFrom SeuratObject DefaultAssay
-#' @export
-#' @concept utilities
-#' @return Returns a list of two character vectors containing the row names
-#' in each object that overlap each other.
-#' @examples
-#' GetIntersectingFeatures(
-#'   object.1 = atac_small,
-#'   object.2 = atac_small,
-#'   assay.1 = 'peaks',
-#'   assay.2 = 'bins'
-#' )
-GetIntersectingFeatures <- function(
-  object.1,
-  object.2,
-  assay.1 = NULL,
-  assay.2 = NULL,
-  distance = 0,
-  verbose = TRUE
-) {
-  assay.1 <- SetIfNull(x = assay.1, y = DefaultAssay(object = object.1))
-  assay.2 <- SetIfNull(x = assay.2, y = DefaultAssay(object = object.2))
-  if (!inherits(x = object.1[[assay.1]], what = "ChromatinAssay")) {
-    stop("Requested assay in object 1 is not a ChromatinAssay.")
-  }
-  if (!inherits(x = object.2[[assay.2]], what = "ChromatinAssay")) {
-    stop("Requested assay in object 2 is not a ChromatinAssay")
-  }
-  regions.1 <- GetAssayData(object = object.1, assay = assay.1, layer = "ranges")
-  regions.2 <- GetAssayData(object = object.2, assay = assay.2, layer = "ranges")
-  if (verbose) {
-    message("Intersecting regions across objects")
-  }
-  region.intersections <- distanceToNearest(x = regions.1, subject = regions.2)
-  keep.intersections <- mcols(x = region.intersections)$distance <= distance
-  region.intersections <- region.intersections[keep.intersections, ]
-  intersect.object1 <- queryHits(x = region.intersections)
-  intersect.object2 <- subjectHits(x = region.intersections)
-  return(list(intersect.object1, intersect.object2))
-}
-
 #' String to GRanges
 #'
 #' Convert a genomic coordinate string to a GRanges object
@@ -661,7 +598,7 @@ GetCellsInRegion <- function(tabix, region, cells = NULL) {
 #' @importFrom IRanges findOverlaps
 #' @importFrom S4Vectors queryHits
 #' @importFrom Matrix colSums
-#' @importFrom SeuratObject GetAssayData
+#' @importFrom SeuratObject LayerData
 #'
 #' @export
 #' @concept utilities
@@ -680,16 +617,16 @@ CountsInRegion <- function(
   regions,
   ...
 ) {
-  if (!is(object = object[[assay]], class2 = "ChromatinAssay")) {
-    stop("Must supply a ChromatinAssay")
+  if (!is(object = object[[assay]], class2 = "ChromatinAssay5")) {
+    stop("Must supply a ChromatinAssay5.")
   }
   obj.granges <- GetAssayData(object = object, assay = assay, layer = "ranges")
   overlaps <- findOverlaps(query = obj.granges, subject = regions, ...)
   hit.regions <- queryHits(x = overlaps)
-  data.matrix <- GetAssayData(
+  data.matrix <- LayerData(
     object = object, assay = assay, layer = "counts"
   )[hit.regions, , drop = FALSE]
-  return(colSums(data.matrix))
+  return(colSums(x = data.matrix))
 }
 
 #' Fraction of counts in a genomic region
@@ -702,7 +639,7 @@ CountsInRegion <- function(
 #' @param regions A GRanges object containing a set of genomic regions
 #' @param ... Additional arguments passed to \code{\link{CountsInRegion}}
 #' @importFrom Matrix colSums
-#' @importFrom SeuratObject GetAssayData DefaultAssay
+#' @importFrom SeuratObject LayerData DefaultAssay
 #'
 #' @export
 #' @concept utilities
@@ -728,7 +665,7 @@ FractionCountsInRegion <- function(
     assay = assay,
     ...
   )
-  total.reads <- colSums(x = GetAssayData(
+  total.reads <- colSums(x = LayerData(
     object = object, assay = assay, layer = "counts"
   ))
   return(reads.in.region / total.reads)
@@ -939,7 +876,7 @@ MatchRegionStats <- function(
 #' from multiple Seurat objects containing single-cell
 #' chromatin data.
 #'
-#' @param object.list A list of Seurat objects or ChromatinAssay objects
+#' @param object.list A list of Seurat objects or GRangesAssay objects
 #' @param mode Function to use when combining genomic ranges. Can be "reduce"
 #' (default) or "disjoin".
 #' See \code{\link[GenomicRanges]{reduce}}
@@ -1059,7 +996,7 @@ AddMissing <- function(x, cells = NULL, features = NULL) {
   return(x)
 }
 
-#' @importFrom SeuratObject DefaultAssay GetAssayData
+#' @importFrom SeuratObject DefaultAssay LayerData
 #' @importFrom Matrix Diagonal tcrossprod rowSums
 AverageCountMatrix <- function(
   object,
@@ -1068,7 +1005,7 @@ AverageCountMatrix <- function(
   idents = NULL
 ) {
   assay = SetIfNull(x = assay, y = DefaultAssay(object = object))
-  countmatrix <- GetAssayData(object = object[[assay]], layer = "counts")
+  countmatrix <- LayerData(object = object[[assay]], layer = "counts")
   ident.matrix <- BinaryIdentMatrix(
     object = object,
     group.by = group.by,
@@ -1112,12 +1049,12 @@ BinaryIdentMatrix <- function(object, group.by = NULL, idents = NULL) {
 #' @importFrom Matrix colSums
 #
 CalcN <- function(object) {
-  if (IsMatrixEmpty(x = GetAssayData(object = object, layer = "counts"))) {
+  if (IsMatrixEmpty(x = LayerData(object = object, layer = "counts"))) {
     return(NULL)
   }
   return(list(
     nCount = colSums(x = object, slot = "counts"),
-    nFeature = colSums(x = GetAssayData(object = object, layer = "counts") > 0)
+    nFeature = colSums(x = LayerData(object = object, layer = "counts") > 0)
   ))
 }
 
