@@ -20,7 +20,7 @@ NULL
 #' @concept fragments
 #'
 head.Fragment <- function(x, n = 6L, ...) {
-  fpath <- GetFragmentData(object = x, slot = "path")
+  fpath <- GetFragmentData(object = x, slot = "file.path")
   df <- read.table(file = fpath, nrows = n, ...)
   if (ncol(x = df) == 5) {
     colnames(x = df) <- c("chrom", "start", "end", "barcode", "readCount")
@@ -236,7 +236,7 @@ SplitFragments <- function(
     } else {
       suffix.use <- file.suffix
     }
-    fragpath <- GetFragmentData(object = frags[[i]], slot = "path")
+    fragpath <- GetFragmentData(object = frags[[i]], slot = "file.path")
     if (isRemote(x = fragpath)) {
       message("Remote fragment files not supported, skipping fragment file")
     } else {
@@ -333,8 +333,8 @@ ValidateCells <- function(
 #' @concept fragments
 #' @importFrom tools md5sum
 ValidateHash <- function(object, verbose = TRUE) {
-  path <- GetFragmentData(object = object, slot = "path")
-  index.file <- GetIndexFile(fragment = path, verbose = verbose)
+  path <- GetFragmentData(object = object, slot = "file.path")
+  index.file <- GetFragmentData(object = object, slot = "file.index")
   is.remote <- isRemote(x = path)
   # if remote, return TRUE
   if (is.remote) {
@@ -447,7 +447,7 @@ UpdatePath <- function(object, new.path, new.index.path = NULL, verbose = TRUE) 
       stop("Fragment file not indexed")
     }
   }
-  old.path <- GetFragmentData(object = object, slot = "path")
+  old.path <- GetFragmentData(object = object, slot = "file.path")
   old.is.remote <- isRemote(x = old.path)
   if (identical(x = old.path, y = new.path)) {
     return(object)
