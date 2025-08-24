@@ -350,8 +350,8 @@ ClosestFeature <- function(
     assay <- DefaultAssay(object = object)
     object <- object[[assay]]
   }
-  if (!inherits(x = object, what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
+  if (!inherits(x = object, what = "GRangesAssay")) {
+    stop("The requested assay is not a GRangesAssay")
   }
   if (length(x = regions) == 0) {
     stop("No query regions supplied")
