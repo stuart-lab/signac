@@ -3,7 +3,7 @@
 \name{ATACqc}
 \alias{ATACqc}
 \alias{ATACqc.default}
-\alias{ATACqc.ChromatinAssay}
+\alias{ATACqc.ChromatinAssay5}
 \alias{ATACqc.Seurat}
 \title{Compute scATAC-seq QC metrics}
 \usage{
@@ -19,7 +19,7 @@ ATACqc(object, ...)
   ...
 )
 
-\method{ATACqc}{ChromatinAssay}(
+\method{ATACqc}{ChromatinAssay5}(
   object,
   annotations = NULL,
   fragtk.path = NULL,

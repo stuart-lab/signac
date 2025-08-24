@@ -24,6 +24,9 @@ ATACqc.default <- function(
     stop("fragtk not found. Please install fragtk:",
          "https://crates.io/crates/fragtk")
   }
+  if (!file.exists(fragtk.path)) {
+    stop("fragtk executable does not exist at supplied path")
+  }
   if (!dir.exists(paths = outdir)) {
     stop("Requested output directory does not exist")
   }
@@ -84,9 +87,9 @@ ATACqc.default <- function(
 #' @export
 #' @concept qc
 #' @rdname ATACqc
-#' @method ATACqc ChromatinAssay
+#' @method ATACqc ChromatinAssay5
 #' @importFrom utils write.table
-ATACqc.ChromatinAssay <- function(
+ATACqc.ChromatinAssay5 <- function(
     object,
     annotations = NULL,
     fragtk.path = NULL,
@@ -102,7 +105,7 @@ ATACqc.ChromatinAssay <- function(
   results <- data.frame()
   
   for (i in seq_along(along.with = frags)) {
-    fragments <- GetFragmentData(object = frags[[i]], slot = "path")
+    fragments <- GetFragmentData(object = frags[[i]], slot = "file.path")
     if (verbose) {
       message("Processing ", fragments)
     }
