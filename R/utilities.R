@@ -1432,7 +1432,7 @@ ExtractCell <- function(x, ncol=5) {
 #
 # @return Returns a data.frame
 ExtractFragments <- function(fragments, n = NULL, verbose = TRUE) {
-  fpath <- GetFragmentData(object = fragments, slot = "path")
+  fpath <- GetFragmentData(object = fragments, slot = "file.path")
   if (isRemote(x = fpath)) {
     stop("Remote fragment files not supported")
   }
