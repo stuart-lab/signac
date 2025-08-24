@@ -3,7 +3,7 @@
 \name{RunTFIDF}
 \alias{RunTFIDF}
 \alias{RunTFIDF.default}
-\alias{RunTFIDF.Assay}
+\alias{RunTFIDF.Assay5}
 \alias{RunTFIDF.StdAssay}
 \alias{RunTFIDF.Seurat}
 \title{Compute the term-frequency inverse-document-frequency}
@@ -20,12 +20,14 @@ RunTFIDF(object, ...)
   ...
 )
 
-\method{RunTFIDF}{Assay}(
+\method{RunTFIDF}{Assay5}(
   object,
   assay = NULL,
   method = 1,
   scale.factor = 10000,
   idf = NULL,
+  layer = "counts",
+  save = "data",
   verbose = TRUE,
   ...
 )
@@ -36,6 +38,8 @@ RunTFIDF(object, ...)
   method = 1,
   scale.factor = 10000,
   idf = NULL,
+  layer = "counts",
+  save = "data",
   verbose = TRUE,
   ...
 )
@@ -46,6 +50,8 @@ RunTFIDF(object, ...)
   method = 1,
   scale.factor = 10000,
   idf = NULL,
+  layer = "counts",
+  save = "data",
   verbose = TRUE,
   ...
 )
