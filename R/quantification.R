@@ -290,7 +290,7 @@ FeatureMatrix <- function(
         mat <- RunFragtk(
           fragments = GetFragmentData(
             object = fragments[[x]],
-            slot = "path"
+            slot = "file.path"
           ),
           features = features,
           cells = cell.vec,
@@ -538,7 +538,8 @@ SingleFeatureMatrix <- function(
   sep = c("-", "-"),
   verbose = TRUE
 ) {
-  fragment.path <- GetFragmentData(object = fragment, slot = "path")
+  fragment.path <- GetFragmentData(object = fragment, slot = "file.path")
+  fragment.index <- GetFragmentData(object = fragment, slot = "file.index")
   frag.cells <- GetFragmentData(object = fragment, slot = "cells")
   if (!is.null(cells)) {
     # only look for cells that are in the fragment file
@@ -561,10 +562,7 @@ SingleFeatureMatrix <- function(
       cells <- frag.cells
     }
   }
-  tbx <- TabixFile(
-    file = fragment.path,
-    index = GetIndexFile(fragment = fragment.path, verbose = FALSE)
-  )
+  tbx <- TabixFile(file = fragment.path, index = fragment.index)
   n_feat_start <- length(x = features)
   if (keep_all_features) {
     features_to_get <- GRangesToString(grange = features, sep = sep)
