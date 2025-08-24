@@ -412,8 +412,8 @@ PlotFootprint <- function(
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   splitby_str <- "__signac_tmp__"
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5.")
   }
   if (!is.null(x = split.by)) {
     if (is.null(x = group.by)) {
@@ -666,10 +666,10 @@ RegionHeatmap <- function(
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   all.valid <- sapply(X = assay, FUN = function(x) {
-    inherits(x = object[[x]], what = "ChromatinAssay")
+    inherits(x = object[[x]], what = "ChromatinAssay5")
   })
   if (!all(all.valid)) {
-    stop("The requested assay is not a ChromatinAssay")
+    stop("The requested assay is not a ChromatinAssay5")
   }
   if (is.null(x = cols)) {
     colors_all <- hue_pal()(length(x = assay))
@@ -950,10 +950,10 @@ RegionPlot <- function(
     assay <- list(assay)
   }
   all.valid <- sapply(X = assay, FUN = function(x) {
-    inherits(x = object[[x]], what = "ChromatinAssay")
+    inherits(x = object[[x]], what = "ChromatinAssay5")
   })
   if (!all(all.valid)) {
-    stop("The requested assay is not a ChromatinAssay")
+    stop("The requested assay is not a ChromatinAssay5")
   }
   
   all.assay <- data.frame()
@@ -1106,16 +1106,17 @@ SingleCoveragePlot <- function(
       paste(valid.assay.scale, collapse = ", ")
     )
   }
-  cells <- SetIfNull(x = cells, y = colnames(x = object))
+  cells <- SetIfNull(x = cells, y = Cells(x = object))
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!inherits(x = assay, what = "list")) {
     assay <- list(assay)
   }
   lapply(X = assay, FUN = function(x) {
-    if (!inherits(x = object[[x]], what = "ChromatinAssay")) {
-      stop("Requested assay is not a ChromatinAssay.")
+    if (!inherits(x = object[[x]], what = "ChromatinAssay5")) {
+      stop("Requested assay is not a ChromatinAssay5.")
     }
   })
+  is.granges <- inherits(x = object[[assay[[1]]]], what = "GRangesAssay")
   if(length(colnames(object)) > length(colnames(object[[assay[[1]]]]))) {
     object <- UpdateChromatinObject(object = object,
                                     chromatin.assay = assay, 
@@ -1266,19 +1267,19 @@ SingleCoveragePlot <- function(
       mode = annotation
     )
   }
-  if (is.character(x = links)) {
+  if (is.character(x = links) & is.granges) {
     # subset to genes in the desired list
     links.use <- Links(object = object)
     links.use <- links.use[links.use$gene %in% links]
     Links(object = object) <- links.use
     links <- TRUE
   }
-  if (links) {
+  if (links & is.granges) {
     link.plot <- LinkPlot(object = object[[assay[[1]]]], region = region)
   } else {
     link.plot <- NULL
   }
-  if (peaks) {
+  if (peaks & is.granges) {
     peak.plot <- PeakPlot(
       object = object,
       assay = assay[[1]],
@@ -1829,8 +1830,8 @@ MotifPlot <- function(
     stop("Please install ggseqlogo: install.packages('ggseqlogo')")
   }
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
+  if (!inherits(x = object[[assay]], what = "GRangesAssay")) {
+    stop("The requested assay is not a GRangesAssay.")
   }
   data.use <- GetMotifData(object = object, assay = assay, slot = "pwm")
   if (length(x = data.use) == 0) {
@@ -1899,8 +1900,8 @@ FragmentHistogram <- function(
 ) {
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5.")
   }
   reads <- MultiGetReadsInRegion(
     object = object,
@@ -1972,8 +1973,8 @@ TSSPlot <- function(
   idents = NULL
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5.")
   }
   # get the normalized TSS enrichment matrix
   positionEnrichment <- GetAssayData(
@@ -2103,7 +2104,7 @@ CombineTracks <- function(
 
 #' Plot peaks in a genomic region
 #'
-#' Display the genomic ranges in a \code{\link{ChromatinAssay}} object that fall
+#' Display the genomic ranges in a \code{\link{GRangesAssay}} object that fall
 #' in a given genomic region
 #'
 #' @param object A \code{\link[SeuratObject]{Seurat}} object
@@ -2155,17 +2156,21 @@ PeakPlot <- function(
   extend.downstream = 0
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5.")
   }
 
   if (!inherits(x = region, what = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
   if (is.null(x = peaks)) {
-    peaks <- granges(x = object[[assay]])
-    md <- object[[assay]][[]]
-    mcols(x = peaks) <- md
+    if (!inherits(x = object[[assay]], what = "GRangesAssay")) {
+      stop("The requested assay is not a GRangesAssay.")
+    } else {
+      peaks <- granges(x = object[[assay]])
+      md <- object[[assay]][[]]
+      mcols(x = peaks) <- md
+    }
   }
   region <- FindRegion(
     object = object,
@@ -3222,8 +3227,8 @@ TilePlot <- function(
   idents = NULL
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("Requested assay is not a ChromatinAssay.")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("Requested assay is not a ChromatinAssay5.")
   }
   region <- FindRegion(
     object = object,
