@@ -874,19 +874,6 @@ GetAssayData.ChromatinAssay5 <- function(
   return(methods::slot(object = object, name = layer))
 }
 
-#' @importFrom SeuratObject LayerData
-#' @method LayerData ChromatinAssay5
-#' @export
-#' @concept assay
-LayerData.ChromatinAssay5 <- function(
-    object,
-    layer = "data",
-    assay = NULL,
-    ...
-) {
-  return(GetAssayData(object, layer = layer))
-}
-
 #' Get Fragment object data
 #'
 #' Extract data from a \code{\link{Fragment-class}} object
@@ -1200,16 +1187,6 @@ SetAssayData.ChromatinAssay5 <- function(
       methods::slot(object = object, name = layer) <- current.pos
     }
   }
-  return(object)
-}
-
-#' @importFrom SeuratObject LayerData<- SetAssayData
-#' @method LayerData<- ChromatinAssay5
-#' @concept assay
-#' @export
-"LayerData<-.ChromatinAssay5" <- function(object, layer, ..., value) {
-  object <- SetAssayData(object = object, layer = layer, new.data = value)
-  # validObject(object = object)
   return(object)
 }
 
