@@ -841,8 +841,8 @@ NucleosomeSignal <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5")
   }
   # first check that fragments are present
   frags <- Fragments(object = object[[assay]])

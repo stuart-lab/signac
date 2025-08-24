@@ -61,8 +61,8 @@ TSSEnrichment <- function(
   region_extension = 1000
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5")
   }
   # first check that fragments are present
   frags <- Fragments(object = object[[assay]])
@@ -256,7 +256,8 @@ TSSFast <- function(
   flank.counts <- vector(mode = "numeric", length = ncol(x = object))
   for (i in seq_along(along.with = frags)) {
     # open fragment file
-    tbx.path <- GetFragmentData(object = frags[[i]], slot = "path")
+    tbx.path <- GetFragmentData(object = frags[[i]], slot = "file.path")
+    tbx.index <- GetFragmentData(object = frags[[i]], slot = "file.index")
     cellmap <- GetFragmentData(object = frags[[i]], slot = "cells")
     if (is.null(x = cellmap)) {
       cellmap <- colnames(x = object)
@@ -264,10 +265,7 @@ TSSFast <- function(
     } else {
       cellmap <- cellmap[intersect(names(x = cellmap), colnames(x = object))]
     }
-    tbx <- TabixFile(
-      file = tbx.path,
-      index = GetIndexFile(fragment = tbx.path, verbose = FALSE)
-    )
+    tbx <- TabixFile(file = tbx.path, index = tbx.index)
     # iterate over chunked ranges
     res <- mylapply(
       X = seq_along(along.with = centers),
