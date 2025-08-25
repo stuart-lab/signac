@@ -64,7 +64,7 @@ setMethod(
   f = "seqnames",
   signature = "GRangesAssay",
   definition = function(x) {
-    x <- seqinfo(x = x)
+    x <- granges(x = x)
     if (is.null(x = x)) {
       return(NULL)
     } else {
@@ -160,7 +160,7 @@ setMethod(
   f = "seqnames",
   signature = "Seurat",
   definition = function(x) {
-    x <- seqinfo(x = x)
+    x <- granges(x = x)
     if (is.null(x = x)) {
       return(NULL)
     } else {
