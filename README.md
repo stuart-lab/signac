@@ -1,6 +1,6 @@
-# Signac
+# Signac <img align="right" src="man/figures/logo.svg" style="height:100px;" />
 
-[![R-CMD-check](https://github.com/timoast/signac/workflows/R-CMD-check/badge.svg)](https://github.com/timoast/signac/actions)
+[![R-CMD-check](https://github.com/stuart-lab/signac/workflows/R-CMD-check/badge.svg)](https://github.com/stuart-lab/signac/actions)
 [![CRAN
 Version](https://www.r-pkg.org/badges/version/Signac)](https://cran.r-project.org/package=Signac)
 [![CRAN
@@ -14,7 +14,7 @@ normalization, dimension reduction, clustering, differential activity,
 and more.
 
 Documentation and tutorials can be found at
-<https://satijalab.org/signac/>
+<https://stuartlab.org/signac/>
 
 ## Installation
 
@@ -30,24 +30,30 @@ To release the latest develop version from GitHub:
 ``` r
 if (!requireNamespace("remotes", quietly = TRUE))
     install.packages("remotes")
-remotes::install_github("timoast/signac", ref = "develop")
+remotes::install_github("stuart-lab/signac", ref = "develop")
 ```
 
 ## Release notes
 
 For a changelog please see the [NEWS
-file](https://github.com/timoast/signac/blob/develop/NEWS.md), also
+file](https://github.com/stuart-lab/signac/blob/develop/NEWS.md), also
 available on the [Signac
-website](https://satijalab.org/signac/news/index.html).
+website](https://stuartlab.org/signac/news/index.html).
+
+## Contributing
+
+We welcome contributions to the Signac package. Please see the
+[contribution guide](https://github.com/stuart-lab/signac/blob/develop/CONTRIBUTING.md)
+for more information.
 
 ## Getting help
 
 If you encounter a bug or have a feature request, please open an
-[issue](https://github.com/timoast/signac/issues).
+[issue](https://github.com/stuart-lab/signac/issues).
 
 If you would like to discuss questions related to single-cell analysis,
 you can open a
-[discussion](https://github.com/timoast/signac/discussions).
+[discussion](https://github.com/stuart-lab/signac/discussions).
 
 ## Citing Signac
 
@@ -72,7 +78,7 @@ al. 2021](https://doi.org/10.1038/s41592-021-01282-5)
 ## Related packages
 
 -   [Seurat](https://github.com/satijalab/seurat)
--   [SeuratObject](https://github.com/mojaveazure/seurat-object)
+-   [SeuratObject](https://github.com/satijalab/seurat-object)
 -   [SeuratDisk](https://github.com/mojaveazure/seurat-disk)
 -   [SeuratData](https://github.com/satijalab/seurat-data)
 -   [SeuratWrappers](https://github.com/satijalab/seurat-wrappers)

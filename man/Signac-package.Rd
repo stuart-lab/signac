@@ -6,23 +6,25 @@
 \alias{Signac-package}
 \title{Signac: Analysis of Single-Cell Chromatin Data}
 \description{
+\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+
 A framework for the analysis and exploration of single-cell chromatin data. The 'Signac' package contains functions for quantifying single-cell chromatin data, computing per-cell quality control metrics, dimension reduction and normalization, visualization, and DNA sequence motif analysis. Reference: Stuart et al. (2021) \doi{10.1038/s41592-021-01282-5}.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/timoast/signac}
-  \item \url{https://satijalab.org/signac}
-  \item Report bugs at \url{https://github.com/timoast/signac/issues}
+  \item \url{https://github.com/stuart-lab/signac}
+  \item \url{https://stuartlab.org/signac}
+  \item Report bugs at \url{https://github.com/stuart-lab/signac/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Tim Stuart \email{tstuart@nygenome.org} (\href{https://orcid.org/0000-0002-3044-0897}{ORCID})
+\strong{Maintainer}: Tim Stuart \email{stuartt@a-star.edu.sg} (\href{https://orcid.org/0000-0002-3044-0897}{ORCID})
 
 Authors:
 \itemize{
-  \item Avi Srivastava \email{asrivastava@nygenome.org} (\href{https://orcid.org/0000-0001-9798-2079}{ORCID})
+  \item Avi Srivastava \email{asrivastava@wistar.org} (\href{https://orcid.org/0000-0001-9798-2079}{ORCID})
 }
 
 Other contributors:

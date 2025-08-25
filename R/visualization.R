@@ -119,7 +119,7 @@ BigwigTrack <- function(
   }
   all.data$bw <- factor(x = all.data$bw, levels = names(x = bigwig))
   window.size = width(x = region)
-  sampling <- max(max.downsample, window.size * downsample.rate)
+  sampling <- ceiling(x = max(max.downsample, window.size * downsample.rate))
   coverages <- slice_sample(.data = all.data, n = sampling)
   
   covmax <- signif(x = max(coverages$score, na.rm = TRUE), digits = 2)
@@ -222,6 +222,148 @@ DepthCor <- function(object, assay = NULL, reduction = 'lsi', n = 10, ...) {
   return(p)
 }
 
+# Get density of points in 2 dimensions.
+#
+# Credit to Kamil Slowikowski
+# https://slowkow.com/notes/ggplot2-color-by-density/
+#
+# @param x A numeric vector.
+# @param y A numeric vector.
+# @param n Create a square n by n grid to compute density.
+# @return The density within each square.
+get_density <- function(x, y, ...) {
+  if (!requireNamespace("MASS", quietly = TRUE)) {
+    stop("Please install MASS: install.packages('MASS')")
+  }
+  if (!is.numeric(x = x) | !is.numeric(x = y)) {
+      stop("Must supply numeric values")
+  }
+  dens <- MASS::kde2d(x = x, y = y, ...)
+  ix <- findInterval(x = x, vec = dens$x)
+  iy <- findInterval(x = y, vec = dens$y)
+  ii <- cbind(ix, iy)
+  return(dens$z[ii])
+}
+
+globalVariables(".data")
+#' Scatterplot colored by point density
+#' 
+#' Create a scatterplot using variables in the object metadata
+#' and color cells by the density of points in the x-y space.
+#'
+#' @param object A Seurat object
+#' @param x Name of metadata variable to plot on x axis
+#' @param y Name of metadata variable to plot on y axis
+#' @param log_x log10 transform x values
+#' @param log_y log10 transform y values
+#' @param quantiles Vector of quantiles to display
+#' for x and y data distribution. Must be integer values
+#' between 0 and 100.
+#' TRUE can be passed as a shorthand way to set
+#' \code{c(5, 10, 90, 95)}. If FALSE or NULL, no quantile
+#' information is displayed
+#' @return Returns a ggplot object
+#' @importFrom ggplot2 ggplot aes geom_point scale_color_viridis_c
+#' theme_bw scale_x_log10 scale_y_log10 geom_vline geom_hline labs
+#' @importFrom rlang .data
+#' @importFrom stats quantile
+#' @export
+#' @concept visualization
+DensityScatter <- function(
+    object,
+    x,
+    y,
+    log_x = FALSE,
+    log_y = FALSE,
+    quantiles = NULL
+) {
+    md <- object[[]]
+    if (!(x %in% colnames(x = md))) {
+        stop(x, " not found")
+    }
+    if (!(y %in% colnames(x = md))) {
+        stop(y, " not found")
+    }
+    log10p <- function(x) {
+        return(log10(x = x + 1))
+    }
+    null_fn <- function(x) {
+        return(x)
+    }
+    logfnx <- ifelse(test = log_x, yes = log10p, no = null_fn)
+    logfny <- ifelse(test = log_y, yes = log10p, no = null_fn)
+    # logfny <- null_fn
+    md$Density <- get_density(
+        x = logfnx(md[[x]]),
+        y = logfny(md[[y]]),
+        n = 1000,
+        h = c(1,1)
+    )
+    md <- md[order(md$Density), ]
+    # quantiles
+    use_quantile <- FALSE
+    if (!is.null(x = quantiles)) {
+        use_quantile <- TRUE
+        # set default if TRUE passed
+        if (is.logical(x = quantiles)) {
+            if (quantiles) {
+                quantiles <- c(5, 10, 90, 95)
+            } else {
+                use_quantile <- FALSE
+            }
+        }
+        # make sure integers between 0 and 100
+        if (!(all(quantiles >= 0) & all(quantiles <= 100))) {
+            warning("Quantile values must be between 0 and 100",
+                    immediate. = TRUE)
+            use_quantile <- FALSE
+        }
+        if (any(sapply(X = quantiles, FUN = function(x) x %% 1 != 0))) {
+            warning("Quantile values must be integers",
+                    immediate. = TRUE)
+            use_quantile <- FALSE
+        }
+    }
+    if (use_quantile) {
+        # convert to string
+        quantiles <- paste0(quantiles, '%')
+
+        # quantiles for x and y
+        x_quant <- quantile(x = md[[x]], probs = seq(0, 1, 0.01))
+        y_quant <- quantile(x = md[[y]], probs = seq(0, 1, 0.01))
+        xlines <- x_quant[quantiles]
+        ylines <- y_quant[quantiles]
+
+        # round
+        xlines <- round(x = xlines, digits = 2)
+        ylines <- round(x = ylines, digits = 2)
+    }        
+    p <- ggplot(
+           data = md,
+           mapping = aes(x = .data[[x]], y = .data[[y]], color = .data[["Density"]])
+         ) +
+           geom_point(size = 1) +
+           scale_color_viridis_c(option = "B") +
+           theme_bw()
+    if (log_x) {
+        p <- p + scale_x_log10()
+    }
+    if (log_y) {
+        p <- p + scale_y_log10()
+    }
+    if (use_quantile) {
+        p <- p +
+          geom_vline(xintercept = unname(obj = xlines), color = "red") +
+          geom_hline(yintercept = unname(obj = ylines), color = "red") +
+          labs(title = "Quantiles",
+               subtitle = paste0(x, ": ", paste0(names(x = xlines), ":",
+                                                 xlines, collapse = " "), "\n",
+                                 y, ": ", paste0(names(x = ylines), ":",
+                                                 ylines, collapse = " ")))
+    }
+    return(p)
+}
+
 globalVariables(
   names = c("feature", "group", "mn", "norm.value"),
   package = "Signac"
@@ -232,6 +374,9 @@ globalVariables(
 #' @param features A vector of features to plot
 #' @param assay Name of assay to use
 #' @param group.by A grouping variable
+#' @param split.by A metadata variable to split the plot by. For example,
+#' grouping by "celltype" and splitting by "batch" will create separate plots
+#' for each celltype and batch.
 #' @param idents Set of identities to include in the plot
 #' @param show.expected Plot the expected Tn5 integration frequency below the
 #' main footprint plot
@@ -256,6 +401,7 @@ PlotFootprint <- function(
   features,
   assay = NULL,
   group.by = NULL,
+  split.by = NULL,
   idents = NULL,
   label = TRUE,
   repel = TRUE,
@@ -265,8 +411,25 @@ PlotFootprint <- function(
   label.idents = NULL
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
+  splitby_str <- "__signac_tmp__"
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5.")
+  }
+  if (!is.null(x = split.by)) {
+    if (is.null(x = group.by)) {
+      grouping.var <- Idents(object = object)
+    } else {
+      grouping.var <- object[[group.by]][, 1]
+    }
+    # combine split.by and group.by information
+    combined.var <- paste0(object[[split.by]][, 1], splitby_str, grouping.var)
+    object$grouping_tmp <- combined.var
+    group.by <- "grouping_tmp"
+    if (!is.null(x = idents)) {
+      # adjust idents parameter with new split.by information
+      idents.keep <- combined.var[grouping.var %in% idents]
+      idents <- unique(x = idents.keep)
+    }
   }
   # TODO add option to show variance among cells
   plot.data <- GetFootprintData(
@@ -276,6 +439,9 @@ PlotFootprint <- function(
     group.by = group.by,
     idents = idents
   )
+  if (length(x = plot.data) == 1) {
+    stop("Footprinting data not found")
+  }
   motif.sizes <- GetMotifSize(
     object = object,
     features = features,
@@ -310,6 +476,13 @@ PlotFootprint <- function(
     } else {
       stop("Unknown normalization method requested")
     }
+  }
+  
+  # split back into group.by and split.by
+  if (!is.null(x = split.by)) {
+    splitvar <- strsplit(x = obs[['group']], split = splitby_str)
+    obs[['group']] <- sapply(X = splitvar, FUN = `[[`, 2)
+    obs[['split']] <- sapply(X = splitvar, FUN =`[[`, 1)
   }
 
   # find flanking accessibility for each group and each feature
@@ -369,6 +542,9 @@ PlotFootprint <- function(
       ggtitle(label = features[[i]]) +
       ylim(c(axis.min, axis.max)) +
       guides(color = guide_legend(override.aes = list(size = 1)))
+    if (!is.null(x = split.by)) {
+      p <- p + facet_wrap(facets = ~split)
+    }
     if (label) {
       if (repel) {
         if (!requireNamespace(package = "ggrepel", quietly = TRUE)) {
@@ -385,26 +561,30 @@ PlotFootprint <- function(
       }
     }
     if (show.expected) {
-      df <- expect[expect$feature == features[[i]], ]
-      p1 <- ggplot(
-        data = df,
-        mapping = aes(x = position, y = norm.value)
-      ) +
-        geom_line(size = 0.2) +
-        xlab("Distance from motif") +
-        ylab(label = "Expected\nTn5 enrichment") +
-        theme_classic()
-
-      # remove x-axis labels from top plot
-      p <- p + theme(
-        axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.line.x.bottom = element_blank(),
-        axis.ticks.x.bottom = element_blank()
-      )
-      p <- p + p1 + plot_layout(ncol = 1, heights = c(3, 1))
-      plotlist[[i]] <- p
+      if (!is.null(x = split.by)) {
+        warning("Cannot plot expected enrichment with split.by")
+      } else {
+        df <- expect[expect$feature == features[[i]], ]
+        p1 <- ggplot(
+          data = df,
+          mapping = aes(x = position, y = norm.value)
+        ) +
+          geom_line(size = 0.2) +
+          xlab("Distance from motif") +
+          ylab(label = "Expected\nTn5 enrichment") +
+          theme_classic()
+        
+        # remove x-axis labels from top plot
+        p <- p + theme(
+          axis.title.x = element_blank(),
+          axis.text.x = element_blank(),
+          axis.line.x.bottom = element_blank(),
+          axis.ticks.x.bottom = element_blank()
+        )
+        p <- p + p1 + plot_layout(ncol = 1, heights = c(3, 1))
+      }
     }
+    plotlist[[i]] <- p
   }
   plots <- wrap_plots(plotlist)
   return(plots)
@@ -447,6 +627,8 @@ globalVariables(
 #' @param idents Cell identities to include. Note that cells cannot be
 #' regrouped, this will require re-running \code{RegionMatrix} to generate a 
 #' new set of matrices
+#' @param group.order Order of groups to be shown in the plot. This should be a 
+#' character vector. If NULL, the group order will not be changed.
 #' @param nrow Number of rows to use when creating plot. If NULL, chosen
 #' automatically by ggplot2
 #' 
@@ -471,6 +653,7 @@ RegionHeatmap <- function(
   key,
   assay = NULL,
   idents = NULL,
+  group.order = NULL,
   normalize = TRUE,
   upstream = 3000,
   downstream = 3000,
@@ -483,10 +666,10 @@ RegionHeatmap <- function(
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   all.valid <- sapply(X = assay, FUN = function(x) {
-    inherits(x = object[[x]], what = "ChromatinAssay")
+    inherits(x = object[[x]], what = "ChromatinAssay5")
   })
   if (!all(all.valid)) {
-    stop("The requested assay is not a ChromatinAssay")
+    stop("The requested assay is not a ChromatinAssay5")
   }
   if (is.null(x = cols)) {
     colors_all <- hue_pal()(length(x = assay))
@@ -496,7 +679,9 @@ RegionHeatmap <- function(
       stop("Wrong number of colors supplied. Must give one color per assay")
     }
     colors_all <- cols
-    if (!all(names(x = colors_all) %in% assay)) {
+    if (is.null(x = names(x = colors_all))) {
+      names(x = colors_all) <- assay
+    } else if (!all(names(x = colors_all) %in% assay)) {
       names(x = colors_all) <- assay
     }
   }
@@ -603,6 +788,16 @@ RegionHeatmap <- function(
   }
   
   maxval <- max(all.assay$value)
+  
+  if (!is.null(x = group.order)) {
+    if (length(x = group.order) != length(x = unique(x = all.assay$group))) {
+      warning("Incorrect number of groups provided in group.order parameter.",
+              " Groups will not be reordered")
+    } else{
+      all.assay$group <- factor(x = all.assay$group, levels = group.order)
+    }
+  }
+  
   # create separate heatmap for each assay so that color scales are different
   plist <- list()
   for (i in seq_along(along.with = assay)) {
@@ -657,13 +852,13 @@ get_heatmap_data <- function(
   # each assay will set its own max value
   
   if (!(key %in% names(x = GetAssayData(
-    object = object, slot = "positionEnrichment"
+    object = object, layer = "positionEnrichment"
   )))) {
     stop("Requested key is not present in the assay")
   }
   matlist <- GetAssayData(
     object = object,
-    slot = "positionEnrichment"
+    layer = "positionEnrichment"
   )[[key]]
   
   # extract RegionMatrix parameters
@@ -719,6 +914,8 @@ get_heatmap_data <- function(
 #' @param idents Cell identities to include. Note that cells cannot be
 #' regrouped, this will require re-running \code{RegionMatrix} to generate a 
 #' new set of matrices
+#' @param group.order Order of groups to be shown in the plot. This should be a 
+#' character vector. If NULL, the group order will not be changed.
 #' @param nrow Number of rows to use when creating plot. If NULL, chosen
 #' automatically by ggplot2
 #' 
@@ -741,6 +938,7 @@ RegionPlot <- function(
   key,
   assay = NULL,
   idents = NULL,
+  group.order = NULL,
   normalize = TRUE,
   upstream = NULL,
   downstream = NULL,
@@ -752,10 +950,10 @@ RegionPlot <- function(
     assay <- list(assay)
   }
   all.valid <- sapply(X = assay, FUN = function(x) {
-    inherits(x = object[[x]], what = "ChromatinAssay")
+    inherits(x = object[[x]], what = "ChromatinAssay5")
   })
   if (!all(all.valid)) {
-    stop("The requested assay is not a ChromatinAssay")
+    stop("The requested assay is not a ChromatinAssay5")
   }
   
   all.assay <- data.frame()
@@ -821,11 +1019,22 @@ RegionPlot <- function(
           )
         )
       }
-      # fix bin label
-      df$bin <- (df$bin - (upstream/window)) * window
     }
+    
+    # fix bin label
+    df$bin <- (df$bin - (upstream/window)) * window
+
     df$assay <- assay[[j]]
     all.assay <- rbind(all.assay, df)
+  }
+  
+  if (!is.null(x = group.order)) {
+    if (length(x = group.order) != length(x = unique(x = all.assay$group))) {
+      warning("Incorrect number of groups provided in group.order parameter.",
+              " Groups will not be reordered")
+    } else{
+      all.assay$group <- factor(x = all.assay$group, levels = group.order)
+    }
   }
 
   p <- ggplot(
@@ -877,6 +1086,7 @@ SingleCoveragePlot <- function(
   bigwig.type = "coverage",
   bigwig.scale = "common",
   group.by = NULL,
+  split.by = NULL,
   window = 100,
   extend.upstream = 0,
   extend.downstream = 0,
@@ -896,16 +1106,23 @@ SingleCoveragePlot <- function(
       paste(valid.assay.scale, collapse = ", ")
     )
   }
-  cells <- SetIfNull(x = cells, y = colnames(x = object))
+  cells <- SetIfNull(x = cells, y = Cells(x = object))
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!inherits(x = assay, what = "list")) {
     assay <- list(assay)
   }
   lapply(X = assay, FUN = function(x) {
-    if (!inherits(x = object[[x]], what = "ChromatinAssay")) {
-      stop("Requested assay is not a ChromatinAssay.")
+    if (!inherits(x = object[[x]], what = "ChromatinAssay5")) {
+      stop("Requested assay is not a ChromatinAssay5.")
     }
   })
+  is.granges <- inherits(x = object[[assay[[1]]]], what = "GRangesAssay")
+  if(length(colnames(object)) > length(colnames(object[[assay[[1]]]]))) {
+    object <- UpdateChromatinObject(object = object,
+                                    chromatin.assay = assay, 
+                                    expression.assay = expression.assay,
+                                    features = features)
+  }
   if (!is.null(x = group.by)) {
     Idents(object = object) <- group.by
   }
@@ -921,15 +1138,33 @@ SingleCoveragePlot <- function(
     extend.upstream = extend.upstream,
     extend.downstream = extend.downstream
   )
+  if (!is.null(x = split.by)) {
+    # combine split.by and group.by information
+    grouping.var <- Idents(object = object)
+    combined.var <- paste0(object[[split.by]][, 1], "_", grouping.var)
+    object$grouping_tmp <- combined.var
+    Idents(object = object) <- "grouping_tmp"
+    group.by <- "grouping_tmp"
+    if (!is.null(x = idents)) {
+      # adjust idents parameter with new split.by information
+      idents.keep <- combined.var[grouping.var %in% idents]
+      idents <- unique(x = idents.keep)
+    }
+  }
   cells.per.group <- CellsPerGroup(
     object = object,
     group.by = group.by
   )
+  
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
     idents = idents
   )
+  
+  # subset to used cells
+  obj.groups <- obj.groups[cells]
+  
   cm.list <- list()
   sf.list <- list()
   gsf.list <- list()
@@ -1032,12 +1267,19 @@ SingleCoveragePlot <- function(
       mode = annotation
     )
   }
-  if (links) {
+  if (is.character(x = links) & is.granges) {
+    # subset to genes in the desired list
+    links.use <- Links(object = object)
+    links.use <- links.use[links.use$gene %in% links]
+    Links(object = object) <- links.use
+    links <- TRUE
+  }
+  if (links & is.granges) {
     link.plot <- LinkPlot(object = object[[assay[[1]]]], region = region)
   } else {
     link.plot <- NULL
   }
-  if (peaks) {
+  if (peaks & is.granges) {
     peak.plot <- PeakPlot(
       object = object,
       assay = assay[[1]],
@@ -1091,11 +1333,10 @@ SingleCoveragePlot <- function(
     bulk.scale.factor <- suppressWarnings(reads.per.group * cells.per.group)
     bulk.groups <- rep(x = "All cells", length(x = obj.groups))
     names(x = bulk.groups) <- names(x = obj.groups)
-
     bulk.plot <- CoverageTrack(
-      cutmat = cutmat[[1]],
+      cutmat = cm.list,
       region = region,
-      group.scale.factors = bulk.scale.factor,
+      group.scale.factors = list(bulk.scale.factor),
       scale.factor = scale.factor,
       window = window,
       ymax = ymax,
@@ -1380,7 +1621,11 @@ CoverageTrack <- function(
 #' highlighted in grey. To change the color of the highlighting, include a
 #' metadata column in the GRanges object named "color" containing the color to
 #' use for each region.
-#' @param links Display links
+#' @param links Display links. This can be a TRUE/FALSE value which will 
+#' determine whether a links track is displayed, and if TRUE links for all genes
+#' in the plotted region will be shown. Alternatively, a character vector can be
+#' provided, giving a list of gene names to plot links for. If this is provided,
+#' only links for those genes will be displayed in the plot.
 #' @param tile Display per-cell fragment information in sliding windows. If
 #' plotting multi-assay data, only the first assay is shown in the tile plot.
 #' @param tile.size Size of the sliding window for per-cell fragment tile plot
@@ -1413,6 +1658,9 @@ CoverageTrack <- function(
 #' sequences in each group.
 #' @param group.by Name of one or more metadata columns to group (color) the
 #' cells by. Default is the current cell identities
+#' @param split.by A metadata variable to split the tracks by. For example,
+#' grouping by "celltype" and splitting by "batch" will create separate tracks
+#' for each combination of celltype and batch.
 #' @param sep Separators to use for strings encoding genomic coordinates. First
 #' element is used to separate the chromosome from the coordinates, second
 #' element is used to separate the start from end coordinate.
@@ -1485,6 +1733,7 @@ CoveragePlot <- function(
   bigwig.scale = "common",
   heights = NULL,
   group.by = NULL,
+  split.by = NULL,
   window = 100,
   extend.upstream = 0,
   extend.downstream = 0,
@@ -1528,6 +1777,7 @@ CoveragePlot <- function(
         bigwig.type = bigwig.type,
         bigwig.scale = bigwig.scale,
         group.by = group.by,
+        split.by = split.by,
         window = window,
         ymax = ymax,
         scale.factor = scale.factor,
@@ -1551,7 +1801,7 @@ CoveragePlot <- function(
 #' sequence motifs.
 #'
 #' @param object A Seurat object
-#' @param motifs A list of motifs to plot
+#' @param motifs A list of motif IDs or motif names to plot
 #' @param assay Name of the assay to use
 #' @param use.names Use motif names stored in the motif object
 #' @param ... Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}
@@ -1563,7 +1813,7 @@ CoveragePlot <- function(
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
 #' \donttest{
-#' motif.obj <- SeuratObject::GetAssayData(atac_small, slot = "motifs")
+#' motif.obj <- Motifs(atac_small)
 #' MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
 #' }
 MotifPlot <- function(
@@ -1573,16 +1823,26 @@ MotifPlot <- function(
   use.names = TRUE,
   ...
 ) {
+  if (!inherits(x = motifs, what = "character")) {
+    stop("Please provide motif names, not a ", class(x = motifs), " vector")
+  }
   if (!requireNamespace(package = "ggseqlogo", quietly = TRUE)) {
     stop("Please install ggseqlogo: install.packages('ggseqlogo')")
   }
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
+  if (!inherits(x = object[[assay]], what = "GRangesAssay")) {
+    stop("The requested assay is not a GRangesAssay.")
   }
   data.use <- GetMotifData(object = object, assay = assay, slot = "pwm")
   if (length(x = data.use) == 0) {
     stop("Position weight matrix list for the requested assay is empty")
+  }
+  missing.motifs <- !(motifs %in% names(x = data.use))
+  for (i in seq_along(along.with = motifs)) {
+    if (missing.motifs[i]) {
+      # try looking up ID
+      motifs[i] <- ConvertMotifID(object = object, name = motifs[i])
+    }
   }
   data.use <- data.use[motifs]
   if (use.names) {
@@ -1640,8 +1900,8 @@ FragmentHistogram <- function(
 ) {
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5.")
   }
   reads <- MultiGetReadsInRegion(
     object = object,
@@ -1713,14 +1973,14 @@ TSSPlot <- function(
   idents = NULL
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5.")
   }
   # get the normalized TSS enrichment matrix
   positionEnrichment <- GetAssayData(
     object = object,
     assay = assay,
-    slot = "positionEnrichment"
+    layer = "positionEnrichment"
   )
   if (!("TSS" %in% names(x = positionEnrichment))) {
     stop("Position enrichment matrix not present in assay")
@@ -1844,7 +2104,7 @@ CombineTracks <- function(
 
 #' Plot peaks in a genomic region
 #'
-#' Display the genomic ranges in a \code{\link{ChromatinAssay}} object that fall
+#' Display the genomic ranges in a \code{\link{GRangesAssay}} object that fall
 #' in a given genomic region
 #'
 #' @param object A \code{\link[SeuratObject]{Seurat}} object
@@ -1896,17 +2156,21 @@ PeakPlot <- function(
   extend.downstream = 0
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5.")
   }
 
   if (!inherits(x = region, what = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
   if (is.null(x = peaks)) {
-    peaks <- granges(x = object[[assay]])
-    md <- object[[assay]][[]]
-    mcols(x = peaks) <- md
+    if (!inherits(x = object[[assay]], what = "GRangesAssay")) {
+      stop("The requested assay is not a GRangesAssay.")
+    } else {
+      peaks <- granges(x = object[[assay]])
+      md <- object[[assay]][[]]
+      mcols(x = peaks) <- md
+    }
   }
   region <- FindRegion(
     object = object,
@@ -1972,6 +2236,7 @@ PeakPlot <- function(
 #' element is used to separate the start from end coordinate.
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
+#' @param scale.linewidth Scale thickness of the line according to link score.
 #' 
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
@@ -1990,7 +2255,8 @@ LinkPlot <- function(
   min.cutoff = 0,
   sep = c("-", "-"),
   extend.upstream = 0,
-  extend.downstream = 0
+  extend.downstream = 0,
+  scale.linewidth = FALSE
 ) {
   region <- FindRegion(
     object = object,
@@ -2040,10 +2306,18 @@ LinkPlot <- function(
         score = rep(link.df$score, 3)
       )
       min.color <- min(0, min(df$score))
-      p <- ggplot(data = df) +
-        ggforce::geom_bezier(
-          mapping = aes_string(x = "x", y = "y", group = "group", color = "score")
-        ) +
+      if (scale.linewidth) {
+        p <- ggplot(data = df) +
+          ggforce::geom_bezier(
+            mapping = aes_string(x = "x", y = "y", group = "group", color = "score", linewidth = "score")
+          )
+      } else {
+        p <- ggplot(data = df) +
+          ggforce::geom_bezier(
+            mapping = aes_string(x = "x", y = "y", group = "group", color = "score")
+          )
+      }
+      p <- p +
         geom_hline(yintercept = 0, color = 'grey') +
         scale_color_gradient2(low = "red", mid = "grey", high = "blue",
                               limits = c(min.color, max(df$score)),
@@ -2292,13 +2566,14 @@ ExpressionPlot <- function(
   data.plot <- GetAssayData(
     object = object,
     assay = assay,
-    slot = slot
+    layer = slot
   )[features, ]
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
     idents = NULL
   )
+  obj.groups <- obj.groups[colnames(object[[assay]])] 
   # if levels set, define colors based on all groups
   levels.use <- levels(x = obj.groups)
   if (!is.null(x = levels.use)) {
@@ -2330,6 +2605,21 @@ ExpressionPlot <- function(
         gene = i,
         expression = data.plot[i, ],
         group = obj.groups
+      )
+      df <- rbind(df, df.1)
+    }
+  }
+  missing.levels <- setdiff(x = levels(x = df$group), y = unique(x = df$group))
+  if (!is.null(x = idents)) {
+    missing.levels <- intersect(x = missing.levels, y = idents)
+  }
+  if (length(x = missing.levels) > 0) {
+    # fill missing idents with zero
+    for (i in features) {
+      df.1 <- data.frame(
+        gene = i,
+        expression = 0,
+        group = missing.levels
       )
       df <- rbind(df, df.1)
     }
@@ -2387,6 +2677,7 @@ CoverageBrowser <- function(
   sep = c("-", "-"),
   ...
 ) {
+  .Deprecated("CoveragePlot")
   if (!requireNamespace("shiny", quietly = TRUE)) {
     stop("Please install shiny. https://shiny.rstudio.com/")
   }
@@ -2936,8 +3227,8 @@ TilePlot <- function(
   idents = NULL
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("Requested assay is not a ChromatinAssay.")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("Requested assay is not a ChromatinAssay5.")
   }
   region <- FindRegion(
     object = object,

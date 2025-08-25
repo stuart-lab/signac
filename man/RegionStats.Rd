@@ -3,7 +3,7 @@
 \name{RegionStats}
 \alias{RegionStats}
 \alias{RegionStats.default}
-\alias{RegionStats.ChromatinAssay}
+\alias{RegionStats.GRangesAssay}
 \alias{RegionStats.Seurat}
 \title{Compute base composition information for genomic ranges}
 \usage{
@@ -11,7 +11,7 @@ RegionStats(object, ...)
 
 \method{RegionStats}{default}(object, genome, verbose = TRUE, ...)
 
-\method{RegionStats}{ChromatinAssay}(object, genome, verbose = TRUE, ...)
+\method{RegionStats}{GRangesAssay}(object, genome, verbose = TRUE, ...)
 
 \method{RegionStats}{Seurat}(object, genome, assay = NULL, verbose = TRUE, ...)
 }

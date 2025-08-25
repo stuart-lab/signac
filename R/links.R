@@ -3,8 +3,15 @@
 NULL
 
 #' Get peaks linked to genes
-#'
-#' Find peaks linked to a given set of genes
+#' 
+#' Retrieve peak-gene links for a given set of genes. Links must be first
+#' obtained by running the \code{LinkPeaks} function.
+#' 
+#' This function is designed to obtain the stored results from running the
+#' \code{LinkPeaks} function. Alternatively, custom peak-gene linkage methods
+#' can be used as long as they store the gene name, peak name, and a peak-gene
+#' score information as metadata columns named "gene," "peak," and "score"
+#' respectively.
 #'
 #' @param object A Seurat object
 #' @param features A list of genes to find linked peaks for
@@ -33,8 +40,15 @@ GetLinkedPeaks <- function(
 }
 
 #' Get genes linked to peaks
-#'
-#' Find genes linked to a given set of peaks
+#' 
+#' Retrieve peak-gene links for a given set of genes. Links must be first
+#' obtained by running the \code{LinkPeaks} function.
+#' 
+#' This function is designed to obtain the stored results from running the
+#' \code{LinkPeaks} function. Alternatively, custom peak-gene linkage methods
+#' can be used as long as they store the gene name, peak name, and a peak-gene
+#' score information as metadata columns named "gene," "peak," and "score"
+#' respectively.
 #'
 #' @param object A Seurat object
 #' @param features A list of peaks to find linked genes for
@@ -240,9 +254,6 @@ LinkPeaks <- function(
   gene.id = FALSE,
   verbose = TRUE
 ) {
-  if (!requireNamespace(package = "qlcMatrix", quietly = TRUE)) {
-    stop("Please install qlcMatrix: install.packages('qlcMatrix')")
-  }
   if (!inherits(x = object[[peak.assay]], what = "ChromatinAssay")) {
     stop("The requested assay is not a ChromatinAssay")
   }
@@ -259,7 +270,7 @@ LinkPeaks <- function(
   }
   features.match <- c("GC.percent", "count", "sequence.length")
   if (method == "pearson") {
-    cor_method <- qlcMatrix::corSparse
+    cor_method <- corSparse
   } else if (method == "spearman") {
     cor_method <- SparseSpearmanCor
   } else {
@@ -276,7 +287,7 @@ LinkPeaks <- function(
     )
   }
   meta.features <- GetAssayData(
-    object = object, assay = peak.assay, slot = "meta.features"
+    object = object, assay = peak.assay, layer = "meta.features"
   )
   if (!(all(
     c("GC.percent", "sequence.length") %in% colnames(x = meta.features)
@@ -285,16 +296,20 @@ LinkPeaks <- function(
          "Run RegionsStats before calling this function.")
   }
   if (!("count" %in% colnames(x = meta.features))) {
-    data.use <- GetAssayData(object = object[[peak.assay]], slot = "counts")
+    data.use <- GetAssayData(object = object[[peak.assay]], layer = "counts")
     hvf.info <- FindTopFeatures(object = data.use, verbose = FALSE)
     hvf.info <- hvf.info[rownames(meta.features), , drop = FALSE]
     meta.features <- cbind(meta.features, hvf.info)
   }
   peak.data <- GetAssayData(
-    object = object, assay = peak.assay, slot = peak.slot
+    object = object, assay = peak.assay, layer = peak.slot
   )
+  # # depends on SeuratObject v5
+  # if (!(expression.slot %in% Layers(object = object))) {
+  #   stop("Requested expression layer not found")
+  # }
   expression.data <- GetAssayData(
-    object = object, assay = expression.assay, slot = expression.slot
+    object = object, assay = expression.assay, layer = expression.slot
   )
   peakcounts <- rowSums(x = peak.data > 0)
   genecounts <- rowSums(x = expression.data > 0)
@@ -516,7 +531,7 @@ LinksToGRanges <- function(linkmat, gene.coords, sep = c("-", "-")) {
   midpoints <- start(x = peak.ranges) + (width(x = peak.ranges) / 2)
 
   # convert to triplet form
-  dgtm <- as(object = linkmat, Class = "dgTMatrix")
+  dgtm <- as(object = linkmat, Class = "TsparseMatrix")
 
   # create dataframe
   df <- data.frame(

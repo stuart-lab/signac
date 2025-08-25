@@ -4,8 +4,9 @@
 \alias{ConvertMotifID}
 \alias{ConvertMotifID.default}
 \alias{ConvertMotifID.Motif}
-\alias{ConvertMotifID.ChromatinAssay}
+\alias{ConvertMotifID.GRangesAssay}
 \alias{ConvertMotifID.Assay}
+\alias{ConvertMotifID.StdAssay}
 \alias{ConvertMotifID.Seurat}
 \title{Convert between motif name and motif ID}
 \usage{
@@ -15,9 +16,11 @@ ConvertMotifID(object, ...)
 
 \method{ConvertMotifID}{Motif}(object, ...)
 
-\method{ConvertMotifID}{ChromatinAssay}(object, ...)
+\method{ConvertMotifID}{GRangesAssay}(object, ...)
 
 \method{ConvertMotifID}{Assay}(object, ...)
+
+\method{ConvertMotifID}{StdAssay}(object, ...)
 
 \method{ConvertMotifID}{Seurat}(object, assay = NULL, ...)
 }

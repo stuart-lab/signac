@@ -6,6 +6,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "../vignette_data")
 ```
 
 In this vignette we demonstrate how to merge multiple Seurat objects containing 
@@ -22,7 +23,7 @@ datasets provided by 10x Genomics:
 
 To download the required data, run the following lines in a shell:
 
-```{bash, eval=FALSE}
+```{bash eval=FALSE}
 # 500 cell
 wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_500_nextgem/atac_pbmc_500_nextgem_fragments.tsv.gz
 wget https://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_pbmc_500_nextgem/atac_pbmc_500_nextgem_fragments.tsv.gz.tbi
@@ -66,7 +67,12 @@ Another option is to use the `disjoin` function, that will
 create distinct non-overlapping sets of peaks. Here is a visual example to 
 illustrate the difference between `reduce` and `disjoin`:
 
-```{r, echo=FALSE, include=FALSE}
+```{r include=FALSE, echo=FALSE}
+if (!requireNamespace("ggbio", quietly = TRUE))
+    BiocManager::install("ggbio")
+```
+
+```{r include=FALSE, echo=FALSE}
 library(GenomicRanges)
 library(ggplot2)
 library(ggbio)
@@ -78,7 +84,7 @@ gr <- GRanges(seqnames = "chr1", ranges = IRanges(start = c(20, 70, 300), end = 
 gr
 ```
 
-```{r fig.height=1, fig.width=6, echo=FALSE}
+```{r echo=FALSE, fig.height=1, fig.width=6}
 ggplot(gr) + geom_segment(size = 5) + theme_classic() + ggtitle("Ranges") + ylab("")
 ggplot(reduce(gr)) + geom_segment(size = 5) + theme_classic() + ggtitle("Reduce") + ylab("")
 ggplot(disjoin(gr)) + geom_segment(size = 5) + theme_classic() + ggtitle("Disjoin") + ylab("")
@@ -101,26 +107,26 @@ library(Seurat)
 library(GenomicRanges)
 library(future)
 
-plan("multiprocess", workers = 4)
+plan("multicore", workers = 4)
 options(future.globals.maxSize = 50000 * 1024^2) # for 50 Gb RAM
 ```
 
 ```{r}
 # read in peak sets
 peaks.500 <- read.table(
-  file = "../vignette_data/pbmc500/atac_pbmc_500_nextgem_peaks.bed",
+  file = "pbmc500/atac_pbmc_500_nextgem_peaks.bed",
   col.names = c("chr", "start", "end")
 )
 peaks.1k <- read.table(
-  file = "../vignette_data/pbmc1k/atac_pbmc_1k_nextgem_peaks.bed",
+  file = "pbmc1k/atac_pbmc_1k_nextgem_peaks.bed",
   col.names = c("chr", "start", "end")
 )
 peaks.5k <- read.table(
-  file = "../vignette_data/pbmc5k/atac_pbmc_5k_nextgem_peaks.bed",
+  file = "pbmc5k/atac_pbmc_5k_nextgem_peaks.bed",
   col.names = c("chr", "start", "end")
 )
 peaks.10k <- read.table(
-  file = "../vignette_data/pbmc10k/atac_pbmc_10k_nextgem_peaks.bed",
+  file = "pbmc10k/atac_pbmc_10k_nextgem_peaks.bed",
   col.names = c("chr", "start", "end")
 )
 
@@ -156,7 +162,7 @@ expected cells are present in the file.
 ```{r}
 # load metadata
 md.500 <- read.table(
-  file = "../vignette_data/pbmc500/atac_pbmc_500_nextgem_singlecell.csv",
+  file = "pbmc500/atac_pbmc_500_nextgem_singlecell.csv",
   stringsAsFactors = FALSE,
   sep = ",",
   header = TRUE,
@@ -164,7 +170,7 @@ md.500 <- read.table(
 )[-1, ] # remove the first row
 
 md.1k <- read.table(
-  file = "../vignette_data/pbmc1k/atac_pbmc_1k_nextgem_singlecell.csv",
+  file = "pbmc1k/atac_pbmc_1k_nextgem_singlecell.csv",
   stringsAsFactors = FALSE,
   sep = ",",
   header = TRUE,
@@ -172,7 +178,7 @@ md.1k <- read.table(
 )[-1, ]
 
 md.5k <- read.table(
-  file = "../vignette_data/pbmc5k/atac_pbmc_5k_nextgem_singlecell.csv",
+  file = "pbmc5k/atac_pbmc_5k_nextgem_singlecell.csv",
   stringsAsFactors = FALSE,
   sep = ",",
   header = TRUE,
@@ -180,7 +186,7 @@ md.5k <- read.table(
 )[-1, ]
 
 md.10k <- read.table(
-  file = "../vignette_data/pbmc10k/atac_pbmc_10k_nextgem_singlecell.csv",
+  file = "pbmc10k/atac_pbmc_10k_nextgem_singlecell.csv",
   stringsAsFactors = FALSE,
   sep = ",",
   header = TRUE,
@@ -195,22 +201,22 @@ md.10k <- md.10k[md.10k$passed_filters > 1000, ] # sequenced deeper so set highe
 
 # create fragment objects
 frags.500 <- CreateFragmentObject(
-  path = "../vignette_data/pbmc500/atac_pbmc_500_nextgem_fragments.tsv.gz",
+  path = "pbmc500/atac_pbmc_500_nextgem_fragments.tsv.gz",
   cells = rownames(md.500)
 )
 
 frags.1k <- CreateFragmentObject(
-  path = "../vignette_data/pbmc1k/atac_pbmc_1k_nextgem_fragments.tsv.gz",
+  path = "pbmc1k/atac_pbmc_1k_nextgem_fragments.tsv.gz",
   cells = rownames(md.1k)
 )
 
 frags.5k <- CreateFragmentObject(
-  path = "../vignette_data/pbmc5k/atac_pbmc_5k_nextgem_fragments.tsv.gz",
+  path = "pbmc5k/atac_pbmc_5k_nextgem_fragments.tsv.gz",
   cells = rownames(md.5k)
 )
 
 frags.10k <- CreateFragmentObject(
-  path = "../vignette_data/pbmc10k/atac_pbmc_10k_nextgem_fragments.tsv.gz",
+  path = "pbmc10k/atac_pbmc_10k_nextgem_fragments.tsv.gz",
   cells = rownames(md.10k)
 )
 ```
@@ -309,7 +315,7 @@ cell names in each fragment file. We can check that functions that pull data
 from the fragment files work as expected on the merged object by plotting a 
 region of the genome:
 
-```{r coverageplot, message=FALSE, warning=FALSE, cache=FALSE, out.width='90%', fig.height=4}
+```{r coverageplot, message=FALSE, warning=FALSE, cache=FALSE, out.width="90%", fig.height=4}
 CoveragePlot(
   object = combined,
   group.by = 'dataset',
@@ -318,7 +324,7 @@ CoveragePlot(
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-saveRDS(object = combined, file = "../vignette_data/pbmc_combined.rds")
+qs2::qs_save(object = combined, file = "pbmc_combined.qs2", nthreads = 4)
 ```
 
 ## Merging without a common feature set
@@ -343,10 +349,10 @@ common feature set:
 
 ```{r message=FALSE, warning=FALSE}
 # load the count matrix for each object that was generated by cellranger
-counts.500 <- Read10X_h5("../vignette_data/pbmc500/atac_pbmc_500_nextgem_filtered_peak_bc_matrix.h5")
-counts.1k <- Read10X_h5("../vignette_data/pbmc1k/atac_pbmc_1k_nextgem_filtered_peak_bc_matrix.h5")
-counts.5k <- Read10X_h5("../vignette_data/pbmc5k/atac_pbmc_5k_nextgem_filtered_peak_bc_matrix.h5")
-counts.10k <- Read10X_h5("../vignette_data/pbmc10k/atac_pbmc_10k_nextgem_filtered_peak_bc_matrix.h5")
+counts.500 <- Read10X_h5("pbmc500/atac_pbmc_500_nextgem_filtered_peak_bc_matrix.h5")
+counts.1k <- Read10X_h5("pbmc1k/atac_pbmc_1k_nextgem_filtered_peak_bc_matrix.h5")
+counts.5k <- Read10X_h5("pbmc5k/atac_pbmc_5k_nextgem_filtered_peak_bc_matrix.h5")
+counts.10k <- Read10X_h5("pbmc10k/atac_pbmc_10k_nextgem_filtered_peak_bc_matrix.h5")
 
 # create objects
 pbmc500_assay <- CreateChromatinAssay(counts = counts.500, sep = c(":", "-"), min.features = 500)
@@ -384,7 +390,7 @@ DimPlot(combined, group.by = 'dataset', pt.size = 0.1)
 
 <details>
   <summary>**Session Info**</summary>
-  
+
 ```{r}
 sessionInfo()
 ```

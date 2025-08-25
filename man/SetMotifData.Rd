@@ -3,7 +3,7 @@
 \name{SetMotifData}
 \alias{SetMotifData}
 \alias{SetMotifData.Motif}
-\alias{SetMotifData.ChromatinAssay}
+\alias{SetMotifData.ChromatinAssay5}
 \alias{SetMotifData.Seurat}
 \title{Set motif data}
 \usage{
@@ -11,7 +11,7 @@ SetMotifData(object, ...)
 
 \method{SetMotifData}{Motif}(object, slot, new.data, ...)
 
-\method{SetMotifData}{ChromatinAssay}(object, slot, new.data, ...)
+\method{SetMotifData}{ChromatinAssay5}(object, slot, new.data, ...)
 
 \method{SetMotifData}{Seurat}(object, assay = NULL, ...)
 }
@@ -37,8 +37,11 @@ motif.obj <- SeuratObject::GetAssayData(
   object = atac_small[['peaks']], slot = "motifs"
 )
 SetMotifData(object = motif.obj, slot = 'data', new.data = matrix(1:2))
+new.data <- matrix(sample(c(0, 1), size = nrow(atac_small[["peaks"]]) * 10,
+                   replace = TRUE), nrow = nrow(atac_small[["peaks"]]))
+rownames(new.data) <- rownames(atac_small[["peaks"]])
 SetMotifData(
-  object = atac_small[['peaks']], slot = 'data', new.data = matrix(1:2)
+  object = atac_small[['peaks']], slot = 'data', new.data = new.data
 )
 motif.matrix <- GetMotifData(object = atac_small)
 SetMotifData(

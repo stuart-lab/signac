@@ -1,46 +1,170 @@
 # Unreleased
 
+New features:
+
+* Added `RunFragtk()` function to run `fragtk matrix` command within R
+* Added `fragtk` parameter to `GeneActivity()`
+* Added `fragtk` parameter to `FeatureMatrix()`
+* Added `PearsonResidualVar()` function to compute Pearson residual variances
+* Added `SparsePCA()` function to compute PCA dimension reduction without storing standardized matrix
+* Added `ATACqc()` function to run `fragtk qc`
+
 Bug fixes:
 
-* Fixed bug in Motif object subsetting ([#1162](https://github.com/timoast/signac/issues/1162))
-* Fixed bug in `FeatureMatrix()` where cell names would not be converted correctly when running
-with `cells=NULL` ([#1198](https://github.com/timoast/signac/issues/1198))
-* Fixed bug causing crash when fragment file line lengths are very large ([#723](https://github.com/timoast/signac/issues/723))
+* Check that `macs2` exists at the `macs2.path` in `CallPeaks()` ([#1678](https://github.com/stuart-lab/signac/issues/1678))
+
+# Signac 1.15.0
+
+New features:
+
+* Added `group.order` parameter to `RegionPlot()` and `RegionHeatmap()` functions to control order of plotted groups ([#1745](https://github.com/stuart-lab/signac/issues/1745))
+
+Bug fixes:
+
+* Fix object subsetting when `RegionMatrix()` position enrichment information is present in the object.
+* Fix error in `RegionPlot()` x-axis ([@cmf1997](https://github.com/cmf1997); [#1899](https://github.com/stuart-lab/signac/pull/1899))
 
 Other changes:
 
-* Improved fold change calculation ([#1174](https://github.com/timoast/signac/issues/1174))
+* Enable using a 6-column fragment file ([#1945](https://github.com/stuart-lab/signac/issues/1945))
+* Improve error messages for `FindMotifs()` ([#1788](https://github.com/stuart-lab/signac/issues/1788))
+* Add documentation about the required format for gene annotations, and ensure this format is present when creating the assay ([#1797](https://github.com/stuart-lab/signac/pull/1797); [@lldelisle](https://github.com/lldelisle))
+* Add an option to force `FeatureMatrix()` to return as many rows as input granges ([@lldelisle](https://github.com/lldelisle); [#1803](https://github.com/stuart-lab/signac/pull/1803))
+
+# Signac 1.14.0
+
+New features:
+
+* Added `SortIdents()` function to automatically order cell metadata according
+to similarity ([@JavenTyr](https://github.com/JavenTyr))
+
+Other changes:
+
+* Change to SeuratObject v5.0.2 dependency
+* Increase R dependency to 4.1
+* Deprecate `CoverageBrowser()`
+* Add informative error message for `ClosestFeature()` when gene annotations are not present in the object ([#1681](https://github.com/stuart-lab/signac/issues/1681))
+* Fix error in `CreateChromatinAssay()` when supplying a pre-computed Motif object ([#1657](https://github.com/stuart-lab/signac/issues/1657))
+* Fix error in `CoveragePlot()` when combining `cells` and `group.by` parameters ([#1724](https://github.com/stuart-lab/signac/issues/1724))
+* Added warning in `FeatureMatrix()` when requested features are on seqnames not
+present in the fragment file ([#1754](https://github.com/stuart-lab/signac/issues/1754))
+
+# Signac 1.13.0
+
+Bug fixes:
+
+* Fix bug in `SetAssayData()` for `ChromatinAssay` objects ([#1538](https://github.com/stuart-lab/signac/issues/1538))
+* Fix bug in `TSSEnrichment()` causing error on small example dataset ([#1563](https://github.com/stuart-lab/signac/issues/1563))
+* Fix errors when using a CSI index ([#1494](https://github.com/stuart-lab/signac/issues/1494))
+* Fix error in `Footprint()` when running on a small number of regions ([#1614](https://github.com/stuart-lab/signac/issues/1614))
+* Fix error in `CoveragePlot()` and `PlotFootprint()` when setting both `ident` and `split.by` parameters ([#1660](https://github.com/stuart-lab/signac/issues/1660))
+* Fix bug in `MatchRegionStats()` when NA values are present in only some of the feature metadata rows ([#1655](https://github.com/stuart-lab/signac/issues/1655))
+
+Other changes:
+
+* Add ability to plot links for certain genes only in `CoveragePlot()` ([#1459](https://github.com/stuart-lab/signac/issues/1459))
+* Add `corSparse()`, remove qlcMatrix from suggested packages ([#1570](https://github.com/stuart-lab/signac/issues/1570)) 
+* Update documentation for `GetLinkedPeaks()` and `GetLinkedGenes()` ([#1654](https://github.com/stuart-lab/signac/issues/1654))
+
+# Signac 1.12.0
+
+Bug fixes:
+
+* Fixed bug in fragment file filtering with `FilterCells()` ([#1509](https://github.com/stuart-lab/signac/issues/1509))
+
+Other changes:
+
+* Add support for SeuratObject v5
+
+# Signac 1.11.0
+
+Bug fixes:
+
+* Fix error when supplying genome string to `AddMotifs()` function ([#1437](https://github.com/stuart-lab/signac/issues/1437))
+* Fix error in quantification with multiple fragment files ([#1474](https://github.com/stuart-lab/signac/issues/1474))
+
+Other changes:
+
+* Added `region_extension` parameter to `TSSEnrichment()` function to enable changing the size of the region used to compute TSS enrichment scores ([#1444](https://github.com/stuart-lab/signac/pull/1402); @twmcart)
+* Allow fragment files with a CSI index ([#1494](https://github.com/stuart-lab/signac/issues/1494))
+
+# Signac 1.10.0
+
+New functionality:
+
+* Added `DensityScatter()` function
+* Added `scale.linewidth` parameter to `LinkPlot()` ([#1412](https://github.com/stuart-lab/signac/issues/1412))
+
+Bug fixes:
+
+* Fixed error in `GetReadsInRegion()` when no fragments present that overlap the region (@nrockweiler; [#1348](https://github.com/stuart-lab/signac/pull/1348))
+* Make motif names unique to avoid errors in motif-related functions ([#1311](https://github.com/stuart-lab/signac/issues/1311))
+* Ignore missing seqnames when constructing a Motif object ([#1381](https://github.com/stuart-lab/signac/issues/1381))
+* Fixed error in `BigwigTrack()` ([#1389](https://github.com/stuart-lab/signac/issues/1389))
+* Fixed bug in `RegionMatrix()` where regions on minus strand were not handled correctly ([#1368](https://github.com/stuart-lab/signac/issues/1368))
+
+Other changes:
+
+* Improved documentation for `AddMotifs()` function ([#1361](https://github.com/stuart-lab/signac/issues/1361))
+
+# Signac 1.9.0
+
+Bug fixes:
+
+* Fixed Motif object subsetting when using only one feature ([#1266](https://github.com/stuart-lab/signac/discussions/1266))
+* Avoid error in chromVAR when matrix contains NA values ([#1254](https://github.com/stuart-lab/signac/issues/1254))
+* Fixed error in `CoveragePlot()` when setting `show.bulk=TRUE` ([#1294](https://github.com/stuart-lab/signac/issues/1294))
+
+Other changes:
+
+* Improved error message when no fragment file information stored ([#1236](https://github.com/stuart-lab/signac/issues/1236))
+* Add `tol` parameter to `RunSVD()` to control the `irlba::irlba()` `tol` parameter
+* Added `split.by` parameters to `CoveragePlot()` and `PlotFootprint()` ([#523](https://github.com/stuart-lab/signac/issues/523))
+
+# Signac 1.8.0
+
+Bug fixes:
+
+* Fixed bug in Motif object subsetting ([#1162](https://github.com/stuart-lab/signac/issues/1162))
+* Fixed bug in `FeatureMatrix()` where cell names would not be converted correctly when running
+with `cells=NULL` ([#1198](https://github.com/stuart-lab/signac/issues/1198))
+* Fixed bug causing crash when fragment file line lengths are very large ([#723](https://github.com/stuart-lab/signac/issues/723))
+
+Other changes:
+
+* Improved fold change calculation ([#1174](https://github.com/stuart-lab/signac/issues/1174))
 * Added `subset()` method for `Fragment`-class objects
-* Set random seed within `CoverageTrack` to enable reproducible coverage plots ([#1206](https://github.com/timoast/signac/issues/1206))
+* Set random seed within `CoverageTrack` to enable reproducible coverage plots ([#1206](https://github.com/stuart-lab/signac/issues/1206))
 * Add ability to plot region using gene name in `PeakPlot()`, `LinkPlot()`, and 
-`AnnotationPlot()` ([#919](https://github.com/timoast/signac/issues/919))
+`AnnotationPlot()` ([#919](https://github.com/stuart-lab/signac/issues/919))
+* Change `Motif` class definition to allow any `CsparseMatrix` in the data slot
 
 # Signac 1.7.0
 
 New functionality:
 
-* Added `method` parameter to `LinkPeaks()` ([@saketkc](https://github.com/saketkc); [#1030](https://github.com/timoast/signac/pull/1030))
+* Added `method` parameter to `LinkPeaks()` ([@saketkc](https://github.com/saketkc); [#1030](https://github.com/stuart-lab/signac/pull/1030))
 * Added ability to plot transcript isoforms (set `annotation="transcript"` in `CoveragePlot()`)
 * Added multiple testing correction to `FindMotifs()`, and new `p.adjust` column in output dataframe
 * Added `p.adjust.method` parameter to `FindMotifs()` to control multiple testing correction method used
 
 Bug fixes:
 
-* Fixed bug in `CallPeaks()` when project name contained whitespace ([#981](https://github.com/timoast/signac/issues/981))
+* Fixed bug in `CallPeaks()` when project name contained whitespace ([#981](https://github.com/stuart-lab/signac/issues/981))
 * Fixed bug in `CoveragePlot()` when `tile=TRUE`
-* Fixed bug in `InsertionBias()` that set the coordinates beyond the end of some chromosomes ([#986](https://github.com/timoast/signac/issues/986))
-* Fixed bug in `BigwigTrack()` when supplying a single bigwig file ([#1053](https://github.com/timoast/signac/issues/1053))
-* Fixed bug in `GeneActivity()` when specifying biotypes ([#1058](https://github.com/timoast/signac/issues/1058))
-* Fixed bug in `GeneActivity()` when gene name is an empty string ([#1055](https://github.com/timoast/signac/issues/1055))
-* Fixed bug in `FeatureMatrix()` when using list of Fragment objects ([#1056](https://github.com/timoast/signac/issues/1056))
-* Fixed bug in `RegionMatrix()` when running on objects containing renamed cells ([#1076](https://github.com/timoast/signac/issues/1076))
-* Fixed bug in `Footprint()` when using a FASTA file ([#1092](https://github.com/timoast/signac/issues/1092))
-* Fixed bug in `Footprint()` when using list of genomic regions ([#1098](https://github.com/timoast/signac/issues/1098))
-* Add check for invalid features in `FindMotifs()` ([#1109](https://github.com/timoast/signac/issues/1109))
+* Fixed bug in `InsertionBias()` that set the coordinates beyond the end of some chromosomes ([#986](https://github.com/stuart-lab/signac/issues/986))
+* Fixed bug in `BigwigTrack()` when supplying a single bigwig file ([#1053](https://github.com/stuart-lab/signac/issues/1053))
+* Fixed bug in `GeneActivity()` when specifying biotypes ([#1058](https://github.com/stuart-lab/signac/issues/1058))
+* Fixed bug in `GeneActivity()` when gene name is an empty string ([#1055](https://github.com/stuart-lab/signac/issues/1055))
+* Fixed bug in `FeatureMatrix()` when using list of Fragment objects ([#1056](https://github.com/stuart-lab/signac/issues/1056))
+* Fixed bug in `RegionMatrix()` when running on objects containing renamed cells ([#1076](https://github.com/stuart-lab/signac/issues/1076))
+* Fixed bug in `Footprint()` when using a FASTA file ([#1092](https://github.com/stuart-lab/signac/issues/1092))
+* Fixed bug in `Footprint()` when using list of genomic regions ([#1098](https://github.com/stuart-lab/signac/issues/1098))
+* Add check for invalid features in `FindMotifs()` ([#1109](https://github.com/stuart-lab/signac/issues/1109))
 
 Other changes:
 
-* Improved error message when no fragment file is supplied in `CallPeaks()` ([#1062](https://github.com/timoast/signac/issues/1062))
+* Improved error message when no fragment file is supplied in `CallPeaks()` ([#1062](https://github.com/stuart-lab/signac/issues/1062))
 * Moved `Seurat`, `ggforce`, `ggrepel`, `ggseqlogo`, `lsa`, `qlcMatrix` to suggested packages
 * Added progress bar to `GetGRangesFromEnsDb()`
 
@@ -56,34 +180,34 @@ New functionality:
 * Added `assay.scale`, `bigwig.scale`, and `split.assay` parameters to `CoveragePlot()`
 * Added new option to provide quantile `ymax` value in `CoveragePlot()`
 * Added `bigwig.scale` and `ymax` parameters to `BigwigTrack()`
-* Added `peak.slot` parameter to `LinkPeaks()` ([#932](https://github.com/timoast/signac/issues/932))
+* Added `peak.slot` parameter to `LinkPeaks()` ([#932](https://github.com/stuart-lab/signac/issues/932))
 
 Bug fixes:
 
-* Fixed behaviour of `min.features` parameter in `CreateChromatinAssay()` to retain cells with `>= min.features` (#[902](https://github.com/timoast/signac/discussions/902))
-* Fixed behaviour of `min.cells` parameter in `LinkPeaks()` ([#932](https://github.com/timoast/signac/issues/932))
+* Fixed behaviour of `min.features` parameter in `CreateChromatinAssay()` to retain cells with `>= min.features` (#[902](https://github.com/stuart-lab/signac/discussions/902))
+* Fixed behaviour of `min.cells` parameter in `LinkPeaks()` ([#932](https://github.com/stuart-lab/signac/issues/932))
 
 Other changes:
 
-* Updated documentation for `CoveragePlot()` ([#992](https://github.com/timoast/signac/issues/992))
-* Removed `method` parameter from `LinkPeaks()` ([#932](https://github.com/timoast/signac/issues/932))
+* Updated documentation for `CoveragePlot()` ([#992](https://github.com/stuart-lab/signac/issues/992))
+* Removed `method` parameter from `LinkPeaks()` ([#932](https://github.com/stuart-lab/signac/issues/932))
 
 # Signac 1.5.0
 
 Bug fixes:
 
-* Fixed bug in `FeatureMatrix()` when cells information not present in Fragment object ([#803](https://github.com/timoast/signac/issues/803))
-* Fixed bug in object merging ([#804](https://github.com/timoast/signac/issues/804))
-* Add ability to run `LinkPeaks()` using Ensembl IDs ([#858](https://github.com/timoast/signac/issues/858))
-* Fix issue in `GeneActivity()` when gene names are `NA` ([#865](https://github.com/timoast/signac/issues/865))
+* Fixed bug in `FeatureMatrix()` when cells information not present in Fragment object ([#803](https://github.com/stuart-lab/signac/issues/803))
+* Fixed bug in object merging ([#804](https://github.com/stuart-lab/signac/issues/804))
+* Add ability to run `LinkPeaks()` using Ensembl IDs ([#858](https://github.com/stuart-lab/signac/issues/858))
+* Fix issue in `GeneActivity()` when gene names are `NA` ([#865](https://github.com/stuart-lab/signac/issues/865))
 * Fix bug in `FeatureMatrix()` when only one region supplied
-* Allow negative values in `ExpressionPlot()` when using scaled data ([#893](https://github.com/timoast/signac/issues/893))
+* Allow negative values in `ExpressionPlot()` when using scaled data ([#893](https://github.com/stuart-lab/signac/issues/893))
 
 Other changes:
 
 * Added `idf` parameter to `RunTFIDF()` to use precomputed IDF vector
-* Added `gene.id` parameter to `GeneActivity()` to allow output genes named using gene ID ([#837](https://github.com/timoast/signac/issues/837))
-* Added `sep` parameter to `ConnectionsToLinks()` ([#841](https://github.com/timoast/signac/issues/841))
+* Added `gene.id` parameter to `GeneActivity()` to allow output genes named using gene ID ([#837](https://github.com/stuart-lab/signac/issues/837))
+* Added `sep` parameter to `ConnectionsToLinks()` ([#841](https://github.com/stuart-lab/signac/issues/841))
 
 # Signac 1.4.0
 
@@ -93,36 +217,36 @@ New functionality:
 
 Bug fixes:
 
-* Fixed bug in `FindMotifs()` when using only one region as input ([#732](https://github.com/timoast/signac/issues/732))
-* Add check for correct number of columns in fragment file ([#748](https://github.com/timoast/signac/issues/748))
-* Fixed gene lookup when annotations contain NA values ([#771](https://github.com/timoast/signac/issues/771))
-* Fixed error in `ClosestFeature()` when query contained regions on contigs not present in gene annotation ([#758](https://github.com/timoast/signac/issues/758))
-* Fixed bug in `TSSEnrichment()` when using multiple fragment files ([#783](https://github.com/timoast/signac/issues/783))
+* Fixed bug in `FindMotifs()` when using only one region as input ([#732](https://github.com/stuart-lab/signac/issues/732))
+* Add check for correct number of columns in fragment file ([#748](https://github.com/stuart-lab/signac/issues/748))
+* Fixed gene lookup when annotations contain NA values ([#771](https://github.com/stuart-lab/signac/issues/771))
+* Fixed error in `ClosestFeature()` when query contained regions on contigs not present in gene annotation ([#758](https://github.com/stuart-lab/signac/issues/758))
+* Fixed bug in `TSSEnrichment()` when using multiple fragment files ([#783](https://github.com/stuart-lab/signac/issues/783))
 * Fixed bug in `CallPeaks()` when multiple fragment files used as input
 * Fixed bug in `CallPeaks()` to account for 0-based starts in called peaks
-* Fixed bug in gene name lookup when gene names contain `-` characters ([#759](https://github.com/timoast/signac/issues/759))
+* Fixed bug in gene name lookup when gene names contain `-` characters ([#759](https://github.com/stuart-lab/signac/issues/759))
 
 Other changes:
 
-* Updated documentation for `genome` parameter in `AddMotifs()` and `RunChromVAR()` ([#712](https://github.com/timoast/signac/issues/712))
-* Updated the `FoldChange()` function to use normalized counts rather than raw counts ([#795](https://github.com/timoast/signac/issues/795))
-* Improved error checking in `GeneActivity()` ([#797](https://github.com/timoast/signac/issues/797))
-* Added `format` parameter to `CallPeaks()` ([#682](https://github.com/timoast/signac/issues/682))
+* Updated documentation for `genome` parameter in `AddMotifs()` and `RunChromVAR()` ([#712](https://github.com/stuart-lab/signac/issues/712))
+* Updated the `FoldChange()` function to use normalized counts rather than raw counts ([#795](https://github.com/stuart-lab/signac/issues/795))
+* Improved error checking in `GeneActivity()` ([#797](https://github.com/stuart-lab/signac/issues/797))
+* Added `format` parameter to `CallPeaks()` ([#682](https://github.com/stuart-lab/signac/issues/682))
 
 # Signac 1.3.0 
 
 Bug fixes:
 
-* Fixed `LinkPeaks()` function when running on a single gene ([#629](https://github.com/timoast/signac/issues/629))
+* Fixed `LinkPeaks()` function when running on a single gene ([#629](https://github.com/stuart-lab/signac/issues/629))
 * Added `fragment.tempdir` parameter to `CallPeaks()` to enable setting directory
-that split fragment files are written to during peak calling ([#579](https://github.com/timoast/signac/issues/579))
-* Fixed error in `FeatureMatrix()` when setting `sep` parameter ([#626](https://github.com/timoast/signac/discussions/626))
+that split fragment files are written to during peak calling ([#579](https://github.com/stuart-lab/signac/issues/579))
+* Fixed error in `FeatureMatrix()` when setting `sep` parameter ([#626](https://github.com/stuart-lab/signac/discussions/626))
 * Fixed peak calling error when group names contain special characters
-* Fixed issue with `RenameCells()` when cell information not present in Fragment object ([#704](https://github.com/timoast/signac/issues/704))
+* Fixed issue with `RenameCells()` when cell information not present in Fragment object ([#704](https://github.com/stuart-lab/signac/issues/704))
 
 Other changes: 
 
-* Improved error checking for `GeneActivity()` ([#625](https://github.com/timoast/signac/issues/625))
+* Improved error checking for `GeneActivity()` ([#625](https://github.com/stuart-lab/signac/issues/625))
 * Added `FoldChange()` method for `ChromatinAssay()` object that sets proper parameters for 
 chromatin data. This fixes the calculation of fold changes when running `Seurat::FindMarkers()` on
 single-cell chromatin data.
@@ -135,11 +259,11 @@ New functionality:
 
 Bug fixes:
 
-* Fixed bug in `ChromatinAssay` merging ([#596](https://github.com/timoast/signac/pull/596))
+* Fixed bug in `ChromatinAssay` merging ([#596](https://github.com/stuart-lab/signac/pull/596))
 
 Other changes:
 
-* Added support for fragment files containing headers (cellranger-atac v2; [#609](https://github.com/timoast/signac/issues/609))
+* Added support for fragment files containing headers (cellranger-atac v2; [#609](https://github.com/stuart-lab/signac/issues/609))
 
 # Signac 1.2.0
 
@@ -151,29 +275,29 @@ include bigWig files in `CoveragePlot()`
 * Added `region.highlight` parameter to `CoveragePlot()`
 * Added `biotypes` parameter to `GeneActivity()` and `GetTSSPositions()` functions
 * Added `max.width` parameter to `GeneActivity()`
-* Added `min.distance` parameter to `LinkPeaks()` ([#561](https://github.com/timoast/signac/pull/561))
+* Added `min.distance` parameter to `LinkPeaks()` ([#561](https://github.com/stuart-lab/signac/pull/561))
 
 Bug fixes:
 
-* Fixed fragment file reading when only one fragment found in requested region ([#474](https://github.com/timoast/signac/issues/474))
-* Fixed `standard.chromosomes` parameter in `GetGRangesFromEnsDb()` ([#513](https://github.com/timoast/signac/issues/513))
-* Fixed `group.by` parameter in `PlotFootprint()` ([#522](https://github.com/timoast/signac/issues/522))
+* Fixed fragment file reading when only one fragment found in requested region ([#474](https://github.com/stuart-lab/signac/issues/474))
+* Fixed `standard.chromosomes` parameter in `GetGRangesFromEnsDb()` ([#513](https://github.com/stuart-lab/signac/issues/513))
+* Fixed `group.by` parameter in `PlotFootprint()` ([#522](https://github.com/stuart-lab/signac/issues/522))
 * Fixed bug that would cause some gene coordinates used by `GeneActivity()` to be 
-incorrect ([#521](https://github.com/timoast/signac/issues/521))
-* Fixed error message in `FindMotifs()` ([#549](https://github.com/timoast/signac/issues/549))
-* Fixed bug in `CountsInRegion()` ([#563](https://github.com/timoast/signac/issues/563))
+incorrect ([#521](https://github.com/stuart-lab/signac/issues/521))
+* Fixed error message in `FindMotifs()` ([#549](https://github.com/stuart-lab/signac/issues/549))
+* Fixed bug in `CountsInRegion()` ([#563](https://github.com/stuart-lab/signac/issues/563))
 
 Other changes:
 
 * Improved speed of ChromatinAssay merging
-* Improved error message for `TSSEnrichment()` ([#485](https://github.com/timoast/signac/issues/485))
+* Improved error message for `TSSEnrichment()` ([#485](https://github.com/stuart-lab/signac/issues/485))
 * Improved error messages when trying to run `ChromatinAssay`-specific functions
 on non-`ChromatinAssay` assays
 * Performance improvements
 * Changed default value for `n` in `NucleosomeSignal()`
 * Enabled parallization in `TSSEnrichment()` when `fast=TRUE`
-* Added early error checking in `LinkPeaks()` ([#550](https://github.com/timoast/signac/pull/550))
-* Change to sparse matrix correlation in `LinkPeaks()` ([#550](https://github.com/timoast/signac/pull/550))
+* Added early error checking in `LinkPeaks()` ([#550](https://github.com/stuart-lab/signac/pull/550))
+* Change to sparse matrix correlation in `LinkPeaks()` ([#550](https://github.com/stuart-lab/signac/pull/550))
 * Moved `biovizBase` and `Biostrings` to suggested packages
 * Removed `ggbio` dependency
 * Re-implemented `AnnotationPlot()`
@@ -191,16 +315,16 @@ variables.
 Bug fixes:
 
 * Update meta feature information (overall peak accessibility) when subsetting 
-objects to avoid counts becoming inaccurate ([#332](https://github.com/timoast/signac/issues/332))
-* Prevent dropping features when creating a merged ChromatinAssay ([#340](https://github.com/timoast/signac/pull/340))
-* Fix compilation error when using g++ version <5 ([#326](https://github.com/timoast/signac/issues/326))
-* Retain motif positions during subset ([#364](https://github.com/timoast/signac/issues/364))
+objects to avoid counts becoming inaccurate ([#332](https://github.com/stuart-lab/signac/issues/332))
+* Prevent dropping features when creating a merged ChromatinAssay ([#340](https://github.com/stuart-lab/signac/pull/340))
+* Fix compilation error when using g++ version <5 ([#326](https://github.com/stuart-lab/signac/issues/326))
+* Retain motif positions during subset ([#364](https://github.com/stuart-lab/signac/issues/364))
 * Fix `assay` parameter in `CoveragePlot()`
-* Fix error when merging ChromatinAssay object ([#355](https://github.com/timoast/signac/issues/355))
-* Add more informative error message when all features or cells removed by parameter choices in `CreateChromatinAssay()` ([#387](https://github.com/timoast/signac/issues/387))
-* Fix bug in `CreateChromatinAssay()` when setting both `min.cells` and `min.features` arguments ([#390](https://github.com/timoast/signac/issues/390))
+* Fix error when merging ChromatinAssay object ([#355](https://github.com/stuart-lab/signac/issues/355))
+* Add more informative error message when all features or cells removed by parameter choices in `CreateChromatinAssay()` ([#387](https://github.com/stuart-lab/signac/issues/387))
+* Fix bug in `CreateChromatinAssay()` when setting both `min.cells` and `min.features` arguments ([#390](https://github.com/stuart-lab/signac/issues/390))
 * Improved support for remote fragment files
-* Fixed bug in `PlotFootprint()` when only one cell in an identity class ([#406](https://github.com/timoast/signac/issues/406))
+* Fixed bug in `PlotFootprint()` when only one cell in an identity class ([#406](https://github.com/stuart-lab/signac/issues/406))
 
 Other changes:
 
@@ -219,18 +343,18 @@ for different groups of cells separately by setting the `group.by` parameter
 * Added `ranges` parameter to `CoveragePlot()` to plot addition sets of genomic ranges
 * Added `show.bulk` parameter to `CoveragePlot()` to plot accessibility of all cells combined
 * Added ability to remove `Fragment` objects and modify the file path for existing
-fragment objects ([#206](https://github.com/timoast/signac/issues/206))
+fragment objects ([#206](https://github.com/stuart-lab/signac/issues/206))
 
 Bug fixes: 
 
-* Fixed bugs in `AlleleFreq()` ([#196](https://github.com/timoast/signac/issues/196)
-and [#260](https://github.com/timoast/signac/issues/260))
-* Fixed bug in `FeatureMatrix()` ([#205](https://github.com/timoast/signac/issues/205), [#291](https://github.com/timoast/signac/issues/291))
-* Fixed bug in `CreateChromatinAssay()` when setting `min.features` argument ([#194](https://github.com/timoast/signac/issues/194))
-* Fixed bug in `CreateChromatinAssay()` when setting `min.cells` argument ([#292](https://github.com/timoast/signac/issues/292))
-* Fixed bug in `TSSEnrichment()` when cell information not set for fragment files ([#203](https://github.com/timoast/signac/issues/203))
-* Fixed bug in `TSSEnrichment()` when no fragments present in TSS region ([#244](https://github.com/timoast/signac/issues/244))
-* Removed `qvalue` calculation from `FindMotifs()` ([#223](https://github.com/timoast/signac/issues/223))
+* Fixed bugs in `AlleleFreq()` ([#196](https://github.com/stuart-lab/signac/issues/196)
+and [#260](https://github.com/stuart-lab/signac/issues/260))
+* Fixed bug in `FeatureMatrix()` ([#205](https://github.com/stuart-lab/signac/issues/205), [#291](https://github.com/stuart-lab/signac/issues/291))
+* Fixed bug in `CreateChromatinAssay()` when setting `min.features` argument ([#194](https://github.com/stuart-lab/signac/issues/194))
+* Fixed bug in `CreateChromatinAssay()` when setting `min.cells` argument ([#292](https://github.com/stuart-lab/signac/issues/292))
+* Fixed bug in `TSSEnrichment()` when cell information not set for fragment files ([#203](https://github.com/stuart-lab/signac/issues/203))
+* Fixed bug in `TSSEnrichment()` when no fragments present in TSS region ([#244](https://github.com/stuart-lab/signac/issues/244))
+* Removed `qvalue` calculation from `FindMotifs()` ([#223](https://github.com/stuart-lab/signac/issues/223))
 * Fixed bug in `SetAssayData()` when setting the `scale.data` slot
 
 Other changes:

@@ -89,7 +89,19 @@ AlleleFreq.default <- function(object, variants, ...) {
 #' @export
 #' @method AlleleFreq Assay
 AlleleFreq.Assay <- function(object, variants, ...) {
-  mat <- GetAssayData(object = object, slot = "counts")
+  mat <- GetAssayData(object = object, layer = "counts")
+  allele.freq <- AlleleFreq(object = mat, variants = variants, ...)
+  allele.assay <- CreateAssayObject(counts = allele.freq)
+  return(allele.assay)
+}
+
+#' @rdname AlleleFreq
+#' @importFrom SeuratObject CreateAssayObject GetAssayData
+#' @concept mito
+#' @export
+#' @method AlleleFreq StdAssay
+AlleleFreq.StdAssay <- function(object, variants, ...) {
+  mat <- GetAssayData(object = object, layer = "counts")
   allele.freq <- AlleleFreq(object = mat, variants = variants, ...)
   allele.assay <- CreateAssayObject(counts = allele.freq)
   return(allele.assay)
@@ -149,7 +161,7 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
   # find mean allele frequency of each variant in each clonotype
   md <- object[[]]
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  mat <- GetAssayData(object = object, assay = assay, slot = "data")
+  mat <- GetAssayData(object = object, assay = assay, layer = "data")
   matty <- sapply(
     X = unique(x = object$allele_ident_stash_clon),
     FUN = function(x) {
@@ -210,7 +222,7 @@ FindClonotypes <- function(
   # get allele matrix
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   features <- SetIfNull(x = features, y = rownames(x = object[[assay]]))
-  mat <- GetAssayData(object = object, assay = assay, slot = "data")[features, ]
+  mat <- GetAssayData(object = object, assay = assay, layer = "data")[features, ]
   mat <- sqrt(x = t(x = mat))
 
   # construct neighbor graph
@@ -440,7 +452,22 @@ IdentifyVariants.Assay <- function(
   refallele,
   ...
 ) {
-  counts <- GetAssayData(object = object, slot = 'counts')
+  counts <- GetAssayData(object = object, layer = 'counts')
+  df <- IdentifyVariants(object = counts, refallele = refallele, ...)
+  return(df)
+}
+
+#' @importFrom SeuratObject GetAssayData
+#' @rdname IdentifyVariants
+#' @method IdentifyVariants StdAssay
+#' @concept mito
+#' @export
+IdentifyVariants.StdAssay <- function(
+    object,
+    refallele,
+    ...
+) {
+  counts <- GetAssayData(object = object, layer = 'counts')
   df <- IdentifyVariants(object = counts, refallele = refallele, ...)
   return(df)
 }

@@ -43,6 +43,7 @@ motif.matrix <- matrix(
     replace = TRUE),
   ncol = 5
 )
+rownames(motif.matrix) <- 1:nrow(motif.matrix)
 motif <- CreateMotifObject(data = motif.matrix)
 }
 \concept{motifs}

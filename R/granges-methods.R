@@ -3,25 +3,25 @@
 #' @importFrom GenomicRanges granges
 NULL
 
-#' Access genomic ranges for ChromatinAssay objects
+#' Access genomic ranges for GRangesAssay objects
 #'
 #' Methods for accessing \code{\link[GenomicRanges]{GRanges}} object
-#' information stored in a \code{\link{ChromatinAssay}} object.
+#' information stored in a \code{\link{GRangesAssay}} object.
 #'
 #' @name granges-methods
-#' @param x A \code{\link{ChromatinAssay}} object
+#' @param x A \code{\link{GRangesAssay}} object
 #' @param use.names Whether the names on the genomic ranges should be
 #' propagated to the returned object.
-#' @param use.mcols Not supported for \code{\link{ChromatinAssay}} objects
+#' @param use.mcols Not supported for \code{\link{GRangesAssay}} objects
 #' @param ... Additional arguments
 #'
 #' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
 #'
-#' @aliases granges granges,ChromatinAssay-method
+#' @aliases granges granges,GRangesAssay-method
 #' @seealso
 #' \itemize{
 #'   \item{\link[GenomicRanges]{granges} in the \pkg{GenomicRanges} package.}
-#'   \item{\link{ChromatinAssay-class}}
+#'   \item{\link{GRangesAssay-class}}
 #'  }
 #' @exportMethod granges
 #' @concept granges
@@ -29,10 +29,10 @@ NULL
 #' granges(atac_small)
 setMethod(
   f = "granges",
-  signature = "ChromatinAssay",
+  signature = "GRangesAssay",
   definition = function(x, use.names = TRUE, use.mcols = FALSE, ...) {
     if (!identical(x = use.mcols, y = FALSE)) {
-      stop("\"granges\" method for ChromatinAssay objects ",
+      stop("\"granges\" method for GRangesAssay objects ",
            "does not support the 'use.mcols' argument")
     }
     slot(object = x, name = "ranges")

@@ -6,5 +6,5 @@
 "_PACKAGE"
 
 .onLoad <- function(...) {
-  vctrs::s3_register(generic = "Seurat::FoldChange", class = "ChromatinAssay")
+  vctrs::s3_register(generic = "Seurat::FoldChange", class = "ChromatinAssay5")
 }

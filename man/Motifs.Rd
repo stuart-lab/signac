@@ -3,9 +3,9 @@
 \name{Motifs}
 \alias{Motifs}
 \alias{Motifs<-}
-\alias{Motifs.ChromatinAssay}
+\alias{Motifs.GRangesAssay}
 \alias{Motifs.Seurat}
-\alias{Motifs<-.ChromatinAssay}
+\alias{Motifs<-.GRangesAssay}
 \alias{Motifs<-.Seurat}
 \title{Get or set a motif information}
 \usage{
@@ -13,16 +13,16 @@ Motifs(object, ...)
 
 Motifs(object, ...) <- value
 
-\method{Motifs}{ChromatinAssay}(object, ...)
+\method{Motifs}{GRangesAssay}(object, ...)
 
 \method{Motifs}{Seurat}(object, ...)
 
-\method{Motifs}{ChromatinAssay}(object, ...) <- value
+\method{Motifs}{GRangesAssay}(object, ...) <- value
 
 \method{Motifs}{Seurat}(object, ...) <- value
 }
 \arguments{
-\item{object}{A Seurat object}
+\item{object}{A Seurat or GRangesAssay or object}
 
 \item{...}{Arguments passed to other methods}
 

@@ -29,7 +29,13 @@ create the object from raw data.
 First we will load their dataset and perform some standard preprocessing using
 Signac.
 
+```{r init, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "../vignette_data/GSE129785")
+```
+
 ```{r include=FALSE}
+setRepositories(ind=1:3)
 if (!requireNamespace("remotes", quietly = TRUE))
     install.packages("remotes")
 
@@ -56,7 +62,7 @@ library(patchwork)
 
 ```{r}
 # load the object created in the Monocle 3 vignette
-bone <- readRDS("../vignette_data/cd34.rds")
+bone <- qs2::qs_read("cd34.qs2")
 ```
 
 ## Create the Cicero object
@@ -68,7 +74,7 @@ with a Monocle 3 `CellDataSet` object. We will first make sure this branch is
 installed, then convert our `Seurat` object for the whole bone marrow dataset to
 `CellDataSet` format.
 
-```{r, eval=FALSE}
+```{r message=FALSE, warning=FALSE}
 # Install Cicero
 if (!requireNamespace("remotes", quietly = TRUE))
     install.packages("remotes")
@@ -97,7 +103,7 @@ We highly recommend that you explore the [Cicero website](https://cole-trapnell-
 [paper](https://doi.org/10.1016/j.molcel.2018.06.044), and documentation for
 more information.
 
-```{r, cache=TRUE}
+```{r cache=TRUE}
 # get the chromosome sizes from the Seurat object
 genome <- seqlengths(bone)
 
@@ -151,7 +157,7 @@ CoveragePlot(bone, region = "chr1-40189344-40252549")
 ```
 
 ```{r include=FALSE}
-saveRDS(object = bone, file = "../vignette_data/cd34.rds")
+qs2::qs_save(object = bone, file = "cd34.qs2", nthreads = 4)
 ```
 
 ## Acknowledgements
@@ -162,7 +168,7 @@ Cicero please cite the [Cicero paper](https://doi.org/10.1016/j.molcel.2018.06.0
 
 <details>
   <summary>**Session Info**</summary>
-  
+
 ```{r}
 sessionInfo()
 ```

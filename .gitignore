@@ -18,3 +18,8 @@ vignette_data/*
 cran-comments.md
 vignettes/*_cache/*
 benchmark/*
+.ipynb_checkpoints
+*.err
+*.out
+build.sh
+*.ipynb

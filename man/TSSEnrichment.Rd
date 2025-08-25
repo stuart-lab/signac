@@ -12,7 +12,8 @@ TSSEnrichment(
   assay = NULL,
   cells = NULL,
   process_n = 2000,
-  verbose = TRUE
+  verbose = TRUE,
+  region_extension = 1000
 )
 }
 \arguments{
@@ -38,6 +39,9 @@ in the object}
 option.}
 
 \item{verbose}{Display messages}
+
+\item{region_extension}{Distance extended upstream and downstream from TSS
+in which to calculate enrichment and background.}
 }
 \value{
 Returns a \code{\link[SeuratObject]{Seurat}} object

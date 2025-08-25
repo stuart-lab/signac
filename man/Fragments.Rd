@@ -3,9 +3,9 @@
 \name{Fragments}
 \alias{Fragments}
 \alias{Fragments<-}
-\alias{Fragments.ChromatinAssay}
+\alias{Fragments.ChromatinAssay5}
 \alias{Fragments.Seurat}
-\alias{Fragments<-.ChromatinAssay}
+\alias{Fragments<-.ChromatinAssay5}
 \alias{Fragments<-.Seurat}
 \title{Get the Fragment objects}
 \usage{
@@ -13,16 +13,16 @@ Fragments(object, ...)
 
 Fragments(object, ...) <- value
 
-\method{Fragments}{ChromatinAssay}(object, ...)
+\method{Fragments}{ChromatinAssay5}(object, ...)
 
 \method{Fragments}{Seurat}(object, ...)
 
-\method{Fragments}{ChromatinAssay}(object, ...) <- value
+\method{Fragments}{ChromatinAssay5}(object, ...) <- value
 
 \method{Fragments}{Seurat}(object, ...) <- value
 }
 \arguments{
-\item{object}{A Seurat object or ChromatinAssay object}
+\item{object}{A Seurat, GRangesAssay, or ChromatinAssay5 object}
 
 \item{...}{Arguments passed to other methods}
 

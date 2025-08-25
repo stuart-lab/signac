@@ -10,11 +10,17 @@ genome-browser-track style plots with Signac.
 To demonstrate we'll use the human PBMC dataset processed in
 [this vignette](pbmc_vignette.html).
 
+```{r init, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "../vignette_data/pbmc_vignette")
+```
+
 ```{r message=FALSE, warning=FALSE}
 library(Signac)
+library(ggplot2)
 
 # load PBMC dataset
-pbmc <- readRDS("../vignette_data/pbmc.rds")
+pbmc <- qs2::qs_read("pbmc.qs2")
 ```
 
 There are several different genome browser style plot types available in Signac,
@@ -27,10 +33,14 @@ The main plotting function in Signac is `CoveragePlot()`, and this computes the
 averaged frequency of sequenced DNA fragments for different groups of cells
 within a given genomic region. 
 
+```{r}
+roi = "chr2-86784605-86808396"
+```
+
 ```{r message=FALSE, warning=FALSE}
 cov_plot <- CoveragePlot(
   object = pbmc,
-  region = "chr2-87011729-87035519",
+  region = roi,
   annotation = FALSE,
   peaks = FALSE
 )
@@ -50,6 +60,25 @@ CoveragePlot(
 )
 ```
 
+## Customizing plots
+
+All of the plots returned by Signac functions are `ggplot2` or `patchwork`
+objects, and so you can use standard functions from `ggplot2` or other packages
+to further modify or customize them. For example, if we wanted to adjust the
+color of the tracks generated in the plot above, we can use the `scale_fill_`
+functions in `ggplot2`, for example `scale_fill_brewer()`:
+
+```{r}
+cov_plot + scale_fill_brewer(type = "seq", palette = 1)
+```
+
+```{r}
+cov_plot + scale_fill_brewer(type = "qual", palette = 1)
+```
+
+Note that for plots that are combined using Patchwork, the `&` operator can be
+used to apply the aesthetic adjustment to all of the plots in the object.
+
 ## Plotting gene annotations
 
 Gene annotations within a given genomic region can be plotted using the 
@@ -58,7 +87,7 @@ Gene annotations within a given genomic region can be plotted using the
 ```{r message=FALSE, warning=FALSE}
 gene_plot <- AnnotationPlot(
   object = pbmc,
-  region = "chr2-87011729-87035519"
+  region = roi
 )
 gene_plot
 ```
@@ -71,7 +100,7 @@ function.
 ```{r message=FALSE, warning=FALSE}
 peak_plot <- PeakPlot(
   object = pbmc,
-  region = "chr2-87011729-87035519"
+  region = roi
 )
 peak_plot
 ```
@@ -107,7 +136,7 @@ Links(pbmc) <- links
 ```{r message=FALSE, warning=FALSE}
 link_plot <- LinkPlot(
   object = pbmc,
-  region = "chr2-87011729-87035519"
+  region = roi
 )
 link_plot
 ```
@@ -123,7 +152,7 @@ function.
 ```{r message=FALSE, warning=FALSE}
 tile_plot <- TilePlot(
   object = pbmc,
-  region = "chr2-87011729-87035519",
+  region = roi,
   idents = c("CD4 Memory", "CD8 Effector")
 )
 tile_plot
@@ -199,7 +228,7 @@ single function call:
 ```{r fig.height=10, message=FALSE, warning=FALSE}
 CoveragePlot(
   object = pbmc,
-  region = "chr2-87011729-87035519",
+  region = roi,
   features = "CD8A",
   annotation = TRUE,
   peaks = TRUE,

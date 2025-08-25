@@ -45,7 +45,7 @@ element is used to separate the start from end coordinate.}
 Returns a \code{\link[ggplot2]{ggplot}} object
 }
 \description{
-Display the genomic ranges in a \code{\link{ChromatinAssay}} object that fall
+Display the genomic ranges in a \code{\link{GRangesAssay}} object that fall
 in a given genomic region
 }
 \examples{

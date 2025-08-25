@@ -1,8 +1,8 @@
 # dynamically exported, see zzz.R
-#' @method FoldChange ChromatinAssay
-#' @importFrom SeuratObject GetAssayData
+#' @method FoldChange ChromatinAssay5
+#' @importFrom SeuratObject LayerData
 #' @importFrom Matrix rowMeans
-FoldChange.ChromatinAssay <- function(
+FoldChange.ChromatinAssay5 <- function(
   object,
   cells.1,
   cells.2,
@@ -28,7 +28,7 @@ FoldChange.ChromatinAssay <- function(
     no = base
   )
   fc.name <- SetIfNull(x = fc.name, y = paste0("avg_log", base.text, "FC"))
-  data <- GetAssayData(object = object, slot = slot)
+  data <- LayerData(object = object, layer = slot)
   Seurat::FoldChange(
     object = data,
     cells.1 = cells.1,

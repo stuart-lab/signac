@@ -3,7 +3,8 @@
 \name{RunSVD}
 \alias{RunSVD}
 \alias{RunSVD.default}
-\alias{RunSVD.Assay}
+\alias{RunSVD.Assay5}
+\alias{RunSVD.StdAssay}
 \alias{RunSVD.Seurat}
 \title{Run singular value decomposition}
 \usage{
@@ -18,12 +19,26 @@ RunSVD(object, ...)
   scale.max = NULL,
   verbose = TRUE,
   irlba.work = n * 3,
+  tol = 1e-05,
   ...
 )
 
-\method{RunSVD}{Assay}(
+\method{RunSVD}{Assay5}(
   object,
   assay = NULL,
+  layer = "data",
+  features = NULL,
+  n = 50,
+  reduction.key = "LSI_",
+  scale.max = NULL,
+  verbose = TRUE,
+  ...
+)
+
+\method{RunSVD}{StdAssay}(
+  object,
+  assay = NULL,
+  layer = "data",
   features = NULL,
   n = 50,
   reduction.key = "LSI_",
@@ -36,6 +51,7 @@ RunSVD(object, ...)
   object,
   assay = NULL,
   features = NULL,
+  layer = "data",
   n = 50,
   reduction.key = "LSI_",
   reduction.name = "lsi",
@@ -67,6 +83,9 @@ Default (NULL) is no clipping.}
 Working subspace dimension, larger values can speed convergence at the
 cost of more memory use.}
 
+\item{tol}{Tolerance (tol) parameter for \code{\link[irlba]{irlba}}. Larger
+values speed up convergence due to greater amount of allowed error.}
+
 \item{features}{Which features to use. If NULL, use variable features}
 
 \item{reduction.name}{Name for stored dimension reduction object.
@@ -81,7 +100,14 @@ Run partial singular value decomposition using \code{\link[irlba]{irlba}}
 \examples{
 x <- matrix(data = rnorm(100), ncol = 10)
 RunSVD(x)
+\dontrun{
 RunSVD(atac_small[['peaks']])
+}
+\dontrun{
+RunSVD(atac_small[['peaks']])
+}
+\dontrun{
 RunSVD(atac_small)
+}
 }
 \concept{dimension_reduction}

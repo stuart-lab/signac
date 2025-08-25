@@ -3,6 +3,167 @@
 #'
 NULL
 
+#' @export
+#' @concept qc
+#' @rdname ATACqc
+ATACqc.default <- function(
+    object,
+    annotations,
+    fragtk.path = NULL,
+    outdir = tempdir(),
+    cleanup = TRUE,
+    verbose = TRUE,
+    ...
+) {
+  # find fragtk
+  fragtk.path <- SetIfNull(
+    x = fragtk.path,
+    y = unname(obj = Sys.which(names = "fragtk"))
+  )
+  if (nchar(x = fragtk.path) == 0) {
+    stop("fragtk not found. Please install fragtk:",
+         "https://crates.io/crates/fragtk")
+  }
+  if (!file.exists(fragtk.path)) {
+    stop("fragtk executable does not exist at supplied path")
+  }
+  if (!dir.exists(paths = outdir)) {
+    stop("Requested output directory does not exist")
+  }
+  
+  object <- normalizePath(path = object, mustWork = TRUE)
+  
+  # get tss positions from annotations
+  tss <- GetTSSPositions(ranges = annotations)
+  
+  # temp files
+  tss.path <- tempfile(pattern = "signac_fragtk_tss", tmpdir = outdir)
+  out.path <- tempfile(pattern = "signac_fragtk_qc", tmpdir = outdir)
+  
+  # write tss
+  write.table(
+    x = as.data.frame(x = tss),
+    file = tss.path,
+    sep = "\t",
+    row.names = FALSE,
+    col.names = FALSE,
+    quote = FALSE
+  )
+  
+  # call fragtk qc
+  cmd <- paste0(
+    fragtk.path,
+    " qc --fragments ",
+    object,
+    " --bed ",
+    tss.path,
+    " --outfile ",
+    out.path
+  )
+  
+  system(
+    command = cmd,
+    wait = TRUE,
+    ignore.stderr = !verbose,
+    ignore.stdout = !verbose
+  )
+  
+  # load results
+  md <- read.table(file = out.path, header = TRUE, row.names = 1, sep = "\t")
+  
+  # remove temp files
+  if (cleanup) {
+    files.to.remove <- c(tss.path, out.path)
+    for (i in files.to.remove) {
+      if (file.exists(i)) {
+        file.remove(i)
+      }
+    }
+  }
+  
+  return(md)
+}
+
+#' @export
+#' @concept qc
+#' @rdname ATACqc
+#' @method ATACqc ChromatinAssay5
+#' @importFrom utils write.table
+ATACqc.ChromatinAssay5 <- function(
+    object,
+    annotations = NULL,
+    fragtk.path = NULL,
+    outdir = tempdir(),
+    cleanup = TRUE,
+    verbose = TRUE,
+    ...
+) {
+  
+  annotations <- SetIfNull(x = annotations, y = Annotation(object = object))
+  frags <- Fragments(object = object)
+  
+  results <- data.frame()
+  
+  for (i in seq_along(along.with = frags)) {
+    fragments <- GetFragmentData(object = frags[[i]], slot = "file.path")
+    if (verbose) {
+      message("Processing ", fragments)
+    }
+    
+    md <- ATACqc(
+      object = fragments,
+      fragtk.path = fragtk.path,
+      annotations = annotations,
+      outdir = outdir,
+      cleanup = cleanup,
+      verbose = verbose
+    )
+    
+    # convert cell names
+    cellconvert <- GetFragmentData(object = frags[[i]], slot = "cells")
+    cc <- names(x = cellconvert)
+    names(x = cc) <- cellconvert
+    md <- md[cellconvert, ]
+    rownames(x = md) <- cc[rownames(x = md)]
+    
+    # concat across fragment files
+    results <- rbind(results, md)
+  }
+  return(results)
+}
+
+#' @param assay Name of assay to use. If NULL, use the default assay.
+#' @rdname ATACqc
+#' @method ATACqc Seurat
+#' @importFrom SeuratObject AddMetaData DefaultAssay
+#' @export
+#' @concept qc
+ATACqc.Seurat <- function(
+  object,
+  assay = NULL,
+  annotations = NULL,
+  fragtk.path = NULL,
+  outdir = tempdir(),
+  cleanup = TRUE,
+  verbose = TRUE,
+  ...
+) {
+  assay <- SetIfNull(
+    x = assay,
+    y = DefaultAssay(object = object)
+  )
+  md <- ATACqc(
+    object = object[[assay]],
+    fragtk.path = fragtk.path,
+    annotations = annotations,
+    outdir = outdir,
+    cleanup = cleanup,
+    verbose = verbose
+  )
+  object <- AddMetaData(object = object, metadata = md)
+  return(object)
+}
+
 #' @param verbose Display messages
 #' @rdname BinarizeCounts
 #' @importFrom methods is slot "slot<-"
@@ -43,10 +204,10 @@ BinarizeCounts.Assay <- function(
   verbose = TRUE,
   ...
 ) {
-  data.matrix <- GetAssayData(object = object, slot = "counts")
+  data.matrix <- GetAssayData(object = object, layer = "counts")
   object <- SetAssayData(
     object = object,
-    slot = "counts",
+    layer = "counts",
     new.data = BinarizeCounts(
       object = data.matrix, assay = assay, verbose = verbose
     )
@@ -138,6 +299,26 @@ CreateMotifMatrix <- function(
     stop("Please install motifmatchr.
          https://www.bioconductor.org/packages/motifmatchr/")
   }
+
+  # genome can be string
+  if (is.character(x = genome)) {
+      if (!requireNamespace("BSgenome", quietly = TRUE)) {
+        stop("Please install BSgenome.
+             https://www.bioconductor.org/packages/BSgenome/")
+      }
+      genome <- BSgenome::getBSgenome(genome = genome)
+  }
+
+  # check that all seqnames in features are in genome
+  # remove missing, replace later with zeros and show warning
+  miss_sn <- !(as.character(seqnames(x = features)) %in% seqlevels(x = genome))
+  if (sum(miss_sn) > 0) {
+    warning("Not all seqlevels present in supplied genome",
+            immediate. = TRUE)
+    # remove from features and remember original order
+    feature_order <- features
+    features <- features[!miss_sn]
+  }
   motif_ix <- motifmatchr::matchMotifs(
     pwms = pwm,
     subject = features,
@@ -162,6 +343,21 @@ CreateMotifMatrix <- function(
     colnames(x = motif.matrix) <- vapply(
       X = pwm, FUN = slot, FUN.VALUE = "character", "name"
     )
+  }
+  # add missing features
+  if (sum(miss_sn) > 0) {
+    replacement_matrix <- sparseMatrix(
+      i = sum(miss_sn),
+      j = ncol(x = motif.matrix)
+    )
+    rownames(x = replacement_matrix) <- GRangesToString(
+      grange = feature_order[miss_sn], sep = sep
+    )
+    colnames(x = replacement_matrix) <- colnames(x = motif.matrix)
+    motif.matrix <- rbind(motif.matrix, replacement_matrix)
+    motif.matrix <- motif.matrix[GRangesToString(
+      grange = feature_order, sep = sep
+      ), ]
   }
   return(motif.matrix)
 }
@@ -206,9 +402,9 @@ DownsampleFeatures <- function(
 #' for the object. This can be a percentile specified as 'q' followed by the
 #' minimum percentile, for example 'q5' to set the top 95\% most common features
 #' as the VariableFeatures for the object. Alternatively, this can be an integer
-#' specifying the minimum number of cells containing the feature for the feature
+#' specifying the minimum number of counts for the feature
 #' to be included in the set of VariableFeatures. For example, setting to 10
-#' will include features in >10 cells in the set of VariableFeatures. If NULL,
+#' will include features with >10 total counts in the set of VariableFeatures. If NULL,
 #' include all features in VariableFeatures. If NA, VariableFeatures will not be
 #' altered, and only the feature metadata will be updated with the total counts
 #' and percentile rank for each feature.
@@ -220,7 +416,7 @@ DownsampleFeatures <- function(
 #' @export
 #' @concept preprocessing
 #' @examples
-#' FindTopFeatures(object = atac_small[['peaks']][])
+#' FindTopFeatures(object = atac_small[['peaks']]['data'])
 FindTopFeatures.default <- function(
   object,
   assay = NULL,
@@ -240,20 +436,23 @@ FindTopFeatures.default <- function(
 }
 
 #' @rdname FindTopFeatures
-#' @importFrom SeuratObject GetAssayData VariableFeatures
+#' @importFrom SeuratObject LayerData VariableFeatures
+#' @importFrom utils packageVersion
 #' @export
-#' @method FindTopFeatures Assay
+#' @method FindTopFeatures Assay5
 #' @concept preprocessing
 #' @examples
 #' FindTopFeatures(object = atac_small[['peaks']])
-FindTopFeatures.Assay <- function(
+FindTopFeatures.Assay5 <- function(
   object,
   assay = NULL,
+  layer = "counts",
   min.cutoff = "q5",
   verbose = TRUE,
   ...
 ) {
-  data.use <- GetAssayData(object = object, slot = "counts")
+  # TODO enable running across list of layers
+  data.use <- LayerData(object = object, layer = layer)
   if (IsMatrixEmpty(x = data.use)) {
     if (verbose) {
       message("Count slot empty")
@@ -289,6 +488,32 @@ FindTopFeatures.Assay <- function(
 }
 
 #' @rdname FindTopFeatures
+#' @importFrom SeuratObject GetAssayData VariableFeatures
+#' @importFrom utils packageVersion
+#' @export
+#' @method FindTopFeatures StdAssay
+#' @concept preprocessing
+#' @examples
+#' FindTopFeatures(object = atac_small[['peaks']])
+FindTopFeatures.StdAssay <- function(
+    object,
+    assay = NULL,
+    layer = "counts",
+    min.cutoff = "q5",
+    verbose = TRUE,
+    ...
+) {
+  FindTopFeatures.Assay5(
+    object = object,
+    assay = assay,
+    layer = layer,
+    min.cutoff = min.cutoff,
+    verbose = verbose,
+    ...
+  )
+}
+
+#' @rdname FindTopFeatures
 #' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @concept preprocessing
@@ -298,6 +523,7 @@ FindTopFeatures.Assay <- function(
 FindTopFeatures.Seurat <- function(
   object,
   assay = NULL,
+  layer = "counts",
   min.cutoff = "q5",
   verbose = TRUE,
   ...
@@ -307,7 +533,231 @@ FindTopFeatures.Seurat <- function(
   assay.data <- FindTopFeatures(
     object = assay.data,
     assay = assay,
+    layer = layer,
     min.cutoff = min.cutoff,
+    verbose = verbose,
+    ...
+  )
+  object[[assay]] <- assay.data
+  return(object)
+}
+
+#' @param assay Name of assay to use
+#' @param min.counts Minimum number of counts for feature to be eligible for variable features
+#' @param ncell.batch Number of cells to process in each batch. Higher number
+#' increases speed but uses more memory.
+#' @param nfeatures Number of top features to set as the variable features
+#' @param theta Theta value for analytic Pearson residual calculation
+#' @param verbose Display messages
+#'
+#' @importFrom Matrix rowMeans
+#' @importFrom utils txtProgressBar setTxtProgressBar
+#' @rdname PearsonResidualVar
+#' @export
+#' @concept preprocessing
+#' @examples
+#' PearsonResidualVar(object = atac_small[['peaks']]['counts'])
+PearsonResidualVar.default <- function(
+    object,
+    assay = NULL,
+    nfeatures = 20000,
+    min.counts = 100,
+    ncell.batch = 100,
+    theta = 10,
+    verbose = TRUE,
+    ...
+) {
+  # compute Pearson residual variance for each feature
+  # low-memory implementation that does not construct the entire matrix of
+  # cell x feature Pearson residuals
+  
+  # (X - μ) / sqrt(μ + μ²/θ)
+  # clip at sqrt(n_cell)
+  
+  N <- ncol(x = object)
+  clip_threshold <- sqrt(x = N)
+  
+  feature_means <- rowMeans(x = object)
+  nonzero_mean <- feature_means > 0
+  
+  if (verbose) {
+    message("Retaining ", sum(nonzero_mean), " features with mean greater than zero")
+  }
+  
+  object <- object[nonzero_mean, ]
+  feature_means <- feature_means[nonzero_mean]
+  
+  denominator <- sqrt(feature_means + ((feature_means * feature_means) / theta))
+  
+  # iterate over the values for each feature, compute the pearson residual variance
+  resid_sums <- vector(mode = 'numeric', length = nrow(x = object))
+  resid_sum_square <- vector(mode = 'numeric', length = nrow(x = object))
+  nbatch <- ceiling(N / ncell.batch)
+  if (nbatch <= 1) verbose <- FALSE
+
+  if (verbose) pb <- txtProgressBar(min = 1, max = nbatch, style = 3)
+  for (i in seq_len(length.out = nbatch)) {
+    
+    cells.interval.start <- 1 + ((i - 1) * ncell.batch)
+    cells.interval.end <- min(N, (i * ncell.batch))
+
+    resid <- (object[ ,cells.interval.start:cells.interval.end] - feature_means) / denominator
+    resid[resid > clip_threshold] <- clip_threshold
+    resid[resid < -clip_threshold] <- -clip_threshold
+    rs <- rowSums(x = resid)
+    resid_sums <- resid_sums + rs
+    resid_sum_square <- resid_sum_square + (rs * rs)
+    if (verbose) {
+      setTxtProgressBar(pb, i)
+    }
+  }
+  
+  # Variance = [sum_of_squares - n * mean^2] / n
+  resid_mean <- resid_sums / N
+  pearson_residual_variance <- (resid_sum_square - (N * resid_mean^2)) / N
+  
+  # construct dataframe
+  hvf.info <- data.frame(
+    row.names = rownames(x = object),
+    count = rowSums(x = object),
+    mean = feature_means,
+    ResidualVariance = pearson_residual_variance
+  )
+  
+  return(hvf.info)
+}
+
+#' @rdname PearsonResidualVar
+#' @importFrom SeuratObject GetAssayData VariableFeatures
+#' @importFrom utils packageVersion
+#' @export
+#' @method PearsonResidualVar Assay
+#' @concept preprocessing
+#' @examples
+#' PearsonResidualVar(object = atac_small[['peaks']])
+PearsonResidualVar.Assay <- function(
+    object,
+    assay = NULL,
+    nfeatures = 20000,
+    theta = 10,
+    min.counts = 100,
+    weight.mean = 0.5,
+    ncell.batch = 100,
+    verbose = TRUE,
+    ...
+) {
+  data.use <- GetAssayData(object = object, layer = "counts")
+  if (IsMatrixEmpty(x = data.use)) {
+    if (verbose) {
+      message("Count slot empty")
+    }
+    return(object)
+  }
+  hvf.info <- PearsonResidualVar(
+    object = data.use,
+    assay = assay,
+    min.counts = min.counts,
+    theta = theta,
+    ncell.batch = ncell.batch,
+    verbose = verbose,
+    ...
+  )
+  if (is.na(x = nfeatures)) {
+    # don't change the variable features
+    object[[names(x = hvf.info)]] <- hvf.info
+    return(object)
+  } else {
+    if (!is.null(x = min.counts)) {
+      # filter based on min.count
+      hvf.info.filt <- hvf.info[hvf.info$count > min.counts, , drop = FALSE]
+    } else {
+      hvf.info.filt <- hvf.info
+    }
+    # order based on residual variance
+    # set top n as variable features
+    res_rank <- rank(
+      x = -hvf.info.filt$ResidualVariance, ties.method = "average"
+    )
+    mean_rank <- rank(
+      x = -hvf.info.filt$mean, ties.method = "average"
+    )
+    combined_rank <- (weight.mean * mean_rank) + ((1 - weight.mean) * res_rank)
+    hvf.info.filt$ranking <- combined_rank
+    hvf.info.filt <- hvf.info.filt[
+      order(hvf.info.filt$ranking, decreasing = FALSE), 
+    ]
+    if (nfeatures > nrow(x = hvf.info.filt)) {
+      nfeatures <- nrow(x = hvf.info.filt)
+      warning("Requested more features than are available. ",
+              "Returning ", nfeatures, " variable features")
+    }
+    top_features <- head(x = rownames(x = hvf.info.filt), n = nfeatures)
+    VariableFeatures(object = object) <- top_features
+    hvf.info$variable <- rownames(x = hvf.info) %in% top_features
+    object[[names(x = hvf.info)]] <- hvf.info
+    return(object)
+  }
+}
+
+#' @rdname PearsonResidualVar
+#' @importFrom SeuratObject GetAssayData VariableFeatures
+#' @importFrom utils packageVersion
+#' @export
+#' @method PearsonResidualVar StdAssay
+#' @concept preprocessing
+#' @examples
+#' PearsonResidualVar(object = atac_small[['peaks']])
+PearsonResidualVar.StdAssay <- function(
+    object,
+    assay = NULL,
+    min.counts = 100,
+    weight.mean = 0.5,
+    theta = 10,
+    ncell.batch = 100,
+    verbose = TRUE,
+    ...
+) {
+  PearsonResidualVar.Assay(
+    object = object,
+    assay = assay,
+    min.counts = min.counts,
+    weight.mean = weight.mean,
+    theta = theta,
+    ncell.batch = ncell.batch,
+    verbose = verbose,
+    ...
+  )
+}
+
+#' @rdname PearsonResidualVar
+#' @param weight.mean Weighting to apply to the feature mean relative to the
+#' Pearson residual variance for ranking features. \code{weight.mean=0} will
+#' rank features based on the Pearson residual variance only.
+#' @importFrom SeuratObject DefaultAssay
+#' @export
+#' @concept preprocessing
+#' @method PearsonResidualVar Seurat
+#' @examples
+#' PearsonResidualVar(atac_small)
+PearsonResidualVar.Seurat <- function(
+    object,
+    assay = NULL,
+    min.counts = 100,
+    weight.mean = 0.5,
+    theta = 10,
+    ncell.batch = 100,
+    verbose = TRUE,
+    ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object))
+  assay.data <- object[[assay]]
+  assay.data <- PearsonResidualVar(
+    object = assay.data,
+    assay = assay,
+    min.counts = min.counts,
+    weight.mean = weight.mean,
+    ncell.batch = ncell.batch,
+    theta = theta,
     verbose = verbose,
     ...
   )
@@ -343,7 +793,7 @@ FRiP <- function(
   if (verbose) {
     message("Calculating fraction of reads in peaks per cell")
   }
-  peak.data <- GetAssayData(object = object, assay = assay, slot = "counts")
+  peak.data <- GetAssayData(object = object, assay = assay, layer = "counts")
   total_fragments_cell <- object[[]][[total.fragments]]
   peak.counts <- colSums(x = peak.data)
   frip <- peak.counts / total_fragments_cell
@@ -394,8 +844,8 @@ NucleosomeSignal <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5")
   }
   # first check that fragments are present
   frags <- Fragments(object = object[[assay]])
@@ -491,7 +941,7 @@ RegionStats.default <- function(
 }
 
 #' @rdname RegionStats
-#' @method RegionStats ChromatinAssay
+#' @method RegionStats GRangesAssay
 #' @importFrom methods slot
 #' @importFrom SeuratObject GetAssayData
 #' @export
@@ -504,7 +954,7 @@ RegionStats.default <- function(
 #'   genome = BSgenome.Hsapiens.UCSC.hg19
 #' )
 #' }
-RegionStats.ChromatinAssay <- function(
+RegionStats.GRangesAssay <- function(
   object,
   genome,
   verbose = TRUE,
@@ -518,10 +968,11 @@ RegionStats.ChromatinAssay <- function(
     ...
   )
   rownames(x = feature.metadata) <- rownames(x = object)
-  meta.data <- GetAssayData(object = object, slot = "meta.features")
+  meta.data <- object[[]]
   feature.metadata <- feature.metadata[rownames(x = meta.data), ]
   meta.data <- cbind(meta.data, feature.metadata)
-  slot(object = object, name = "meta.features") <- meta.data
+  object[[names(x = meta.data)]] <- NULL
+  object[[names(x = meta.data)]] <- meta.data
   return(object)
 }
 
@@ -662,36 +1113,82 @@ RunTFIDF.default <- function(
 }
 
 #' @rdname RunTFIDF
-#' @method RunTFIDF Assay
+#' @method RunTFIDF Assay5
 #' @export
 #' @concept preprocessing
+#' @importFrom SeuratObject LayerData Layers
 #' @examples
 #' RunTFIDF(atac_small[['peaks']])
-RunTFIDF.Assay <- function(
+RunTFIDF.Assay5 <- function(
   object,
   assay = NULL,
   method = 1,
   scale.factor = 1e4,
   idf = NULL,
+  layer = "counts",
+  save = "data",
   verbose = TRUE,
   ...
 ) {
-  new.data <- RunTFIDF(
-    object = GetAssayData(object = object, slot = "counts"),
-    method = method,
+  olayer <- layer <- unique(x = layer)
+  layer <- Layers(object = object, search = layer)
+  if (length(x = save) != length(x = layer)) {
+    save <- make.unique(names = gsub(
+      pattern = olayer,
+      replacement = save,
+      x = layer
+    ))
+  }
+  for (i in seq_along(along.with = layer)) {
+    l <- layer[i]
+    if (verbose) {
+      message("Processing layer: ", l)
+    }
+    LayerData(
+      object = object,
+      layer = save[i],
+      features = Features(x = object, layer = l),
+      cells = Cells(x = object, layer = l)
+    ) <- RunTFIDF(
+      object = LayerData(object = object, layer = l, fast = NA),
+      method = method,
+      scale.factor = scale.factor,
+      idf = idf,
+      verbose = verbose,
+      ...
+    )
+  }
+  return(object)
+}
+
+#' @rdname RunTFIDF
+#' @method RunTFIDF StdAssay
+#' @export
+#' @concept preprocessing
+#' @examples
+#' RunTFIDF(atac_small[['peaks']])
+RunTFIDF.StdAssay <- function(
+    object,
+    assay = NULL,
+    method = 1,
+    scale.factor = 1e4,
+    idf = NULL,
+    layer = "counts",
+    save = "data",
+    verbose = TRUE,
+    ...
+) {
+  RunTFIDF.Assay5(
+    object = object,
     assay = assay,
+    method = method,
     scale.factor = scale.factor,
     idf = idf,
+    layer = layer,
+    save = save,
     verbose = verbose,
     ...
   )
-  new.data <- as(object = new.data, Class = "CsparseMatrix")
-  object <- SetAssayData(
-    object = object,
-    slot = "data",
-    new.data = new.data
-  )
-  return(object)
 }
 
 #' @param assay Name of assay to use
@@ -707,6 +1204,8 @@ RunTFIDF.Seurat <- function(
   method = 1,
   scale.factor = 1e4,
   idf = NULL,
+  layer = "counts",
+  save = "data",
   verbose = TRUE,
   ...
 ) {
@@ -718,6 +1217,8 @@ RunTFIDF.Seurat <- function(
     method = method,
     scale.factor = scale.factor,
     idf = idf,
+    layer = layer,
+    save = save,
     verbose = verbose,
     ...
   )

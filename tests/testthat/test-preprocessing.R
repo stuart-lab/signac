@@ -75,9 +75,21 @@ test_that("FeatureMatrix works", {
   fm <- FeatureMatrix(
     fragments = fragments,
     features = granges(atac_small),
+    fragtk = FALSE,
     verbose = FALSE
   )
   expect_identical(object = fm, expected = computed_fmat)
+  
+  # different sep
+  fm2 <- FeatureMatrix(
+    fragments = fragments,
+    features = granges(atac_small),
+    sep = c(":", "-"),
+    fragtk = FALSE,
+    verbose = FALSE
+  )
+  rownames(computed_fmat) <- GRangesToString(StringToGRanges(rownames(computed_fmat)), sep = c(":", "-"))
+  expect_identical(object = fm2, expected = computed_fmat)
 })
 
 test_that("NucleosomeSignal works", {
@@ -94,4 +106,25 @@ test_that("NucleosomeSignal works", {
     object = as.numeric(x = head(x = ns$nucleosome_signal)),
     expected = c(NaN, NaN, 0.0, 2.5, NaN, NaN)
   )
+})
+
+
+test_that("CreateMotifMatrix works", {
+  pwm <- readRDS("../testdata/pwm_2motifs.rds")
+  genome.fasta <- system.file("extdata", "chr1_start.fa", package = "Signac")
+  genome <- Rsamtools::FaFile(genome.fasta)
+  skip_if_not_installed("motifmatchr")
+  motif.matrix <- suppressWarnings(CreateMotifMatrix(
+    features = granges(atac_small),
+    pwm = pwm,
+    genome = genome
+  ))
+  expect_equal(dim(motif.matrix), c(323, 2))
+  features <- suppressWarnings(c(
+    granges(atac_small),
+    GenomicRanges::GRanges(
+      seqnames = "fake_chr",
+      ranges = IRanges::IRanges(start = 1, end = 1000)
+    )
+  ))
 })

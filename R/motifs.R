@@ -6,6 +6,7 @@ NULL
 #' @method AddMotifs default
 #' @concept motifs
 #' @importFrom methods slot
+#' @importFrom GenomeInfoDb seqlevels seqnames
 #' @export
 AddMotifs.default <- function(
   object,
@@ -28,6 +29,14 @@ AddMotifs.default <- function(
   if (verbose) {
     message("Building motif matrix")
   }
+  # genome can be string
+  if (is.character(x = genome)) {
+    if (!requireNamespace("BSgenome", quietly = TRUE)) {
+      stop("Please install BSgenome.
+             https://www.bioconductor.org/packages/BSgenome/")
+    }
+    genome <- BSgenome::getBSgenome(genome = genome)
+  }
   motif.matrix <- CreateMotifMatrix(
     features = object,
     pwm = pfm,
@@ -37,9 +46,14 @@ AddMotifs.default <- function(
   if (verbose) {
     message("Finding motif positions")
   }
+  
+  # for positions, a list of granges is returned
+  # each element of list is a PFM name
+  # each entry in granges is the position within a feature that matches motif
+  obj_keep <- as.character(seqnames(x = object)) %in% seqlevels(x = genome)
   motif.positions <- motifmatchr::matchMotifs(
     pwms = pfm,
-    subject = object,
+    subject = object[obj_keep],
     out = 'positions',
     genome = genome
   )
@@ -55,10 +69,10 @@ AddMotifs.default <- function(
 }
 
 #' @rdname AddMotifs
-#' @method AddMotifs ChromatinAssay
+#' @method AddMotifs GRangesAssay
 #' @concept motifs
 #' @export
-AddMotifs.ChromatinAssay <- function(
+AddMotifs.GRangesAssay <- function(
   object,
   genome,
   pfm,
@@ -73,7 +87,7 @@ AddMotifs.ChromatinAssay <- function(
   )
   object <- SetAssayData(
     object = object,
-    slot = 'motifs',
+    layer = 'motifs',
     new.data = motif
   )
   return(object)
@@ -84,14 +98,29 @@ AddMotifs.ChromatinAssay <- function(
 #' @concept motifs
 #' @export
 AddMotifs.Assay <- function(
-  object,
-  genome,
-  pfm,
-  verbose = TRUE,
-  ...
+    object,
+    genome,
+    pfm,
+    verbose = TRUE,
+    ...
 ) {
   stop("Attempting to run AddMotifs on a standard Assay.\n",
-       "Please supply a ChromatinAssay instead.")
+       "Please supply a GRangesAssay instead.")
+}
+
+#' @rdname AddMotifs
+#' @method AddMotifs StdAssay
+#' @concept motifs
+#' @export
+AddMotifs.StdAssay <- function(
+    object,
+    genome,
+    pfm,
+    verbose = TRUE,
+    ...
+) {
+  stop("Attempting to run AddMotifs on an Assay5 assay.\n",
+       "Please supply a GRangesAssay instead.")
 }
 
 #' @param assay Name of assay to use. If NULL, use the default assay
@@ -129,11 +158,11 @@ AddMotifs.Seurat <- function(
   return(object)
 }
 
-#' @importFrom SeuratObject GetAssayData CreateAssayObject
+#' @importFrom SeuratObject LayerData CreateAssayObject
 #' @importFrom Matrix rowSums
 #'
 #' @concept motifs
-#' @method RunChromVAR ChromatinAssay
+#' @method RunChromVAR GRangesAssay
 #' @rdname RunChromVAR
 #' @export
 #' @examples
@@ -141,7 +170,7 @@ AddMotifs.Seurat <- function(
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RunChromVAR(object = atac_small[["peaks"]], genome = BSgenome.Hsapiens.UCSC.hg19)
 #' }
-RunChromVAR.ChromatinAssay <- function(
+RunChromVAR.GRangesAssay <- function(
   object,
   genome,
   motif.matrix = NULL,
@@ -158,7 +187,7 @@ RunChromVAR.ChromatinAssay <- function(
     x = motif.matrix,
     y = GetMotifData(object = object, slot = "data")
   )
-  peak.matrix <- GetAssayData(object = object, slot = "counts")
+  peak.matrix <- LayerData(object = object, layer = "counts")
   if (!(all(peak.matrix@x == floor(peak.matrix@x)))) {
     warning("Count matrix contains non-integer values.
             ChromVAR should only be run on integer counts.")
@@ -179,6 +208,10 @@ RunChromVAR.ChromatinAssay <- function(
     object = chromvar.obj,
     genome = genome
   )
+  # Remove NA values https://github.com/GreenleafLab/chromVAR/issues/26
+  row.data <- data.frame(SummarizedExperiment::rowData(x = chromvar.obj))
+  row.data[is.na(x = row.data)] <- 0
+  SummarizedExperiment::rowData(x = chromvar.obj) <- row.data
   if (verbose) {
     message("Selecting background regions")
   }
@@ -199,7 +232,7 @@ RunChromVAR.ChromatinAssay <- function(
   if (verbose) {
     message("Constructing chromVAR assay")
   }
-  obj <- CreateAssayObject(data = chromvar.z)
+  obj <- CreateAssay5Object(data = chromvar.z)
   return(obj)
 }
 
@@ -291,16 +324,15 @@ FindMotifs <- function(
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   background <- SetIfNull(x = background, y = rownames(x = object))
+  if (!inherits(x = object[[assay]], what = "GRangesAssay")) {
+    stop("Cannot run FindMotifs on ", class(x = object[[assay]]))
+  }
   if (is(object = background, class2 = "numeric")) {
     if (verbose) {
       message("Selecting background regions to match input ",
               "sequence characteristics")
     }
-    meta.feature <- GetAssayData(
-      object = object,
-      assay = assay,
-      slot = "meta.features"
-    )
+    meta.feature <- object[[assay]][[]]
     mf.choose <- meta.feature[
       setdiff(x = rownames(x = meta.feature), y = features), , drop = FALSE
     ]
@@ -417,11 +449,11 @@ ConvertMotifID.Motif <- function(object, ...) {
   return(ConvertMotifID(object = motif.names, ...))
 }
 
-#' @method ConvertMotifID ChromatinAssay
+#' @method ConvertMotifID GRangesAssay
 #' @rdname ConvertMotifID
 #' @concept motifs
 #' @export
-ConvertMotifID.ChromatinAssay <- function(object, ...) {
+ConvertMotifID.GRangesAssay <- function(object, ...) {
   motifs <- Motifs(object = object)
   if (is.null(x = motifs)) {
     stop("No motif information present in assay")
@@ -435,6 +467,14 @@ ConvertMotifID.ChromatinAssay <- function(object, ...) {
 #' @export
 ConvertMotifID.Assay <- function(object, ...) {
   stop("Cannot run ConvertMotifID on a standard Assay object")
+}
+
+#' @method ConvertMotifID StdAssay
+#' @rdname ConvertMotifID
+#' @concept motifs
+#' @export
+ConvertMotifID.StdAssay <- function(object, ...) {
+  stop("Cannot run ConvertMotifID on an Assay5 object")
 }
 
 #' @param assay For \code{Seurat} object. Name of assay to use.

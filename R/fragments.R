@@ -20,10 +20,12 @@ NULL
 #' @concept fragments
 #'
 head.Fragment <- function(x, n = 6L, ...) {
-  fpath <- GetFragmentData(object = x, slot = "path")
+  fpath <- GetFragmentData(object = x, slot = "file.path")
   df <- read.table(file = fpath, nrows = n, ...)
   if (ncol(x = df) == 5) {
     colnames(x = df) <- c("chrom", "start", "end", "barcode", "readCount")
+  } else if(ncol(x = df) == 6) {
+    colnames(x = df) <- c("chrom", "start", "end", "barcode", "readCount", "strand")
   }
   return(df)
 }
@@ -234,7 +236,7 @@ SplitFragments <- function(
     } else {
       suffix.use <- file.suffix
     }
-    fragpath <- GetFragmentData(object = frags[[i]], slot = "path")
+    fragpath <- GetFragmentData(object = frags[[i]], slot = "file.path")
     if (isRemote(x = fragpath)) {
       message("Remote fragment files not supported, skipping fragment file")
     } else {
@@ -266,110 +268,6 @@ SplitFragments <- function(
         stop("Error: cannot open requested file")
       }
     }
-  }
-}
-
-#' Create a Fragment object
-#'
-#' Create a \code{Fragment} object to store fragment file information.
-#' This object stores a 32-bit MD5 hash of the fragment file and the fragment
-#' file index so that any changes to the files on-disk can be detected. A check
-#' is also performed to ensure that the expected cells are present in the
-#' fragment file.
-#'
-#' @param path A path to the fragment file. The file should contain a tabix
-#' index in the same directory.
-#' @param cells A named character vector containing cell barcodes contained in
-#' the fragment file. This does not need to be all cells in the fragment file,
-#' but there should be no cells in the vector that are not present in the
-#' fragment file. A search of the file will be performed until at least one
-#' fragment from each cell is found. If NULL, don't check for expected cells.
-#'
-#' Each element of the vector should be a cell barcode that appears in the
-#' fragment file, and the name of each element should be the corresponding cell
-#' name in the object.
-#' @param validate.fragments Check that expected cells are present in the
-#' fragment file.
-#' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{ValidateCells}
-#'
-#' @importFrom tools md5sum file_ext
-#' @export
-#' @concept fragments
-#'
-#' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' cells <- colnames(x = atac_small)
-#' names(x = cells) <- paste0("test_", cells)
-#' frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)
-CreateFragmentObject <- function(
-  path,
-  cells = NULL,
-  validate.fragments = TRUE,
-  verbose = TRUE,
-  ...
-) {
-  # check that file exists and is indexed
-  # don't check if supplying remote file
-  is.remote <- isRemote(x = path)
-  if (is.remote) {
-    validate.fragments <- FALSE
-  }
-  if (!file.exists(path) & !is.remote) {
-    stop("Fragment file does not exist.")
-  }
-  index.file <- paste0(path, ".tbi")
-  if (!file.exists(index.file) & !is.remote) {
-    stop("Fragment file is not indexed.")
-  }
-  if (is.remote) {
-    con <- gzcon(con = url(description = path))
-  } else {
-    con <- path
-  }
-  df <- readLines(con = con, n = 10000)
-  for (i in df) {
-    if (grepl(pattern = '^#', x = i)) {
-      next
-    } else {
-      if (length(x = strsplit(x = i, split = "\t")[[1]]) != 5) {
-        stop("Incorrect number of columns found in fragment file")
-      } else {
-        break
-      }
-    }
-  }
-  if (!is.null(x = cells)) {
-    if (is.null(names(x = cells))) {
-      # assume cells are as they appear in the assay
-      names(x = cells) <- cells
-    }
-  }
-  # compute hash of the file and index
-  if (verbose) {
-    message("Computing hash")
-  }
-  if (!is.remote) {
-    path <- normalizePath(path = path, mustWork = TRUE)
-  }
-  # will be NA if file remote
-  hashes <- md5sum(files = c(path, index.file))
-  # create object
-  frags <- new(
-    Class = "Fragment",
-    path = path,
-    hash = unname(obj = hashes),
-    cells = cells
-  )
-  # validate cells
-  if (!is.null(x = cells) & validate.fragments) {
-    if (ValidateCells(object = frags, verbose = verbose, ...)) {
-      return(frags)
-    } else {
-      stop("Not all cells requested could be found in the fragment file.")
-    }
-  } else {
-    return(frags)
   }
 }
 
@@ -409,7 +307,7 @@ ValidateCells <- function(
     return(TRUE)
   }
   max.lines <- SetIfNull(x = max.lines, y = 0)
-  filepath <- GetFragmentData(object = object, slot = "path")
+  filepath <- GetFragmentData(object = object, slot = "file.path")
   filepath <- normalizePath(path = filepath, mustWork = TRUE)
   is.remote <- isRemote(x = filepath)
   find_n <- as.integer(x = length(x = cells) * (1 - tolerance))
@@ -435,8 +333,8 @@ ValidateCells <- function(
 #' @concept fragments
 #' @importFrom tools md5sum
 ValidateHash <- function(object, verbose = TRUE) {
-  path <- GetFragmentData(object = object, slot = "path")
-  index.file <- paste0(path, ".tbi")
+  path <- GetFragmentData(object = object, slot = "file.path")
+  index.file <- GetFragmentData(object = object, slot = "file.index")
   is.remote <- isRemote(x = path)
   # if remote, return TRUE
   if (is.remote) {
@@ -527,24 +425,29 @@ SeuratObject::Cells
 #' object. An MD5 hash will be computed using the new path and compared to the
 #' hash stored in the Fragment object to verify that the files are the same.
 #'
-#' @param object A \code{\link{Fragment}} object
-#' @param new.path Path to the fragment file
-#' @param verbose Display messages
+#' @param object A \code{\link{Fragment}} object.
+#' @param new.path Path to the fragment file.
+#' @param new.index.path Path to the fragment file index. If NULL, the index is
+#' assumed to be in the same directory as the fragment file.
+#' @param verbose Display messages.
 #'
 #' @concept fragments
 #' @export
-UpdatePath <- function(object, new.path, verbose = TRUE) {
+UpdatePath <- function(object, new.path, new.index.path = NULL, verbose = TRUE) {
   new.is.remote <- isRemote(x = new.path)
   if (!new.is.remote) {
     new.path <- normalizePath(path = new.path, mustWork = TRUE)
-    index.file <- paste0(new.path, ".tbi")
+    index.file <- SetIfNull(
+      x = new.index.path,
+      y = GetIndexFile(fragment = new.path, verbose = verbose)
+    )
     if (!file.exists(new.path)) {
       stop("Fragment file not found")
     } else if (!file.exists(index.file)) {
       stop("Fragment file not indexed")
     }
   }
-  old.path <- GetFragmentData(object = object, slot = "path")
+  old.path <- GetFragmentData(object = object, slot = "file.path")
   old.is.remote <- isRemote(x = old.path)
   if (identical(x = old.path, y = new.path)) {
     return(object)
@@ -571,3 +474,31 @@ AssignFragCellnames <- function(fragments, cellnames) {
   }
   return(fragments)
 }
+
+# Get index file path
+# checks csi and tbi extensions
+# tbi used if both present
+# @param fragment fragment file path
+# @param verbose display messages
+# @return returns the index file path
+GetIndexFile <- function(fragment, verbose = TRUE) {
+  is.remote <- isRemote(x = fragment)
+  index.filepaths <- c(paste0(fragment, ".tbi"),
+                       paste0(fragment, ".csi"))
+  index.file <- index.filepaths[file.exists(index.filepaths)]
+  if (length(x = index.file) == 0 & !is.remote) {
+    stop("Fragment file is not indexed.")
+  } else if(length(x = index.file) == 0) {
+    if (verbose) {
+      message("Fragment file is on a remote server")
+    }
+    index.file = paste0(fragment, ".tbi")
+  } else if (length(x = index.file) == 2) {
+    if (verbose) {
+      message("TBI and CSI index both present, using TBI index")
+    }
+    index.file <- index.file[1]
+  }
+  return(index.file)
+}
+

@@ -6,6 +6,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "../vignette_data/mouse_brain")
 ```
 
 In this tutorial, we will perform DNA sequence motif analysis in Signac. We will
@@ -39,11 +40,10 @@ library(JASPAR2020)
 library(TFBSTools)
 library(BSgenome.Mmusculus.UCSC.mm10)
 library(patchwork)
-set.seed(1234)
 ```
 
 ```{r message=FALSE, warning=FALSE}
-mouse_brain <- readRDS("../vignette_data/adult_mouse_brain.rds")
+mouse_brain <- qs2::qs_read("adult_mouse_brain.qs2")
 mouse_brain
 ```
 
@@ -72,10 +72,10 @@ mouse_brain <- AddMotifs(
 )
 ```
 
-To facilitate motif analysis in Signac, we have create the `Motif` class to
+To facilitate motif analysis in Signac, we have created the `Motif` class to
 store all the required information, including a list of position weight matrices
 (PWMs) or position frequency matrices (PFMs) and a motif occurrence matrix.
-Here, the `AddMotifs()` function construct a `Motif` object and adds it to our
+Here, the `AddMotifs()` function constructs a `Motif` object and adds it to our
 mouse brain dataset, along with other information such as the base composition
 of each peak. A motif object can be added to any Seurat assay using the `SetAssayData()`
 function. See the [object interaction vignette](data_structures.html) for
@@ -108,7 +108,7 @@ da_peaks <- FindMarkers(
 )
 
 # get top differentially accessible peaks
-top.da.peak <- rownames(da_peaks[da_peaks$p_val < 0.005, ])
+top.da.peak <- rownames(da_peaks[da_peaks$p_val < 0.005 & da_peaks$pct.1 > 0.2, ])
 ```
 
 <details>
@@ -131,7 +131,7 @@ from this larger set using `MatchRegionStats()`.
 open.peaks <- AccessiblePeaks(mouse_brain, idents = c("Pvalb", "Sst"))
 
 # match the overall GC content in the peak set
-meta.feature <- GetAssayData(mouse_brain, assay = "peaks", slot = "meta.features")
+meta.feature <- GetAssayData(mouse_brain, assay = "peaks", layer = "meta.features")
 peaks.matched <- MatchRegionStats(
   meta.feature = meta.feature[open.peaks, ],
   query.feature = meta.feature[top.da.peak, ],
@@ -159,17 +159,17 @@ knitr::kable(head(enriched.motifs))
 We can also plot the position weight matrices for the motifs, so we can
 visualize the different motif sequences.
 
-```{r}
+```{r warning=FALSE}
 MotifPlot(
   object = mouse_brain,
   motifs = head(rownames(enriched.motifs))
 )
 ```
 
-We and others have previously shown that Mef-family motifs, particularly
+Mef-family motifs, particularly
 *Mef2c*, are enriched in Pvalb-specific peaks in scATAC-seq data
 (https://doi.org/10.1016/j.cell.2019.05.031; https://doi.org/10.1101/615179),
-and further shown that *Mef2c* is required for the development of Pvalb
+and *Mef2c* is required for the development of Pvalb
 interneurons (https://www.nature.com/articles/nature25999). Here our results are 
 consistent with these findings, and we observe a strong enrichment of Mef-family
 motifs in the top results from `FindMotifs()`.
@@ -233,7 +233,7 @@ MotifPlot(
 
 <details>
   <summary>**Session Info**</summary>
-  
+
 ```{r}
 sessionInfo()
 ```

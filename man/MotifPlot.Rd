@@ -9,7 +9,7 @@ MotifPlot(object, motifs, assay = NULL, use.names = TRUE, ...)
 \arguments{
 \item{object}{A Seurat object}
 
-\item{motifs}{A list of motifs to plot}
+\item{motifs}{A list of motif IDs or motif names to plot}
 
 \item{assay}{Name of the assay to use}
 
@@ -26,7 +26,7 @@ sequence motifs.
 }
 \examples{
 \donttest{
-motif.obj <- SeuratObject::GetAssayData(atac_small, slot = "motifs")
+motif.obj <- Motifs(atac_small)
 MotifPlot(atac_small, motifs = head(colnames(motif.obj)))
 }
 }

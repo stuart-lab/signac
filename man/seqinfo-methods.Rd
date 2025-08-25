@@ -3,149 +3,86 @@
 \name{seqinfo-methods}
 \alias{seqinfo-methods}
 \alias{seqinfo}
-\alias{seqinfo,ChromatinAssay-method}
-\alias{seqinfo<-,ChromatinAssay-method}
-\alias{seqlevels,ChromatinAssay-method}
+\alias{seqinfo,GRangesAssay-method}
+\alias{seqlevels,GRangesAssay-method}
 \alias{seqlevels}
-\alias{seqlevels<-,ChromatinAssay-method}
-\alias{seqnames,ChromatinAssay-method}
+\alias{seqnames,GRangesAssay-method}
 \alias{seqnames}
-\alias{seqnames<-,ChromatinAssay-method}
-\alias{seqlengths,ChromatinAssay-method}
+\alias{seqlengths,GRangesAssay-method}
 \alias{seqlengths}
-\alias{seqlengths<-,ChromatinAssay-method}
-\alias{genome,ChromatinAssay-method}
+\alias{genome,GRangesAssay-method}
 \alias{genome}
-\alias{genome<-,ChromatinAssay-method}
-\alias{isCircular,ChromatinAssay-method}
+\alias{isCircular,GRangesAssay-method}
 \alias{isCircular}
-\alias{isCircular<-,ChromatinAssay-method}
 \alias{seqinfo,Seurat-method}
-\alias{seqinfo<-,Seurat-method}
 \alias{seqlevels,Seurat-method}
-\alias{seqlevels<-,Seurat-method}
 \alias{seqnames,Seurat-method}
-\alias{seqnames<-,Seurat-method}
 \alias{seqlengths,Seurat-method}
-\alias{seqlengths<-,Seurat-method}
 \alias{genome,Seurat-method}
-\alias{genome<-,Seurat-method}
 \alias{isCircular,Seurat-method}
-\alias{isCircular<-,Seurat-method}
-\title{Access and modify sequence information for ChromatinAssay objects}
+\title{Access and modify sequence information for GRangesAssay objects}
 \usage{
-\S4method{seqinfo}{ChromatinAssay}(x)
+\S4method{seqinfo}{GRangesAssay}(x)
 
-\S4method{seqinfo}{ChromatinAssay}(x) <- value
+\S4method{seqlevels}{GRangesAssay}(x)
 
-\S4method{seqlevels}{ChromatinAssay}(x)
+\S4method{seqnames}{GRangesAssay}(x)
 
-\S4method{seqlevels}{ChromatinAssay}(x) <- value
+\S4method{seqlengths}{GRangesAssay}(x)
 
-\S4method{seqnames}{ChromatinAssay}(x)
+\S4method{genome}{GRangesAssay}(x)
 
-\S4method{seqnames}{ChromatinAssay}(x) <- value
-
-\S4method{seqlengths}{ChromatinAssay}(x)
-
-\S4method{seqlengths}{ChromatinAssay}(x) <- value
-
-\S4method{genome}{ChromatinAssay}(x)
-
-\S4method{genome}{ChromatinAssay}(x) <- value
-
-\S4method{isCircular}{ChromatinAssay}(x)
-
-\S4method{isCircular}{ChromatinAssay}(x) <- value
+\S4method{isCircular}{GRangesAssay}(x)
 
 \S4method{seqinfo}{Seurat}(x)
 
-\S4method{seqinfo}{Seurat}(x) <- value
-
 \S4method{seqlevels}{Seurat}(x)
-
-\S4method{seqlevels}{Seurat}(x) <- value
 
 \S4method{seqnames}{Seurat}(x)
 
-\S4method{seqnames}{Seurat}(x) <- value
-
 \S4method{seqlengths}{Seurat}(x)
-
-\S4method{seqlengths}{Seurat}(x) <- value
 
 \S4method{genome}{Seurat}(x)
 
-\S4method{genome}{Seurat}(x) <- value
-
 \S4method{isCircular}{Seurat}(x)
-
-\S4method{isCircular}{Seurat}(x) <- value
 }
 \arguments{
-\item{x}{A \code{\link{ChromatinAssay}} object}
-
-\item{value}{A \code{\link[GenomeInfoDb]{Seqinfo}} object or name of a UCSC
-genome to store in the \code{\link{ChromatinAssay}}}
+\item{x}{A \code{\link{GRangesAssay}} object}
 }
 \description{
 Methods for accessing and modifying
 \code{\link[GenomeInfoDb]{Seqinfo}} object information stored in a
-\code{\link{ChromatinAssay}} object.
+\code{\link{GRangesAssay}} object.
 }
 \section{Functions}{
 \itemize{
-\item \code{seqinfo(ChromatinAssay) <- value}: set method for ChromatinAssay objects
+\item \code{seqlevels(GRangesAssay)}: get method for GRangesAssay objects
 
-\item \code{seqlevels(ChromatinAssay)}: get method for ChromatinAssay objects
+\item \code{seqnames(GRangesAssay)}: get method for GRangesAssay objects
 
-\item \code{seqlevels(ChromatinAssay) <- value}: set method for ChromatinAssay objects
+\item \code{seqlengths(GRangesAssay)}: get method for GRangesAssay objects
 
-\item \code{seqnames(ChromatinAssay)}: get method for ChromatinAssay objects
+\item \code{genome(GRangesAssay)}: get method for GRangesAssay objects
 
-\item \code{seqnames(ChromatinAssay) <- value}: set method for ChromatinAssay objects
-
-\item \code{seqlengths(ChromatinAssay)}: get method for ChromatinAssay objects
-
-\item \code{seqlengths(ChromatinAssay) <- value}: set method for ChromatinAssay objects
-
-\item \code{genome(ChromatinAssay)}: get method for ChromatinAssay objects
-
-\item \code{genome(ChromatinAssay) <- value}: set method for ChromatinAssay objects
-
-\item \code{isCircular(ChromatinAssay)}: get method for ChromatinAssay objects
-
-\item \code{isCircular(ChromatinAssay) <- value}: set method for ChromatinAssay objects
+\item \code{isCircular(GRangesAssay)}: get method for GRangesAssay objects
 
 \item \code{seqinfo(Seurat)}: get method for Seurat objects
 
-\item \code{seqinfo(Seurat) <- value}: set method for Seurat objects
-
 \item \code{seqlevels(Seurat)}: get method for Seurat objects
-
-\item \code{seqlevels(Seurat) <- value}: set method for Seurat objects
 
 \item \code{seqnames(Seurat)}: get method for Seurat objects
 
-\item \code{seqnames(Seurat) <- value}: set method for Seurat objects
-
 \item \code{seqlengths(Seurat)}: get method for Seurat objects
-
-\item \code{seqlengths(Seurat) <- value}: set method for Seurat objects
 
 \item \code{genome(Seurat)}: get method for Seurat objects
 
-\item \code{genome(Seurat) <- value}: set method for Seurat objects
-
 \item \code{isCircular(Seurat)}: get method for Seurat objects
-
-\item \code{isCircular(Seurat) <- value}: set method for Seurat objects
 
 }}
 \seealso{
 \itemize{
   \item{\link[GenomeInfoDb]{seqinfo} in the \pkg{GenomeInfoDb} package.}
-  \item{\link{ChromatinAssay-class}}
+  \item{\link{GRangesAssay-class}}
  }
 }
 \concept{seqinfo}

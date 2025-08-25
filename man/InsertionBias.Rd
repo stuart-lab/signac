@@ -2,13 +2,13 @@
 % Please edit documentation in R/generics.R, R/footprinting.R
 \name{InsertionBias}
 \alias{InsertionBias}
-\alias{InsertionBias.ChromatinAssay}
+\alias{InsertionBias.ChromatinAssay5}
 \alias{InsertionBias.Seurat}
 \title{Compute Tn5 insertion bias}
 \usage{
 InsertionBias(object, ...)
 
-\method{InsertionBias}{ChromatinAssay}(object, genome, region = "chr1-1-249250621", verbose = TRUE, ...)
+\method{InsertionBias}{ChromatinAssay5}(object, genome, region = "chr1-1-249250621", verbose = TRUE, ...)
 
 \method{InsertionBias}{Seurat}(
   object,

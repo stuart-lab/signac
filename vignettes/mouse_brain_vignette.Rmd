@@ -3,9 +3,10 @@ title: "Analyzing adult mouse brain scATAC-seq"
 output: html_document
 date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 ---
-  
+
 ```{r init, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "../vignette_data/mouse_brain")
 ```
 
 For this tutorial, we will be analyzing a single-cell ATAC-seq dataset of adult
@@ -17,7 +18,7 @@ vignette, all available through the 10x Genomics website.
 
 To download the required data, run the following lines in a shell:
 
-```{bash, eval=FALSE}
+```{bash eval=FALSE}
 wget http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh_5k/atac_v1_adult_brain_fresh_5k_filtered_peak_bc_matrix.h5
 wget http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh_5k/atac_v1_adult_brain_fresh_5k_singlecell.csv
 wget http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh_5k/atac_v1_adult_brain_fresh_5k_fragments.tsv.gz
@@ -27,7 +28,7 @@ wget http://cf.10xgenomics.com/samples/cell-atac/1.1.0/atac_v1_adult_brain_fresh
 </details>
 
 This vignette echoes the commands run in the introductory Signac vignette on
-[human PBMC](https://satijalab.org/signac/articles/pbmc_vignette.html). We
+[human PBMC](pbmc_vignette.html). We
 provide the same analysis in a different system to demonstrate performance and
 applicability to other tissue types, and to provide an example from another
 species.
@@ -38,27 +39,22 @@ analyzing mouse data.
 ```{r include=FALSE}
 if (!requireNamespace("EnsDb.Mmusculus.v79", quietly = TRUE))
     BiocManager::install("EnsDb.Mmusculus.v79")
-
-if (!requireNamespace("GenomeInfoDb", quietly = TRUE))
-    BiocManager::install("GenomeInfoDb")
 ```
 
 ```{r setup, message=FALSE}
 library(Signac)
 library(Seurat)
-library(GenomeInfoDb)
 library(EnsDb.Mmusculus.v79)
 library(ggplot2)
 library(patchwork)
-set.seed(1234)
 ```
 
 ## Pre-processing workflow
-  
+
 ```{r}
-counts <- Read10X_h5("../vignette_data/atac_v1_adult_brain_fresh_5k_filtered_peak_bc_matrix.h5")
+counts <- Read10X_h5("atac_v1_adult_brain_fresh_5k_filtered_peak_bc_matrix.h5")
 metadata <- read.csv(
-  file = "../vignette_data/atac_v1_adult_brain_fresh_5k_singlecell.csv",
+  file = "atac_v1_adult_brain_fresh_5k_singlecell.csv",
   header = TRUE,
   row.names = 1
 )
@@ -67,7 +63,7 @@ brain_assay <- CreateChromatinAssay(
   counts = counts,
   sep = c(":", "-"),
   genome = "mm10",
-  fragments = '../vignette_data/atac_v1_adult_brain_fresh_5k_fragments.tsv.gz',
+  fragments = 'atac_v1_adult_brain_fresh_5k_fragments.tsv.gz',
   min.cells = 1
 )
 brain <- CreateSeuratObject(
@@ -86,8 +82,9 @@ directly from the object.
 # extract gene annotations from EnsDb
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Mmusculus.v79)
 
-# change to UCSC style since the data was mapped to hg19
-seqlevelsStyle(annotations) <- 'UCSC'
+# change to UCSC style since the data was mapped to mm10
+seqlevels(annotations) <- paste0('chr', seqlevels(annotations))
+genome(annotations) <- "mm10"
 
 # add the gene information to the object
 Annotation(brain) <- annotations
@@ -122,12 +119,7 @@ information about the TSS enrichment score
 enrichment score for each cell using the `TSSEnrichment()` function in Signac.
 
 ```{r message=FALSE, warning=FALSE}
-brain <- TSSEnrichment(brain, fast = FALSE)
-```
-
-```{r message=FALSE, warning=FALSE}
-brain$high.tss <- ifelse(brain$TSS.enrichment > 2, 'High', 'Low')
-TSSPlot(brain, group.by = 'high.tss') + NoLegend()
+brain <- TSSEnrichment(brain)
 ```
 
 ```{r message=FALSE, warning=FALSE, fig.width=18, fig.height=6}
@@ -210,7 +202,7 @@ DimPlot(object = brain, label = TRUE) + NoLegend()
 
 ## Create a gene activity matrix
 
-```{r, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 # compute gene activities
 gene.activities <- GeneActivity(brain)
 
@@ -224,7 +216,7 @@ brain <- NormalizeData(
 )
 ```
 
-```{r, fig.width=12, fig.height=10}
+```{r fig.width=12, fig.height=10}
 DefaultAssay(brain) <- 'RNA'
 FeaturePlot(
   object = brain,
@@ -252,7 +244,8 @@ Alternatively, you can download the pre-processed Seurat object
 
 ```{r warning=FALSE, message=FALSE}
 # Load the pre-processed scRNA-seq data
-allen_rna <- readRDS("../vignette_data/allen_brain.rds")
+allen_rna <- readRDS("allen_brain.rds")
+allen_rna <- UpdateSeuratObject(allen_rna)
 allen_rna <- FindVariableFeatures(
   object = allen_rna,
   nfeatures = 5000
@@ -262,7 +255,7 @@ transfer.anchors <- FindTransferAnchors(
   reference = allen_rna,
   query = brain,
   reduction = 'cca',
-  dims = 1:40
+  dims = 1:30
 )
 
 predicted.labels <- TransferData(
@@ -282,42 +275,8 @@ plot2 <- DimPlot(brain, group.by = 'predicted.id', label = TRUE, repel = TRUE) +
 plot1 + plot2
 ```
 
-<details>
-  <summary>**Why did we change default parameters?**</summary>
-
-We changed default parameters for `FindIntegrationAnchors()` and
-`FindVariableFeatures()` (including more features and dimensions). You can run
-the analysis both ways, and observe very similar results. However, when using
-default parameters we mislabel cluster 11 cells as Vip-interneurons, when they
-are in fact a Meis2 expressing CGE-derived interneuron population recently
-described by [us](https://www.nature.com/articles/nature25999) and
-[others](https://www.nature.com/articles/ncomms14219). The reason is that this
-subset is exceptionally rare in the scRNA-seq data (0.3%), and so the genes
-define this subset (for example, *Meis2*) were too lowly expressed to be
-selected in the initial set of variable features. We therefore need more genes
-and dimensions to facilitate cross-modality mapping. Interestingly, this subset
-is 10-fold more abundant in the scATAC-seq data compared to the scRNA-seq data
-(see [this paper](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0209648)
-for possible explanations.)
-
-</details>
-
-You can see that the RNA-based classifications are entirely consistent with the
-UMAP visualization, computed only on the ATAC-seq data. We can now easily
-annotate our scATAC-seq derived clusters (alternately, we could use the RNA
-classifications themselves). We note three small clusters (13, 20, 21) which
-represent subdivisions of the scRNA-seq labels. Try transferring the cluster
-label (which shows finer distinctions) from the allen scRNA-seq dataset,
-to annotate them!
-
-```{r}
-# replace each label with its most likely prediction
-for(i in levels(brain)) {
-  cells_to_reid <- WhichCells(brain, idents = i)
-  newid <- names(sort(table(brain$predicted.id[cells_to_reid]),decreasing=TRUE))[1]
-  Idents(brain, cells = cells_to_reid) <- newid
-}
-```
+You can see that the RNA-based classifications are consistent with the
+UMAP visualization, computed only on the ATAC-seq data.
 
 ## Find differentially accessible peaks between clusters
 
@@ -327,14 +286,14 @@ different layers of the cortex.
 ```{r message=TRUE, warning=FALSE}
 #switch back to working with peaks instead of gene activities
 DefaultAssay(brain) <- 'peaks'
+Idents(brain) <- "predicted.id"
 
 da_peaks <- FindMarkers(
   object = brain,
   ident.1 = c("L2/3 IT"), 
   ident.2 = c("L4", "L5 IT", "L6 IT"),
-  min.pct = 0.05,
-  test.use = 'LR',
-  latent.vars = 'peak_region_fragments'
+  test.use = 'wilcox',
+  min.pct = 0.1
 )
 
 head(da_peaks)
@@ -356,15 +315,15 @@ plot2 <- FeaturePlot(
 plot1 | plot2
 ```
 
-```{r, warning=FALSE, message=FALSE}
-open_l23 <- rownames(da_peaks[da_peaks$avg_log2FC > 0.25, ])
-open_l456 <- rownames(da_peaks[da_peaks$avg_log2FC < -0.25, ])
+```{r warning=FALSE, message=FALSE}
+open_l23 <- rownames(da_peaks[da_peaks$avg_log2FC > 3, ])
+open_l456 <- rownames(da_peaks[da_peaks$avg_log2FC < 3, ])
 closest_l23 <- ClosestFeature(brain, open_l23)
 closest_l456 <- ClosestFeature(brain, open_l456)
 head(closest_l23)
 ```
 
-```{r, warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE}
 head(closest_l456)
 ```
 
@@ -376,26 +335,28 @@ function. These represent pseudo-bulk accessibility tracks, where signal from
 all cells within a group have been averaged together to visualize the DNA 
 accessibility in a region.
 
-```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=10}
-# set plotting order
-levels(brain) <- c("L2/3 IT","L4","L5 IT","L5 PT","L6 CT", "L6 IT","NP","Sst","Pvalb","Vip","Lamp5","Meis2","Oligo","Astro","Endo","VLMC","Macrophage")
+```{r message=FALSE, warning=FALSE, out.width="90%", fig.height=10}
+# show cell types with at least 50 cells
+idents.plot <- names(which(table(Idents(brain)) > 50))
+brain <- SortIdents(brain)
 
 CoveragePlot(
   object = brain,
   region = c("Neurod6", "Gad2"),
+  idents = idents.plot,
   extend.upstream = 1000,
   extend.downstream = 1000,
   ncol = 1
 )
 ```
 
-```{r message=FALSE, warning=FALSE, echo=FALSE}
-saveRDS(object = brain, file = "../vignette_data/adult_mouse_brain.rds")
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+qs2::qs_save(object = brain, file = "adult_mouse_brain.qs2", nthreads = 4)
 ```
 
 <details>
   <summary>**Session Info**</summary>
-  
+
 ```{r}
 sessionInfo()
 ```

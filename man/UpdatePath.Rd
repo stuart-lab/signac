@@ -4,14 +4,17 @@
 \alias{UpdatePath}
 \title{Update the file path for a Fragment object}
 \usage{
-UpdatePath(object, new.path, verbose = TRUE)
+UpdatePath(object, new.path, new.index.path = NULL, verbose = TRUE)
 }
 \arguments{
-\item{object}{A \code{\link{Fragment}} object}
+\item{object}{A \code{\link{Fragment}} object.}
 
-\item{new.path}{Path to the fragment file}
+\item{new.path}{Path to the fragment file.}
 
-\item{verbose}{Display messages}
+\item{new.index.path}{Path to the fragment file index. If NULL, the index is
+assumed to be in the same directory as the fragment file.}
+
+\item{verbose}{Display messages.}
 }
 \description{
 Change the path to a fragment file store in a \code{\link{Fragment}}

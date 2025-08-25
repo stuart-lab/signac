@@ -1,10 +1,10 @@
 Package: Signac
 Title: Analysis of Single-Cell Chromatin Data
-Version: 1.7.0.9008
-Date: 2022-09-13
+Version: 1.15.9000
+Date: 2025-08-22
 Authors@R: c(
-  person(given = 'Tim', family = 'Stuart', email = 'tstuart@nygenome.org', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3044-0897')),
-  person(given = 'Avi', family = 'Srivastava', email = 'asrivastava@nygenome.org', role = 'aut', comment = c(ORCID = '0000-0001-9798-2079')),
+  person(given = 'Tim', family = 'Stuart', email = 'stuartt@a-star.edu.sg', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3044-0897')),
+  person(given = 'Avi', family = 'Srivastava', email = 'asrivastava@wistar.org', role = 'aut', comment = c(ORCID = '0000-0001-9798-2079')),
   person(given = 'Paul', family = 'Hoffman', email = 'phoffman@nygenome.org', role = 'ctb', comment = c(ORCID = '0000-0002-7693-8957')),
   person(given = 'Rahul', family = 'Satija', email = 'rsatija@nygenome.org', role = 'ctb', comment = c(ORCID = '0000-0001-9448-8833'))
   )
@@ -14,14 +14,14 @@ Description: A framework for the analysis and exploration of single-cell chromat
     and normalization, visualization, and DNA sequence motif analysis.
     Reference: Stuart et al. (2021) <doi:10.1038/s41592-021-01282-5>.
 Depends:
-    R (>= 4.0.0),
+    R (>= 4.1.0),
     methods
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.1
-URL: https://github.com/timoast/signac, https://satijalab.org/signac
-BugReports: https://github.com/timoast/signac/issues
+RoxygenNote: 7.3.2
+URL: https://github.com/stuart-lab/signac, https://stuartlab.org/signac
+BugReports: https://github.com/stuart-lab/signac/issues
 LinkingTo: Rcpp
 Imports: 
     GenomeInfoDb (>= 1.29.3),
@@ -30,12 +30,13 @@ Imports:
     Matrix,
     Rsamtools,
     S4Vectors,
-    SeuratObject (>= 4.0.0),
+    SeuratObject (>= 5.0.2),
     data.table,
     dplyr (>= 1.0.0),
     future,
     future.apply,
     ggplot2,
+    rlang,
     irlba,
     pbapply,
     tidyr,
@@ -50,9 +51,12 @@ Imports:
     Rcpp,
     grid,
     tidyselect,
-    vctrs
+    vctrs,
+    lifecycle,
+    sparseMatrixStats
 Collate: 
     'RcppExports.R'
+    'classes.R'
     'data.R'
     'differential_accessibility.R'
     'generics.R'
@@ -75,7 +79,7 @@ Collate:
     'visualization.R'
     'zzz.R'
 Suggests: 
-    Seurat (>= 4.0.6),
+    Seurat (>= 5.0.2),
     ggforce,
     ggrepel,
     ggseqlogo,
@@ -91,4 +95,4 @@ Suggests:
     biovizBase,
     Biostrings,
     lsa,
-    qlcMatrix
+    MASS

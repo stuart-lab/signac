@@ -3,8 +3,9 @@
 \name{AddMotifs}
 \alias{AddMotifs}
 \alias{AddMotifs.default}
-\alias{AddMotifs.ChromatinAssay}
+\alias{AddMotifs.GRangesAssay}
 \alias{AddMotifs.Assay}
+\alias{AddMotifs.StdAssay}
 \alias{AddMotifs.Seurat}
 \title{Add DNA sequence motif information}
 \usage{
@@ -12,9 +13,11 @@ AddMotifs(object, ...)
 
 \method{AddMotifs}{default}(object, genome, pfm, verbose = TRUE, ...)
 
-\method{AddMotifs}{ChromatinAssay}(object, genome, pfm, verbose = TRUE, ...)
+\method{AddMotifs}{GRangesAssay}(object, genome, pfm, verbose = TRUE, ...)
 
 \method{AddMotifs}{Assay}(object, genome, pfm, verbose = TRUE, ...)
+
+\method{AddMotifs}{StdAssay}(object, genome, pfm, verbose = TRUE, ...)
 
 \method{AddMotifs}{Seurat}(object, genome, pfm, assay = NULL, verbose = TRUE, ...)
 }
@@ -43,6 +46,12 @@ Construct a \code{\link{Motif}} object containing DNA sequence motif
 information and add it to an existing Seurat object or ChromatinAssay.
 If running on a Seurat object, \code{AddMotifs} will also run
 \code{\link{RegionStats}} to compute the GC content of each peak and store
-the results in the feature metadata.
+the results in the feature metadata. PFMs or PWMs are matched to the genome
+sequence using the \code{\link[motifmatchr]{matchMotifs}} function with
+default parameters to construct a matrix of motif positions in genomic
+regions.
+}
+\seealso{
+\pkg{motifmatchr}
 }
 \concept{motifs}

@@ -11,7 +11,8 @@ LinkPlot(
   min.cutoff = 0,
   sep = c("-", "-"),
   extend.upstream = 0,
-  extend.downstream = 0
+  extend.downstream = 0,
+  scale.linewidth = FALSE
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ element is used to separate the start from end coordinate.}
 \item{extend.upstream}{Number of bases to extend the region upstream.}
 
 \item{extend.downstream}{Number of bases to extend the region downstream.}
+
+\item{scale.linewidth}{Scale thickness of the line according to link score.}
 }
 \value{
 Returns a \code{\link[ggplot2]{ggplot}} object

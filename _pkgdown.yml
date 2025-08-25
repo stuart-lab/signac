@@ -1,4 +1,11 @@
-url: https://satijalab.org/signac
+url: https://stuartlab.org/signac
+
+home:
+  links:
+    - text: Contributors
+      href: https://github.com/stuart-lab/signac/graphs/contributors
+    - text: Roadmap
+      href: https://github.com/orgs/stuart-lab/projects/1
 
 navbar:
   title: "Signac"
@@ -51,10 +58,10 @@ navbar:
     - text: "Archive"
       href: articles/archive.html
     - text: "Discussions"
-      href: https://github.com/timoast/signac/discussions
+      href: https://github.com/stuart-lab/signac/discussions
   right:
     - icon: fa-github
-      href: https://github.com/timoast/signac
+      href: https://github.com/stuart-lab/signac
 
 reference:
   - title: "Object interaction"
@@ -160,11 +167,11 @@ reference:
   - title: "internal"
   - contents:
     - has_concept("internal")
-  
+
 template:
   params:
     bootswatch: cosmo
     ganalytics: UA-144505535-1
     docsearch:
-      api_key: 6f41d2052819b9deda704726769f8647
-      index_name: signac
+      api_key: b3627b9c38aec1a8820bd5ae7063c9ef
+      index_name: stuartlab

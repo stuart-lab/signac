@@ -52,6 +52,8 @@ Jaccard <- function(x, y) {
 #' @param irlba.work work parameter for \code{\link[irlba]{irlba}}.
 #' Working subspace dimension, larger values can speed convergence at the
 #' cost of more memory use.
+#' @param tol Tolerance (tol) parameter for \code{\link[irlba]{irlba}}. Larger
+#' values speed up convergence due to greater amount of allowed error.
 #' @param verbose Print messages
 #'
 #' @importFrom irlba irlba
@@ -74,13 +76,31 @@ RunSVD.default <- function(
   scale.max = NULL,
   verbose = TRUE,
   irlba.work = n * 3,
+  tol = 1e-05,
   ...
 ) {
+  if (is.null(x = rownames(x = object))) {
+    rownames(x = object) <- seq_len(length.out = nrow(x = object))
+  }
+  if (is.null(x = colnames(x = object))) {
+    colnames(x = object) <- seq_len(length.out = ncol(x = object))
+  }
   n <- min(n, (ncol(x = object) - 1))
   if (verbose) {
     message("Running SVD")
   }
-  components <- irlba(A = t(x = object), nv = n, work = irlba.work)
+  
+  if (inherits(x = object, what = 'matrix')) {
+    svd.function <- irlba
+  } else if (inherits(x = object, what = 'sparseMatrix')) {
+    svd.function <- irlba
+  } else if (inherits(x = object, what = 'IterableMatrix')) {
+    svd.function <- function(A, nv, ...) BPCells::svds(A=A, k = nv)
+  } else {
+    stop("Unknown matrix format")
+  }
+  
+  components <- svd.function(A = t(x = object), nv = n, work = irlba.work, tol = tol)
   feature.loadings <- components$v
   sdev <- components$d / sqrt(x = max(1, nrow(x = object) - 1))
   cell.embeddings <- components$u
@@ -117,18 +137,71 @@ RunSVD.default <- function(
   return(reduction.data)
 }
 
+# from SeuratObject (not exported)
+PrepDR5 <- function(object, features = NULL, layer = 'scale.data', verbose = TRUE) {
+  layer <- layer[1L]
+  olayer <- layer
+  layer <- Layers(object = object, search = layer)
+  if (is.null(layer)) {
+    abort(paste0("No layer matching pattern '", olayer, "' not found. Please run ScaleData and retry"))
+  }
+  data.use <- LayerData(object = object, layer = layer)
+  features <- features %||% VariableFeatures(object = object)
+  if (!length(x = features)) {
+    stop("No variable features, run FindVariableFeatures() or provide a vector of features", call. = FALSE)
+  }
+  if (is(data.use, "IterableMatrix")) {
+    features.var <- BPCells::matrix_stats(matrix=data.use, row_stats="variance")$row_stats["variance",]
+  } else {
+    features.var <- apply(X = data.use, MARGIN = 1L, FUN = var)
+  }
+  features.keep <- features[features.var > 0]
+  if (!length(x = features.keep)) {
+    stop("None of the requested features have any variance", call. = FALSE)
+  } else if (length(x = features.keep) < length(x = features)) {
+    exclude <- setdiff(x = features, y = features.keep)
+    if (isTRUE(x = verbose)) {
+      warning(
+        "The following ",
+        length(x = exclude),
+        " features requested have zero variance; running reduction without them: ",
+        paste(exclude, collapse = ', '),
+        call. = FALSE,
+        immediate. = TRUE
+      )
+    }
+  }
+  features <- features.keep
+  features <- features[!is.na(x = features)]
+  features.use <- features[features %in% rownames(data.use)]
+  if(!isTRUE(all.equal(features, features.use))) {
+    missing_features <- setdiff(features, features.use)
+    if(length(missing_features) > 0) {
+      warning_message <- paste("The following features were not available: ",
+                               paste(missing_features, collapse = ", "),
+                               ".", sep = "")
+      warning(warning_message, immediate. = TRUE)
+    }
+  }
+  data.use <- data.use[features.use, ]
+  return(data.use)
+}
+
 #' @param features Which features to use. If NULL, use variable features
 #'
 #' @rdname RunSVD
 #' @importFrom SeuratObject VariableFeatures GetAssayData
 #' @export
 #' @concept dimension_reduction
-#' @method RunSVD Assay
+#' @method RunSVD Assay5
 #' @examples
+#' \dontrun{
 #' RunSVD(atac_small[['peaks']])
-RunSVD.Assay <- function(
+#' }
+RunSVD.Assay5 <- function(
   object,
   assay = NULL,
+  layer = "data",
   features = NULL,
   n = 50,
   reduction.key = "LSI_",
@@ -136,11 +209,17 @@ RunSVD.Assay <- function(
   verbose = TRUE,
   ...
 ) {
-  features <- SetIfNull(x = features, y = VariableFeatures(object = object))
-  data.use <- GetAssayData(
+  data.use <- PrepDR5(
     object = object,
-    slot = "data"
-  )[features, ]
+    features = features,
+    layer = layer,
+    verbose = verbose
+  )
+  # features <- SetIfNull(x = features, y = VariableFeatures(object = object))
+  # data.use <- GetAssayData(
+  #   object = object,
+  #   layer = "data"
+  # )[features, ]
   reduction.data <- RunSVD(
     object = data.use,
     assay = assay,
@@ -154,18 +233,56 @@ RunSVD.Assay <- function(
   return(reduction.data)
 }
 
+#' @param features Which features to use. If NULL, use variable features
+#'
+#' @rdname RunSVD
+#' @importFrom SeuratObject VariableFeatures GetAssayData
+#' @export
+#' @concept dimension_reduction
+#' @method RunSVD StdAssay
+#' @examples
+#' \dontrun{
+#' RunSVD(atac_small[['peaks']])
+#' }
+RunSVD.StdAssay <- function(
+    object,
+    assay = NULL,
+    layer = "data",
+    features = NULL,
+    n = 50,
+    reduction.key = "LSI_",
+    scale.max = NULL,
+    verbose = TRUE,
+    ...
+) {
+  RunSVD.Assay5(
+    object = object,
+    assay = assay,
+    features = features,
+    layer = layer,
+    n = n,
+    reduction.key = reduction.key,
+    scale.max = scale.max,
+    verbose = verbose,
+    ...
+  )
+}
+
 #' @param reduction.name Name for stored dimension reduction object.
 #' Default 'svd'
 #' @rdname RunSVD
 #' @export
 #' @concept dimension_reduction
 #' @examples
+#' \dontrun{
 #' RunSVD(atac_small)
+#' }
 #' @method RunSVD Seurat
 RunSVD.Seurat <- function(
   object,
   assay = NULL,
   features = NULL,
+  layer = "data",
   n = 50,
   reduction.key = "LSI_",
   reduction.name = "lsi",
@@ -179,9 +296,213 @@ RunSVD.Seurat <- function(
     object = assay.data,
     assay = assay,
     features = features,
+    layer = layer,
     n = n,
     reduction.key = reduction.key,
     scale.max = scale.max,
+    verbose = verbose,
+    ...
+  )
+  object[[reduction.name]] <- reduction.data
+  return(object)
+}
+
+#' @param assay Which assay to use. If NULL, use the default assay
+#' @param n Number of singular values to compute
+#' @param weight.by.var Weight PCs by variance explained
+#' @param reduction.key Key for dimension reduction object
+#' @param irlba.work work parameter for \code{\link[irlba]{irlba}}.
+#' Working subspace dimension, larger values can speed convergence at the
+#' cost of more memory use.
+#' @param tol Tolerance (tol) parameter for \code{\link[irlba]{irlba}}. Larger
+#' values speed up convergence due to greater amount of allowed error.
+#' @param verbose Print messages
+#'
+#' @importFrom irlba irlba
+#' @importFrom stats sd
+#' @importFrom SeuratObject CreateDimReducObject
+#' @importFrom sparseMatrixStats rowVars
+#' @importMethodsFrom Matrix t
+#'
+#' @rdname SparsePCA
+#' @export
+#' @concept dimension_reduction
+#' @examples
+#' x <- matrix(data = rnorm(100), ncol = 10)
+#' SparsePCA(x)
+SparsePCA.default <- function(
+    object,
+    assay = NULL,
+    n = 50,
+    weight.by.var = TRUE,
+    reduction.key = "PCA_",
+    irlba.work = n * 3,
+    tol = 1e-05,
+    verbose = TRUE,
+    ...
+) {
+  if (is.null(x = rownames(x = object))) {
+    rownames(x = object) <- seq_len(length.out = nrow(x = object))
+  }
+  if (is.null(x = colnames(x = object))) {
+    colnames(x = object) <- seq_len(length.out = ncol(x = object))
+  }
+  n <- min(n, (ncol(x = object) - 1))
+  if (verbose) {
+    message("Running PCA")
+  }
+  
+  d_rowmeans <- rowMeans(x = object)
+  d_sd <- sqrt(x = sparseMatrixStats::rowVars(x = object))
+  nz_var <- d_sd > 0
+  if (verbose) {
+    if (sum(nz_var) != nrow(x = object)) {
+      message("Retaining ", sum(nz_var), " features with non-zero variance")
+    }
+  }
+  object <- object[nz_var, ]
+  d_rowmeans <- d_rowmeans[nz_var]
+  d_sd <- d_sd[nz_var]
+  pcs <- irlba::irlba(
+    A = t(x = object),
+    scale = d_sd,
+    center = d_rowmeans,
+    nv = n,
+    work = irlba.work,
+    tol = tol
+  )
+  if (weight.by.var) {
+    emb <- pcs$u %*% diag(pcs$d)
+  }
+  loadings <- pcs$v
+  rownames(x = loadings) <- rownames(x = object)
+  colnames(x = loadings) <- paste0(reduction.key, 1:n)
+  rownames(x = emb) <- colnames(x = object)
+  colnames(x = emb) <- colnames(x = loadings)
+  sdev <- pcs$d/sqrt(x = max(1, ncol(x = object) - 1))
+  dr <- CreateDimReducObject(
+    embeddings = emb,
+    loadings = loadings,
+    assay = assay,
+    stdev = sdev,
+    key = reduction.key
+  )
+  return(dr)
+}
+
+#' @param features Which features to use. If NULL, use variable features
+#'
+#' @rdname SparsePCA
+#' @export
+#' @concept dimension_reduction
+#' @method SparsePCA StdAssay
+#' @examples
+#' \dontrun{
+#' SparsePCA(atac_small[['peaks']])
+#' }
+SparsePCA.StdAssay <- function(
+    object,
+    assay = NULL,
+    features = NULL,
+    n = 50,
+    weight.by.var = TRUE,
+    irlba.work = n * 3,
+    tol = 1e-05,
+    reduction.key = "PCA_",
+    verbose = TRUE,
+    ...
+) {
+  SparsePCA.Assay(
+    object = object,
+    assay = assay,
+    features = features,
+    n = n,
+    weight.by.var = weight.by.var,
+    irlba.work = irlba.work,
+    tol = tol,
+    reduction.key = reduction.key,
+    verbose = verbose,
+    ...
+  )
+}
+
+#' @param features Which features to use. If NULL, use variable features
+#'
+#' @rdname SparsePCA
+#' @importFrom SeuratObject VariableFeatures GetAssayData
+#' @export
+#' @concept dimension_reduction
+#' @method SparsePCA Assay
+#' @examples
+#' \dontrun{
+#' SparsePCA(atac_small[['peaks']])
+#' }
+SparsePCA.Assay <- function(
+    object,
+    assay = NULL,
+    features = NULL,
+    n = 50,
+    weight.by.var = TRUE,
+    irlba.work = n * 3,
+    tol = 1e-05,
+    reduction.key = "PCA_",
+    verbose = TRUE,
+    ...
+) {
+  features <- SetIfNull(x = features, y = VariableFeatures(object = object))
+  data.use <- GetAssayData(
+    object = object,
+    layer = "data"
+  )[features, ]
+  reduction.data <- SparsePCA(
+    object = data.use,
+    assay = assay,
+    features = features,
+    n = n,
+    weight.by.var = weight.by.var,
+    irlba.work = irlba.work,
+    tol = tol,
+    reduction.key = reduction.key,
+    verbose = verbose,
+    ...
+  )
+  return(reduction.data)
+}
+
+#' @param reduction.name Name for stored dimension reduction object.
+#' Default 'pca'
+#' @rdname SparsePCA
+#' @export
+#' @concept dimension_reduction
+#' @examples
+#' \dontrun{
+#' SparsePCA(atac_small)
+#' }
+#' @method SparsePCA Seurat
+SparsePCA.Seurat <- function(
+    object,
+    assay = NULL,
+    features = NULL,
+    n = 50,
+    weight.by.var = TRUE,
+    irlba.work = n * 3,
+    tol = 1e-05,
+    reduction.key = "PCA_",
+    reduction.name = "pca",
+    verbose = TRUE,
+    ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay.data <- object[[assay]]
+  reduction.data <- SparsePCA(
+    object = assay.data,
+    assay = assay,
+    features = features,
+    n = n,
+    weight.by.var = weight.by.var,
+    irlba.work = irlba.work,
+    tol = tol,
+    reduction.key = reduction.key,
     verbose = verbose,
     ...
   )

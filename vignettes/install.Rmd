@@ -20,9 +20,9 @@ Unreleased versions of Signac can be installed from the GitHub repository using
 the devtools package:
 
 ```{r}
-if (!requireNamespace("devtools", quietly = TRUE))
-    install.packages("devtools")
-devtools::install_github("timoast/signac", ref = "develop")
+if (!requireNamespace("remotes", quietly = TRUE))
+    install.packages("remotes")
+remotes::install_github("stuart-lab/signac", ref = "develop")
 ```
 
 ## Old versions
@@ -30,11 +30,11 @@ devtools::install_github("timoast/signac", ref = "develop")
 Older Signac releases can be installed from the CRAN archive using devtools:
 
 ```{r}
-if (!requireNamespace("devtools", quietly = TRUE))
-    install.packages("devtools")
+if (!requireNamespace("remotes", quietly = TRUE))
+    install.packages("remotes")
 
 # replace "0.2.5" with the version that you want to install
-devtools::install_version(package = 'Signac', version = package_version('0.2.5'))
+remotes::install_version(package = 'Signac', version = package_version('0.2.5'))
 ```
 
 ## Docker

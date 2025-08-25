@@ -3,21 +3,21 @@
 \name{granges-methods}
 \alias{granges-methods}
 \alias{granges}
-\alias{granges,ChromatinAssay-method}
+\alias{granges,GRangesAssay-method}
 \alias{granges,Seurat-method}
-\title{Access genomic ranges for ChromatinAssay objects}
+\title{Access genomic ranges for GRangesAssay objects}
 \usage{
-\S4method{granges}{ChromatinAssay}(x, use.names = TRUE, use.mcols = FALSE, ...)
+\S4method{granges}{GRangesAssay}(x, use.names = TRUE, use.mcols = FALSE, ...)
 
 \S4method{granges}{Seurat}(x, use.names = TRUE, use.mcols = FALSE, ...)
 }
 \arguments{
-\item{x}{A \code{\link{ChromatinAssay}} object}
+\item{x}{A \code{\link{GRangesAssay}} object}
 
 \item{use.names}{Whether the names on the genomic ranges should be
 propagated to the returned object.}
 
-\item{use.mcols}{Not supported for \code{\link{ChromatinAssay}} objects}
+\item{use.mcols}{Not supported for \code{\link{GRangesAssay}} objects}
 
 \item{...}{Additional arguments}
 }
@@ -26,7 +26,7 @@ Returns a \code{\link[GenomicRanges]{GRanges}} object
 }
 \description{
 Methods for accessing \code{\link[GenomicRanges]{GRanges}} object
-information stored in a \code{\link{ChromatinAssay}} object.
+information stored in a \code{\link{GRangesAssay}} object.
 }
 \section{Functions}{
 \itemize{
@@ -39,7 +39,7 @@ granges(atac_small)
 \seealso{
 \itemize{
   \item{\link[GenomicRanges]{granges} in the \pkg{GenomicRanges} package.}
-  \item{\link{ChromatinAssay-class}}
+  \item{\link{GRangesAssay-class}}
  }
 }
 \concept{granges}

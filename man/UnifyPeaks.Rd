@@ -7,7 +7,7 @@
 UnifyPeaks(object.list, mode = "reduce")
 }
 \arguments{
-\item{object.list}{A list of Seurat objects or ChromatinAssay objects}
+\item{object.list}{A list of Seurat objects or GRangesAssay objects}
 
 \item{mode}{Function to use when combining genomic ranges. Can be "reduce"
 (default) or "disjoin".

@@ -36,8 +36,8 @@ AddChromatinModule <- function(
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5.")
   }
 
   # first find index of each feature
@@ -66,7 +66,7 @@ AddChromatinModule <- function(
   )
 
   # add module scores to metadata
-  chromvar.data <- GetAssayData(object = cv, slot = "data")
+  chromvar.data <- GetAssayData(object = cv, layer = "data")
   object <- AddMetaData(
     object = object,
     metadata = as.data.frame(x = t(x = chromvar.data))
@@ -143,10 +143,10 @@ AccessiblePeaks <- function(
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   cells <- SetIfNull(x = cells, y = WhichCells(object, idents = idents))
-  open.peaks <- GetAssayData(
+  open.peaks <- LayerData(
     object = object,
     assay = assay,
-    slot = "counts"
+    layer = "counts"
   )[, cells]
   peaks <- names(x = which(x = rowSums(x = open.peaks > 0) > min.cells))
   return(peaks)
@@ -180,203 +180,186 @@ CellsPerGroup <- function(
   return(lut)
 }
 
-#' Closest Feature
+#' Sorts cell metadata variable by similarity using hierarchical clustering
 #'
-#' Find the closest feature to a given set of genomic regions
+#' Compute distance matrix from a feature/variable matrix and 
+#' perform hierarchical clustering to order variables (for example, cell types)
+#' according to their similarity. 
 #'
-#' @param object A Seurat object
-#' @param regions A set of genomic regions to query
-#' @param annotation A GRanges object containing annotation information. If
-#' NULL, use the annotations stored in the object.
-#' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
-#'
-#' @importMethodsFrom GenomicRanges distanceToNearest
-#' @importFrom S4Vectors subjectHits mcols
-#' @importFrom methods is
-#' @importFrom SeuratObject DefaultAssay
-#' @importFrom GenomeInfoDb dropSeqlevels
-#' @return Returns a dataframe with the name of each region, the closest feature
-#' in the annotation, and the distance to the feature.
-#' @export
-#' @concept utilities
+#' @param object A Seurat object containing single-cell data.
+#' @param layer The layer of the data to use (default is "data").
+#' @param assay Name of assay to use. If NULL, use the default assay
+#' @param label Metadata attribute to sort. If NULL, 
+#' uses the active identities.
+#' @param dendrogram Logical, whether to plot the dendrogram (default is FALSE).
+#' @param method The distance method to use for hierarchical clustering
+#' (default is 'euclidean', other options from \code{\link[stats]{dist}} are
+#' 'maximum', 'manhattan', 'canberra', 'binary' and 'minkowski').
+#' @param verbose Display messages
+#' 
+#' @return The Seurat object with metadata variable reordered by similarity.
+#' If the metadata variable was a character vector, it will be converted to a
+#' factor and the factor levels set according to the similarity ordering. If
+#' active identities were used (label=NULL), the levels will be updated according
+#' to similarity ordering.
+#' 
 #' @examples
-#' \donttest{
-#' ClosestFeature(
-#'   object = atac_small,
-#'   regions = head(granges(atac_small))
-#' )
-#' }
-ClosestFeature <- function(
-  object,
-  regions,
-  annotation = NULL,
-  ...
-) {
-  if (!is(object = regions, class2 = 'GRanges')) {
-    regions <- StringToGRanges(regions = regions, ...)
+#' atac_small$test <- sample(1:10, ncol(atac_small), replace = TRUE)
+#' atac_small <- SortIdents(object = atac_small, label = 'test')
+#' print(levels(atac_small$test))
+#'
+#' @importFrom stats dist hclust
+#' @importFrom SeuratObject Layers Idents Idents<- DefaultAssay LayerData
+#' @concept utilities
+#' @export
+SortIdents <- function(
+    object,
+    layer = "data",
+    assay = NULL,
+    label = NULL,
+    dendrogram = FALSE,
+    method = 'euclidean',
+    verbose = TRUE
+){
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!(layer %in% Layers(object = object[[assay]]))) {
+    stop("Requested layer is not present in ", assay)
   }
-  if (inherits(x = object, what = "Seurat")) {
-    # running on Seurat object, extract the assay
-    assay <- DefaultAssay(object = object)
-    object <- object[[assay]]
+  allowed.methods <- c("euclidean", "maximum", "manhattan",
+                       "canberra", "binary", "minkowski")
+  if (!(method %in% allowed.methods)) {
+    stop("Selected method must be one of: ",
+         paste(allowed.methods, collapse = ", "))
   }
-  if (!inherits(x = object, what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
-  }
-  if (length(x = regions) == 0) {
-    stop("No query regions supplied")
-  }
-  annotation <- SetIfNull(x = annotation, y = Annotation(object = object))
-  missing_seqlevels <- setdiff(
-    x = seqlevels(x = regions), y = seqlevels(x = annotation)
-  )
-  if (length(x = missing_seqlevels) > 0) {
-    warning(
-      "The following seqlevels present in query regions are not present\n ",
-      "in the supplied gene annotations and will be removed: ",
-      paste(missing_seqlevels, collapse = ", ")
-    )
-    regions <- dropSeqlevels(
-      x = regions,
-      value = missing_seqlevels,
-      pruning.mode = "coarse"
-    )
-    if (length(x = regions) == 0) {
-      stop("None of the supplied regions were found in the supplied annotation")
+  feat_cell_matrix <- LayerData(object, layer = layer, assay = assay)
+  
+  if (is.null(x = label)) {
+    cell_types <- Idents(object = object)
+    uniq_cell_types = unique(x = cell_types)
+  } else {
+    if (length(x = label) > 1) {
+      stop("Label must be a single character vector or NULL")
     }
+    if (!(label %in% colnames(x = object[[]]))) {
+      stop("Requested metadata '", label, "' not present in object")
+    }
+    cell_types <- object[[label]]
+    uniq_cell_types = unique(x = cell_types[, 1])
   }
-  nearest_feature <- distanceToNearest(x = regions, subject = annotation)
-  feature_hits <- annotation[subjectHits(x = nearest_feature)]
-  df <- as.data.frame(x = mcols(x = feature_hits))
-  df$closest_region <- GRangesToString(grange = feature_hits, ...)
-  df$query_region <- GRangesToString(grange = regions, ...)
-  df$distance <- mcols(x = nearest_feature)$distance
-  return(df)
+  
+  if (length(x = uniq_cell_types) / ncol(x = object) > 0.7) {
+    stop("Most cells have a different value for the requested metadata variable.
+           Are you sure this is a categorical variable?")
+  }
+  if (length(x = uniq_cell_types) < 3) {
+    stop("Must have more than three different variables")
+  }
+  
+  # Initialize a one-hot matrix with rows representing cells 
+  # and columns representing cell types
+  one_hot_matrix <- matrix(data = 0,
+                           nrow = ncol(x = feat_cell_matrix),
+                           ncol = length(x = uniq_cell_types),
+                           dimnames = list(colnames(x = feat_cell_matrix),
+                                           uniq_cell_types)
+  )
+  
+  # Fill in the one-hot matrix
+  for (i in seq_along(along.with = uniq_cell_types)) {
+    # convert to character in case the level of a factor is returned
+    cell_type <- as.character(x = uniq_cell_types[i])
+    one_hot_matrix[cell_types == cell_type, i] <- 1
+  }
+  cell_type_counts = colSums(x = one_hot_matrix)
+  
+  if (verbose) {
+    message("Creating pseudobulk profiles for ", ncol(x = one_hot_matrix),
+            " variables across ", nrow(x = feat_cell_matrix), " features")
+  }
+  
+  # Aggregate (sum) features by label
+  # Normalize by number of cells per label
+  bulk_matrix <- sweep(x = feat_cell_matrix %*% one_hot_matrix, MARGIN = 2,
+                       cell_type_counts, FUN = "/")
+  
+  # Calculate distance matrix and perform hierarchical clustering
+  if (verbose) {
+    message("Computing ", method, " distance between pseudobulk profiles")
+  }
+  distance_matrix <- dist(x = t(x = bulk_matrix), method = method)
+  if (verbose) {
+    message("Clustering distance matrix")
+  }
+  hc <- hclust(d = distance_matrix)
+  
+  if (dendrogram){
+    plot(hc, main = paste0("Assay: ", assay, "   Layer: ", layer), 
+         xlab = SetIfNull(x = label, y = "Idents"),
+         sub = "", cex = 0.9)
+  }
+  
+  ordered_cell_types <- uniq_cell_types[hc$order]
+  if (is.null(x = label)) {
+    Idents(object = object) <- factor(x = Idents(object = object), 
+                                      levels = ordered_cell_types)
+  } else {
+    object[[label]] <- factor(x = object[[label]][, 1], 
+                              levels = ordered_cell_types)
+  }
+  
+  return(object)
 }
 
-#' Create gene activity matrix
-#'
-#' Compute counts per cell in gene body and promoter region.
-#'
-#' @param object A Seurat object
-#' @param assay Name of assay to use. If NULL, use the default assay
-#' @param features Genes to include. If NULL, use all protein-coding genes in
-#' the annotations stored in the object
-#' @param extend.upstream Number of bases to extend upstream of the TSS
-#' @param extend.downstream Number of bases to extend downstream of the TTS
-#' @param biotypes Gene biotypes to include. If NULL, use all biotypes in the
-#' gene annotation.
-#' @param max.width Maximum allowed gene width for a gene to be quantified.
-#' Setting this parameter can avoid quantifying extremely long transcripts that
-#' can add a relatively long amount of time. If NULL, do not filter genes based
-#' on width.
-#' @param process_n Number of regions to load into memory at a time, per thread.
-#' Processing more regions at once can be faster but uses more memory.
-#' @param gene.id Record gene IDs in output matrix rather than gene name.
-#' @param verbose Display messages
-#'
-#' @return Returns a sparse matrix
-#'
-#' @concept utilities
+#' Sparse matrix correlation
+#' 
+#' Compute the Pearson correlation matrix between
+#' columns of two sparse matrices.
+#' 
+#' Originally from 
+#' \url{https://stackoverflow.com/questions/5888287/running-cor-or-any-variant-over-a-sparse-matrix-in-r}
+#' and the qlcMatrix package.
+#' 
+#' @param X A matrix
+#' @param Y A matrix
+#' @param cov return covariance matrix
 #' @export
-#' @importFrom SeuratObject DefaultAssay
-#' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' fragments <- CreateFragmentObject(
-#'   path = fpath,
-#'   cells = colnames(atac_small),
-#'   validate.fragments = FALSE
-#' )
-#' Fragments(atac_small) <- fragments
-#' GeneActivity(atac_small)
-GeneActivity <- function(
-  object,
-  assay = NULL,
-  features = NULL,
-  extend.upstream = 2000,
-  extend.downstream = 0,
-  biotypes = "protein_coding",
-  max.width = 500000,
-  process_n = 2000,
-  gene.id = FALSE,
-  verbose = TRUE
-) {
-  if (!is.null(x = features)) {
-    if (length(x = features) == 0) {
-      stop("Empty list of features provided")
+#' @keywords internal
+#' @author Michael Cysouw, Karsten Looschen
+#' @importMethodsFrom Matrix colMeans
+# covmat uses E[(X-muX)'(Y-muY)] = E[X'Y] - muX'muY
+# with sample correction n/(n-1) this leads to cov = ( X'Y - n*muX'muY ) / (n-1)
+#
+# the sd in the case Y!=NULL uses E[X-mu]^2 = E[X^2]-mu^2
+# with sample correction n/(n-1) this leads to sd^2 = ( X^2 - n*mu^2 ) / (n-1)
+#
+# Note that results larger than 1e4 x 1e4 will become very slow, because the resulting matrix is not sparse anymore.
+corSparse <- function(X, Y = NULL, cov = FALSE) {
+  X <- as(object = X, Class = "CsparseMatrix")
+  n <- nrow(x = X)
+  muX <- colMeans(x = X)
+  
+  if (!is.null(x = Y)) {
+    if (nrow(x = X) != nrow(x = Y)) {
+      stop("Matrices must contain the same number of rows")
     }
+    Y <- as(object = Y, Class = "CsparseMatrix")
+    muY <- colMeans(x = Y)
+    covmat <- ( as.matrix(x = crossprod(x = X, y = Y)) - n * tcrossprod(x = muX, y = muY) ) / (n-1)
+    sdvecX <- sqrt( (colSums(x = X^2) - n*muX^2) / (n-1) )
+    sdvecY <- sqrt( (colSums(x = Y^2) - n*muY^2) / (n-1) )
+    cormat <- covmat / tcrossprod(x = sdvecX, y = sdvecY)
+  } else {		
+    covmat <- ( as.matrix(crossprod(x = X)) - n * tcrossprod(x = muX) ) / (n-1)
+    sdvec <- sqrt(x = diag(x = covmat))
+    cormat <- covmat / tcrossprod(x = sdvec)
   }
-  # collapse to longest protein coding transcript
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
+  if (cov) {
+    dimnames(x = covmat) <- NULL
+    return(covmat)
+  } else {
+    dimnames(x = cormat) <- NULL
+    return(cormat)
   }
-  annotation <- Annotation(object = object[[assay]])
-  # replace NA names with gene ID
-  annotation$gene_name <- ifelse(
-    test = is.na(x = annotation$gene_name) | (annotation$gene_name == ""),
-    yes = annotation$gene_id,
-    no = annotation$gene_name
-  )
-  if (length(x = annotation) == 0) {
-    stop("No gene annotations present in object")
-  }
-  if (verbose) {
-    message("Extracting gene coordinates")
-  }
-  transcripts <- CollapseToLongestTranscript(ranges = annotation)
-  if (gene.id) {
-    transcripts$gene_name <- transcripts$gene_id
-  }
-  if (!is.null(x = biotypes)) {
-    transcripts <- transcripts[transcripts$gene_biotype %in% biotypes]
-    if (length(x = transcripts) == 0) {
-      stop("No genes remaining after filtering for requested biotypes")
-    }
-  }
-
-  # filter genes if provided
-  if (!is.null(x = features)) {
-    transcripts <- transcripts[transcripts$gene_name %in% features]
-    if (length(x = transcripts) == 0) {
-      stop("None of the requested genes were found in the gene annotation")
-    }
-  }
-  if (!is.null(x = max.width)) {
-    transcript.keep <- which(x = width(x = transcripts) < max.width)
-    transcripts <- transcripts[transcript.keep]
-    if (length(x = transcripts) == 0) {
-      stop("No genes remaining after filtering for max.width")
-    }
-  }
-
-  # extend to include promoters
-  transcripts <- Extend(
-    x = transcripts,
-    upstream = extend.upstream,
-    downstream = extend.downstream
-  )
-
-  # quantify
-  frags <- Fragments(object = object[[assay]])
-  if (length(x = frags) == 0) {
-    stop("No fragment information found for requested assay")
-  }
-  cells <- colnames(x = object[[assay]])
-  counts <- FeatureMatrix(
-    fragments = frags,
-    features = transcripts,
-    process_n = process_n,
-    cells = cells,
-    verbose = verbose
-  )
-  # set row names
-  gene.key <- transcripts$gene_name
-  names(x = gene.key) <- GRangesToString(grange = transcripts)
-  rownames(x = counts) <- as.vector(x = gene.key[rownames(x = counts)])
-  counts <- counts[rownames(x = counts) != "", ]
-
-  return(counts)
 }
 
 #' Extract genomic ranges from EnsDb object
@@ -439,6 +422,9 @@ GetGRangesFromEnsDb <- function(
 #' @export
 #' @concept utilities
 GetTSSPositions <- function(ranges, biotypes = "protein_coding") {
+  if (is.null(x = ranges)) {
+    stop("No genomic ranges provided")
+  }
   if (!("gene_biotype" %in% colnames(x = mcols(x = ranges)))) {
     stop("Gene annotation does not contain gene_biotype information")
   }
@@ -449,69 +435,6 @@ GetTSSPositions <- function(ranges, biotypes = "protein_coding") {
   # shrink to TSS position
   tss <- resize(gene.ranges, width = 1, fix = 'start')
   return(tss)
-}
-
-#' Find intersecting regions between two objects
-#'
-#' Intersects the regions stored in the rownames of two objects and
-#' returns a vector containing the names of rows that intersect
-#' for each object. The order of the row names return corresponds
-#' to the intersecting regions, i.e. the nth feature of the first vector
-#' will intersect the nth feature in the second vector. A distance
-#' parameter can be given, in which case features within the given
-#' distance will be called as intersecting.
-#'
-#' @param object.1 The first Seurat object
-#' @param object.2 The second Seurat object
-#' @param assay.1 Name of the assay to use in the first object. If NULL, use
-#' the default assay
-#' @param assay.2 Name of the assay to use in the second object. If NULL, use
-#' the default assay
-#' @param distance Maximum distance between regions allowed for an intersection
-#' to be recorded. Default is 0.
-#' @param verbose Display messages
-#'
-#' @importMethodsFrom GenomicRanges distanceToNearest
-#' @importFrom S4Vectors subjectHits queryHits mcols
-#' @importFrom SeuratObject DefaultAssay
-#' @export
-#' @concept utilities
-#' @return Returns a list of two character vectors containing the row names
-#' in each object that overlap each other.
-#' @examples
-#' GetIntersectingFeatures(
-#'   object.1 = atac_small,
-#'   object.2 = atac_small,
-#'   assay.1 = 'peaks',
-#'   assay.2 = 'bins'
-#' )
-GetIntersectingFeatures <- function(
-  object.1,
-  object.2,
-  assay.1 = NULL,
-  assay.2 = NULL,
-  distance = 0,
-  verbose = TRUE
-) {
-  assay.1 <- SetIfNull(x = assay.1, y = DefaultAssay(object = object.1))
-  assay.2 <- SetIfNull(x = assay.2, y = DefaultAssay(object = object.2))
-  if (!inherits(x = object.1[[assay.1]], what = "ChromatinAssay")) {
-    stop("Requested assay in object 1 is not a ChromatinAssay.")
-  }
-  if (!inherits(x = object.2[[assay.2]], what = "ChromatinAssay")) {
-    stop("Requested assay in object 2 is not a ChromatinAssay")
-  }
-  regions.1 <- GetAssayData(object = object.1, assay = assay.1, slot = "ranges")
-  regions.2 <- GetAssayData(object = object.2, assay = assay.2, slot = "ranges")
-  if (verbose) {
-    message("Intersecting regions across objects")
-  }
-  region.intersections <- distanceToNearest(x = regions.1, subject = regions.2)
-  keep.intersections <- mcols(x = region.intersections)$distance <= distance
-  region.intersections <- region.intersections[keep.intersections, ]
-  intersect.object1 <- queryHits(x = region.intersections)
-  intersect.object2 <- subjectHits(x = region.intersections)
-  return(list(intersect.object1, intersect.object2))
 }
 
 #' String to GRanges
@@ -643,7 +566,13 @@ GetCellsInRegion <- function(tabix, region, cells = NULL) {
     region <- StringToGRanges(regions = region)
   }
   reads <- scanTabix(file = tabix, param = region)
-  reads <- lapply(X = reads, FUN = ExtractCell)
+  s <- reads[[which(x = lengths(x = reads) > 0)[1]]]
+  if (length(x = s) > 0) {
+    ncol_frags <- lengths(x = gregexpr(pattern = "\t", text = s[1]))[[1]] + 1
+  } else {
+    ncol_frags <- 5
+  }
+  reads <- lapply(X = reads, FUN = ExtractCell, ncol = ncol_frags)
   if (!is.null(x = cells)) {
     reads <- sapply(X = reads, FUN = function(x) {
       x <- x[fmatch(x = x, table = cells, nomatch = 0L) > 0L]
@@ -669,7 +598,7 @@ GetCellsInRegion <- function(tabix, region, cells = NULL) {
 #' @importFrom IRanges findOverlaps
 #' @importFrom S4Vectors queryHits
 #' @importFrom Matrix colSums
-#' @importFrom SeuratObject GetAssayData
+#' @importFrom SeuratObject LayerData
 #'
 #' @export
 #' @concept utilities
@@ -688,16 +617,16 @@ CountsInRegion <- function(
   regions,
   ...
 ) {
-  if (!is(object = object[[assay]], class2 = "ChromatinAssay")) {
-    stop("Must supply a ChromatinAssay")
+  if (!is(object = object[[assay]], class2 = "ChromatinAssay5")) {
+    stop("Must supply a ChromatinAssay5.")
   }
-  obj.granges <- GetAssayData(object = object, assay = assay, slot = "ranges")
+  obj.granges <- GetAssayData(object = object, assay = assay, layer = "ranges")
   overlaps <- findOverlaps(query = obj.granges, subject = regions, ...)
   hit.regions <- queryHits(x = overlaps)
-  data.matrix <- GetAssayData(
-    object = object, assay = assay, slot = "counts"
+  data.matrix <- LayerData(
+    object = object, assay = assay, layer = "counts"
   )[hit.regions, , drop = FALSE]
-  return(colSums(data.matrix))
+  return(colSums(x = data.matrix))
 }
 
 #' Fraction of counts in a genomic region
@@ -710,7 +639,7 @@ CountsInRegion <- function(
 #' @param regions A GRanges object containing a set of genomic regions
 #' @param ... Additional arguments passed to \code{\link{CountsInRegion}}
 #' @importFrom Matrix colSums
-#' @importFrom SeuratObject GetAssayData DefaultAssay
+#' @importFrom SeuratObject LayerData DefaultAssay
 #'
 #' @export
 #' @concept utilities
@@ -736,8 +665,8 @@ FractionCountsInRegion <- function(
     assay = assay,
     ...
   )
-  total.reads <- colSums(x = GetAssayData(
-    object = object, assay = assay, slot = "counts"
+  total.reads <- colSums(x = LayerData(
+    object = object, assay = assay, layer = "counts"
   ))
   return(reads.in.region / total.reads)
 }
@@ -818,8 +747,8 @@ IntersectMatrix <- function(
 #' LookupGeneCoords(atac_small, gene = "MIR1302-10")
 LookupGeneCoords <- function(object, gene, assay = NULL) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5")
   }
   annotations <- Annotation(object = object[[assay]])
   isgene <- annotations$gene_name == gene
@@ -863,13 +792,13 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
 #' @param ... Arguments passed to other functions
 #' @return Returns a character vector
 #'
-#' @importFrom stats density approx
+#' @importFrom stats density approx na.omit
 #' @export
 #' @concept utilities
 #' @concept motifs
 #' @examples
 #' metafeatures <- SeuratObject::GetAssayData(
-#'   object = atac_small[['peaks']], slot = 'meta.features'
+#'   object = atac_small[['peaks']], layer = 'meta.features'
 #' )
 #' query.feature <- metafeatures[1:10, ]
 #' features.choose <- metafeatures[11:nrow(metafeatures), ]
@@ -896,11 +825,6 @@ MatchRegionStats <- function(
   if (length(x = features.match) == 0) {
     stop("Must supply at least one sequence characteristic to match")
   }
-  if (nrow(x = meta.feature) < n) {
-    n <- nrow(x = meta.feature)
-    warning("Requested more features than present in supplied data.
-            Returning ", n, " features")
-  }
   for (i in seq_along(along.with = features.match)) {
     featmatch <- features.match[[i]]
     if (!(featmatch %in% colnames(x = query.feature))) {
@@ -911,17 +835,23 @@ MatchRegionStats <- function(
         stop(featmatch, " not present in meta.features")
       }
     }
+    # remove features that have NA for any of the features to match
+    meta.feature <- na.omit(object = meta.feature[, features.match, drop = FALSE])
+    if (nrow(x = meta.feature) < n) {
+      n <- nrow(x = meta.feature)
+      warning("Requested more features than present in supplied data.
+            Returning ", n, " features")
+    }
     if (verbose) {
       message("Matching ", featmatch, " distribution")
     }
     density.estimate <- density(
       x = query.feature[[featmatch]], kernel = "gaussian", bw = 1
     )
-    mf.use <- meta.feature[!is.na(x = meta.feature[[featmatch]]), ]
     weights <- approx(
       x = density.estimate$x,
       y = density.estimate$y,
-      xout = mf.use[[featmatch]],
+      xout = meta.feature[[featmatch]],
       yright = 0.0001,
       yleft = 0.0001
     )$y
@@ -932,11 +862,11 @@ MatchRegionStats <- function(
     }
   }
   feature.select <- sample.int(
-    n = nrow(x = mf.use),
+    n = nrow(x = meta.feature),
     size = n,
     prob = feature.weights
   )
-  feature.select <- rownames(x = mf.use)[feature.select]
+  feature.select <- rownames(x = meta.feature)[feature.select]
   return(feature.select)
 }
 
@@ -946,7 +876,7 @@ MatchRegionStats <- function(
 #' from multiple Seurat objects containing single-cell
 #' chromatin data.
 #'
-#' @param object.list A list of Seurat objects or ChromatinAssay objects
+#' @param object.list A list of Seurat objects or GRangesAssay objects
 #' @param mode Function to use when combining genomic ranges. Can be "reduce"
 #' (default) or "disjoin".
 #' See \code{\link[GenomicRanges]{reduce}}
@@ -1033,24 +963,40 @@ NonOverlapping <- function(x, all.features) {
 }
 
 #' @importFrom Matrix sparseMatrix
-AddMissingCells <- function(x, cells) {
-  # add columns with zeros for cells not in matrix
-  missing.cells <- setdiff(x = cells, y = colnames(x = x))
-  if (!(length(x = missing.cells) == 0)) {
-    null.mat <- sparseMatrix(
-      i = c(),
-      j = c(),
-      dims = c(nrow(x = x), length(x = missing.cells))
-    )
-    rownames(x = null.mat) <- rownames(x = x)
-    colnames(x = null.mat) <- missing.cells
-    x <- cbind(x, null.mat)
+AddMissing <- function(x, cells = NULL, features = NULL) {
+  # add columns with zeros for cells or features not in matrix
+  if (!is.null(cells)) {
+    missing.cells <- setdiff(x = cells, y = colnames(x = x))
+    if (!(length(x = missing.cells) == 0)) {
+      null.mat <- sparseMatrix(
+        i = c(),
+        j = c(),
+        dims = c(nrow(x = x), length(x = missing.cells))
+      )
+      rownames(x = null.mat) <- rownames(x = x)
+      colnames(x = null.mat) <- missing.cells
+      x <- cbind(x, null.mat)
+    }
+    x <- x[, cells, drop = FALSE]
   }
-  x <- x[, cells, drop = FALSE]
+  if (!is.null(x = features)) {
+    missing.features <- setdiff(x = features, y = rownames(x = x))
+    if (!(length(x = missing.features) == 0)) {
+      null.mat <- sparseMatrix(
+        i = c(),
+        j = c(),
+        dims = c(length(x = missing.features), ncol(x = x))
+      )
+      rownames(x = null.mat) <- missing.features
+      colnames(x = null.mat) <- colnames(x = x)
+      x <- rbind(x, null.mat)
+    }
+    x <- x[features, , drop = FALSE]
+  }
   return(x)
 }
 
-#' @importFrom SeuratObject DefaultAssay GetAssayData
+#' @importFrom SeuratObject DefaultAssay LayerData
 #' @importFrom Matrix Diagonal tcrossprod rowSums
 AverageCountMatrix <- function(
   object,
@@ -1059,7 +1005,7 @@ AverageCountMatrix <- function(
   idents = NULL
 ) {
   assay = SetIfNull(x = assay, y = DefaultAssay(object = object))
-  countmatrix <- GetAssayData(object = object[[assay]], slot = "counts")
+  countmatrix <- LayerData(object = object[[assay]], layer = "counts")
   ident.matrix <- BinaryIdentMatrix(
     object = object,
     group.by = group.by,
@@ -1103,12 +1049,12 @@ BinaryIdentMatrix <- function(object, group.by = NULL, idents = NULL) {
 #' @importFrom Matrix colSums
 #
 CalcN <- function(object) {
-  if (IsMatrixEmpty(x = GetAssayData(object = object, slot = "counts"))) {
+  if (IsMatrixEmpty(x = LayerData(object = object, layer = "counts"))) {
     return(NULL)
   }
   return(list(
     nCount = colSums(x = object, slot = "counts"),
-    nFeature = colSums(x = GetAssayData(object = object, slot = "counts") > 0)
+    nFeature = colSums(x = LayerData(object = object, layer = "counts") > 0)
   ))
 }
 
@@ -1181,16 +1127,17 @@ ChunkGRanges <- function(granges, nchunk) {
 # vectors (output of \code{\link{scanTabix}})
 #
 # @param x List of character vectors
+# @param ncol Number of columns in the fragment file
 # @return Returns a string
 #' @importFrom stringi stri_split_fixed
-ExtractCell <- function(x) {
+ExtractCell <- function(x, ncol=5) {
   if (length(x = x) == 0) {
     return(NULL)
   } else {
     x <- stri_split_fixed(str = x, pattern = "\t")
     n <- length(x = x)
     x <- unlist(x = x)
-    return(unlist(x = x)[5 * (1:n) - 1])
+    return(unlist(x = x)[ncol * (1:n) - (ncol-4)])
   }
 }
 
@@ -1208,7 +1155,7 @@ ExtractCell <- function(x) {
 #
 # @return Returns a data.frame
 ExtractFragments <- function(fragments, n = NULL, verbose = TRUE) {
-  fpath <- GetFragmentData(object = fragments, slot = "path")
+  fpath <- GetFragmentData(object = fragments, slot = "file.path")
   if (isRemote(x = fpath)) {
     stop("Remote fragment files not supported")
   }
@@ -1319,25 +1266,39 @@ GetReadsInRegion <- function(
     x = seqlevels(x = region),
     y = seqnamesTabix(file = tabix.file)
   )
-  region <- keepSeqlevels(
-    x = region,
-    value = common.seqlevels,
-    pruning.mode = "coarse"
-  )
-  reads <- scanTabix(file = tabix.file, param = region)
-  reads <- TabixOutputToDataFrame(reads = reads)
-  reads <- reads[
-    fmatch(x = reads$cell, table = cellmap, nomatch = 0L) > 0,
-  ]
-  # convert cell names to match names in object
-  reads$cell <- file.to.object[reads$cell]
-  if (!is.null(x = cells)) {
-    reads <- reads[reads$cell %in% cells, ]
+  if (length(common.seqlevels) != 0) {
+    region <- keepSeqlevels(
+      x = region,
+      value = common.seqlevels,
+      pruning.mode = "coarse"
+    )
+    reads <- scanTabix(file = tabix.file, param = region)
+    reads <- TabixOutputToDataFrame(reads = reads)
+    reads <- reads[
+      fmatch(x = reads$cell, table = cellmap, nomatch = 0L) > 0,
+    ]
+    # convert cell names to match names in object
+    reads$cell <- file.to.object[reads$cell]
+    if (!is.null(x = cells)) {
+      reads <- reads[reads$cell %in% cells, ]
+    }
+    if (nrow(reads) == 0) {
+      reads$ident <- integer()
+      reads$length <- numeric()
+      return(reads)
+    }
+    reads$length <- reads$end - reads$start
+  } else {
+    reads <- data.frame(
+      "chr" = character(),
+      "start" = numeric(),
+      "end" = numeric(),
+      "cell" = character(),
+      "count" = numeric(),
+      "ident" = integer(),
+      "length" = numeric()
+    )
   }
-  if (nrow(reads) == 0) {
-    return(reads)
-  }
-  reads$length <- reads$end - reads$start
   return(reads)
 }
 
@@ -1421,9 +1382,10 @@ MultiGetReadsInRegion <- function(
   }
   res <- data.frame()
   for (i in seq_along(along.with = fragment.list)) {
-    tbx.path <- GetFragmentData(object = fragment.list[[i]], slot = "path")
+    tbx.path <- GetFragmentData(object = fragment.list[[i]], slot = "file.path")
+    tbx.index <- GetFragmentData(object = fragment.list[[i]], slot = "file.index")
     cellmap <- GetFragmentData(object = fragment.list[[i]], slot = "cells")
-    tabix.file <- TabixFile(file = tbx.path)
+    tabix.file <- TabixFile(file = tbx.path, index = tbx.index)
     open(con = tabix.file)
     reads <- GetReadsInRegion(
       cellmap = cellmap,
@@ -1538,11 +1500,15 @@ CutMatrix <- function(
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   cells <- SetIfNull(x = cells, y = colnames(x = object))
   fragments <- Fragments(object = object[[assay]])
+  if (length(x = fragments) == 0) {
+    stop("No fragment information found for requested assay")
+  }
   res <- list()
   for (i in seq_along(along.with = fragments)) {
-    fragment.path <- GetFragmentData(object = fragments[[i]], slot = "path")
+    fragment.path <- GetFragmentData(object = fragments[[i]], slot = "file.path")
+    index.path <- GetFragmentData(object = fragments[[i]], slot = "file.index")
     cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
-    tabix.file <- TabixFile(file = fragment.path)
+    tabix.file <- TabixFile(file = fragment.path, index = index.path)
     open(con = tabix.file)
     # remove regions that aren't in the fragment file
     seqnames.in.both <- intersect(
@@ -1604,13 +1570,14 @@ MultiRegionCutMatrix <- function(
     stop("No fragment files present in assay")
   }
   for (i in seq_along(along.with = fragments)) {
-    frag.path <- GetFragmentData(object = fragments[[i]], slot = "path")
+    frag.path <- GetFragmentData(object = fragments[[i]], slot = "file.path")
+    file.index <- GetFragmentData(object = fragments[[i]], slot = "file.index")
     cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
     if (is.null(x = cellmap)) {
       cellmap <- colnames(x = object)
       names(x = cellmap) <- cellmap
     }
-    tabix.file <- TabixFile(file = frag.path)
+    tabix.file <- TabixFile(file = frag.path, index = file.index)
     open(con = tabix.file)
     # remove regions that aren't in the fragment file
     common.seqlevels <- intersect(
@@ -1791,8 +1758,9 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
   if (record.ident) {
     nrep <- elementNROWS(x = reads)
   }
+  original_names = names(reads)
   reads <- unlist(x = reads, use.names = FALSE)
-  if (length(x = reads) == 0) {
+  if (length(x = reads) == 0 | is.null(x = original_names)) {
     df <- data.frame(
       "chr" = "",
       "start" = "",
@@ -1961,7 +1929,7 @@ MergeOverlappingRows <- function(
   merge.counts <- list()
   for (i in seq_along(along.with = assay.list)) {
     # get count matrix
-    counts <- GetAssayData(object = assay.list[[i]], slot = slot)
+    counts <- GetAssayData(object = assay.list[[i]], layer = slot)
 
     if (nrow(x = counts) == 0) {
       # no counts, only data
@@ -2143,7 +2111,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
     colnames(x = featmat) <- names(x = cell.lookup)[1:max(cells.in.regions)]
     # add zero columns for missing cells
     if (!is.null(x = cells)) {
-      featmat <- AddMissingCells(x = featmat, cells = cells)
+      featmat <- AddMissing(x = featmat, cells = cells, features = NULL)
     }
     # add zero rows for missing features
     missing.features <- all.features[!(all.features %in% rownames(x = featmat))]
@@ -2222,15 +2190,12 @@ SparsifiedRanks <- function(X){
 }
 
 SparseSpearmanCor <- function(X, Y = NULL, cov = FALSE) {
-  if (!requireNamespace(package = "qlcMatrix", quietly = TRUE)) {
-    stop("Please install qlcMatrix: install.packages('qlcMatrix')")
-  }
   # Get sparsified ranks
   rankX <- SparsifiedRanks(X = X)
   if (is.null(Y)){
     # Calculate pearson correlation on rank matrices
-    return (qlcMatrix::corSparse(X = rankX, cov = cov))
+    return (corSparse(X = rankX, cov = cov))
     }
   rankY <- SparsifiedRanks(X = Y)
-  return(qlcMatrix::corSparse(X = rankX, Y = rankY, cov = cov))
+  return(corSparse(X = rankX, Y = rankY, cov = cov))
 }
