@@ -634,6 +634,7 @@ CreateFragmentObject <- function(
   }
   if (!is.remote) {
     path <- normalizePath(path = path, mustWork = TRUE)
+    index.file <- normalizePath(path = index.file, mustWork = TRUE)
   }
   # will be NA if file remote
   hashes <- md5sum(files = c(path, index.file))
