@@ -1347,10 +1347,21 @@ subset.GRangesAssay <- function(
     cells = NULL,
     ...
 ) {
+  if (inherits(x = features, what = 'Rle')) {
+    features <- as.vector(x = features)
+  }
+  if (inherits(x = cells, what = 'Rle')) {
+    cells <- as.vector(x = cells)
+  }
+  
   # subset genomic ranges
   ranges.keep <- granges(x = x)
   if (!is.null(x = features)) {
-    idx.keep <- rownames(x = x) %in% features
+    if (is.logical(x = features)) {
+      idx.keep <- features
+    } else {
+      idx.keep <- rownames(x = x) %in% features
+    }
     ranges.keep <- ranges.keep[idx.keep]
   }
   
@@ -1380,6 +1391,30 @@ subset.ChromatinAssay5 <- function(
   cells = NULL,
   ...
 ) {
+  
+  if (inherits(x = features, what = 'Rle')) {
+    features <- as.vector(x = features)
+  }
+  if (inherits(x = cells, what = 'Rle')) {
+    cells <- as.vector(x = cells)
+  }
+  
+  if (is.logical(x = features)) {
+    if (length(x = features) != nrow(x = x)) {
+      stop("Incorrect number of logical values provided to subset features")
+    } else {
+      features <- Features(x = x)[features]
+    }
+  }
+  
+  if (is.logical(x = cells)) {
+    if (length(x = cells) != ncol(x = x)) {
+      stop("Incorrect number of logical values provided to subset cells")
+    } else {
+      cells <- Cells(x = x)[cells]
+    }
+  }
+  
   # subset elements in the standard assay
   x <- NextMethod()
   
