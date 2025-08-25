@@ -387,10 +387,10 @@ ValidateFragments <- function(
 #' @param ... Arguments passed to other methods
 #' @rdname Cells
 #' @concept fragments
-#' @method Cells Fragment
+#' @method Cells Fragment2
 #' @importFrom SeuratObject Cells
 #' @export
-Cells.Fragment <- function(x, ...) {
+Cells.Fragment2 <- function(x, ...) {
   cells <- slot(object = x, name = "cells")
   return(names(x = cells))
 }
@@ -405,8 +405,8 @@ SeuratObject::Cells
 #' @rdname Cells
 #' @export
 #' @concept fragments
-#' @method Cells<- Fragment
-"Cells<-.Fragment" <- function(x, ..., value) {
+#' @method Cells<- Fragment2
+"Cells<-.Fragment2" <- function(x, ..., value) {
   if (is.null(x = names(x = value))) {
     stop("Cells must be a named vector")
   }

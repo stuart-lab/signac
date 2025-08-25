@@ -1053,6 +1053,10 @@ SetAssayData.GRangesAssay <- function(
     }
     methods::slot(object = object, name = layer) <- new.data
   } else if (layer == "motifs") {
+    if (is.null(x = new.data)) {
+      methods::slot(object = object, name = layer) <- NULL
+      return(object)
+    }
     if (!inherits(x = new.data, what = "Motif")) {
       stop("Must provide a Motif class object")
     }
@@ -1111,6 +1115,9 @@ SetAssayData.ChromatinAssay5 <- function(
     slot = deprecated(),
     ...
 ) {
+  if (layer %in% c("counts", "data", "scale.data", "meta.data", "misc", "key")) {
+    return(NextMethod())
+  }
   if (is_present(arg = slot)) {
     layer <- slot
   }
@@ -1121,9 +1128,7 @@ SetAssayData.ChromatinAssay5 <- function(
       call. = FALSE
     )
   }
-  if (layer %in% c("counts", "data", "scale.data", "meta.data", "misc", "key")) {
-    NextMethod()
-  } else if (layer == "fragments") {
+  if (layer == "fragments") {
     if (inherits(x = new.data, what = "list")) {
       # check that it's a list containing fragment class objects
       for (i in seq_along(new.data)) {
@@ -1333,7 +1338,40 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
 }
 
 #' @export
-#' @importClassesFrom SeuratObject Assay
+#' @importClassesFrom SeuratObject Assay5
+#' @concept assay
+#' @method subset GRangesAssay
+subset.GRangesAssay <- function(
+    x,
+    features = NULL,
+    cells = NULL,
+    ...
+) {
+  # subset genomic ranges
+  ranges.keep <- granges(x = x)
+  if (!is.null(x = features)) {
+    idx.keep <- rownames(x = x) %in% features
+    ranges.keep <- ranges.keep[idx.keep]
+  }
+  
+  # subset elements in the parent classes assay
+  x <- NextMethod()
+
+  # subset granges
+  x <- SetAssayData(object = x, layer = "ranges", new.data = ranges.keep)
+
+  # subset motifs
+  motifs <- Motifs(object = x)
+  if (!is.null(x = motifs)) {
+    motifs <- subset(x = motifs, features = features)
+  }
+  Motifs(object = x) <- motifs
+  
+  return(x)
+}
+
+#' @export
+#' @importClassesFrom SeuratObject Assay5
 #' @concept assay
 #' @method subset ChromatinAssay5
 subset.ChromatinAssay5 <- function(
@@ -1343,28 +1381,14 @@ subset.ChromatinAssay5 <- function(
   ...
 ) {
   # subset elements in the standard assay
-  standardassay <- as(object = x, Class = "Assay")
-  standardassay <- subset(x = standardassay, features = features, cells = cells)
-
+  x <- NextMethod()
+  
   # recompute meta features
-  standardassay <- FindTopFeatures(
-    object = standardassay,
+  x <- FindTopFeatures(
+    object = x,
     min.cutoff = NA,
     verbose = FALSE
   )
-
-  # subset genomic ranges
-  ranges.keep <- granges(x = x)
-  if (!is.null(x = features)) {
-    idx.keep <- rownames(x = x) %in% features
-    ranges.keep <- ranges.keep[idx.keep]
-  }
-
-  # subset motifs
-  motifs <- Motifs(object = x)
-  if (!is.null(x = motifs)) {
-    motifs <- subset(x = motifs, features = features)
-  }
 
   # subset cells in positionEnrichment matrices
   cells <- SetIfNull(x = cells, y = colnames(x = x))
@@ -1389,42 +1413,33 @@ subset.ChromatinAssay5 <- function(
       posmat[[i]] <- posmat[[i]][c(cells, added_rows), ]
     }
   }
+  # TODO fix how the RegionMatrix and Footprint functions use positionEnrichment
+  x <- SetAssayData(object = x, layer = "positionEnrichment", new.data = posmat)
 
   # subset cells in Fragments objects
   frags <- Fragments(object = x)
+  Fragments(object = x) <- NULL
   for (i in seq_along(along.with = frags)) {
     frags[[i]] <- subset(x = frags[[i]], cells = cells)
   }
+  Fragments(object = x) <- frags
 
-  # convert standard assay to ChromatinAssay
-  chromassay <- as.ChromatinAssay5(
-    x = standardassay,
-    ranges = ranges.keep,
-    seqinfo = seqinfo(x = x),
-    annotation = Annotation(object = x),
-    motifs = motifs,
-    fragments = frags,
-    bias = GetAssayData(object = x, layer = "bias")
-  )
-  # TODO fix how the RegionMatrix and Footprint functions use positionEnrichment
-  # then can use the positionEnrichment parameter in as.ChromatinAssay5
-  chromassay@positionEnrichment <- posmat
-  return(chromassay)
+  return(x)
 }
 
 #' Subset a Fragment object
 #'
-#' Returns a subset of a \code{\link{Fragment-class}} object.
+#' Returns a subset of a \code{\link{Fragment2-class}} object.
 #'
 #' @param x A Fragment object
 #' @param cells Vector of cells to retain
 #' @param ... Arguments passed to other methods
 #'
-#' @method subset Fragment
+#' @method subset Fragment2
 #'
 #' @importFrom fastmatch fmatch
 #' @seealso \code{\link[base]{subset}}
-#' @return Returns a subsetted \code{\link{Fragment}} object
+#' @return Returns a subsetted \code{\link{Fragment2}} object
 #' @export
 #' @concept fragments
 #' @examples
@@ -1433,7 +1448,7 @@ subset.ChromatinAssay5 <- function(
 #' names(x = cells) <- paste0("test_", cells)
 #' frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)
 #' subset(frags, head(names(cells)))
-subset.Fragment <- function(
+subset.Fragment2 <- function(
   x,
   cells = NULL,
   ...
