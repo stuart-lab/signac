@@ -969,42 +969,39 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = "data", ...) {
 #' @method RenameCells ChromatinAssay5
 #' @export
 RenameCells.ChromatinAssay5 <- function(object, new.names = NULL, ...) {
-  names(x = new.names) <- colnames(x = object)
-  for (i in seq_along(along.with = Fragments(object = object))) {
-    slot(object = object, name = "fragments")[[i]] <- RenameCells(
-      object = slot(object = object, name = "fragments")[[i]],
-      new.names = new.names
-    )
+  
+  # there's currently nothing cell-centric that needs to be renamed in the GRangesAssay class
+  
+  # rename cells in the parental class
+  object <- NextMethod()
+  
+  # rename cells in fragment objects
+  frags <- Fragments(object = object)
+  for (i in seq_along(along.with = frags)) {
+    frags[[i]] <- RenameCells(object = frags[[i]], new.names = new.names)
   }
+  Fragments(object = object) <- NULL
+  Fragments(object = object) <- frags
+  
   pos.enrich <- GetAssayData(object = object, layer = "positionEnrichment")
   for (i in seq_along(along.with = pos.enrich)) {
     mat <- pos.enrich[[i]]
+    # TODO need to update here for posmat that is list
     if (!inherits(x = mat, what = "list")) {
-      mat <- mat[colnames(x = object), ]
-      rownames(x = mat) <- new.names[rownames(x = mat)]
+      to.update <- rownames(x = mat) %in% names(x = new.names)
+      rownames(x = mat)[to.update] <- new.names[rownames(x = mat)[to.update]]
       pos.enrich[[i]] <- mat
     }
   }
   slot(object = object, name = "positionEnrichment") <- pos.enrich
-
-  # TODO need to convert to standard assay, rename cells, convert back
-  # this would account for possibility of SCT-normalized data in a ChrAssay
-  names(x = new.names) <- NULL
-  for (data.slot in c("counts", "data", "scale.data")) {
-    old.data <- GetAssayData(object = object, layer = data.slot)
-    if (ncol(x = old.data) <= 1) {
-      next
-    }
-    colnames(x = slot(object = object, name = data.slot)) <- new.names
-  }
   return(object)
 }
 
 #' @importFrom SeuratObject RenameCells
 #' @concept fragments
-#' @method RenameCells Fragment
+#' @method RenameCells Fragment2
 #' @export
-RenameCells.Fragment <- function(object, new.names, ...) {
+RenameCells.Fragment2 <- function(object, new.names, ...) {
   cells <- GetFragmentData(object = object, slot = "cells")
   if (is.null(x = cells)) {
     stop("Cannot rename cells in Fragment object ",
