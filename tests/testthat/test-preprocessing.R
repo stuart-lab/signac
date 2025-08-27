@@ -108,7 +108,6 @@ test_that("NucleosomeSignal works", {
   )
 })
 
-
 test_that("CreateMotifMatrix works", {
   pwm <- readRDS("../testdata/pwm_2motifs.rds")
   genome.fasta <- system.file("extdata", "chr1_start.fa", package = "Signac")
@@ -127,4 +126,61 @@ test_that("CreateMotifMatrix works", {
       ranges = IRanges::IRanges(start = 1, end = 1000)
     )
   ))
+})
+
+test_that("PearsonResidualVar calculates variance correctly", {
+  set.seed(42)
+  # Create small test matrix
+  mat <- Matrix::rsparsematrix(nrow = 50, ncol = 30, density = 0.2)
+  
+  result <- PearsonResidualVar(mat, theta = 100, verbose = FALSE)
+  
+  # Basic checks
+  expect_true(is.data.frame(result))
+  expect_true("ResidualVariance" %in% colnames(result))
+  expect_true("mean" %in% colnames(result))
+  expect_true("count" %in% colnames(result))
+  
+  # All variances should be non-negative
+  expect_true(all(result$ResidualVariance >= 0))
+  
+  # Features with zero mean should be filtered out
+  expect_true(all(result$mean > 0))
+})
+
+test_that("PearsonResidualVar batch processing accumulates correctly", {
+  set.seed(123)
+  mat <- Matrix::rsparsematrix(nrow = 20, ncol = 50, density = 0.15)
+  
+  # Run with different batch sizes - results should match
+  result_batch5 <- PearsonResidualVar(mat, ncell.batch = 5, verbose = FALSE)
+  result_batch25 <- PearsonResidualVar(mat, ncell.batch = 25, verbose = FALSE)
+  result_batch50 <- PearsonResidualVar(mat, ncell.batch = 50, verbose = FALSE)
+  
+  # Results should be identical regardless of batch size
+  expect_equal(result_batch5$ResidualVariance, 
+               result_batch25$ResidualVariance, 
+               tolerance = 1e-10)
+  expect_equal(result_batch25$ResidualVariance, 
+               result_batch50$ResidualVariance, 
+               tolerance = 1e-10)
+})
+
+test_that("PearsonResidualVar handles edge cases", {
+  # Matrix with some all-zero rows
+  mat <- Matrix::Matrix(0, nrow = 5, ncol = 10, sparse = TRUE)
+  mat[1, c(1, 3, 5)] <- c(2, 4, 6)
+  mat[3, c(2, 4)] <- c(1, 3)
+  # Rows 2, 4, 5 are all zeros
+  
+  result <- PearsonResidualVar(mat, verbose = FALSE)
+  
+  # Should only return rows with non-zero mean (2 rows)
+  expect_equal(nrow(result), 2)
+  
+  # Check the means are correct for the non-zero rows
+  # Row 1 has values [2,0,4,0,6,0,0,0,0,0] so mean = 12/10 = 1.2
+  # Row 3 has values [0,1,0,3,0,0,0,0,0,0] so mean = 4/10 = 0.4
+  expect_equal(result$mean[1], 1.2, tolerance = 1e-10)
+  expect_equal(result$mean[2], 0.4, tolerance = 1e-10)
 })
