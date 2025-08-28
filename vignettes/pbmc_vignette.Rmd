@@ -84,7 +84,7 @@ metadata <- read.csv(
   row.names = 1
 )
 
-chrom_assay <- CreateChromatinAssay(
+gr_assay <- CreateGRangesAssay(
   counts = counts,
   sep = c(":", "-"),
   fragments = "10k_pbmc_ATACv2_nextgem_Chromium_Controller_fragments.tsv.gz",
@@ -93,7 +93,7 @@ chrom_assay <- CreateChromatinAssay(
 )
 
 pbmc <- CreateSeuratObject(
-  counts = chrom_assay,
+  counts = gr_assay,
   assay = "peaks",
   meta.data = metadata
 )
@@ -146,21 +146,21 @@ counts <- FeatureMatrix(fragments = frags, features = peaks, cells = barcodes)
 
 </details>
 
-The ATAC-seq data is stored using a custom assay, the `ChromatinAssay`. This
+The ATAC-seq data is stored using a custom assay, the `GRangesAssay`. This
 enables some specialized functions for analysing genomic single-cell assays such
 as scATAC-seq. By printing the assay we can see some of the additional
-information that can be contained in the `ChromatinAssay`, including motif
+information that can be contained in the `GRangesAssay`, including motif
 information, gene annotations, and genome information.
 
 ```{r}
 pbmc[['peaks']]
 ```
 
-For example, we can call `granges` on a Seurat object with a `ChromatinAssay`
-set as the active assay (or on a `ChromatinAssay`) to see the genomic ranges
+For example, we can call `granges` on a Seurat object with a `GRangesAssay`
+set as the active assay (or on a `GRangesAssay`) to see the genomic ranges
 associated with each feature in the object. See the
 [object interaction vignette](data_structures.html) for more information
-about the `ChromatinAssay` class.
+about the `GRangesAssay` class.
 
 ```{r}
 granges(pbmc)
@@ -170,8 +170,7 @@ We then remove the features that correspond to chromosome scaffolds e.g. (KI2707
 or other sequences instead of the (22+2) standard chromosomes.
 
 ```{r}
-peaks.keep <- seqnames(granges(pbmc)) %in% standardChromosomes(granges(pbmc))
-pbmc <- pbmc[as.vector(peaks.keep), ]
+pbmc <- pbmc[seqnames(pbmc) %in% standardChromosomes(pbmc), ]
 ```
 
 We can also add gene annotations to the `pbmc` object for the human genome.
@@ -244,12 +243,12 @@ pbmc <- TSSEnrichment(object = pbmc)
 # add fraction of reads in peaks
 pbmc$pct_reads_in_peaks <- pbmc$peak_region_fragments / pbmc$passed_filters * 100
 
-# add blacklist ratio
-pbmc$blacklist_ratio <- FractionCountsInRegion(
-  object = pbmc, 
-  assay = 'peaks',
-  regions = blacklist_hg38_unified
-)
+# # add blacklist ratio
+# pbmc$blacklist_ratio <- FractionCountsInRegion(
+#   object = pbmc, 
+#   assay = 'peaks',
+#   regions = blacklist_hg38_unified
+# )
 ```
 
 The relationship between variables stored in the object metadata can
@@ -277,7 +276,7 @@ We can plot the distribution of each QC metric separately using a violin plot:
 ```{r message=FALSE, warning=FALSE, fig.width=18, fig.height=6}
 VlnPlot(
   object = pbmc,
-  features = c('nCount_peaks', 'TSS.enrichment', 'blacklist_ratio', 'nucleosome_signal', 'pct_reads_in_peaks'),
+  features = c('nCount_peaks', 'TSS.enrichment', 'nucleosome_signal', 'pct_reads_in_peaks'),
   pt.size = 0.1,
   ncol = 5
 )
@@ -292,7 +291,6 @@ pbmc <- subset(
   subset = nCount_peaks > 9000 &
     nCount_peaks < 100000 &
     pct_reads_in_peaks > 40 &
-    blacklist_ratio < 0.01 &
     nucleosome_signal < 4 &
     TSS.enrichment > 4
 )
