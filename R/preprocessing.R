@@ -606,7 +606,7 @@ PearsonResidualVar.default <- function(
     resid[resid < -clip_threshold] <- -clip_threshold
     rs <- rowSums(x = resid)
     resid_sums <- resid_sums + rs
-    resid_sum_square <- resid_sum_square + (rs * rs)
+    resid_sum_square <- resid_sum_square + rowSums(resid^2)
     if (verbose) {
       setTxtProgressBar(pb, i)
     }
