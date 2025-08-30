@@ -1046,9 +1046,6 @@ RunTFIDF.default <- function(
   if (inherits(x = object, what = "data.frame")) {
     object <- as.matrix(x = object)
   }
-  if (!inherits(x = object, what = "CsparseMatrix")) {
-    object <- as(object = object, Class = "CsparseMatrix")
-  }
   if (verbose) {
     message("Performing TF-IDF normalization")
   }
@@ -1059,7 +1056,11 @@ RunTFIDF.default <- function(
   if (method == 4) {
     tf <- object
   } else {
-    tf <- tcrossprod(x = object, y = Diagonal(x = 1 / npeaks))
+    if (inherits(x = object, what = "IterableMatrix")) {
+      tf <- BPCells::multiply_cols(mat = object, vec = 1 / npeaks)
+    } else {
+      tf <- tcrossprod(x = object, y = Diagonal(x = 1 / npeaks))
+    }
   }
   if (!is.null(x = idf)) {
     precomputed_idf <- TRUE
@@ -1097,18 +1098,29 @@ RunTFIDF.default <- function(
       idf <- log(1 + idf)
     }
   }
-  norm.data <- Diagonal(n = length(x = idf), x = idf) %*% tf
+  if (inherits(x = object, what = "IterableMatrix")) {
+    norm.data <- BPCells::multiply_rows(mat = tf, vec = idf)
+  } else {
+    norm.data <- Diagonal(n = length(x = idf), x = idf) %*% tf
+  }
   if (method == 1) {
-    slot(object = norm.data, name = "x") <- log1p(
-      x = slot(object = norm.data, name = "x") * scale.factor
-    )
+    if (inherits(x = norm.data, what = "IterableMatrix")) {
+      norm.data <- log1p(scale.factor * norm.data)
+    } else {
+      slot(object = norm.data, name = "x") <- log1p(
+        x = slot(object = norm.data, name = "x") * scale.factor
+      )
+    }
   }
   colnames(x = norm.data) <- colnames(x = object)
   rownames(x = norm.data) <- rownames(x = object)
-  # set NA values to 0
-  vals <- slot(object = norm.data, name = "x")
-  vals[is.na(x = vals)] <- 0
-  slot(object = norm.data, name = "x") <- vals
+  if (inherits(x = norm.data, what = 'sparseMatrix')) {
+    # set NA values to 0
+    vals <- slot(object = norm.data, name = "x")
+    vals[is.na(x = vals)] <- 0
+    slot(object = norm.data, name = "x") <- vals
+  }
+
   return(norm.data)
 }
 
