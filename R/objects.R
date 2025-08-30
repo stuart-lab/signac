@@ -1493,17 +1493,72 @@ subset.Fragment2 <- function(
 
 #' @export
 #' @concept assay
-#' @method merge ChromatinAssay5
+#' @method merge GRangesAssay
 #' @importFrom GenomicRanges union findOverlaps
 #' @importFrom SeuratObject RowMergeSparseMatrices Key Key<-
 #' @importFrom S4Vectors subjectHits queryHits mcols
 #' @importMethodsFrom GenomeInfoDb merge
+merge.GRangesAssay <- function(
+    x = NULL,
+    y = NULL,
+    add.cell.ids = NULL,
+    ...
+) {
+  # call NextMethod to get merged ChromatinAssay5 object
+  merged <- NextMethod()
+  
+  # need to do all operations over a list of assays
+  assays <- c(x, y)
+  
+  # check that all features are equal
+  all.features <- lapply(X = assays, FUN = rownames)
+  all.features <- table(do.call(what = c, args = all.features))
+  all.identical <- all(all.features == length(x = assays))
+  
+  if (!all.identical) {
+    warning("Merging objects with different feature sets")
+  }
+  
+  # if any are standard Assay class, coerce all to Assay and run merge
+  isGranges <- sapply(
+    X = assays, FUN = function(x) inherits(x = x, what = "GRangesAssay")
+  )
+  if (!all(isGranges)) {
+    warning(
+      "Some assays are not GRangesAssay class, ",
+      "coercing GRangesAssay to ChromatinAssay5"
+    )
+    return(merged)
+  } else {
+    # list of GRangesAssay
+    
+    # merge granges across all objects
+    granges.all <- StringToGRanges(regions = rownames(x = merged))
+    
+    # TODO merge links information
+    # TODO merge Motif objects
+    merged <- as.GRangesAssay(
+      x = merged,
+      ranges = granges.all,
+      motifs = NULL,
+      links = NULL
+    )
+    return(merged)
+  }
+}
+
+#' @export
+#' @concept assay
+#' @method merge ChromatinAssay5
 merge.ChromatinAssay5 <- function(
   x = NULL,
   y = NULL,
   add.cell.ids = NULL,
   ...
 ) {
+  # call NextMethod to get merged standard assay object
+  merged <- NextMethod()
+  
   # need to do all operations over a list of assays
   assays <- c(x, y)
 
@@ -1512,305 +1567,84 @@ merge.ChromatinAssay5 <- function(
     X = assays, FUN = function(x) inherits(x = x, what = "ChromatinAssay5")
   )
   if (!all(isChromatin)) {
-    # check that the non-chromatinassays have >1 feature
-    nfeature <- sapply(X = assays, FUN = nrow)
-    if (all(nfeature > 1)) {
-      # genuine assays, coerce to standard assay and run merge.Assay
-      warning(
-        "Some assays are not ChromatinAssay5 class, ",
-        "coercing ChromatinAssays to standard Assay"
-      )
-      assays <- sapply(
-        X = assays, FUN = function(x) as(object = x, Class = "Assay")
-      )
-      new.assay <- merge(
-        x = assays[[1]], y = assays[[2:length(x = assays)]], ...
-      )
-      return(new.assay)
-    } else {
-      # Find which assays are placeholder
-      placeholders <- nfeature == 1 & !isChromatin
-      # Set feature name as first peak in first real assay
-      peak.use <- rownames(x = assays[isChromatin][[1]])[1]
-      converted <- sapply(
-        X = assays[placeholders], FUN = function(x) {
-          rownames(x = x@counts) <- peak.use
-          rownames(x = x@data) <- peak.use
-          return(x)
-        }
-      )
-      # Covert placeholder assays to ChromatinAssay
-      converted <- sapply(
-        X = converted, FUN = function(x) as.ChromatinAssay5(x = x)
-      )
-      # Replace original assays
-      assays[placeholders] <- converted
-      # Continue with merge function
-    }
-  }
-
-  # rename cells in each assay
-  # merge.Seurat already does this, so should only happen here when merging
-  # assay objects outside of a Seurat object
-  if (is.null(x = add.cell.ids)) {
-    # check if any cell names clash, if so add a prefix
-    cellnames.all <- sapply(X = assays, FUN = colnames)
-    cellnames.all <- Reduce(f = c, x = cellnames.all)
-    cellname.freq <- table(cellnames.all)
-    if (max(cellname.freq) > 1) {
-      message(
-        "Cell names not unique, ",
-        "adding prefix to enforce unique cell names"
-      )
-      add.cell.ids <- seq_along(along.with = assays)
-    }
-  }
-  if (!is.null(x = add.cell.ids)) {
-    for (i in seq_along(along.with = assays)) {
-      assays[[i]] <- RenameCells(
-        object = assays[[i]],
-        new.names = paste(add.cell.ids[i], colnames(x = assays[[i]]), sep = "_")
-      )
-    }
-  }
-
-  # check genomes are all the same
-  genomes <- unlist(
-    x = lapply(X = assays, FUN = function(x) unique(x = genome(x = x)))
-  )
-  if (length(x = unique(x = genomes)) > 1) {
-    warning("Genomes do not match, not merging ChromatinAssays")
-    return(NULL)
-  }
-
-  # merge seqinfo
-  all.seqinfo <- lapply(X = assays, FUN = function(x) seqinfo(x = x))
-  seqinfo.present <- !sapply(X = all.seqinfo, FUN = is.null)
-  if (any(seqinfo.present)) {
-    # need at least one non-NULL seqinfo, otherwise just set it as NULL
-    all.seqinfo <- all.seqinfo[seqinfo.present]
-    if (length(x = all.seqinfo) > 1) {
-      seqinfo.use <- all.seqinfo[[1]]
-      # iteratively merge seqinfo objects
-      for (x in 2:length(x = all.seqinfo)) {
-        seqinfo.use <- merge(x = seqinfo.use, y = all.seqinfo[[x]])
-      }
-    } else {
-      seqinfo.use <- all.seqinfo[[1]]
-    }
+    warning(
+      "Some assays are not ChromatinAssay5 class, ",
+      "coercing ChromatinAssays to standard Assay"
+    )
+    assays <- sapply(
+      X = assays, FUN = function(x) as(object = x, Class = "Assay5")
+    )
+    new.assay <- merge(
+      x = assays[[1]], y = assays[[2:length(x = assays)]], ...
+    )
+    return(new.assay)
   } else {
-    seqinfo.use <- NULL
-  }
-
-  # merge annotations
-  all.annot <- lapply(X = assays, FUN = function(x) Annotation(object = x))
-  annot.present <- !sapply(X = all.annot, FUN = is.null)
-  if (any(annot.present)) {
-    all.annot <- all.annot[annot.present]
-    annot.use <- all.annot[[1]]
-    if (length(x = all.annot) > 1) {
-      for (x in 2:length(x = all.annot)) {
-        if (!identical(x = annot.use, y = all.annot[[x]])) {
-          warning("Annotations do not match, keeping annotation from the
+    
+    # rename cells in each assay
+    # merge.Seurat already does this, so should only happen here when merging
+    # assay objects outside of a Seurat object
+    
+    if (is.null(x = add.cell.ids)) {
+      # check if any cell names clash, if so add a prefix
+      cellnames.all <- sapply(X = assays, FUN = colnames)
+      cellnames.all <- Reduce(f = c, x = cellnames.all)
+      cellname.freq <- table(cellnames.all)
+      if (max(cellname.freq) > 1) {
+        message(
+          "Cell names not unique, ",
+          "adding prefix to enforce unique cell names"
+        )
+        add.cell.ids <- seq_along(along.with = assays)
+      }
+    }
+    if (!is.null(x = add.cell.ids)) {
+      for (i in seq_along(along.with = assays)) {
+        assays[[i]] <- RenameCells(
+          object = assays[[i]],
+          new.names = paste(add.cell.ids[i], colnames(x = assays[[i]]), sep = "_")
+        )
+      }
+    }
+    
+    # merge annotations
+    all.annot <- lapply(X = assays, FUN = function(x) Annotation(object = x))
+    annot.present <- !sapply(X = all.annot, FUN = is.null)
+    if (any(annot.present)) {
+      all.annot <- all.annot[annot.present]
+      annot.use <- all.annot[[1]]
+      if (length(x = all.annot) > 1) {
+        for (x in 2:length(x = all.annot)) {
+          if (!identical(x = annot.use, y = all.annot[[x]])) {
+            warning("Annotations do not match, keeping annotation from the
             first object only")
+          }
         }
       }
-    }
-  } else {
-    annot.use <- NULL
-  }
-
-  # merge fragments
-  all.frag <- lapply(X = assays, FUN = function(x) Fragments(object = x))
-  all.frag <- Reduce(f = c, x = all.frag)
-  valid.frags <- sapply(X = all.frag, FUN = ValidateHash, verbose = FALSE)
-  if (!all(valid.frags)) {
-    warning("Some fragment files are not valid or not indexed.
-            Removing invalid files from merged ChromatinAssay")
-    all.frag <- all.frag[valid.frags]
-  }
-
-  # check that all features are equal
-  all.features <- lapply(X = assays, FUN = rownames)
-  all.features <- table(do.call(what = c, args = all.features))
-  all.identical <- all(all.features == length(x = assays))
-
-  # find whether the unique ranges are all disjoint
-  all.nonoverlapping <- NonOverlapping(x = assays, all.features = all.features)
-
-  if (all.identical | all.nonoverlapping) {
-    # no non-identical but overlapping features present
-    merged.counts <- list()
-    merged.data <- list()
-    if (all.identical) {
-      feat.use <- rownames(x = assays[[1]])
-      for (i in seq_along(along.with = assays)) {
-        # check that counts are present
-        # can be removed by DietSeurat
-        assay.counts <- GetAssayData(object = assays[[i]], layer = "counts")
-        if (nrow(x = assay.counts) > 0) {
-          merged.counts[[i]] <- assay.counts[feat.use, ]
-        } else {
-          merged.counts[[i]] <- assay.counts
-        }
-        merged.data[[i]] <- GetAssayData(
-          object = assays[[i]], layer = "data"
-        )[feat.use, ]
-      }
-      # exact same features, can just run cbind
-      # can also merge data and scaledata
-      merged.counts <- do.call(what = cbind, args = merged.counts)
-      merged.data <- do.call(what = cbind, args = merged.data)
-      reduced.ranges <- granges(x = assays[[1]])
     } else {
-      # disjoint
-      all.counts <- list()
-      all.data <- list()
-      for (i in seq_along(along.with = assays)) {
-        all.counts[[i]] <- GetAssayData(object = assays[[i]], layer = "counts")
-        all.data[[i]] <- GetAssayData(object = assays[[i]], layer = "data")
-      }
-      count_nonzero <- lapply(X = all.counts, FUN = ncol)
-      data_nonzero <- lapply(X = all.data, FUN = ncol)
-      if (all(count_nonzero > 0)) {
-        merged.counts <- RowMergeSparseMatrices(
-          mat1 = all.counts[[1]],
-          mat2 = all.counts[2:length(x = all.counts)]
-        )
-        reduced.ranges <- StringToGRanges(regions = rownames(x = merged.counts))
-      } else {
-        merged.counts <- matrix(nrow = 0, ncol = 0)
-        reduced.ranges <- NULL
-      }
-      if (all(data_nonzero > 0)) {
-        merged.data <- RowMergeSparseMatrices(
-          mat1 = all.data[[1]],
-          mat2 = all.data[2:length(x = all.data)]
-        )
-        reduced.ranges <- SetIfNull(
-          x = reduced.ranges,
-          y = StringToGRanges(regions = rownames(x = merged.data))
-        )
-      } else {
-        merged.data <- matrix(nrow = 0, ncol = 0)
-      }
-      if (is.null(x = reduced.ranges)) {
-        stop("No counts or data in the assay")
-      }
+      annot.use <- NULL
     }
-
-    # create new ChromatinAssay object
+    
+    # merge fragments
+    all.frag <- lapply(X = assays, FUN = function(x) Fragments(object = x))
+    all.frag <- Reduce(f = c, x = all.frag)
+    valid.frags <- sapply(X = all.frag, FUN = ValidateHash, verbose = FALSE)
+    if (!all(valid.frags)) {
+      warning("Some fragment files are not valid or not indexed.
+            Removing invalid files from merged ChromatinAssay5")
+      all.frag <- all.frag[valid.frags]
+    }
+    
+    # create new ChromatinAssay5 object
     # bias, motifs, positionEnrichment, metafeatures not kept
-    # scaledata only kept if features exactly identical
-    if (nrow(x = merged.counts) > 0) {
-      new.assay <- CreateChromatinAssay5(
-        counts = merged.counts,
-        min.cells = -1,
-        min.features = -1,
-        max.cells = NULL,
-        fragments = all.frag,
-        annotation = annot.use,
-        bias = NULL,
-        validate.fragments = FALSE
-      )
-      new.assay <- SetAssayData(
-        object = new.assay, layer = "data", new.data = merged.data
-      )
-    } else {
-      new.assay <- CreateChromatinAssay5(
-        data = merged.data,
-        min.cells = -1,
-        min.features = -1,
-        max.cells = NULL,
-        fragments = all.frag,
-        annotation = annot.use,
-        bias = NULL,
-        validate.fragments = FALSE
-      )
-    }
-  } else {
-    # first create a merged set of granges, preserving the assay of origin
-    granges.all <- sapply(X = assays, FUN = granges)
-    for (i in seq_along(along.with = granges.all)) {
-      granges.all[[i]]$dataset <- i
-    }
-    granges.all <- Reduce(f = c, x = granges.all)
-
-    # create reduced ranges, recording the indices of the merged ranges
-    reduced.ranges <- reduce(x = granges.all, with.revmap = TRUE)
-
-    # get the new rownames for the count matrix
-    new.rownames <- GRangesToString(grange = reduced.ranges)
-
-    # function to look up original
-    tomerge <- GetRowsToMerge(
-      assay.list = assays,
-      all.ranges = granges.all,
-      reduced.ranges = reduced.ranges
+    merged <- as.ChromatinAssay5(
+      x = merged,
+      annotation = annot.use,
+      fragments = all.frag,
+      bias = NULL,
+      positionEnrichment = NULL
     )
-
-    # if the grange is the same, merge matrix rows
-    merged.counts <- MergeOverlappingRows(
-      mergeinfo = tomerge,
-      assay.list = assays,
-      slot = "counts",
-      verbose = TRUE
-    )
-
-    merged.data <- MergeOverlappingRows(
-      mergeinfo = tomerge,
-      assay.list = assays,
-      slot = "data",
-      verbose = TRUE
-    )
-
-    if (nrow(x = merged.counts[[1]]) > 0) {
-      merged.counts <- MergeMatrixParts(
-        mat.list = merged.counts,
-        new.rownames = new.rownames
-      )
-      merged.data <- MergeMatrixParts(
-        mat.list = merged.data,
-        new.rownames = new.rownames
-      )
-      new.assay <- CreateChromatinAssay5(
-        counts = merged.counts,
-        min.cells = -1,
-        min.features = -1,
-        max.cells = NULL,
-        fragments = all.frag,
-        annotation = annot.use,
-        bias = NULL,
-        validate.fragments = FALSE
-      )
-      new.assay <- SetAssayData(
-        object = new.assay, layer = "data", new.data = merged.data
-      )
-    } else {
-      merged.data <- MergeMatrixParts(
-        mat.list = merged.data,
-        new.rownames = new.rownames
-      )
-      # create new ChromatinAssay object
-      # bias, motifs, positionEnrichment, metafeatures not kept
-      # need to keep data otherwise integration doesn't work
-      new.assay <- CreateChromatinAssay5(
-        data = merged.data,
-        min.cells = 0,
-        min.features = 0,
-        max.cells = NULL,
-        fragments = all.frag,
-        annotation = annot.use,
-        bias = NULL,
-        validate.fragments = FALSE
-      )
-    }
+    return(merged)
   }
-  keys <- unlist(x = sapply(X = assays, FUN = Key))
-  if (length(x = unique(x = keys)) == 1) {
-    Key(object = new.assay) <- keys[1]
-  }
-  return(new.assay)
 }
 
 #' @param i Which columns to retain
