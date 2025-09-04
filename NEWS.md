@@ -3,6 +3,15 @@
 Bug fixes:
 
 * Check that `macs2` exists at the `macs2.path` in `CallPeaks()` ([#1678](https://github.com/stuart-lab/signac/issues/1678))
+* Fix bug in `LinkPeaks()` that incorrectly excluded additional chromosomes from background peak set
+
+Other changes:
+
+* Enable faster selection of background peaks if the `wrswoR` package is installed
+* Add `wrswoR` to suggested packages
+* Updated `MatchRegionStats()` to use likelihood-ratio weighting (query/background probability) to sample regions.
+This produces more accurate matching distributions between query and background features.
+This change will affect how background peaks are selected for the `FindMotifs()` and `LinkPeaks()` functions.
 
 # Signac 1.15.0
 
