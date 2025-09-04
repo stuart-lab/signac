@@ -1108,27 +1108,52 @@ MatchRegionStats <- function(
     if (verbose) {
       message("Matching ", featmatch, " distribution")
     }
-    density.estimate <- density(
+    density.query <- density(
       x = query.feature[[featmatch]], kernel = "gaussian", bw = 1
     )
-    weights <- approx(
-      x = density.estimate$x,
-      y = density.estimate$y,
+    density.meta  <- density(
+      x = meta.feature[[featmatch]], kernel = "gaussian", bw = 1
+    )
+    
+    qvals <- approx(
+      x = density.query$x,
+      y = density.query$y,
       xout = meta.feature[[featmatch]],
-      yright = 0.0001,
-      yleft = 0.0001
+      yleft = 1e-6,
+      yright = 1e-6
     )$y
+
+    mvals <- approx(
+      x = density.meta$x,
+      y = density.meta$y,
+      xout = meta.feature[[featmatch]],
+      yleft = 1e-6,
+      yright = 1e-6
+    )$y
+
+    weights <- qvals / mvals
+    weights[!is.finite(weights)] <- 0
+    
     if (i > 1) {
       feature.weights <- feature.weights * weights
     } else {
       feature.weights <- weights
     }
   }
-  feature.select <- sample.int(
-    n = nrow(x = meta.feature),
-    size = n,
-    prob = feature.weights
-  )
+  
+  if (requireNamespace(package = "wrswoR", quietly = TRUE)) {
+    feature.select <- wrswoR::sample_int_crank(
+      n = nrow(x = meta.feature),
+      size = n,
+      prob = feature.weights
+    )
+  } else {
+    feature.select <- sample.int(
+      n = nrow(x = meta.feature),
+      size = n,
+      prob = feature.weights
+    )
+  }
   feature.select <- rownames(x = meta.feature)[feature.select]
   return(feature.select)
 }
