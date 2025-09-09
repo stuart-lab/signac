@@ -1,6 +1,6 @@
 Package: Signac
 Title: Analysis of Single-Cell Chromatin Data
-Version: 1.15.9002
+Version: 2.0.0
 Date: 2025-09-03
 Authors@R: c(
   person(given = 'Tim', family = 'Stuart', email = 'stuartt@a-star.edu.sg', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3044-0897')),
@@ -96,5 +96,5 @@ Suggests:
     Biostrings,
     lsa,
     MASS,
-    BPCells
+    BPCells,
     wrswoR
