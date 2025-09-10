@@ -174,6 +174,30 @@ ConvertMotifID <- function(object, ...) {
   UseMethod(generic = "ConvertMotifID", object = object)
 }
 
+#' Find variable features fitting LOESS
+#'
+#' Find highly variable features by fitting a locally polynomial regression
+#' model to the log(mean) and log(variance) of downsampled features.
+#' 
+#' This function is similar to the \code{\link[Seurat]{FindVariableFeatures}}
+#' function (with \code{selection.method="vst"}), but downsamples the features
+#' evenly across the range of mean values. This speeds up fitting of the loess 
+#' curve when the number of features is large.
+#' 
+#' The function also provides the ability to combine ranking of features
+#' according to their mean count and their residual variance, using a weighted
+#' rank sum with weights set by the \code{weight.mean} parameter. This can help
+#' to avoid selecting features with high residual variance but very low mean.
+#'
+#' @param object A Seurat object
+#' @param ... Arguments passed to other methods
+#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @rdname FitMeanVar
+#' @export FitMeanVar
+FitMeanVar <- function(object, ...) {
+  UseMethod(generic = "FitMeanVar", object = object)
+}
+
 #' Find most frequently observed features
 #'
 #' Find top features for a given assay based on total number of counts for the

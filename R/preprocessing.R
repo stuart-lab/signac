@@ -538,6 +538,425 @@ FindTopFeatures.Seurat <- function(
   return(object)
 }
 
+#' @rdname FitMeanVar
+#' @param assay Name of assay to use. If NULL, use the default assay.
+#' @param layer Name of layer to use. If NULL, use the default layer(s).
+#' @param nfeatures Number of features to selected as top variable features.
+#' @param loess.span \code{span} parameter passed to the \code{\link[stats]{loess}} function
+#' @param min.cutoff Minimum number of counts for a feature to be eligible for variable feature selection.
+#' @param weight.mean How much to weight the ranking of features according to their mean.
+#' Setting \code{weight.mean=0} will rank features according to their residual variance only.
+#' @param bins Number of bins to use when downsampling features across the range of mean count values.
+#' @param sample_per_bin Number of features to select per mean count bin in feature downsampling step.
+#' @param key Key to use when storing the highly variable feature information in the assay.
+#' @param verbose Display messages.
+#' @importFrom SeuratObject DefaultAssay
+#' @export
+#' @concept preprocessing
+#' @method FitMeanVar Seurat
+#' @examples
+#' FitMeanVar(atac_small)
+FitMeanVar.Seurat <- function(
+    object,
+    assay = NULL,
+    layer = NULL,
+    nfeatures = 20000,
+    loess.span = 0.1,
+    min.cutoff = 10,
+    weight.mean = 0.5,
+    bins = 1000,
+    sample_per_bin = 50,
+    key = 'dsLoess',
+    verbose = FALSE,
+    ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object))
+  assay.data <- object[[assay]]
+  assay.data <- FitMeanVar(
+    object = assay.data,
+    layer = layer,
+    loess.span = loess.span,
+    nfeatures = nfeatures,
+    min.cutoff = min.cutoff,
+    weight.mean = weight.mean,
+    bins = bins,
+    sample_per_bin = sample_per_bin,
+    verbose = verbose,
+    ...
+  )
+  object[[assay]] <- assay.data  
+  return(object)
+}
+
+#' @rdname FitMeanVar
+#' @importFrom SeuratObject Layers LayerData Features VariableFeatures VariableFeatures<-
+#' @export
+#' @concept preprocessing
+#' @method FitMeanVar Assay5
+FitMeanVar.Assay5 <- function(
+    object,
+    layer = NULL,
+    loess.span = 0.1,
+    nfeatures = 20000,
+    min.cutoff = 10,
+    weight.mean = 0.5,
+    bins = 1000,
+    sample_per_bin = 50,
+    key = 'dsLoess',
+    verbose = FALSE,
+    ...
+) {
+  
+  layer <- Layers(object = object, search = layer)
+  
+  for (i in seq_along(along.with = layer)) {
+    if (isTRUE(x = verbose)) {
+      message("Finding variable features for layer ", layer[i])
+    }
+    data <- LayerData(object = object, layer = layer[i], fast = TRUE)
+    hvf <- FitMeanVar(
+      object = data,
+      loess.span = loess.span,
+      min.cutoff = min.cutoff,
+      weight.mean = weight.mean,
+      bins = bins,
+      sample_per_bin = sample_per_bin,
+      verbose = verbose,
+    )
+    colnames(x = hvf) <- paste(
+      'vf',
+      key,
+      layer[i],
+      colnames(x = hvf),
+      sep = '_'
+    )
+    rownames(x = hvf) <- Features(x = object, layer = layer[i])
+    object[["var.features"]] <- NULL
+    object[["var.features.rank"]] <- NULL
+    object[[names(x = hvf)]] <- NULL
+    object[[names(x = hvf)]] <- hvf
+  }
+  VariableFeatures(object) <- VariableFeatures(
+    object = object,
+    nfeatures = nfeatures,
+    method = key
+  )
+  return(object)
+}
+
+#' @rdname FitMeanVar
+#' @importFrom SeuratObject DefaultAssay
+#' @importFrom sparseMatrixStats rowVars
+#' @export
+#' @concept preprocessing
+#' @method FitMeanVar default
+FitMeanVar.default <- function(
+    object,
+    nfeatures = 20000,
+    loess.span = 0.1,
+    min.cutoff = 10,
+    weight.mean = 0.5,
+    bins = 1000,
+    sample_per_bin = 50,
+    random.seed = 1234,
+    verbose = FALSE
+) {
+  
+  set.seed(random.seed)
+  rs <- rowSums(x = object)
+
+  if (is.character(x = min.cutoff)) {
+    percentile.use <- as.numeric(
+      x = sub(pattern = "q", replacement = "", x = as.character(min.cutoff))
+    ) / 100
+    count.thresh <- quantile(x = rs, probs = percentile.use, na.rm = TRUE)[[1]]
+  } else {
+    count.thresh <- min.cutoff
+  }
+  
+  if (verbose) {
+    message("Retained ", nrow(x = object), " features after count filtering")
+  }
+  if (nrow(x = object) == 0) {
+    stop("No modules remain after filtering by min.cutoff")
+  }
+  df <- data.frame(
+    mean = rowMeans(x = object),
+    variance = rowVars(x = object),
+    variance.expected = 0,
+    total.counts = rs
+  )
+  
+  df$log_mean <- log1p(x = df$mean)
+  breaks <- seq(
+    min(df$log_mean, na.rm = TRUE),
+    max(df$log_mean, na.rm = TRUE),
+    length.out = bins + 1
+  )
+  df$bin <- findInterval(
+    x = df$log_mean,
+    vec = breaks,
+    rightmost.closed = TRUE
+  )
+  sampled_df <- do.call(
+    what = rbind,
+    args = lapply(X = split(df, df$bin), FUN = function(subset) {
+      if (nrow(subset) > sample_per_bin) {
+        subset <- subset[sample(
+          x = nrow(x = subset),
+          size = sample_per_bin,
+          replace = FALSE), ]
+      }
+      return(subset)
+      }
+    )
+  )
+  loess_fit <- loess(
+    formula = log1p(x = variance) ~ log_mean,
+    data = sampled_df,
+    span = loess.span
+  )
+  df$variance.expected <- expm1(
+    x = predict(object = loess_fit, newdata = df$log_mean)
+  )
+  df$variance.residual <- df$variance - df$variance.expected
+  
+  df$residual.rank <- rank(x = -df$variance.residual, ties.method = "average")
+  df$mean.rank <- rank(x = -df$mean, ties.method = "average")
+  df$rank <- (weight.mean * df$mean.rank) + ((1 - weight.mean) * df$residual.rank)
+  df$rank[df$total.counts < count.thresh] <- NA
+  vf <- head(
+    x = order(df$rank, decreasing = FALSE),
+    n = nfeatures
+  )
+  df$variable <- FALSE
+  df$variable[vf] <- TRUE
+  return(df)
+}
+
+#' @param assay Name of assay to use
+#' @param min.counts Minimum number of counts for feature to be eligible for variable features
+#' @param ncell.batch Number of cells to process in each batch. Higher number
+#' increases speed but uses more memory.
+#' @param nfeatures Number of top features to set as the variable features
+#' @param theta Theta value for analytic Pearson residual calculation
+#' @param verbose Display messages
+#'
+#' @importFrom Matrix rowMeans
+#' @importFrom utils txtProgressBar setTxtProgressBar
+#' @rdname PearsonResidualVar
+#' @export
+#' @concept preprocessing
+#' @examples
+#' PearsonResidualVar(object = atac_small[['peaks']]['counts'])
+PearsonResidualVar.default <- function(
+    object,
+    assay = NULL,
+    nfeatures = 20000,
+    min.counts = 100,
+    ncell.batch = 100,
+    theta = 10,
+    verbose = TRUE,
+    ...
+) {
+  # compute Pearson residual variance for each feature
+  # low-memory implementation that does not construct the entire matrix of
+  # cell x feature Pearson residuals
+  
+  # (X - μ) / sqrt(μ + μ²/θ)
+  # clip at sqrt(n_cell)
+  
+  N <- ncol(x = object)
+  clip_threshold <- sqrt(x = N)
+  
+  feature_means <- rowMeans(x = object)
+  nonzero_mean <- feature_means > 0
+  
+  if (verbose) {
+    message("Retaining ", sum(nonzero_mean), " features with mean greater than zero")
+  }
+  
+  object <- object[nonzero_mean, ]
+  feature_means <- feature_means[nonzero_mean]
+  
+  denominator <- sqrt(feature_means + ((feature_means * feature_means) / theta))
+  
+  # iterate over the values for each feature, compute the pearson residual variance
+  resid_sums <- vector(mode = 'numeric', length = nrow(x = object))
+  resid_sum_square <- vector(mode = 'numeric', length = nrow(x = object))
+  nbatch <- ceiling(N / ncell.batch)
+  if (nbatch <= 1) verbose <- FALSE
+
+  if (verbose) pb <- txtProgressBar(min = 1, max = nbatch, style = 3)
+  for (i in seq_len(length.out = nbatch)) {
+    
+    cells.interval.start <- 1 + ((i - 1) * ncell.batch)
+    cells.interval.end <- min(N, (i * ncell.batch))
+
+    resid <- (object[ ,cells.interval.start:cells.interval.end] - feature_means) / denominator
+    resid[resid > clip_threshold] <- clip_threshold
+    resid[resid < -clip_threshold] <- -clip_threshold
+    rs <- rowSums(x = resid)
+    resid_sums <- resid_sums + rs
+    resid_sum_square <- resid_sum_square + rowSums(resid^2)
+    if (verbose) {
+      setTxtProgressBar(pb, i)
+    }
+  }
+  
+  # Variance = [sum_of_squares - n * mean^2] / n
+  resid_mean <- resid_sums / N
+  pearson_residual_variance <- (resid_sum_square - (N * resid_mean^2)) / N
+  
+  # construct dataframe
+  hvf.info <- data.frame(
+    row.names = rownames(x = object),
+    count = rowSums(x = object),
+    mean = feature_means,
+    ResidualVariance = pearson_residual_variance
+  )
+  
+  return(hvf.info)
+}
+
+#' @rdname PearsonResidualVar
+#' @importFrom SeuratObject GetAssayData VariableFeatures
+#' @importFrom utils packageVersion
+#' @export
+#' @method PearsonResidualVar Assay
+#' @concept preprocessing
+#' @examples
+#' PearsonResidualVar(object = atac_small[['peaks']])
+PearsonResidualVar.Assay <- function(
+    object,
+    assay = NULL,
+    nfeatures = 20000,
+    theta = 10,
+    min.counts = 100,
+    weight.mean = 0.5,
+    ncell.batch = 100,
+    verbose = TRUE,
+    ...
+) {
+  data.use <- GetAssayData(object = object, layer = "counts")
+  if (IsMatrixEmpty(x = data.use)) {
+    if (verbose) {
+      message("Count slot empty")
+    }
+    return(object)
+  }
+  hvf.info <- PearsonResidualVar(
+    object = data.use,
+    assay = assay,
+    min.counts = min.counts,
+    theta = theta,
+    ncell.batch = ncell.batch,
+    verbose = verbose,
+    ...
+  )
+  if (is.na(x = nfeatures)) {
+    # don't change the variable features
+    object[[names(x = hvf.info)]] <- hvf.info
+    return(object)
+  } else {
+    if (!is.null(x = min.counts)) {
+      # filter based on min.count
+      hvf.info.filt <- hvf.info[hvf.info$count > min.counts, , drop = FALSE]
+    } else {
+      hvf.info.filt <- hvf.info
+    }
+    # order based on residual variance
+    # set top n as variable features
+    res_rank <- rank(
+      x = -hvf.info.filt$ResidualVariance, ties.method = "average"
+    )
+    mean_rank <- rank(
+      x = -hvf.info.filt$mean, ties.method = "average"
+    )
+    combined_rank <- (weight.mean * mean_rank) + ((1 - weight.mean) * res_rank)
+    hvf.info.filt$ranking <- combined_rank
+    hvf.info.filt <- hvf.info.filt[
+      order(hvf.info.filt$ranking, decreasing = FALSE), 
+    ]
+    if (nfeatures > nrow(x = hvf.info.filt)) {
+      nfeatures <- nrow(x = hvf.info.filt)
+      warning("Requested more features than are available. ",
+              "Returning ", nfeatures, " variable features")
+    }
+    top_features <- head(x = rownames(x = hvf.info.filt), n = nfeatures)
+    VariableFeatures(object = object) <- top_features
+    hvf.info$variable <- rownames(x = hvf.info) %in% top_features
+    object[[names(x = hvf.info)]] <- hvf.info
+    return(object)
+  }
+}
+
+#' @rdname PearsonResidualVar
+#' @importFrom SeuratObject GetAssayData VariableFeatures
+#' @importFrom utils packageVersion
+#' @export
+#' @method PearsonResidualVar StdAssay
+#' @concept preprocessing
+#' @examples
+#' PearsonResidualVar(object = atac_small[['peaks']])
+PearsonResidualVar.StdAssay <- function(
+    object,
+    assay = NULL,
+    min.counts = 100,
+    weight.mean = 0.5,
+    theta = 10,
+    ncell.batch = 100,
+    verbose = TRUE,
+    ...
+) {
+  PearsonResidualVar.Assay(
+    object = object,
+    assay = assay,
+    min.counts = min.counts,
+    weight.mean = weight.mean,
+    theta = theta,
+    ncell.batch = ncell.batch,
+    verbose = verbose,
+    ...
+  )
+}
+
+#' @rdname PearsonResidualVar
+#' @param weight.mean Weighting to apply to the feature mean relative to the
+#' Pearson residual variance for ranking features. \code{weight.mean=0} will
+#' rank features based on the Pearson residual variance only.
+#' @importFrom SeuratObject DefaultAssay
+#' @export
+#' @concept preprocessing
+#' @method PearsonResidualVar Seurat
+#' @examples
+#' PearsonResidualVar(atac_small)
+PearsonResidualVar.Seurat <- function(
+    object,
+    assay = NULL,
+    min.counts = 100,
+    weight.mean = 0.5,
+    theta = 10,
+    ncell.batch = 100,
+    verbose = TRUE,
+    ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object))
+  assay.data <- object[[assay]]
+  assay.data <- PearsonResidualVar(
+    object = assay.data,
+    assay = assay,
+    min.counts = min.counts,
+    weight.mean = weight.mean,
+    ncell.batch = ncell.batch,
+    theta = theta,
+    verbose = verbose,
+    ...
+  )
+  object[[assay]] <- assay.data
+  return(object)
+}
+
 #' Calculate fraction of reads in peaks per cell
 #'
 #' @param object A Seurat object
