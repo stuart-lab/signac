@@ -138,12 +138,13 @@ RunSVD.default <- function(
 }
 
 # from SeuratObject (not exported)
+#' @importFrom stats var
 PrepDR5 <- function(object, features = NULL, layer = 'scale.data', verbose = TRUE) {
   layer <- layer[1L]
   olayer <- layer
   layer <- Layers(object = object, search = layer)
   if (is.null(layer)) {
-    abort(paste0("No layer matching pattern '", olayer, "' not found. Please run ScaleData and retry"))
+    stop(paste0("No layer matching pattern '", olayer, "' not found. Please run ScaleData and retry"))
   }
   data.use <- LayerData(object = object, layer = layer)
   features <- features %||% VariableFeatures(object = object)

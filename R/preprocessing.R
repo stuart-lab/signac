@@ -652,6 +652,7 @@ FitMeanVar.Assay5 <- function(
 #' @rdname FitMeanVar
 #' @importFrom SeuratObject DefaultAssay
 #' @importFrom sparseMatrixStats rowVars
+#' @importFrom stats loess predict
 #' @export
 #' @concept preprocessing
 #' @method FitMeanVar default
