@@ -435,6 +435,7 @@ FindTopFeatures.default <- function(
   return(hvf.info)
 }
 
+#' @param layer Name of layer to use
 #' @rdname FindTopFeatures
 #' @importFrom SeuratObject LayerData VariableFeatures
 #' @importFrom utils packageVersion
@@ -663,7 +664,8 @@ FitMeanVar.default <- function(
     bins = 1000,
     sample_per_bin = 50,
     random.seed = 1234,
-    verbose = FALSE
+    verbose = FALSE,
+    ...
 ) {
   
   set.seed(random.seed)

@@ -47,7 +47,8 @@ FitMeanVar(object, ...)
   bins = 1000,
   sample_per_bin = 50,
   random.seed = 1234,
-  verbose = FALSE
+  verbose = FALSE,
+  ...
 )
 }
 \arguments{

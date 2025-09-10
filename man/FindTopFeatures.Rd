@@ -58,6 +58,8 @@ altered, and only the feature metadata will be updated with the total counts
 and percentile rank for each feature.}
 
 \item{verbose}{Display messages}
+
+\item{layer}{Name of layer to use}
 }
 \value{
 Returns a \code{\link[SeuratObject]{Seurat}} object
