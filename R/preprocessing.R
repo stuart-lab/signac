@@ -542,6 +542,204 @@ FindTopFeatures.Seurat <- function(
   return(object)
 }
 
+#' @rdname FitMeanVar
+#' @param assay Name of assay to use. If NULL, use the default assay.
+#' @param layer Name of layer to use. If NULL, use the default layer(s).
+#' @param nfeatures Number of features to selected as top variable features.
+#' @param loess.span \code{span} parameter passed to the \code{\link[stats]{loess}} function
+#' @param min.cutoff Minimum number of counts for a feature to be eligible for variable feature selection.
+#' @param weight.mean How much to weight the ranking of features according to their mean.
+#' Setting \code{weight.mean=0} will rank features according to their residual variance only.
+#' @param bins Number of bins to use when downsampling features across the range of mean count values.
+#' @param sample_per_bin Number of features to select per mean count bin in feature downsampling step.
+#' @param key Key to use when storing the highly variable feature information in the assay.
+#' @param verbose Display messages.
+#' @importFrom SeuratObject DefaultAssay
+#' @export
+#' @concept preprocessing
+#' @method FitMeanVar Seurat
+#' @examples
+#' FitMeanVar(atac_small)
+FitMeanVar.Seurat <- function(
+    object,
+    assay = NULL,
+    layer = NULL,
+    nfeatures = 20000,
+    loess.span = 0.1,
+    min.cutoff = 10,
+    weight.mean = 0.5,
+    bins = 1000,
+    sample_per_bin = 50,
+    key = 'dsLoess',
+    verbose = FALSE,
+    ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object))
+  assay.data <- object[[assay]]
+  assay.data <- FitMeanVar(
+    object = assay.data,
+    layer = layer,
+    loess.span = loess.span,
+    nfeatures = nfeatures,
+    min.cutoff = min.cutoff,
+    weight.mean = weight.mean,
+    bins = bins,
+    sample_per_bin = sample_per_bin,
+    verbose = verbose,
+    ...
+  )
+  object[[assay]] <- assay.data  
+  return(object)
+}
+
+#' @rdname FitMeanVar
+#' @importFrom SeuratObject Layers LayerData Features VariableFeatures VariableFeatures<-
+#' @export
+#' @concept preprocessing
+#' @method FitMeanVar Assay5
+FitMeanVar.Assay5 <- function(
+    object,
+    layer = NULL,
+    loess.span = 0.1,
+    nfeatures = 20000,
+    min.cutoff = 10,
+    weight.mean = 0.5,
+    bins = 1000,
+    sample_per_bin = 50,
+    key = 'dsLoess',
+    verbose = FALSE,
+    ...
+) {
+  
+  layer <- Layers(object = object, search = layer)
+  
+  for (i in seq_along(along.with = layer)) {
+    if (isTRUE(x = verbose)) {
+      message("Finding variable features for layer ", layer[i])
+    }
+    data <- LayerData(object = object, layer = layer[i], fast = TRUE)
+    hvf <- FitMeanVar(
+      object = data,
+      loess.span = loess.span,
+      min.cutoff = min.cutoff,
+      weight.mean = weight.mean,
+      bins = bins,
+      sample_per_bin = sample_per_bin,
+      verbose = verbose,
+    )
+    colnames(x = hvf) <- paste(
+      'vf',
+      key,
+      layer[i],
+      colnames(x = hvf),
+      sep = '_'
+    )
+    rownames(x = hvf) <- Features(x = object, layer = layer[i])
+    object[["var.features"]] <- NULL
+    object[["var.features.rank"]] <- NULL
+    object[[names(x = hvf)]] <- NULL
+    object[[names(x = hvf)]] <- hvf
+  }
+  VariableFeatures(object) <- VariableFeatures(
+    object = object,
+    nfeatures = nfeatures,
+    method = key
+  )
+  return(object)
+}
+
+#' @rdname FitMeanVar
+#' @importFrom SeuratObject DefaultAssay
+#' @importFrom sparseMatrixStats rowVars
+#' @export
+#' @concept preprocessing
+#' @method FitMeanVar default
+FitMeanVar.default <- function(
+    object,
+    nfeatures = 20000,
+    loess.span = 0.1,
+    min.cutoff = 10,
+    weight.mean = 0.5,
+    bins = 1000,
+    sample_per_bin = 50,
+    random.seed = 1234,
+    verbose = FALSE
+) {
+  
+  set.seed(random.seed)
+  
+  # TODO enable running on BPcells matrix
+  rs <- rowSums(x = object)
+
+  if (is.character(x = min.cutoff)) {
+    percentile.use <- as.numeric(
+      x = sub(pattern = "q", replacement = "", x = as.character(min.cutoff))
+    ) / 100
+    count.thresh <- quantile(x = rs, probs = percentile.use, na.rm = TRUE)[[1]]
+  } else {
+    count.thresh <- min.cutoff
+  }
+  
+  if (verbose) {
+    message("Retained ", nrow(x = object), " features after count filtering")
+  }
+  if (nrow(x = object) == 0) {
+    stop("No modules remain after filtering by min.cutoff")
+  }
+  df <- data.frame(
+    mean = rowMeans(x = object),
+    variance = rowVars(x = object),
+    variance.expected = 0,
+    total.counts = rs
+  )
+  
+  df$log_mean <- log1p(x = df$mean)
+  breaks <- seq(
+    min(df$log_mean, na.rm = TRUE),
+    max(df$log_mean, na.rm = TRUE),
+    length.out = bins + 1
+  )
+  df$bin <- findInterval(
+    x = df$log_mean,
+    vec = breaks,
+    rightmost.closed = TRUE
+  )
+  sampled_df <- do.call(
+    what = rbind,
+    args = lapply(X = split(df, df$bin), FUN = function(subset) {
+      if (nrow(subset) > sample_per_bin) {
+        subset <- subset[sample(
+          x = nrow(x = subset),
+          size = sample_per_bin,
+          replace = FALSE), ]
+      }
+      return(subset)
+      }
+    )
+  )
+  loess_fit <- loess(
+    formula = log1p(x = variance) ~ log_mean,
+    data = sampled_df,
+    span = loess.span
+  )
+  df$variance.expected <- expm1(
+    x = predict(object = loess_fit, newdata = df$log_mean)
+  )
+  df$variance.residual <- df$variance - df$variance.expected
+  
+  df$residual.rank <- rank(x = -df$variance.residual, ties.method = "average")
+  df$mean.rank <- rank(x = -df$mean, ties.method = "average")
+  df$rank <- (weight.mean * df$mean.rank) + ((1 - weight.mean) * df$residual.rank)
+  df$rank[df$total.counts < count.thresh] <- NA
+  vf <- head(
+    x = order(df$rank, decreasing = FALSE),
+    n = nfeatures
+  )
+  df$variable <- FALSE
+  df$variable[vf] <- TRUE
+  return(df)
+}
+
 #' @param assay Name of assay to use
 #' @param min.counts Minimum number of counts for feature to be eligible for variable features
 #' @param ncell.batch Number of cells to process in each batch. Higher number
