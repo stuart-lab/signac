@@ -97,4 +97,5 @@ Suggests:
     lsa,
     MASS,
     BPCells,
-    wrswoR
+    wrswoR,
+    scattermore

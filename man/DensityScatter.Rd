@@ -4,7 +4,16 @@
 \alias{DensityScatter}
 \title{Scatterplot colored by point density}
 \usage{
-DensityScatter(object, x, y, log_x = FALSE, log_y = FALSE, quantiles = NULL)
+DensityScatter(
+  object,
+  x,
+  y,
+  log_x = FALSE,
+  log_y = FALSE,
+  quantiles = NULL,
+  raster = NULL,
+  raster.dpi = c(512, 512)
+)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -23,6 +32,11 @@ between 0 and 100.
 TRUE can be passed as a shorthand way to set
 \code{c(5, 10, 90, 95)}. If FALSE or NULL, no quantile
 information is displayed}
+
+\item{raster}{Convert points to raster format. If NULL, points will
+automatically be rasterized if plotting more than 100,000 cells.}
+
+\item{raster.dpi}{Pixel resolution for rasterized plots.}
 }
 \value{
 Returns a ggplot object

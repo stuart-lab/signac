@@ -262,6 +262,9 @@ globalVariables(".data")
 #' TRUE can be passed as a shorthand way to set
 #' \code{c(5, 10, 90, 95)}. If FALSE or NULL, no quantile
 #' information is displayed
+#' @param raster Convert points to raster format. If NULL, points will
+#' automatically be rasterized if plotting more than 100,000 cells.
+#' @param raster.dpi Pixel resolution for rasterized plots.
 #' @return Returns a ggplot object
 #' @importFrom ggplot2 ggplot aes geom_point scale_color_viridis_c
 #' theme_bw scale_x_log10 scale_y_log10 geom_vline geom_hline labs
@@ -275,7 +278,9 @@ DensityScatter <- function(
     y,
     log_x = FALSE,
     log_y = FALSE,
-    quantiles = NULL
+    quantiles = NULL,
+    raster = NULL,
+    raster.dpi = c(512, 512)
 ) {
     md <- object[[]]
     if (!(x %in% colnames(x = md))) {
@@ -292,7 +297,7 @@ DensityScatter <- function(
     }
     logfnx <- ifelse(test = log_x, yes = log10p, no = null_fn)
     logfny <- ifelse(test = log_y, yes = log10p, no = null_fn)
-    # logfny <- null_fn
+    
     md$Density <- get_density(
         x = logfnx(md[[x]]),
         y = logfny(md[[y]]),
@@ -300,6 +305,18 @@ DensityScatter <- function(
         h = c(1,1)
     )
     md <- md[order(md$Density), ]
+    
+    if (is.null(x = raster) & (nrow(x = md) > 100000)) {
+      raster <- TRUE
+    }
+    
+    if (!requireNamespace(package = "scattermore", quietly = TRUE)) {
+      if (raster) {
+        warning("scattermore is not installed, plot cannot be rasterized")
+        raster <- FALSE
+      }
+    }
+    
     # quantiles
     use_quantile <- FALSE
     if (!is.null(x = quantiles)) {
@@ -341,10 +358,13 @@ DensityScatter <- function(
     p <- ggplot(
            data = md,
            mapping = aes(x = .data[[x]], y = .data[[y]], color = .data[["Density"]])
-         ) +
-           geom_point(size = 1) +
-           scale_color_viridis_c(option = "B") +
-           theme_bw()
+         )
+    if (!is.null(x = raster)) {
+      p <- p + scattermore::geom_scattermore(pixels = raster.dpi, pointsize = 3.2)
+    } else {
+      p <- p + geom_point(size = 1)
+    }
+    p <- p + scale_color_viridis_c(option = "B") + theme_bw()
     if (log_x) {
         p <- p + scale_x_log10()
     }

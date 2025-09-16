@@ -9,6 +9,7 @@ New features:
 * Added `FitMeanVar()` function for variable feature selection based on residual variance from LOESS model
 * Added `SparsePCA()` function to compute PCA dimension reduction without storing standardized matrix
 * Added `ATACqc()` function to run `fragtk qc`
+* Added `raster` and `raster.dpi` parameters to `DensityScatter()`
 
 # develop
 
