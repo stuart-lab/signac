@@ -224,25 +224,40 @@ DepthCor <- function(object, assay = NULL, reduction = 'lsi', n = 10, ...) {
 
 # Get density of points in 2 dimensions.
 #
-# Credit to Kamil Slowikowski
+# Modified from original code by Kamil Slowikowski
 # https://slowkow.com/notes/ggplot2-color-by-density/
 #
 # @param x A numeric vector.
 # @param y A numeric vector.
-# @param n Create a square n by n grid to compute density.
+# @param n_sub Number of points to sample
 # @return The density within each square.
-get_density <- function(x, y, ...) {
+get_density <- function(x, y, n_sub = 50000, ...) {
   if (!requireNamespace("MASS", quietly = TRUE)) {
     stop("Please install MASS: install.packages('MASS')")
   }
-  if (!is.numeric(x = x) | !is.numeric(x = y)) {
-      stop("Must supply numeric values")
+  if (!requireNamespace("fields", quietly = TRUE)) {
+    stop("Please install fields: install.packages('fields')")
   }
-  dens <- MASS::kde2d(x = x, y = y, ...)
-  ix <- findInterval(x = x, vec = dens$x)
-  iy <- findInterval(x = y, vec = dens$y)
-  ii <- cbind(ix, iy)
-  return(dens$z[ii])
+  
+  n <- length(x)
+  if (n > n_sub) {
+    idx <- sample.int(n, n_sub)
+    xs <- x[idx]
+    ys <- y[idx]
+  } else {
+    xs <- x
+    ys <- y
+  }
+  
+  # KDE on subsample
+  dens <- MASS::kde2d(xs, ys, n = 1000, ...)
+  
+  # Interpolate back onto full data
+  out <- fields::interp.surface(
+    obj = list(x = dens$x, y = dens$y, z = dens$z),
+    loc = cbind(x, y)
+  )
+  return(out)
 }
 
 globalVariables(".data")
@@ -297,12 +312,11 @@ DensityScatter <- function(
     }
     logfnx <- ifelse(test = log_x, yes = log10p, no = null_fn)
     logfny <- ifelse(test = log_y, yes = log10p, no = null_fn)
-    
+
     md$Density <- get_density(
-        x = logfnx(md[[x]]),
-        y = logfny(md[[y]]),
-        n = 1000,
-        h = c(1,1)
+      x = logfnx(md[[x]]),
+      y = logfny(md[[y]]),
+      h = c(1,1)
     )
     md <- md[order(md$Density), ]
     
