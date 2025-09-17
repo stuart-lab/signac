@@ -37,7 +37,6 @@ Imports:
     future.apply,
     ggplot2,
     rlang,
-    irlba,
     pbapply,
     tidyr,
     patchwork,
@@ -53,7 +52,8 @@ Imports:
     tidyselect,
     vctrs,
     lifecycle,
-    sparseMatrixStats
+    sparseMatrixStats,
+    RSpectra
 Collate: 
     'RcppExports.R'
     'classes.R'
