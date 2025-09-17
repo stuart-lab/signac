@@ -14,11 +14,11 @@ RunSVD(object, ...)
   object,
   assay = NULL,
   n = 50,
-  scale.embeddings = TRUE,
-  reduction.key = "LSI_",
+  scale.embeddings = !pca,
+  pca = FALSE,
+  reduction.key = ifelse(pca, "PCA_", "LSI_"),
   scale.max = NULL,
   verbose = TRUE,
-  irlba.work = n * 3,
   tol = 1e-05,
   ...
 )
@@ -29,7 +29,8 @@ RunSVD(object, ...)
   layer = "data",
   features = NULL,
   n = 50,
-  reduction.key = "LSI_",
+  pca = FALSE,
+  reduction.key = ifelse(pca, "PCA_", "LSI_"),
   scale.max = NULL,
   verbose = TRUE,
   ...
@@ -41,7 +42,8 @@ RunSVD(object, ...)
   layer = "data",
   features = NULL,
   n = 50,
-  reduction.key = "LSI_",
+  pca = FALSE,
+  reduction.key = ifelse(pca, "PCA_", "LSI_"),
   scale.max = NULL,
   verbose = TRUE,
   ...
@@ -53,8 +55,9 @@ RunSVD(object, ...)
   features = NULL,
   layer = "data",
   n = 50,
-  reduction.key = "LSI_",
-  reduction.name = "lsi",
+  pca = FALSE,
+  reduction.key = ifelse(pca, "PCA_", "LSI_"),
+  reduction.name = ifelse(pca, "pca", "lsi"),
   scale.max = NULL,
   verbose = TRUE,
   ...
@@ -72,6 +75,10 @@ RunSVD(object, ...)
 \item{scale.embeddings}{Scale cell embeddings within each component to
 mean 0 and SD 1 (default TRUE).}
 
+\item{pca}{Run PCA. Setting this option to TRUE will perform implicit scaling
+and centering of the input matrix to enable memory-efficient computation of
+the principal components.}
+
 \item{reduction.key}{Key for dimension reduction object}
 
 \item{scale.max}{Clipping value for cell embeddings.
@@ -79,23 +86,18 @@ Default (NULL) is no clipping.}
 
 \item{verbose}{Print messages}
 
-\item{irlba.work}{work parameter for \code{\link[irlba]{irlba}}.
-Working subspace dimension, larger values can speed convergence at the
-cost of more memory use.}
-
-\item{tol}{Tolerance (tol) parameter for \code{\link[irlba]{irlba}}. Larger
-values speed up convergence due to greater amount of allowed error.}
+\item{tol}{Tolerance (tol) parameter for \code{\link[RSpectra]{svds}}.
+Larger values speed up convergence due to greater amount of allowed error.}
 
 \item{features}{Which features to use. If NULL, use variable features}
 
-\item{reduction.name}{Name for stored dimension reduction object.
-Default 'svd'}
+\item{reduction.name}{Name for stored dimension reduction object.}
 }
 \value{
 Returns a \code{\link[SeuratObject]{Seurat}} object
 }
 \description{
-Run partial singular value decomposition using \code{\link[irlba]{irlba}}
+Run partial singular value decomposition using \code{\link[RSpectra]{svds}}
 }
 \examples{
 x <- matrix(data = rnorm(100), ncol = 10)

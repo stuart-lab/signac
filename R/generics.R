@@ -408,7 +408,7 @@ RunChromVAR <- function(object, ...) {
 
 #' Run singular value decomposition
 #'
-#' Run partial singular value decomposition using \code{\link[irlba]{irlba}}
+#' Run partial singular value decomposition using \code{\link[RSpectra]{svds}}
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
@@ -448,22 +448,4 @@ RunTFIDF <- function(object, ...) {
 #' @export SetMotifData
 SetMotifData <- function(object, ...) {
   UseMethod(generic = "SetMotifData", object = object)
-}
-
-#' Compute principal components
-#'
-#' Compute principal components using \code{\link[irlba]{irlba}}. This function
-#' is similar to the \code{\link[Seurat]{RunPCA}} function but uses implicit
-#' scaling and centering of the data matrix to compute PCA faster and using less
-#' memory. The scaled and centered data matrix is not stored, and the
-#' \code{\link[Seurat]{ScaleData}} function does not need to be run before using
-#' this function.
-#'
-#' @param object A Seurat object
-#' @param ... Arguments passed to other methods
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
-#' @rdname SparsePCA
-#' @export SparsePCA
-SparsePCA <- function(object, ...) {
-  UseMethod(generic = "SparsePCA", object = object)
 }
