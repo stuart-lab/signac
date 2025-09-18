@@ -92,7 +92,16 @@ RunSVD.default <- function(
       message("Running PCA")
     }
     # data needs to be standardized
-    opts <- c(opts, list("center" = TRUE, "scale" = TRUE))
+    if (inherits(x = object, what = "IterableMatrix")) {
+      # scale and center BPCells matrix
+      # opts params in BPCells:::svds.IterableMatrix not implemented
+      s <- BPCells::matrix_stats(object, row_stats="variance")
+      r_means <- s$row_stats["mean", ]
+      r_vars <- s$row_stats["variance", ]
+      object <- (object - r_means) / r_vars
+    } else {
+      opts <- c(opts, list("center" = TRUE, "scale" = TRUE))
+    }
   } else {
     if (verbose) {
       message("Running SVD")
