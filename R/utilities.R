@@ -1799,7 +1799,7 @@ CutMatrix <- function(
         res[[i]] <- cm
       }
       close(con = tabix.file)
-    } else if (inherits(x = fragments[[i]], what = 'FragmentsDir') ) {
+    } else if (inherits(x = fragments[[i]], what = 'IterableFragments') ) {
       bpcell_range <- tibble::tibble(
           chr = region@seqnames@values,
           start =  start(region) - 1 ,

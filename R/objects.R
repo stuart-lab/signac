@@ -307,7 +307,7 @@ CreateChromatinAssay <- function(
     )
     # subset to cells in the assay
     frags <- subset(x = frags, cells = colnames(x = seurat.assay))
-   } else if ( inherits(x = fragments, what = 'FragmentsDir')) {
+   } else if ( inherits(x = fragments, what = 'IterableFragments')) {
      # add bpcell fragment
      frags <- fragments
   } else {
@@ -879,14 +879,15 @@ SetAssayData.ChromatinAssay <- function(
     if (inherits(x = new.data, what = "list")) {
       # check that it's a list containing fragment class objects
       for (i in seq_along(new.data)) {
-        if (!inherits(x = new.data[[i]], what = "Fragment")) {
+        if (! (inherits(x = new.data[[i]], what = "Fragment") || 
+               inherits(x = new.data[[i]], what = "IterableFragments"))) {
           stop("New data is not a Fragment object")
         }
       }
     } else if (inherits(x = new.data, what = "Fragment")) {
       # single fragment object
       new.data <- list(new.data)
-    } else if (inherits(x = new.data, what = "FragmentsDir")) {
+    } else if (inherits(x = new.data, what = "IterableFragments")) {
       # single BPCells frag object
       new.data <- list(new.data)
     }
@@ -1262,6 +1263,33 @@ subset.Fragment <- function(
   frag.cells <- GetFragmentData(object = x, slot = "cells")
   keep <- fmatch(x = names(x = frag.cells), table = cells, nomatch = 0L) > 0
   slot(object = x, name = "cells") <- frag.cells[keep]
+  return(x)
+}
+
+#' Subset a Fragment object
+#'
+#' Returns a subset of a \code{\link{Fragment-class}} object.
+#'
+#' @param x A IterableFragments BPCell object
+#' @param cells Vector of cells to retain
+#' @param ... Arguments passed to other methods
+#'
+#' @method subset Fragment
+#'
+#' @seealso \code{\link[base]{subset}}
+#' @return Returns a subsetted \code{\link{IterableFragments}} object
+#' @export
+#' @concept fragments
+#' @examples
+
+subset.IterableFragments <- function(
+    x,
+    cells = NULL,
+    ...
+) {
+  frag.cells <- x@cell_names
+  frag.cells <- intersect(frag.cells, cells)
+  x <- select_cells(fragments = x, cell_selection = frag.cells)
   return(x)
 }
 
