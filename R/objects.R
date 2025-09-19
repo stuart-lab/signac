@@ -277,6 +277,7 @@ CreateChromatinAssay <- function(
       min.features = min.features
     )
   }
+
   if (inherits(x = fragments, what = "list")) {
     # check each object in the list is a fragment object
     # fragment list usually supplied when doing object merge,
@@ -306,6 +307,9 @@ CreateChromatinAssay <- function(
     )
     # subset to cells in the assay
     frags <- subset(x = frags, cells = colnames(x = seurat.assay))
+   } else if ( inherits(x = fragments, what = 'FragmentsDir')) {
+     # add bpcell fragment
+     frags <- fragments
   } else {
     # path to fragment file supplied, create fragment object
     frags <- list()
@@ -881,6 +885,9 @@ SetAssayData.ChromatinAssay <- function(
       }
     } else if (inherits(x = new.data, what = "Fragment")) {
       # single fragment object
+      new.data <- list(new.data)
+    } else if (inherits(x = new.data, what = "FragmentsDir")) {
+      # single BPCells frag object
       new.data <- list(new.data)
     }
     frag.list <- GetAssayData(object = object, layer = "fragments")
