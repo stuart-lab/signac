@@ -1770,34 +1770,54 @@ CutMatrix <- function(
   }
   res <- list()
   for (i in seq_along(along.with = fragments)) {
-    fragment.path <- GetFragmentData(object = fragments[[i]], slot = "path")
-    cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
-    tabix.file <- TabixFile(
-      file = fragment.path,
-      index = GetIndexFile(fragment = fragment.path, verbose = FALSE)
-    )
-    open(con = tabix.file)
-    # remove regions that aren't in the fragment file
-    seqnames.in.both <- intersect(
-      x = seqnames(x = region),
-      y = seqnamesTabix(file = tabix.file)
-    )
-    region <- keepSeqlevels(
-      x = region,
-      value = seqnames.in.both,
-      pruning.mode = "coarse"
-    )
-    if (length(x = region) != 0) {
-      cm <- SingleFileCutMatrix(
-        region = region,
-        cellmap = cellmap,
-        tabix.file = tabix.file,
-        cells = cells,
-        verbose = FALSE
+    if (inherits(x = fragments[[i]], what = 'Fragment')) {
+      fragment.path <- GetFragmentData(object = fragments[[i]], slot = "path")
+      cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
+      tabix.file <- TabixFile(
+        file = fragment.path,
+        index = GetIndexFile(fragment = fragment.path, verbose = FALSE)
       )
-      res[[i]] <- cm
+      open(con = tabix.file)
+      # remove regions that aren't in the fragment file
+      seqnames.in.both <- intersect(
+        x = seqnames(x = region),
+        y = seqnamesTabix(file = tabix.file)
+      )
+      region <- keepSeqlevels(
+        x = region,
+        value = seqnames.in.both,
+        pruning.mode = "coarse"
+      )
+      if (length(x = region) != 0) {
+        cm <- SingleFileCutMatrix(
+          region = region,
+          cellmap = cellmap,
+          tabix.file = tabix.file,
+          cells = cells,
+          verbose = FALSE
+        )
+        res[[i]] <- cm
+      }
+      close(con = tabix.file)
+    } else if (inherits(x = fragments[[i]], what = 'FragmentsDir') ) {
+      bpcell_range <- tibble::tibble(
+          chr = region@seqnames@values,
+          start =  start(region) - 1 ,
+          end = end(region), 
+          tile_width = 1
+        )
+      fragments[[i]] <- BPCells::select_cells(
+        fragments = fragments[[i]], 
+        cell_selection = cells
+        )
+      res[[i]] <- t(
+        as.sparse(
+          tile_matrix(
+            fragments = fragments[[i]],
+            ranges = bpcell_range)
+          )
+        )
     }
-    close(con = tabix.file)
   }
   res <- Reduce(f = `+`, x = res)
   return(res)
