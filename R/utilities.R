@@ -719,12 +719,10 @@ GetIntersectingFeatures <- function(
 #' @export
 #' @concept utilities
 StringToGRanges <- function(regions, sep = c("-", "-"), ...) {
-  ranges.df <- data.frame(ranges = regions)
-  ranges.df <- separate(
-    data = ranges.df,
-    col = "ranges",
-    sep = paste0(sep[[1]], "|", sep[[2]]),
-    into = c("chr", "start", "end")
+  ranges.df <- read.table(
+    text = gsub(paste0('[',sep[[1]], sep[[2]], ']'), " ", regions),
+    col.names = c("seqnames", "start", "end"),
+    stringsAsFactors = FALSE
   )
   granges <- makeGRangesFromDataFrame(df = ranges.df, ...)
   return(granges)

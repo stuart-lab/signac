@@ -277,6 +277,8 @@ CreateChromatinAssay <- function(
       min.features = min.features
     )
   }
+  
+  
 
   if (inherits(x = fragments, what = "list")) {
     # check each object in the list is a fragment object
