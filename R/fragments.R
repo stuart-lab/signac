@@ -455,7 +455,8 @@ UpdatePath <- function(object, new.path, new.index.path = NULL, verbose = TRUE) 
   if (!old.is.remote & new.is.remote) {
     warning("Replacing local file path with a remote file")
   }
-  slot(object = object, name = "path") <- new.path
+  slot(object = object, name = "file.path") <- new.path
+  slot(object = object, name = "file.index") <- index.file
   if (ValidateHash(object = object, verbose = verbose)) {
     return(object)
   } else {
