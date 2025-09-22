@@ -7,9 +7,13 @@ New features:
 * Added `fragtk` parameter to `FeatureMatrix()`
 * Added `PearsonResidualVar()` function for variable feature selection based on Pearson residual variances
 * Added `FitMeanVar()` function for variable feature selection based on residual variance from LOESS model
-* Added `SparsePCA()` function to compute PCA dimension reduction without storing standardized matrix
+* Added `pca` parameter to `RunSVD()` to compute PCA dimension reduction without storing standardized matrix
 * Added `ATACqc()` function to run `fragtk qc`
 * Added `raster` and `raster.dpi` parameters to `DensityScatter()`
+
+Other changes:
+
+* Changed SVD function in `RunSVD()` from `irlba::irlba()` to `RSpectra::svds()`
 
 # develop
 
