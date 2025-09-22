@@ -98,6 +98,7 @@ globalVariables(names = c("group", "readcount"), package = "Signac")
 AverageCounts <- function(
   object,
   assay = NULL,
+  layer = NULL,
   group.by = NULL,
   verbose = TRUE
 ) {
@@ -128,29 +129,32 @@ AverageCounts <- function(
 #' Find accessible peaks in a set of cells
 #'
 #' @param object A Seurat object
-#' @param assay Name of assay to use
+#' @param assay Name of assay to use. If NULL, use the default assay.
+#' @param layer Name of layer to use. If NULL, use the default layer.
 #' @param idents A set of identity classes to find accessible peaks for
 #' @param cells A vector of cells to find accessible peaks for
 #' @param min.cells Minimum number of cells with the peak accessible (>0 counts)
 #' for the peak to be called accessible
 #' @export
 #' @concept utilities
-#' @importFrom SeuratObject WhichCells DefaultAssay GetAssayData
+#' @importFrom SeuratObject WhichCells DefaultAssay GetAssayData DefaultLayer
 #' @importFrom Matrix rowSums
 #' @return Returns a vector of peak names
 AccessiblePeaks <- function(
   object,
   assay = NULL,
+  layer = NULL,
   idents = NULL,
   cells = NULL,
   min.cells = 10
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  layer <- SetIfNull(x = layer, y = DefaultLayer(object = object))
   cells <- SetIfNull(x = cells, y = WhichCells(object, idents = idents))
   open.peaks <- LayerData(
     object = object,
     assay = assay,
-    layer = "counts"
+    layer = layer
   )[, cells]
   peaks <- names(x = which(x = rowSums(x = open.peaks > 0) > min.cells))
   return(peaks)
