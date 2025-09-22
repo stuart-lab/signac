@@ -159,15 +159,11 @@ fetal <- ATACqc(fetal)
 ```
 
 ```{r}
-VlnPlot(fetal, c("TSS_enrichment", "Nucleosome_signal", "total_fragments"), ncol = 3, pt.size = 0, log = TRUE)
-```
-
-```{r}
 DensityScatter(fetal, x = 'total_fragments', y = 'TSS_enrichment', log_x = TRUE, log_y = TRUE, quantiles = TRUE)
 ```
 
 ```{r}
-fetal <- subset(fetal, total_fragments > 4000 & TSS_enrichment > 1)
+fetal <- subset(fetal, TSS_enrichment > 1)
 ```
 
 ```{r}
@@ -199,7 +195,7 @@ package.
 fetal <- RunUMAP(object = fetal, dims = 1:30)
 fetal <- FindNeighbors(object = fetal, dims = 1:30)
 fetal <- FindClusters(object = fetal, verbose = FALSE, algorithm = 3)
-DimPlot(object = fetal, label = TRUE) + NoLegend()
+DimPlot(object = fetal, label = TRUE, raster = FALSE, pt.size = 0.1) + NoLegend()
 ```
 
 ## Plotting genomic regions
@@ -207,7 +203,7 @@ DimPlot(object = fetal, label = TRUE) + NoLegend()
 ```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=6}
 CoveragePlot(
   object = fetal,
-  region = "CD4",
+  region = "CD8A",
   ranges = REMO.v1.GRCh38,
   ranges.group.by = "REMO",
   extend.upstream = 1000,
