@@ -158,7 +158,7 @@ AddMotifs.Seurat <- function(
   return(object)
 }
 
-#' @importFrom SeuratObject LayerData CreateAssayObject
+#' @importFrom SeuratObject LayerData CreateAssayObject DefaultLayer
 #' @importFrom Matrix rowSums
 #'
 #' @concept motifs
@@ -173,10 +173,12 @@ AddMotifs.Seurat <- function(
 RunChromVAR.GRangesAssay <- function(
   object,
   genome,
+  layer = NULL,
   motif.matrix = NULL,
   verbose = TRUE,
   ...
 ) {
+  layer <- SetIfNull(x = layer, y = DefaultLayer(object = object))
   if (!requireNamespace("chromVAR", quietly = TRUE)) {
     stop("Please install chromVAR. https://greenleaflab.github.io/chromVAR/")
   }
@@ -187,7 +189,7 @@ RunChromVAR.GRangesAssay <- function(
     x = motif.matrix,
     y = GetMotifData(object = object, slot = "data")
   )
-  peak.matrix <- LayerData(object = object, layer = "counts")
+  peak.matrix <- LayerData(object = object, layer = layer)
   if (!(all(peak.matrix@x == floor(peak.matrix@x)))) {
     warning("Count matrix contains non-integer values.
             ChromVAR should only be run on integer counts.")
@@ -236,13 +238,14 @@ RunChromVAR.GRangesAssay <- function(
   return(obj)
 }
 
-#' @param assay Name of assay to use
+#' @param assay Name of assay to use. If NULL, use the default assay.
+#' @param layer Name of layer to use. If NULL, use the default layer.
 #' @param new.assay.name Name of new assay used to store the chromVAR results.
 #' Default is "chromvar".
 #' @method RunChromVAR Seurat
 #' @rdname RunChromVAR
 #' @export
-#' @importFrom SeuratObject DefaultAssay
+#' @importFrom SeuratObject DefaultAssay DefaultLayer
 #' @concept motifs
 #' @examples
 #' \dontrun{
@@ -254,6 +257,7 @@ RunChromVAR.Seurat <- function(
   genome,
   motif.matrix = NULL,
   assay = NULL,
+  layer = NULL,
   new.assay.name = "chromvar",
   ...
 ) {
@@ -264,8 +268,10 @@ RunChromVAR.Seurat <- function(
     stop("Please install SummarizedExperiment")
   }
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  layer <- SetIfNull(x = layer, y = DefaultLayer(object = object))
   chromvar.assay <- RunChromVAR(
     object = object[[assay]],
+    layer = layer,
     genome = genome,
     motif.matrix = motif.matrix,
     ...

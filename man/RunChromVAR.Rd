@@ -8,13 +8,21 @@
 \usage{
 RunChromVAR(object, ...)
 
-\method{RunChromVAR}{GRangesAssay}(object, genome, motif.matrix = NULL, verbose = TRUE, ...)
+\method{RunChromVAR}{GRangesAssay}(
+  object,
+  genome,
+  layer = NULL,
+  motif.matrix = NULL,
+  verbose = TRUE,
+  ...
+)
 
 \method{RunChromVAR}{Seurat}(
   object,
   genome,
   motif.matrix = NULL,
   assay = NULL,
+  layer = NULL,
   new.assay.name = "chromvar",
   ...
 )
@@ -28,12 +36,14 @@ RunChromVAR(object, ...)
 \item{genome}{A \code{BSgenome} object or string stating the genome build
 recognized by \code{getBSgenome}.}
 
+\item{layer}{Name of layer to use. If NULL, use the default layer.}
+
 \item{motif.matrix}{A peak x motif matrix. If NULL, pull the peak x motif
 matrix from a Motif object stored in the assay.}
 
 \item{verbose}{Display messages}
 
-\item{assay}{Name of assay to use}
+\item{assay}{Name of assay to use. If NULL, use the default assay.}
 
 \item{new.assay.name}{Name of new assay used to store the chromVAR results.
 Default is "chromvar".}

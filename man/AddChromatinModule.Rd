@@ -4,7 +4,15 @@
 \alias{AddChromatinModule}
 \title{Add chromatin module}
 \usage{
-AddChromatinModule(object, features, genome, assay = NULL, verbose = TRUE, ...)
+AddChromatinModule(
+  object,
+  features,
+  genome,
+  assay = NULL,
+  layer = NULL,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -16,6 +24,8 @@ will be stored in the object metadata.}
 \item{genome}{A BSgenome object}
 
 \item{assay}{Name of assay to use. If NULL, use the default assay.}
+
+\item{layer}{Name of layer to use. If NULL, use the default layer.}
 
 \item{verbose}{Display messages}
 

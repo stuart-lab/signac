@@ -16,6 +16,7 @@ NULL
 #' will be stored in the object metadata.
 #' @param genome A BSgenome object
 #' @param assay Name of assay to use. If NULL, use the default assay.
+#' @param layer Name of layer to use. If NULL, use the default layer.
 #' @param verbose Display messages
 #' @param ... Additional arguments passed to \code{RunChromVAR}
 #'
@@ -32,12 +33,14 @@ AddChromatinModule <- function(
   features,
   genome,
   assay = NULL,
+  layer = NULL,
   verbose = TRUE,
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
-    stop("The requested assay is not a ChromatinAssay5.")
+  layer <- SetIfNull(x = layer, y = DefaultLayer(object = object))
+  if (!inherits(x = object[[assay]], what = "GRangesAssay")) {
+    stop("The requested assay is not a GRangesAssay")
   }
 
   # first find index of each feature
@@ -59,6 +62,7 @@ AddChromatinModule <- function(
   # run chromVAR
   cv <- RunChromVAR(
     object = object[[assay]],
+    layer = layer,
     motif.matrix = mat,
     genome = genome,
     verbose = verbose,
