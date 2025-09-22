@@ -8,8 +8,8 @@ LinkPeaks(
   object,
   peak.assay,
   expression.assay,
-  peak.slot = "counts",
-  expression.slot = "data",
+  peak.layer = "counts",
+  expression.layer = "data",
   method = "pearson",
   gene.coords = NULL,
   distance = 5e+05,
@@ -20,7 +20,9 @@ LinkPeaks(
   pvalue_cutoff = 0.05,
   score_cutoff = 0.05,
   gene.id = FALSE,
-  verbose = TRUE
+  verbose = TRUE,
+  peak.slot = deprecated(),
+  expression.slot = deprecated()
 )
 }
 \arguments{
@@ -30,9 +32,9 @@ LinkPeaks(
 
 \item{expression.assay}{Name of assay containing gene expression information}
 
-\item{peak.slot}{Name of slot to pull chromatin data from}
+\item{peak.layer}{Name of layer to pull chromatin data from}
 
-\item{expression.slot}{Name of slot to pull expression data from}
+\item{expression.layer}{Name of layer to pull expression data from}
 
 \item{method}{Correlation method to use. One of "pearson" or "spearman"}
 
@@ -62,6 +64,10 @@ to be retained}
 using gene IDs rather than gene names.}
 
 \item{verbose}{Display messages}
+
+\item{peak.slot}{Deprecated (use \code{peak.layer})}
+
+\item{expression.slot}{Deprecated (used \code{expression.layer})}
 }
 \value{
 Returns a Seurat object with the \code{Links} information set. This is
