@@ -271,6 +271,50 @@ InsertionBias <- function(object, ...) {
   UseMethod(generic = "InsertionBias", object = object)
 }
 
+
+#' Get genes linked to peaks
+#' 
+#' Retrieve peak-gene links for a given set of genes. Links must be first
+#' obtained by running the \code{LinkPeaks} function.
+#' 
+#' This function is designed to obtain the stored results from running the
+#' \code{LinkPeaks} function. Alternatively, custom peak-gene linkage methods
+#' can be used as long as they store the gene name, peak name, and a peak-gene
+#' score information as metadata columns named "gene," "peak," and "score"
+#' respectively.
+#' @param object A Seurat object
+#' @param ... Arguments passed to other methods
+#' @return Returns a character vector of peaks
+#'
+#' @export GetLinkedGenes
+#' @rdname GetLinkedGenes
+#' @seealso GetLinkedPeaks
+GetLinkedGenes <- function(object, ...) {
+  UseMethod(generic = "GetLinkedGenes", object = object)
+}
+
+#' Get peaks linked to genes
+#' 
+#' Retrieve peak-gene links for a given set of genes. Links must be first
+#' obtained by running the \code{LinkPeaks} function.
+#' 
+#' This function is designed to obtain the stored results from running the
+#' \code{LinkPeaks} function. Alternatively, custom peak-gene linkage methods
+#' can be used as long as they store the gene name, peak name, and a peak-gene
+#' score information as metadata columns named "gene," "peak," and "score"
+#' respectively.
+#'
+#' @param object A Seurat object
+#' @param ... Arguments passed to other methods
+#' @return Returns a character vector of genes
+#' 
+#' @export GetLinkedPeaks
+#' @rdname GetLinkedPeaks
+#' @seealso GetLinkedGenes
+GetLinkedPeaks <- function(object, ...) {
+  UseMethod(generic = "GetLinkedPeaks", object = object)
+}
+
 #' Retrieve a motif matrix
 #'
 #' Get motif matrix for given assay
