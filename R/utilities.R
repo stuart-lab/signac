@@ -591,14 +591,17 @@ GetCellsInRegion <- function(tabix, region, cells = NULL) {
 #' Count reads per cell overlapping a given set of regions
 #'
 #' @param object A Seurat object
-#' @param assay Name of a chromatin assay in the object to use
 #' @param regions A GRanges object
+#' @param assay Name of a chromatin assay in the object to use. If NULL, use the
+#' default assay
+#' @param layer Name of layer to use. If NULL, use the default layer
 #' @param ... Additional arguments passed to \code{\link[IRanges]{findOverlaps}}
 #'
 #' @importFrom IRanges findOverlaps
 #' @importFrom S4Vectors queryHits
+#' @importFrom GenomicRanges granges
 #' @importFrom Matrix colSums
-#' @importFrom SeuratObject LayerData
+#' @importFrom SeuratObject LayerData DefaultAssay DefaultLayer
 #'
 #' @export
 #' @concept utilities
@@ -613,18 +616,21 @@ GetCellsInRegion <- function(tabix, region, cells = NULL) {
 #' }
 CountsInRegion <- function(
   object,
-  assay,
   regions,
+  assay = NULL,
+  layer = NULL,
   ...
 ) {
-  if (!is(object = object[[assay]], class2 = "ChromatinAssay5")) {
-    stop("Must supply a ChromatinAssay5.")
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  layer <- SetIfNull(x = layer, y = DefaultLayer(object = object))
+  if (!is(object = object[[assay]], class2 = "GRangesAssay")) {
+    stop("Must supply a GRangesAssay.")
   }
-  obj.granges <- GetAssayData(object = object, assay = assay, layer = "ranges")
+  obj.granges <- granges(x = object[[assay]])
   overlaps <- findOverlaps(query = obj.granges, subject = regions, ...)
   hit.regions <- queryHits(x = overlaps)
   data.matrix <- LayerData(
-    object = object, assay = assay, layer = "counts"
+    object = object, assay = assay, layer = layer
   )[hit.regions, , drop = FALSE]
   return(colSums(x = data.matrix))
 }
@@ -635,11 +641,12 @@ CountsInRegion <- function(
 #' ranges
 #'
 #' @param object A Seurat object
-#' @param assay Name of assay to use
 #' @param regions A GRanges object containing a set of genomic regions
 #' @param ... Additional arguments passed to \code{\link{CountsInRegion}}
+#' @param assay Name of assay to use
+#' @param layer Name of layer to use. If NULL, use the default layer
 #' @importFrom Matrix colSums
-#' @importFrom SeuratObject LayerData DefaultAssay
+#' @importFrom SeuratObject LayerData DefaultAssay DefaultLayer
 #'
 #' @export
 #' @concept utilities
@@ -656,17 +663,20 @@ FractionCountsInRegion <- function(
   object,
   regions,
   assay = NULL,
+  layer = NULL,
   ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  layer <- SetIfNull(x = layer, y = DefaultLayer(object = object))
   reads.in.region <- CountsInRegion(
     object = object,
     regions = regions,
     assay = assay,
+    layer = layer,
     ...
   )
   total.reads <- colSums(x = LayerData(
-    object = object, assay = assay, layer = "counts"
+    object = object, assay = assay, layer = layer
   ))
   return(reads.in.region / total.reads)
 }

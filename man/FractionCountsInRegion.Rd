@@ -4,7 +4,7 @@
 \alias{FractionCountsInRegion}
 \title{Fraction of counts in a genomic region}
 \usage{
-FractionCountsInRegion(object, regions, assay = NULL, ...)
+FractionCountsInRegion(object, regions, assay = NULL, layer = NULL, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
@@ -12,6 +12,8 @@ FractionCountsInRegion(object, regions, assay = NULL, ...)
 \item{regions}{A GRanges object containing a set of genomic regions}
 
 \item{assay}{Name of assay to use}
+
+\item{layer}{Name of layer to use. If NULL, use the default layer}
 
 \item{...}{Additional arguments passed to \code{\link{CountsInRegion}}}
 }

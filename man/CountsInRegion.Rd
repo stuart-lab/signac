@@ -4,14 +4,17 @@
 \alias{CountsInRegion}
 \title{Counts in region}
 \usage{
-CountsInRegion(object, assay, regions, ...)
+CountsInRegion(object, regions, assay = NULL, layer = NULL, ...)
 }
 \arguments{
 \item{object}{A Seurat object}
 
-\item{assay}{Name of a chromatin assay in the object to use}
-
 \item{regions}{A GRanges object}
+
+\item{assay}{Name of a chromatin assay in the object to use. If NULL, use the
+default assay}
+
+\item{layer}{Name of layer to use. If NULL, use the default layer}
 
 \item{...}{Additional arguments passed to \code{\link[IRanges]{findOverlaps}}}
 }
