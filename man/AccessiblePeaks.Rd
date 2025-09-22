@@ -7,6 +7,7 @@
 AccessiblePeaks(
   object,
   assay = NULL,
+  layer = NULL,
   idents = NULL,
   cells = NULL,
   min.cells = 10
@@ -15,7 +16,9 @@ AccessiblePeaks(
 \arguments{
 \item{object}{A Seurat object}
 
-\item{assay}{Name of assay to use}
+\item{assay}{Name of assay to use. If NULL, use the default assay.}
+
+\item{layer}{Name of layer to use. If NULL, use the default layer.}
 
 \item{idents}{A set of identity classes to find accessible peaks for}
 
