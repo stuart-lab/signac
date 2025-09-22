@@ -223,9 +223,9 @@ ConnectionsToLinks <- function(
 #'
 #' @param object A Seurat object
 #' @param peak.assay Name of assay containing peak information
-#' @param peak.slot Name of slot to pull chromatin data from
+#' @param peak.layer Name of layer to pull chromatin data from
 #' @param expression.assay Name of assay containing gene expression information
-#' @param expression.slot Name of slot to pull expression data from
+#' @param expression.layer Name of layer to pull expression data from
 #' @param method Correlation method to use. One of "pearson" or "spearman"
 #' @param gene.coords GRanges object containing coordinates of genes in the
 #' expression assay. If NULL, extract from gene annotations stored in the assay.
@@ -244,6 +244,8 @@ ConnectionsToLinks <- function(
 #' @param gene.id Set to TRUE if genes in the expression assay are named
 #' using gene IDs rather than gene names.
 #' @param verbose Display messages
+#' @param peak.slot Deprecated (use \code{peak.layer})
+#' @param expression.slot Deprecated (used \code{expression.layer})
 #'
 #' @importFrom SeuratObject GetAssayData Layers
 #' @importFrom stats pnorm sd
@@ -251,6 +253,7 @@ ConnectionsToLinks <- function(
 #' @importFrom future.apply future_lapply
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
+#' @importFrom lifecycle is_present deprecated
 #' @importMethodsFrom Matrix t
 #'
 #' @return Returns a Seurat object with the \code{Links} information set. This is
@@ -272,8 +275,8 @@ LinkPeaks <- function(
   object,
   peak.assay,
   expression.assay,
-  peak.slot = "counts",
-  expression.slot = "data",
+  peak.layer = "counts",
+  expression.layer = "data",
   method = "pearson",
   gene.coords = NULL,
   distance = 5e+05,
@@ -284,10 +287,12 @@ LinkPeaks <- function(
   pvalue_cutoff = 0.05,
   score_cutoff = 0.05,
   gene.id = FALSE,
-  verbose = TRUE
+  verbose = TRUE,
+  peak.slot = deprecated(),
+  expression.slot = deprecated()
 ) {
-  if (!inherits(x = object[[peak.assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay")
+  if (!inherits(x = object[[peak.assay]], what = "GRangesAssay")) {
+    stop("The requested assay is not a GRangesAssay")
   }
   if (!is.null(x = min.distance)) {
     if (!is.numeric(x = min.distance)) {
@@ -299,6 +304,22 @@ LinkPeaks <- function(
     } else if (min.distance == 0) {
       min.distance <- NULL
     }
+  }
+  if (is_present(arg = expression.slot)) {
+    deprecate_warn(
+      when = "1.16.0",
+      what = "LinkPeaks(expression.slot)",
+      with = "LinkPeaks(expression.layer)"
+    )
+    expression.layer <- expression.slot
+  }
+  if (is_present(arg = peak.slot)) {
+    deprecate_warn(
+      when = "1.16.0",
+      what = "LinkPeaks(peak.slot)",
+      with = "LinkPeaks(peak.layer)"
+    )
+    peak.layer <- peak.slot
   }
   features.match <- c("GC.percent", "count", "sequence.length")
   if (method == "pearson") {
