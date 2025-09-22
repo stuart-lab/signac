@@ -906,18 +906,6 @@ SubsetMatrix <- function(
 
 #### Not exported ####
 
-#' @importFrom IRanges isDisjoint
-NonOverlapping <- function(x, all.features) {
-  # x is list of assays
-  diff.features <- names(x = all.features[all.features < length(x = x)])
-  if (length(x = diff.features) == 0) {
-    return(TRUE)
-  } else {
-    diff.ranges <- StringToGRanges(regions = diff.features)
-    return(isDisjoint(x = diff.ranges))
-  }
-}
-
 #' @importFrom Matrix sparseMatrix
 AddMissing <- function(x, cells = NULL, features = NULL) {
   # add columns with zeros for cells or features not in matrix
@@ -1288,24 +1276,6 @@ isRemote <- function(x) {
   return(grepl(pattern = "^http|^ftp", x = x))
 }
 
-# row merge list of matrices
-# @param mat.list list of sparse matrices
-# @param new.rownames rownames to assign merged matrix
-#' @importFrom SeuratObject RowMergeSparseMatrices
-MergeMatrixParts <- function(mat.list, new.rownames) {
-  # RowMergeSparseMatrices only exported in Seurat release Dec-2019 (3.1.2)
-  merged.all <- mat.list[[1]]
-  for (i in 2:length(x = mat.list)) {
-    merged.all <- RowMergeSparseMatrices(
-      mat1 = merged.all,
-      mat2 = mat.list[[i]]
-    )
-  }
-  # reorder rows to match genomic ranges
-  merged.all <- merged.all[new.rownames, ]
-  return(merged.all)
-}
-
 # Run GetReadsInRegion for a list of Fragment objects
 # concatenate the output dataframes and return
 # @param object A Seurat or ChromatinAssay object
@@ -1377,8 +1347,8 @@ MultiGetReadsInRegion <- function(
 SingleFileCutMatrix <- function(
   cellmap,
   region,
-  cells = NULL,
   tabix.file,
+  cells = NULL,
   verbose = TRUE
 ) {
   # if multiple regions supplied, must be the same width
@@ -1807,201 +1777,6 @@ IsMatrixEmpty <- function(x) {
   matrix.dims <- dim(x = x)
   matrix.na <- all(matrix.dims == 1) && all(is.na(x = x))
   return(all(matrix.dims == 0) || matrix.na)
-}
-
-# Find matrix indices corresponding to overlapping genomic ranges
-# @param assay.list A list of ChromatinAssay objects
-# @param all.ranges Combined genomic ranges for all objects. This should be the
-# set of ranges that \code{reduce} was run on to get \code{reduced.ranges}
-# @param reduced.ranges A set of reduced genomic ranges containing the rev.map
-# information
-GetRowsToMerge <- function(assay.list, all.ranges, reduced.ranges) {
-  revmap <- as.vector(x = reduced.ranges$revmap)
-
-  # get indices of ranges that changed
-  revmap.lengths <- sapply(X = revmap, FUN = length)
-  changed.ranges <- which(x = revmap.lengths > 1)
-  grange.string <- GRangesToString(grange = reduced.ranges[changed.ranges])
-
-  # preallocate
-  offsets <- list()
-  results <- list()
-  matrix.indices <- vector(
-    mode = "numeric",
-    length = length(x = changed.ranges) * 2
-  )
-  granges <- vector(
-    mode = "character",
-    length = length(x = changed.ranges) * 2
-  )
-  for (i in seq_along(along.with = assay.list)) {
-    indices <- which(x = all.ranges$dataset == i)
-    offsets[[i]] <- min(indices) - 1
-    offsets[[i]][[2]] <- max(indices) + 1
-    results[['matrix']][[i]] <- matrix.indices
-    results[['grange']][[i]] <- granges
-  }
-
-  # find sets of ranges for each dataset
-  counter <- vector(mode = "numeric", length = length(x = assay.list))
-  for (x in seq_along(along.with = changed.ranges)) {
-    idx <- changed.ranges[[x]]
-    all.assay <- revmap[[idx]]
-    for (i in seq_along(along.with = assay.list)) {
-      this.assay <- all.assay[
-        (all.assay > offsets[[i]][1]) & (all.assay < offsets[[i]][2])
-      ]
-      mat.idx <- this.assay - offsets[[i]][1]
-      mat.idx <- mat.idx[mat.idx < offsets[[i]][2] & mat.idx > 0]
-      for (y in seq_along(along.with = mat.idx)) {
-        counter[i] <- counter[i] + 1
-        results[['matrix']][[i]][[counter[i]]] <- mat.idx[[y]]
-        results[['grange']][[i]][[counter[i]]] <- grange.string[[x]]
-      }
-    }
-  }
-  # remove trailing extra values in each vector
-  for (i in seq_along(along.with = assay.list)) {
-    results$matrix[[i]] <- results$matrix[[i]][1:counter[i]]
-    results$grange[[i]] <- results$grange[[i]][1:counter[i]]
-  }
-  return(results)
-}
-
-# Merge rows of count matrices with overlapping genomic ranges
-# @param mergeinfo The output of GetRowsToMerge: a list of matrix indices
-#  and matrix rownames to be merged for each assay
-# @param assay.list List of assays
-# @param verbose Display messages
-#' @importFrom utils txtProgressBar setTxtProgressBar
-#' @importFrom Matrix rowSums
-#' @importMethodsFrom Matrix t
-MergeOverlappingRows <- function(
-  mergeinfo,
-  assay.list,
-  slot = "counts",
-  verbose = TRUE
-) {
-  merge.counts <- list()
-  for (i in seq_along(along.with = assay.list)) {
-    # get count matrix
-    counts <- GetAssayData(object = assay.list[[i]], layer = slot)
-
-    if (nrow(x = counts) == 0) {
-      # no counts, only data
-      # skip row merge and return empty counts matrices
-      merge.counts <- lapply(
-        X = seq_along(along.with = assay.list),
-        FUN = matrix,
-        nrow = 0,
-        ncol = 0
-      )
-      return(merge.counts)
-    }
-
-    # transpose for faster access since matrix is column major
-    counts <- t(x = counts)
-
-    # get rows to merge
-    mrows <- mergeinfo$matrix[[i]]
-    new.rownames <- mergeinfo$grange[[i]]
-    nrep <- rle(x = new.rownames)
-
-    # allocate
-    todelete <- c()
-    newmat <- vector(
-      mode = "list",
-      length = length(new.rownames)
-    )
-    newmat.names <- vector(
-      mode = "character",
-      length = length(x = new.rownames)
-    )
-    x <- 1  # row index for matrix
-    y <- 1  # counter for list index
-    if (verbose & length(x = nrep$lengths) > 1) {
-      pb <- txtProgressBar(
-        min = 1,
-        max = length(x = nrep$lengths),
-        style = 3,
-        file = stderr()
-      )
-    }
-    to.rename.idx <- vector(
-      mode = "numeric", length = length(x = nrep$lengths)
-    )
-    to.rename.names <- vector(
-      mode = "character", length = length(x = nrep$lengths)
-    )
-    idx.counter <- 0
-    for (j in seq_along(along.with = nrep$lengths)) {
-      rowrun <- nrep$lengths[[j]]
-      new.feature.name <- nrep$values[[j]]
-      index.range <- x:(x + rowrun - 1)
-      matrix.index <- mrows[index.range]
-      if (rowrun < 2) {
-        idx.counter <- idx.counter + 1
-        # no merge needed, just rename row in-place
-        # store row indices and names to do the change in one step at the end
-        to.rename.idx[idx.counter] <- matrix.index
-        to.rename.names[idx.counter] <- new.feature.name
-      } else {
-        # merge multiple rows and add to list
-        newmat[[y]] <- rowSums(x = counts[, matrix.index])
-        # mark merged row for deletion
-        todelete <- c(todelete, matrix.index)
-        # add row names
-        newmat.names[y] <- new.feature.name
-        y <- y + 1
-      }
-      if (verbose & length(x = nrep$lengths) > 1) {
-        setTxtProgressBar(pb = pb, value = j)
-      }
-      x <- x + rowrun
-    }
-    # remove extra elements in vectors
-    to.rename.idx <- to.rename.idx[1:idx.counter]
-    to.rename.names <- to.rename.names[1:idx.counter]
-    newmat <- newmat[1:(y - 1)]
-    newmat.names <- newmat.names[1:(y - 1)]
-
-    # transpose back
-    counts <- t(x = counts)
-
-    # rename matrix rows that weren't merged
-    rownames(counts)[to.rename.idx] <- to.rename.names
-
-    if (y == 1) {
-      # no rows were merged, can return counts
-      merge.counts[[i]] <- counts
-    } else if (y == 2) {
-      # only one element
-      tomerge <- matrix(data = newmat[[1]], nrow = 1)
-      colnames(x = tomerge) <- names(x = newmat[[1]])
-      rownames(x = tomerge) <- newmat.names
-      tomerge <- tomerge[, colnames(x = counts)]
-      counts <- rbind(counts, tomerge)
-      merge.counts[[i]] <- counts
-    } else {
-      # construct sparse matrix
-      if (verbose) {
-        message("\nBinding matrix rows")
-      }
-      merged.mat <- Reduce(f = rbind, x = newmat)
-      rownames(merged.mat) <- newmat.names
-      merged.mat <- as(object = merged.mat, Class = "CsparseMatrix")
-
-      # remove rows from count matrix that were merged
-      mat.rows <- seq_len(length.out = nrow(x = counts))
-      tokeep <- setdiff(mat.rows, todelete)
-      counts <- counts[tokeep, ]
-
-      # add new merged rows to counts
-      counts <- rbind(counts, merged.mat)
-      merge.counts[[i]] <- counts
-    }
-  }
-  return(merge.counts)
 }
 
 #' @importFrom Matrix sparseMatrix
