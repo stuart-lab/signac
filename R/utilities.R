@@ -1176,6 +1176,11 @@ FindRegion <- function(
 # the Seurat object. Should be a named vector where each element is a cell name
 # that appears in the fragment file and the name of each element is the
 # name of the cell in the Seurat object.
+# @param seqmap A mapping of sequence names in the fragment file to sequence
+# names in the peaks or gene annotations used in the Seurat object. Should be a 
+# named vector where each element is a sequence name that appears in the
+# fragment file and the name of each element is the name of the sequence in the
+# Seurat object.
 # @param region A genomic region, specified as a string in the format
 # 'chr:start-end'. Can be a vector of regions.
 # @param tabix.file A TabixFile object.
@@ -1190,14 +1195,18 @@ FindRegion <- function(
 # @return Returns a data frame
 GetReadsInRegion <- function(
   cellmap,
+  seqmap,
   region,
   tabix.file,
   cells = NULL,
   verbose = TRUE,
   ...
 ) {
-  file.to.object <- names(x = cellmap)
-  names(x = file.to.object) <- cellmap
+  file.to.object.cell <- names(x = cellmap)
+  names(x = file.to.object.cell) <- cellmap
+  
+  file.to.object.seqname <- names(x = seqmap)
+  names(x = file.to.object.seqname) <- seqmap
 
   if (verbose) {
     message("Extracting reads in requested region")
@@ -1222,7 +1231,11 @@ GetReadsInRegion <- function(
       fmatch(x = reads$cell, table = cellmap, nomatch = 0L) > 0,
     ]
     # convert cell names to match names in object
-    reads$cell <- file.to.object[reads$cell]
+    reads$cell <- file.to.object.cell[reads$cell]
+    
+    # convert seqnames to match names in object
+    reads$chr <- file.to.object.seqname[reads$chr]
+    
     if (!is.null(x = cells)) {
       reads <- reads[reads$cell %in% cells, ]
     }
@@ -1311,10 +1324,12 @@ MultiGetReadsInRegion <- function(
     tbx.path <- GetFragmentData(object = fragment.list[[i]], slot = "file.path")
     tbx.index <- GetFragmentData(object = fragment.list[[i]], slot = "file.index")
     cellmap <- GetFragmentData(object = fragment.list[[i]], slot = "cells")
+    seqmap <- GetFragmentData(object = fragment.list[[i]], slot = "seqnames")
     tabix.file <- TabixFile(file = tbx.path, index = tbx.index)
     open(con = tabix.file)
     reads <- GetReadsInRegion(
       cellmap = cellmap,
+      seqmap = seqmap,
       region = region,
       tabix.file = tabix.file,
       ...
@@ -1335,6 +1350,11 @@ MultiGetReadsInRegion <- function(
 # the Seurat object. Should be a named vector where each element is a cell name
 # that appears in the fragment file and the name of each element is the
 # name of the cell in the Seurat object.
+# @param seqmap A mapping of sequence names in the fragment file to sequence
+# names in the peaks or gene annotations used in the Seurat object. Should be a 
+# named vector where each element is a sequence name that appears in the
+# fragment file and the name of each element is the name of the sequence in the
+# Seurat object.
 # @param region A set of GRanges containing the regions of interest
 # @param cells Which cells to include in the matrix. If NULL, use all cells in
 # the cellmap
@@ -1346,6 +1366,7 @@ MultiGetReadsInRegion <- function(
 # @return Returns a sparse matrix
 SingleFileCutMatrix <- function(
   cellmap,
+  seqmap,
   region,
   tabix.file,
   cells = NULL,
@@ -1359,6 +1380,7 @@ SingleFileCutMatrix <- function(
   fragments <- GetReadsInRegion(
     region = region,
     cellmap = cellmap,
+    seqmap = seqmap,
     cells = cells,
     tabix.file = tabix.file,
     verbose = verbose
@@ -1434,6 +1456,7 @@ CutMatrix <- function(
     fragment.path <- GetFragmentData(object = fragments[[i]], slot = "file.path")
     index.path <- GetFragmentData(object = fragments[[i]], slot = "file.index")
     cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
+    seqmap <- GetFragmentData(object = fragments[[i]], slot = "seqnames")
     tabix.file <- TabixFile(file = fragment.path, index = index.path)
     open(con = tabix.file)
     # remove regions that aren't in the fragment file
@@ -1450,6 +1473,7 @@ CutMatrix <- function(
       cm <- SingleFileCutMatrix(
         region = region,
         cellmap = cellmap,
+        seqmap = seqmap,
         tabix.file = tabix.file,
         cells = cells,
         verbose = FALSE
@@ -1499,6 +1523,7 @@ MultiRegionCutMatrix <- function(
     frag.path <- GetFragmentData(object = fragments[[i]], slot = "file.path")
     file.index <- GetFragmentData(object = fragments[[i]], slot = "file.index")
     cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
+    seqmap <- GetFragmentData(object = fragments[[i]], slot = "seqnames")
     if (is.null(x = cellmap)) {
       cellmap <- colnames(x = object)
       names(x = cellmap) <- cellmap
@@ -1517,6 +1542,7 @@ MultiRegionCutMatrix <- function(
     )
     cm <- SingleFileCutMatrix(
       cellmap = cellmap,
+      seqmap = seqmap,
       tabix.file = tabix.file,
       region = regions,
       verbose = verbose
