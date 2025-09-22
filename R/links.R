@@ -253,7 +253,7 @@ ConnectionsToLinks <- function(
 #' @importFrom future.apply future_lapply
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
-#' @importFrom lifecycle is_present deprecated
+#' @importFrom lifecycle is_present deprecated deprecate_warn
 #' @importMethodsFrom Matrix t
 #'
 #' @return Returns a Seurat object with the \code{Links} information set. This is
