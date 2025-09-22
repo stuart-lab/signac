@@ -2,36 +2,52 @@
 #'
 NULL
 
-#' Get peaks linked to genes
-#' 
-#' Retrieve peak-gene links for a given set of genes. Links must be first
-#' obtained by running the \code{LinkPeaks} function.
-#' 
-#' This function is designed to obtain the stored results from running the
-#' \code{LinkPeaks} function. Alternatively, custom peak-gene linkage methods
-#' can be used as long as they store the gene name, peak name, and a peak-gene
-#' score information as metadata columns named "gene," "peak," and "score"
-#' respectively.
-#'
-#' @param object A Seurat object
-#' @param features A list of genes to find linked peaks for
 #' @param assay Name of assay to use. If NULL, use the default assay
+#' @importFrom SeuratObject DefaultAssay
+#' @method GetLinkedPeaks Seurat
+#' @concept links
+#' @rdname GetLinkedPeaks
+GetLinkedPeaks.Seurat <- function(
+    object,
+    features,
+    assay = NULL,
+    min.abs.score = 0,
+    ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  links <- GetLinkedPeaks(
+    object = object[[assay]],
+    features = features,
+    min.abs.score = min.abs.score,
+    ...
+  )
+  return(links)
+}
+
+#' @export
+#' @method GetLinkedPeaks Assay5
+#' @concept links
+#' @rdname GetLinkedPeaks
+GetLinkedPeaks.Assay5 <- function(
+    object,
+    ...
+) {
+  stop("GetLinkedPeaks requires a GRangesAssay object")
+}
+
+#' @param features A list of genes to find linked peaks for
 #' @param min.abs.score Minimum absolute value of the link score for a link to
 #' be returned
 #' @export
+#' @method GetLinkedPeaks GRangesAssay
 #' @concept links
-#' @seealso GetLinkedGenes
-GetLinkedPeaks <- function(
+#' @rdname GetLinkedPeaks
+GetLinkedPeaks.GRangesAssay <- function(
   object,
   features,
-  assay = NULL,
   min.abs.score = 0
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay")
-  }
-  lnk <- Links(object = object[[assay]])
+  lnk <- Links(object = object)
   if (length(x = lnk) == 0) {
     stop("No links present in assay. Run LinkPeaks first.")
   }
@@ -39,36 +55,52 @@ GetLinkedPeaks <- function(
   return(unique(x = lnk.keep$peak))
 }
 
-#' Get genes linked to peaks
-#' 
-#' Retrieve peak-gene links for a given set of genes. Links must be first
-#' obtained by running the \code{LinkPeaks} function.
-#' 
-#' This function is designed to obtain the stored results from running the
-#' \code{LinkPeaks} function. Alternatively, custom peak-gene linkage methods
-#' can be used as long as they store the gene name, peak name, and a peak-gene
-#' score information as metadata columns named "gene," "peak," and "score"
-#' respectively.
-#'
-#' @param object A Seurat object
-#' @param features A list of peaks to find linked genes for
 #' @param assay Name of assay to use. If NULL, use the default assay
+#' @importFrom SeuratObject DefaultAssay
+#' @method GetLinkedGenes Seurat
+#' @concept links
+#' @rdname GetLinkedGenes
+GetLinkedGenes.Seurat <- function(
+    object,
+    features,
+    assay = NULL,
+    min.abs.score = 0,
+    ...
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  links <- GetLinkedGenes(
+    object = object[[assay]],
+    features = features,
+    min.abs.score = min.abs.score,
+    ...
+  )
+  return(links)
+}
+
+#' @export
+#' @method GetLinkedGenes Assay5
+#' @concept links
+#' @rdname GetLinkedGenes
+GetLinkedGenes.Assay5 <- function(
+    object,
+    ...
+) {
+  stop("GetLinkedGenes requires a GRangesAssay object")
+}
+
+#' @param features A list of peaks to find linked genes for
 #' @param min.abs.score Minimum absolute value of the link score for a link to
 #' be returned
 #' @export
+#' @method GetLinkedGenes GRangesAssay
 #' @concept links
-#' @seealso GetLinkedPeaks
-GetLinkedGenes <- function(
-  object,
-  features,
-  assay = NULL,
-  min.abs.score = 0
+#' @rdname GetLinkedGenes
+GetLinkedGenes.GRangesAssay <- function(
+    object,
+    features,
+    min.abs.score = 0
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay")
-  }
-  lnk <- Links(object = object[[assay]])
+  lnk <- Links(object = object)
   if (length(x = lnk) == 0) {
     stop("No links present in assay. Run LinkPeaks first.")
   }
