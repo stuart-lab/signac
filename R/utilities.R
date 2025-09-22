@@ -712,6 +712,10 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
     stop("The requested assay is not a ChromatinAssay5")
   }
   annotations <- Annotation(object = object[[assay]])
+  if (is.null(x = annotations)) {
+    warning("No gene annotations stored in requested assay.")
+    return(NULL)
+  }
   isgene <- annotations$gene_name == gene
   isgene <- !is.na(x = isgene) & isgene
   annot.sub <- annotations[isgene]
@@ -854,40 +858,6 @@ MatchRegionStats <- function(
   }
   feature.select <- rownames(x = meta.feature)[feature.select]
   return(feature.select)
-}
-
-#' Unify genomic ranges
-#'
-#' Create a unified set of non-overlapping genomic ranges
-#' from multiple Seurat objects containing single-cell
-#' chromatin data.
-#'
-#' @param object.list A list of Seurat objects or GRangesAssay objects
-#' @param mode Function to use when combining genomic ranges. Can be "reduce"
-#' (default) or "disjoin".
-#' See \code{\link[GenomicRanges]{reduce}}
-#' and \code{\link[GenomicRanges]{disjoin}}
-#' for more information on these functions.
-#' @importFrom GenomicRanges reduce disjoin
-#' @export
-#' @concept utilities
-#' @concept preprocessing
-#' @return Returns a GRanges object
-#' @examples
-#' UnifyPeaks(object.list = list(atac_small, atac_small))
-UnifyPeaks <- function(object.list, mode = "reduce") {
-  peak.ranges <- list()
-  for (i in seq_along(along.with = object.list)) {
-    peak.ranges[[i]] <- granges(x = object.list[[i]])
-  }
-  peak.ranges <- Reduce(f = c, x = peak.ranges)
-  if (mode == "reduce") {
-    return(reduce(x = peak.ranges))
-  } else if (mode == "disjoin") {
-    return(disjoin(x = peak.ranges))
-  } else {
-    stop("Unknown mode requested")
-  }
 }
 
 #' Subset matrix rows and columns
