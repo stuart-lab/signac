@@ -273,3 +273,64 @@ GetPromoterPeaksMatrix <- function(
   peak_mat <- BPCells::peak_matrix(frag, promoter_region, mode="insertions")
   return(peak_mat)
 }
+
+
+
+RunChromVAR_BPCells <- function(object,    peak.matrix.assay, peak.assay) {
+  
+  
+  library(BSgenome.Hsapiens.UCSC.hg38)
+  library(JASPAR2020)
+  library(chromVAR)
+  library(Matrix)
+  
+  atac_assay <- object[[ peak.matrix.assay ]]
+  gr_peaks <- GRanges(object[[peak.assay]])
+  # TODO check if motif is there
+  
+  pfm <- getMatrixSet(
+    x = JASPAR2020,
+    opts = list(collection = "CORE", tax_group = 'vertebrates', all_versions = FALSE)
+  )
+  
+  motif <- AddMotifs(object =  gr_peaks, 
+                     genome = BSgenome.Hsapiens.UCSC.hg38, 
+                     pfm = pfm )
+  
+  chromvar.obj <- SummarizedExperiment::SummarizedExperiment(
+    assays = list(counts = atac_assay$counts), 
+    rowRanges = gr_peaks)
+  
+  chromvar.obj <- chromVAR::addGCBias(object = chromvar.obj, 
+                                      genome =  BSgenome.Hsapiens.UCSC.hg38)
+  
+  
+  row.data <- data.frame(SummarizedExperiment::rowData(x = chromvar.obj))
+  row.data[is.na(x = row.data)] <- 0
+  SummarizedExperiment::rowData(x = chromvar.obj) <- row.data
+  
+  row_sums <- rowSums(assay(chromvar.obj)) 
+  
+  # TODO check if  chromvar.obj_filter is small than chromvar.obj
+  chromvar.obj_filter <- chromvar.obj[row_sums > 0, ] 
+  
+  bg <- chromVAR::getBackgroundPeaks(object = chromvar.obj_filter)
+  
+  
+  gr_peaks_filter <- granges(chromvar.obj_filter)
+  
+  motif_filter <- AddMotifs(object =  gr_peaks_filter, 
+                            genome = BSgenome.Hsapiens.UCSC.hg38, 
+                            pfm = pfm )
+  
+  dev <- chromVAR::computeDeviations(object = chromvar.obj_filter, 
+                                     annotations = motif_filter@data,
+                                     background_peaks = bg)
+  
+  chromvar.z <- SummarizedExperiment::assays(dev)[[2]]
+  rownames(x = chromvar.z) <- colnames(x = motif_filter@data)
+  
+  object[['chromvar']] <- CreateAssayObject(counts = chromvar.z)
+  
+  return(object)
+}
