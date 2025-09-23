@@ -257,3 +257,19 @@ LinkPeaks_BPCells <- function(
   Links(object = object[[peak.assay]]) <- links
   return(object)
 }
+
+
+
+GetPromoterPeaksMatrix <- function(
+    fragment_file,
+    gene,
+    upstream = 2000,
+    downstream = 2000 
+    ) {
+  library(EnsDb.Hsapiens.v86)
+  gene_info <- genes(EnsDb.Hsapiens.v86, filter = GeneNameFilter(gene))
+  seqlevelsStyle(gene_info) <- "UCSC" 
+  promoter_region <- promoters(x = gene_info, upstream = upstream, downstream = downstream)
+  peak_mat <- BPCells::peak_matrix(frag, promoter_region, mode="insertions")
+  return(peak_mat)
+}
