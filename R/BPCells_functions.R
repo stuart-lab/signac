@@ -276,48 +276,43 @@ GetPromoterPeaksMatrix <- function(
 
 
 
-RunChromVAR_BPCells <- function(object, peak.matrix.assay, peak.assay, genome) {
- 
-  library(chromVAR)
-  library(Matrix)
+RunChromVAR_BPCells <- function(object, chromatin.assay, peak.matrix.assay,  genome) {
   
-  atac_assay <- object[[ peak.matrix.assay ]]
-  gr_peaks <- GRanges(object[[peak.assay]])
-  # TODO check if motif is there
   
-
+  motif <- object[[chromatin.assay]]@motifs
+  motif.matrix <- motif@data
+  
+  peak.ranges <- granges(x = object[[chromatin.assay]])
+  peak.ranges <- keepStandardChromosomes(peak.ranges, pruning.mode = "coarse")
+  peak.features <- paste(seqnames(peak.ranges), start(peak.ranges), end(peak.ranges), sep = '-')
+  
+  peak.matrix <-  object[[ peak.matrix.assay ]]$counts[peak.features, ]
+  motif.matrix <- motif.matrix[peak.features, ]
+  idx.keep <- rowSums(x = peak.matrix) > 0
+  peak.matrix <- peak.matrix[idx.keep, , drop = FALSE]
+  motif.matrix <- motif.matrix[idx.keep, , drop = FALSE]
+  peak.ranges <- peak.ranges[idx.keep]
+  
   chromvar.obj <- SummarizedExperiment::SummarizedExperiment(
-    assays = list(counts = atac_assay$counts), 
-    rowRanges = gr_peaks)
+    assays = list(counts = peak.matrix), 
+    rowRanges = peak.ranges)
   
   chromvar.obj <- chromVAR::addGCBias(object = chromvar.obj, 
                                       genome =  genome)
-  
-  
+
   row.data <- data.frame(SummarizedExperiment::rowData(x = chromvar.obj))
   row.data[is.na(x = row.data)] <- 0
   SummarizedExperiment::rowData(x = chromvar.obj) <- row.data
   
-  row_sums <- rowSums(assay(chromvar.obj)) 
+  bg <- chromVAR::getBackgroundPeaks(object = chromvar.obj)
   
-  # TODO check if  chromvar.obj_filter is small than chromvar.obj
-  chromvar.obj_filter <- chromvar.obj[row_sums > 0, ] 
-  
-  bg <- chromVAR::getBackgroundPeaks(object = chromvar.obj_filter)
-  
-  
-  gr_peaks_filter <- granges(chromvar.obj_filter)
-  
-  motif_filter <- AddMotifs(object =  gr_peaks_filter, 
-                            genome = genome, 
-                            pfm = pfm )
-  
-  dev <- chromVAR::computeDeviations(object = chromvar.obj_filter, 
-                                     annotations = motif_filter@data,
+  message('computing chromVAR deviations')
+  dev <- chromVAR::computeDeviations(object = chromvar.obj,
+                                     annotations = motif.matrix,
                                      background_peaks = bg)
   
   chromvar.z <- SummarizedExperiment::assays(dev)[[2]]
-  rownames(x = chromvar.z) <- colnames(x = motif_filter@data)
+  rownames(x = chromvar.z) <- colnames(x = motif.matrix)
   
   object[['chromvar']] <- CreateAssayObject(counts = chromvar.z)
   
