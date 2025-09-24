@@ -276,11 +276,8 @@ GetPromoterPeaksMatrix <- function(
 
 
 
-RunChromVAR_BPCells <- function(object,    peak.matrix.assay, peak.assay) {
-  
-  
-  library(BSgenome.Hsapiens.UCSC.hg38)
-  library(JASPAR2020)
+RunChromVAR_BPCells <- function(object, peak.matrix.assay, peak.assay, genome) {
+ 
   library(chromVAR)
   library(Matrix)
   
@@ -288,21 +285,13 @@ RunChromVAR_BPCells <- function(object,    peak.matrix.assay, peak.assay) {
   gr_peaks <- GRanges(object[[peak.assay]])
   # TODO check if motif is there
   
-  pfm <- getMatrixSet(
-    x = JASPAR2020,
-    opts = list(collection = "CORE", tax_group = 'vertebrates', all_versions = FALSE)
-  )
-  
-  motif <- AddMotifs(object =  gr_peaks, 
-                     genome = BSgenome.Hsapiens.UCSC.hg38, 
-                     pfm = pfm )
-  
+
   chromvar.obj <- SummarizedExperiment::SummarizedExperiment(
     assays = list(counts = atac_assay$counts), 
     rowRanges = gr_peaks)
   
   chromvar.obj <- chromVAR::addGCBias(object = chromvar.obj, 
-                                      genome =  BSgenome.Hsapiens.UCSC.hg38)
+                                      genome =  genome)
   
   
   row.data <- data.frame(SummarizedExperiment::rowData(x = chromvar.obj))
@@ -320,7 +309,7 @@ RunChromVAR_BPCells <- function(object,    peak.matrix.assay, peak.assay) {
   gr_peaks_filter <- granges(chromvar.obj_filter)
   
   motif_filter <- AddMotifs(object =  gr_peaks_filter, 
-                            genome = BSgenome.Hsapiens.UCSC.hg38, 
+                            genome = genome, 
                             pfm = pfm )
   
   dev <- chromVAR::computeDeviations(object = chromvar.obj_filter, 
@@ -333,4 +322,14 @@ RunChromVAR_BPCells <- function(object,    peak.matrix.assay, peak.assay) {
   object[['chromvar']] <- CreateAssayObject(counts = chromvar.z)
   
   return(object)
+}
+
+CreateEmptyCounts <- function(counts) {
+  
+  zero_counts <- sparseMatrix(j = ncol(counts), i = nrow(counts ))
+  
+  colnames(zero_counts) <- colnames(counts)
+  rownames(zero_counts) <- rownames(counts)
+  zero_counts <- Seurat::as.sparse(zero_counts)
+  return(zero_counts)
 }
