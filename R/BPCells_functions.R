@@ -1,7 +1,7 @@
 LinkPeaks_BPCells <- function(
     object,
     peak.matrix.assay,
-    peak.assay,
+    chromatin.assay,
     expression.assay,
     peak.slot = "counts",
     expression.slot = "data",
@@ -38,7 +38,7 @@ LinkPeaks_BPCells <- function(
   }
   
   if (is.null(x = gene.coords)) {
-    annot <- Annotation(object = object[[peak.assay]])
+    annot <- Annotation(object = object[[chromatin.assay]])
     if (is.null(x = annot)) {
       stop("Gene annotations not found")
     }
@@ -47,7 +47,7 @@ LinkPeaks_BPCells <- function(
     )
   }
   meta.features <- GetAssayData(
-    object = object, assay = peak.assay, layer = "meta.features"
+    object = object, assay = chromatin.assay, layer = "meta.features"
   )
   if (!(all(
     c("GC.percent", "sequence.length") %in% colnames(x = meta.features)
@@ -74,7 +74,15 @@ LinkPeaks_BPCells <- function(
   genecounts <- rowSums(x = expression.data > 0)
   peaks.keep <- peakcounts > min.cells
   genes.keep <- genecounts > min.cells
+  
+  
+  
+  peak.ranges <- granges(x = object[[chromatin.assay]])
+  peak.ranges <- keepStandardChromosomes(peak.ranges, pruning.mode = "coarse")
+  peak.features.coarse <- paste(seqnames(peak.ranges), start(peak.ranges), end(peak.ranges), sep = '-')
+  peaks.keep[ setdiff(rownames(peak.data), peak.features.coarse)]  <- FALSE
   peak.data <- peak.data[peaks.keep, ]
+  
   if (!is.null(x = genes.use)) {
     genes.keep <- intersect(
       x = names(x = genes.keep[genes.keep]), y = genes.use
@@ -105,8 +113,11 @@ LinkPeaks_BPCells <- function(
             length(x = gene.coords.use),
             " genes")
   }
-  peaks <- granges(x = object[[peak.assay]])
+  
+  peaks <- granges(x = object[[chromatin.assay]])
   peaks <- peaks[peaks.keep]
+  seqlevels(peaks) <- as.character(unique(seqnames(peaks) ))
+  
   peak_distance_matrix <- DistanceToTSS(
     peaks = peaks,
     genes = gene.coords.use,
@@ -123,7 +134,7 @@ LinkPeaks_BPCells <- function(
   if (sum(peak_distance_matrix) == 0) {
     stop("No peaks fall within distance threshold\n",
          "Have you set the proper genome and seqlevelsStyle for ",
-         peak.assay,
+         chromatin.assay,
          " assay?")
   }
   genes.use <- colnames(x = peak_distance_matrix)
@@ -153,6 +164,13 @@ LinkPeaks_BPCells <- function(
         return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
       } else {
         peak.access <- peak.data[, peak.use, drop = FALSE]
+        if (inherits(peak.access, what = 'IterableMatrix')) {
+          peak.access <- as.sparse(peak.access)
+        }
+        if (inherits(gene.expression, what = 'IterableMatrix')) {
+          gene.expression <- as.sparse(gene.expression)
+        }
+        
         coef.result <- cor_method(
           X = peak.access,
           Y = gene.expression
@@ -170,6 +188,7 @@ LinkPeaks_BPCells <- function(
           trans.peaks <- all.peaks[
             !grepl(pattern = paste0("^", gene.chrom), x = all.peaks)
           ]
+          trans.peaks <- intersect(trans.peaks, colnames(peak.data))
           meta.use <- meta.features[trans.peaks, ]
           pk.use <- meta.features[peaks.test, ]
           bg.peaks <- lapply(
@@ -185,7 +204,12 @@ LinkPeaks_BPCells <- function(
             }
           )
           # run background correlations
-          bg.access <- peak.data[, unlist(x = bg.peaks), drop = FALSE]
+          
+          bg.access <- peak.data[,unique(unlist(x = bg.peaks)), drop = FALSE]
+          if (inherits(bg.access, what = 'IterableMatrix')) {
+            bg.access <- as.sparse(bg.access)
+          }
+          bg.access <- bg.access[, unlist(x = bg.peaks), drop = FALSE ]
           bg.coef <- cor_method(
             X = bg.access,
             Y = gene.expression
@@ -254,7 +278,7 @@ LinkPeaks_BPCells <- function(
   links$zscore <- z.lnk$score
   links$pvalue <- pnorm(q = -abs(x = links$zscore))
   links <- links[links$pvalue < pvalue_cutoff]
-  Links(object = object[[peak.assay]]) <- links
+  Links(object = object[[chromatin.assay]]) <- links
   return(object)
 }
 
