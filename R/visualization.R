@@ -1125,6 +1125,9 @@ SingleCoveragePlot <- function(
   if (!is.null(x = group.by)) {
     Idents(object = object) <- group.by
   }
+  if (all(object@meta.data[, paste0('nCount_',assay )] == 0)) {
+    stop( paste0('nCount_',assay , ' is all equal to zero'))
+  }
   if (!is.null(x = idents)) {
     ident.cells <- WhichCells(object = object, idents = idents)
     cells <- intersect(x = cells, y = ident.cells)
