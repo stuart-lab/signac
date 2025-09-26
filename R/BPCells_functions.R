@@ -321,6 +321,9 @@ RunChromVAR_BPCells <- function(object, chromatin.assay, peak.matrix.assay,  gen
   motif.matrix <- motif.matrix[idx.keep, , drop = FALSE]
   peak.ranges <- peak.ranges[idx.keep]
   
+  if (inherits(x = peak.matrix, what = 'IterableMatrix')) {
+    peak.matrix <- as.sparse(peak.matrix)
+  }
   chromvar.obj <- SummarizedExperiment::SummarizedExperiment(
     assays = list(counts = peak.matrix), 
     rowRanges = peak.ranges)
@@ -331,7 +334,6 @@ RunChromVAR_BPCells <- function(object, chromatin.assay, peak.matrix.assay,  gen
   row.data <- data.frame(SummarizedExperiment::rowData(x = chromvar.obj))
   row.data[is.na(x = row.data)] <- 0
   SummarizedExperiment::rowData(x = chromvar.obj) <- row.data
-  
   bg <- chromVAR::getBackgroundPeaks(object = chromvar.obj)
   
   message('computing chromVAR deviations')
