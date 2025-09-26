@@ -310,7 +310,11 @@ RunChromVAR_BPCells <- function(object, chromatin.assay, peak.matrix.assay,  gen
   peak.ranges <- keepStandardChromosomes(peak.ranges, pruning.mode = "coarse")
   peak.features <- paste(seqnames(peak.ranges), start(peak.ranges), end(peak.ranges), sep = '-')
   
-  peak.matrix <-  object[[ peak.matrix.assay ]]$counts[peak.features, ]
+  peak.matrix <-  object[[ peak.matrix.assay ]]$counts
+ rownames(peak.matrix) <- gsub(':', '-', rownames(peak.matrix))
+ peak.matrix <- peak.matrix[peak.features, ]
+  
+  
   motif.matrix <- motif.matrix[peak.features, ]
   idx.keep <- rowSums(x = peak.matrix) > 0
   peak.matrix <- peak.matrix[idx.keep, , drop = FALSE]
