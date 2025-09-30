@@ -245,7 +245,7 @@ RunChromVAR.GRangesAssay <- function(
 #' @method RunChromVAR Seurat
 #' @rdname RunChromVAR
 #' @export
-#' @importFrom SeuratObject DefaultAssay DefaultLayer
+#' @importFrom SeuratObject DefaultAssay
 #' @concept motifs
 #' @examples
 #' \dontrun{
@@ -268,7 +268,6 @@ RunChromVAR.Seurat <- function(
     stop("Please install SummarizedExperiment")
   }
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  layer <- SetIfNull(x = layer, y = DefaultLayer(object = object))
   chromvar.assay <- RunChromVAR(
     object = object[[assay]],
     layer = layer,
