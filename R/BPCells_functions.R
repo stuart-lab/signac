@@ -300,9 +300,12 @@ GetPromoterPeaksMatrix <- function(
 
 
 
-RunChromVAR_BPCells <- function(object, chromatin.assay, peak.matrix.assay,  genome) {
-  
-  
+RunChromVAR_BPCells <- function(
+    object,
+    chromatin.assay,
+    peak.matrix.assay,
+    genome
+    ) {
   motif <- object[[chromatin.assay]]@motifs
   motif.matrix <- motif@data
   
