@@ -1,4 +1,4 @@
-# Unreleased
+# Signac 1.16.0
 
 Bug fixes:
 
@@ -7,6 +7,7 @@ Bug fixes:
 
 Other changes:
 
+* Remove broken `seqinfo` links from documentation as functions are moved from `GenomeInfoDb` to `Seqinfo`
 * Enable faster selection of background peaks if the `wrswoR` package is installed
 * Add `wrswoR` to suggested packages
 * Updated `MatchRegionStats()` to use likelihood-ratio weighting (query/background probability) to sample regions.
