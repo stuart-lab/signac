@@ -263,7 +263,7 @@ GeneActivity <- function(
 #' \code{\link{Fragment}} objects
 #' @param genome A vector of chromosome sizes for the genome. This is used to
 #' construct the genome bin coordinates. The can be obtained by calling
-#' \code{\link[GenomeInfoDb]{seqlengths}} on a
+#' \code{seqlengths} on a
 #' \code{\link[BSgenome]{BSgenome-class}} object.
 #' @param cells Vector of cells to include. If NULL, include all cells found
 #' in the fragments file

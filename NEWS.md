@@ -15,13 +15,14 @@ Other changes:
 
 * Changed SVD function in `RunSVD()` from `irlba::irlba()` to `RSpectra::svds()`
 
-# develop
+# Signac 1.16.0
 
 * Check that `macs2` exists at the `macs2.path` in `CallPeaks()` ([#1678](https://github.com/stuart-lab/signac/issues/1678))
 * Fix bug in `LinkPeaks()` that incorrectly excluded additional chromosomes from background peak set
 
 Other changes:
 
+* Remove broken `seqinfo` links from documentation as functions are moved from `GenomeInfoDb` to `Seqinfo`
 * Enable faster selection of background peaks if the `wrswoR` package is installed
 * Add `wrswoR` to suggested packages
 * Updated `MatchRegionStats()` to use likelihood-ratio weighting (query/background probability) to sample regions.
