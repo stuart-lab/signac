@@ -1264,7 +1264,6 @@ subset.Fragment <- function(
 #' @importFrom GenomicRanges union findOverlaps
 #' @importFrom SeuratObject RowMergeSparseMatrices Key Key<-
 #' @importFrom S4Vectors subjectHits queryHits mcols
-#' @importMethodsFrom GenomeInfoDb merge
 merge.ChromatinAssay <- function(
   x = NULL,
   y = NULL,
@@ -1358,10 +1357,10 @@ merge.ChromatinAssay <- function(
     all.seqinfo <- all.seqinfo[seqinfo.present]
     if (length(x = all.seqinfo) > 1) {
       seqinfo.use <- all.seqinfo[[1]]
-      # iteratively merge seqinfo objects
-      for (x in 2:length(x = all.seqinfo)) {
-        seqinfo.use <- merge(x = seqinfo.use, y = all.seqinfo[[x]])
-      }
+      # # iteratively merge seqinfo objects
+      # for (x in 2:length(x = all.seqinfo)) {
+      #   seqinfo.use <- merge(x = seqinfo.use, y = all.seqinfo[[x]])
+      # }
     } else {
       seqinfo.use <- all.seqinfo[[1]]
     }
