@@ -569,13 +569,13 @@ PlotFootprint <- function(
         label = label)
     )
     p <- p +
-      geom_line(size = 0.2) +
+      geom_line(linewidth = 0.2) +
       xlab("Distance from motif") +
       ylab(label = "Tn5 insertion\nenrichment") +
       theme_classic() +
       ggtitle(label = features[[i]]) +
       ylim(c(axis.min, axis.max)) +
-      guides(color = guide_legend(override.aes = list(size = 1)))
+      guides(color = guide_legend(override.aes = list(linewidth = 1)))
     if (!is.null(x = split.by)) {
       p <- p + facet_wrap(facets = ~split)
     }
@@ -1526,7 +1526,7 @@ CoverageTrack <- function(
     geom_area(
       stat = "identity",
       alpha = ifelse(test = !split.assays & multicov, yes = 0.5, no = 1)) +
-    geom_hline(yintercept = 0, size = 0.1)
+    geom_hline(yintercept = 0, linewidth = 0.1)
   if (split.assays) {
     p <- p +
       facet_wrap(facets = ~assay_group, strip.position = "left", ncol = 1)
