@@ -1,11 +1,15 @@
 #' @importFrom methods setClass setClassUnion
 #' slotNames
 #' @importClassesFrom Matrix dgCMatrix
+#' @importClassesFrom GenomicRanges GRanges
+#' @importClassesFrom InteractionSet GInteractions
 #' @useDynLib Signac
 NULL
 
 
-setClassUnion(name = "AnyMatrix", c("matrix", "dgCMatrix"))
+setClassUnion(name = "AnyMatrix", members = c("matrix", "dgCMatrix"))
+setClassUnion(name = "MatrixOrNULL", members = c("AnyMatrix", "NULL"))
+setClassUnion(name = "GRangesOrNULL", members = c("GRanges", "NULL"))
 
 #' The Fragment class
 #'
@@ -46,7 +50,7 @@ Fragment2 <- setClass(
 #' The Motif class is designed to store DNA sequence motif information,
 #' including motif PWMs or PFMs, motif positions, and metadata.
 #'
-#' @slot data A sparse, binary, feature x motif matrix. Columns
+#' @slot data A feature x motif matrix. Columns
 #' correspond to motif IDs, rows correspond to genomic features
 #' (peaks or bins). Entries in the matrix should be 1 if the
 #' genomic feature contains the motif, and 0 otherwise.
@@ -65,7 +69,7 @@ Fragment2 <- setClass(
 Motif <- setClass(
   Class = "Motif",
   slots = list(
-    data = "CsparseMatrix",
+    data = "MatrixOrNULL",
     pwm = "list",
     motif.names = "list",
     positions = "ANY",
@@ -73,12 +77,8 @@ Motif <- setClass(
   )
 )
 
-#' The ChromatinAssay5 class
-#'
-#' The ChromatinAssay5 object is an extended \code{\link[SeuratObject]{Assay5}}
-#' for the storage and analysis of single-cell chromatin data. This class does
-#' not require that the stored features are genomic ranges.
-#'
+setClassUnion(name = "MotifOrNULL", members = c("Motif", "NULL"))
+
 #' @slot fragments A list of \code{\link{Fragment}} objects.
 #' @slot annotation A  \code{\link[GenomicRanges]{GRanges}} object containing
 #' genomic annotations. This should be a GRanges object with the following 
@@ -94,9 +94,13 @@ Motif <- setClass(
 #' (frequency of Tn5 integration at different kmers)
 #' @slot positionEnrichment A named list of matrices containing positional
 #' enrichment scores for Tn5 integration (for example, enrichment at the TSS)
+#' @slot motifs A \code{\link{Motif}} object
+#' @slot links A list of \code{\link[InteractionSet]{GInteractions}} objects
+#' describing linked genomic positions, such as co-accessible sites, eQTLs, 
+#' Hi-C contact, or enhancer-gene regulatory relationships.
 #'
 #' @name ChromatinAssay5-class
-#' @rdname ChromatinAssay5-class
+#' @rdname GRangesAssay-class
 #' @importClassesFrom SeuratObject Assay5
 #' @exportClass ChromatinAssay5
 #' @concept assay
@@ -105,38 +109,52 @@ ChromatinAssay5 <- setClass(
   contains = "Assay5",
   slots = list(
     "fragments" = "list",
-    "annotation" = "ANY",
+    "annotation" = "GRangesOrNULL",
     "bias" = "ANY",
-    "positionEnrichment" = "list"
+    "positionEnrichment" = "list",
+    "links" = "list",
+    "motifs" = "MotifOrNULL"
   )
 )
 
-#' The GRangesAssay class
+setValidity(Class = "ChromatinAssay5", function(object) {
+  if (length(x = object@links) > 0 &&
+      !all(vapply(
+        X = object@links,
+        FUN = function(x) inherits(x = x, what = "GInteractions"),
+        logical(1)))) {
+    return("All elements of 'links' must be GInteractions objects")
+  }
+  if (length(x = object@fragments) > 0 &&
+      !all(vapply(
+        X = object@fragments,
+        FUN = function(x) inherits(x = x, what = "Fragment2"),
+        logical(1)))) {
+    return("All elements of 'fragments' must be Fragment2 objects")
+  }
+  TRUE
+})
+
+#' ChromatinAssay5 and GRangesAssay object classes
 #'
-#' The GRangesAssay object is an extended \code{\link{ChromatinAssay5}}
-#' for the storage and analysis of single-cell chromatin data with associated
-#' genomic ranges.
+#' The \code{GRangesAssay} and \code{ChromatinAssay5} classes are extended
+#' \code{\link[SeuratObject]{Assay5}} classes for the storage and analysis of
+#' single-cell chromatin data. The \code{GRangesAssay} class requires that
+#' features in the assay are genomic ranges.
 #'
 #' @slot ranges A \code{\link[GenomicRanges]{GRanges}} object describing the
 #' genomic location of features in the object
-#' @slot motifs A \code{\link{Motif}} object
-#' @slot links A \code{\link[GenomicRanges]{GRanges}} object describing linked
-#' genomic positions, such as co-accessible sites or enhancer-gene regulatory
-#' relationships. This should be a \code{GRanges} object, where the start and
-#' end coordinates are the two linked genomic positions, and must contain a
-#' "score" metadata column.
-#'
+#' 
 #' @name GRangesAssay-class
 #' @rdname GRangesAssay-class
 #' @exportClass GRangesAssay
 #' @concept assay
+#' @seealso \code{\link[SeuratObject]{Assay5}}
 GRangesAssay <- setClass(
   Class = "GRangesAssay",
   contains = "ChromatinAssay5",
   slots = list(
-    "ranges" = "GRanges",
-    "motifs" = "ANY",
-    "links" = "GRanges"
+    "ranges" = "GRanges"
   )
 )
 

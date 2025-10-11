@@ -7,14 +7,7 @@
 \usage{
 as.GRangesAssay(x, ...)
 
-\method{as.GRangesAssay}{ChromatinAssay5}(
-  x,
-  ranges = NULL,
-  motifs = NULL,
-  links = NULL,
-  sep = c("-", "-"),
-  ...
-)
+\method{as.GRangesAssay}{ChromatinAssay5}(x, ranges = NULL, sep = c("-", "-"), ...)
 }
 \arguments{
 \item{x}{An object to convert to class \code{\link{GRangesAssay}}}
@@ -22,10 +15,6 @@ as.GRangesAssay(x, ...)
 \item{...}{Arguments passed to other methods}
 
 \item{ranges}{A GRanges object}
-
-\item{motifs}{A \code{\link{Motif}} object}
-
-\item{links}{Genomic links TODO}
 
 \item{sep}{Characters used to separate the chromosome, start, and end
 coordinates in the row names of the data matrix}

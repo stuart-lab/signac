@@ -12,6 +12,8 @@ as.ChromatinAssay5(x, ...)
   annotation = NULL,
   fragments = NULL,
   bias = NULL,
+  motifs = NULL,
+  links = NULL,
   positionEnrichment = NULL,
   ...
 )
@@ -33,6 +35,10 @@ as.ChromatinAssay5(x, ...)
 \item{fragments}{A list of \code{\link{Fragment}} objects}
 
 \item{bias}{Tn5 integration bias matrix}
+
+\item{motifs}{A \code{\link{Motif}} object}
+
+\item{links}{Genomic links TODO}
 
 \item{positionEnrichment}{A named list of position enrichment matrices.}
 }

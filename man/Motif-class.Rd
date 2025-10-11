@@ -12,7 +12,7 @@ including motif PWMs or PFMs, motif positions, and metadata.
 \section{Slots}{
 
 \describe{
-\item{\code{data}}{A sparse, binary, feature x motif matrix. Columns
+\item{\code{data}}{A feature x motif matrix. Columns
 correspond to motif IDs, rows correspond to genomic features
 (peaks or bins). Entries in the matrix should be 1 if the
 genomic feature contains the motif, and 0 otherwise.}

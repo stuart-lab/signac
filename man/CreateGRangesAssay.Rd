@@ -2,52 +2,36 @@
 % Please edit documentation in R/objects.R
 \name{CreateGRangesAssay}
 \alias{CreateGRangesAssay}
-\title{Create GRangesAssay object}
+\alias{CreateChromatinAssay5}
+\title{ChromatinAssay5 and GRangesAssay object constructors}
 \usage{
-CreateGRangesAssay(
+CreateGRangesAssay(counts, data, ranges = NULL, sep = c("-", "-"), ...)
+
+CreateChromatinAssay5(
   counts,
   data,
-  min.cells = 0,
-  min.features = 0,
-  max.cells = NULL,
-  ranges = NULL,
-  motifs = NULL,
   fragments = NULL,
   annotation = NULL,
+  motifs = NULL,
   links = NULL,
   bias = NULL,
   positionEnrichment = NULL,
-  sep = c("-", "-"),
   validate.fragments = TRUE,
   verbose = TRUE,
   ...
 )
 }
 \arguments{
-\item{counts}{Unnormalized data (raw counts)}
-
-\item{data}{Normalized data; if provided, do not pass counts}
-
-\item{min.cells}{Include features detected in at least this many cells.
-Will subset the counts matrix as well.
-To reintroduce excluded features, create a new object with a lower cutoff.}
-
-\item{min.features}{Include cells where at least this many features are
-detected.}
-
-\item{max.cells}{Include features detected in less than this many cells.
-Will subset the counts matrix as well.
-To reintroduce excluded features, create a new object with a higher cutoff.
-This can be useful for chromatin assays where certain artefactual loci
-accumulate reads in all cells. A percentage cutoff can also be set using
-'q' followed by the percentage of cells, for example 'q90' will discard
-features detected in 90 percent of cells.
-If NULL (default), do not apply any maximum value.}
-
 \item{ranges}{A set of \code{\link[GenomicRanges]{GRanges}} corresponding to
 the rows of the input matrix}
 
-\item{motifs}{A Motif object (not required)}
+\item{sep}{Separators to use for strings encoding genomic coordinates.
+First element is used to separate the chromosome from the coordinates,
+second element is used to separate the start from end coordinate. Only
+used if \code{ranges} is NULL.}
+
+\item{...}{Additional arguments passed to \code{\link{CreateChromatinAssay5}}
+and \code{\link[SeuratObject]{CreateAssay5Object}}.}
 
 \item{fragments}{Path to a tabix-indexed fragments file for the data
 contained in the input matrix. If multiple fragment files are required,
@@ -66,7 +50,10 @@ annotations for the genome used. It must have the following columns:
   \item{type: Annotation type (e.g. "exon", "gap")}
 }}
 
-\item{links}{Genomic links}
+\item{motifs}{A Motif object}
+
+\item{links}{A named list of \code{\link[InteractionSet]{GInteractions}}
+objects}
 
 \item{bias}{A Tn5 integration bias matrix}
 
@@ -74,28 +61,20 @@ annotations for the genome used. It must have the following columns:
 signal enrichment information for each cell. Should be a cell x position
 matrix, centered on an element of interest (for example, TSS sites).}
 
-\item{sep}{Separators to use for strings encoding genomic coordinates.
-First element is used to separate the chromosome from the coordinates,
-second element is used to separate the start from end coordinate. Only
-used if \code{ranges} is NULL.}
-
 \item{validate.fragments}{Check that cells in the assay are present in the
 fragment file.}
 
 \item{verbose}{Display messages}
-
-\item{...}{Additional arguments passed to \code{\link{CreateFragmentObject}}}
+}
+\value{
+Returns a Seurat object
 }
 \description{
-Create a \code{\link{GRangesAssay}} object from a count matrix or
-normalized data matrix. The expected format of the input matrix is features x
-cells.
-}
-\details{
-A set of genomic ranges must be supplied along with the matrix, with
-the length of the ranges equal to the number of rows in the matrix. If a set
-of genomic ranges are not supplied, they will be extracted from the
-row names of the matrix.
+The \code{\link{ChromatinAssay5-class}} and \code{\link{GRangesAssay-class}}
+classes extend \code{\link[SeuratObject]{Assay5}} objects for single-cell
+chromatin data, with or without genomic ranges for each feature in the assay.
+Use \code{CreateGRangesAssay} to construct a \code{GRangesAssay} object or
+\code{CreateChromatinAssay5} to construct a \code{ChromatinAssay5} object.
 }
 \seealso{
 \code{\link{CreateChromatinAssay5}}

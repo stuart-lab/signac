@@ -53,7 +53,8 @@ Imports:
     vctrs,
     lifecycle,
     sparseMatrixStats,
-    RSpectra
+    RSpectra,
+    InteractionSet
 Collate: 
     'RcppExports.R'
     'classes.R'
