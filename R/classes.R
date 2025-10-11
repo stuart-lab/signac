@@ -77,6 +77,66 @@ Motif <- setClass(
   )
 )
 
+#' CellAggregation class
+#' 
+#' The CellAggregation class enables storage of counts centered on a group of
+#' genomic regions, aggregated across cells for each region. The main data
+#' object stored is a region-by-position matrix.
+#' 
+#' @slot matrix List of region-by-position matrices
+#' @slot cells List of character vectors containing the cell names contained in
+#' each matrix
+#' @slot upstream Integer denoting number of bases upstream of the centered
+#' position that are stored in the matrix
+#' @slot downstream Integer denoting number of bases downstream of the centered
+#' position that are stored in the matrix
+#' 
+#' @name CellAggregation-class
+#' @rdname CellAggregation-class
+#' @exportClass CellAggregation
+#' @concept heatmap
+#' 
+#' @seealso \code{\link{RegionAggregation}}
+CellAggregation <- setClass(
+  Class = "CellAggregation",
+  slots = list(
+    matrix = "list",
+    cells = "list",
+    upstream = "numeric",
+    downstream = "numeric"
+  )
+)
+
+#' RegionAggregation class
+#' 
+#' The RegionAggregation class enables storage of counts centered on a group of
+#' genomic regions, aggregated across regions for each cell. The main data
+#' object stored is a cell-by-position matrix.
+#' 
+#' @slot matrix A cell-by-position matrix
+#' @slot regions A \code{\link[GenomicRanges]{granges}} object containing the
+#' regions aggregated across.
+#' @slot upstream Integer denoting number of bases upstream of the centered
+#' position that are stored in the matrix
+#' @slot downstream Integer denoting number of bases downstream of the centered
+#' position that are stored in the matrix
+#' 
+#' @name RegionAggregation-class
+#' @rdname RegionAggregation-class
+#' @exportClass RegionAggregation
+#' @concept heatmap
+#' 
+#' @seealso \code{\link{CellAggregation}}
+RegionAggregation <- setClass(
+  Class = "RegionAggregation",
+  slots = list(
+    matrix = "AnyMatrix",
+    regions = "GRanges",
+    upstream = "numeric",
+    downstream = "numeric"
+  )
+)
+
 setClassUnion(name = "MotifOrNULL", members = c("Motif", "NULL"))
 
 #' @slot fragments A list of \code{\link{Fragment}} objects.
@@ -92,8 +152,8 @@ setClassUnion(name = "MotifOrNULL", members = c("Motif", "NULL"))
 #' }
 #' @slot bias A vector containing Tn5 integration bias information
 #' (frequency of Tn5 integration at different kmers)
-#' @slot positionEnrichment A named list of matrices containing positional
-#' enrichment scores for Tn5 integration (for example, enrichment at the TSS)
+#' @slot cell.aggregation A list of \code{\link{CellAggregation}} objects
+#' @slot region.aggregation A list of \code{\link{RegionAggregation}} objects
 #' @slot motifs A \code{\link{Motif}} object
 #' @slot links A list of \code{\link[InteractionSet]{GInteractions}} objects
 #' describing linked genomic positions, such as co-accessible sites, eQTLs, 
@@ -111,7 +171,8 @@ ChromatinAssay5 <- setClass(
     "fragments" = "list",
     "annotation" = "GRangesOrNULL",
     "bias" = "ANY",
-    "positionEnrichment" = "list",
+    "cell.aggregation" = "list",
+    "region.aggregation" = "list",
     "links" = "list",
     "motifs" = "MotifOrNULL"
   )
@@ -131,6 +192,20 @@ setValidity(Class = "ChromatinAssay5", function(object) {
         FUN = function(x) inherits(x = x, what = "Fragment2"),
         logical(1)))) {
     return("All elements of 'fragments' must be Fragment2 objects")
+  }
+  if (length(x = object@region.aggregation) > 0 &&
+      !all(vapply(
+        X = object@region.aggregation,
+        FUN = function(x) inherits(x = x, what = "RegionAggregation"),
+        logical(1)))) {
+    return("All elements of 'region.aggregation' must be RegionAggregation objects")
+  }
+  if (length(x = object@cell.aggregation) > 0 &&
+      !all(vapply(
+        X = object@cell.aggregation,
+        FUN = function(x) inherits(x = x, what = "CellAggregation"),
+        logical(1)))) {
+    return("All elements of 'cell.aggregation' must be CellAggregation objects")
   }
   TRUE
 })

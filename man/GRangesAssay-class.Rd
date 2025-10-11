@@ -32,8 +32,9 @@ columns:
 \item{\code{bias}}{A vector containing Tn5 integration bias information
 (frequency of Tn5 integration at different kmers)}
 
-\item{\code{positionEnrichment}}{A named list of matrices containing positional
-enrichment scores for Tn5 integration (for example, enrichment at the TSS)}
+\item{\code{cell.aggregation}}{A list of \code{\link{CellAggregation}} objects}
+
+\item{\code{region.aggregation}}{A list of \code{\link{RegionAggregation}} objects}
 
 \item{\code{motifs}}{A \code{\link{Motif}} object}
 
