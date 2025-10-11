@@ -1497,7 +1497,6 @@ subset.Fragment2 <- function(
 #' @importFrom GenomicRanges union findOverlaps
 #' @importFrom SeuratObject RowMergeSparseMatrices Key Key<-
 #' @importFrom S4Vectors subjectHits queryHits mcols
-#' @importMethodsFrom GenomeInfoDb merge
 merge.GRangesAssay <- function(
     x = NULL,
     y = NULL,
