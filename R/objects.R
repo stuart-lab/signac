@@ -119,6 +119,15 @@ CreateChromatinAssay5 <- function(
       stop("Annotation must have `gene_name`, `gene_id`, `gene_biotype` and `type`.")
     }
   }
+  
+  # CreateAssay5Object throws error if counts or data is missing rather than NULL
+  if (missing(x = counts)) {
+    counts <- NULL
+  }
+  if (missing(x = data)) {
+    data <- NULL
+  }
+  
   seurat.assay <- CreateAssay5Object(counts = counts, data = data, ...)
   if (inherits(x = fragments, what = "list")) {
     # check each object in the list is a fragment object
