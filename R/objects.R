@@ -1640,10 +1640,18 @@ setMethod(
       "\n"
     )
     cat(
-      "Position enrichment matrices:",
+      "Region aggregation matrices:",
       length(x = GetAssayData(
         object = object,
-        layer = "positionEnrichment"
+        layer = "region.aggregation"
+      )),
+      "\n"
+    )
+    cat(
+      "Cell aggregation matrices:",
+      length(x = GetAssayData(
+        object = object,
+        layer = "cell.aggregation"
       )),
       "\n"
     )
@@ -1692,10 +1700,18 @@ setMethod(
       "\n"
     )
     cat(
-      "Position enrichment matrices:",
+      "Region aggregation matrices:",
       length(x = GetAssayData(
         object = object,
-        layer = "positionEnrichment"
+        layer = "region.aggregation"
+      )),
+      "\n"
+    )
+    cat(
+      "Cell aggregation matrices:",
+      length(x = GetAssayData(
+        object = object,
+        layer = "cell.aggregation"
       )),
       "\n"
     )
