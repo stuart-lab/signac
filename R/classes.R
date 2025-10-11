@@ -1,13 +1,13 @@
 #' @importFrom methods setClass setClassUnion
 #' slotNames
-#' @importClassesFrom Matrix dgCMatrix
+#' @importClassesFrom Matrix CsparseMatrix
 #' @importClassesFrom GenomicRanges GRanges
 #' @importClassesFrom InteractionSet GInteractions
 #' @useDynLib Signac
 NULL
 
 
-setClassUnion(name = "AnyMatrix", members = c("matrix", "dgCMatrix"))
+setClassUnion(name = "AnyMatrix", members = c("matrix", "CsparseMatrix"))
 setClassUnion(name = "MatrixOrNULL", members = c("AnyMatrix", "NULL"))
 setClassUnion(name = "GRangesOrNULL", members = c("GRanges", "NULL"))
 
