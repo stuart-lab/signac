@@ -3,9 +3,9 @@
 \name{Links}
 \alias{Links}
 \alias{Links<-}
-\alias{Links.GRangesAssay}
+\alias{Links.ChromatinAssay5}
 \alias{Links.Seurat}
-\alias{Links<-.GRangesAssay}
+\alias{Links<-.ChromatinAssay5}
 \alias{Links<-.Seurat}
 \title{Get or set links information}
 \usage{
@@ -13,16 +13,16 @@ Links(object, ...)
 
 Links(object, ...) <- value
 
-\method{Links}{GRangesAssay}(object, ...)
+\method{Links}{ChromatinAssay5}(object, ...)
 
 \method{Links}{Seurat}(object, ...)
 
-\method{Links}{GRangesAssay}(object, ...) <- value
+\method{Links}{ChromatinAssay5}(object, ...) <- value
 
 \method{Links}{Seurat}(object, ...) <- value
 }
 \arguments{
-\item{object}{A Seurat or GRangesAssay object}
+\item{object}{A Seurat or ChromatinAssay5 object}
 
 \item{...}{Arguments passed to other methods}
 

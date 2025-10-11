@@ -1408,15 +1408,7 @@ merge.GRangesAssay <- function(
     
     # merge granges across all objects
     granges.all <- StringToGRanges(regions = rownames(x = merged))
-    
-    # TODO merge links information
-    # TODO merge Motif objects
-    merged <- as.GRangesAssay(
-      x = merged,
-      ranges = granges.all,
-      motifs = NULL,
-      links = NULL
-    )
+    merged <- as.GRangesAssay(x = merged, ranges = granges.all)
     return(merged)
   }
 }
@@ -1507,6 +1499,9 @@ merge.ChromatinAssay5 <- function(
             Removing invalid files from merged ChromatinAssay5")
       all.frag <- all.frag[valid.frags]
     }
+    
+    # TODO merge links information
+    # TODO merge Motif objects
     
     # create new ChromatinAssay5 object
     # bias, motifs, positionEnrichment, metafeatures not kept
@@ -1684,6 +1679,19 @@ setMethod(
       "\n"
     )
     cat(
+      "Motifs present:",
+      ifelse(
+        test = is.null(x = Motifs(object = object)),
+        yes = FALSE,
+        no = TRUE
+      ),
+      "\n"
+    )
+    cat(
+      "Links present:", length(x = Links(object = object)),
+      "\n"
+    )
+    cat(
       "Position enrichment matrices:",
       length(x = GetAssayData(
         object = object,
@@ -1802,13 +1810,13 @@ Fragments.Seurat <- function(object, ...) {
 }
 
 #' @rdname Motifs
-#' @method Motifs GRangesAssay
+#' @method Motifs ChromatinAssay5
 #' @export
 #' @concept assay
 #' @concept motifs
 #' @examples
 #' Motifs(atac_small[["peaks"]])
-Motifs.GRangesAssay <- function(object, ...) {
+Motifs.ChromatinAssay5 <- function(object, ...) {
   return(slot(object = object, name = "motifs"))
 }
 
@@ -1817,7 +1825,7 @@ Motifs.ChromatinAssay <- function(object, ...) {
   return(slot(object = object, name = "motifs"))
 }
 
-#' @param object A Seurat or GRangesAssay or object
+#' @param object A Seurat or ChromatinAssay5 object
 #' @rdname Motifs
 #' @importFrom SeuratObject DefaultAssay
 #' @method Motifs Seurat
@@ -1832,13 +1840,13 @@ Motifs.Seurat <- function(object, ...) {
 }
 
 #' @rdname Links
-#' @method Links GRangesAssay
+#' @method Links ChromatinAssay5
 #' @export
 #' @concept assay
 #' @concept links
 #' @examples
 #' Links(atac_small[["peaks"]])
-Links.GRangesAssay <- function(object, ...) {
+Links.ChromatinAssay5 <- function(object, ...) {
   return(slot(object = object, name = "links"))
 }
 
@@ -1847,7 +1855,7 @@ Links.ChromatinAssay <- function(object, ...) {
   return(slot(object = object, name = "links"))
 }
 
-#' @param object A Seurat or GRangesAssay object
+#' @param object A Seurat or ChromatinAssay5 object
 #' @rdname Links
 #' @method Links Seurat
 #' @importFrom SeuratObject DefaultAssay
@@ -1877,13 +1885,13 @@ dim.Motif <- function(x) {
 
 #' @export
 #' @rdname Motifs
-#' @method Motifs<- GRangesAssay
+#' @method Motifs<- ChromatinAssay5
 #' @concept assay
 #' @concept motifs
 #' @examples
 #' motifs <- Motifs(atac_small)
 #' Motifs(atac_small[["peaks"]]) <- motifs
-"Motifs<-.GRangesAssay" <- function(object, ..., value) {
+"Motifs<-.ChromatinAssay5" <- function(object, ..., value) {
   object <- SetAssayData(object = object, layer = "motifs", new.data = value)
   return(object)
 }
@@ -1905,13 +1913,13 @@ dim.Motif <- function(x) {
 
 #' @export
 #' @rdname Links
-#' @method Links<- GRangesAssay
+#' @method Links<- ChromatinAssay5
 #' @concept assay
 #' @concept links
 #' @examples
 #' links <- Links(atac_small)
 #' Links(atac_small[["peaks"]]) <- links
-"Links<-.GRangesAssay" <- function(object, ..., value) {
+"Links<-.ChromatinAssay5" <- function(object, ..., value) {
   object <- SetAssayData(object = object, layer = "links", new.data = value)
   return(object)
 }
