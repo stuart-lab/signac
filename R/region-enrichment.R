@@ -259,6 +259,7 @@ TSSFast <- function(
     tbx.path <- GetFragmentData(object = frags[[i]], slot = "file.path")
     tbx.index <- GetFragmentData(object = frags[[i]], slot = "file.index")
     cellmap <- GetFragmentData(object = frags[[i]], slot = "cells")
+    seqmap <- GetFragmentData(object = frags[[i]], slot = "seqnames")
     if (is.null(x = cellmap)) {
       cellmap <- colnames(x = object)
       names(x = cellmap) <- cellmap
@@ -276,7 +277,8 @@ TSSFast <- function(
           upstream = upstream.flank[[x]],
           downstream = downstream.flank[[x]],
           tabix.file = tbx,
-          cell.name.map = cellmap
+          cell.name.map = cellmap,
+          seq.name.map = seqmap
         )
       }
     )
@@ -322,7 +324,8 @@ extract_tss_counts <- function(
   tabix.file,
   upstream,
   downstream,
-  cell.name.map
+  cell.name.map,
+  seq.name.map
 ) {
   tabix.file <- open(con = tabix.file)
   # initialize vectors
@@ -359,6 +362,7 @@ extract_tss_counts <- function(
   # count integration events
   cuts.center <- SingleFileCutMatrix(
     cellmap = cell.name.map,
+    seqmap = seq.name.map,
     tabix.file = tabix.file,
     region = centers.use,
     verbose = FALSE
@@ -366,6 +370,7 @@ extract_tss_counts <- function(
   counts.center <- rowSums(x = cuts.center)
   cuts.flank <- SingleFileCutMatrix(
     cellmap = cell.name.map,
+    seqmap = seq.name.map,
     tabix.file = tabix.file,
     region = c(uflanks.use, dflanks.use),
     verbose = FALSE
