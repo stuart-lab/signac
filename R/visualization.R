@@ -603,7 +603,7 @@ PlotFootprint <- function(
           data = df,
           mapping = aes(x = position, y = norm.value)
         ) +
-          geom_line(size = 0.2) +
+          geom_line(linewidth = 0.2) +
           xlab("Distance from motif") +
           ylab(label = "Expected\nTn5 enrichment") +
           theme_classic()
@@ -2043,7 +2043,7 @@ TSSPlot <- function(
     data = groupmeans,
     mapping = aes(x = position, y = norm.value, color = group)
   ) +
-    geom_line(stat = "identity", size = 0.2) +
+    geom_line(stat = "identity", linewidth = 0.2) +
     facet_wrap(facets = ~group) +
     xlab("Distance from TSS (bp)") +
     ylab(label = "Mean TSS enrichment score") +
@@ -2235,7 +2235,7 @@ PeakPlot <- function(
       aes_string(color = SetIfNull(x = group.by, y = "color"))
     ) +
       geom_segment(aes(x = start, y = 0, xend = end, yend = 0),
-                   size = 2,
+                   linewidth = 2,
                    data = peak.df)
   } else {
     # no peaks present in region, make empty panel
@@ -2472,7 +2472,7 @@ AnnotationPlot <- function(
           color = "strand"
         ),
         show.legend = FALSE,
-        size = 3
+        linewidth = 3
       ) +
       # gene body
       geom_segment(
@@ -2485,7 +2485,7 @@ AnnotationPlot <- function(
           color = "strand"
         ),
         show.legend = FALSE,
-        size = 1/2
+        linewidth = 1/2
       )
     if (nrow(x = annotation_df_list$plus) > 0) {
       # forward strand arrows
@@ -2505,7 +2505,7 @@ AnnotationPlot <- function(
           length = unit(x = 0.04, units = "inches")
         ),
         show.legend = FALSE,
-        size = 1/2
+        linewidth = 1/2
       )
     }
     if (nrow(x = annotation_df_list$minus) > 0) {
@@ -2526,7 +2526,7 @@ AnnotationPlot <- function(
           length = unit(x = 0.04, units = "inches")
         ),
         show.legend = FALSE,
-        size = 1/2
+        linewidth = 1/2
       )
     }
     # label genes
@@ -3381,7 +3381,7 @@ CreateTilePlot <- function(df, n, legend = TRUE) {
     ) +
     geom_raster() +
     theme_browser(legend = legend) +
-    geom_hline(yintercept = c(0, n), size = 0.1) +
+    geom_hline(yintercept = c(0, n), linewidth = 0.1) +
     ylab(paste0("Fragments (", n, " cells)")) +
     scale_fill_gradient(low = "white", high = "darkred") +
     scale_y_reverse() +
