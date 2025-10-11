@@ -1205,8 +1205,10 @@ GetReadsInRegion <- function(
   file.to.object.cell <- names(x = cellmap)
   names(x = file.to.object.cell) <- cellmap
   
-  file.to.object.seqname <- names(x = seqmap)
-  names(x = file.to.object.seqname) <- seqmap
+  if (!is.null(x = seqmap)) {
+    file.to.object.seqname <- names(x = seqmap)
+    names(x = file.to.object.seqname) <- seqmap
+  }
 
   if (verbose) {
     message("Extracting reads in requested region")
@@ -1234,8 +1236,9 @@ GetReadsInRegion <- function(
     reads$cell <- file.to.object.cell[reads$cell]
     
     # convert seqnames to match names in object
-    reads$chr <- file.to.object.seqname[reads$chr]
-    
+    if (!is.null(x = seqmap)) {
+      reads$chr <- file.to.object.seqname[reads$chr]
+    }
     if (!is.null(x = cells)) {
       reads <- reads[reads$cell %in% cells, ]
     }
