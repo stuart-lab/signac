@@ -25,7 +25,4 @@ position that are stored in the matrix}
 position that are stored in the matrix}
 }}
 
-\seealso{
-\code{\link{CellAggregation}}
-}
-\concept{heatmap}
+\concept{footprinting}

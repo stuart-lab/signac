@@ -14,7 +14,7 @@ as.ChromatinAssay5(x, ...)
   bias = NULL,
   motifs = NULL,
   links = NULL,
-  positionEnrichment = NULL,
+  region.aggregation = NULL,
   ...
 )
 }
@@ -40,7 +40,7 @@ as.ChromatinAssay5(x, ...)
 
 \item{links}{Genomic links TODO}
 
-\item{positionEnrichment}{A named list of position enrichment matrices.}
+\item{region.aggregation}{A named list of \code{\link{RegionAggregation}}}
 }
 \description{
 Convert objects to a ChromatinAssay

@@ -15,7 +15,7 @@ CreateChromatinAssay5(
   motifs = NULL,
   links = NULL,
   bias = NULL,
-  positionEnrichment = NULL,
+  region.aggregation = NULL,
   validate.fragments = TRUE,
   verbose = TRUE,
   ...
@@ -57,9 +57,8 @@ objects}
 
 \item{bias}{A Tn5 integration bias matrix}
 
-\item{positionEnrichment}{A named list of matrices containing positional
-signal enrichment information for each cell. Should be a cell x position
-matrix, centered on an element of interest (for example, TSS sites).}
+\item{region.aggregation}{A named list of \code{\link{RegionAggregation}}
+objects.}
 
 \item{validate.fragments}{Check that cells in the assay are present in the
 fragment file.}
