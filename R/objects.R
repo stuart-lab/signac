@@ -80,9 +80,8 @@ CreateGRangesAssay <- function(
 #' @param motifs A Motif object
 #' @param links A named list of \code{\link[InteractionSet]{GInteractions}}
 #' objects
-#' @param positionEnrichment A named list of matrices containing positional
-#' signal enrichment information for each cell. Should be a cell x position
-#' matrix, centered on an element of interest (for example, TSS sites).
+#' @param region.aggregation A named list of \code{\link{RegionAggregation}}
+#' objects.
 #' @param validate.fragments Check that cells in the assay are present in the
 #' fragment file.
 #' @param verbose Display messages
@@ -103,7 +102,7 @@ CreateChromatinAssay5 <- function(
   motifs = NULL,
   links = NULL,
   bias = NULL,
-  positionEnrichment = NULL,
+  region.aggregation = NULL,
   validate.fragments = TRUE,
   verbose = TRUE,
   ...
@@ -207,7 +206,7 @@ CreateChromatinAssay5 <- function(
     motifs = motifs,
     links = links,
     bias = bias,
-    positionEnrichment = positionEnrichment
+    region.aggregation = region.aggregation
   )
   return(chrom.assay)
 }
@@ -220,7 +219,7 @@ as.GRangesAssay.Assay5 <- function(
     annotation = NULL,
     fragments = NULL,
     bias = NULL,
-    positionEnrichment = NULL,
+    region.aggregation = NULL,
     ranges = NULL,
     motifs = NULL,
     links = NULL,
@@ -234,7 +233,7 @@ as.GRangesAssay.Assay5 <- function(
     bias = bias,
     motifs = motifs,
     links = links,
-    positionEnrichment = positionEnrichment,
+    region.aggregation = region.aggregation,
   )
   x <- as.GRangesAssay(
     object = x,
@@ -300,7 +299,7 @@ as.GRangesAssay.ChromatinAssay5 <- function(
 #' @param bias Tn5 integration bias matrix
 #' @param motifs A \code{\link{Motif}} object
 #' @param links Genomic links TODO
-#' @param positionEnrichment A named list of position enrichment matrices.
+#' @param region.aggregation A named list of \code{\link{RegionAggregation}}
 #'
 #' @rdname as.ChromatinAssay5
 #' @export
@@ -314,7 +313,7 @@ as.ChromatinAssay5.Assay5 <- function(
   bias = NULL,
   motifs = NULL,
   links = NULL,
-  positionEnrichment = NULL,
+  region.aggregation = NULL,
   ...
 ) {
   new.assay <- as(object = x, Class = "ChromatinAssay5")
@@ -339,11 +338,11 @@ as.ChromatinAssay5.Assay5 <- function(
       new.data = bias
     )
   }
-  if (!is.null(x = positionEnrichment)) {
+  if (!is.null(x = region.aggregation)) {
     new.assay <- SetAssayData(
       object = new.assay,
-      layer = "positionEnrichment",
-      new.data = positionEnrichment
+      layer = "region.aggregation",
+      new.data = region.aggregation
     )
   }
   if (!is.null(x = motifs)) {
@@ -858,17 +857,16 @@ RenameCells.ChromatinAssay5 <- function(object, new.names = NULL, ...) {
   Fragments(object = object) <- NULL
   Fragments(object = object) <- frags
   
-  pos.enrich <- GetAssayData(object = object, layer = "positionEnrichment")
-  for (i in seq_along(along.with = pos.enrich)) {
-    mat <- pos.enrich[[i]]
-    # TODO need to update here for posmat that is list
-    if (!inherits(x = mat, what = "list")) {
-      to.update <- rownames(x = mat) %in% names(x = new.names)
-      rownames(x = mat)[to.update] <- new.names[rownames(x = mat)[to.update]]
-      pos.enrich[[i]] <- mat
-    }
+  region.aggr <- GetAssayData(object = object, layer = "region.aggregation")
+  for (i in seq_along(along.with = region.aggr)) {
+    # TODO implement RenameCells.RegionAggregation
+    region.aggr[[i]] <- RenameCells(
+      object = region.aggr[[i]],
+      new.names = new.names
+    )
   }
-  slot(object = object, name = "positionEnrichment") <- pos.enrich
+  # TODO implement region aggregation assignment method
+  slot(object = object, name = "region.aggregation") <- region.aggr
   return(object)
 }
 
@@ -903,7 +901,7 @@ SetAssayData.GRangesAssay <- function(
     ...
 ) {
   if (layer %in% c("counts", "data", "scale.data", "meta.data", "misc", "key",
-                   "fragments", "annotation", "bias", "positionEnrichment")) {
+                   "fragments", "annotation", "bias", "region.aggregation")) {
     return(NextMethod())
   }
   if (is_present(arg = slot)) {
@@ -1036,44 +1034,45 @@ SetAssayData.ChromatinAssay5 <- function(
       stop("Bias must be provided as a vector")
     }
     methods::slot(object = object, name = layer) <- new.data
-  } else if (layer == "positionEnrichment") {
-    if (inherits(x = new.data, what = "list")) {
-      # list of position enrichment matrices being added
-      if (length(x = new.data) == 0) {
-        # if list is empty, assign and overwrite slot
-        methods::slot(object = object, name = layer) <- new.data
-      } else if (is.null(x = names(x = new.data))) {
-        stop("If supplying a list of position enrichment matrices,
-             each element must be named")
-      } else {
-        current.data <- GetAssayData(object = object, layer = layer)
-        if (length(x = current.data) != 0) {
-          warning("Overwriting current list of position enrichement matrices")
-        }
-        for (i in seq_along(along.with = new.data)) {
-          if (!is(object = new.data[[i]], class2 = "AnyMatrix")) {
-            stop(
-              "Position enrichment must be provided as a matrix or sparseMatrix"
-              )
-          }
-        }
-        methods::slot(object = object, name = layer) <- new.data
-      }
-    } else if (!is(object = new.data, class2 = "AnyMatrix")) {
-      # TODO support other matrix formats here
-      stop("Position enrichment must be provided as a matrix or sparseMatrix")
-    } else {
-      # single new matrix being added, needs a key
-      args <- list(...)
-      if (!("key" %in% names(x = args))) {
-        stop("Must supply a key when adding positionEnrichment data")
-      } else {
-        key <- args$key
-      }
-      current.pos <- methods::slot(object = object, name = layer)
-      current.pos[[key]] <- new.data
-      methods::slot(object = object, name = layer) <- current.pos
-    }
+  } else if (layer == "region.aggregation") {
+    # TODO update to use RegionAggregation class
+    # if (inherits(x = new.data, what = "list")) {
+    #   # list of position enrichment matrices being added
+    #   if (length(x = new.data) == 0) {
+    #     # if list is empty, assign and overwrite slot
+    #     methods::slot(object = object, name = layer) <- new.data
+    #   } else if (is.null(x = names(x = new.data))) {
+    #     stop("If supplying a list of position enrichment matrices,
+    #          each element must be named")
+    #   } else {
+    #     current.data <- GetAssayData(object = object, layer = layer)
+    #     if (length(x = current.data) != 0) {
+    #       warning("Overwriting current list of position enrichement matrices")
+    #     }
+    #     for (i in seq_along(along.with = new.data)) {
+    #       if (!is(object = new.data[[i]], class2 = "AnyMatrix")) {
+    #         stop(
+    #           "Position enrichment must be provided as a matrix or sparseMatrix"
+    #           )
+    #       }
+    #     }
+    #     methods::slot(object = object, name = layer) <- new.data
+    #   }
+    # } else if (!is(object = new.data, class2 = "AnyMatrix")) {
+    #   # TODO support other matrix formats here
+    #   stop("Position enrichment must be provided as a matrix or sparseMatrix")
+    # } else {
+    #   # single new matrix being added, needs a key
+    #   args <- list(...)
+    #   if (!("key" %in% names(x = args))) {
+    #     stop("Must supply a key when adding positionEnrichment data")
+    #   } else {
+    #     key <- args$key
+    #   }
+    #   current.pos <- methods::slot(object = object, name = layer)
+    #   current.pos[[key]] <- new.data
+    #   methods::slot(object = object, name = layer) <- current.pos
+    # }
   }
   return(object)
 }
@@ -1297,9 +1296,12 @@ subset.ChromatinAssay5 <- function(
     verbose = FALSE
   )
 
-  # subset cells in positionEnrichment matrices
+  # subset cells in region aggregation matrices
   cells <- SetIfNull(x = cells, y = colnames(x = x))
-  posmat <- GetAssayData(object = x, layer = "positionEnrichment")
+  posmat <- GetAssayData(object = x, layer = "region.aggregation")
+  
+  # TODO update for RegionAggregation class
+  
   for (i in seq_along(along.with = posmat)) {
     # TODO need to make the formatting for positionEnrichment slot better defined
     # currently the RegionMatrix and Footprint functions write differently
@@ -1321,7 +1323,7 @@ subset.ChromatinAssay5 <- function(
     }
   }
   # TODO fix how the RegionMatrix and Footprint functions use positionEnrichment
-  x <- SetAssayData(object = x, layer = "positionEnrichment", new.data = posmat)
+  x <- SetAssayData(object = x, layer = "region.aggregation", new.data = posmat)
 
   # subset cells in Fragments objects
   frags <- Fragments(object = x)
@@ -1504,13 +1506,13 @@ merge.ChromatinAssay5 <- function(
     # TODO merge Motif objects
     
     # create new ChromatinAssay5 object
-    # bias, motifs, positionEnrichment, metafeatures not kept
+    # bias, motifs, region.aggregation, metafeatures not kept
     merged <- as.ChromatinAssay5(
       x = merged,
       annotation = annot.use,
       fragments = all.frag,
       bias = NULL,
-      positionEnrichment = NULL
+      region.aggregation = NULL
     )
     return(merged)
   }
@@ -1647,14 +1649,6 @@ setMethod(
       )),
       "\n"
     )
-    cat(
-      "Cell aggregation matrices:",
-      length(x = GetAssayData(
-        object = object,
-        layer = "cell.aggregation"
-      )),
-      "\n"
-    )
   }
 )
 
@@ -1704,14 +1698,6 @@ setMethod(
       length(x = GetAssayData(
         object = object,
         layer = "region.aggregation"
-      )),
-      "\n"
-    )
-    cat(
-      "Cell aggregation matrices:",
-      length(x = GetAssayData(
-        object = object,
-        layer = "cell.aggregation"
       )),
       "\n"
     )
