@@ -76,6 +76,16 @@ Motif <- setClass(
     meta.data = "data.frame"
   )
 )
+setValidity(Class = "Motif", function(object) {
+  if (length(x = object@positions) > 0 &&
+      !all(vapply(
+        X = object@positions,
+        FUN = function(x) inherits(x = x, what = "GRanges"),
+        logical(1)))) {
+    return("All elements of 'positions' must be GRanges objects")
+  }
+  TRUE
+})
 
 #' RegionAggregation class
 #' 
