@@ -23,6 +23,8 @@ position that are stored in the matrix}
 
 \item{\code{downstream}}{Integer denoting number of bases downstream of the centered
 position that are stored in the matrix}
+
+\item{\code{name}}{A name for the set of regions}
 }}
 
 \concept{footprinting}

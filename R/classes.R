@@ -100,6 +100,7 @@ setValidity(Class = "Motif", function(object) {
 #' position that are stored in the matrix
 #' @slot downstream Integer denoting number of bases downstream of the centered
 #' position that are stored in the matrix
+#' @slot name A name for the set of regions
 #' 
 #' @name RegionAggregation-class
 #' @rdname RegionAggregation-class
@@ -111,7 +112,8 @@ RegionAggregation <- setClass(
     matrix = "AnyMatrix",
     regions = "GRanges",
     upstream = "numeric",
-    downstream = "numeric"
+    downstream = "numeric",
+    name = "character"
   )
 )
 
