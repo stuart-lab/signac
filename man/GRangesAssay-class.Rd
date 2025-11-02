@@ -30,7 +30,10 @@ columns:
 }}
 
 \item{\code{bias}}{A vector containing Tn5 integration bias information
-(frequency of Tn5 integration at different kmers)}
+(frequency of Tn5 integration at different kmers). This must be a named 
+numeric vector where the name of the element corresponds to the DNA sequence
+and the value represents the bias value. All DNA hexamers must be present in
+the vector.}
 
 \item{\code{region.aggregation}}{A list of \code{\link{RegionAggregation}} objects}
 

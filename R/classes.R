@@ -10,6 +10,7 @@ NULL
 setClassUnion(name = "AnyMatrix", members = c("matrix", "CsparseMatrix"))
 setClassUnion(name = "MatrixOrNULL", members = c("AnyMatrix", "NULL"))
 setClassUnion(name = "GRangesOrNULL", members = c("GRanges", "NULL"))
+setClassUnion(name = "NumericOrNULL", members = c("numeric", "NULL"))
 
 #' The Fragment class
 #'
@@ -131,7 +132,10 @@ setClassUnion(name = "MotifOrNULL", members = c("Motif", "NULL"))
 #'   \item{type: Annotation type (e.g. "exon", "gap")}
 #' }
 #' @slot bias A vector containing Tn5 integration bias information
-#' (frequency of Tn5 integration at different kmers)
+#' (frequency of Tn5 integration at different kmers). This must be a named 
+#' numeric vector where the name of the element corresponds to the DNA sequence
+#' and the value represents the bias value. All DNA hexamers must be present in
+#' the vector.
 #' @slot region.aggregation A list of \code{\link{RegionAggregation}} objects
 #' @slot motifs A \code{\link{Motif}} object
 #' @slot links A list of \code{\link[InteractionSet]{GInteractions}} objects
@@ -149,7 +153,7 @@ ChromatinAssay5 <- setClass(
   slots = list(
     "fragments" = "list",
     "annotation" = "GRangesOrNULL",
-    "bias" = "ANY",
+    "bias" = "NumericOrNULL",
     "region.aggregation" = "list",
     "links" = "list",
     "motifs" = "MotifOrNULL"
@@ -177,6 +181,19 @@ setValidity(Class = "ChromatinAssay5", function(object) {
         FUN = function(x) inherits(x = x, what = "RegionAggregation"),
         logical(1)))) {
     return("All elements of 'region.aggregation' must be RegionAggregation objects")
+  }
+  if (!is.null(x = object@bias)) {
+    if (!inherits(x = x, what = 'numeric')) {
+      return("Bias must be a numeric vector")
+    }
+    if (is.null(x = names(x = x))) {
+      return("Bias must be a named character vector")
+    }
+    bases <- c("A","C","G","T")
+    hexamers <- apply(expand.grid(rep(list(bases), 6)), 1, paste0, collapse = "")
+    if (!all(hexamers %in% names(x = x))) {
+      return("Bias vector must contain each hexamer")
+    }
   }
   TRUE
 })
