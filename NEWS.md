@@ -38,6 +38,11 @@ New features:
 * Added `pca` parameter to `RunSVD()` to compute PCA dimension reduction without storing standardized matrix
 * Added `raster` and `raster.dpi` parameters to `DensityScatter()`
 
+Removed functions:
+
+* Removed `CoverageBrowser()`
+* Removed blacklist region data objects (`blacklist_hg38`, etc.)
+
 Other changes:
 
 * Changed SVD function in `RunSVD()` from `irlba::irlba()` to `RSpectra::svds()`
