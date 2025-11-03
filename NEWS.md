@@ -1,5 +1,33 @@
 # Signac v2 (unreleased)
 
+This is a major version release and includes many changes to the package,
+including new functionality and internal improvements to existing functionality.
+Some of these updates involve breaking changes to previous code. To the greatest
+extent possible, we have signalled this by marking functions as deprecated in 
+the previous Signac release.
+
+The largest changes to the structure of the Signac package are in the new
+`ChromatinAssay5` and `GRangesAssay` object classes introduced in Signac v2.
+These classes replace the `ChromatinAssay` class, with benefits in terms of
+scalability and flexibility of data storage.
+
+New classes:
+
+* New `ChromatinAssay5` class: this is an updated chromatin assay class
+definition based on the Seurat `Assay5` object class, and enables storing data
+in a variety of formats including as an `IterableMatrix`. The `ChromatinAssay5`
+class does not require that each feature corresponds to a genomic region.
+* New `GRangesAssay` class: this is a new class that inherits from the
+`ChromatinAssay5` class and adds the requirement that each feature corresponds
+to a genomic region, described by a `GRanges` object.
+* New `Fragment2` class: this is an updated version of the `Fragment` object
+class. We have added the ability to store the fragment file index path, and to
+store a vector of `seqnames`. Storing the `seqnames` enables renaming fragment
+file chromosomes in the R session without needing to change the file on-disk.
+* New `RegionAggregation` class: this is a new class used for storing results of
+`RegionEnrichment` functions in Signac, and is mostly used internally rather
+than being user-facing.
+
 New features:
 
 * Added `RunFragtk()` function to run `fragtk matrix` command within R
@@ -8,7 +36,6 @@ New features:
 * Added `PearsonResidualVar()` function for variable feature selection based on Pearson residual variances
 * Added `FitMeanVar()` function for variable feature selection based on residual variance from LOESS model
 * Added `pca` parameter to `RunSVD()` to compute PCA dimension reduction without storing standardized matrix
-* Added `ATACqc()` function to run `fragtk qc`
 * Added `raster` and `raster.dpi` parameters to `DensityScatter()`
 
 Other changes:
