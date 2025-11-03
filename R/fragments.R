@@ -7,7 +7,7 @@ NULL
 #' Returns the first \code{n} rows of a fragment file. This allows the content
 #' of a fragment file to be inspected.
 #'
-#' @param x a \code{Fragment} object
+#' @param x a \code{Fragment2} object
 #' @param n an integer specifying the number of rows to return from the fragment
 #' file
 #' @param ... additional arguments passed to \code{\link[utils]{read.table}}
@@ -16,10 +16,10 @@ NULL
 #' with the following columns: chrom, start, end, barcode, readCount.
 #'
 #' @export
-#' @method head Fragment
+#' @method head Fragment2
 #' @concept fragments
 #'
-head.Fragment <- function(x, n = 6L, ...) {
+head.Fragment2 <- function(x, n = 6L, ...) {
   fpath <- GetFragmentData(object = x, slot = "file.path")
   df <- read.table(file = fpath, nrows = n, ...)
   if (ncol(x = df) == 5) {
