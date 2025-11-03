@@ -229,18 +229,12 @@ SortIdents <- function(
     method = 'euclidean',
     verbose = TRUE
 ){
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!(layer %in% Layers(object = object[[assay]]))) {
-    stop("Requested layer is not present in ", assay)
-  }
   allowed.methods <- c("euclidean", "maximum", "manhattan",
                        "canberra", "binary", "minkowski")
   if (!(method %in% allowed.methods)) {
     stop("Selected method must be one of: ",
          paste(allowed.methods, collapse = ", "))
   }
-  feat_cell_matrix <- LayerData(object, layer = layer, assay = assay)
-  
   if (is.null(x = label)) {
     cell_types <- Idents(object = object)
     uniq_cell_types = unique(x = cell_types)
@@ -262,39 +256,23 @@ SortIdents <- function(
   if (length(x = uniq_cell_types) < 3) {
     stop("Must have more than three different variables")
   }
-  
-  # Initialize a one-hot matrix with rows representing cells 
-  # and columns representing cell types
-  one_hot_matrix <- matrix(data = 0,
-                           nrow = ncol(x = feat_cell_matrix),
-                           ncol = length(x = uniq_cell_types),
-                           dimnames = list(colnames(x = feat_cell_matrix),
-                                           uniq_cell_types)
-  )
-  
-  # Fill in the one-hot matrix
-  for (i in seq_along(along.with = uniq_cell_types)) {
-    # convert to character in case the level of a factor is returned
-    cell_type <- as.character(x = uniq_cell_types[i])
-    one_hot_matrix[cell_types == cell_type, i] <- 1
-  }
-  cell_type_counts = colSums(x = one_hot_matrix)
-  
   if (verbose) {
-    message("Creating pseudobulk profiles for ", ncol(x = one_hot_matrix),
-            " variables across ", nrow(x = feat_cell_matrix), " features")
+    message("Creating pseudobulk profiles for ",
+            length(x = unique(x = Idents(object = object))),
+            " cell groups")
   }
   
-  # Aggregate (sum) features by label
-  # Normalize by number of cells per label
-  bulk_matrix <- sweep(x = feat_cell_matrix %*% one_hot_matrix, MARGIN = 2,
-                       cell_type_counts, FUN = "/")
+  pseudobulk <- AverageCountMatrix(
+    object = object,
+    assay = assay,
+    layer = layer
+  )
   
   # Calculate distance matrix and perform hierarchical clustering
   if (verbose) {
     message("Computing ", method, " distance between pseudobulk profiles")
   }
-  distance_matrix <- dist(x = t(x = bulk_matrix), method = method)
+  distance_matrix <- dist(x = t(x = pseudobulk), method = method)
   if (verbose) {
     message("Clustering distance matrix")
   }
@@ -314,8 +292,57 @@ SortIdents <- function(
     object[[label]] <- factor(x = object[[label]][, 1], 
                               levels = ordered_cell_types)
   }
-  
   return(object)
+}
+
+#' @importFrom SeuratObject DefaultAssay LayerData Layers
+#' @importFrom Matrix Diagonal tcrossprod rowSums
+AverageCountMatrix <- function(
+    object,
+    layer = "counts",
+    assay = NULL,
+    group.by = NULL,
+    idents = NULL
+) {
+  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  if (!(layer %in% Layers(object = object[[assay]]))) {
+    stop("Requested layer is not present in ", assay)
+  }
+  countmatrix <- LayerData(object = object, assay = assay, layer = layer)
+  ident.matrix <- BinaryIdentMatrix(
+    object = object,
+    group.by = group.by,
+    idents = idents
+  )
+  collapsed.counts <- countmatrix %*% as.matrix(x = t(x = ident.matrix))
+  avg.counts <- tcrossprod(
+    x = collapsed.counts,
+    y = Diagonal(x = 1 / rowSums(x = ident.matrix))
+  )
+  return(as.matrix(x = avg.counts))
+}
+
+# Create binary cell x class matrix of group membership
+#' @importFrom Matrix sparseMatrix
+BinaryIdentMatrix <- function(object, group.by = NULL, idents = NULL) {
+  group.idents <- GetGroups(
+    object = object,
+    group.by = group.by,
+    idents = idents
+  )
+  cell.idx <- seq_along(along.with = names(x = group.idents))
+  unique.groups <- as.character(x = unique(x = group.idents))
+  ident.idx <- seq_along(along.with = unique.groups)
+  names(x = ident.idx) <- unique.groups
+  ident.matrix <- sparseMatrix(
+    i = ident.idx[as.character(x = group.idents)],
+    j = cell.idx,
+    x = 1
+  )
+  colnames(x = ident.matrix) <- names(x = group.idents)
+  rownames(x = ident.matrix) <- unique.groups
+  ident.matrix <- as(object = ident.matrix, Class = "CsparseMatrix")
+  return(ident.matrix)
 }
 
 #' Sparse matrix correlation
