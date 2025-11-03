@@ -8,7 +8,7 @@ CreateFragmentObject(
   path,
   index = NULL,
   cells = NULL,
-  seqnames = NULL,
+  seqlevels = NULL,
   validate.fragments = TRUE,
   verbose = TRUE,
   ...
@@ -30,7 +30,7 @@ Each element of the vector should be a cell barcode that appears in the
 fragment file, and the name of each element should be the corresponding cell
 name in the object.}
 
-\item{seqnames}{A named vector of sequence names (eg, chromosome name) where
+\item{seqlevels}{A named vector of sequence levels (eg, chromosome name) where
 each element is the sequence name as it appears in the fragment file, and the
 name of each element is the corresponding sequence name as stored in the
 object. If NULL, the sequence names are assumed to be the same in the

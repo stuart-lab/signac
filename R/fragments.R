@@ -440,25 +440,95 @@ SeuratObject::Cells
   }
 }
 
+# TODO implement seqlevelsStyle for fragment object
+# this requires we know what the style in the file is
+# function should require that seqlevels information is already set
+# then we can change the mapping
+# also implement renameSeqlevels method
+
+#' @importFrom Seqinfo seqlevels
+#' @exportMethod seqlevels
 setMethod(
   f = "seqlevels",
   signature = "Fragment2",
   definition = function(x) {
-    return(slot(object = x, name = "seqlevels"))
+    return(names(x = slot(object = x, name = "seqlevels")))
   }
 )
 
+#' @importFrom Seqinfo seqlevels<-
 setReplaceMethod(
   f = "seqlevels",
   signature = "Fragment2",
   definition = function(x, value) {
-    if (!is.null(x = seqlevels(x = x))) {
-      if (length(value) != length(x@seqlevels)) {
-        stop("New seqlevels must have the same length as current seqlevels")
-      }
+    if (is.null(x = value)) {
+      x@seqlevels <- value
+    } else if (!inherits(x = value, what = "character")) {
+      stop("New seqlevels must be a character vector")
+    } else if (is.null(x = names(x = value))) {
+      stop("New seqlevels must be a named vector")
     } else {
       x@seqlevels <- value
     }
+    return(x)
+  }
+)
+
+#' @importFrom GenomeInfoDb seqlevelsStyle
+#' @exportMethod seqlevelsStyle
+setMethod(
+  f = "seqlevelsStyle",
+  signature = "Fragment2",
+  definition = function(x) {
+    return(seqlevelsStyle(seqlevels(x = x)))
+  }
+)
+
+#' @importFrom GenomeInfoDb seqlevelsStyle<-
+setReplaceMethod(
+  f = "seqlevelsStyle",
+  signature = "Fragment2",
+  definition = function(x, value) {
+    sl <- seqlevels(x = x)
+    if (is.null(x = sl)) {
+      stop("seqlevels information not set")
+    } else {
+      seqlevelsStyle(sl) <- value
+      current.vec <- x@seqlevels
+      names(x = current.vec) <- sl
+      x@seqlevels <- current.vec
+    }
+    return(x)
+  }
+)
+
+# map new sequence levels to the old (names correspond to the old levels)
+#' @importFrom GenomeInfoDb renameSeqlevels
+#' @exportMethod renameSeqlevels
+setMethod(
+  f = "renameSeqlevels",
+  signature = "Fragment2",
+  definition = function(x, value) {
+    current.vec <- x@seqlevels
+    if (is.null(x = current.vec)) {
+      stop("seqlevels information not set")
+    }
+    if (is.null(x = names(x = value))) {
+      # unnamed vector
+      # needs to be the same length as the current seqlevels
+      if (length(x = value) != length(x = current.vec)) {
+        stop("Must provide the same number of new seqlevels as existing seqlevels")
+      } else {
+        names(x = current.vec) <- value
+      }
+    } else {
+      # map names
+      old.names <- names(x = current.vec)
+      names(x = old.names) <- old.names
+      old.names[names(value)] <- value
+      names(x = current.vec) <- old.names
+    }
+    x@seqlevels <- current.vec
     return(x)
   }
 )
