@@ -30,6 +30,28 @@ head.Fragment <- function(x, n = 6L, ...) {
   return(df)
 }
 
+#' Return the fragment file header
+#' 
+#' Returns any comment lines present at the start of the fragment file,
+#' before any fragment entries.
+#' 
+#' @param x a \code{Fragment2} object
+#' @return Returns a character vector with the fragment file header lines
+#' @export
+#' @concept fragments
+header <- function(x) {
+  fpath <- GetFragmentData(object = x, slot = "file.path")
+  con <- file(fpath, "r")
+  header_lines <- character()
+  while (TRUE) {
+    line <- readLines(con, n = 1)
+    if (length(line) == 0 || !startsWith(line, "#")) break
+    header_lines <- c(header_lines, line)
+  }
+  close(con)
+  return(header_lines)
+}
+
 #' Count fragments
 #'
 #' Count total fragments per cell barcode present in a fragment file.
