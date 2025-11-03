@@ -354,6 +354,7 @@ GenomeBinMatrix <- function(
 #'
 #' @export
 #' @importFrom SeuratObject RowMergeSparseMatrices
+#' @importFrom GenomeInfoDb renameSeqlevels
 #' @concept quantification
 #' @return Returns a sparse matrix
 #' @examples
@@ -423,18 +424,31 @@ FeatureMatrix <- function(
           object = fragments[[x]],
           slot = "cells"
         )
+        seqlevel.conversion <- GetFragmentData(
+          object = fragments[[x]],
+          slot = "seqlevels"
+        )
+        
+        if (!is.null(x = seqlevel.conversion)) {
+          # replace seqnames
+          feat.use <- suppressWarnings(
+            expr = renameSeqlevels(x = features, value = seqlevel.conversion)
+          )
+        }
+        
         mat <- RunFragtk(
           fragments = GetFragmentData(
             object = fragments[[x]],
             slot = "file.path"
           ),
-          features = features,
+          features = feat.use,
           cells = cell.vec,
           fragtk.path = fragtk.path,
           verbose = verbose,
           cleanup = TRUE
         )
         colnames(x = mat) <- names(x = cell.vec)
+        rownames(x = mat) <- GRangesToString(grange = features)
         mat
       }
     )
@@ -677,6 +691,19 @@ SingleFeatureMatrix <- function(
   fragment.path <- GetFragmentData(object = fragment, slot = "file.path")
   fragment.index <- GetFragmentData(object = fragment, slot = "file.index")
   frag.cells <- GetFragmentData(object = fragment, slot = "cells")
+  seqlevel.conversion <- GetFragmentData(object = fragment, slot = "seqlevels")
+  
+  # rename seqlevels of features to match seqlevels in the fragment file
+  # afterwards, map back to the seqlevels in the input features
+  if (!is.null(x = seqlevel.conversion)) {
+    # replace seqnames with names in the fragment file
+    feat.use <- suppressWarnings(
+      expr = renameSeqlevels(x = features, value = seqlevel.conversion)
+    )
+  } else {
+    feat.use <- features
+  }
+  
   if (!is.null(cells)) {
     # only look for cells that are in the fragment file
     if (is.null(x = frag.cells)) {
@@ -699,24 +726,24 @@ SingleFeatureMatrix <- function(
     }
   }
   tbx <- TabixFile(file = fragment.path, index = fragment.index)
-  n_feat_start <- length(x = features)
+  n_feat_start <- length(x = feat.use)
   if (keep_all_features) {
-    features_to_get <- GRangesToString(grange = features, sep = sep)
+    features_to_get <- GRangesToString(grange = feat.use, sep = sep)
   } else {
     features_to_get <- NULL
   }
-  features <- keepSeqlevels(
-    x = features,
+  feat.use <- keepSeqlevels(
+    x = feat.use,
     value = intersect(
-      x = seqnames(x = features),
+      x = seqnames(x = feat.use),
       y = seqnamesTabix(file = tbx)
     ),
     pruning.mode = "coarse"
   )
-  if (length(x = features) == 0) {
+  if (length(x = feat.use) == 0) {
     stop("No matching chromosomes found in fragment file.")
   }
-  n_removed <- n_feat_start - length(x = features)
+  n_removed <- n_feat_start - length(x = feat.use)
   if (n_removed > 0 && ! keep_all_features) {
     if (n_removed == 1) {
       warning(n_removed, " feature is on a seqname not present in ",
@@ -727,8 +754,8 @@ SingleFeatureMatrix <- function(
     }
   }
   feature.list <- ChunkGRanges(
-    granges = features,
-    nchunk = ceiling(x = length(x = features) / process_n)
+    granges = feat.use,
+    nchunk = ceiling(x = length(x = feat.use) / process_n)
   )
   if (verbose) {
     message("Extracting reads overlapping genomic regions")
@@ -785,8 +812,18 @@ SingleFeatureMatrix <- function(
   if (keep_all_features) {
     feat.str <- features_to_get
   } else {
-    feat.str <- GRangesToString(grange = features, sep = sep)
+    feat.str <- GRangesToString(grange = feat.use, sep = sep)
   }
   featmat <- featmat[feat.str, , drop=FALSE]
+  if (!is.null(x = seqlevel.conversion)) {
+    # map back to original seqnames
+    sl <- names(x = seqlevel.conversion)
+    names(x = sl) <- seqlevel.conversion
+    features <- suppressWarnings(
+      expr = renameSeqlevels(x = feat.use, value = sl)
+    )
+    feat.str <- GRangesToString(grange = features, sep = sep)
+    rownames(x = featmat) <- feat.str
+  }
   return(featmat)
 }
