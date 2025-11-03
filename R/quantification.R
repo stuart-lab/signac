@@ -43,11 +43,11 @@ AggregateTiles.Seurat <- function(
 
 #' @rdname AggregateTiles
 #' @export
-#' @method AggregateTiles ChromatinAssay
+#' @method AggregateTiles ChromatinAssay5
 #' @concept quantification
-#' @return When running on a \code{\link{ChromatinAssay}}, returns a new
-#' \code{ChromatinAssay} containing the aggregated genome tiles.
-AggregateTiles.ChromatinAssay <- function(
+#' @return When running on a \code{\link{ChromatinAssay5}}, returns a new
+#' \code{ChromatinAssay5} containing the aggregated genome tiles.
+AggregateTiles.ChromatinAssay5 <- function(
   object,
   genome,
   min_counts = 5,
@@ -68,10 +68,7 @@ AggregateTiles.ChromatinAssay <- function(
   if (verbose) {
     message("Constructing assay")
   }
-  assay.obj <- CreateChromatinAssay(
-    counts = bins,
-    fragments = frags
-  )
+  assay.obj <- CreateChromatinAssay5(counts = bins, fragments = frags)
   return(assay.obj)
 }
 
@@ -98,7 +95,8 @@ AggregateTiles.default <- function(
     genome = genome,
     cells = cells,
     binsize = binsize,
-    verbose = verbose
+    verbose = verbose,
+    ...
   )
 
   # filter out low coverage bins
@@ -273,7 +271,8 @@ GeneActivity <- function(
 #' @param sep Vector of separators to use for genomic string. First element is
 #' used to separate chromosome and coordinates, second separator is used to
 #' separate start and end coordinates.
-#' @param verbose Display messages
+#' @param verbose Display messages.
+#' @param ... Arguments passed to \code{\link{FeatureMatrix}}.
 #'
 #' @importFrom GenomicRanges tileGenome
 #' @export
@@ -298,7 +297,8 @@ GenomeBinMatrix <- function(
   binsize = 5000,
   process_n = 2000,
   sep = c("-", "-"),
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
   tiles <- tileGenome(
     seqlengths = genome,
@@ -311,7 +311,8 @@ GenomeBinMatrix <- function(
     cells = cells,
     process_n = process_n,
     sep = sep,
-    verbose = verbose
+    verbose = verbose,
+    ...
   )
   return(binmat)
 }
@@ -336,7 +337,9 @@ GenomeBinMatrix <- function(
 #' \code{fragtk} executable and \code{fragtk} will be used. Note that
 #' \code{fragtk} uses the Paired Insertion Counting method, whereas the R
 #' implementation counts insertions. See
-#' \url{https://crates.io/crates/fragtk} for fragtk documentation.
+#' \url{https://crates.io/crates/fragtk} for fragtk documentation. The R
+#' implementation (\code{fragtk=FALSE}) will be faster for quantifying a small
+#' number of genomic regions.
 #' @param keep_all_features By default, if a genomic region provided is on a
 #' chromosome that is not present in the fragment file,
 #' it will not be included in the returned matrix. Set `keep_all_features` to
@@ -434,6 +437,8 @@ FeatureMatrix <- function(
           feat.use <- suppressWarnings(
             expr = renameSeqlevels(x = features, value = seqlevel.conversion)
           )
+        } else {
+          feat.use <- features
         }
         
         mat <- RunFragtk(
