@@ -60,6 +60,7 @@ TSSEnrichment <- function(
   verbose = TRUE,
   region_extension = 1000
 ) {
+  .Deprecated(new = "ATACqc", package = "Signac")
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
     stop("The requested assay is not a ChromatinAssay")

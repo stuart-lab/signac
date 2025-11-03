@@ -613,6 +613,7 @@ NucleosomeSignal <- function(
   verbose = TRUE,
   ...
 ) {
+  .Deprecated(new = "ATACqc", package = "Signac")
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
     stop("The requested assay is not a ChromatinAssay")
