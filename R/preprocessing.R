@@ -12,7 +12,8 @@ ATACqc.default <- function(
     fragtk.path = NULL,
     outdir = tempdir(),
     cleanup = TRUE,
-    verbose = TRUE
+    verbose = TRUE,
+    ...
 ) {
   # find fragtk
   fragtk.path <- SetIfNull(
@@ -112,7 +113,8 @@ ATACqc.ChromatinAssay <- function(
       annotations = annotations,
       outdir = outdir,
       cleanup = cleanup,
-      verbose = verbose
+      verbose = verbose,
+      ...
     )
     
     # convert cell names
@@ -141,7 +143,8 @@ ATACqc.Seurat <- function(
   fragtk.path = NULL,
   outdir = tempdir(),
   cleanup = TRUE,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
   assay <- SetIfNull(
     x = assay,
@@ -153,7 +156,8 @@ ATACqc.Seurat <- function(
     annotations = annotations,
     outdir = outdir,
     cleanup = cleanup,
-    verbose = verbose
+    verbose = verbose,
+    ...
   )
   object <- AddMetaData(object = object, metadata = md)
   return(object)
