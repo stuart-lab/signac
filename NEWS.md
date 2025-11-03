@@ -46,6 +46,9 @@ Removed functions:
 Other changes:
 
 * Changed SVD function in `RunSVD()` from `irlba::irlba()` to `RSpectra::svds()`
+* Added a check for duplicated fragment files when merging objects. If multiple
+assays have the same fragment file, they are now consolidated into one fragment
+object.
 
 # Signac 1.16.0
 
