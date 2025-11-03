@@ -1015,6 +1015,23 @@ SetAssayData.ChromatinAssay5 <- function(
     if (length(x = frag.list) != 0) {
       warning("Overwriting existing fragment objects")
     }
+    
+    # resolve any duplicated fragment file paths
+    all.path <- lapply(X = new.data, FUN = GetFragmentData, slot = "file.path")
+    unique.paths <- unique(all.path)
+    if (length(x = unique.paths) != length(x = new.data)) {
+      # consolidate duplicated fragment paths
+      new.data <- lapply(unique.paths, function(p) {
+        idx <- which(all.path == p)
+        objs <- new.data[idx]
+        # merge cell vectors
+        all.cells <- do.call(c, lapply(objs, GetFragmentData, slot = 'cells'))
+        duplicate.cells <- duplicated(x = all.cells)
+        all.cells <- all.cells[!duplicate.cells]
+        objs[[1]]@cells <- all.cells
+        objs[[1]]
+      })
+    }
     methods::slot(object = object, name = "fragments") <- new.data
   } else if (layer == "annotation") {
     if (!is(object = new.data, class2 = "GRanges")) {
