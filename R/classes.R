@@ -25,7 +25,7 @@ setClassUnion(name = "NumericOrNULL", members = c("numeric", "NULL"))
 #' @slot cells A named vector of cells where each element is the cell barcode
 #' as it appears in the fragment file, and the name of each element is the
 #' corresponding cell barcode as stored in the ChromatinAssay5 object.
-#' @slot seqnames A named vector of sequence names (eg, chromosome name) where
+#' @slot seqlevels A named vector of sequence levels (eg, chromosome name) where
 #' each element is the sequence name as it appears in the fragment file, and the
 #' name of each element is the corresponding sequence name as stored in the 
 #' ChromatinAssay5 object.
@@ -42,7 +42,7 @@ Fragment2 <- setClass(
     file.index = "character",
     hash = "character",
     cells = "ANY",
-    seqnames = "ANY"
+    seqlevels = "ANY"
   )
 )
 

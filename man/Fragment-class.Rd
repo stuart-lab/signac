@@ -25,7 +25,7 @@ fragment file, the second element is the md5sum of the index.}
 as it appears in the fragment file, and the name of each element is the
 corresponding cell barcode as stored in the ChromatinAssay5 object.}
 
-\item{\code{seqnames}}{A named vector of sequence names (eg, chromosome name) where
+\item{\code{seqlevels}}{A named vector of sequence levels (eg, chromosome name) where
 each element is the sequence name as it appears in the fragment file, and the
 name of each element is the corresponding sequence name as stored in the 
 ChromatinAssay5 object.}

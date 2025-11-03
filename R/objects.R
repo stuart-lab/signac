@@ -426,7 +426,7 @@ setAs(
 #' Each element of the vector should be a cell barcode that appears in the
 #' fragment file, and the name of each element should be the corresponding cell
 #' name in the object.
-#' @param seqnames A named vector of sequence names (eg, chromosome name) where
+#' @param seqlevels A named vector of sequence levels (eg, chromosome name) where
 #' each element is the sequence name as it appears in the fragment file, and the
 #' name of each element is the corresponding sequence name as stored in the
 #' object. If NULL, the sequence names are assumed to be the same in the
@@ -450,7 +450,7 @@ CreateFragmentObject <- function(
     path,
     index = NULL,
     cells = NULL,
-    seqnames = NULL,
+    seqlevels = NULL,
     validate.fragments = TRUE,
     verbose = TRUE,
     ...
@@ -496,10 +496,10 @@ CreateFragmentObject <- function(
       names(x = cells) <- cells
     }
   }
-  if (!is.null(x = seqnames)) {
-    if (is.null(names(x = seqnames))) {
-      # assume seqnames are as they appear in the assay
-      names(x = seqnames) <- seqnames
+  if (!is.null(x = seqlevels)) {
+    if (is.null(names(x = seqlevels))) {
+      # assume seqlevels are as they appear in the assay
+      names(x = seqlevels) <- seqlevels
     }
   }
   # compute hash of the file and index
@@ -519,7 +519,7 @@ CreateFragmentObject <- function(
     file.index = index.file,
     hash = unname(obj = hashes),
     cells = cells,
-    seqnames = seqnames
+    seqlevels = seqlevels
   )
   # validate cells
   if (!is.null(x = cells) & validate.fragments) {

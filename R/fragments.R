@@ -440,6 +440,29 @@ SeuratObject::Cells
   }
 }
 
+setMethod(
+  f = "seqlevels",
+  signature = "Fragment2",
+  definition = function(x) {
+    return(slot(object = x, name = "seqlevels"))
+  }
+)
+
+setReplaceMethod(
+  f = "seqlevels",
+  signature = "Fragment2",
+  definition = function(x, value) {
+    if (!is.null(x = seqlevels(x = x))) {
+      if (length(value) != length(x@seqlevels)) {
+        stop("New seqlevels must have the same length as current seqlevels")
+      }
+    } else {
+      x@seqlevels <- value
+    }
+    return(x)
+  }
+)
+
 #' Update the file path for a Fragment object
 #'
 #' Change the path to a fragment file store in a \code{\link{Fragment}}
