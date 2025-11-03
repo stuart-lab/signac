@@ -149,7 +149,7 @@ AccessiblePeaks <- function(
   min.cells = 10
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  layer <- SetIfNull(x = layer, y = DefaultLayer(object = object))
+  layer <- SetIfNull(x = layer, y = DefaultLayer(object = object[[assay]]))
   cells <- SetIfNull(x = cells, y = WhichCells(object, idents = idents))
   open.peaks <- LayerData(
     object = object,
