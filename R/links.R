@@ -138,7 +138,7 @@ GetLinkedGenes.GRangesAssay <- function(
 #'
 #' @export
 #' @importFrom GenomicRanges start end makeGRangesFromDataFrame
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Seqinfo seqnames
 #' @importFrom stringi stri_split_fixed
 #'
 #' @concept links

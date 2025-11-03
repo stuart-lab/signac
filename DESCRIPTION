@@ -54,7 +54,8 @@ Imports:
     lifecycle,
     sparseMatrixStats,
     RSpectra,
-    InteractionSet
+    InteractionSet,
+    Seqinfo
 Collate: 
     'RcppExports.R'
     'classes.R'
@@ -64,7 +65,6 @@ Collate:
     'dimension_reduction.R'
     'footprinting.R'
     'fragments.R'
-    'genomeinfodb-methods.R'
     'granges-methods.R'
     'heatmaps.R'
     'iranges-methods.R'
@@ -75,7 +75,7 @@ Collate:
     'peaks.R'
     'preprocessing.R'
     'quantification.R'
-    'region-enrichment.R'
+    'seqinfo-methods.R'
     'utilities.R'
     'visualization.R'
     'zzz.R'

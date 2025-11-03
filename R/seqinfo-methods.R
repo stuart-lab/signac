@@ -1,7 +1,7 @@
 #' @include generics.R
 #' @importFrom methods callGeneric
 #' @importFrom SeuratObject DefaultAssay
-#' @importFrom GenomeInfoDb
+#' @importFrom Seqinfo
 #' seqinfo
 #' seqnames
 #' seqlevels
@@ -12,12 +12,10 @@
 NULL
 
 
-# TODO add keepSeqlevels, dropSeqlevels, renameSeqlevels, etc
-
 #' Access and modify sequence information for GRangesAssay objects
 #'
 #' Methods for accessing and modifying
-#' \code{\link[GenomeInfoDb]{Seqinfo}} object information stored in a
+#' \code{\link[Seqinfo]{Seqinfo}} object information stored in a
 #' \code{\link{GRangesAssay}} object.
 #'
 #' @name seqinfo-methods
@@ -26,7 +24,7 @@ NULL
 #' @aliases seqinfo seqinfo,GRangesAssay-method
 #' @seealso
 #' \itemize{
-#'   \item{\link[GenomeInfoDb]{seqinfo} in the \pkg{GenomeInfoDb} package.}
+#'   \item{\link[Seqinfo]{seqinfo} in the \pkg{Seqinfo} package.}
 #'   \item{\link{GRangesAssay-class}}
 #'  }
 #' @exportMethod seqinfo

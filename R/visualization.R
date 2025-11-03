@@ -1412,7 +1412,7 @@ SingleCoveragePlot <- function(
 #' aes ylim theme element_blank element_text geom_segment scale_color_identity
 #' scale_fill_manual geom_rect aes_string
 #' @importFrom IRanges IRanges width
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Seqinfo seqnames
 #' @importFrom Matrix colSums
 #' @importFrom stats median
 #' @importFrom dplyr mutate group_by ungroup slice_sample
@@ -2164,7 +2164,7 @@ CombineTracks <- function(
 #' @importFrom S4Vectors mcols<-
 #' @importFrom GenomicRanges start end
 #' @importFrom IRanges subsetByOverlaps
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Seqinfo seqnames
 #' @importFrom ggplot2 ggplot aes geom_segment theme_classic element_blank
 #' theme xlab ylab scale_color_manual
 #' @examples
@@ -2277,7 +2277,7 @@ PeakPlot <- function(
 #' @export
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom GenomicRanges start end
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Seqinfo seqnames
 #' @importFrom ggplot2 ggplot geom_hline aes theme_classic xlim
 #' ylab theme element_blank scale_color_gradient2 aes_string
 #' @concept visualization
@@ -2389,7 +2389,7 @@ LinkPlot <- function(
 #' @export
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom GenomicRanges start end
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Seqinfo seqnames
 #' @importFrom ggplot2 theme_classic ylim xlim ylab xlab
 #' geom_segment geom_text aes_string scale_color_manual
 #' @importFrom grid arrow
@@ -2576,7 +2576,7 @@ globalVariables(names = "gene", package = "Signac")
 #' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic theme
 #' element_blank scale_y_discrete scale_x_continuous scale_fill_manual
 #' @importFrom scales hue_pal
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Seqinfo seqnames
 #' @importFrom IRanges start end
 #' @importFrom patchwork wrap_plots
 #' @importFrom fastmatch fmatch
@@ -3231,7 +3231,7 @@ VariantPlot <- function(
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @importFrom SeuratObject DefaultAssay
 #' @importFrom ggplot2 xlab
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Seqinfo seqnames
 #'
 #' @export
 #' @concept visualization

@@ -119,7 +119,7 @@ GetFootprintData <- function(
 #' @importFrom future.apply future_lapply
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
-#' @importFrom GenomeInfoDb seqlengths
+#' @importFrom Seqinfo seqlengths
 #' @export
 #' @concept footprinting
 #' @rdname Footprint

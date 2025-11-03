@@ -887,7 +887,7 @@ RenameCells.Fragment2 <- function(object, new.names, ...) {
 }
 
 #' @importFrom SeuratObject SetAssayData CheckFeaturesNames
-#' @importFrom GenomeInfoDb genome Seqinfo
+#' @importFrom Seqinfo genome Seqinfo
 #' @importFrom lifecycle deprecated is_present
 #' @importFrom S4Vectors mcols
 #' @method SetAssayData GRangesAssay
@@ -972,7 +972,7 @@ SetAssayData.GRangesAssay <- function(
 }
 
 #' @importFrom SeuratObject SetAssayData CheckFeaturesNames
-#' @importFrom GenomeInfoDb genome Seqinfo
+#' @importFrom Seqinfo genome Seqinfo
 #' @importFrom lifecycle deprecated is_present
 #' @importFrom S4Vectors mcols
 #' @method SetAssayData ChromatinAssay5

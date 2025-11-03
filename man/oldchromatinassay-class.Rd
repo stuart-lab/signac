@@ -22,7 +22,7 @@ genomic location of features in the object}
 
 \item{\code{fragments}}{A list of \code{\link{Fragment}} objects.}
 
-\item{\code{seqinfo}}{A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
+\item{\code{seqinfo}}{A \code{\link[Seqinfo]{Seqinfo}} object containing basic
 information about the genome sequence used.}
 
 \item{\code{annotation}}{A  \code{\link[GenomicRanges]{GRanges}} object containing

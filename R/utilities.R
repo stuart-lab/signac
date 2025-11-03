@@ -381,7 +381,8 @@ corSparse <- function(X, Y = NULL, cov = FALSE) {
 #' @param biotypes Biotypes to keep
 #' @param verbose Display messages
 #'
-#' @importFrom GenomeInfoDb keepStandardChromosomes seqinfo
+#' @importFrom GenomeInfoDb keepStandardChromosomes
+#' @importFrom Seqinfo seqinfo
 #' @importFrom pbapply pblapply
 #' @concept utilities
 #' @export
@@ -701,7 +702,7 @@ FractionCountsInRegion <- function(
 #' @importFrom SeuratObject DefaultAssay
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges start end
-#' @importFrom GenomeInfoDb seqnames
+#' @importFrom Seqinfo seqnames
 #' @export
 #' @concept utilities
 #' @examples
