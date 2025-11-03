@@ -139,6 +139,12 @@ help remove low quality cells from the datasets.
 ```{r message=FALSE, warning=FALSE}
 bone <- TSSEnrichment(bone)
 bone <- NucleosomeSignal(bone)
+
+# blacklist regions for hg19
+library(AnnotationHub)
+ah <- AnnotationHub()
+blacklist_hg19 <- ah[['AH107314']]
+
 bone$blacklist_fraction <- FractionCountsInRegion(bone, regions = blacklist_hg19)
 ```
 
