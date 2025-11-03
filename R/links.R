@@ -14,7 +14,7 @@ GetLinkedPeaks.Seurat <- function(
     min.abs.score = 0,
     ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   links <- GetLinkedPeaks(
     object = object[[assay]],
     features = features,
@@ -67,7 +67,7 @@ GetLinkedGenes.Seurat <- function(
     min.abs.score = 0,
     ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   links <- GetLinkedGenes(
     object = object[[assay]],
     features = features,

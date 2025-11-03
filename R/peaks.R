@@ -76,13 +76,10 @@ CallPeaks.Seurat <- function(
   if (!dir.exists(paths = outdir)) {
     stop("Requested output directory does not exist")
   }
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   if (!is.null(x = group.by)) {
     # first check macs2 path before we spend time splitting the files
-    macs2.path <- SetIfNull(
-      x = macs2.path,
-      y = unname(obj = Sys.which(names = "macs2"))
-    )
+    macs2.path <- macs2.path %||% unname(obj = Sys.which(names = "macs2"))
     macs.exists <- file.exists(macs2.path)
     if (nchar(x = macs2.path) == 0 | !macs.exists) {
       stop("MACS2 not found. Please install MACS:",
@@ -287,10 +284,7 @@ CallPeaks.default <- function(
     stop("Requested output directory does not exist")
   }
   # find macs2
-  macs2.path <- SetIfNull(
-    x = macs2.path,
-    y = unname(obj = Sys.which(names = "macs2"))
-  )
+  macs2.path <- macs2.path %||% unname(obj = Sys.which(names = "macs2"))
   if (nchar(x = macs2.path) == 0) {
     stop("MACS2 not found. Please install MACS:",
          "https://macs3-project.github.io/MACS/")

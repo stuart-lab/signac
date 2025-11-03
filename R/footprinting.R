@@ -34,7 +34,7 @@ GetFootprintData <- function(
   group.by = NULL,
   idents = NULL
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
     stop("The requested assay is not a ChromatinAssay5")
   }
@@ -242,7 +242,7 @@ Footprint.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   object[[assay]] <- Footprint(
     object = object[[assay]],
     regions = regions,
@@ -348,7 +348,7 @@ InsertionBias.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   object[[assay]] <- InsertionBias(
     object = object[[assay]],
     genome = genome,
@@ -495,7 +495,7 @@ GetMotifSize <- function(
   features,
   assay = NULL
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   positionEnrichment <- GetAssayData(
     object = object,
     assay = assay,

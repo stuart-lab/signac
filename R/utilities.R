@@ -37,8 +37,8 @@ AddChromatinModule <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  layer <- SetIfNull(x = layer, y = DefaultLayer(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
+  layer <- layer %||% DefaultLayer(object = object)
   if (!inherits(x = object[[assay]], what = "GRangesAssay")) {
     stop("The requested assay is not a GRangesAssay")
   }
@@ -102,7 +102,7 @@ AverageCounts <- function(
   group.by = NULL,
   verbose = TRUE
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   if (is.null(x = group.by)) {
     group.by <- Idents(object = object)
   } else {
@@ -148,9 +148,9 @@ AccessiblePeaks <- function(
   cells = NULL,
   min.cells = 10
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  layer <- SetIfNull(x = layer, y = DefaultLayer(object = object[[assay]]))
-  cells <- SetIfNull(x = cells, y = WhichCells(object, idents = idents))
+  assay <- assay %||% DefaultAssay(object = object)
+  layer <- layer %||% DefaultLayer(object = object[[assay]])
+  cells <- cells %||% WhichCells(object, idents = idents)
   open.peaks <- LayerData(
     object = object,
     assay = assay,
@@ -280,7 +280,7 @@ SortIdents <- function(
   
   if (dendrogram){
     plot(hc, main = paste0("Assay: ", assay, "   Layer: ", layer), 
-         xlab = SetIfNull(x = label, y = "Idents"),
+         xlab = label %||% "Idents",
          sub = "", cex = 0.9)
   }
   
@@ -304,7 +304,7 @@ AverageCountMatrix <- function(
     group.by = NULL,
     idents = NULL
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   if (!(layer %in% Layers(object = object[[assay]]))) {
     stop("Requested layer is not present in ", assay)
   }
@@ -657,8 +657,8 @@ CountsInRegion <- function(
   layer = NULL,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  layer <- SetIfNull(x = layer, y = DefaultLayer(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
+  layer <- layer %||% DefaultLayer(object = object)
   if (!is(object = object[[assay]], class2 = "GRangesAssay")) {
     stop("Must supply a GRangesAssay.")
   }
@@ -702,8 +702,8 @@ FractionCountsInRegion <- function(
   layer = NULL,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  layer <- SetIfNull(x = layer, y = DefaultLayer(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
+  layer <- layer %||% DefaultLayer(object = object)
   reads.in.region <- CountsInRegion(
     object = object,
     regions = regions,
@@ -735,7 +735,7 @@ FractionCountsInRegion <- function(
 #' @examples
 #' LookupGeneCoords(atac_small, gene = "MIR1302-10")
 LookupGeneCoords <- function(object, gene, assay = NULL) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
     stop("The requested assay is not a ChromatinAssay5")
   }
@@ -1097,7 +1097,7 @@ ExtractFragments <- function(fragments, n = NULL, verbose = TRUE) {
     cells.use <- NULL
   }
   verbose <- as.logical(x = verbose)
-  n <- SetIfNull(x = n, y = 0)
+  n <- n %||% 0
   n <- as.numeric(x = n)
   n <- round(x = n, digits = 0)
   counts <- groupCommand(
@@ -1297,13 +1297,10 @@ MultiGetReadsInRegion <- function(
 ) {
   if (inherits(x = object, what = "Seurat")) {
     # pull the assay
-    assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+    assay <- assay %||% DefaultAssay(object = object)
     object <- object[[assay]]
   }
-  fragment.list <- SetIfNull(
-    x = fragment.list,
-    y = Fragments(object = object)
-  )
+  fragment.list <- fragment.list %||% Fragments(object = object)
   if (length(x = fragment.list) == 0) {
     # no fragments set
     stop("No fragment files found")
@@ -1362,7 +1359,7 @@ SingleFileCutMatrix <- function(
   verbose = TRUE
 ) {
   # if multiple regions supplied, must be the same width
-  cells <- SetIfNull(x = cells, y = names(x = cellmap))
+  cells <- cells %||% names(x = cellmap)
   if (length(x = region) == 0) {
     return(NULL)
   }
@@ -1434,8 +1431,8 @@ CutMatrix <- function(
   verbose = TRUE
 ) {
   # run SingleFileCutMatrix for each fragment file and combine results
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  cells <- SetIfNull(x = cells, y = colnames(x = object))
+  assay <- assay %||% DefaultAssay(object = object)
+  cells <- cells %||% colnames(x = object)
   fragments <- Fragments(object = object[[assay]])
   if (length(x = fragments) == 0) {
     stop("No fragment information found for requested assay")
@@ -1500,10 +1497,10 @@ MultiRegionCutMatrix <- function(
   verbose = FALSE
 ) {
   if (inherits(x = object, what = "Seurat")) {
-    assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+    assay <- assay %||% DefaultAssay(object = object)
     object <- object[[assay]]
   }
-  fragments <- SetIfNull(x = fragments, y = Fragments(object = object))
+  fragments <- fragments %||% Fragments(object = object)
   res <- list()
   if (length(x = fragments) == 0) {
     stop("No fragment files present in assay")
@@ -1675,9 +1672,7 @@ ApplyMatrixByGroup <- function(
   )
 
   if (normalize) {
-    scale.factor <- SetIfNull(
-      x = scale.factor, y = median(x = group.scale.factors)
-    )
+    scale.factor <- scale.factor %||% median(x = group.scale.factors)
     coverages$norm.value <- coverages$count /
       group.scale.factors[coverages$group] * scale.factor
   } else {
@@ -1763,19 +1758,6 @@ ExtractField <- function(string, field = 1, delim = "_") {
   return(paste(
     stri_split_fixed(str = string, pattern = delim)[[1]][fields],
     collapse = delim))
-}
-
-# Set a default value if an object is null
-#
-# @param x An object to set if it's null
-# @param y The value to provide if x is null
-# @return Returns y if x is null, otherwise returns x.
-SetIfNull <- function(x, y) {
-  if (is.null(x = x)) {
-    return(y)
-  } else {
-    return(x)
-  }
 }
 
 # Check if a matrix is empty

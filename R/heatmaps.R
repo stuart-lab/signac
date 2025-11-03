@@ -29,7 +29,7 @@ RegionMatrix.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
     stop("Requested assay is not a ChromatinAssay")
   }

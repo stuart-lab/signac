@@ -92,7 +92,7 @@ CountFragments <- function(
       stop("Remote fragment files not supported")
     }
     fragments[[i]] <- normalizePath(path = fragments[[i]], mustWork = TRUE)
-    max_lines <- SetIfNull(x = max_lines, y = 0)
+    max_lines <- max_lines %||% 0
     verbose = as.logical(x = verbose)
     if (!is.null(x = cells)) {
       cells <- unique(x = cells)
@@ -232,7 +232,7 @@ SplitFragments <- function(
   buffer_length = 256L,
   verbose = TRUE
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   frags <- Fragments(object = object[[assay]])
   groups <- GetGroups(
     object = object,
@@ -323,12 +323,12 @@ ValidateCells <- function(
   verbose = TRUE
 ) {
   cell_barcodes <- GetFragmentData(object = object, slot = "cells")
-  cells <- SetIfNull(x = cells, y = cell_barcodes)
+  cells <- cells %||% cell_barcodes
   if (is.null(x = cells)) {
     warning("No cells stored in object")
     return(TRUE)
   }
-  max.lines <- SetIfNull(x = max.lines, y = 0)
+  max.lines <- max.lines %||% 0
   filepath <- GetFragmentData(object = object, slot = "file.path")
   filepath <- normalizePath(path = filepath, mustWork = TRUE)
   is.remote <- isRemote(x = filepath)
@@ -546,10 +546,7 @@ UpdatePath <- function(object, new.path, new.index.path = NULL, verbose = TRUE) 
   new.is.remote <- isRemote(x = new.path)
   if (!new.is.remote) {
     new.path <- normalizePath(path = new.path, mustWork = TRUE)
-    index.file <- SetIfNull(
-      x = new.index.path,
-      y = GetIndexFile(fragment = new.path, verbose = verbose)
-    )
+    index.file <- new.index.path %||% GetIndexFile(fragment = new.path, verbose = verbose)
     if (!file.exists(new.path)) {
       stop("Fragment file not found")
     } else if (!file.exists(index.file)) {

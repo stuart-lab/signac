@@ -275,10 +275,7 @@ as.GRangesAssay.ChromatinAssay5 <- function(
   rownames(x = x) <- new.rownames
   
   new.assay <- as(object = x, Class = "GRangesAssay")
-  ranges <- SetIfNull(
-    x = ranges,
-    y = StringToGRanges(regions = rownames(x = x), sep = sep)
-  )
+  ranges <- ranges %||% StringToGRanges(regions = rownames(x = x), sep = sep)
   new.assay <- SetAssayData(
     object = new.assay,
     layer = "ranges",
@@ -464,10 +461,7 @@ CreateFragmentObject <- function(
   if (!file.exists(path) & !is.remote) {
     stop("Fragment file does not exist.")
   }
-  index.file <- SetIfNull(
-    x = index,
-    y = GetIndexFile(fragment = path, verbose = verbose)
-  )
+  index.file <- index %||% GetIndexFile(fragment = path, verbose = verbose)
   if (!file.exists(index.file) & !is.remote) {
     stop("Fragment file index does not exist.")
   }
@@ -568,8 +562,8 @@ CreateMotifObject <- function(
   positions = NULL,
   meta.data = NULL
 ) {
-  data <- SetIfNull(x = data, y = new(Class = "dgCMatrix"))
-  meta.data <- SetIfNull(x = meta.data, y = data.frame())
+  data <- data %||% new(Class = "dgCMatrix")
+  meta.data <- meta.data %||% data.frame()
   if (
     !(inherits(x = data, what = "matrix") |
       inherits(x = data, what = "CsparseMatrix"))
@@ -620,7 +614,7 @@ CreateMotifObject <- function(
   }
   motif.names <- as.list(x = mn.unique)
   names(x = motif.names) <- motif.id
-  pwm <- SetIfNull(x = pwm, y = list())
+  pwm <- pwm %||% list()
   if (is.null(x = motif.names)) {
     motif.names <- as.list(x = names(x = pwm))
     names(motif.names) <- names(x = pwm)
@@ -831,7 +825,7 @@ GetMotifData.ChromatinAssay5 <- function(object, slot = "data", ...) {
 #' @examples
 #' GetMotifData(object = atac_small)
 GetMotifData.Seurat <- function(object, assay = NULL, slot = "data", ...) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   return(GetMotifData(
     object = object[[assay]],
     slot = slot,
@@ -1179,7 +1173,7 @@ SetMotifData.ChromatinAssay5 <- function(object, slot, new.data, ...) {
 #' object = atac_small, assay = 'peaks', slot = 'data', new.data = motif.matrix
 #' )
 SetMotifData.Seurat <- function(object, assay = NULL, ...) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   object[[assay]] <- SetMotifData(object = object[[assay]], ...)
   return(object)
 }
@@ -1205,8 +1199,8 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
 #' )
 #' subset(x = motif.obj, features = head(rownames(motif.obj), 10))
 subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
-  features <- SetIfNull(x = features, y = rownames(x = x))
-  motifs <- SetIfNull(x = motifs, y = colnames(x = x))
+  features <- features %||% rownames(x = x)
+  motifs <- motifs %||% colnames(x = x)
   new.data <- GetMotifData(object = x, slot = "data")[features, motifs, drop = FALSE]
   new.pwm <- GetMotifData(object = x, slot = "pwm")[motifs]
   new.names <- GetMotifData(object = x, slot = "motif.names")[motifs]
@@ -1315,7 +1309,7 @@ subset.ChromatinAssay5 <- function(
   )
 
   # subset cells in region aggregation matrices
-  cells <- SetIfNull(x = cells, y = colnames(x = x))
+  cells <- cells %||% colnames(x = x)
   posmat <- GetAssayData(object = x, layer = "region.aggregation")
   
   # TODO update for RegionAggregation class

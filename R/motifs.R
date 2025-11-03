@@ -142,7 +142,7 @@ AddMotifs.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   object[[assay]] <- AddMotifs(
     object = object[[assay]],
     genome = genome,
@@ -178,17 +178,14 @@ RunChromVAR.GRangesAssay <- function(
   verbose = TRUE,
   ...
 ) {
-  layer <- SetIfNull(x = layer, y = DefaultLayer(object = object))
+  layer <- layer %||% DefaultLayer(object = object)
   if (!requireNamespace("chromVAR", quietly = TRUE)) {
     stop("Please install chromVAR. https://greenleaflab.github.io/chromVAR/")
   }
   if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
     stop("Please install SummarizedExperiment")
   }
-  motif.matrix <- SetIfNull(
-    x = motif.matrix,
-    y = GetMotifData(object = object, slot = "data")
-  )
+  motif.matrix <- motif.matrix %||% GetMotifData(object = object, slot = "data")
   peak.matrix <- LayerData(object = object, layer = layer)
   peak.matrix <- as(object = peak.matrix, Class = "sparseMatrix")
   if (!(all(peak.matrix@x == floor(peak.matrix@x)))) {
@@ -268,7 +265,7 @@ RunChromVAR.Seurat <- function(
   if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
     stop("Please install SummarizedExperiment")
   }
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   chromvar.assay <- RunChromVAR(
     object = object[[assay]],
     layer = layer,
@@ -328,8 +325,8 @@ FindMotifs <- function(
   p.adjust.method = "BH",
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  background <- SetIfNull(x = background, y = rownames(x = object))
+  assay <- assay %||% DefaultAssay(object = object)
+  background <- background %||% rownames(x = object)
   if (!inherits(x = object[[assay]], what = "GRangesAssay")) {
     stop("Cannot run FindMotifs on ", class(x = object[[assay]]))
   }
@@ -493,6 +490,6 @@ ConvertMotifID.StdAssay <- function(object, ...) {
 #' @concept motifs
 #' @export
 ConvertMotifID.Seurat <- function(object, assay = NULL, ...) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   return(ConvertMotifID(object = object[[assay]], ...))
 }

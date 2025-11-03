@@ -29,7 +29,7 @@ AggregateTiles.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   object[[new.assay.name]] <- AggregateTiles(
     object = object[[assay]],
     genome = genome,
@@ -177,7 +177,7 @@ GeneActivity <- function(
     }
   }
   # collapse to longest protein coding transcript
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
     stop("The requested assay is not a ChromatinAssay5.")
   }
@@ -534,10 +534,7 @@ RunFragtk <- function(
     verbose = TRUE
 ) {
   # find fragtk
-  fragtk.path <- SetIfNull(
-    x = fragtk.path,
-    y = unname(obj = Sys.which(names = "fragtk"))
-  )
+  fragtk.path <- fragtk.path %||% unname(obj = Sys.which(names = "fragtk"))
   if (nchar(x = fragtk.path) == 0) {
     stop("fragtk not found. Please install fragtk:",
          "https://crates.io/crates/fragtk")

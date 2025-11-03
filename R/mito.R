@@ -121,7 +121,7 @@ AlleleFreq.Seurat <- function(
   new.assay.name = "alleles",
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   allele.assay <- AlleleFreq(
     object = object[[assay]],
     variants = variants,
@@ -160,7 +160,7 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
   }
   # find mean allele frequency of each variant in each clonotype
   md <- object[[]]
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   mat <- GetAssayData(object = object, assay = assay, layer = "data")
   matty <- sapply(
     X = unique(x = object$allele_ident_stash_clon),
@@ -220,8 +220,8 @@ FindClonotypes <- function(
     stop("Please install Seurat: install.packages('Seurat')")
   }
   # get allele matrix
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  features <- SetIfNull(x = features, y = rownames(x = object[[assay]]))
+  assay <- assay %||% DefaultAssay(object = object)
+  features <- features %||% rownames(x = object[[assay]])
   mat <- GetAssayData(object = object, assay = assay, layer = "data")[features, ]
   mat <- sqrt(x = t(x = mat))
 
@@ -484,7 +484,7 @@ IdentifyVariants.Seurat <- function(
   assay = NULL,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   assay.obj <- object[[assay]]
   df <- IdentifyVariants(object = assay.obj, refallele = refallele, ...)
   return(df)

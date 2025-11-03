@@ -304,7 +304,7 @@ RunSVD.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   assay.data <- object[[assay]]
   reduction.data <- RunSVD(
     object = assay.data,

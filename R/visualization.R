@@ -201,12 +201,12 @@ globalVariables(names = c("Component", "counts"), package = "Signac")
 #' DepthCor(object = atac_small)
 #' }
 DepthCor <- function(object, assay = NULL, reduction = 'lsi', n = 10, ...) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   dr <- object[[reduction]]
   embed <- Embeddings(object = dr)
   counts <- object[[paste0("nCount_", assay)]]
   embed <- embed[rownames(x = counts), ]
-  n <- SetIfNull(x = n, y = ncol(x = embed))
+  n <- n %||% ncol(x = embed)
   embed <- embed[, seq_len(length.out = n)]
   depth.cor <- as.data.frame(cor(x = embed, y = counts, ...))
   depth.cor$counts <- depth.cor[, 1]
@@ -444,7 +444,7 @@ PlotFootprint <- function(
   label.top = 3,
   label.idents = NULL
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   splitby_str <- "__signac_tmp__"
   if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
     stop("The requested assay is not a ChromatinAssay5.")
@@ -698,7 +698,7 @@ RegionHeatmap <- function(
   order = TRUE,
   nrow = NULL
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   all.valid <- sapply(X = assay, FUN = function(x) {
     inherits(x = object[[x]], what = "ChromatinAssay5")
   })
@@ -979,7 +979,7 @@ RegionPlot <- function(
   window = (upstream+downstream)/500,
   nrow = NULL
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   if (!inherits(x = assay, what = "list")) {
     assay <- list(assay)
   }
@@ -1004,8 +1004,8 @@ RegionPlot <- function(
     cells.per.group <- heatmap_data$cells.per.group
     rm(heatmap_data)
     
-    upstream <- SetIfNull(x = upstream, y = upstream.max)
-    downstream <- SetIfNull(x = downstream, y = downstream.max)
+    upstream <- upstream %||% upstream.max
+    downstream <- downstream %||% downstream.max
     
     # define clipping
     cols.keep <- (upstream.max - upstream + 1):(upstream.max + downstream + 1)
@@ -1140,8 +1140,8 @@ SingleCoveragePlot <- function(
       paste(valid.assay.scale, collapse = ", ")
     )
   }
-  cells <- SetIfNull(x = cells, y = Cells(x = object))
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  cells <- cells %||% Cells(x = object)
+  assay <- assay %||% DefaultAssay(object = object)
   if (!inherits(x = assay, what = "list")) {
     assay <- list(assay)
   }
@@ -1218,9 +1218,7 @@ SingleCoveragePlot <- function(
     )
     colnames(cutmat) <- start(x = region):end(x = region)
     group.scale.factors <- suppressWarnings(reads.per.group * cells.per.group)
-    scale.factor <- SetIfNull(
-      x = scale.factor, y = median(x = group.scale.factors)
-    )
+    scale.factor <- scale.factor %||% median(x = group.scale.factors)
     cm.list[[i]] <- cutmat
     sf.list[[i]] <- scale.factor
     gsf.list[[i]] <- group.scale.factors
@@ -1389,9 +1387,7 @@ SingleCoveragePlot <- function(
   }
   bulk.height <- (1 / nident) * 10
   bw.height <- 10
-  heights <- SetIfNull(
-    x = heights, y = c(10, bulk.height, bw.height, 10, 3, 1, 1, 3)
-  )
+  heights <- heights %||% c(10, bulk.height, bw.height, 10, 3, 1, 1, 3)
   p <- CombineTracks(
     plotlist = list(p, bulk.plot, bigwig.tracks, tile.plot, gene.plot,
                     peak.plot, range.plot, link.plot),
@@ -1863,7 +1859,7 @@ MotifPlot <- function(
   if (!requireNamespace(package = "ggseqlogo", quietly = TRUE)) {
     stop("Please install ggseqlogo: install.packages('ggseqlogo')")
   }
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   if (!inherits(x = object[[assay]], what = "GRangesAssay")) {
     stop("The requested assay is not a GRangesAssay.")
   }
@@ -1932,8 +1928,8 @@ FragmentHistogram <- function(
   log.scale = FALSE,
   ...
 ) {
-  cells <- SetIfNull(x = cells, y = colnames(x = object))
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  cells <- cells %||% colnames(x = object)
+  assay <- assay %||% DefaultAssay(object = object)
   if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
     stop("The requested assay is not a ChromatinAssay5.")
   }
@@ -2006,7 +2002,7 @@ TSSPlot <- function(
   group.by = NULL,
   idents = NULL
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
     stop("The requested assay is not a ChromatinAssay5.")
   }
@@ -2189,7 +2185,7 @@ PeakPlot <- function(
   extend.upstream = 0,
   extend.downstream = 0
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
     stop("The requested assay is not a ChromatinAssay5.")
   }
@@ -2232,7 +2228,7 @@ PeakPlot <- function(
     peak.df$end[peak.df$end > end.pos] <- end.pos
     peak.plot <- ggplot(
       data = peak.df,
-      aes_string(color = SetIfNull(x = group.by, y = "color"))
+      aes_string(color = group.by %||% "color")
     ) +
       geom_segment(aes(x = start, y = 0, xend = end, yend = 0),
                    linewidth = 2,
@@ -2596,7 +2592,7 @@ ExpressionPlot <- function(
   slot = "data"
 ) {
   # get data
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   data.plot <- GetAssayData(
     object = object,
     assay = assay,
@@ -2792,7 +2788,7 @@ TilePlot <- function(
   order.by = "total",
   idents = NULL
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
     stop("Requested assay is not a ChromatinAssay5.")
   }

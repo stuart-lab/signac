@@ -16,10 +16,7 @@ ATACqc.default <- function(
     ...
 ) {
   # find fragtk
-  fragtk.path <- SetIfNull(
-    x = fragtk.path,
-    y = unname(obj = Sys.which(names = "fragtk"))
-  )
+  fragtk.path <- fragtk.path %||% unname(obj = Sys.which(names = "fragtk"))
   if (nchar(x = fragtk.path) == 0) {
     stop("fragtk not found. Please install fragtk:",
          "https://crates.io/crates/fragtk")
@@ -99,7 +96,7 @@ ATACqc.ChromatinAssay5 <- function(
     ...
 ) {
   
-  annotations <- SetIfNull(x = annotations, y = Annotation(object = object))
+  annotations <- annotations %||% Annotation(object = object)
   frags <- Fragments(object = object)
   
   results <- data.frame()
@@ -149,10 +146,7 @@ ATACqc.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- SetIfNull(
-    x = assay,
-    y = DefaultAssay(object = object)
-  )
+  assay <- assay %||% DefaultAssay(object = object)
   md <- ATACqc(
     object = object[[assay]],
     fragtk.path = fragtk.path,
@@ -232,7 +226,7 @@ BinarizeCounts.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   for (i in seq_along(along.with = assay)) {
     assay.data <- object[[assay[[i]]]]
     assay.data <- BinarizeCounts(
@@ -386,7 +380,7 @@ DownsampleFeatures <- function(
   n = 20000,
   verbose = TRUE
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   if (n > nrow(object[[assay]])) {
     stop("Requested more features than present in the assay")
   }
@@ -531,7 +525,7 @@ FindTopFeatures.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object))
+  assay <- assay %||% DefaultAssay(object)
   assay.data <- object[[assay]]
   assay.data <- FindTopFeatures(
     object = assay.data,
@@ -577,7 +571,7 @@ FitMeanVar.Seurat <- function(
     verbose = FALSE,
     ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object))
+  assay <- assay %||% DefaultAssay(object)
   assay.data <- object[[assay]]
   assay.data <- FitMeanVar(
     object = assay.data,
@@ -953,7 +947,7 @@ PearsonResidualVar.Seurat <- function(
     verbose = TRUE,
     ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object))
+  assay <- assay %||% DefaultAssay(object)
   assay.data <- object[[assay]]
   assay.data <- PearsonResidualVar(
     object = assay.data,
@@ -1120,7 +1114,7 @@ RegionStats.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
+  assay <- assay %||% DefaultAssay(object = object)
   assay.data <- object[[assay]]
   assay.data <- RegionStats(
     object = assay.data,
@@ -1344,7 +1338,7 @@ RunTFIDF.Seurat <- function(
   verbose = TRUE,
   ...
 ) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object))
+  assay <- assay %||% DefaultAssay(object)
   assay.data <- object[[assay]]
   assay.data <- RunTFIDF(
     object = assay.data,
