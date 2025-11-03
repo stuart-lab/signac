@@ -672,8 +672,6 @@ FitMeanVar.default <- function(
 ) {
   
   set.seed(random.seed)
-  
-  # TODO enable running on BPcells matrix
   rs <- rowSums(x = object)
 
   if (is.character(x = min.cutoff)) {
