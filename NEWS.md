@@ -1,3 +1,16 @@
+# Unreleased
+
+New features:
+
+* Added the `ATACqc` function to run `fragtk qc` and store the results
+
+Other changes:
+
+* Deprecated `NucleosomeSignal` and `TSSEnrichment` functions in favor of the
+new `ATACqc` function
+* Deprecated the blacklist region data objects in favor of using the
+[excluderanges](https://github.com/dozmorovlab/excluderanges) package
+
 # Signac 1.16.0
 
 Bug fixes:
