@@ -1580,10 +1580,19 @@ setMethod(
   f = "show",
   signature = "Fragment2",
   definition = function(object) {
+    sl <- seqlevels(x = object)
+    if (is.null(x = sl)) {
+      sl.text <- "Unknown seqlevels\n"
+    } else {
+      sl.text <- paste0("Seqlevels: ",
+                        paste(head(x = sl), collapse = ", "),
+                        " ...\n")
+    }
     cat(
       "A Fragment v2 object for",
       length(x = slot(object = object, name = "cells")),
-      "cells\n"
+      "cells\n",
+      sl.text
     )
   }
 )
