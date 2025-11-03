@@ -27,7 +27,7 @@ FoldChange.ChromatinAssay5 <- function(
     yes = "",
     no = base
   )
-  fc.name <- fc.name %||% paste0("avg_log", base.text, "FC"))
+  fc.name <- fc.name %||% paste0("avg_log", base.text, "FC")
   data <- LayerData(object = object, layer = slot)
   Seurat::FoldChange(
     object = data,
