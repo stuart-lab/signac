@@ -4,12 +4,13 @@
 \alias{GetFragmentData}
 \title{Get Fragment object data}
 \usage{
-GetFragmentData(object, slot = "path")
+GetFragmentData(object, slot = "file.path")
 }
 \arguments{
 \item{object}{A \code{\link{Fragment}} object}
 
-\item{slot}{Information to pull from object (path, hash, cells, prefix, suffix)}
+\item{slot}{Information to pull from object
+(file.path, index.path, hash, cells, seqlevels)}
 }
 \description{
 Extract data from a \code{\link{Fragment-class}} object
