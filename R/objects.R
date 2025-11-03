@@ -786,10 +786,11 @@ GetAssayData.ChromatinAssay5 <- function(
 #' Extract data from a \code{\link{Fragment-class}} object
 #'
 #' @param object A \code{\link{Fragment}} object
-#' @param slot Information to pull from object (path, hash, cells, prefix, suffix)
+#' @param slot Information to pull from object
+#' (file.path, index.path, hash, cells, seqlevels)
 #' @export
 #' @concept assay
-GetFragmentData <- function(object, slot = "path") {
+GetFragmentData <- function(object, slot = "file.path") {
   return(methods::slot(object = object, name = slot))
 }
 
