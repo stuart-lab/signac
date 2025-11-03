@@ -440,12 +440,6 @@ SeuratObject::Cells
   }
 }
 
-# TODO implement seqlevelsStyle for fragment object
-# this requires we know what the style in the file is
-# function should require that seqlevels information is already set
-# then we can change the mapping
-# also implement renameSeqlevels method
-
 #' @importFrom Seqinfo seqlevels
 #' @exportMethod seqlevels
 setMethod(
