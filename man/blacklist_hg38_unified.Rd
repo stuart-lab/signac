@@ -21,6 +21,10 @@ Kundaje and Anna Shcherbina. See
 \url{https://www.encodeproject.org/files/ENCFF356LFX/} for a description of
 how this blacklist was curated.
 }
+\details{
+This dataset is deprecated and will be removed from Signac in the future.
+See \url{https://github.com/dozmorovlab/excluderanges} instead.
+}
 \author{
 Anshul Kundaje
 
