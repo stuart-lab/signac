@@ -54,8 +54,8 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - { os: ubuntu-latest, r: 'release', bioc: '3.21', cont: "bioconductor/bioconductor_docker:RELEASE_3_21", rspm: "https://packagemanager.posit.co/cran/__linux__/focal/latest" }
-          - { os: ubuntu-latest, r: 'devel', bioc: '3.22', cont: "bioconductor/bioconductor_docker:devel", rspm: "https://packagemanager.posit.co/cran/__linux__/focal/latest" }
+          - { os: ubuntu-latest, r: 'release', bioc: '3.22', cont: "bioconductor/bioconductor_docker:RELEASE_3_22", rspm: "https://packagemanager.posit.co/cran/__linux__/focal/latest" }
+          - { os: ubuntu-latest, r: 'devel', bioc: '3.23', cont: "bioconductor/bioconductor_docker:devel", rspm: "https://packagemanager.posit.co/cran/__linux__/focal/latest" }
 
 
     env:

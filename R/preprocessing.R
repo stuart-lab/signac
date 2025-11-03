@@ -70,7 +70,7 @@ ATACqc.default <- function(
   
   # load results
   md <- read.table(file = out.path, header = TRUE, row.names = 1, sep = "\t")
-  
+
   # remove temp files
   if (cleanup) {
     files.to.remove <- c(tss.path, out.path)
@@ -116,7 +116,8 @@ ATACqc.ChromatinAssay5 <- function(
       annotations = annotations,
       outdir = outdir,
       cleanup = cleanup,
-      verbose = verbose
+      verbose = verbose,
+      ...
     )
     
     # convert cell names
@@ -158,7 +159,8 @@ ATACqc.Seurat <- function(
     annotations = annotations,
     outdir = outdir,
     cleanup = cleanup,
-    verbose = verbose
+    verbose = verbose,
+    ...
   )
   object <- AddMetaData(object = object, metadata = md)
   return(object)
