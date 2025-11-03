@@ -190,6 +190,7 @@ RunChromVAR.GRangesAssay <- function(
     y = GetMotifData(object = object, slot = "data")
   )
   peak.matrix <- LayerData(object = object, layer = layer)
+  peak.matrix <- as(object = peak.matrix, Class = "sparseMatrix")
   if (!(all(peak.matrix@x == floor(peak.matrix@x)))) {
     warning("Count matrix contains non-integer values.
             ChromVAR should only be run on integer counts.")
