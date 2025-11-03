@@ -801,8 +801,11 @@ PearsonResidualVar.default <- function(
     
     cells.interval.start <- 1 + ((i - 1) * ncell.batch)
     cells.interval.end <- min(N, (i * ncell.batch))
-
-    resid <- (object[ ,cells.interval.start:cells.interval.end] - feature_means) / denominator
+    
+    matrix.part <- suppressWarnings(expr = as.matrix(
+      x = object[ ,cells.interval.start:cells.interval.end]
+    ))
+    resid <- (matrix.part - feature_means) / denominator
     resid[resid > clip_threshold] <- clip_threshold
     resid[resid < -clip_threshold] <- -clip_threshold
     rs <- rowSums(x = resid)
