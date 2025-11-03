@@ -3,7 +3,7 @@
 \name{AggregateTiles}
 \alias{AggregateTiles}
 \alias{AggregateTiles.Seurat}
-\alias{AggregateTiles.ChromatinAssay}
+\alias{AggregateTiles.ChromatinAssay5}
 \alias{AggregateTiles.default}
 \title{Quantify aggregated genome tiles}
 \usage{
@@ -20,7 +20,7 @@ AggregateTiles(object, ...)
   ...
 )
 
-\method{AggregateTiles}{ChromatinAssay}(
+\method{AggregateTiles}{ChromatinAssay5}(
   object,
   genome,
   min_counts = 5,
@@ -66,8 +66,8 @@ aggregation}
 When running on a Seurat object, returns the Seurat object with a new
 \code{\link{ChromatinAssay}} added.
 
-When running on a \code{\link{ChromatinAssay}}, returns a new
-\code{ChromatinAssay} containing the aggregated genome tiles.
+When running on a \code{\link{ChromatinAssay5}}, returns a new
+\code{ChromatinAssay5} containing the aggregated genome tiles.
 
 When running on a fragment file, returns a sparse region x cell
 matrix.

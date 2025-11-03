@@ -11,7 +11,8 @@ GenomeBinMatrix(
   binsize = 5000,
   process_n = 2000,
   sep = c("-", "-"),
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 )
 }
 \arguments{
@@ -35,7 +36,9 @@ Processing more regions at once can be faster but uses more memory.}
 used to separate chromosome and coordinates, second separator is used to
 separate start and end coordinates.}
 
-\item{verbose}{Display messages}
+\item{verbose}{Display messages.}
+
+\item{...}{Arguments passed to \code{\link{FeatureMatrix}}.}
 }
 \value{
 Returns a sparse matrix

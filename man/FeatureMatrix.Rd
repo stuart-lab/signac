@@ -34,7 +34,9 @@ If a character vector is provided, this should be the path to the
 \code{fragtk} executable and \code{fragtk} will be used. Note that
 \code{fragtk} uses the Paired Insertion Counting method, whereas the R
 implementation counts insertions. See
-\url{https://crates.io/crates/fragtk} for fragtk documentation.}
+\url{https://crates.io/crates/fragtk} for fragtk documentation. The R
+implementation (\code{fragtk=FALSE}) will be faster for quantifying a small
+number of genomic regions.}
 
 \item{keep_all_features}{By default, if a genomic region provided is on a
 chromosome that is not present in the fragment file,
