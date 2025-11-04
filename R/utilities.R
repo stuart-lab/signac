@@ -264,6 +264,7 @@ SortIdents <- function(
   pseudobulk <- AverageCountMatrix(
     object = object,
     assay = assay,
+    group.by = label,
     layer = layer
   )
   
@@ -694,16 +695,14 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
 #' @concept utilities
 #' @concept motifs
 #' @examples
-#' metafeatures <- SeuratObject::GetAssayData(
-#'   object = atac_small[['peaks']], layer = 'meta.features'
-#' )
+#' metafeatures <- atac_small[['peaks']][[]]
 #' query.feature <- metafeatures[1:10, ]
 #' features.choose <- metafeatures[11:nrow(metafeatures), ]
 #' MatchRegionStats(
-#'   meta.feature = features.choose,
-#'   query.feature = query.feature,
-#'   features.match = "percentile",
-#'   n = 10
+#' meta.feature = features.choose,
+#' query.feature = query.feature,
+#' features.match = "GC.percent",
+#' n = 10
 #' )
 MatchRegionStats <- function(
   meta.feature,

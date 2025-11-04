@@ -1975,14 +1975,6 @@ dim.Motif <- function(x) {
 #' @importFrom SeuratObject SetAssayData
 #' @concept assay
 #' @concept fragments
-#' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' fragments <- CreateFragmentObject(
-#'   path = fpath,
-#'   cells = colnames(atac_small),
-#'   validate.fragments = FALSE
-#' )
-#' Fragments(atac_small[["bins"]]) <- fragments
 "Fragments<-.ChromatinAssay5" <- function(object, ..., value) {
   if (is.null(x = value)) {
     slot(object = object, name = "fragments") <- list()
@@ -2017,7 +2009,14 @@ dim.Motif <- function(x) {
 #'   cells = colnames(atac_small),
 #'   validate.fragments = FALSE
 #' )
+#' # Seurat object method
 #' Fragments(atac_small) <- fragments
+#' 
+#' # Remove fragment objects
+#' Fragments(atac_small) <- NULL
+#' 
+#' # Assay method
+#' Fragments(atac_small[["peaks"]]) <- fragments
 "Fragments<-.Seurat" <- function(object, ..., value) {
   assay <- DefaultAssay(object = object)
   Fragments(object = object[[assay]]) <- value

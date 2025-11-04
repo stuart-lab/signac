@@ -44,14 +44,14 @@ fragments <- CreateFragmentObject(
   cells = colnames(atac_small),
   validate.fragments = FALSE
 )
-Fragments(atac_small[["bins"]]) <- fragments
-fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-fragments <- CreateFragmentObject(
-  path = fpath,
-  cells = colnames(atac_small),
-  validate.fragments = FALSE
-)
+# Seurat object method
 Fragments(atac_small) <- fragments
+
+# Remove fragment objects
+Fragments(atac_small) <- NULL
+
+# Assay method
+Fragments(atac_small[["peaks"]]) <- fragments
 }
 \concept{assay}
 \concept{fragments}
