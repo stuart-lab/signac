@@ -512,7 +512,7 @@ StringToGRanges <- function(regions, sep = c("-", "-"), ...) {
 #' separate start and end coordinates.
 #' @importMethodsFrom GenomicRanges start end seqnames
 #' @examples
-#' GRangesToString(grange = blacklist_hg19)
+#' GRangesToString(grange = granges(atac_small))
 #' @return Returns a character vector
 #' @export
 #' @concept utilities
@@ -547,7 +547,7 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
 #' @concept utilities
 #' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
 #' @examples
-#' Extend(x = blacklist_hg19, upstream = 100, downstream = 100)
+#' Extend(x = granges(atac_small), upstream = 100, downstream = 100)
 Extend <- function(
   x,
   upstream = 0,
@@ -934,7 +934,7 @@ CollapseToLongestTranscript <- function(ranges) {
 #
 # @return Returns a list of GRanges objects
 # @examples
-# ChunkGRanges(blacklist_hg19, n = 10)
+# ChunkGRanges(granges(atac_small), n = 10)
 ChunkGRanges <- function(granges, nchunk) {
   if (length(x = granges) < nchunk) {
     nchunk <- length(x = granges)
