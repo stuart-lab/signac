@@ -61,6 +61,7 @@ library(Seurat)
 library(GenomicRanges)
 library(ggplot2)
 library(patchwork)
+library(GenomeInfoDb)
 ```
 
 ## Pre-processing workflow
@@ -219,37 +220,20 @@ suggest the following metrics below to assess data quality. As with scRNA-seq,
 the expected range of values for these parameters will vary depending on your
 biological system, cell viability, and other factors.
 
-* Nucleosome banding pattern: The histogram of DNA fragment sizes (determined from the paired-end sequencing reads) should exhibit a strong nucleosome banding pattern corresponding to the length of DNA wrapped around a single nucleosome. We calculate this per single cell, and quantify the approximate ratio of mononucleosomal to nucleosome-free fragments (stored as `nucleosome_signal`)
+* Nucleosome banding pattern: The histogram of DNA fragment sizes (determined from the paired-end sequencing reads) should exhibit a strong nucleosome banding pattern corresponding to the length of DNA wrapped around a single nucleosome.
 
-* Transcriptional start site (TSS) enrichment score: The [ENCODE project](https://www.encodeproject.org/) has defined an ATAC-seq targeting score based on the ratio of fragments centered at the TSS to fragments in TSS-flanking regions (see https://www.encodeproject.org/data-standards/terms/). Poor ATAC-seq experiments typically will have a low TSS enrichment score. We can compute this metric for each cell with the `TSSEnrichment()` function, and the results are stored in metadata under the column name `TSS.enrichment`.
+* Transcriptional start site (TSS) enrichment score: The [ENCODE project](https://www.encodeproject.org/) has defined an ATAC-seq targeting score based on the ratio of fragments centered at the TSS to fragments in TSS-flanking regions (see https://www.encodeproject.org/data-standards/terms/). Poor ATAC-seq experiments typically will have a low TSS enrichment score.
 
-* Total number of fragments in peaks: A measure of cellular sequencing depth / complexity. Cells with very few reads may need to be excluded due to low sequencing depth. Cells with extremely high levels may represent doublets, nuclei clumps, or other artefacts.
+* Total number of fragments: A measure of cellular sequencing depth / complexity. Cells with very few fragments may need to be excluded due to low sequencing depth. Cells with extremely high levels may represent doublets, nuclei clumps, or other artefacts.
 
-* Fraction of fragments in peaks: Represents the fraction of all fragments that fall within ATAC-seq peaks. Cells with low values (i.e. <15-20%) often represent low-quality cells or technical artifacts that should be removed. Note that this value can be sensitive to the set of peaks used.
+* Fraction of fragments in promoters: Represents the fraction of all fragments that fall within promoter regions. Cells with low values (i.e. <15-20%) often represent low-quality cells or technical artifacts that should be removed.
 
-* Ratio reads in genomic blacklist regions: The [ENCODE project](https://www.encodeproject.org/) has provided a list of [blacklist regions](https://github.com/Boyle-Lab/Blacklist), representing reads which are often associated with artefactual signal. Cells with a high proportion of reads mapping to these areas (compared to reads mapping to peaks) often represent technical artifacts and should be removed. The `FractionCountsInRegion()` function can be used to calculate the fraction of all counts within a given set of regions per cell. We can use this function and a list of blacklist regions to find the fraction of blacklist counts per cell. 
+* Ratio reads in genomic blacklist regions: The [ENCODE project](https://www.encodeproject.org/) has provided a list of [blacklist regions](https://github.com/Boyle-Lab/Blacklist), representing reads which are often associated with artefactual signal. Cells with a high proportion of reads mapping to these areas (compared to reads mapping to peaks) often represent technical artifacts and should be removed.
 
-Note that the last three metrics can be obtained from the output of CellRanger
-(which is stored in the object metadata), but can also be calculated for non-10x
-datasets using Signac (more information at the end of this document).
+We can compute a range of scATAC-seq QC metrics in Signac using the `ATACqc` function:
 
 ```{r message=FALSE, warning=FALSE}
-# compute nucleosome signal score per cell
-pbmc <- NucleosomeSignal(object = pbmc)
-
-# compute TSS enrichment score per cell
-pbmc <- TSSEnrichment(object = pbmc)
-
-# add fraction of reads in peaks
-pbmc$pct_reads_in_peaks <- pbmc$peak_region_fragments / pbmc$passed_filters * 100
-
-# add blacklist ratio
-blacklist_regions <- ah[['AH107305']] # blacklist regions for hg38
-pbmc$blacklist_ratio <- FractionCountsInRegion(
-  object = pbmc, 
-  assay = 'peaks',
-  regions = blacklist_regions
-)
+pbmc <- ATACqc(pbmc)
 ```
 
 The relationship between variables stored in the object metadata can
@@ -258,18 +242,7 @@ to quickly find suitable cutoff values for different QC metrics by setting
 `quantiles=TRUE`:
 
 ```{r}
-DensityScatter(pbmc, x = 'nCount_peaks', y = 'TSS.enrichment', log_x = TRUE, quantiles = TRUE)
-```
-
-We can also look at the fragment length periodicity for all the cells, and group
-by cells with high or low nucleosomal signal strength. You can see that cells
-that are outliers for the mononucleosomal / nucleosome-free ratio (based on the
-plots above) have different nucleosomal banding patterns. The remaining cells
-exhibit a pattern that is typical for a successful ATAC-seq experiment.
-
-```{r message=FALSE, warning=FALSE}
-pbmc$nucleosome_group <- ifelse(pbmc$nucleosome_signal > 4, 'NS > 4', 'NS < 4')
-FragmentHistogram(object = pbmc, group.by = 'nucleosome_group')
+DensityScatter(pbmc, x = 'total_fragments', y = 'TSS_enrichment', log_x = TRUE, quantiles = TRUE)
 ```
 
 We can plot the distribution of each QC metric separately using a violin plot:
@@ -277,9 +250,9 @@ We can plot the distribution of each QC metric separately using a violin plot:
 ```{r message=FALSE, warning=FALSE, fig.width=18, fig.height=6}
 VlnPlot(
   object = pbmc,
-  features = c('nCount_peaks', 'TSS.enrichment', 'nucleosome_signal', 'pct_reads_in_peaks'),
+  features = c('nCount_peaks', 'total_fragments', 'TSS_enrichment', 'FRiP'),
   pt.size = 0.1,
-  ncol = 5
+  ncol = 4
 )
 ```
 
@@ -289,11 +262,10 @@ thresholds used will need to be adjusted according to your dataset.
 ```{r}
 pbmc <- subset(
   x = pbmc,
-  subset = nCount_peaks > 9000 &
-    nCount_peaks < 100000 &
-    pct_reads_in_peaks > 40 &
-    nucleosome_signal < 4 &
-    TSS.enrichment > 4
+  subset = total_fragments > 10000 &
+    total_fragments < 90000 &
+    TSS_enrichment > 10 &
+    FRiP > 0.1
 )
 pbmc
 ```
@@ -379,12 +351,7 @@ gene.activities <- GeneActivity(pbmc)
 ```{r message=FALSE, warning=FALSE}
 # add the gene activity matrix to the Seurat object as a new assay and normalize it
 pbmc[['RNA']] <- CreateAssayObject(counts = gene.activities)
-pbmc <- NormalizeData(
-  object = pbmc,
-  assay = 'RNA',
-  normalization.method = 'LogNormalize',
-  scale.factor = median(pbmc$nCount_RNA)
-)
+pbmc <- NormalizeData(pbmc, assay = 'RNA')
 ```
 
 Now we can visualize the activities of canonical marker genes to help interpret
@@ -638,27 +605,29 @@ plot1 | plot2
 ```
 
 Peak coordinates can be difficult to interpret alone. We can find the closest
-gene to each of these peaks using the `ClosestFeature()` function. 
+gene to each of these peaks using functions from the `GenomicRanges` package:
 
 ```{r warning=FALSE, message=FALSE}
 open_cd4naive <- rownames(da_peaks[da_peaks$avg_log2FC > 3, ])
-open_cd14mono <- rownames(da_peaks[da_peaks$avg_log2FC < -3, ])
 
-closest_genes_cd4naive <- ClosestFeature(pbmc, regions = open_cd4naive)
-closest_genes_cd14mono <- ClosestFeature(pbmc, regions = open_cd14mono)
+gene_distance_cd4naive <- distanceToNearest(StringToGRanges(open_cd4naive), Annotation(pbmc))
+
+closest_genes <- data.frame(
+  peak = open_cd4naive,
+  gene_name = Annotation(pbmc)[subjectHits(gene_distance_cd4naive)]$gene_name,
+  gene_id = Annotation(pbmc)[subjectHits(gene_distance_cd4naive)]$gene_id,
+  distance = mcols(gene_distance_cd4naive)$distance)
 ```
 
 ```{r}
-head(closest_genes_cd4naive)
-```
-```{r}
-head(closest_genes_cd14mono)
+head(closest_genes)
 ```
 
 We could follow up with this result by doing gene ontology enrichment analysis
-on the gene sets returned by `ClosestFeature()`,and there are many R packages
-that can do this (see the[`GOstats`](https://bioconductor.org/packages/release/bioc/html/GOstats.html) or [`clusterProfiler`](https://bioconductor.org/packages/release/bioc/html/clusterProfiler.html)
-packages for example).
+on the gene sets close to differentially accessible peaks, and there are many
+R packages that can do this (see the 
+[`GOstats`](https://bioconductor.org/packages/release/bioc/html/GOstats.html) or
+[`clusterProfiler`](https://bioconductor.org/packages/release/bioc/html/clusterProfiler.html) packages for example).
 
 <details>
 
@@ -683,7 +652,7 @@ library(enrichplot)
 ```
 
 ```{r fig.width=12, fig.height=10, message=FALSE, warning=FALSE}
-cd4naive_ego <- enrichGO(gene = closest_genes_cd4naive$gene_id,
+cd4naive_ego <- enrichGO(gene = closest_genes$gene_id,
                 keyType = "ENSEMBL",
                 OrgDb = org.Hs.eg.db,
                 ont = "BP",
@@ -695,18 +664,6 @@ cd4naive_ego <- enrichGO(gene = closest_genes_cd4naive$gene_id,
 barplot(cd4naive_ego,showCategory = 20)
 ```
 
-```{r fig.width=12, fig.height=10, message=FALSE, warning=FALSE}
-cd14mono_ego <- enrichGO(gene = closest_genes_cd14mono$gene_id,
-                keyType = "ENSEMBL",
-                OrgDb = org.Hs.eg.db,
-                ont = "BP",
-                pAdjustMethod = "BH",
-                pvalueCutoff = 0.05,
-                qvalueCutoff = 0.05,
-                readable = TRUE)
-
-barplot(cd14mono_ego,showCategory = 20)
-```
 </details>
 
 ## Plotting genomic regions
@@ -747,28 +704,6 @@ CoveragePlot(
 )
 ```
 
-```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=6}
-regions_highlight <- subsetByOverlaps(StringToGRanges(open_cd14mono), LookupGeneCoords(pbmc, "LYZ"))
-
-CoveragePlot(
-  object = pbmc,
-  region = "LYZ",
-  region.highlight = regions_highlight,
-  extend.upstream = 1000,
-  extend.downstream = 5000
-)
-```
-
-We can also create an interactive version of these plots using the
-`CoverageBrowser()` function. Here is a recorded demonstration showing how we
-can use `CoverageBrowser()` to browser the genome and adjust plotting parameters
-interactively. The "Save plot" button in `CoverageBrowser()` will add the
-current plot to a list of `ggplot` objects that is returned when the browser
-session is ended by pressing the "Done" button, allowing interesting views
-to be saved during an interactive session.
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/S9b5rN32IC8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
 <details>
   <summary>**Working with datasets that were not quantified using CellRanger**</summary>
  
@@ -798,52 +733,11 @@ generate a set of genomic ranges spanning the entire genome for you, and run
 
 ```{r eval=FALSE}
 # not run
+library(BSgenome.Hsapiens.UCSC.hg38)
 bin_matrix <- GenomeBinMatrix(
   fragments = Fragments(pbmc),
-  genome = seqlengths(pbmc),
+  genome = seqlengths(BSgenome.Hsapiens.UCSC.hg38),
   binsize = 5000
-)
-```
-
-### Counting fraction of reads in peaks
-
-The function `FRiP()` will count the fraction of reads in peaks for each cell,
-given a peak/cell assay and a bin/cell assay. Note that this can be run on a
-subset of the genome, so that a bin/cell assay does not need to be computed for
-the whole genome. This will return a Seurat object will metadata added
-corresponding to the fraction of reads in peaks for each cell.
-
-```{r eval=FALSE}
-# not run
-total_fragments <- CountFragments('10k_pbmc_ATACv2_nextgem_Chromium_Controller_fragments.tsv.gz')
-rownames(total_fragments) <- total_fragments$CB
-pbmc$fragments <- total_fragments[colnames(pbmc), "frequency_count"]
-
-pbmc <- FRiP(
-  object = pbmc,
-  assay = 'peaks',
-  total.fragments = 'fragments'
-)
-```
-
-### Counting fragments in genome blacklist regions
-
-The ratio of reads in genomic blacklist regions, that are known to artifactually
-accumulate reads in genome sequencing assays, can be diagnostic of low-quality
-cells. Genomic blacklist regions for a variety of species can be found in the
-[excluderanges](https://github.com/dozmorovlab/excluderanges) package available
-through [AnnotationHub](https://bioconductor.org/packages/AnnotationHub/).
-The `FractionCountsInRegion()` function can be used to
-calculate the fraction of all counts within a given set of regions per cell.
-We can use this function and the blacklist regions to find the fraction of
-blacklist counts per cell.
-
-```{r eval=FALSE}
-# not run
-pbmc$blacklist_fraction <- FractionCountsInRegion(
-  object = pbmc, 
-  assay = 'peaks',
-  regions = blacklist_regions
 )
 ```
 
