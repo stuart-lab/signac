@@ -283,7 +283,7 @@ GeneActivity <- function(
 #' genome <- 780007
 #' names(genome) <- 'chr1'
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
-#' fragments <- CreateFragmentObject(fpath)
+#' fragments <- CreateFragmentObject(fpath, cells = colnames(atac_small))
 #' GenomeBinMatrix(
 #'   fragments = fragments,
 #'   genome = genome,
