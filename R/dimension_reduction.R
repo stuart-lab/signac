@@ -210,9 +210,7 @@ PrepDR5 <- function(object, features = NULL, layer = 'scale.data', verbose = TRU
 #' @concept dimension_reduction
 #' @method RunSVD Assay5
 #' @examples
-#' \dontrun{
-#' RunSVD(atac_small[['peaks']])
-#' }
+#' RunSVD(atac_small[['peaks']], features = rownames(atac_small))
 RunSVD.Assay5 <- function(
   object,
   assay = NULL,
@@ -253,9 +251,7 @@ RunSVD.Assay5 <- function(
 #' @concept dimension_reduction
 #' @method RunSVD StdAssay
 #' @examples
-#' \dontrun{
-#' RunSVD(atac_small[['peaks']])
-#' }
+#' RunSVD(atac_small[['peaks']], features = rownames(atac_small))
 RunSVD.StdAssay <- function(
     object,
     assay = NULL,
@@ -287,9 +283,7 @@ RunSVD.StdAssay <- function(
 #' @export
 #' @concept dimension_reduction
 #' @examples
-#' \dontrun{
-#' RunSVD(atac_small)
-#' }
+#' RunSVD(atac_small, features = rownames(atac_small))
 #' @method RunSVD Seurat
 RunSVD.Seurat <- function(
   object,
