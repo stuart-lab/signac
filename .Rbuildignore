@@ -24,3 +24,4 @@ CONTRIBUTING.md
 build.sh
 ^.*\\.err$
 ^.*\\.out$
+^data-raw$
