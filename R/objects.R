@@ -128,6 +128,12 @@ CreateChromatinAssay5 <- function(
   if (missing(x = data)) {
     data <- NULL
   }
+  has_underscore <- any(grepl("_", rownames(x = counts)))
+  if (has_underscore) {
+    warning("Input matrix contains underscores in feature names. These are not
+            allowed by Seurat; replacing underscores with '.'")
+    rownames(x = counts) <- gsub("_", ".", rownames(x = counts))
+  }
   
   seurat.assay <- CreateAssay5Object(counts = counts, data = data, ...)
   if (inherits(x = fragments, what = "list")) {
