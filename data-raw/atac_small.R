@@ -38,8 +38,9 @@ ga <- GeneActivity(pbmc)
 ga_subset <- ga[1:50, ]
 
 pbmc[['RNA']] <- CreateAssayObject(counts = ga_subset)
-annotation_subset <- annotations[annotations$gene_name == "CD8A"]
-Annotation(pbmc) <- annotation_subset
+
+annotation_subset <- annotations[seqnames(annotations) == 'chr1', ]
+Annotation(pbmc) <- head(annotation_subset, 200)
 
 pbmc <- RunTFIDF(pbmc)
 pbmc <- RunSVD(pbmc, features = rownames(pbmc))
