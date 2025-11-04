@@ -3,6 +3,9 @@
 library(Signac)
 library(Seurat)
 library(AnnotationHub)
+library(BSgenome.Hsapiens.UCSC.hg38)
+library(JASPAR2020)
+library(TFBSTools)
 setwd("vignette_data/pbmc_vignette/")
 set.seed(1234)
 
@@ -21,6 +24,13 @@ gr_assay <- CreateGRangesAssay(
 )
 
 pbmc <- CreateSeuratObject(counts = gr_assay, assay = "peaks")
+
+pfm <- getMatrixSet(
+  x = JASPAR2020,
+  opts = list(collection = "CORE", tax_group = 'vertebrates', all_versions = FALSE)
+)
+
+pbmc <- AddMotifs(pbmc, genome = BSgenome.Hsapiens.UCSC.hg38, pfm = pfm[1:10])
 
 Annotation(pbmc) <- annotations
 ga <- GeneActivity(pbmc)
