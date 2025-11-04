@@ -1735,7 +1735,7 @@ CoverageTrack <- function(
 #' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), region.highlight = ranges.show)
 #'
 #' # Show expression data
-#' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), features = "ELK1")
+#' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), features = "GYG2")
 #' }
 CoveragePlot <- function(
   object,
@@ -2580,7 +2580,7 @@ ExpressionPlot <- function(
   for (i in seq_along(along.with = features)) {
     df.use <- df[df$gene == features[[i]], ]
     p <- ggplot(data = df.use, aes(x = expression, y = gene, fill = group)) +
-      geom_violin(size = 1/4) +
+      geom_violin(linewidth = 1/4) +
       facet_wrap(~group, ncol = 1, strip.position = "right") +
       theme_classic() +
       scale_y_discrete(position = "top") +
