@@ -13,7 +13,7 @@ ValidateCells(
 )
 }
 \arguments{
-\item{object}{A \code{\link{Fragment}} object}
+\item{object}{A \code{\link{Fragment2}} object}
 
 \item{cells}{A character vector containing cell barcodes to search for.
 If NULL, use the cells stored in the Fragment object.}

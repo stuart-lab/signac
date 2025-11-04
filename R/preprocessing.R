@@ -666,6 +666,7 @@ FitMeanVar.Assay5 <- function(
 }
 
 #' @rdname FitMeanVar
+#' @param random.seed Random seed to set for sampling.
 #' @importFrom SeuratObject DefaultAssay
 #' @importFrom sparseMatrixStats rowVars
 #' @importFrom stats loess predict
@@ -1340,7 +1341,9 @@ RunTFIDF.StdAssay <- function(
   )
 }
 
-#' @param assay Name of assay to use
+#' @param assay Name of assay to use.
+#' @param layer Name of layer to use.
+#' @param save Name of layer to save results in.
 #' @rdname RunTFIDF
 #' @method RunTFIDF Seurat
 #' @export

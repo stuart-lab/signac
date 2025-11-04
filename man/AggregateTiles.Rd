@@ -64,7 +64,7 @@ aggregation}
 }
 \value{
 When running on a Seurat object, returns the Seurat object with a new
-\code{\link{ChromatinAssay}} added.
+\code{\link{ChromatinAssay5}} added.
 
 When running on a \code{\link{ChromatinAssay5}}, returns a new
 \code{ChromatinAssay5} containing the aggregated genome tiles.

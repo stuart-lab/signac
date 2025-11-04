@@ -61,6 +61,8 @@ CreateGRangesAssay <- function(
   return(granges.assay)
 }
 
+#' @param counts A two-dimensional matrix
+#' @param data Optional pre-normalized count matrix
 #' @param fragments Path to a tabix-indexed fragments file for the data
 #' contained in the input matrix. If multiple fragment files are required,
 #' you can add additional \code{\link{Fragment}} object to the assay after it is
@@ -777,9 +779,9 @@ GetAssayData.ChromatinAssay5 <- function(
 
 #' Get Fragment object data
 #'
-#' Extract data from a \code{\link{Fragment-class}} object
+#' Extract data from a \code{\link{Fragment2-class}} object
 #'
-#' @param object A \code{\link{Fragment}} object
+#' @param object A \code{\link{Fragment2}} object
 #' @param slot Information to pull from object
 #' (file.path, index.path, hash, cells, seqlevels)
 #' @export
@@ -1350,7 +1352,7 @@ subset.ChromatinAssay5 <- function(
 
 #' Subset a Fragment object
 #'
-#' Returns a subset of a \code{\link{Fragment2-class}} object.
+#' Returns a subset of a \code{\link{Fragment}} object.
 #'
 #' @param x A Fragment object
 #' @param cells Vector of cells to retain
@@ -1360,7 +1362,7 @@ subset.ChromatinAssay5 <- function(
 #'
 #' @importFrom fastmatch fmatch
 #' @seealso \code{\link[base]{subset}}
-#' @return Returns a subsetted \code{\link{Fragment2}} object
+#' @return Returns a subsetted \code{\link{Fragment}} object
 #' @export
 #' @concept fragments
 #' @examples
@@ -1782,11 +1784,6 @@ Annotation.ChromatinAssay5 <- function(object, ...) {
   return(slot(object = object, name = "annotation"))
 }
 
-#' @method Annotation ChromatinAssay
-Annotation.ChromatinAssay <- function(object, ...) {
-  return(slot(object = object, name = "annotation"))
-}
-
 #' @param object A Seurat, GRangesAssay, or ChromatinAssay5 object
 #' @importFrom SeuratObject DefaultAssay
 #' @rdname Annotation
@@ -1810,11 +1807,6 @@ Annotation.Seurat <- function(object, ...) {
 #' @examples
 #' Fragments(atac_small[["peaks"]])
 Fragments.ChromatinAssay5 <- function(object, ...) {
-  return(slot(object, name = "fragments"))
-}
-
-#' @method Fragments ChromatinAssay
-Fragments.ChromatinAssay <- function(object, ...) {
   return(slot(object, name = "fragments"))
 }
 
@@ -1843,11 +1835,6 @@ Motifs.ChromatinAssay5 <- function(object, ...) {
   return(slot(object = object, name = "motifs"))
 }
 
-#' @method Motifs ChromatinAssay
-Motifs.ChromatinAssay <- function(object, ...) {
-  return(slot(object = object, name = "motifs"))
-}
-
 #' @param object A Seurat or ChromatinAssay5 object
 #' @rdname Motifs
 #' @importFrom SeuratObject DefaultAssay
@@ -1870,11 +1857,6 @@ Motifs.Seurat <- function(object, ...) {
 #' @examples
 #' Links(atac_small[["peaks"]])
 Links.ChromatinAssay5 <- function(object, ...) {
-  return(slot(object = object, name = "links"))
-}
-
-#' @method Links ChromatinAssay
-Links.ChromatinAssay <- function(object, ...) {
   return(slot(object = object, name = "links"))
 }
 

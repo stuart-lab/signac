@@ -76,6 +76,8 @@ Setting \code{weight.mean=0} will rank features according to their residual vari
 \item{key}{Key to use when storing the highly variable feature information in the assay.}
 
 \item{verbose}{Display messages.}
+
+\item{random.seed}{Random seed to set for sampling.}
 }
 \value{
 Returns a \code{\link[SeuratObject]{Seurat}} object

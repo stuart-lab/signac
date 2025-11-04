@@ -3,7 +3,7 @@
 \name{Cells.Fragment2}
 \alias{Cells.Fragment2}
 \alias{Cells<-.Fragment2}
-\title{Set and get cell barcode information for a \code{\link{Fragment}} object}
+\title{Set and get cell barcode information for a \code{\link{Fragment2}} object}
 \usage{
 \method{Cells}{Fragment2}(x, ...)
 
@@ -14,14 +14,14 @@
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{A vector of cell names to store in the \code{\link{Fragment}}
+\item{value}{A vector of cell names to store in the \code{\link{Fragment2}}
 object}
 }
 \description{
 This returns the names of cells in the object that are contained in the
 fragment file. These cell barcodes may not match the barcodes present in the
-fragment file. The \code{\link{Fragment}} object contains an internal mapping
-of the cell names in the \code{\link{ChromatinAssay}} object to the cell
+fragment file. The \code{\link{Fragment2}} object contains an internal mapping
+of the cell names in the \code{\link{ChromatinAssay5}} object to the cell
 names in the fragment file, so that cell names can be changed in the
 assay without needing to change the cell names on disk.
 }

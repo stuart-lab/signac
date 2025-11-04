@@ -89,6 +89,8 @@ Default (NULL) is no clipping.}
 \item{tol}{Tolerance (tol) parameter for \code{\link[RSpectra]{svds}}.
 Larger values speed up convergence due to greater amount of allowed error.}
 
+\item{layer}{Name of layer to use.}
+
 \item{features}{Which features to use. If NULL, use variable features}
 
 \item{reduction.name}{Name for stored dimension reduction object.}

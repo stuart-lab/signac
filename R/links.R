@@ -7,6 +7,7 @@ NULL
 #' @method GetLinkedPeaks Seurat
 #' @concept links
 #' @rdname GetLinkedPeaks
+#' @export
 GetLinkedPeaks.Seurat <- function(
     object,
     features,
@@ -45,7 +46,8 @@ GetLinkedPeaks.Assay5 <- function(
 GetLinkedPeaks.GRangesAssay <- function(
   object,
   features,
-  min.abs.score = 0
+  min.abs.score = 0,
+  ...
 ) {
   lnk <- Links(object = object)
   if (length(x = lnk) == 0) {
@@ -60,6 +62,7 @@ GetLinkedPeaks.GRangesAssay <- function(
 #' @method GetLinkedGenes Seurat
 #' @concept links
 #' @rdname GetLinkedGenes
+#' @export
 GetLinkedGenes.Seurat <- function(
     object,
     features,
@@ -98,7 +101,8 @@ GetLinkedGenes.Assay5 <- function(
 GetLinkedGenes.GRangesAssay <- function(
     object,
     features,
-    min.abs.score = 0
+    min.abs.score = 0,
+    ...
 ) {
   lnk <- Links(object = object)
   if (length(x = lnk) == 0) {

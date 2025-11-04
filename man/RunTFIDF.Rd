@@ -61,7 +61,7 @@ RunTFIDF(object, ...)
 
 \item{...}{Arguments passed to other methods}
 
-\item{assay}{Name of assay to use}
+\item{assay}{Name of assay to use.}
 
 \item{method}{Which TF-IDF implementation to use. Choice of:
 \itemize{
@@ -83,6 +83,10 @@ RunTFIDF(object, ...)
 input data matrix.}
 
 \item{verbose}{Print progress}
+
+\item{layer}{Name of layer to use.}
+
+\item{save}{Name of layer to save results in.}
 }
 \value{
 Returns a \code{\link[SeuratObject]{Seurat}} object

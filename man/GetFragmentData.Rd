@@ -7,12 +7,12 @@
 GetFragmentData(object, slot = "file.path")
 }
 \arguments{
-\item{object}{A \code{\link{Fragment}} object}
+\item{object}{A \code{\link{Fragment2}} object}
 
 \item{slot}{Information to pull from object
 (file.path, index.path, hash, cells, seqlevels)}
 }
 \description{
-Extract data from a \code{\link{Fragment-class}} object
+Extract data from a \code{\link{Fragment2-class}} object
 }
 \concept{assay}

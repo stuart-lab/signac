@@ -99,4 +99,5 @@ Suggests:
     MASS,
     BPCells,
     wrswoR,
-    scattermore
+    scattermore,
+    fields

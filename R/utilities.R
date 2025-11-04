@@ -98,7 +98,6 @@ globalVariables(names = c("group", "readcount"), package = "Signac")
 AverageCounts <- function(
   object,
   assay = NULL,
-  layer = NULL,
   group.by = NULL,
   verbose = TRUE
 ) {

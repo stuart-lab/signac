@@ -22,6 +22,10 @@ CreateChromatinAssay5(
 )
 }
 \arguments{
+\item{counts}{A two-dimensional matrix}
+
+\item{data}{Optional pre-normalized count matrix}
+
 \item{ranges}{A set of \code{\link[GenomicRanges]{GRanges}} corresponding to
 the rows of the input matrix}
 

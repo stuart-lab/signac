@@ -279,6 +279,7 @@ RunSVD.StdAssay <- function(
 }
 
 #' @param reduction.name Name for stored dimension reduction object.
+#' @param layer Name of layer to use.
 #' @rdname RunSVD
 #' @export
 #' @concept dimension_reduction

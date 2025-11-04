@@ -13,7 +13,7 @@ GetLinkedPeaks(object, ...)
 
 \method{GetLinkedPeaks}{Assay5}(object, ...)
 
-\method{GetLinkedPeaks}{GRangesAssay}(object, features, min.abs.score = 0)
+\method{GetLinkedPeaks}{GRangesAssay}(object, features, min.abs.score = 0, ...)
 }
 \arguments{
 \item{object}{A Seurat object}

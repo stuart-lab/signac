@@ -30,8 +30,8 @@ setClassUnion(name = "NumericOrNULL", members = c("numeric", "NULL"))
 #' name of each element is the corresponding sequence name as stored in the 
 #' ChromatinAssay5 object.
 #'
-#' @name Fragment-class
-#' @rdname Fragment-class
+#' @name Fragment2-class
+#' @rdname Fragment2-class
 #' @aliases Fragment
 #' @exportClass Fragment2
 #' @concept fragments
@@ -238,7 +238,6 @@ GRangesAssay <- setClass(
 #'
 #' @rdname oldfragment-class
 #' @keywords internal
-#' @concept v1
 #' @noRd
 Fragment <- setClass(
   Class = "Fragment",
@@ -283,9 +282,8 @@ Fragment <- setClass(
 #' "score" metadata column.
 #'
 #' @name chromatinassay-class
-#' @rdname oldchromatinassay-class
+#' @noRd
 #' @importClassesFrom SeuratObject Assay
-#' @concept v1
 ChromatinAssay <- setClass(
   Class = "ChromatinAssay",
   contains = "Assay",

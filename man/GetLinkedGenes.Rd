@@ -13,7 +13,7 @@ GetLinkedGenes(object, ...)
 
 \method{GetLinkedGenes}{Assay5}(object, ...)
 
-\method{GetLinkedGenes}{GRangesAssay}(object, features, min.abs.score = 0)
+\method{GetLinkedGenes}{GRangesAssay}(object, features, min.abs.score = 0, ...)
 }
 \arguments{
 \item{object}{A Seurat object}

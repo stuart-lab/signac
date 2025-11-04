@@ -4,13 +4,7 @@
 \alias{AverageCounts}
 \title{Average Counts}
 \usage{
-AverageCounts(
-  object,
-  assay = NULL,
-  layer = NULL,
-  group.by = NULL,
-  verbose = TRUE
-)
+AverageCounts(object, assay = NULL, group.by = NULL, verbose = TRUE)
 }
 \arguments{
 \item{object}{A Seurat object}

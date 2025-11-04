@@ -299,7 +299,7 @@ SplitFragments <- function(
 #' Will iterate through chunks of the fragment file until at least one fragment
 #' from each cell barcode requested is found.
 #'
-#' @param object A \code{\link{Fragment}} object
+#' @param object A \code{\link{Fragment2}} object
 #' @param cells A character vector containing cell barcodes to search for.
 #' If NULL, use the cells stored in the Fragment object.
 #' @param tolerance Fraction of input cells that can be unseen before returning
@@ -349,7 +349,7 @@ ValidateCells <- function(
 
 #' Validate hashes for Fragment object
 #'
-#' @param object A \code{\link{Fragment}} object
+#' @param object A \code{\link{Fragment2}} object
 #' @param verbose Display messages
 #' @export
 #' @concept fragments
@@ -379,7 +379,7 @@ ValidateHash <- function(object, verbose = TRUE) {
 #' and that the fragment file or index have not changed since creating the
 #' fragment object.
 #'
-#' @param object A \code{\link{Fragment}} object
+#' @param object A \code{\link{Fragment2}} object
 #' @param verbose Display messages
 #' @param ... Additional parameters passed to \code{\link{ValidateCells}}
 #' @export
@@ -394,12 +394,12 @@ ValidateFragments <- function(
   return(valid.cells & valid.hash)
 }
 
-#' Set and get cell barcode information for a \code{\link{Fragment}} object
+#' Set and get cell barcode information for a \code{\link{Fragment2}} object
 #'
 #' This returns the names of cells in the object that are contained in the
 #' fragment file. These cell barcodes may not match the barcodes present in the
-#' fragment file. The \code{\link{Fragment}} object contains an internal mapping
-#' of the cell names in the \code{\link{ChromatinAssay}} object to the cell
+#' fragment file. The \code{\link{Fragment2}} object contains an internal mapping
+#' of the cell names in the \code{\link{ChromatinAssay5}} object to the cell
 #' names in the fragment file, so that cell names can be changed in the
 #' assay without needing to change the cell names on disk.
 #'
@@ -422,7 +422,7 @@ Cells.Fragment2 <- function(x, ...) {
 #' @export
 SeuratObject::Cells
 
-#' @param value A vector of cell names to store in the \code{\link{Fragment}}
+#' @param value A vector of cell names to store in the \code{\link{Fragment2}}
 #' object
 #' @rdname Cells
 #' @export
@@ -440,6 +440,8 @@ SeuratObject::Cells
   }
 }
 
+#' @describeIn Fragment2-class Get sequence levels
+#' @param x A \code{\link{Fragment2}} object
 #' @importFrom Seqinfo seqlevels
 #' @exportMethod seqlevels
 setMethod(
@@ -450,6 +452,7 @@ setMethod(
   }
 )
 
+#' @describeIn Fragment2-class Set sequence levels
 #' @importFrom Seqinfo seqlevels<-
 setReplaceMethod(
   f = "seqlevels",
@@ -468,6 +471,7 @@ setReplaceMethod(
   }
 )
 
+#' @describeIn Fragment2-class Get sequence levels style
 #' @importFrom GenomeInfoDb seqlevelsStyle
 #' @exportMethod seqlevelsStyle
 setMethod(
@@ -478,6 +482,7 @@ setMethod(
   }
 )
 
+#' @describeIn Fragment2-class Set sequence levels style
 #' @importFrom GenomeInfoDb seqlevelsStyle<-
 setReplaceMethod(
   f = "seqlevelsStyle",
@@ -497,6 +502,7 @@ setReplaceMethod(
 )
 
 # map new sequence levels to the old (names correspond to the old levels)
+#' @describeIn Fragment2-class Rename sequence levels
 #' @importFrom GenomeInfoDb renameSeqlevels
 #' @exportMethod renameSeqlevels
 setMethod(
@@ -529,12 +535,12 @@ setMethod(
 
 #' Update the file path for a Fragment object
 #'
-#' Change the path to a fragment file store in a \code{\link{Fragment}}
+#' Change the path to a fragment file store in a \code{\link{Fragment2}}
 #' object. Path must be to the same file that was used to create the fragment
 #' object. An MD5 hash will be computed using the new path and compared to the
 #' hash stored in the Fragment object to verify that the files are the same.
 #'
-#' @param object A \code{\link{Fragment}} object.
+#' @param object A \code{\link{Fragment2}} object.
 #' @param new.path Path to the fragment file.
 #' @param new.index.path Path to the fragment file index. If NULL, the index is
 #' assumed to be in the same directory as the fragment file.
@@ -608,4 +614,3 @@ GetIndexFile <- function(fragment, verbose = TRUE) {
   }
   return(index.file)
 }
-
