@@ -20,6 +20,6 @@ Returns a character vector
 Convert GRanges object to a vector of strings
 }
 \examples{
-GRangesToString(grange = blacklist_hg19)
+GRangesToString(grange = granges(atac_small))
 }
 \concept{utilities}

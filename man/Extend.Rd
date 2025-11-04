@@ -25,6 +25,6 @@ Resize GenomicRanges upstream and or downstream.
 From \url{https://support.bioconductor.org/p/78652/}
 }
 \examples{
-Extend(x = blacklist_hg19, upstream = 100, downstream = 100)
+Extend(x = granges(atac_small), upstream = 100, downstream = 100)
 }
 \concept{utilities}

@@ -232,7 +232,7 @@ ranges.show$color <- "orange"
 CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), region.highlight = ranges.show)
 
 # Show expression data
-CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), features = "ELK1")
+CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), features = "GYG2")
 }
 }
 \concept{visualization}
