@@ -11,7 +11,7 @@ test_that("AddMotifs works", {
     pwm,
     verbose = FALSE
   )
-  expect_equal(dim(Motifs(motif)), c(323, 2))
+  expect_equal(dim(Motifs(motif)), c(100, 2))
 })
 
 test_that("AddMotifs works with fakechr", {
@@ -31,9 +31,9 @@ test_that("AddMotifs works with fakechr", {
     fragtk = FALSE,
     verbose = FALSE
   )
-  expect_warning(object <- CreateChromatinAssay(
+  expect_warning(object <- CreateGRangesAssay(
     counts = mat,
-    sep = c(":", "-"),
+    sep = c("-", "-"),
     fragments = fragments,
     verbose = FALSE
   ))
@@ -51,7 +51,7 @@ test_that("AddMotifs works with fakechr", {
     new.data = motif,
     verbose = FALSE
   ))
-  expect_equal(dim(Motifs(test)), c(324, 2))
+  expect_equal(dim(Motifs(test)), c(101, 2))
   # If some features are not in the ChromatinAssay
   # They should be removed
   expect_warning(test <- SetAssayData(
@@ -60,5 +60,5 @@ test_that("AddMotifs works with fakechr", {
     new.data = motif,
     verbose = FALSE
   ))
-  expect_equal(dim(Motifs(test)), c(323, 2))
+  expect_equal(dim(Motifs(test)), c(100, 2))
 })
