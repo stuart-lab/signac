@@ -195,10 +195,10 @@ BinarizeCounts.default <- function(
 #' @examples
 #' BinarizeCounts(atac_small[['peaks']])
 BinarizeCounts.Assay <- function(
-  object,
-  assay = NULL,
-  verbose = TRUE,
-  ...
+    object,
+    assay = NULL,
+    verbose = TRUE,
+    ...
 ) {
   data.matrix <- GetAssayData(object = object, layer = "counts")
   object <- SetAssayData(
@@ -207,6 +207,26 @@ BinarizeCounts.Assay <- function(
     new.data = BinarizeCounts(
       object = data.matrix, assay = assay, verbose = verbose
     )
+  )
+  return(object)
+}
+
+#' @rdname BinarizeCounts
+#' @method BinarizeCounts StdAssay
+#' @importFrom SeuratObject LayerData LayerData<-
+#' @export
+#' @concept preprocessing
+#' @examples
+#' BinarizeCounts(atac_small[['peaks']])
+BinarizeCounts.StdAssay <- function(
+  object,
+  assay = NULL,
+  verbose = TRUE,
+  ...
+) {
+  data.matrix <- LayerData(object = object, layer = "counts")
+  LayerData(object, layer = "counts") <- BinarizeCounts(
+      object = data.matrix, assay = assay, verbose = verbose
   )
   return(object)
 }
