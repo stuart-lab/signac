@@ -2483,6 +2483,7 @@ globalVariables(names = "gene", package = "Signac")
 #' @param object A Seurat object
 #' @param features A list of features to plot
 #' @param assay Name of the assay storing expression information
+#' @param layer Name of layer to pull expression data from
 #' @param group.by A grouping variable to group cells by. If NULL, use the
 #' current cell identities
 #' @param idents A list of identities to include in the plot. If NULL, include
@@ -2497,12 +2498,13 @@ globalVariables(names = "gene", package = "Signac")
 #' @importFrom IRanges start end
 #' @importFrom patchwork wrap_plots
 #' @importFrom fastmatch fmatch
+#' @importFrom lifecycle deprecated deprecate_soft
 #'
 #' @export
 #' @concept visualization
 #' @examples
 #' \donttest{
-#' ExpressionPlot(atac_small, features = "TSPAN6", assay = "RNA")
+#' ExpressionPlot(atac_small, features = "ASMTL", assay = "RNA")
 #' }
 ExpressionPlot <- function(
   object,
@@ -2510,15 +2512,29 @@ ExpressionPlot <- function(
   assay = NULL,
   group.by = NULL,
   idents = NULL,
-  slot = "data"
+  layer = "data",
+  slot = deprecated()
 ) {
-  # get data
+  if (is_present(arg = slot)) {
+    deprecate_soft(
+      when = '2.0.0',
+      what = 'ExpressionPlot(slot = )',
+      with = 'ExpressionPlot(layer = )'
+    )
+    layer <- slot %||% layer
+  }
   assay <- assay %||% DefaultAssay(object = object)
-  data.plot <- GetAssayData(
-    object = object,
-    assay = assay,
-    layer = slot
-  )[features, ]
+  data.plot <- LayerData(object = object, assay = assay, layer = layer)
+  common.features <- intersect(features, rownames(x = data.plot))
+  if (length(x = common.features) == 0) {
+    stop("None of the requested features were found in the assay")
+  } else if (length(x = common.features) != length(x = features)) {
+    warning("Some features not found: ",
+            setdiff(x = features, y = rownames(x = data.plot))
+            )
+    features <- common.features
+  }
+  data.plot <- data.plot[features, ]
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,

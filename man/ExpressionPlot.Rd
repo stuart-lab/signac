@@ -10,7 +10,8 @@ ExpressionPlot(
   assay = NULL,
   group.by = NULL,
   idents = NULL,
-  slot = "data"
+  layer = "data",
+  slot = deprecated()
 )
 }
 \arguments{
@@ -26,6 +27,8 @@ current cell identities}
 \item{idents}{A list of identities to include in the plot. If NULL, include
 all identities}
 
+\item{layer}{Name of layer to pull expression data from}
+
 \item{slot}{Which slot to pull expression data from}
 }
 \description{
@@ -38,7 +41,7 @@ groups of cells.
 }
 \examples{
 \donttest{
-ExpressionPlot(atac_small, features = "TSPAN6", assay = "RNA")
+ExpressionPlot(atac_small, features = "ASMTL", assay = "RNA")
 }
 }
 \concept{visualization}

@@ -37,25 +37,25 @@ for regions in the assay and add to the feature metadata.
 }
 \examples{
 \dontrun{
-library(BSgenome.Hsapiens.UCSC.hg19)
+library(BSgenome.Hsapiens.UCSC.hg38)
 RegionStats(
   object = rownames(atac_small),
-  genome = BSgenome.Hsapiens.UCSC.hg19
+  genome = BSgenome.Hsapiens.UCSC.hg38
 )
 }
 \dontrun{
-library(BSgenome.Hsapiens.UCSC.hg19)
+library(BSgenome.Hsapiens.UCSC.hg38)
 RegionStats(
   object = atac_small[['peaks']],
-  genome = BSgenome.Hsapiens.UCSC.hg19
+  genome = BSgenome.Hsapiens.UCSC.hg38
 )
 }
 \dontrun{
-library(BSgenome.Hsapiens.UCSC.hg19)
+library(BSgenome.Hsapiens.UCSC.hg38)
 RegionStats(
   object = atac_small,
   assay = 'bins',
-  genome = BSgenome.Hsapiens.UCSC.hg19
+  genome = BSgenome.Hsapiens.UCSC.hg38
 )
 }
 }

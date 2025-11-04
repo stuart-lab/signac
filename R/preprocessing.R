@@ -576,7 +576,9 @@ FindTopFeatures.Seurat <- function(
 #' @concept preprocessing
 #' @method FitMeanVar Seurat
 #' @examples
+#' \dontrun{
 #' FitMeanVar(atac_small)
+#' }
 FitMeanVar.Seurat <- function(
     object,
     assay = NULL,
@@ -1031,10 +1033,10 @@ FRiP <- function(
 #' @concept motifs
 #' @examples
 #' \dontrun{
-#' library(BSgenome.Hsapiens.UCSC.hg19)
+#' library(BSgenome.Hsapiens.UCSC.hg38)
 #' RegionStats(
 #'   object = rownames(atac_small),
-#'   genome = BSgenome.Hsapiens.UCSC.hg19
+#'   genome = BSgenome.Hsapiens.UCSC.hg38
 #' )
 #' }
 RegionStats.default <- function(
@@ -1086,10 +1088,10 @@ RegionStats.default <- function(
 #' @concept motifs
 #' @examples
 #' \dontrun{
-#' library(BSgenome.Hsapiens.UCSC.hg19)
+#' library(BSgenome.Hsapiens.UCSC.hg38)
 #' RegionStats(
 #'   object = atac_small[['peaks']],
-#'   genome = BSgenome.Hsapiens.UCSC.hg19
+#'   genome = BSgenome.Hsapiens.UCSC.hg38
 #' )
 #' }
 RegionStats.GRangesAssay <- function(
@@ -1121,11 +1123,11 @@ RegionStats.GRangesAssay <- function(
 #' @concept motifs
 #' @examples
 #' \dontrun{
-#' library(BSgenome.Hsapiens.UCSC.hg19)
+#' library(BSgenome.Hsapiens.UCSC.hg38)
 #' RegionStats(
 #'   object = atac_small,
 #'   assay = 'bins',
-#'   genome = BSgenome.Hsapiens.UCSC.hg19
+#'   genome = BSgenome.Hsapiens.UCSC.hg38
 #' )
 #' }
 RegionStats.Seurat <- function(

@@ -98,6 +98,8 @@ rank sum with weights set by the \code{weight.mean} parameter. This can help
 to avoid selecting features with high residual variance but very low mean.
 }
 \examples{
+\dontrun{
 FitMeanVar(atac_small)
+}
 }
 \concept{preprocessing}

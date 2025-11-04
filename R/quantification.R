@@ -389,7 +389,7 @@ FeatureMatrix <- function(
     }
   }
   if (!inherits(x = fragments, what = "list")) {
-    if (inherits(x = fragments, what = "Fragment")) {
+    if (inherits(x = fragments, what = "Fragment2")) {
       fragments <- list(fragments)
     } else {
       stop("fragments should be a list of Fragment objects")
