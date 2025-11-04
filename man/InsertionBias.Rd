@@ -42,7 +42,7 @@ Counts the Tn5 insertion frequency for each DNA hexamer.
 }
 \examples{
 \dontrun{
-library(BSgenome.Mmusculus.UCSC.mm10)
+library(BSgenome.Hsapiens.UCSC.hg38)
 
 region.use <- GRanges(
   seqnames = c('chr1', 'chr2'),
@@ -51,7 +51,7 @@ region.use <- GRanges(
 
 InsertionBias(
  object = atac_small,
- genome = BSgenome.Mmusculus.UCSC.mm10,
+ genome = BSgenome.Hsapiens.UCSC.hg38,
  region = region.use
 )
 }
