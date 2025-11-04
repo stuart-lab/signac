@@ -1310,7 +1310,7 @@ MultiGetReadsInRegion <- function(
     tbx.path <- GetFragmentData(object = fragment.list[[i]], slot = "file.path")
     tbx.index <- GetFragmentData(object = fragment.list[[i]], slot = "file.index")
     cellmap <- GetFragmentData(object = fragment.list[[i]], slot = "cells")
-    seqmap <- GetFragmentData(object = fragment.list[[i]], slot = "seqnames")
+    seqmap <- GetFragmentData(object = fragment.list[[i]], slot = "seqlevels")
     tabix.file <- TabixFile(file = tbx.path, index = tbx.index)
     open(con = tabix.file)
     reads <- GetReadsInRegion(
@@ -1442,7 +1442,7 @@ CutMatrix <- function(
     fragment.path <- GetFragmentData(object = fragments[[i]], slot = "file.path")
     index.path <- GetFragmentData(object = fragments[[i]], slot = "file.index")
     cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
-    seqmap <- GetFragmentData(object = fragments[[i]], slot = "seqnames")
+    seqmap <- GetFragmentData(object = fragments[[i]], slot = "seqlevels")
     tabix.file <- TabixFile(file = fragment.path, index = index.path)
     open(con = tabix.file)
     # remove regions that aren't in the fragment file
@@ -1509,7 +1509,7 @@ MultiRegionCutMatrix <- function(
     frag.path <- GetFragmentData(object = fragments[[i]], slot = "file.path")
     file.index <- GetFragmentData(object = fragments[[i]], slot = "file.index")
     cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
-    seqmap <- GetFragmentData(object = fragments[[i]], slot = "seqnames")
+    seqmap <- GetFragmentData(object = fragments[[i]], slot = "seqlevels")
     if (is.null(x = cellmap)) {
       cellmap <- colnames(x = object)
       names(x = cellmap) <- cellmap
