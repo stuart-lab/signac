@@ -24,6 +24,8 @@
 }
 \arguments{
 \item{x}{A \code{\link{Fragment2}} object}
+
+\item{value}{A named character vector or name of a seqlevelsStyle}
 }
 \description{
 The Fragment class is designed to hold information needed for working with

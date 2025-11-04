@@ -452,6 +452,7 @@ setMethod(
   }
 )
 
+#' @param value A named character vector or name of a seqlevelsStyle
 #' @describeIn Fragment2-class Set sequence levels
 #' @importFrom Seqinfo seqlevels<-
 setReplaceMethod(
