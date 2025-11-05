@@ -3,15 +3,16 @@ library(GenomicRanges)
 test_that("AverageCounts works", {
   expect_equal(
     object = as.vector(x = AverageCounts(object = atac_small)),
-    expected = c(162.80, 118.74),
+    expected = 30.11,
     tolerance = 1 / 1000
   )
 })
 
 test_that("CellsPerGroup works", {
+  Idents(atac_small) <- "cluster"
   expect_equal(
     object = as.vector(x = CellsPerGroup(object = atac_small)),
-    expected = c(50, 50, 0)
+    expected = c(55, 45, 0)
   )
 })
 
@@ -21,13 +22,13 @@ test_that("SortIdents works",{
   atac_small <- SortIdents(object = atac_small, label = "test")
   expect_equal(
     object = levels(atac_small$test),
-    expected = c("10", "6", "3", "7", "9", "5", "4", "8", "1", "2")
+    expected = c("4", "2", "5", "6", "8", "7", "3", "10", "9", "1")
   )
   Idents(atac_small) <- sample(1:10, ncol(atac_small), replace = TRUE)
   atac_small <- SortIdents(object = atac_small)
   expect_equal(
     object = levels(Idents(atac_small)),
-    expected = c("1", "9", "10", "2", "3", "5", "4", "7", "6", "8")
+    expected = c("6", "7", "10", "8", "1", "4", "3", "2", "9", "5")
   )
 })
 
