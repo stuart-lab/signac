@@ -97,6 +97,9 @@ ATACqc.ChromatinAssay <- function(
 ) {
   
   annotations <- SetIfNull(x = annotations, y = Annotation(object = object))
+  if (is.null(x = annotations)) {
+    stop("Gene annotation information not set")
+  }
   frags <- Fragments(object = object)
   
   results <- data.frame()
