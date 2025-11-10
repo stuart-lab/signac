@@ -2,7 +2,8 @@
 
 New features:
 
-* Added the `ATACqc` function to run `fragtk qc` and store the results
+* Added the `ATACqc()` function to run `fragtk qc` and store the results
+* Added `FitMeanVar()` and `PearsonResidualVar()` functions for highly variable feature selection 
 
 Other changes:
 
