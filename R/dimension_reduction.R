@@ -49,15 +49,14 @@ Jaccard <- function(x, y) {
 #' Default (NULL) is no clipping.
 #' @param scale.embeddings Scale cell embeddings within each component to
 #' mean 0 and SD 1 (default TRUE).
-#' @param irlba.work work parameter for \code{\link[irlba]{irlba}}.
-#' Working subspace dimension, larger values can speed convergence at the
-#' cost of more memory use.
-#' @param tol Tolerance (tol) parameter for \code{\link[irlba]{irlba}}. Larger
-#' values speed up convergence due to greater amount of allowed error.
+#' @param tol Tolerance (tol) parameter for \code{\link[RSpectra]{svds}}.
+#' Larger values speed up convergence due to greater amount of allowed error.
+#' @param pca Run PCA. Setting this option to TRUE will perform implicit scaling
+#' and centering of the input matrix to enable memory-efficient computation of
+#' the principal components.
 #' @param verbose Print messages
 #'
-#' @importFrom irlba irlba
-#' @importFrom stats sd
+#' @importFrom RSpectra svds
 #' @importFrom SeuratObject CreateDimReducObject
 #' @importMethodsFrom Matrix t
 #'
@@ -68,16 +67,16 @@ Jaccard <- function(x, y) {
 #' x <- matrix(data = rnorm(100), ncol = 10)
 #' RunSVD(x)
 RunSVD.default <- function(
-  object,
-  assay = NULL,
-  n = 50,
-  scale.embeddings = TRUE,
-  reduction.key = "LSI_",
-  scale.max = NULL,
-  verbose = TRUE,
-  irlba.work = n * 3,
-  tol = 1e-05,
-  ...
+    object,
+    assay = NULL,
+    n = 50,
+    scale.embeddings = !pca,
+    pca = FALSE,
+    reduction.key = ifelse(pca, "PCA_", "LSI_"),
+    scale.max = NULL,
+    verbose = TRUE,
+    tol = 1e-05,
+    ...
 ) {
   if (is.null(x = rownames(x = object))) {
     rownames(x = object) <- seq_len(length.out = nrow(x = object))
@@ -86,13 +85,29 @@ RunSVD.default <- function(
     colnames(x = object) <- seq_len(length.out = ncol(x = object))
   }
   n <- min(n, (ncol(x = object) - 1))
-  if (verbose) {
-    message("Running SVD")
+  
+  opts <- list("tol" = tol)
+  if (pca) {
+    if (verbose) {
+      message("Running PCA")
+    }
+    # data needs to be standardized
+    opts <- c(opts, list("center" = TRUE, "scale" = TRUE))
+  } else {
+    if (verbose) {
+      message("Running SVD")
+    }
   }
-  components <- irlba(A = t(x = object), nv = n, work = irlba.work, tol = tol)
+  
+  components <- svds(A = t(x = object), k = n, opts = opts)
   feature.loadings <- components$v
   sdev <- components$d / sqrt(x = max(1, nrow(x = object) - 1))
-  cell.embeddings <- components$u
+  if (pca) {
+    # weight by eigenvalues
+    cell.embeddings <- components$u %*% diag(components$d)
+  } else {
+    cell.embeddings <- components$u
+  }
   if (scale.embeddings) {
     if (verbose) {
       message("Scaling cell embeddings")
@@ -141,8 +156,9 @@ RunSVD.Assay <- function(
   object,
   assay = NULL,
   features = NULL,
+  pca = FALSE,
   n = 50,
-  reduction.key = "LSI_",
+  reduction.key = ifelse(pca, "PCA_", "LSI_"),
   scale.max = NULL,
   verbose = TRUE,
   ...
@@ -156,6 +172,7 @@ RunSVD.Assay <- function(
     object = data.use,
     assay = assay,
     features = features,
+    pca = pca,
     n = n,
     reduction.key = reduction.key,
     scale.max = scale.max,
@@ -180,8 +197,9 @@ RunSVD.StdAssay <- function(
     object,
     assay = NULL,
     features = NULL,
+    pca = FALSE,
     n = 50,
-    reduction.key = "LSI_",
+    reduction.key = ifelse(pca, "PCA_", "LSI_"),
     scale.max = NULL,
     verbose = TRUE,
     ...
@@ -190,6 +208,7 @@ RunSVD.StdAssay <- function(
     object = object,
     assay = assay,
     features = features,
+    pca = pca,
     n = n,
     reduction.key = reduction.key,
     scale.max = scale.max,
@@ -199,25 +218,25 @@ RunSVD.StdAssay <- function(
 }
 
 #' @param reduction.name Name for stored dimension reduction object.
-#' Default 'svd'
+#' @param layer Name of layer to use.
 #' @rdname RunSVD
 #' @export
 #' @concept dimension_reduction
 #' @examples
-#' \dontrun{
-#' RunSVD(atac_small)
-#' }
+#' RunSVD(atac_small, features = rownames(atac_small))
 #' @method RunSVD Seurat
 RunSVD.Seurat <- function(
-  object,
-  assay = NULL,
-  features = NULL,
-  n = 50,
-  reduction.key = "LSI_",
-  reduction.name = "lsi",
-  scale.max = NULL,
-  verbose = TRUE,
-  ...
+    object,
+    assay = NULL,
+    features = NULL,
+    layer = "data",
+    n = 50,
+    pca = FALSE,
+    reduction.key = ifelse(pca, "PCA_", "LSI_"),
+    reduction.name = ifelse(pca, "pca", "lsi"),
+    scale.max = NULL,
+    verbose = TRUE,
+    ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   assay.data <- object[[assay]]
@@ -225,7 +244,9 @@ RunSVD.Seurat <- function(
     object = assay.data,
     assay = assay,
     features = features,
+    layer = layer,
     n = n,
+    pca = pca,
     reduction.key = reduction.key,
     scale.max = scale.max,
     verbose = verbose,
