@@ -589,11 +589,12 @@ FitMeanVar.Seurat <- function(
 }
 
 #' @rdname FitMeanVar
-#' @importFrom SeuratObject Layers LayerData Features VariableFeatures VariableFeatures<-
 #' @export
+#' @method FitMeanVar StdAssay
 #' @concept preprocessing
-#' @method FitMeanVar Assay5
-FitMeanVar.Assay5 <- function(
+#' @examples
+#' FitMeanVar(object = atac_small[['peaks']])
+FitMeanVar.StdAssay <- function(
     object,
     layer = NULL,
     loess.span = 0.1,
@@ -606,7 +607,40 @@ FitMeanVar.Assay5 <- function(
     verbose = FALSE,
     ...
 ) {
-  
+  FitMeanVar.Assay(
+    object = object,
+    layer = layer,
+    loess.span = loess.span,
+    nfeatures = nfeatures,
+    min.cutoff = min.cutoff,
+    weight.mean = weight.mean,
+    bins = bins,
+    sample_per_bin = sample_per_bin,
+    key = key,
+    verbose = verbose,
+    ...
+  )
+}
+
+#' @rdname FitMeanVar
+#' @importFrom SeuratObject Layers LayerData Features VariableFeatures VariableFeatures<- DefaultLayer
+#' @export
+#' @concept preprocessing
+#' @method FitMeanVar Assay
+FitMeanVar.Assay <- function(
+    object,
+    layer = NULL,
+    loess.span = 0.1,
+    nfeatures = 20000,
+    min.cutoff = 10,
+    weight.mean = 0.5,
+    bins = 1000,
+    sample_per_bin = 50,
+    key = 'dsLoess',
+    verbose = FALSE,
+    ...
+) {
+  layer <- SetIfNull(x = layer, y = DefaultLayer(object = object))
   layer <- Layers(object = object, search = layer)
   
   for (i in seq_along(along.with = layer)) {
@@ -622,7 +656,9 @@ FitMeanVar.Assay5 <- function(
       bins = bins,
       sample_per_bin = sample_per_bin,
       verbose = verbose,
+      ...
     )
+    varfeat <- hvf$variable
     colnames(x = hvf) <- paste(
       'vf',
       key,
@@ -633,20 +669,23 @@ FitMeanVar.Assay5 <- function(
     rownames(x = hvf) <- Features(x = object, layer = layer[i])
     object[["var.features"]] <- NULL
     object[["var.features.rank"]] <- NULL
-    object[[names(x = hvf)]] <- NULL
     object[[names(x = hvf)]] <- hvf
   }
-  VariableFeatures(object) <- VariableFeatures(
-    object = object,
-    nfeatures = nfeatures,
-    method = key
-  )
+  top_features <- rownames(hvf)[varfeat]
+  VariableFeatures(object = object) <- top_features
+  # VariableFeatures(object) <- VariableFeatures(
+  #   object = object,
+  #   nfeatures = nfeatures,
+  #   method = key
+  # )
   return(object)
 }
 
 #' @rdname FitMeanVar
+#' @param random.seed Random seed to set for sampling.
 #' @importFrom SeuratObject DefaultAssay
 #' @importFrom sparseMatrixStats rowVars
+#' @importFrom stats loess predict
 #' @export
 #' @concept preprocessing
 #' @method FitMeanVar default
@@ -659,7 +698,8 @@ FitMeanVar.default <- function(
     bins = 1000,
     sample_per_bin = 50,
     random.seed = 1234,
-    verbose = FALSE
+    verbose = FALSE,
+    ...
 ) {
   
   set.seed(random.seed)
