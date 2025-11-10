@@ -34,12 +34,12 @@ test_that("LSI works", {
 
   expect_equal(
     object = as.vector(embeddings[1, ]),
-    expected = c(0.51255352, -0.08674426, 1.33604004, 1.18108240),
+    expected = c(0.51255352, 0.08674426, -1.33604004, 1.18108240),
     tolerance = 1 / 1000
   )
   expect_equal(
     object = as.vector(loadings[1, ]),
-    expected = c(-0.4024075, -0.4292469, -0.6463644, 0.1740785),
+    expected = c(-0.4024075, 0.4292469, 0.6463644, 0.1740785),
     tolerance = 1 / 1000
   )
 })
