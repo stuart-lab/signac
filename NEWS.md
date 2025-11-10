@@ -4,6 +4,7 @@ New features:
 
 * Added the `ATACqc()` function to run `fragtk qc` and store the results
 * Added `FitMeanVar()` and `PearsonResidualVar()` functions for highly variable feature selection 
+* Added `pca` parameter to `RunSVD()` to compute PCA dimension reduction without storing standardized matrix
 
 Other changes:
 
@@ -11,6 +12,7 @@ Other changes:
 new `ATACqc` function
 * Deprecated the blacklist region data objects in favor of using the
 [excluderanges](https://github.com/dozmorovlab/excluderanges) package
+* Changed SVD function in `RunSVD()` from `irlba::irlba()` to `RSpectra::svds()`
 
 # Signac 1.16.0
 
