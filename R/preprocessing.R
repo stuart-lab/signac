@@ -701,8 +701,6 @@ FitMeanVar.default <- function(
     verbose = FALSE,
     ...
 ) {
-  
-  set.seed(random.seed)
   rs <- rowSums(x = object)
 
   if (is.character(x = min.cutoff)) {
@@ -727,43 +725,18 @@ FitMeanVar.default <- function(
     total.counts = rs
   )
   
-  df$log_mean <- log1p(x = df$mean)
-  breaks <- seq(
-    min(df$log_mean, na.rm = TRUE),
-    max(df$log_mean, na.rm = TRUE),
-    length.out = bins + 1
+  # run on a dataframe containing mean, variance, total.counts
+  df <- FitMeanVar(
+    object = df,
+    loess.span = loess.span,
+    weight.mean = weight.mean,
+    bins = bins,
+    sample_per_bin = sample_per_bin,
+    random.seed = random.seed,
+    verbose = verbose,
+    ...
   )
-  df$bin <- findInterval(
-    x = df$log_mean,
-    vec = breaks,
-    rightmost.closed = TRUE
-  )
-  sampled_df <- do.call(
-    what = rbind,
-    args = lapply(X = split(df, df$bin), FUN = function(subset) {
-      if (nrow(subset) > sample_per_bin) {
-        subset <- subset[sample(
-          x = nrow(x = subset),
-          size = sample_per_bin,
-          replace = FALSE), ]
-      }
-      return(subset)
-      }
-    )
-  )
-  loess_fit <- loess(
-    formula = log1p(x = variance) ~ log_mean,
-    data = sampled_df,
-    span = loess.span
-  )
-  df$variance.expected <- expm1(
-    x = predict(object = loess_fit, newdata = df$log_mean)
-  )
-  df$variance.residual <- df$variance - df$variance.expected
   
-  df$residual.rank <- rank(x = -df$variance.residual, ties.method = "average")
-  df$mean.rank <- rank(x = -df$mean, ties.method = "average")
-  df$rank <- (weight.mean * df$mean.rank) + ((1 - weight.mean) * df$residual.rank)
   df$rank[df$total.counts < count.thresh] <- NA
   vf <- head(
     x = order(df$rank, decreasing = FALSE),
@@ -772,6 +745,66 @@ FitMeanVar.default <- function(
   df$variable <- FALSE
   df$variable[vf] <- TRUE
   return(df)
+}
+
+#' @rdname FitMeanVar
+#' @importFrom sparseMatrixStats rowVars
+#' @importFrom stats loess predict
+#' @export
+#' @concept preprocessing
+#' @method FitMeanVar data.frame
+FitMeanVar.data.frame <- function(
+    object,
+    loess.span = 0.1,
+    weight.mean = 0.5,
+    bins = 1000,
+    sample_per_bin = 50,
+    random.seed = 1234,
+    verbose = FALSE,
+    ...
+) {
+  if (!all(c("mean", "variance") %in% colnames(x = object))) {
+    stop("Mean and variance information must be stored in the input dataframe")
+  }
+  set.seed(random.seed)
+  object$log_mean <- log1p(x = object$mean)
+  breaks <- seq(
+    min(object$log_mean, na.rm = TRUE),
+    max(object$log_mean, na.rm = TRUE),
+    length.out = bins + 1
+  )
+  object$bin <- findInterval(
+    x = object$log_mean,
+    vec = breaks,
+    rightmost.closed = TRUE
+  )
+  sampled_df <- do.call(
+    what = rbind,
+    args = lapply(X = split(object, object$bin), FUN = function(subset) {
+      if (nrow(subset) > sample_per_bin) {
+        subset <- subset[sample(
+          x = nrow(x = subset),
+          size = sample_per_bin,
+          replace = FALSE), ]
+      }
+      return(subset)
+    }
+    )
+  )
+  loess_fit <- loess(
+    formula = log1p(x = variance) ~ log_mean,
+    data = sampled_df,
+    span = loess.span
+  )
+  object$variance.expected <- expm1(
+    x = predict(object = loess_fit, newdata = object$log_mean)
+  )
+  object$variance.residual <- object$variance - object$variance.expected
+  
+  object$residual.rank <- rank(x = -object$variance.residual, ties.method = "average")
+  object$mean.rank <- rank(x = -object$mean, ties.method = "average")
+  object$rank <- (weight.mean * object$mean.rank) + ((1 - weight.mean) * object$residual.rank)
+  return(object)
 }
 
 #' @param assay Name of assay to use

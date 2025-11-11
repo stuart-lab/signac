@@ -6,6 +6,7 @@
 \alias{FitMeanVar.StdAssay}
 \alias{FitMeanVar.Assay}
 \alias{FitMeanVar.default}
+\alias{FitMeanVar.data.frame}
 \title{Find variable features fitting LOESS}
 \usage{
 FitMeanVar(object, ...)
@@ -58,6 +59,17 @@ FitMeanVar(object, ...)
   nfeatures = 20000,
   loess.span = 0.1,
   min.cutoff = 10,
+  weight.mean = 0.5,
+  bins = 1000,
+  sample_per_bin = 50,
+  random.seed = 1234,
+  verbose = FALSE,
+  ...
+)
+
+\method{FitMeanVar}{data.frame}(
+  object,
+  loess.span = 0.1,
   weight.mean = 0.5,
   bins = 1000,
   sample_per_bin = 50,
