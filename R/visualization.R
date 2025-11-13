@@ -1131,7 +1131,9 @@ SingleCoveragePlot <- function(
   sep = c("-", "-"),
   heights = NULL,
   max.downsample = 3000,
-  downsample.rate = 0.1
+  downsample.rate = 0.1,
+  gwas = NULL,
+  gwas.label = "GWAS"
 ) {
   valid.assay.scale <- c("common", "separate")
   if (!(assay.scale %in% valid.assay.scale)) {
@@ -1381,15 +1383,24 @@ SingleCoveragePlot <- function(
   } else {
     bulk.plot <- NULL
   }
+  gwas.plot <- NULL
+  gwas.height <- 0
+  if (!is.null(gwas)) {
+    gwas.plot <- GWASTrack(
+      region = region,
+      gwas.file = gwas
+    ) + ggtitle(gwas.label)
+    gwas.height <- 10
+  }
   nident <- length(x = unique(x = obj.groups))
   if (split.assays) {
     nident <- nident * length(x = assay)
   }
   bulk.height <- (1 / nident) * 10
   bw.height <- 10
-  heights <- heights %||% c(10, bulk.height, bw.height, 10, 3, 1, 1, 3)
+  heights <- heights %||% c(10, bulk.height, bw.height, gwas.height, 10, 3, 1, 1, 3)
   p <- CombineTracks(
-    plotlist = list(p, bulk.plot, bigwig.tracks, tile.plot, gene.plot,
+    plotlist = list(p, bulk.plot, bigwig.tracks, gwas.plot, tile.plot, gene.plot,
                     peak.plot, range.plot, link.plot),
     expression.plot = ex.plot,
     heights = heights,
