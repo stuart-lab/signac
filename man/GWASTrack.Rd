@@ -8,6 +8,7 @@ GWASTrack(
   region,
   gwas.file,
   ld.file = NULL,
+  ld.lead.snp = NULL,
   p.threshold = 5e-08,
   ymax = NULL,
   point.size = 1,
@@ -19,6 +20,8 @@ GWASTrack(
 \item{region}{Genomic region to plot}
 
 \item{gwas.file}{Path to GWAS summary statistics}
+
+\item{ld.lead.snp}{rsID that LD was calculated relative to (required if ld.file provided)}
 
 \item{p.threshold}{Significance threshold (default: 5e-8)}
 

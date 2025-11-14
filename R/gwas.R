@@ -87,37 +87,33 @@ LoadGWASRegion <- function(gwas.file, region) {
   return(gwas_data)
 }
 
-#' Load LD data from file or LDlink output
+#' Load LD data from LDlink or PLINK
 #' 
-#' @param ld.file Path to LD file (LDlink format or pairwise)
-#' @return data.frame with chr, pos, r2 columns for position-based matching
-#' @importFrom data.table fread
+#' @param ld.file Path to LD file (LDlink or PLINK pairwise format)
+#' @details LD must be pairwise r² relative to one lead SNP.
+#'   Matched to GWAS by position (CHR + POS).
 #' @export
 LoadLDData <- function(ld.file) {
-  # Read LD file
   ld_data <- fread(ld.file, data.table = FALSE)
   
-  # Handle LDlink format
+  # LDlink format
   if ("Coord" %in% colnames(ld_data) && "R2" %in% colnames(ld_data)) {
-    # Extract chr and pos from Coord column
-    # Format: "chr10:112998590"
     coord_split <- strsplit(ld_data$Coord, ":", fixed = TRUE)
     ld_data$chr <- sapply(coord_split, function(x) gsub("chr", "", x[1]))
     ld_data$pos <- as.integer(sapply(coord_split, function(x) x[2]))
     ld_data$r2 <- ld_data$R2
-    
-    # Return chr, pos, r2
     return(ld_data[, c("chr", "pos", "r2")])
   }
   
-  # Handle standard pairwise format (fallback)
-  if ("SNP_B" %in% colnames(ld_data) && "R2" %in% colnames(ld_data)) {
-    ld_data$snp <- ld_data$SNP_B
-    ld_data$r2 <- ld_data$R2
-    return(ld_data[, c("snp", "r2")])
+  # PLINK pairwise format
+  if ("CHR_B" %in% colnames(ld_data) && "BP_B" %in% colnames(ld_data) && "R2" %in% colnames(ld_data)) {
+    ld_data$chr <- gsub("chr", "", as.character(ld_data$CHR_B))
+    ld_data$pos <- as.integer(ld_data$BP_B)
+    ld_data$r2 <- as.numeric(ld_data$R2)
+    return(ld_data[, c("chr", "pos", "r2")])
   }
   
-  stop("Could not parse LD file format")
+  stop("Unrecognized LD format. Needs LDlink (Coord, R2) or PLINK (CHR_B, BP_B, R2)")
 }
 
 #' Create GWAS Manhattan plot track
@@ -128,6 +124,7 @@ LoadLDData <- function(ld.file) {
 #' @param ymax Maximum y-axis value (default: auto-scale)
 #' @param point.size Size of points (default: 1)
 #' @param point.color Color for points (default: "steelblue")
+#' @param ld.lead.snp rsID that LD was calculated relative to (required if ld.file provided)
 #' @return ggplot2 object
 #' @importFrom ggplot2 ggplot geom_point aes geom_hline scale_y_continuous
 #' @importFrom ggplot2 theme_classic labs theme element_blank ggsave
@@ -137,6 +134,7 @@ GWASTrack <- function(
     region,
     gwas.file,
     ld.file = NULL,
+    ld.lead.snp = NULL,
     p.threshold = 5e-8,
     ymax = NULL,
     point.size = 1,
@@ -152,6 +150,11 @@ GWASTrack <- function(
   
   # Calculate -log10(p)
   gwas_data$log10p <- -log10(gwas_data$pval)
+  
+  # Validate LD parameters
+  if (!is.null(ld.file) && is.null(ld.lead.snp)) {
+    stop("ld.lead.snp required when ld.file provided")
+  }
   
   # Merge LD data if provided
   if (!is.null(ld.file)) {

@@ -2,16 +2,17 @@
 % Please edit documentation in R/gwas.R
 \name{LoadLDData}
 \alias{LoadLDData}
-\title{Load LD data from file or LDlink output}
+\title{Load LD data from LDlink or PLINK}
 \usage{
 LoadLDData(ld.file)
 }
 \arguments{
-\item{ld.file}{Path to LD file (LDlink format or pairwise)}
-}
-\value{
-data.frame with chr, pos, r2 columns for position-based matching
+\item{ld.file}{Path to LD file (LDlink or PLINK pairwise format)}
 }
 \description{
-Load LD data from file or LDlink output
+Load LD data from LDlink or PLINK
+}
+\details{
+LD must be pairwise r² relative to one lead SNP.
+  Matched to GWAS by position (CHR + POS).
 }
