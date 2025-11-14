@@ -52,7 +52,7 @@ LoadGWASRegion <- function(gwas.file, region) {
   if (is.na(p_col)) stop("Could not find p-value column")
   
   # Optional columns
-  snp_col <- colnames(gwas_data)[which(colnames_lower %in% c("snp", "rsid", "rs", "variant_id", "id"))[1]]
+  snp_col <- colnames(gwas_data)[which(colnames_lower %in% c("snp", "rsid", "rsids", "rs", "variant_id", "id"))[1]]
   beta_col <- colnames(gwas_data)[which(colnames_lower %in% c("beta", "b", "effect"))[1]]
   se_col <- colnames(gwas_data)[which(colnames_lower %in% c("se", "stderr", "standard_error"))[1]]
   
@@ -61,7 +61,12 @@ LoadGWASRegion <- function(gwas.file, region) {
   gwas_data$pos <- gwas_data[[pos_col]]
   gwas_data$pval <- gwas_data[[p_col]]
   
-  if (!is.na(snp_col)) gwas_data$snp <- gwas_data[[snp_col]]
+  if (!is.na(snp_col)) {
+    gwas_data$snp <- gwas_data[[snp_col]]
+  } else {
+    # If no SNP ID, create position-based ID
+    gwas_data$snp <- paste0("chr", gwas_data$chr, ":", gwas_data$pos)
+  }
   if (!is.na(beta_col)) gwas_data$beta <- gwas_data[[beta_col]]
   if (!is.na(se_col)) gwas_data$se <- gwas_data[[se_col]]
   
@@ -82,6 +87,39 @@ LoadGWASRegion <- function(gwas.file, region) {
   return(gwas_data)
 }
 
+#' Load LD data from file or LDlink output
+#' 
+#' @param ld.file Path to LD file (LDlink format or pairwise)
+#' @return data.frame with chr, pos, r2 columns for position-based matching
+#' @importFrom data.table fread
+#' @export
+LoadLDData <- function(ld.file) {
+  # Read LD file
+  ld_data <- fread(ld.file, data.table = FALSE)
+  
+  # Handle LDlink format
+  if ("Coord" %in% colnames(ld_data) && "R2" %in% colnames(ld_data)) {
+    # Extract chr and pos from Coord column
+    # Format: "chr10:112998590"
+    coord_split <- strsplit(ld_data$Coord, ":", fixed = TRUE)
+    ld_data$chr <- sapply(coord_split, function(x) gsub("chr", "", x[1]))
+    ld_data$pos <- as.integer(sapply(coord_split, function(x) x[2]))
+    ld_data$r2 <- ld_data$R2
+    
+    # Return chr, pos, r2
+    return(ld_data[, c("chr", "pos", "r2")])
+  }
+  
+  # Handle standard pairwise format (fallback)
+  if ("SNP_B" %in% colnames(ld_data) && "R2" %in% colnames(ld_data)) {
+    ld_data$snp <- ld_data$SNP_B
+    ld_data$r2 <- ld_data$R2
+    return(ld_data[, c("snp", "r2")])
+  }
+  
+  stop("Could not parse LD file format")
+}
+
 #' Create GWAS Manhattan plot track
 #'
 #' @param region Genomic region to plot
@@ -98,10 +136,12 @@ LoadGWASRegion <- function(gwas.file, region) {
 GWASTrack <- function(
     region,
     gwas.file,
+    ld.file = NULL,
     p.threshold = 5e-8,
     ymax = NULL,
     point.size = 1,
-    point.color = "steelblue"
+    point.color = "steelblue",
+    show.axis = TRUE
 ) {
   # Load data
   gwas_data <- LoadGWASRegion(gwas.file, region)
@@ -113,32 +153,98 @@ GWASTrack <- function(
   # Calculate -log10(p)
   gwas_data$log10p <- -log10(gwas_data$pval)
   
+  # Merge LD data if provided
+  if (!is.null(ld.file)) {
+    ld_data <- LoadLDData(ld.file)
+    
+    # Try position-based matching first (more reliable)
+    if ("chr" %in% colnames(ld_data) && "pos" %in% colnames(ld_data)) {
+      gwas_data <- merge(gwas_data, ld_data, by = c("chr", "pos"), all.x = TRUE)
+    } else if ("snp" %in% colnames(ld_data)) {
+      # Fallback to SNP ID matching
+      gwas_data <- merge(gwas_data, ld_data, by = "snp", all.x = TRUE)
+    }
+    
+    # Keep NAs as NA (will show as grey)
+    # DON'T set to 0!
+  } else {
+    gwas_data$r2 <- NA
+  }
+  
   # Set y-axis limit
   if (is.null(ymax)) {
     ymax <- max(gwas_data$log10p, na.rm = TRUE) * 1.1
   }
   
   # Create plot
-  p <- ggplot(gwas_data, aes(x = pos, y = log10p)) +
-    geom_point(color = point.color, size = point.size, alpha = 0.6) +
-    geom_hline(
-      yintercept = -log10(p.threshold),
-      linetype = "dashed",
-      color = "red",
-      alpha = 0.5
-    ) +
-    scale_y_continuous(
-      expand = c(0, 0),
-      limits = c(0, ymax)
-    ) +
-    theme_classic() +
-    labs(x = "Position (bp)", y = expression(-log[10](italic(P)))) +
-    theme(
-      axis.title.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.line.x = element_blank(),
-      axis.ticks.x = element_blank()
+  if (!is.null(ld.file)) {
+    # Bin r² values into standard LD categories
+    gwas_data$ld_category <- cut(
+      gwas_data$r2,
+      breaks = c(-Inf, 0.2, 0.4, 0.6, 0.8, Inf),
+      labels = c("r2_0-0.2", "r2_0.2-0.4", "r2_0.4-0.6", "r2_0.6-0.8", "r2_0.8-1.0"),
+      include.lowest = TRUE
     )
+    
+    # Standard LocusZoom colors (blue to red gradient)
+    ld_colors <- c(
+      "r2_0-0.2" = "#0000CD",      # Dark blue
+      "r2_0.2-0.4" = "#00CED1",    # Cyan
+      "r2_0.4-0.6" = "#32CD32",    # Green  
+      "r2_0.6-0.8" = "#FFA500",    # Orange
+      "r2_0.8-1.0" = "#FF0000"     # Red
+    )
+    
+    # Create plot with LD coloring
+    p <- ggplot(gwas_data, aes(x = pos, y = log10p, color = ld_category)) +
+      geom_point(size = point.size, alpha = 0.6) +
+      scale_color_manual(
+        values = ld_colors,
+        name = expression(LD~(r^2)),
+        na.value = "grey50"  # SNPs without LD info
+      ) +
+      geom_hline(
+        yintercept = -log10(p.threshold),
+        linetype = "dashed",
+        color = "red",
+        alpha = 0.5
+      ) +
+      scale_y_continuous(expand = c(0, 0), limits = c(0, ymax)) +
+      theme_classic() +
+      labs(x = "Position (bp)", y = expression(-log[10](italic(P)))) +
+      theme(
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.line.x = element_blank(),
+        axis.ticks.x = element_blank()
+      ) +
+      theme(
+        axis.title.x = if(show.axis) element_text() else element_blank(),
+        axis.text.x = if(show.axis) element_text() else element_blank(),
+        axis.line.x = if(show.axis) element_line() else element_blank(),
+        axis.ticks.x = if(show.axis) element_line() else element_blank()
+      )
+    
+  } else {
+    # Original plot without LD coloring
+    p <- ggplot(gwas_data, aes(x = pos, y = log10p)) +
+      geom_point(color = point.color, size = point.size, alpha = 0.6) +
+      geom_hline(
+        yintercept = -log10(p.threshold),
+        linetype = "dashed",
+        color = "red",
+        alpha = 0.5
+      ) +
+      scale_y_continuous(expand = c(0, 0), limits = c(0, ymax)) +
+      theme_classic() +
+      labs(x = "Position (bp)", y = expression(-log[10](italic(P)))) +
+      theme(
+        axis.title.x = if(show.axis) element_text() else element_blank(),
+        axis.text.x = if(show.axis) element_text() else element_blank(),
+        axis.line.x = if(show.axis) element_line() else element_blank(),
+        axis.ticks.x = if(show.axis) element_line() else element_blank()
+      )
+  }
   
   return(p)
 }

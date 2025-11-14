@@ -7,10 +7,12 @@
 GWASTrack(
   region,
   gwas.file,
+  ld.file = NULL,
   p.threshold = 5e-08,
   ymax = NULL,
   point.size = 1,
-  point.color = "steelblue"
+  point.color = "steelblue",
+  show.axis = TRUE
 )
 }
 \arguments{
