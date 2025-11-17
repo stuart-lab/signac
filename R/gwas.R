@@ -135,6 +135,8 @@ GWASTrack <- function(
     gwas.file,
     ld.file = NULL,
     ld.lead.snp = NULL,
+    credset.file = NULL,
+    credset.threshold = 0.95,
     p.threshold = 5e-8,
     ymax = NULL,
     point.size = 1,
@@ -160,18 +162,33 @@ GWASTrack <- function(
   if (!is.null(ld.file)) {
     ld_data <- LoadLDData(ld.file)
     
-    # Try position-based matching first (more reliable)
+    # Position-based matching
     if ("chr" %in% colnames(ld_data) && "pos" %in% colnames(ld_data)) {
       gwas_data <- merge(gwas_data, ld_data, by = c("chr", "pos"), all.x = TRUE)
     } else if ("snp" %in% colnames(ld_data)) {
-      # Fallback to SNP ID matching
       gwas_data <- merge(gwas_data, ld_data, by = "snp", all.x = TRUE)
     }
     
-    # Keep NAs as NA (will show as grey)
-    # DON'T set to 0!
+    # Ensure r2 is numeric
+    gwas_data$r2 <- as.numeric(gwas_data$r2)
+    
   } else {
     gwas_data$r2 <- NA
+  }
+  
+  # Merge credible set data if provided
+  if (!is.null(credset.file)) {
+    credset_data <- LoadCredibleSets(credset.file, credset.threshold)
+    
+    # Position-based matching
+    if ("chr" %in% colnames(credset_data)) {
+      gwas_data <- merge(gwas_data, credset_data, by = c("chr", "pos"), all.x = TRUE)
+    } else {
+      gwas_data <- merge(gwas_data, credset_data, by = "pos", all.x = TRUE)
+    }
+  } else {
+    gwas_data$pip <- NA
+    gwas_data$credset_id <- NA
   }
   
   # Set y-axis limit
@@ -180,7 +197,65 @@ GWASTrack <- function(
   }
   
   # Create plot
-  if (!is.null(ld.file)) {
+  if (!is.null(credset.file)) {
+    # Highlight credible set variants
+    gwas_data$in_credset <- !is.na(gwas_data$pip)
+    
+    if (!is.null(ld.file)) {
+      # Both LD and credible sets
+      p <- ggplot(gwas_data, aes(x = pos, y = log10p, color = ld_category)) +
+        geom_point(aes(shape = in_credset, size = in_credset), alpha = 0.6) +
+        scale_shape_manual(
+          values = c("FALSE" = 16, "TRUE" = 18),  # circle vs diamond
+          guide = "none"
+        ) +
+        scale_size_manual(
+          values = c("FALSE" = point.size, "TRUE" = point.size * 2),
+          guide = "none"
+        ) +
+        scale_color_manual(
+          values = ld_colors,
+          name = expression(LD~(r^2)),
+          na.value = "grey50"
+        )
+    } else {
+      # Credible sets without LD
+      p <- ggplot(gwas_data, aes(x = pos, y = log10p)) +
+        geom_point(aes(shape = in_credset, size = in_credset, 
+                       color = in_credset), alpha = 0.6) +
+        scale_shape_manual(
+          values = c("FALSE" = 16, "TRUE" = 18),
+          guide = "none"
+        ) +
+        scale_size_manual(
+          values = c("FALSE" = point.size, "TRUE" = point.size * 2),
+          guide = "none"
+        ) +
+        scale_color_manual(
+          values = c("FALSE" = point.color, "TRUE" = "#FF0000"),
+          name = "In credible set",
+          labels = c("FALSE" = "No", "TRUE" = "Yes")
+        )
+    }
+    
+    p <- p +
+      geom_hline(
+        yintercept = -log10(p.threshold),
+        linetype = "dashed",
+        color = "red",
+        alpha = 0.5
+      ) +
+      scale_y_continuous(expand = c(0, 0), limits = c(0, ymax)) +
+      theme_classic() +
+      labs(x = "Position (bp)", y = expression(-log[10](italic(P)))) +
+      theme(
+        axis.title.x = if(show.axis) element_text() else element_blank(),
+        axis.text.x = if(show.axis) element_text() else element_blank(),
+        axis.line.x = if(show.axis) element_line() else element_blank(),
+        axis.ticks.x = if(show.axis) element_line() else element_blank()
+      )
+  
+  } else if (!is.null(ld.file)) {
     # Bin r² values into standard LD categories
     gwas_data$ld_category <- cut(
       gwas_data$r2,
@@ -250,4 +325,54 @@ GWASTrack <- function(
   }
   
   return(p)
+}
+
+#' Load fine-mapping credible sets from SuSiE or FINEMAP
+#' 
+#' @param credset.file Path to credible set file
+#' @param credset.threshold Posterior probability threshold (default: 0.95)
+#' @details Supports SuSiE and FINEMAP output formats. Matched by position.
+#' @export
+LoadCredibleSets <- function(credset.file, credset.threshold = 0.01) {
+  cs_data <- fread(credset.file, data.table = FALSE)
+  
+  # Check for required columns
+  colnames_lower <- tolower(colnames(cs_data))
+  
+  if (all(grepl("^V[0-9]+$", colnames(cs_data)))) {
+    stop("Credible set file has no header. Please add column names or use the full file with headers.")
+  }
+  
+  # Find position
+  pos_col <- colnames(cs_data)[which(colnames_lower %in% c("pos", "position", "bp"))[1]]
+  if (is.na(pos_col)) stop("Could not find position column (pos/position/bp)")
+  
+  # Find chromosome
+  chr_col <- colnames(cs_data)[which(colnames_lower %in% c("chr", "chromosome", "chrom", "seqnames"))[1]]
+  if (is.na(chr_col)) stop("Could not find chromosome column (chr/chromosome)")
+  
+  # Find posterior probability
+  pp_col <- colnames(cs_data)[which(colnames_lower %in% c("prob", "pip", "pp"))[1]]
+  if (is.na(pp_col)) stop("Could not find posterior probability column (prob/pip/pp)")
+  
+  # Find credible set ID
+  cs_col <- colnames(cs_data)[which(colnames_lower %in% c("cs", "credset", "credible_set"))[1]]
+  if (is.na(cs_col)) stop("Could not find credible set column (cs/credset)")
+  
+  # Extract and standardize
+  result <- data.frame(
+    chr = gsub("chr", "", as.character(cs_data[[chr_col]])),
+    pos = as.integer(cs_data[[pos_col]]),
+    pip = as.numeric(cs_data[[pp_col]]),
+    credset_id = cs_data[[cs_col]]
+  )
+  
+  # Filter: PIP >= threshold AND in a credible set (cs != -1)
+  result <- result[result$pip >= credset.threshold & result$credset_id != -1, ]
+  
+  if (nrow(result) == 0) {
+    warning("No variants in credible sets above threshold")
+  }
+  
+  return(result)
 }

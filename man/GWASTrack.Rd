@@ -9,6 +9,8 @@ GWASTrack(
   gwas.file,
   ld.file = NULL,
   ld.lead.snp = NULL,
+  credset.file = NULL,
+  credset.threshold = 0.95,
   p.threshold = 5e-08,
   ymax = NULL,
   point.size = 1,
