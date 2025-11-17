@@ -1,6 +1,11 @@
 # R/gwas.R
 # GWAS Visualization for Signac
-# Version 1: Basic Manhattan plot only
+
+#' @importFrom utils globalVariables
+#'
+NULL
+
+globalVariables(names = c("in_credset", "ld_category", "log10p", "pos"), package = "Signac")
 
 #' Load GWAS summary statistics for a genomic region
 #' 
@@ -127,7 +132,8 @@ LoadLDData <- function(ld.file) {
 #' @param ld.lead.snp rsID that LD was calculated relative to (required if ld.file provided)
 #' @return ggplot2 object
 #' @importFrom ggplot2 ggplot geom_point aes geom_hline scale_y_continuous
-#' @importFrom ggplot2 theme_classic labs theme element_blank ggsave
+#' @importFrom ggplot2 theme_classic labs theme element_blank element_line element_text
+#' @importFrom ggplot2 scale_shape_manual scale_size_manual ggsave
 #' @export
 #' @concept visualization
 GWASTrack <- function(
