@@ -1133,7 +1133,11 @@ SingleCoveragePlot <- function(
   max.downsample = 3000,
   downsample.rate = 0.1,
   gwas = NULL,
-  gwas.label = "GWAS"
+  gwas.label = "GWAS",
+  gwas.ld.file = NULL,
+  gwas.ld.lead.snp = NULL,
+  gwas.credset.file = NULL,
+  gwas.credset.threshold = 0.01
 ) {
   valid.assay.scale <- c("common", "separate")
   if (!(assay.scale %in% valid.assay.scale)) {
@@ -1386,9 +1390,15 @@ SingleCoveragePlot <- function(
   gwas.plot <- NULL
   gwas.height <- 0
   if (!is.null(gwas)) {
+    cat("Creating GWAS track for:", gwas, "\n")
     gwas.plot <- GWASTrack(
       region = region,
-      gwas.file = gwas
+      gwas.file = gwas,
+      ld.file = gwas.ld.file,
+      ld.lead.snp = gwas.ld.lead.snp,
+      credset.file = gwas.credset.file,
+      credset.threshold = gwas.credset.threshold,
+      show.axis = FALSE  # Don't show axis in stacked plot
     ) + ggtitle(gwas.label)
     gwas.height <- 10
   }
@@ -1785,6 +1795,12 @@ CoveragePlot <- function(
   sep = c("-", "-"),
   max.downsample = 3000,
   downsample.rate = 0.1,
+  gwas = NULL,
+  gwas.label = "GWAS",
+  gwas.ld.file = NULL,
+  gwas.ld.lead.snp = NULL,
+  gwas.credset.file = NULL,
+  gwas.credset.threshold = 0.01,
   ...
 ) {
   if (length(x = region) == 1) {
@@ -1829,7 +1845,13 @@ CoveragePlot <- function(
         sep = sep,
         heights = heights,
         max.downsample = max.downsample,
-        downsample.rate = downsample.rate
+        downsample.rate = downsample.rate,
+        gwas = gwas,
+        gwas.label = gwas.label,
+        gwas.ld.file = gwas.ld.file,
+        gwas.ld.lead.snp = gwas.ld.lead.snp,
+        gwas.credset.file = gwas.credset.file,
+        gwas.credset.threshold = gwas.credset.threshold
       )
     }
   )

@@ -136,7 +136,7 @@ GWASTrack <- function(
     ld.file = NULL,
     ld.lead.snp = NULL,
     credset.file = NULL,
-    credset.threshold = 0.95,
+    credset.threshold = 0.01,
     p.threshold = 5e-8,
     ymax = NULL,
     point.size = 1,
@@ -330,7 +330,7 @@ GWASTrack <- function(
 #' Load fine-mapping credible sets from SuSiE or FINEMAP
 #' 
 #' @param credset.file Path to credible set file
-#' @param credset.threshold Posterior probability threshold (default: 0.95)
+#' @param credset.threshold Posterior probability threshold (default: 0.01)
 #' @details Supports SuSiE and FINEMAP output formats. Matched by position.
 #' @export
 LoadCredibleSets <- function(credset.file, credset.threshold = 0.01) {

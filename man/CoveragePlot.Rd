@@ -41,6 +41,12 @@ CoveragePlot(
   sep = c("-", "-"),
   max.downsample = 3000,
   downsample.rate = 0.1,
+  gwas = NULL,
+  gwas.label = "GWAS",
+  gwas.ld.file = NULL,
+  gwas.ld.lead.snp = NULL,
+  gwas.credset.file = NULL,
+  gwas.credset.threshold = 0.01,
   ...
 )
 }

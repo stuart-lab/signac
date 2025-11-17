@@ -9,7 +9,7 @@ LoadCredibleSets(credset.file, credset.threshold = 0.01)
 \arguments{
 \item{credset.file}{Path to credible set file}
 
-\item{credset.threshold}{Posterior probability threshold (default: 0.95)}
+\item{credset.threshold}{Posterior probability threshold (default: 0.01)}
 }
 \description{
 Load fine-mapping credible sets from SuSiE or FINEMAP

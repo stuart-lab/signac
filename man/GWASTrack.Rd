@@ -10,7 +10,7 @@ GWASTrack(
   ld.file = NULL,
   ld.lead.snp = NULL,
   credset.file = NULL,
-  credset.threshold = 0.95,
+  credset.threshold = 0.01,
   p.threshold = 5e-08,
   ymax = NULL,
   point.size = 1,
