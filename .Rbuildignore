@@ -25,3 +25,4 @@ build.sh
 ^.*\\.err$
 ^.*\\.out$
 ^data-raw$
+^signac-private\.Rproj$

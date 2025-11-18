@@ -130,6 +130,10 @@ LoadLDData <- function(ld.file) {
 #' @param point.size Size of points (default: 1)
 #' @param point.color Color for points (default: "steelblue")
 #' @param ld.lead.snp rsID that LD was calculated relative to (required if ld.file provided)
+#' @param ld.file Path to LD data file (LDlink or PLINK pairwise format). Optional.
+#' @param credset.file Path to credible set file (SuSiE or FINEMAP format). Optional.
+#' @param credset.threshold Posterior inclusion probability threshold for credible sets (default: 0.01)
+#' @param show.axis Show x-axis labels and ticks (default: TRUE)
 #' @return ggplot2 object
 #' @importFrom ggplot2 ggplot geom_point aes geom_hline scale_y_continuous
 #' @importFrom ggplot2 theme_classic labs theme element_blank element_line element_text

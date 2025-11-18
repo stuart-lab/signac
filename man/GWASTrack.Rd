@@ -23,7 +23,13 @@ GWASTrack(
 
 \item{gwas.file}{Path to GWAS summary statistics}
 
+\item{ld.file}{Path to LD data file (LDlink or PLINK pairwise format). Optional.}
+
 \item{ld.lead.snp}{rsID that LD was calculated relative to (required if ld.file provided)}
+
+\item{credset.file}{Path to credible set file (SuSiE or FINEMAP format). Optional.}
+
+\item{credset.threshold}{Posterior inclusion probability threshold for credible sets (default: 0.01)}
 
 \item{p.threshold}{Significance threshold (default: 5e-8)}
 
@@ -32,6 +38,8 @@ GWASTrack(
 \item{point.size}{Size of points (default: 1)}
 
 \item{point.color}{Color for points (default: "steelblue")}
+
+\item{show.axis}{Show x-axis labels and ticks (default: TRUE)}
 }
 \value{
 ggplot2 object
