@@ -1389,18 +1389,44 @@ SingleCoveragePlot <- function(
   }
   gwas.plot <- NULL
   gwas.height <- 0
-  if (!is.null(gwas)) {
-    cat("Creating GWAS track for:", gwas, "\n")
-    gwas.plot <- GWASTrack(
-      region = region,
-      gwas.file = gwas,
-      ld.file = gwas.ld.file,
-      ld.lead.snp = gwas.ld.lead.snp,
-      credset.file = gwas.credset.file,
-      credset.threshold = gwas.credset.threshold,
-      show.axis = FALSE  # Don't show axis in stacked plot
-    ) + ggtitle(gwas.label)
-    gwas.height <- 10
+  if (!is.null(x = gwas)) {
+    # Convert to list if needed (following bigwig pattern)
+    if (!inherits(x = gwas, what = "list")) {
+      gwas <- list(gwas)
+      names(gwas) <- gwas.label
+    }
+    
+    # Handle associated parameters - convert to lists
+    if (length(x = gwas.ld.file) == 1 | !inherits(x = gwas.ld.file, what = "list")) {
+      gwas.ld.file <- rep(list(gwas.ld.file), length(x = gwas))
+    }
+    if (length(x = gwas.ld.lead.snp) == 1 | !inherits(x = gwas.ld.lead.snp, what = "list")) {
+      gwas.ld.lead.snp <- rep(list(gwas.ld.lead.snp), length(x = gwas))
+    }
+    if (length(x = gwas.credset.file) == 1 | !inherits(x = gwas.credset.file, what = "list")) {
+      gwas.credset.file <- rep(list(gwas.credset.file), length(x = gwas))
+    }
+    
+    # Create tracks
+    gwas.all <- list()
+    for (i in seq_along(along.with = gwas)) {
+      gwas.all[[i]] <- GWASTrack(
+        region = region,
+        gwas.file = gwas[[i]],
+        ld.file = gwas.ld.file[[i]],
+        ld.lead.snp = gwas.ld.lead.snp[[i]],
+        credset.file = gwas.credset.file[[i]],
+        credset.threshold = gwas.credset.threshold,
+        show.axis = FALSE
+      ) + ggtitle(names(gwas)[[i]])
+    }
+    
+    # Combine tracks (following bigwig pattern)
+    gwas.plot <- CombineTracks(
+      plotlist = gwas.all,
+      heights = rep(10, length(x = gwas))
+    )
+    gwas.height <- 10 * length(x = gwas)
   }
   nident <- length(x = unique(x = obj.groups))
   if (split.assays) {
