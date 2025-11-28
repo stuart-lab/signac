@@ -5,6 +5,7 @@ New features:
 * Added the `ATACqc()` function to run `fragtk qc` and store the results
 * Added `FitMeanVar()` and `PearsonResidualVar()` functions for highly variable feature selection 
 * Added `pca` parameter to `RunSVD()` to compute PCA dimension reduction without storing standardized matrix
+* Added the `EnrichedTerms()` function to run `fgsea()` on differential testing results from each group of cell identities
 
 Other changes:
 
