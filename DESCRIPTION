@@ -70,6 +70,7 @@ Collate:
     'mito.R'
     'motifs.R'
     'objects.R'
+    'ontology.R'
     'peaks.R'
     'preprocessing.R'
     'quantification.R'
@@ -95,4 +96,5 @@ Suggests:
     Biostrings,
     lsa,
     MASS,
-    wrswoR
+    wrswoR,
+    fgsea
