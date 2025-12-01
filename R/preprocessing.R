@@ -7,13 +7,13 @@ NULL
 #' @concept qc
 #' @rdname ATACqc
 ATACqc.default <- function(
-    object,
-    annotations,
-    fragtk.path = NULL,
-    outdir = tempdir(),
-    cleanup = TRUE,
-    verbose = TRUE,
-    ...
+  object,
+  annotations,
+  fragtk.path = NULL,
+  outdir = tempdir(),
+  cleanup = TRUE,
+  verbose = TRUE,
+  ...
 ) {
   # find fragtk
   fragtk.path <- SetIfNull(
@@ -21,22 +21,24 @@ ATACqc.default <- function(
     y = unname(obj = Sys.which(names = "fragtk"))
   )
   if (nchar(x = fragtk.path) == 0) {
-    stop("fragtk not found. Please install fragtk:",
-         "https://crates.io/crates/fragtk")
+    stop(
+      "fragtk not found. Please install fragtk:",
+      "https://crates.io/crates/fragtk"
+    )
   }
   if (!dir.exists(paths = outdir)) {
     stop("Requested output directory does not exist")
   }
-  
+
   object <- normalizePath(path = object, mustWork = TRUE)
-  
+
   # get tss positions from annotations
   tss <- GetTSSPositions(ranges = annotations)
-  
+
   # temp files
   tss.path <- tempfile(pattern = "signac_fragtk_tss", tmpdir = outdir)
   out.path <- tempfile(pattern = "signac_fragtk_qc", tmpdir = outdir)
-  
+
   # write tss
   write.table(
     x = as.data.frame(x = tss),
@@ -46,7 +48,7 @@ ATACqc.default <- function(
     col.names = FALSE,
     quote = FALSE
   )
-  
+
   # call fragtk qc
   cmd <- paste0(
     fragtk.path,
@@ -57,14 +59,14 @@ ATACqc.default <- function(
     " --outfile ",
     out.path
   )
-  
+
   system(
     command = cmd,
     wait = TRUE,
     ignore.stderr = !verbose,
     ignore.stdout = !verbose
   )
-  
+
   # load results
   md <- read.table(file = out.path, header = TRUE, row.names = 1, sep = "\t")
 
@@ -77,7 +79,7 @@ ATACqc.default <- function(
       }
     }
   }
-  
+
   return(md)
 }
 
@@ -87,29 +89,28 @@ ATACqc.default <- function(
 #' @method ATACqc ChromatinAssay
 #' @importFrom utils write.table
 ATACqc.ChromatinAssay <- function(
-    object,
-    annotations = NULL,
-    fragtk.path = NULL,
-    outdir = tempdir(),
-    cleanup = TRUE,
-    verbose = TRUE,
-    ...
+  object,
+  annotations = NULL,
+  fragtk.path = NULL,
+  outdir = tempdir(),
+  cleanup = TRUE,
+  verbose = TRUE,
+  ...
 ) {
-  
   annotations <- SetIfNull(x = annotations, y = Annotation(object = object))
   if (is.null(x = annotations)) {
     stop("Gene annotation information not set")
   }
   frags <- Fragments(object = object)
-  
+
   results <- data.frame()
-  
+
   for (i in seq_along(along.with = frags)) {
     fragments <- GetFragmentData(object = frags[[i]], slot = "path")
     if (verbose) {
       message("Processing ", fragments)
     }
-    
+
     md <- ATACqc(
       object = fragments,
       fragtk.path = fragtk.path,
@@ -119,14 +120,14 @@ ATACqc.ChromatinAssay <- function(
       verbose = verbose,
       ...
     )
-    
+
     # convert cell names
     cellconvert <- GetFragmentData(object = frags[[i]], slot = "cells")
     cc <- names(x = cellconvert)
     names(x = cc) <- cellconvert
     md <- md[cellconvert, ]
     rownames(x = md) <- cc[rownames(x = md)]
-    
+
     # concat across fragment files
     results <- rbind(results, md)
   }
@@ -185,8 +186,8 @@ BinarizeCounts.default <- function(
       x = 1,
       times = length(
         x = slot(object = object, name = "x")
-        )
       )
+    )
   } else {
     object[object > 1] <- 1
   }
@@ -199,7 +200,7 @@ BinarizeCounts.default <- function(
 #' @export
 #' @concept preprocessing
 #' @examples
-#' BinarizeCounts(atac_small[['peaks']])
+#' BinarizeCounts(atac_small[["peaks"]])
 BinarizeCounts.Assay <- function(
   object,
   assay = NULL,
@@ -304,11 +305,11 @@ CreateMotifMatrix <- function(
 
   # genome can be string
   if (is.character(x = genome)) {
-      if (!requireNamespace("BSgenome", quietly = TRUE)) {
-        stop("Please install BSgenome.
+    if (!requireNamespace("BSgenome", quietly = TRUE)) {
+      stop("Please install BSgenome.
              https://www.bioconductor.org/packages/BSgenome/")
-      }
-      genome <- BSgenome::getBSgenome(genome = genome)
+    }
+    genome <- BSgenome::getBSgenome(genome = genome)
   }
 
   # check that all seqnames in features are in genome
@@ -316,7 +317,8 @@ CreateMotifMatrix <- function(
   miss_sn <- !(as.character(seqnames(x = features)) %in% seqlevels(x = genome))
   if (sum(miss_sn) > 0) {
     warning("Not all seqlevels present in supplied genome",
-            immediate. = TRUE)
+      immediate. = TRUE
+    )
     # remove from features and remember original order
     feature_order <- features
     features <- features[!miss_sn]
@@ -340,8 +342,10 @@ CreateMotifMatrix <- function(
   }
   rownames(motif.matrix) <- GRangesToString(grange = features, sep = sep)
   if (is.null(x = names(x = pwm))) {
-    warning("No 'names' attribute found in PFMatrixList. ",
-            "Extracting names from individual entries.")
+    warning(
+      "No 'names' attribute found in PFMatrixList. ",
+      "Extracting names from individual entries."
+    )
     colnames(x = motif.matrix) <- vapply(
       X = pwm, FUN = slot, FUN.VALUE = "character", "name"
     )
@@ -359,7 +363,7 @@ CreateMotifMatrix <- function(
     motif.matrix <- rbind(motif.matrix, replacement_matrix)
     motif.matrix <- motif.matrix[GRangesToString(
       grange = feature_order, sep = sep
-      ), ]
+    ), ]
   }
   return(motif.matrix)
 }
@@ -418,7 +422,7 @@ DownsampleFeatures <- function(
 #' @export
 #' @concept preprocessing
 #' @examples
-#' FindTopFeatures(object = atac_small[['peaks']]['data'])
+#' FindTopFeatures(object = atac_small[["peaks"]]["data"])
 FindTopFeatures.default <- function(
   object,
   assay = NULL,
@@ -444,7 +448,7 @@ FindTopFeatures.default <- function(
 #' @method FindTopFeatures Assay
 #' @concept preprocessing
 #' @examples
-#' FindTopFeatures(object = atac_small[['peaks']])
+#' FindTopFeatures(object = atac_small[["peaks"]])
 FindTopFeatures.Assay <- function(
   object,
   assay = NULL,
@@ -494,13 +498,13 @@ FindTopFeatures.Assay <- function(
 #' @method FindTopFeatures StdAssay
 #' @concept preprocessing
 #' @examples
-#' FindTopFeatures(object = atac_small[['peaks']])
+#' FindTopFeatures(object = atac_small[["peaks"]])
 FindTopFeatures.StdAssay <- function(
-    object,
-    assay = NULL,
-    min.cutoff = "q5",
-    verbose = TRUE,
-    ...
+  object,
+  assay = NULL,
+  min.cutoff = "q5",
+  verbose = TRUE,
+  ...
 ) {
   FindTopFeatures.Assay(
     object = object,
@@ -557,18 +561,18 @@ FindTopFeatures.Seurat <- function(
 #' @examples
 #' FitMeanVar(atac_small)
 FitMeanVar.Seurat <- function(
-    object,
-    assay = NULL,
-    layer = NULL,
-    nfeatures = 20000,
-    loess.span = 0.1,
-    min.cutoff = 10,
-    weight.mean = 0,
-    bins = 1000,
-    sample_per_bin = 50,
-    key = 'dsLoess',
-    verbose = FALSE,
-    ...
+  object,
+  assay = NULL,
+  layer = NULL,
+  nfeatures = 20000,
+  loess.span = 0.1,
+  min.cutoff = 10,
+  weight.mean = 0,
+  bins = 1000,
+  sample_per_bin = 50,
+  key = "dsLoess",
+  verbose = FALSE,
+  ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object))
   assay.data <- object[[assay]]
@@ -584,7 +588,7 @@ FitMeanVar.Seurat <- function(
     verbose = verbose,
     ...
   )
-  object[[assay]] <- assay.data  
+  object[[assay]] <- assay.data
   return(object)
 }
 
@@ -593,19 +597,19 @@ FitMeanVar.Seurat <- function(
 #' @method FitMeanVar StdAssay
 #' @concept preprocessing
 #' @examples
-#' FitMeanVar(object = atac_small[['peaks']])
+#' FitMeanVar(object = atac_small[["peaks"]])
 FitMeanVar.StdAssay <- function(
-    object,
-    layer = NULL,
-    loess.span = 0.1,
-    nfeatures = 20000,
-    min.cutoff = 10,
-    weight.mean = 0,
-    bins = 1000,
-    sample_per_bin = 50,
-    key = 'dsLoess',
-    verbose = FALSE,
-    ...
+  object,
+  layer = NULL,
+  loess.span = 0.1,
+  nfeatures = 20000,
+  min.cutoff = 10,
+  weight.mean = 0,
+  bins = 1000,
+  sample_per_bin = 50,
+  key = "dsLoess",
+  verbose = FALSE,
+  ...
 ) {
   FitMeanVar.Assay(
     object = object,
@@ -628,21 +632,22 @@ FitMeanVar.StdAssay <- function(
 #' @concept preprocessing
 #' @method FitMeanVar Assay
 FitMeanVar.Assay <- function(
-    object,
-    layer = NULL,
-    loess.span = 0.1,
-    nfeatures = 20000,
-    min.cutoff = 10,
-    weight.mean = 0,
-    bins = 1000,
-    sample_per_bin = 50,
-    key = 'dsLoess',
-    verbose = FALSE,
-    ...
+  object,
+  layer = NULL,
+  loess.span = 0.1,
+  nfeatures = 20000,
+  min.cutoff = 10,
+  weight.mean = 0,
+  bins = 1000,
+  sample_per_bin = 50,
+  key = "dsLoess",
+  verbose = FALSE,
+  ...
 ) {
   layer <- SetIfNull(x = layer, y = DefaultLayer(object = object))
   layer <- Layers(object = object, search = layer)
-  
+
+  feature.ranks <- list()
   for (i in seq_along(along.with = layer)) {
     if (isTRUE(x = verbose)) {
       message("Finding variable features for layer ", layer[i])
@@ -654,30 +659,34 @@ FitMeanVar.Assay <- function(
       min.cutoff = min.cutoff,
       weight.mean = weight.mean,
       bins = bins,
+      nfeatures = nfeatures,
       sample_per_bin = sample_per_bin,
       verbose = verbose,
       ...
     )
     varfeat <- hvf$variable
     colnames(x = hvf) <- paste(
-      'vf',
+      "vf",
       key,
       layer[i],
       colnames(x = hvf),
-      sep = '_'
+      sep = "_"
     )
     rownames(x = hvf) <- Features(x = object, layer = layer[i])
     object[["var.features"]] <- NULL
     object[["var.features.rank"]] <- NULL
     object[[names(x = hvf)]] <- hvf
+    feature.ranks[[i]] <- setNames(
+      object = hvf[[paste("vf", key, layer[i], "rank", sep = "_")]],
+      nm = rownames(x = hvf)
+    )
   }
-  top_features <- rownames(hvf)[varfeat]
+  # sum ranks
+  feature.ranks <- unlist(x = feature.ranks)
+  feature.ranks <- tapply(X = feature.ranks, INDEX = names(x = feature.ranks), FUN = sum)
+  feature.ranks <- sort(x = feature.ranks, decreasing = FALSE)
+  top_features <- head(x = names(x = feature.ranks), n = nfeatures)
   VariableFeatures(object = object) <- top_features
-  # VariableFeatures(object) <- VariableFeatures(
-  #   object = object,
-  #   nfeatures = nfeatures,
-  #   method = key
-  # )
   return(object)
 }
 
@@ -690,16 +699,16 @@ FitMeanVar.Assay <- function(
 #' @concept preprocessing
 #' @method FitMeanVar default
 FitMeanVar.default <- function(
-    object,
-    nfeatures = 20000,
-    loess.span = 0.1,
-    min.cutoff = 10,
-    weight.mean = 0,
-    bins = 1000,
-    sample_per_bin = 50,
-    random.seed = 1234,
-    verbose = FALSE,
-    ...
+  object,
+  nfeatures = 20000,
+  loess.span = 0.1,
+  min.cutoff = 10,
+  weight.mean = 0,
+  bins = 1000,
+  sample_per_bin = 50,
+  random.seed = 1234,
+  verbose = FALSE,
+  ...
 ) {
   rs <- rowSums(x = object)
 
@@ -711,7 +720,7 @@ FitMeanVar.default <- function(
   } else {
     count.thresh <- min.cutoff
   }
-  
+
   if (verbose) {
     message("Retained ", nrow(x = object), " features after count filtering")
   }
@@ -724,7 +733,7 @@ FitMeanVar.default <- function(
     variance.expected = 0,
     total.counts = rs
   )
-  
+
   # run on a dataframe containing mean, variance, total.counts
   df <- FitMeanVar(
     object = df,
@@ -736,7 +745,7 @@ FitMeanVar.default <- function(
     verbose = verbose,
     ...
   )
-  
+
   df$rank[df$total.counts < count.thresh] <- NA
   vf <- head(
     x = order(df$rank, decreasing = FALSE),
@@ -754,14 +763,14 @@ FitMeanVar.default <- function(
 #' @concept preprocessing
 #' @method FitMeanVar data.frame
 FitMeanVar.data.frame <- function(
-    object,
-    loess.span = 0.1,
-    weight.mean = 0,
-    bins = 1000,
-    sample_per_bin = 50,
-    random.seed = 1234,
-    verbose = FALSE,
-    ...
+  object,
+  loess.span = 0.1,
+  weight.mean = 0,
+  bins = 1000,
+  sample_per_bin = 50,
+  random.seed = 1234,
+  verbose = FALSE,
+  ...
 ) {
   if (!all(c("mean", "variance") %in% colnames(x = object))) {
     stop("Mean and variance information must be stored in the input dataframe")
@@ -785,11 +794,11 @@ FitMeanVar.data.frame <- function(
         subset <- subset[sample(
           x = nrow(x = subset),
           size = sample_per_bin,
-          replace = FALSE), ]
+          replace = FALSE
+        ), ]
       }
       return(subset)
-    }
-    )
+    })
   )
   loess_fit <- loess(
     formula = log1p(x = variance) ~ log_mean,
@@ -800,7 +809,7 @@ FitMeanVar.data.frame <- function(
   object$variance.expected <- expm1(x = object$log.variance.expected)
   object$variance.residual <- log1p(x = object$variance) - object$log.variance.expected
   object$variance.residual[is.na(x = object$variance.residual)] <- 0
-  
+
   object$residual.rank <- rank(x = -object$variance.residual, ties.method = "average")
   object$mean.rank <- rank(x = -object$mean, ties.method = "average")
   object$rank <- (weight.mean * object$mean.rank) + ((1 - weight.mean) * object$residual.rank)
@@ -821,52 +830,51 @@ FitMeanVar.data.frame <- function(
 #' @export
 #' @concept preprocessing
 #' @examples
-#' PearsonResidualVar(object = atac_small[['peaks']]['counts'])
+#' PearsonResidualVar(object = atac_small[["peaks"]]["counts"])
 PearsonResidualVar.default <- function(
-    object,
-    assay = NULL,
-    nfeatures = 20000,
-    min.counts = 100,
-    ncell.batch = 100,
-    theta = 10,
-    verbose = TRUE,
-    ...
+  object,
+  assay = NULL,
+  nfeatures = 20000,
+  min.counts = 100,
+  ncell.batch = 100,
+  theta = 10,
+  verbose = TRUE,
+  ...
 ) {
   # compute Pearson residual variance for each feature
   # low-memory implementation that does not construct the entire matrix of
   # cell x feature Pearson residuals
-  
+
   # (X - μ) / sqrt(μ + μ²/θ)
   # clip at sqrt(n_cell)
-  
+
   N <- ncol(x = object)
   clip_threshold <- sqrt(x = N)
-  
+
   feature_means <- rowMeans(x = object)
   nonzero_mean <- feature_means > 0
-  
+
   if (verbose) {
     message("Retaining ", sum(nonzero_mean), " features with mean greater than zero")
   }
-  
+
   object <- object[nonzero_mean, ]
   feature_means <- feature_means[nonzero_mean]
-  
+
   denominator <- sqrt(feature_means + ((feature_means * feature_means) / theta))
-  
+
   # iterate over the values for each feature, compute the pearson residual variance
-  resid_sums <- vector(mode = 'numeric', length = nrow(x = object))
-  resid_sum_square <- vector(mode = 'numeric', length = nrow(x = object))
+  resid_sums <- vector(mode = "numeric", length = nrow(x = object))
+  resid_sum_square <- vector(mode = "numeric", length = nrow(x = object))
   nbatch <- ceiling(N / ncell.batch)
   if (nbatch <= 1) verbose <- FALSE
 
   if (verbose) pb <- txtProgressBar(min = 1, max = nbatch, style = 3)
   for (i in seq_len(length.out = nbatch)) {
-    
     cells.interval.start <- 1 + ((i - 1) * ncell.batch)
     cells.interval.end <- min(N, (i * ncell.batch))
 
-    resid <- (object[ ,cells.interval.start:cells.interval.end] - feature_means) / denominator
+    resid <- (object[, cells.interval.start:cells.interval.end] - feature_means) / denominator
     resid[resid > clip_threshold] <- clip_threshold
     resid[resid < -clip_threshold] <- -clip_threshold
     rs <- rowSums(x = resid)
@@ -876,11 +884,11 @@ PearsonResidualVar.default <- function(
       setTxtProgressBar(pb, i)
     }
   }
-  
+
   # Variance = [sum_of_squares - n * mean^2] / n
   resid_mean <- resid_sums / N
   pearson_residual_variance <- (resid_sum_square - (N * resid_mean^2)) / N
-  
+
   # construct dataframe
   hvf.info <- data.frame(
     row.names = rownames(x = object),
@@ -888,7 +896,7 @@ PearsonResidualVar.default <- function(
     mean = feature_means,
     ResidualVariance = pearson_residual_variance
   )
-  
+
   return(hvf.info)
 }
 
@@ -899,17 +907,17 @@ PearsonResidualVar.default <- function(
 #' @method PearsonResidualVar Assay
 #' @concept preprocessing
 #' @examples
-#' PearsonResidualVar(object = atac_small[['peaks']])
+#' PearsonResidualVar(object = atac_small[["peaks"]])
 PearsonResidualVar.Assay <- function(
-    object,
-    assay = NULL,
-    nfeatures = 20000,
-    theta = 10,
-    min.counts = 100,
-    weight.mean = 0,
-    ncell.batch = 100,
-    verbose = TRUE,
-    ...
+  object,
+  assay = NULL,
+  nfeatures = 20000,
+  theta = 10,
+  min.counts = 100,
+  weight.mean = 0,
+  ncell.batch = 100,
+  verbose = TRUE,
+  ...
 ) {
   data.use <- GetAssayData(object = object, layer = "counts")
   if (IsMatrixEmpty(x = data.use)) {
@@ -949,12 +957,14 @@ PearsonResidualVar.Assay <- function(
     combined_rank <- (weight.mean * mean_rank) + ((1 - weight.mean) * res_rank)
     hvf.info.filt$ranking <- combined_rank
     hvf.info.filt <- hvf.info.filt[
-      order(hvf.info.filt$ranking, decreasing = FALSE), 
+      order(hvf.info.filt$ranking, decreasing = FALSE),
     ]
     if (nfeatures > nrow(x = hvf.info.filt)) {
       nfeatures <- nrow(x = hvf.info.filt)
-      warning("Requested more features than are available. ",
-              "Returning ", nfeatures, " variable features")
+      warning(
+        "Requested more features than are available. ",
+        "Returning ", nfeatures, " variable features"
+      )
     }
     top_features <- head(x = rownames(x = hvf.info.filt), n = nfeatures)
     VariableFeatures(object = object) <- top_features
@@ -971,16 +981,16 @@ PearsonResidualVar.Assay <- function(
 #' @method PearsonResidualVar StdAssay
 #' @concept preprocessing
 #' @examples
-#' PearsonResidualVar(object = atac_small[['peaks']])
+#' PearsonResidualVar(object = atac_small[["peaks"]])
 PearsonResidualVar.StdAssay <- function(
-    object,
-    assay = NULL,
-    min.counts = 100,
-    weight.mean = 0,
-    theta = 10,
-    ncell.batch = 100,
-    verbose = TRUE,
-    ...
+  object,
+  assay = NULL,
+  min.counts = 100,
+  weight.mean = 0,
+  theta = 10,
+  ncell.batch = 100,
+  verbose = TRUE,
+  ...
 ) {
   PearsonResidualVar.Assay(
     object = object,
@@ -1005,14 +1015,14 @@ PearsonResidualVar.StdAssay <- function(
 #' @examples
 #' PearsonResidualVar(atac_small)
 PearsonResidualVar.Seurat <- function(
-    object,
-    assay = NULL,
-    min.counts = 100,
-    weight.mean = 0,
-    theta = 10,
-    ncell.batch = 100,
-    verbose = TRUE,
-    ...
+  object,
+  assay = NULL,
+  min.counts = 100,
+  weight.mean = 0,
+  theta = 10,
+  ncell.batch = 100,
+  verbose = TRUE,
+  ...
 ) {
   assay <- SetIfNull(x = assay, y = DefaultAssay(object))
   assay.data <- object[[assay]]
@@ -1047,7 +1057,7 @@ PearsonResidualVar.Seurat <- function(
 #' @concept qc
 #' @return Returns a \code{\link[SeuratObject]{Seurat}} object
 #' @examples
-#' FRiP(object = atac_small, assay = 'peaks', total.fragments = "fragments")
+#' FRiP(object = atac_small, assay = "peaks", total.fragments = "fragments")
 FRiP <- function(
   object,
   assay,
@@ -1094,7 +1104,7 @@ globalVariables(names = "cell", package = "Signac")
 #' @importFrom stats ecdf
 #'
 #' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' Fragments(atac_small) <- CreateFragmentObject(
 #'   path = fpath,
 #'   cells = colnames(atac_small),
@@ -1171,10 +1181,10 @@ RegionStats.default <- function(
   verbose = TRUE,
   ...
 ) {
-  if (!requireNamespace('BSgenome', quietly = TRUE)) {
+  if (!requireNamespace("BSgenome", quietly = TRUE)) {
     stop("Please install BSgenome: BiocManager::install('BSgenome')")
   }
-  if (!requireNamespace('Biostrings', quietly = TRUE)) {
+  if (!requireNamespace("Biostrings", quietly = TRUE)) {
     stop("Please install Biostrings: BiocManager::install('Biostrings')")
   }
   sequence.length <- width(x = object)
@@ -1188,9 +1198,9 @@ RegionStats.default <- function(
   object <- keepSeqlevels(x = object, value = common.seq, pruning.mode = "coarse")
   sequences <- Biostrings::getSeq(x = genome, object)
   gc <- Biostrings::letterFrequency(
-    x = sequences, letters = 'CG'
+    x = sequences, letters = "CG"
   ) / sequence.length[seq.keep] * 100
-  colnames(gc) <- 'GC.percent'
+  colnames(gc) <- "GC.percent"
   dinuc <- Biostrings::dinucleotideFrequency(sequences)
   sequence.stats <- cbind(dinuc, gc)
   # fill missing seqnames with NA
@@ -1216,7 +1226,7 @@ RegionStats.default <- function(
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
-#'   object = atac_small[['peaks']],
+#'   object = atac_small[["peaks"]],
 #'   genome = BSgenome.Hsapiens.UCSC.hg19
 #' )
 #' }
@@ -1251,7 +1261,7 @@ RegionStats.ChromatinAssay <- function(
 #' library(BSgenome.Hsapiens.UCSC.hg19)
 #' RegionStats(
 #'   object = atac_small,
-#'   assay = 'bins',
+#'   assay = "bins",
 #'   genome = BSgenome.Hsapiens.UCSC.hg19
 #' )
 #' }
@@ -1332,8 +1342,10 @@ RunTFIDF.default <- function(
       stop("idf parameter must be a numeric vector")
     }
     if (length(x = idf) != nrow(x = object)) {
-      stop("Length of supplied IDF vector does not match",
-           " number of rows in input matrix")
+      stop(
+        "Length of supplied IDF vector does not match",
+        " number of rows in input matrix"
+      )
     }
     if (any(idf == 0)) {
       stop("Supplied IDF values cannot be zero")
@@ -1382,7 +1394,7 @@ RunTFIDF.default <- function(
 #' @export
 #' @concept preprocessing
 #' @examples
-#' RunTFIDF(atac_small[['peaks']])
+#' RunTFIDF(atac_small[["peaks"]])
 RunTFIDF.Assay <- function(
   object,
   assay = NULL,
@@ -1415,15 +1427,15 @@ RunTFIDF.Assay <- function(
 #' @export
 #' @concept preprocessing
 #' @examples
-#' RunTFIDF(atac_small[['peaks']])
+#' RunTFIDF(atac_small[["peaks"]])
 RunTFIDF.StdAssay <- function(
-    object,
-    assay = NULL,
-    method = 1,
-    scale.factor = 1e4,
-    idf = NULL,
-    verbose = TRUE,
-    ...
+  object,
+  assay = NULL,
+  method = 1,
+  scale.factor = 1e4,
+  idf = NULL,
+  verbose = TRUE,
+  ...
 ) {
   RunTFIDF.Assay(
     object = object,
