@@ -796,10 +796,9 @@ FitMeanVar.data.frame <- function(
     data = sampled_df,
     span = loess.span
   )
-  object$variance.expected <- expm1(
-    x = predict(object = loess_fit, newdata = object$log_mean)
-  )
-  object$variance.residual <- object$variance - object$variance.expected
+  object$log.variance.expected <- predict(object = loess_fit, newdata = object$log_mean)
+  object$variance.expected <- expm1(x = object$log.variance.expected)
+  object$variance.residual <- log1p(x = object$variance) - object$log.variance.expected
   
   object$residual.rank <- rank(x = -object$variance.residual, ties.method = "average")
   object$mean.rank <- rank(x = -object$mean, ties.method = "average")
