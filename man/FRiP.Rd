@@ -26,6 +26,6 @@ Returns a \code{\link[SeuratObject]{Seurat}} object
 Calculate fraction of reads in peaks per cell
 }
 \examples{
-FRiP(object = atac_small, assay = 'peaks', total.fragments = "fragments")
+FRiP(object = atac_small, assay = "peaks", total.fragments = "fragments")
 }
 \concept{qc}

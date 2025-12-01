@@ -27,7 +27,7 @@ PearsonResidualVar(object, ...)
   nfeatures = 20000,
   theta = 10,
   min.counts = 100,
-  weight.mean = 0.5,
+  weight.mean = 0,
   ncell.batch = 100,
   verbose = TRUE,
   ...
@@ -37,7 +37,7 @@ PearsonResidualVar(object, ...)
   object,
   assay = NULL,
   min.counts = 100,
-  weight.mean = 0.5,
+  weight.mean = 0,
   theta = 10,
   ncell.batch = 100,
   verbose = TRUE,
@@ -48,7 +48,7 @@ PearsonResidualVar(object, ...)
   object,
   assay = NULL,
   min.counts = 100,
-  weight.mean = 0.5,
+  weight.mean = 0,
   theta = 10,
   ncell.batch = 100,
   verbose = TRUE,
@@ -87,9 +87,9 @@ feature without constructing the entire dense matrix of Pearson residuals to
 reduce the memory required.
 }
 \examples{
-PearsonResidualVar(object = atac_small[['peaks']]['counts'])
-PearsonResidualVar(object = atac_small[['peaks']])
-PearsonResidualVar(object = atac_small[['peaks']])
+PearsonResidualVar(object = atac_small[["peaks"]]["counts"])
+PearsonResidualVar(object = atac_small[["peaks"]])
+PearsonResidualVar(object = atac_small[["peaks"]])
 PearsonResidualVar(atac_small)
 }
 \references{

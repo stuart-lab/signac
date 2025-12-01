@@ -92,8 +92,8 @@ Four different TF-IDF methods are implemented. We recommend using method 1
 \examples{
 mat <- matrix(data = rbinom(n = 25, size = 5, prob = 0.2), nrow = 5)
 RunTFIDF(object = mat)
-RunTFIDF(atac_small[['peaks']])
-RunTFIDF(atac_small[['peaks']])
+RunTFIDF(atac_small[["peaks"]])
+RunTFIDF(atac_small[["peaks"]])
 RunTFIDF(object = atac_small)
 }
 \references{

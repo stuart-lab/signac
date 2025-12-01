@@ -18,7 +18,7 @@ FitMeanVar(object, ...)
   nfeatures = 20000,
   loess.span = 0.1,
   min.cutoff = 10,
-  weight.mean = 0.5,
+  weight.mean = 0,
   bins = 1000,
   sample_per_bin = 50,
   key = "dsLoess",
@@ -32,7 +32,7 @@ FitMeanVar(object, ...)
   loess.span = 0.1,
   nfeatures = 20000,
   min.cutoff = 10,
-  weight.mean = 0.5,
+  weight.mean = 0,
   bins = 1000,
   sample_per_bin = 50,
   key = "dsLoess",
@@ -46,7 +46,7 @@ FitMeanVar(object, ...)
   loess.span = 0.1,
   nfeatures = 20000,
   min.cutoff = 10,
-  weight.mean = 0.5,
+  weight.mean = 0,
   bins = 1000,
   sample_per_bin = 50,
   key = "dsLoess",
@@ -59,7 +59,7 @@ FitMeanVar(object, ...)
   nfeatures = 20000,
   loess.span = 0.1,
   min.cutoff = 10,
-  weight.mean = 0.5,
+  weight.mean = 0,
   bins = 1000,
   sample_per_bin = 50,
   random.seed = 1234,
@@ -70,7 +70,7 @@ FitMeanVar(object, ...)
 \method{FitMeanVar}{data.frame}(
   object,
   loess.span = 0.1,
-  weight.mean = 0.5,
+  weight.mean = 0,
   bins = 1000,
   sample_per_bin = 50,
   random.seed = 1234,
@@ -126,6 +126,6 @@ to avoid selecting features with high residual variance but very low mean.
 }
 \examples{
 FitMeanVar(atac_small)
-FitMeanVar(object = atac_small[['peaks']])
+FitMeanVar(object = atac_small[["peaks"]])
 }
 \concept{preprocessing}

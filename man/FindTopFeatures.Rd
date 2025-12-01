@@ -50,9 +50,9 @@ metadata for the assay. To only compute the feature metadata, without
 changing the variable features for the assay, set \code{min.cutoff=NA}.
 }
 \examples{
-FindTopFeatures(object = atac_small[['peaks']]['data'])
-FindTopFeatures(object = atac_small[['peaks']])
-FindTopFeatures(object = atac_small[['peaks']])
+FindTopFeatures(object = atac_small[["peaks"]]["data"])
+FindTopFeatures(object = atac_small[["peaks"]])
+FindTopFeatures(object = atac_small[["peaks"]])
 FindTopFeatures(atac_small)
 }
 \concept{preprocessing}
