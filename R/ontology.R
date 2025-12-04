@@ -82,7 +82,8 @@ EnrichedTerms <- function(
     # run fgsea
     fgsea_results <- fgsea::fgsea(
       pathways = terms,
-      stats = ranked_list
+      stats = ranked_list,
+      scoreType = "pos"
     )
     fgsea_results <- fgsea_results[fgsea_results$NES > 0, ]
     fgsea_results <- fgsea_results[fgsea_results$padj < 0.05, ]
