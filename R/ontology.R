@@ -13,6 +13,8 @@
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param var.features Subset to only variable features for ontology term
 #' enrichment.
+#' @param scoreType \code{scoreType} parameter for \code{\link[fgsea]{fgseaSimple}}.
+#' Options are "std", "pos", "neg" (two-tailed or one-tailed tests).
 #' @param verbose Display messages.
 #' @param ... Additional arguments passed to \code{\link[Seurat]{FindMarkers}}
 #' 
@@ -30,6 +32,7 @@ EnrichedTerms <- function(
     group.by = NULL,
     assay = NULL,
     var.features = TRUE,
+    scoreType = "std",
     verbose = TRUE,
     ...
 ) {
@@ -83,7 +86,7 @@ EnrichedTerms <- function(
     fgsea_results <- fgsea::fgsea(
       pathways = terms,
       stats = ranked_list,
-      scoreType = "pos"
+      scoreType = scoreType
     )
     fgsea_results <- fgsea_results[fgsea_results$NES > 0, ]
     fgsea_results <- fgsea_results[fgsea_results$padj < 0.05, ]
