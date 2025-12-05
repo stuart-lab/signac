@@ -10,6 +10,7 @@ EnrichedTerms(
   group.by = NULL,
   assay = NULL,
   var.features = TRUE,
+  scoreType = "std",
   verbose = TRUE,
   ...
 )
@@ -28,6 +29,9 @@ identities.}
 
 \item{var.features}{Subset to only variable features for ontology term
 enrichment.}
+
+\item{scoreType}{\code{scoreType} parameter for \code{\link[fgsea]{fgseaSimple}}.
+Options are "std", "pos", "neg" (two-tailed or one-tailed tests).}
 
 \item{verbose}{Display messages.}
 
