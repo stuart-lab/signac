@@ -1,7 +1,7 @@
 Package: Signac
 Title: Analysis of Single-Cell Chromatin Data
 Version: 2.0.0
-Date: 2025-10-10
+Date: 2025-12-09
 Authors@R: c(
   person(given = 'Tim', family = 'Stuart', email = 'stuartt@a-star.edu.sg', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3044-0897')),
   person(given = 'Avi', family = 'Srivastava', email = 'asrivastava@wistar.org', role = 'aut', comment = c(ORCID = '0000-0001-9798-2079')),
@@ -72,6 +72,7 @@ Collate:
     'mito.R'
     'motifs.R'
     'objects.R'
+    'ontology.R'
     'peaks.R'
     'preprocessing.R'
     'quantification.R'
@@ -100,4 +101,5 @@ Suggests:
     BPCells,
     wrswoR,
     scattermore,
-    fields
+    fields,
+    fgsea

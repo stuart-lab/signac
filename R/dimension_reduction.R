@@ -67,16 +67,16 @@ Jaccard <- function(x, y) {
 #' x <- matrix(data = rnorm(100), ncol = 10)
 #' RunSVD(x)
 RunSVD.default <- function(
-  object,
-  assay = NULL,
-  n = 50,
-  scale.embeddings = !pca,
-  pca = FALSE,
-  reduction.key = ifelse(pca, "PCA_", "LSI_"),
-  scale.max = NULL,
-  verbose = TRUE,
-  tol = 1e-05,
-  ...
+    object,
+    assay = NULL,
+    n = 50,
+    scale.embeddings = !pca,
+    pca = FALSE,
+    reduction.key = ifelse(pca, "PCA_", "LSI_"),
+    scale.max = NULL,
+    verbose = TRUE,
+    tol = 1e-05,
+    ...
 ) {
   if (is.null(x = rownames(x = object))) {
     rownames(x = object) <- seq_len(length.out = nrow(x = object))
@@ -216,8 +216,8 @@ RunSVD.Assay5 <- function(
   assay = NULL,
   layer = "data",
   features = NULL,
-  n = 50,
   pca = FALSE,
+  n = 50,
   reduction.key = ifelse(pca, "PCA_", "LSI_"),
   scale.max = NULL,
   verbose = TRUE,
@@ -233,6 +233,7 @@ RunSVD.Assay5 <- function(
     object = data.use,
     assay = assay,
     features = features,
+    pca = pca,
     n = n,
     pca = pca,
     reduction.key = reduction.key,
@@ -257,8 +258,8 @@ RunSVD.StdAssay <- function(
     assay = NULL,
     layer = "data",
     features = NULL,
-    n = 50,
     pca = FALSE,
+    n = 50,
     reduction.key = ifelse(pca, "PCA_", "LSI_"),
     scale.max = NULL,
     verbose = TRUE,
@@ -287,17 +288,17 @@ RunSVD.StdAssay <- function(
 #' RunSVD(atac_small, features = rownames(atac_small))
 #' @method RunSVD Seurat
 RunSVD.Seurat <- function(
-  object,
-  assay = NULL,
-  features = NULL,
-  layer = "data",
-  n = 50,
-  pca = FALSE,
-  reduction.key = ifelse(pca, "PCA_", "LSI_"),
-  reduction.name = ifelse(pca, "pca", "lsi"),
-  scale.max = NULL,
-  verbose = TRUE,
-  ...
+    object,
+    assay = NULL,
+    features = NULL,
+    layer = "data",
+    n = 50,
+    pca = FALSE,
+    reduction.key = ifelse(pca, "PCA_", "LSI_"),
+    reduction.name = ifelse(pca, "pca", "lsi"),
+    scale.max = NULL,
+    verbose = TRUE,
+    ...
 ) {
   assay <- assay %||% DefaultAssay(object = object)
   assay.data <- object[[assay]]

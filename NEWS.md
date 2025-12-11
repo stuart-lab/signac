@@ -33,9 +33,6 @@ New features:
 * Added `RunFragtk()` function to run `fragtk matrix` command within R
 * Added `fragtk` parameter to `GeneActivity()`
 * Added `fragtk` parameter to `FeatureMatrix()`
-* Added `PearsonResidualVar()` function for variable feature selection based on Pearson residual variances
-* Added `FitMeanVar()` function for variable feature selection based on residual variance from LOESS model
-* Added `pca` parameter to `RunSVD()` to compute PCA dimension reduction without storing standardized matrix
 * Added `raster` and `raster.dpi` parameters to `DensityScatter()`
 
 Removed functions:
@@ -45,10 +42,26 @@ Removed functions:
 
 Other changes:
 
-* Changed SVD function in `RunSVD()` from `irlba::irlba()` to `RSpectra::svds()`
 * Added a check for duplicated fragment files when merging objects. If multiple
 assays have the same fragment file, they are now consolidated into one fragment
 object.
+
+# Develop (unreleased)
+
+New features:
+
+* Added the `ATACqc()` function to run `fragtk qc` and store the results
+* Added `FitMeanVar()` and `PearsonResidualVar()` functions for highly variable feature selection 
+* Added `pca` parameter to `RunSVD()` to compute PCA dimension reduction without storing standardized matrix
+* Added the `EnrichedTerms()` function to run `fgsea()` on differential testing results from each group of cell identities
+
+Other changes:
+
+* Deprecated `NucleosomeSignal` and `TSSEnrichment` functions in favor of the
+new `ATACqc` function
+* Deprecated the blacklist region data objects in favor of using the
+[excluderanges](https://github.com/dozmorovlab/excluderanges) package
+* Changed SVD function in `RunSVD()` from `irlba::irlba()` to `RSpectra::svds()`
 
 # Signac 1.16.0
 
