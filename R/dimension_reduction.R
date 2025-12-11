@@ -235,7 +235,6 @@ RunSVD.Assay5 <- function(
     features = features,
     pca = pca,
     n = n,
-    pca = pca,
     reduction.key = reduction.key,
     scale.max = scale.max,
     verbose = verbose,
