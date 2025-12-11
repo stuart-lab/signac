@@ -38,6 +38,7 @@ New features:
 Removed functions:
 
 * Removed `CoverageBrowser()`
+* Removed `NucleosomeSignal()` and `TSSEnrichment()`: replaced by `ATACqc()`
 * Removed blacklist region data objects (`blacklist_hg38`, etc.)
 
 Other changes:
