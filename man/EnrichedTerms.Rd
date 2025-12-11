@@ -11,6 +11,7 @@ EnrichedTerms(
   assay = NULL,
   var.features = TRUE,
   scoreType = "std",
+  top.n = NULL,
   verbose = TRUE,
   ...
 )
@@ -32,6 +33,9 @@ enrichment.}
 
 \item{scoreType}{\code{scoreType} parameter for \code{\link[fgsea]{fgseaSimple}}.
 Options are "std", "pos", "neg" (two-tailed or one-tailed tests).}
+
+\item{top.n}{Number of top enriched terms to retain for each set of cells. If
+NULL, retain all terms.}
 
 \item{verbose}{Display messages.}
 

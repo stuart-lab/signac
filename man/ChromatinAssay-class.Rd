@@ -23,7 +23,7 @@ genomic location of features in the object}
 information about the genome sequence used.}
 
 \item{\code{annotation}}{A  \code{\link[GenomicRanges]{GRanges}} object containing
-genomic annotations. This should be a GRanges object with the following
+genomic annotations. This should be a GRanges object with the following 
 columns:
 \itemize{
   \item{tx_id: Transcript ID}

@@ -30,13 +30,13 @@ Returns a subset of a \code{\link{Motif-class}} object.
 }
 \examples{
 motif.obj <- SeuratObject::GetAssayData(
-  object = atac_small[["peaks"]], layer = "motifs"
+  object = atac_small[['peaks']], layer = "motifs"
 )
 subset(x = motif.obj, features = head(rownames(motif.obj), 10))
 motif.obj <- SeuratObject::GetAssayData(
-  object = atac_small, assay = "peaks", layer = "motifs"
+  object = atac_small, assay = 'peaks', layer = 'motifs'
 )
-motif.obj[1:10, 1:10]
+motif.obj[1:10,1:10]
 }
 \seealso{
 \code{\link[base]{subset}}

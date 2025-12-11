@@ -32,7 +32,7 @@ Get motif matrix for given assay
 }
 \examples{
 motif.obj <- SeuratObject::GetAssayData(
-  object = atac_small[["peaks"]], slot = "motifs"
+  object = atac_small[['peaks']], slot = "motifs"
 )
 GetMotifData(object = motif.obj)
 GetMotifData(object = atac_small)
