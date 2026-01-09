@@ -7,13 +7,35 @@
 LoadGWASRegion(gwas.file, region)
 }
 \arguments{
-\item{gwas.file}{Path to GWAS summary statistics file}
+\item{gwas.file}{Path to GWAS summary statistics file (tabix-indexed TSV in SSF format)}
 
 \item{region}{Genomic region (GRanges object or string like "chr1:1000000-2000000")}
 }
 \value{
-data.frame with standardized columns
+data.frame with standardized columns: chr, pos, pval, snp, and optional
+  beta, se, effect_allele, other_allele, eaf
 }
 \description{
-Load GWAS summary statistics for a genomic region
+Loads GWAS summary statistics in SSF (Summary Statistics Format) for a
+specified genomic region. SSF is the standard format defined by NHGRI-EBI
+GWAS Catalog.
+}
+\details{
+GWAS data must be in SSF format with the following columns:
+\itemize{
+  \item Required: \code{chromosome}, \code{base_pair_location}, \code{p_value}
+  \item Optional: \code{effect_allele}, \code{other_allele}, \code{beta},
+        \code{standard_error}, \code{effect_allele_frequency}, \code{variant_id}
+}
+
+Column matching is case-insensitive but column names must match exactly
+(no fuzzy matching).
+
+To convert other formats to SSF:
+\itemize{
+  \item VCF (OpenGWAS): \code{bcftools query -f '\%CHROM\\t\%POS\\t\%ALT\\t\%REF[\\t\%ES\\t\%SE\\t\%AF\\t\%LP]\\n' gwas.vcf.gz | awk ...}
+  \item FinnGen: \code{awk} to rename columns
+  \item PLINK2: use \code{--gwas-ssf} flag
+}
+See vignette("gwas-formats") for detailed conversion instructions.
 }

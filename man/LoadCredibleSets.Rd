@@ -9,11 +9,26 @@ LoadCredibleSets(credset.file, credset.threshold = 0.01)
 \arguments{
 \item{credset.file}{Path to credible set file}
 
-\item{credset.threshold}{Posterior probability threshold (default: 0.01)}
+\item{credset.threshold}{Posterior inclusion probability threshold (default: 0.01)}
+}
+\value{
+data.frame with columns: chr, pos, pip, credset_id
 }
 \description{
 Load fine-mapping credible sets from SuSiE or FINEMAP
 }
 \details{
-Supports SuSiE and FINEMAP output formats. Matched by position.
+Supports SuSiE and FINEMAP output formats. Column detection is flexible to
+handle variations in output from different tools.
+
+Required columns (case-insensitive, multiple names accepted):
+\itemize{
+  \item Position: \code{pos}, \code{position}, or \code{bp}
+  \item Chromosome: \code{chr}, \code{chromosome}, \code{chrom}, or \code{seqnames}
+  \item Posterior probability: \code{prob}, \code{pip}, or \code{pp}
+  \item Credible set ID: \code{cs}, \code{credset}, or \code{credible_set}
+}
+
+Variants are filtered to those with PIP >= threshold AND assigned to a
+credible set (cs != -1).
 }

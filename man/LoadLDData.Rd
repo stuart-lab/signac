@@ -9,10 +9,19 @@ LoadLDData(ld.file)
 \arguments{
 \item{ld.file}{Path to LD file (LDlink or PLINK pairwise format)}
 }
+\value{
+data.frame with columns: chr, pos, r2
+}
 \description{
 Load LD data from LDlink or PLINK
 }
 \details{
 LD must be pairwise r² relative to one lead SNP.
   Matched to GWAS by position (CHR + POS).
+
+  Supported formats:
+  \itemize{
+    \item LDlink: requires \code{Coord} and \code{R2} columns
+    \item PLINK pairwise: requires \code{CHR_B}, \code{BP_B}, and \code{R2} columns
+  }
 }

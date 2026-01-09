@@ -19,9 +19,9 @@ GWASTrack(
 )
 }
 \arguments{
-\item{region}{Genomic region to plot}
+\item{region}{Genomic region to plot (GRanges or string like "chr10:112900000-113100000")}
 
-\item{gwas.file}{Path to GWAS summary statistics}
+\item{gwas.file}{Path to GWAS summary statistics file (SSF format, tabix-indexed)}
 
 \item{ld.file}{Path to LD data file (LDlink or PLINK pairwise format). Optional.}
 
@@ -31,13 +31,13 @@ GWASTrack(
 
 \item{credset.threshold}{Posterior inclusion probability threshold for credible sets (default: 0.01)}
 
-\item{p.threshold}{Significance threshold (default: 5e-8)}
+\item{p.threshold}{Genome-wide significance threshold (default: 5e-8)}
 
 \item{ymax}{Maximum y-axis value (default: auto-scale)}
 
 \item{point.size}{Size of points (default: 1)}
 
-\item{point.color}{Color for points (default: "steelblue")}
+\item{point.color}{Color for points when no LD coloring (default: "steelblue")}
 
 \item{show.axis}{Show x-axis labels and ticks (default: TRUE)}
 }
@@ -45,6 +45,19 @@ GWASTrack(
 ggplot2 object
 }
 \description{
-Create GWAS Manhattan plot track
+Creates a Manhattan plot for GWAS summary statistics, optionally colored by
+LD (r²) to a lead SNP and/or highlighting fine-mapped credible set variants.
+}
+\details{
+LD coloring uses standard LocusZoom colors:
+\itemize{
+  \item r² 0.8-1.0: Red
+  \item r² 0.6-0.8: Orange
+  \item r² 0.4-0.6: Green
+  \item r² 0.2-0.4: Cyan
+  \item r² 0-0.2: Dark blue
+}
+
+Credible set variants are shown as larger diamonds.
 }
 \concept{visualization}

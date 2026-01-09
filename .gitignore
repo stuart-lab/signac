@@ -23,3 +23,5 @@ benchmark/*
 *.out
 build.sh
 *.ipynb
+.RDataTmp2
+.RDataTmp1

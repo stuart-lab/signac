@@ -1,17 +1,48 @@
 # R/gwas.R
 # GWAS Visualization for Signac
+#
+# GWAS data must be in GWAS-SSF (Summary Statistics Format) as defined by
+# NHGRI-EBI GWAS Catalog. See: https://github.com/EBISPOT/gwas-summary-statistics-standard
+#
+# Required columns: chromosome, base_pair_location, p_value
+# Optional columns: effect_allele, other_allele, beta, standard_error,
+#                   effect_allele_frequency, variant_id
 
 #' @importFrom utils globalVariables
 #'
 NULL
-
 globalVariables(names = c("in_credset", "ld_category", "log10p", "pos"), package = "Signac")
 
 #' Load GWAS summary statistics for a genomic region
-#' 
-#' @param gwas.file Path to GWAS summary statistics file
+#'
+#' Loads GWAS summary statistics in SSF (Summary Statistics Format) for a
+#' specified genomic region. SSF is the standard format defined by NHGRI-EBI
+#' GWAS Catalog.
+#'
+#' @param gwas.file Path to GWAS summary statistics file (tabix-indexed TSV in SSF format)
 #' @param region Genomic region (GRanges object or string like "chr1:1000000-2000000")
-#' @return data.frame with standardized columns
+#' @return data.frame with standardized columns: chr, pos, pval, snp, and optional
+#'   beta, se, effect_allele, other_allele, eaf
+#'
+#' @details
+#' GWAS data must be in SSF format with the following columns:
+#' \itemize{
+#'   \item Required: \code{chromosome}, \code{base_pair_location}, \code{p_value}
+#'   \item Optional: \code{effect_allele}, \code{other_allele}, \code{beta},
+#'         \code{standard_error}, \code{effect_allele_frequency}, \code{variant_id}
+#' }
+#'
+#' Column matching is case-insensitive but column names must match exactly
+#' (no fuzzy matching).
+#'
+#' To convert other formats to SSF:
+#' \itemize{
+#'   \item VCF (OpenGWAS): \code{bcftools query -f '\%CHROM\\t\%POS\\t\%ALT\\t\%REF[\\t\%ES\\t\%SE\\t\%AF\\t\%LP]\\n' gwas.vcf.gz | awk ...}
+#'   \item FinnGen: \code{awk} to rename columns
+#'   \item PLINK2: use \code{--gwas-ssf} flag
+#' }
+#' See vignette("gwas-formats") for detailed conversion instructions.
+#'
 #' @importFrom data.table fread
 #' @importFrom GenomicRanges GRanges start end
 #' @importFrom GenomeInfoDb seqnames
@@ -41,39 +72,61 @@ LoadGWASRegion <- function(gwas.file, region) {
   # Read GWAS file
   gwas_data <- fread(gwas.file, data.table = FALSE)
   
-  # Auto-detect column names (handle variations)
+  # Strict SSF column validation (case-insensitive matching)
   colnames_lower <- tolower(colnames(gwas_data))
   
-  # Find CHR column
-  chr_col <- colnames(gwas_data)[which(colnames_lower %in% c("chr", "#chr", "chrom", "#chrom", "chromosome", "#chromosome"))[1]]
-  if (is.na(chr_col)) stop("Could not find chromosome column")
+  # Required SSF columns
+  required_cols <- c("chromosome", "base_pair_location", "p_value")
+  missing <- required_cols[!required_cols %in% colnames_lower]
   
-  # Find POS column  
-  pos_col <- colnames(gwas_data)[which(colnames_lower %in% c("pos", "bp", "position"))[1]]
-  if (is.na(pos_col)) stop("Could not find position column")
+  if (length(missing) > 0) {
+    stop(
+      "Missing required SSF columns: ", paste(missing, collapse = ", "), "\n",
+      "Found columns: ", paste(colnames(gwas_data), collapse = ", "), "\n\n",
+      "GWAS data must be in SSF format with columns: chromosome, base_pair_location, p_value\n",
+      "See vignette('gwas-formats') for conversion instructions from VCF, FinnGen, PLINK, etc."
+    )
+  }
   
-  # Find P column
-  p_col <- colnames(gwas_data)[which(colnames_lower %in% c("p", "pval", "pvalue", "p_value"))[1]]
-  if (is.na(p_col)) stop("Could not find p-value column")
+  # Helper function for case-insensitive column lookup
+  get_col <- function(name) {
+    idx <- which(colnames_lower == name)
+    if (length(idx) == 0) return(NULL)
+    colnames(gwas_data)[idx[1]]
+  }
   
-  # Optional columns
-  snp_col <- colnames(gwas_data)[which(colnames_lower %in% c("snp", "rsid", "rsids", "rs", "variant_id", "id"))[1]]
-  beta_col <- colnames(gwas_data)[which(colnames_lower %in% c("beta", "b", "effect"))[1]]
-  se_col <- colnames(gwas_data)[which(colnames_lower %in% c("se", "stderr", "standard_error"))[1]]
+  # Get required columns
   
-  # Standardize column names
+  chr_col <- get_col("chromosome")
+  pos_col <- get_col("base_pair_location")
+  p_col <- get_col("p_value")
+  
+  # Get optional SSF columns
+  snp_col <- get_col("variant_id")
+  beta_col <- get_col("beta")
+  se_col <- get_col("standard_error")
+  ea_col <- get_col("effect_allele")
+  oa_col <- get_col("other_allele")
+  eaf_col <- get_col("effect_allele_frequency")
+  
+  # Standardize to internal column names
   gwas_data$chr <- gwas_data[[chr_col]]
-  gwas_data$pos <- gwas_data[[pos_col]]
-  gwas_data$pval <- gwas_data[[p_col]]
+  gwas_data$pos <- as.integer(gwas_data[[pos_col]])
+  gwas_data$pval <- as.numeric(gwas_data[[p_col]])
   
-  if (!is.na(snp_col)) {
+  # Handle variant_id (create position-based ID if not present)
+  if (!is.null(snp_col)) {
     gwas_data$snp <- gwas_data[[snp_col]]
   } else {
-    # If no SNP ID, create position-based ID
     gwas_data$snp <- paste0("chr", gwas_data$chr, ":", gwas_data$pos)
   }
-  if (!is.na(beta_col)) gwas_data$beta <- gwas_data[[beta_col]]
-  if (!is.na(se_col)) gwas_data$se <- gwas_data[[se_col]]
+  
+  # Map optional columns
+  if (!is.null(beta_col)) gwas_data$beta <- as.numeric(gwas_data[[beta_col]])
+  if (!is.null(se_col)) gwas_data$se <- as.numeric(gwas_data[[se_col]])
+  if (!is.null(ea_col)) gwas_data$effect_allele <- gwas_data[[ea_col]]
+  if (!is.null(oa_col)) gwas_data$other_allele <- gwas_data[[oa_col]]
+  if (!is.null(eaf_col)) gwas_data$eaf <- as.numeric(gwas_data[[eaf_col]])
   
   # Handle chromosome naming (chr1 vs 1)
   gwas_data$chr <- gsub("^chr", "", gwas_data$chr)
@@ -93,10 +146,17 @@ LoadGWASRegion <- function(gwas.file, region) {
 }
 
 #' Load LD data from LDlink or PLINK
-#' 
+#'
 #' @param ld.file Path to LD file (LDlink or PLINK pairwise format)
+#' @return data.frame with columns: chr, pos, r2
 #' @details LD must be pairwise r² relative to one lead SNP.
 #'   Matched to GWAS by position (CHR + POS).
+#'
+#'   Supported formats:
+#'   \itemize{
+#'     \item LDlink: requires \code{Coord} and \code{R2} columns
+#'     \item PLINK pairwise: requires \code{CHR_B}, \code{BP_B}, and \code{R2} columns
+#'   }
 #' @export
 LoadLDData <- function(ld.file) {
   ld_data <- fread(ld.file, data.table = FALSE)
@@ -118,26 +178,47 @@ LoadLDData <- function(ld.file) {
     return(ld_data[, c("chr", "pos", "r2")])
   }
   
-  stop("Unrecognized LD format. Needs LDlink (Coord, R2) or PLINK (CHR_B, BP_B, R2)")
+  stop(
+    "Unrecognized LD format.\n",
+    "Supported formats:\n",
+    "  - LDlink: requires 'Coord' and 'R2' columns\n",
+    "  - PLINK pairwise: requires 'CHR_B', 'BP_B', and 'R2' columns"
+  )
 }
 
 #' Create GWAS Manhattan plot track
 #'
-#' @param region Genomic region to plot
-#' @param gwas.file Path to GWAS summary statistics
-#' @param p.threshold Significance threshold (default: 5e-8)
-#' @param ymax Maximum y-axis value (default: auto-scale)
-#' @param point.size Size of points (default: 1)
-#' @param point.color Color for points (default: "steelblue")
-#' @param ld.lead.snp rsID that LD was calculated relative to (required if ld.file provided)
+#' Creates a Manhattan plot for GWAS summary statistics, optionally colored by
+#' LD (r²) to a lead SNP and/or highlighting fine-mapped credible set variants.
+#'
+#' @param region Genomic region to plot (GRanges or string like "chr10:112900000-113100000")
+#' @param gwas.file Path to GWAS summary statistics file (SSF format, tabix-indexed)
 #' @param ld.file Path to LD data file (LDlink or PLINK pairwise format). Optional.
+#' @param ld.lead.snp rsID that LD was calculated relative to (required if ld.file provided)
 #' @param credset.file Path to credible set file (SuSiE or FINEMAP format). Optional.
 #' @param credset.threshold Posterior inclusion probability threshold for credible sets (default: 0.01)
+#' @param p.threshold Genome-wide significance threshold (default: 5e-8)
+#' @param ymax Maximum y-axis value (default: auto-scale)
+#' @param point.size Size of points (default: 1)
+#' @param point.color Color for points when no LD coloring (default: "steelblue")
 #' @param show.axis Show x-axis labels and ticks (default: TRUE)
 #' @return ggplot2 object
+#'
+#' @details
+#' LD coloring uses standard LocusZoom colors:
+#' \itemize{
+#'   \item r² 0.8-1.0: Red
+#'   \item r² 0.6-0.8: Orange
+#'   \item r² 0.4-0.6: Green
+#'   \item r² 0.2-0.4: Cyan
+#'   \item r² 0-0.2: Dark blue
+#' }
+#'
+#' Credible set variants are shown as larger diamonds.
+#'
 #' @importFrom ggplot2 ggplot geom_point aes geom_hline scale_y_continuous
 #' @importFrom ggplot2 theme_classic labs theme element_blank element_line element_text
-#' @importFrom ggplot2 scale_shape_manual scale_size_manual ggsave
+#' @importFrom ggplot2 scale_shape_manual scale_size_manual scale_color_manual ggsave
 #' @export
 #' @concept visualization
 GWASTrack <- function(
@@ -168,6 +249,15 @@ GWASTrack <- function(
     stop("ld.lead.snp required when ld.file provided")
   }
   
+  # Standard LocusZoom colors (defined once, used in multiple places)
+  ld_colors <- c(
+    "r2_0-0.2" = "#0000CD",
+    "r2_0.2-0.4" = "#00CED1",
+    "r2_0.4-0.6" = "#32CD32",
+    "r2_0.6-0.8" = "#FFA500",
+    "r2_0.8-1.0" = "#FF0000"
+  )
+  
   # Merge LD data if provided
   if (!is.null(ld.file)) {
     ld_data <- LoadLDData(ld.file)
@@ -182,8 +272,17 @@ GWASTrack <- function(
     # Ensure r2 is numeric
     gwas_data$r2 <- as.numeric(gwas_data$r2)
     
+    # Bin r² values into standard LD categories
+    gwas_data$ld_category <- cut(
+      gwas_data$r2,
+      breaks = c(-Inf, 0.2, 0.4, 0.6, 0.8, Inf),
+      labels = c("r2_0-0.2", "r2_0.2-0.4", "r2_0.4-0.6", "r2_0.6-0.8", "r2_0.8-1.0"),
+      include.lowest = TRUE
+    )
+    
   } else {
     gwas_data$r2 <- NA
+    gwas_data$ld_category <- NA
   }
   
   # Merge credible set data if provided
@@ -206,7 +305,7 @@ GWASTrack <- function(
     ymax <- max(gwas_data$log10p, na.rm = TRUE) * 1.1
   }
   
-  # Create plot
+  # Create plot based on what data is available
   if (!is.null(credset.file)) {
     # Highlight credible set variants
     gwas_data$in_credset <- !is.na(gwas_data$pip)
@@ -216,7 +315,7 @@ GWASTrack <- function(
       p <- ggplot(gwas_data, aes(x = pos, y = log10p, color = ld_category)) +
         geom_point(aes(shape = in_credset, size = in_credset), alpha = 0.6) +
         scale_shape_manual(
-          values = c("FALSE" = 16, "TRUE" = 18),  # circle vs diamond
+          values = c("FALSE" = 16, "TRUE" = 18),
           guide = "none"
         ) +
         scale_size_manual(
@@ -231,7 +330,7 @@ GWASTrack <- function(
     } else {
       # Credible sets without LD
       p <- ggplot(gwas_data, aes(x = pos, y = log10p)) +
-        geom_point(aes(shape = in_credset, size = in_credset, 
+        geom_point(aes(shape = in_credset, size = in_credset,
                        color = in_credset), alpha = 0.6) +
         scale_shape_manual(
           values = c("FALSE" = 16, "TRUE" = 18),
@@ -248,100 +347,65 @@ GWASTrack <- function(
         )
     }
     
-    p <- p +
-      geom_hline(
-        yintercept = -log10(p.threshold),
-        linetype = "dashed",
-        color = "red",
-        alpha = 0.5
-      ) +
-      scale_y_continuous(expand = c(0, 0), limits = c(0, ymax)) +
-      theme_classic() +
-      labs(x = "Position (bp)", y = expression(-log[10](italic(P)))) +
-      theme(
-        axis.title.x = if(show.axis) element_text() else element_blank(),
-        axis.text.x = if(show.axis) element_text() else element_blank(),
-        axis.line.x = if(show.axis) element_line() else element_blank(),
-        axis.ticks.x = if(show.axis) element_line() else element_blank()
-      )
-  
   } else if (!is.null(ld.file)) {
-    # Bin r² values into standard LD categories
-    gwas_data$ld_category <- cut(
-      gwas_data$r2,
-      breaks = c(-Inf, 0.2, 0.4, 0.6, 0.8, Inf),
-      labels = c("r2_0-0.2", "r2_0.2-0.4", "r2_0.4-0.6", "r2_0.6-0.8", "r2_0.8-1.0"),
-      include.lowest = TRUE
-    )
-    
-    # Standard LocusZoom colors (blue to red gradient)
-    ld_colors <- c(
-      "r2_0-0.2" = "#0000CD",      # Dark blue
-      "r2_0.2-0.4" = "#00CED1",    # Cyan
-      "r2_0.4-0.6" = "#32CD32",    # Green  
-      "r2_0.6-0.8" = "#FFA500",    # Orange
-      "r2_0.8-1.0" = "#FF0000"     # Red
-    )
-    
-    # Create plot with LD coloring
+    # LD coloring only (no credible sets)
     p <- ggplot(gwas_data, aes(x = pos, y = log10p, color = ld_category)) +
       geom_point(size = point.size, alpha = 0.6) +
       scale_color_manual(
         values = ld_colors,
         name = expression(LD~(r^2)),
-        na.value = "grey50"  # SNPs without LD info
-      ) +
-      geom_hline(
-        yintercept = -log10(p.threshold),
-        linetype = "dashed",
-        color = "red",
-        alpha = 0.5
-      ) +
-      scale_y_continuous(expand = c(0, 0), limits = c(0, ymax)) +
-      theme_classic() +
-      labs(x = "Position (bp)", y = expression(-log[10](italic(P)))) +
-      theme(
-        axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.line.x = element_blank(),
-        axis.ticks.x = element_blank()
-      ) +
-      theme(
-        axis.title.x = if(show.axis) element_text() else element_blank(),
-        axis.text.x = if(show.axis) element_text() else element_blank(),
-        axis.line.x = if(show.axis) element_line() else element_blank(),
-        axis.ticks.x = if(show.axis) element_line() else element_blank()
+        na.value = "grey50"
       )
     
   } else {
-    # Original plot without LD coloring
+    # Basic plot (no LD, no credible sets)
     p <- ggplot(gwas_data, aes(x = pos, y = log10p)) +
-      geom_point(color = point.color, size = point.size, alpha = 0.6) +
-      geom_hline(
-        yintercept = -log10(p.threshold),
-        linetype = "dashed",
-        color = "red",
-        alpha = 0.5
-      ) +
-      scale_y_continuous(expand = c(0, 0), limits = c(0, ymax)) +
-      theme_classic() +
-      labs(x = "Position (bp)", y = expression(-log[10](italic(P)))) +
-      theme(
-        axis.title.x = if(show.axis) element_text() else element_blank(),
-        axis.text.x = if(show.axis) element_text() else element_blank(),
-        axis.line.x = if(show.axis) element_line() else element_blank(),
-        axis.ticks.x = if(show.axis) element_line() else element_blank()
-      )
+      geom_point(color = point.color, size = point.size, alpha = 0.6)
   }
+  
+  # Add common elements
+  p <- p +
+    geom_hline(
+      yintercept = -log10(p.threshold),
+      linetype = "dashed",
+      color = "red",
+      alpha = 0.5
+    ) +
+    scale_y_continuous(expand = c(0, 0), limits = c(0, ymax)) +
+    theme_classic() +
+    labs(x = "Position (bp)", y = expression(-log[10](italic(P)))) +
+    theme(
+      axis.title.x = if (show.axis) element_text() else element_blank(),
+      axis.text.x = if (show.axis) element_text() else element_blank(),
+      axis.line.x = if (show.axis) element_line() else element_blank(),
+      axis.ticks.x = if (show.axis) element_line() else element_blank()
+    )
   
   return(p)
 }
 
 #' Load fine-mapping credible sets from SuSiE or FINEMAP
-#' 
+#'
 #' @param credset.file Path to credible set file
-#' @param credset.threshold Posterior probability threshold (default: 0.01)
-#' @details Supports SuSiE and FINEMAP output formats. Matched by position.
+#' @param credset.threshold Posterior inclusion probability threshold (default: 0.01)
+#' @return data.frame with columns: chr, pos, pip, credset_id
+#'
+#' @details
+#' Supports SuSiE and FINEMAP output formats. Column detection is flexible to
+#' handle variations in output from different tools.
+#'
+#' Required columns (case-insensitive, multiple names accepted):
+#' \itemize{
+#'   \item Position: \code{pos}, \code{position}, or \code{bp}
+#'   \item Chromosome: \code{chr}, \code{chromosome}, \code{chrom}, or \code{seqnames}
+#'   \item Posterior probability: \code{prob}, \code{pip}, or \code{pp}
+#'   \item Credible set ID: \code{cs}, \code{credset}, or \code{credible_set}
+#' }
+#'
+#' Variants are filtered to those with PIP >= threshold AND assigned to a
+
+#' credible set (cs != -1).
+#'
 #' @export
 LoadCredibleSets <- function(credset.file, credset.threshold = 0.01) {
   cs_data <- fread(credset.file, data.table = FALSE)
