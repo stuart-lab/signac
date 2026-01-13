@@ -2,7 +2,7 @@
 % Please edit documentation in R/gwas.R
 \name{LoadCredibleSets}
 \alias{LoadCredibleSets}
-\title{Load fine-mapping credible sets from SuSiE or FINEMAP}
+\title{Load fine-mapping credible sets}
 \usage{
 LoadCredibleSets(credset.file, credset.threshold = 0.01)
 }
@@ -15,20 +15,10 @@ LoadCredibleSets(credset.file, credset.threshold = 0.01)
 data.frame with columns: chr, pos, pip, credset_id
 }
 \description{
-Load fine-mapping credible sets from SuSiE or FINEMAP
+Load fine-mapping credible sets
 }
 \details{
-Supports SuSiE and FINEMAP output formats. Column detection is flexible to
-handle variations in output from different tools.
+Required columns: \code{chromosome}, \code{position}, \code{pip}, \code{cs}
 
-Required columns (case-insensitive, multiple names accepted):
-\itemize{
-  \item Position: \code{pos}, \code{position}, or \code{bp}
-  \item Chromosome: \code{chr}, \code{chromosome}, \code{chrom}, or \code{seqnames}
-  \item Posterior probability: \code{prob}, \code{pip}, or \code{pp}
-  \item Credible set ID: \code{cs}, \code{credset}, or \code{credible_set}
-}
-
-Variants are filtered to those with PIP >= threshold AND assigned to a
-credible set (cs != -1).
+Column matching is case-insensitive. Variants with cs = -1 are not in a credible set.
 }

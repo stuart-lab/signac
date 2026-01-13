@@ -2,26 +2,21 @@
 % Please edit documentation in R/gwas.R
 \name{LoadLDData}
 \alias{LoadLDData}
-\title{Load LD data from LDlink or PLINK}
+\title{Load LD data for a lead SNP}
 \usage{
 LoadLDData(ld.file)
 }
 \arguments{
-\item{ld.file}{Path to LD file (LDlink or PLINK pairwise format)}
+\item{ld.file}{Path to LD file}
 }
 \value{
 data.frame with columns: chr, pos, r2
 }
 \description{
-Load LD data from LDlink or PLINK
+Load LD data for a lead SNP
 }
 \details{
-LD must be pairwise r² relative to one lead SNP.
-  Matched to GWAS by position (CHR + POS).
+Required columns: \code{chromosome}, \code{position}, \code{r2}
 
-  Supported formats:
-  \itemize{
-    \item LDlink: requires \code{Coord} and \code{R2} columns
-    \item PLINK pairwise: requires \code{CHR_B}, \code{BP_B}, and \code{R2} columns
-  }
+Column matching is case-insensitive. Values should be pairwise r-squared to a lead SNP.
 }

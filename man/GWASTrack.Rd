@@ -19,45 +19,32 @@ GWASTrack(
 )
 }
 \arguments{
-\item{region}{Genomic region to plot (GRanges or string like "chr10:112900000-113100000")}
+\item{region}{Genomic region (GRanges or string like "chr10-112900000-113100000")}
 
-\item{gwas.file}{Path to GWAS summary statistics file (SSF format, tabix-indexed)}
+\item{gwas.file}{Path to GWAS summary statistics file}
 
-\item{ld.file}{Path to LD data file (LDlink or PLINK pairwise format). Optional.}
+\item{ld.file}{Path to LD file. Optional.}
 
-\item{ld.lead.snp}{rsID that LD was calculated relative to (required if ld.file provided)}
+\item{ld.lead.snp}{Lead SNP for LD (required if ld.file provided)}
 
-\item{credset.file}{Path to credible set file (SuSiE or FINEMAP format). Optional.}
+\item{credset.file}{Path to credible set file. Optional.}
 
-\item{credset.threshold}{Posterior inclusion probability threshold for credible sets (default: 0.01)}
+\item{credset.threshold}{PIP threshold for credible sets (default: 0.01)}
 
 \item{p.threshold}{Genome-wide significance threshold (default: 5e-8)}
 
-\item{ymax}{Maximum y-axis value (default: auto-scale)}
+\item{ymax}{Maximum y-axis value (default: auto)}
 
-\item{point.size}{Size of points (default: 1)}
+\item{point.size}{Point size (default: 1)}
 
-\item{point.color}{Color for points when no LD coloring (default: "steelblue")}
+\item{point.color}{Point color when no LD (default: "steelblue")}
 
-\item{show.axis}{Show x-axis labels and ticks (default: TRUE)}
+\item{show.axis}{Show x-axis (default: TRUE)}
 }
 \value{
 ggplot2 object
 }
 \description{
-Creates a Manhattan plot for GWAS summary statistics, optionally colored by
-LD (r²) to a lead SNP and/or highlighting fine-mapped credible set variants.
-}
-\details{
-LD coloring uses standard LocusZoom colors:
-\itemize{
-  \item r² 0.8-1.0: Red
-  \item r² 0.6-0.8: Orange
-  \item r² 0.4-0.6: Green
-  \item r² 0.2-0.4: Cyan
-  \item r² 0-0.2: Dark blue
-}
-
-Credible set variants are shown as larger diamonds.
+Create GWAS Manhattan plot track
 }
 \concept{visualization}

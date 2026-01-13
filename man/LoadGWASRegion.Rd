@@ -7,35 +7,22 @@
 LoadGWASRegion(gwas.file, region)
 }
 \arguments{
-\item{gwas.file}{Path to GWAS summary statistics file (tabix-indexed TSV in SSF format)}
+\item{gwas.file}{Path to GWAS/QTL summary statistics file (tabix-indexed TSV)}
 
 \item{region}{Genomic region (GRanges object or string like "chr1:1000000-2000000")}
 }
 \value{
-data.frame with standardized columns: chr, pos, pval, snp, and optional
-  beta, se, effect_allele, other_allele, eaf
+data.frame with columns: chr, pos, pval, snp, and optionally beta, se
 }
 \description{
-Loads GWAS summary statistics in SSF (Summary Statistics Format) for a
-specified genomic region. SSF is the standard format defined by NHGRI-EBI
-GWAS Catalog.
+Load GWAS summary statistics for a genomic region
 }
 \details{
-GWAS data must be in SSF format with the following columns:
-\itemize{
-  \item Required: \code{chromosome}, \code{base_pair_location}, \code{p_value}
-  \item Optional: \code{effect_allele}, \code{other_allele}, \code{beta},
-        \code{standard_error}, \code{effect_allele_frequency}, \code{variant_id}
-}
+Input format based on GWAS-SSF (NHGRI-EBI GWAS Catalog standard).
 
-Column matching is case-insensitive but column names must match exactly
-(no fuzzy matching).
+Required columns: \code{chromosome}, \code{base_pair_location}, \code{p_value}
 
-To convert other formats to SSF:
-\itemize{
-  \item VCF (OpenGWAS): \code{bcftools query -f '\%CHROM\\t\%POS\\t\%ALT\\t\%REF[\\t\%ES\\t\%SE\\t\%AF\\t\%LP]\\n' gwas.vcf.gz | awk ...}
-  \item FinnGen: \code{awk} to rename columns
-  \item PLINK2: use \code{--gwas-ssf} flag
-}
-See vignette("gwas-formats") for detailed conversion instructions.
+Optional columns: \code{variant_id}, \code{beta}, \code{standard_error}
+
+Column matching is case-insensitive. Also accepts QTL data in the same format.
 }
