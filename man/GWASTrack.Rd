@@ -5,8 +5,8 @@
 \title{Create GWAS Manhattan plot track}
 \usage{
 GWASTrack(
+  gwas,
   region,
-  gwas.file,
   ld.file = NULL,
   ld.lead.snp = NULL,
   credset.file = NULL,
@@ -19,9 +19,10 @@ GWASTrack(
 )
 }
 \arguments{
-\item{region}{Genomic region (GRanges or string like "chr10-112900000-113100000")}
+\item{gwas}{Path to GWAS summary statistics file, or a dataframe
+containing the gwas data in the GWAS-SSF format}
 
-\item{gwas.file}{Path to GWAS summary statistics file}
+\item{region}{Genomic region (GRanges or string like "chr10-112900000-113100000")}
 
 \item{ld.file}{Path to LD file. Optional.}
 
