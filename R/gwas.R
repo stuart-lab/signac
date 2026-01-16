@@ -269,9 +269,7 @@ GWASTrack <- function(
     credset_data <- LoadCredibleSets(credset.file, credset.threshold)
     # TODO need to update column names
     gwas <- merge(gwas, credset_data, by = c("chr", "pos"), all.x = TRUE)
-  } else {
-    gwas$pip <- NA
-    gwas$credset_id <- NA
+    gwas$in_credset <- !is.na(gwas$pip)
   }
   
   # Y-axis limit
@@ -280,19 +278,17 @@ GWASTrack <- function(
   }
   
   # Build plot
-  if (!is.null(credset.file)) {
-    gwas$in_credset <- !is.na(gwas$pip)
-    
+  if ("in_credset" %in% colnames(x = gwas)) {
     if (!is.null(ld.file)) {
       # LD + credible sets
-      p <- ggplot(gwas, aes(x = pos, y = log10p, color = ld_category)) +
+      p <- ggplot(gwas, aes(x = base_pair_location, y = log10p, color = ld_category)) +
         geom_point(aes(shape = in_credset, size = in_credset), alpha = 0.6) +
         scale_shape_manual(values = c("FALSE" = 16, "TRUE" = 18), guide = "none") +
         scale_size_manual(values = c("FALSE" = point.size, "TRUE" = point.size * 2), guide = "none") +
         scale_color_manual(values = ld_colors, name = expression(LD~(r^2)), na.value = "grey50")
     } else {
       # Credible sets only
-      p <- ggplot(gwas, aes(x = pos, y = log10p)) +
+      p <- ggplot(gwas, aes(x = base_pair_location, y = log10p)) +
         geom_point(aes(shape = in_credset, size = in_credset, color = in_credset), alpha = 0.6) +
         scale_shape_manual(values = c("FALSE" = 16, "TRUE" = 18), guide = "none") +
         scale_size_manual(values = c("FALSE" = point.size, "TRUE" = point.size * 2), guide = "none") +
@@ -305,7 +301,7 @@ GWASTrack <- function(
     
   } else if (!is.null(ld.file)) {
     # LD only
-    p <- ggplot(gwas, aes(x = pos, y = log10p, color = ld_category)) +
+    p <- ggplot(gwas, aes(x = base_pair_location, y = log10p, color = ld_category)) +
       geom_point(size = point.size, alpha = 0.6) +
       scale_color_manual(values = ld_colors, name = expression(LD~(r^2)), na.value = "grey50")
     
