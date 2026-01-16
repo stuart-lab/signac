@@ -14,7 +14,6 @@ NULL
 #' Use \code{CreateGRangesAssay} to construct a \code{GRangesAssay} object or
 #' \code{CreateChromatinAssay5} to construct a \code{ChromatinAssay5} object.
 #' 
-#' @inheritParams CreateChromatinAssay5
 #' @rdname CreateGRangesAssay
 #' 
 #' @param ranges A set of \code{\link[GenomicRanges]{GRanges}} corresponding to
