@@ -1411,8 +1411,8 @@ SingleCoveragePlot <- function(
     gwas.all <- list()
     for (i in seq_along(along.with = gwas)) {
       gwas.all[[i]] <- GWASTrack(
+        gwas = gwas[[i]],
         region = region,
-        gwas.file = gwas[[i]],
         ld.file = gwas.ld.file[[i]],
         ld.lead.snp = gwas.ld.lead.snp[[i]],
         credset.file = gwas.credset.file[[i]],
@@ -3104,6 +3104,8 @@ record_overlapping <- function(
   }
   return(idx)
 }
+
+globalVariables(names = c("color", "rsid", "margin"), package = "Signac")
 
 #' Plot stacked ATAC coverage with SNP position markers
 #'

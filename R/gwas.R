@@ -4,7 +4,7 @@
 #' @importFrom utils globalVariables
 #'
 NULL
-globalVariables(names = c("in_credset", "ld_category", "log10p", "pos"), package = "Signac")
+globalVariables(names = c("in_credset", "ld_category", "log10p", "base_pair_location"), package = "Signac")
 
 #' Load GWAS-SSF file
 #'
