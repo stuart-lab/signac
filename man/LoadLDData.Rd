@@ -10,7 +10,7 @@ LoadLDData(ld.file)
 \item{ld.file}{Path to LD file}
 }
 \value{
-data.frame with columns: chr, pos, r2
+data.frame with columns: chromosome, base_pair_location, r2
 }
 \description{
 Load LD data for a lead SNP

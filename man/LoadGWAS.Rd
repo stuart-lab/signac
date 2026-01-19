@@ -10,7 +10,7 @@ LoadGWAS(gwas.file)
 \item{gwas.file}{Path to GWAS/QTL summary statistics file (TSV)}
 }
 \value{
-data.frame with columns: chr, pos, pval, snp, and optionally beta, se
+data.frame with following columns present: chromosome, base_pair_location, p_value
 }
 \description{
 Load GWAS-SSF file

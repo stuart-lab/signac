@@ -12,13 +12,13 @@ LoadCredibleSets(credset.file, credset.threshold = 0.01)
 \item{credset.threshold}{Posterior inclusion probability threshold (default: 0.01)}
 }
 \value{
-data.frame with columns: chr, pos, pip, credset_id
+data.frame with columns: chromosome, base_pair_location, pip, credset_id
 }
 \description{
 Load fine-mapping credible sets
 }
 \details{
-Required columns: \code{chromosome}, \code{position}, \code{pip}, \code{cs}
+Required columns: \code{chromosome}, \code{position}, \code{pip}, \code{credset_id}
 
 Column matching is case-insensitive. Variants with cs = -1 are not in a credible set.
 }
