@@ -3105,222 +3105,66 @@ record_overlapping <- function(
   return(idx)
 }
 
-globalVariables(names = c("color", "rsid", "margin"), package = "Signac")
 
-#' Plot stacked ATAC coverage with SNP position markers
+#' Plot variant positions
+#' 
+#' Plot variant positions within a genomic region.
 #'
-#' Create publication-style figure showing ATAC coverage across multiple groups
-#' as stacked horizontal tracks with specific SNPs highlighted in a separate track.
-#' Designed to match publication figures showing chromatin accessibility across
-#' cell types with variant positions marked.
-#'
-#' @param object A Seurat object
-#' @param region Genomic region to plot
-#' @param snp.markers Data frame with columns: position (numeric), rsid (character),
+#' @param variants Data frame with columns: position (numeric), rsid (character),
 #' color (character). Each row defines one SNP marker to display.
-#' @param group.by Metadata column to create separate tracks (e.g., cell type or cluster)
-#' @param assay Name of assay to use
-#' @param window Smoothing window size
-#' @param track.colors Optional named vector of colors for each track
-#' @param extend.upstream Bases to extend region upstream
-#' @param extend.downstream Bases to extend region downstream
-#' @param scales Y-axis scales for facets: "free_y" (independent) or "fixed" (shared)
-#' @param show.yaxis Show y-axis labels and ticks (default: TRUE). Set FALSE for cleaner
-#' publication figures.
-#'
+#' @param region Genomic region (GRanges or string like "chr10-112900000-113100000")
+#' 
 #' @return Returns a ggplot2 object
 #' @export
 #' @concept visualization
-#' @importFrom ggplot2 geom_segment geom_text theme_void ylim scale_y_continuous
-#' @importFrom patchwork plot_layout
-#' @importFrom RcppRoll roll_sum
+#' @importFrom ggplot2 geom_segment geom_text ylim margin labs aes_string
 #' @examples
-#' \dontrun{
 #' # Define SNPs to mark
-#' snps <- data.frame(
+#' variants <- data.frame(
 #'   position = c(112951996, 112952395),
 #'   rsid = c("rs10885396", "rs7094871"),
 #'   color = c("steelblue", "darkred")
 #' )
 #' 
 #' # Create stacked plot
-#' ATACWithSNPMarkers(
-#'   object = atac_obj,
+#' VariantTrack(
+#'   variants = variants,
 #'   region = "chr10-112990000-113010000",
-#'   snp.markers = snps,
-#'   group.by = "celltype",
-#'   show.yaxis = FALSE
 #' )
-#' }
-ATACWithSNPMarkers <- function(
-    object,
-    region,
-    snp.markers = NULL,
-    group.by = NULL,
-    assay = NULL,
-    window = 100,
-    track.colors = NULL,
-    extend.upstream = 0,
-    extend.downstream = 0,
-    scales = "free_y",
-    show.yaxis = TRUE
+VariantTrack <- function(
+    variants,
+    region
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
   
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
-    stop("The requested assay is not a ChromatinAssay5.")
+  if (!inherits(x = region, what = "GRanges")) {
+    region <- StringToGRanges(regions = region)
   }
-  
-  if (is.null(x = group.by)) {
-    group.by <- "ident"
-    object$ident <- Idents(object)
-  }
-  
-  # Find region
-  region <- FindRegion(
-    object = object,
-    region = region,
-    sep = c("-", "-"),
-    assay = assay,
-    extend.upstream = extend.upstream,
-    extend.downstream = extend.downstream
-  )
   
   chromosome <- as.character(x = seqnames(x = region))
   start.pos <- start(x = region)
   end.pos <- end(x = region)
   
-  # Get groups
-  groups <- object[[group.by]][, 1]
-  names(groups) <- colnames(object)
-  group_levels <- unique(groups)
-  
-  # Calculate coverage for each group
-  cells.per.group <- table(groups)
-  
-  all_coverage <- data.frame()
-  
-  for (grp in group_levels) {
-    cells_use <- names(groups)[groups == grp]
-    
-    # Get cut matrix
-    cutmat <- CutMatrix(
-      object = object,
-      region = region,
-      assay = assay,
-      cells = cells_use,
-      verbose = FALSE
-    )
-    
-    # Calculate coverage
-    coverage <- colSums(cutmat)
-    
-    # Smooth
-    if (!is.na(window)) {
-      coverage <- roll_sum(x = coverage, n = window, fill = 0, align = "center")
-    }
-    
-    # Normalize by number of cells
-    coverage <- coverage / length(cells_use)
-    
-    # Create data frame
-    df <- data.frame(
-      position = start.pos:end.pos,
-      coverage = coverage,
-      group = grp
-    )
-    
-    all_coverage <- rbind(all_coverage, df)
-  }
-  
-  # Set group order (reversed for bottom-to-top display)
-  all_coverage$group <- factor(all_coverage$group, levels = rev(group_levels))
-  
-  # Set colors
-  if (is.null(track.colors)) {
-    track.colors <- hue_pal()(length(group_levels))
-    names(track.colors) <- group_levels
-  }
-  
-  # Create ATAC coverage plot
-  p <- ggplot(all_coverage, aes(x = position, y = coverage, fill = group)) +
-    geom_area() +
-    facet_wrap(~group, ncol = 1, strip.position = "left", scales = scales) +
-    scale_fill_manual(values = track.colors) +
-    scale_y_continuous(n.breaks = 3) +  # Fewer axis breaks
-    theme_classic() +
-    theme(
-      strip.background = element_blank(),
-      strip.text.y.left = element_text(angle = 0, hjust = 1, size = 10),
-      legend.position = "none",
-      panel.spacing = unit(0.4, "lines"),  # More spacing between tracks
-      axis.title.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.line.x = element_blank(),
-      axis.ticks.x = element_blank(),
-      axis.text.y = if(show.yaxis) element_text(size = 8) else element_blank(),
-      axis.ticks.y = if(show.yaxis) element_line() else element_blank(),
-      axis.title.y = if(show.yaxis) element_text(size = 10) else element_blank()
+  snp_plot <- ggplot(data = variants) +
+    geom_segment(
+      aes_string(
+        x = 'position',
+        xend = 'position',
+        y = 0,
+        yend = 1,
+        color = 'color'),
+      linewidth = 2, alpha = 0.8
     ) +
-    ylab("Normalized\nsignal")
+    geom_text(
+      aes_string(x = 'position', y = 1.2, label = 'rsid'),
+      size = 3.5, fontface = "italic"
+    ) +
+    scale_color_identity() +
+    theme_browser() +
+    xlim(start.pos, end.pos) +
+    ylim(0, 1.5) +
+    labs(x = paste0(chromosome, " position (bp)"),
+         y = "Variants") +
+    theme(plot.margin = margin(t = 5, r = 5, b = 0, l = 5))
   
-  # Create SNP marker track if provided
-  if (!is.null(snp.markers) && nrow(snp.markers) > 0) {
-    snp_plot <- ggplot(snp.markers) +
-      geom_segment(
-        aes(x = position, xend = position, y = 0, yend = 1, color = color),
-        linewidth = 2, alpha = 0.8
-      ) +
-      geom_text(
-        aes(x = position, y = 1.2, label = rsid),
-        size = 3.5, fontface = "italic"
-      ) +
-      scale_color_identity() +
-      theme_void() +
-      xlim(start.pos, end.pos) +
-      ylim(0, 1.5) +
-      theme(plot.margin = margin(5, 5, 0, 5))
-    
-    # Combine SNP track (top) + ATAC tracks (bottom)
-    combined <- snp_plot / p + 
-      plot_layout(heights = c(1, 15)) +  # Smaller SNP track ratio
-      plot_annotation(
-        theme = theme(
-          plot.margin = margin(5, 5, 5, 5)
-        )
-      )
-    
-    # Add x-axis label using patchwork annotation
-    combined <- combined & 
-      theme(
-        axis.title.x = element_text(size = 10),
-        axis.text.x = element_text(size = 8),
-        axis.line.x = element_line(),
-        axis.ticks.x = element_line()
-      )
-    
-    # Override for just the bottom plot
-    combined[[2]] <- combined[[2]] +
-      theme(
-        axis.title.x = element_text(),
-        axis.text.x = element_text(),
-        axis.line.x = element_line(),
-        axis.ticks.x = element_line()
-      ) +
-      xlab(paste0(chromosome, " position (bp)"))
-    
-    return(combined)
-  } else {
-    # No SNPs - just return ATAC plot with x-axis
-    p <- p +
-      theme(
-        axis.title.x = element_text(),
-        axis.text.x = element_text(),
-        axis.line.x = element_line(),
-        axis.ticks.x = element_line()
-      ) +
-      xlab(paste0(chromosome, " position (bp)"))
-    
-    return(p)
-  }
+  return(snp_plot)
 }
