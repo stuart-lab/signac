@@ -247,9 +247,6 @@ GWASTrack <- function(
       labels = c("r2_0-0.2", "r2_0.2-0.4", "r2_0.4-0.6", "r2_0.6-0.8", "r2_0.8-1.0"),
       include.lowest = TRUE
     )
-  } else {
-    gwas[['r2']] <- NA
-    gwas[['ld_category']] <- NA
   }
   
   # Merge credible set data

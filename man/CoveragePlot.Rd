@@ -42,7 +42,6 @@ CoveragePlot(
   max.downsample = 3000,
   downsample.rate = 0.1,
   gwas = NULL,
-  gwas.label = "GWAS",
   gwas.ld.file = NULL,
   gwas.ld.lead.snp = NULL,
   gwas.credset.file = NULL,
@@ -188,8 +187,6 @@ number of points large, resulting in larger file sizes when saving the plot
 and a longer period of time needed to draw the plot.}
 
 \item{gwas}{Path to GWAS summary statistics file to overlay on the plot. Optional.}
-
-\item{gwas.label}{Label for GWAS track (default: "GWAS")}
 
 \item{gwas.ld.file}{Path to LD data file for coloring GWAS points by r². Optional.}
 

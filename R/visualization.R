@@ -1133,7 +1133,6 @@ SingleCoveragePlot <- function(
   max.downsample = 3000,
   downsample.rate = 0.1,
   gwas = NULL,
-  gwas.label = "GWAS",
   gwas.ld.file = NULL,
   gwas.ld.lead.snp = NULL,
   gwas.credset.file = NULL,
@@ -1393,7 +1392,7 @@ SingleCoveragePlot <- function(
     # Convert to list if needed (following bigwig pattern)
     if (!inherits(x = gwas, what = "list")) {
       gwas <- list(gwas)
-      names(gwas) <- gwas.label
+      names(gwas) <- "GWAS"
     }
     
     # Handle associated parameters - convert to lists
@@ -1418,7 +1417,10 @@ SingleCoveragePlot <- function(
         credset.file = gwas.credset.file[[i]],
         credset.threshold = gwas.credset.threshold,
         show.axis = FALSE
-      ) + ylab(label = names(x = gwas)[[i]])
+      )
+      if (length(x = gwas) > 1) {
+        gwas.all[[i]] <- gwas.all[[i]] + ylab(label = names(x = gwas)[[i]])
+      }
     }
     
     # Combine tracks (following bigwig pattern)
@@ -1443,7 +1445,7 @@ SingleCoveragePlot <- function(
   }
   bulk.height <- (1 / nident) * 10
   bw.height <- 10
-  gwas.height <- 10
+  gwas.height <- 3
   variants.height <- 1
   heights <- heights %||% c(
     gwas.height,
@@ -1780,7 +1782,6 @@ CoverageTrack <- function(
 #' number of points large, resulting in larger file sizes when saving the plot
 #' and a longer period of time needed to draw the plot.
 #' @param gwas Path to GWAS summary statistics file to overlay on the plot. Optional.
-#' @param gwas.label Label for GWAS track (default: "GWAS")
 #' @param gwas.ld.file Path to LD data file for coloring GWAS points by r². Optional.
 #' @param gwas.ld.lead.snp Lead SNP for LD calculations. Required if gwas.ld.file provided.
 #' @param gwas.credset.file Path to fine-mapping credible sets file. Optional.
@@ -1856,7 +1857,6 @@ CoveragePlot <- function(
   max.downsample = 3000,
   downsample.rate = 0.1,
   gwas = NULL,
-  gwas.label = "GWAS",
   gwas.ld.file = NULL,
   gwas.ld.lead.snp = NULL,
   gwas.credset.file = NULL,
@@ -1908,7 +1908,6 @@ CoveragePlot <- function(
         max.downsample = max.downsample,
         downsample.rate = downsample.rate,
         gwas = gwas,
-        gwas.label = gwas.label,
         gwas.ld.file = gwas.ld.file,
         gwas.ld.lead.snp = gwas.ld.lead.snp,
         gwas.credset.file = gwas.credset.file,
@@ -2805,7 +2804,7 @@ VariantTrack <- function(
         y = 0,
         yend = 1,
         color = 'color'),
-      linewidth = 2, alpha = 0.8
+      linewidth = 1,
     ) +
     geom_text(
       aes_string(x = 'position', y = 1.2, label = 'rsid'),
