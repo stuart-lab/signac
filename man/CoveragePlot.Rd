@@ -47,6 +47,7 @@ CoveragePlot(
   gwas.ld.lead.snp = NULL,
   gwas.credset.file = NULL,
   gwas.credset.threshold = 0.01,
+  variants = NULL,
   ...
 )
 }

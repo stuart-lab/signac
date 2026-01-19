@@ -1137,7 +1137,8 @@ SingleCoveragePlot <- function(
   gwas.ld.file = NULL,
   gwas.ld.lead.snp = NULL,
   gwas.credset.file = NULL,
-  gwas.credset.threshold = 0.01
+  gwas.credset.threshold = 0.01,
+  variants = NULL
 ) {
   valid.assay.scale <- c("common", "separate")
   if (!(assay.scale %in% valid.assay.scale)) {
@@ -1387,8 +1388,7 @@ SingleCoveragePlot <- function(
   } else {
     bulk.plot <- NULL
   }
-  gwas.plot <- NULL
-  gwas.height <- 0
+
   if (!is.null(x = gwas)) {
     # Convert to list if needed (following bigwig pattern)
     if (!inherits(x = gwas, what = "list")) {
@@ -1418,26 +1418,54 @@ SingleCoveragePlot <- function(
         credset.file = gwas.credset.file[[i]],
         credset.threshold = gwas.credset.threshold,
         show.axis = FALSE
-      ) + ggtitle(names(gwas)[[i]])
+      ) + ylab(label = names(x = gwas)[[i]])
     }
     
     # Combine tracks (following bigwig pattern)
-    gwas.plot <- CombineTracks(
+    gwas.tracks <- CombineTracks(
       plotlist = gwas.all,
       heights = rep(10, length(x = gwas))
     )
-    gwas.height <- 10 * length(x = gwas)
+  } else {
+    gwas.tracks <- NULL
   }
+  
+  # variants
+  if (!is.null(x = variants)) {
+    variant.track <- VariantTrack(variants = variants, region = region)
+  } else {
+    variant.track <- NULL
+  }
+  
   nident <- length(x = unique(x = obj.groups))
   if (split.assays) {
     nident <- nident * length(x = assay)
   }
   bulk.height <- (1 / nident) * 10
   bw.height <- 10
-  heights <- heights %||% c(10, bulk.height, bw.height, gwas.height, 10, 3, 1, 1, 3)
+  gwas.height <- 10
+  variants.height <- 1
+  heights <- heights %||% c(
+    gwas.height,
+    variants.height,
+    10,
+    bulk.height,
+    bw.height,
+    10, 3, 1, 1, 3
+  )
   p <- CombineTracks(
-    plotlist = list(p, bulk.plot, bigwig.tracks, gwas.plot, tile.plot, gene.plot,
-                    peak.plot, range.plot, link.plot),
+    plotlist = list(
+      gwas.tracks,
+      variant.track,
+      p,
+      bulk.plot,
+      bigwig.tracks,
+      tile.plot,
+      gene.plot,
+      peak.plot,
+      range.plot,
+      link.plot
+    ),
     expression.plot = ex.plot,
     heights = heights,
     widths = widths
@@ -1833,6 +1861,7 @@ CoveragePlot <- function(
   gwas.ld.lead.snp = NULL,
   gwas.credset.file = NULL,
   gwas.credset.threshold = 0.01,
+  variants = NULL,
   ...
 ) {
   if (length(x = region) == 1) {
@@ -1883,7 +1912,8 @@ CoveragePlot <- function(
         gwas.ld.file = gwas.ld.file,
         gwas.ld.lead.snp = gwas.ld.lead.snp,
         gwas.credset.file = gwas.credset.file,
-        gwas.credset.threshold = gwas.credset.threshold
+        gwas.credset.threshold = gwas.credset.threshold,
+        variants = variants
       )
     }
   )
@@ -2729,6 +2759,68 @@ VariantPlot <- function(
   return(p)
 }
 
+#' Plot variant positions
+#' 
+#' Plot variant positions within a genomic region.
+#'
+#' @param variants Data frame with columns: position (numeric), rsid (character),
+#' color (character). Each row defines one SNP marker to display.
+#' @param region Genomic region (GRanges or string like "chr10-112900000-113100000")
+#' 
+#' @return Returns a ggplot2 object
+#' @export
+#' @concept visualization
+#' @importFrom ggplot2 geom_segment geom_text ylim margin labs aes_string
+#' @examples
+#' # Define SNPs to mark
+#' variants <- data.frame(
+#'   position = c(112951996, 112952395),
+#'   rsid = c("rs10885396", "rs7094871"),
+#'   color = c("steelblue", "darkred")
+#' )
+#' 
+#' # Create stacked plot
+#' VariantTrack(
+#'   variants = variants,
+#'   region = "chr10-112990000-113010000",
+#' )
+VariantTrack <- function(
+    variants,
+    region
+) {
+  
+  if (!inherits(x = region, what = "GRanges")) {
+    region <- StringToGRanges(regions = region)
+  }
+  
+  chromosome <- as.character(x = seqnames(x = region))
+  start.pos <- start(x = region)
+  end.pos <- end(x = region)
+  
+  snp_plot <- ggplot(data = variants) +
+    geom_segment(
+      aes_string(
+        x = 'position',
+        xend = 'position',
+        y = 0,
+        yend = 1,
+        color = 'color'),
+      linewidth = 2, alpha = 0.8
+    ) +
+    geom_text(
+      aes_string(x = 'position', y = 1.2, label = 'rsid'),
+      size = 3.5, fontface = "italic"
+    ) +
+    scale_color_identity() +
+    theme_browser() +
+    xlim(start.pos, end.pos) +
+    ylim(0, 1.5) +
+    labs(x = paste0(chromosome, " position (bp)"),
+         y = "Variants") +
+    theme(plot.margin = margin(t = 5, r = 5, b = 0, l = 5))
+  
+  return(snp_plot)
+}
 
 #' Plot integration sites per cell
 #'
@@ -3103,68 +3195,4 @@ record_overlapping <- function(
     names(x = idx) <- gr$tx_id
   }
   return(idx)
-}
-
-
-#' Plot variant positions
-#' 
-#' Plot variant positions within a genomic region.
-#'
-#' @param variants Data frame with columns: position (numeric), rsid (character),
-#' color (character). Each row defines one SNP marker to display.
-#' @param region Genomic region (GRanges or string like "chr10-112900000-113100000")
-#' 
-#' @return Returns a ggplot2 object
-#' @export
-#' @concept visualization
-#' @importFrom ggplot2 geom_segment geom_text ylim margin labs aes_string
-#' @examples
-#' # Define SNPs to mark
-#' variants <- data.frame(
-#'   position = c(112951996, 112952395),
-#'   rsid = c("rs10885396", "rs7094871"),
-#'   color = c("steelblue", "darkred")
-#' )
-#' 
-#' # Create stacked plot
-#' VariantTrack(
-#'   variants = variants,
-#'   region = "chr10-112990000-113010000",
-#' )
-VariantTrack <- function(
-    variants,
-    region
-) {
-  
-  if (!inherits(x = region, what = "GRanges")) {
-    region <- StringToGRanges(regions = region)
-  }
-  
-  chromosome <- as.character(x = seqnames(x = region))
-  start.pos <- start(x = region)
-  end.pos <- end(x = region)
-  
-  snp_plot <- ggplot(data = variants) +
-    geom_segment(
-      aes_string(
-        x = 'position',
-        xend = 'position',
-        y = 0,
-        yend = 1,
-        color = 'color'),
-      linewidth = 2, alpha = 0.8
-    ) +
-    geom_text(
-      aes_string(x = 'position', y = 1.2, label = 'rsid'),
-      size = 3.5, fontface = "italic"
-    ) +
-    scale_color_identity() +
-    theme_browser() +
-    xlim(start.pos, end.pos) +
-    ylim(0, 1.5) +
-    labs(x = paste0(chromosome, " position (bp)"),
-         y = "Variants") +
-    theme(plot.margin = margin(t = 5, r = 5, b = 0, l = 5))
-  
-  return(snp_plot)
 }
