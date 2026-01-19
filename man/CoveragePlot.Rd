@@ -186,7 +186,8 @@ Retaining more positions can give a higher-resolution plot but can make the
 number of points large, resulting in larger file sizes when saving the plot
 and a longer period of time needed to draw the plot.}
 
-\item{gwas}{Path to GWAS summary statistics file to overlay on the plot. Optional.}
+\item{gwas}{GWAS summary statistics to display on the plot. Can be the path
+to a GWAS-SSF file on-disk or a dataframe in the GWAS-SSF format.}
 
 \item{gwas.ld.file}{Path to LD data file for coloring GWAS points by r². Optional.}
 
@@ -195,6 +196,8 @@ and a longer period of time needed to draw the plot.}
 \item{gwas.credset.file}{Path to fine-mapping credible sets file. Optional.}
 
 \item{gwas.credset.threshold}{Posterior probability threshold for credible sets (default: 0.01)}
+
+\item{variants}{Dataframe containing variants to display (see \code{\link{VariantTrack}})}
 
 \item{...}{Additional arguments passed to \code{\link[patchwork]{wrap_plots}}}
 }
