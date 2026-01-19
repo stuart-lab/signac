@@ -2,7 +2,7 @@
 % Please edit documentation in R/gwas.R
 \name{GWASTrack}
 \alias{GWASTrack}
-\title{Create GWAS Manhattan plot track}
+\title{Create GWAS locus zoom track}
 \usage{
 GWASTrack(
   gwas,
@@ -46,6 +46,17 @@ containing the gwas data in the GWAS-SSF format}
 ggplot2 object
 }
 \description{
-Create GWAS Manhattan plot track
+This function will plot the p-values associated with variants in a given
+region of the genome (genome position: x-axis; -log10(p): y-axis).
+}
+\details{
+If an LD file is provided using the \code{ld.file} parameter, or a column
+named \code{r2} is present in the input GWAS data, the variants will be
+colored according to their LD value.
+
+If a fine mapping file is provided using the \code{credset.file} parameter,
+or a column named \code{in_credset} is present in the input GWAS data,
+variants in the credible set will be denoted by shape. If LD information is
+not provided, credible variants will also be denoted by color.
 }
 \concept{visualization}

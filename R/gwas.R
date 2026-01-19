@@ -142,7 +142,19 @@ LoadCredibleSets <- function(credset.file, credset.threshold = 0.01) {
   return(result)
 }
 
-#' Create GWAS Manhattan plot track
+#' Create GWAS locus zoom track
+#' 
+#' This function will plot the p-values associated with variants in a given
+#' region of the genome (genome position: x-axis; -log10(p): y-axis).
+#' 
+#' If an LD file is provided using the \code{ld.file} parameter, or a column
+#' named \code{r2} is present in the input GWAS data, the variants will be
+#' colored according to their LD value.
+#' 
+#' If a fine mapping file is provided using the \code{credset.file} parameter,
+#' or a column named \code{in_credset} is present in the input GWAS data,
+#' variants in the credible set will be denoted by shape. If LD information is
+#' not provided, credible variants will also be denoted by color.
 #'
 #' @param region Genomic region (GRanges or string like "chr10-112900000-113100000")
 #' @param gwas Path to GWAS summary statistics file, or a dataframe
@@ -226,6 +238,9 @@ GWASTrack <- function(
       all.x = TRUE
     )
     gwas[['r2']] <- as.numeric(x = gwas[['r2']])
+  }
+  
+  if ('r2' %in% colnames(x = gwas)) {
     gwas[['ld_category']] <- cut(
       gwas[['r2']],
       breaks = c(-Inf, 0.2, 0.4, 0.6, 0.8, Inf),
@@ -258,7 +273,7 @@ GWASTrack <- function(
   
   # Build plot
   if ("in_credset" %in% colnames(x = gwas)) {
-    if (!is.null(x = ld.file)) {
+    if ("ld_category" %in% colnames(x = gwas)) {
       # LD + credible sets
       p <- ggplot(data = gwas, mapping = aes_string(
         x = 'base_pair_location',
@@ -308,7 +323,7 @@ GWASTrack <- function(
         )
     }
     
-  } else if (!is.null(x = ld.file)) {
+  } else if ("ld_category" %in% colnames(x = gwas)) {
     # LD only
     p <- ggplot(
       data = gwas, mapping = aes_string(
