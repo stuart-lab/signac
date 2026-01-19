@@ -892,7 +892,7 @@ CalcN <- function(object) {
 }
 
 globalVariables(
-  names = c("start", "end", "seqnames", "strand", "gene_biotype"),
+  names = c("start", "end", "seqnames", "strand", "gene_biotype", "gene_name"),
   package = "Signac"
 )
 #' @importFrom GenomicRanges makeGRangesFromDataFrame

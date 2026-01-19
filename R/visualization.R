@@ -176,7 +176,6 @@ BigwigTrack <- function(
   return(p)
 }
 
-globalVariables(names = c("Component", "counts"), package = "Signac")
 #' Plot sequencing depth correlation
 #'
 #' Compute the correlation between total counts and each reduced
@@ -193,7 +192,7 @@ globalVariables(names = c("Component", "counts"), package = "Signac")
 #' @export
 #' @importFrom SeuratObject Embeddings DefaultAssay
 #' @importFrom ggplot2 ggplot geom_point scale_x_continuous
-#' ylab ylim theme_light ggtitle aes
+#' ylab ylim theme_light ggtitle aes_string
 #' @importFrom stats cor
 #' @concept visualization
 #' @examples
@@ -211,7 +210,7 @@ DepthCor <- function(object, assay = NULL, reduction = 'lsi', n = 10, ...) {
   depth.cor <- as.data.frame(cor(x = embed, y = counts, ...))
   depth.cor$counts <- depth.cor[, 1]
   depth.cor$Component <- seq_len(length.out = nrow(x = depth.cor))
-  p <- ggplot(depth.cor, aes(Component, counts)) +
+  p <- ggplot(depth.cor, aes_string('Component', 'counts')) +
     geom_point() +
     scale_x_continuous(n.breaks = n, limits = c(1, n)) +
     ylab("Correlation") +
@@ -653,7 +652,7 @@ globalVariables(
 #' @concept visualization
 #' @concept footprinting
 #' @importFrom SeuratObject DefaultAssay
-#' @importFrom ggplot2 ggplot aes geom_line facet_wrap xlab ylab theme_classic
+#' @importFrom ggplot2 ggplot aes_string geom_line facet_wrap xlab ylab theme_classic
 #' theme element_blank geom_label guides guide_legend
 #' @importFrom dplyr group_by summarize top_n
 #' @import patchwork
@@ -789,11 +788,11 @@ PlotFootprint <- function(
 
     p <- ggplot(
       data = df,
-      mapping = aes(
-        x = position,
-        y = norm.value,
-        color = group,
-        label = label)
+      mapping = aes_string(
+        x = 'position',
+        y = 'norm.value',
+        color = 'group',
+        label = 'label')
     )
     p <- p +
       geom_line(linewidth = 0.2) +
@@ -828,7 +827,7 @@ PlotFootprint <- function(
         df <- expect[expect$feature == features[[i]], ]
         p1 <- ggplot(
           data = df,
-          mapping = aes(x = position, y = norm.value)
+          mapping = aes_string(x = 'position', y = 'norm.value')
         ) +
           geom_line(linewidth = 0.2) +
           xlab("Distance from motif") +
@@ -1315,10 +1314,6 @@ RegionPlot <- function(
   return(p)
 }
 
-globalVariables(
-  names = c("position", "coverage", "group", "gene_name", "direction", "Assay"),
-  package = "Signac"
-)
 #' @importFrom ggplot2 ylab scale_fill_manual unit element_text theme
 #' @importMethodsFrom GenomicRanges start end
 #' @importFrom SeuratObject WhichCells Idents DefaultAssay Idents<-
@@ -1814,12 +1809,12 @@ CoverageTrack <- function(
   if (multicov) {
     p <- ggplot(
       data = coverages,
-      mapping = aes(x = position, y = coverage, fill = Assay)
+      mapping = aes_string(x = 'position', y = 'coverage', fill = 'Assay')
     )
   } else {
     p <- ggplot(
       data = coverages,
-      mapping = aes(x = position, y = coverage, fill = group)
+      mapping = aes_string(x = 'position', y = 'coverage', fill = 'group')
     )
   }
   p <- p +
@@ -2224,7 +2219,7 @@ globalVariables(names = "group", package = "Signac")
 #' @param log.scale Display Y-axis on log scale. Default is FALSE.
 #' @param ... Arguments passed to other functions
 #'
-#' @importFrom ggplot2 ggplot geom_histogram theme_classic aes facet_wrap xlim
+#' @importFrom ggplot2 ggplot geom_histogram theme_classic aes_string facet_wrap xlim
 #' scale_y_log10 theme element_blank
 #' @importFrom SeuratObject DefaultAssay
 #'
@@ -2275,10 +2270,10 @@ FragmentHistogram <- function(
   }
   reads$group <- groups[reads$cell]
   if (length(x = unique(x = reads$group)) == 1) {
-    p <- ggplot(data = reads, aes(length)) +
+    p <- ggplot(data = reads, mapping = aes_string('length')) +
       geom_histogram(bins = 200)
   } else {
-    p <- ggplot(data = reads, mapping = aes(x = length, fill = group)) +
+    p <- ggplot(data = reads, mapping = aes_string(x = 'length', fill = 'group')) +
       geom_histogram(bins = 200) +
       facet_wrap(~group, scales = "free_y")
   }
@@ -2405,7 +2400,7 @@ CombineTracks <- function(
 #' @importFrom GenomicRanges start end
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom Seqinfo seqnames
-#' @importFrom ggplot2 ggplot aes geom_segment theme_classic element_blank
+#' @importFrom ggplot2 ggplot aes_string geom_segment theme_classic element_blank
 #' theme xlab ylab scale_color_manual
 #' @examples
 #' \donttest{
@@ -2474,7 +2469,7 @@ PeakPlot <- function(
       data = peak.df,
       aes_string(color = group.by %||% "color")
     ) +
-      geom_segment(aes(x = start, y = 0, xend = end, yend = 0),
+      geom_segment(aes_string(x = 'start', y = 0, xend = 'end', yend = 0),
                    linewidth = 2,
                    data = peak.df)
   } else {
@@ -2518,7 +2513,7 @@ PeakPlot <- function(
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom GenomicRanges start end
 #' @importFrom Seqinfo seqnames
-#' @importFrom ggplot2 ggplot geom_hline aes theme_classic xlim
+#' @importFrom ggplot2 ggplot geom_hline theme_classic xlim
 #' ylab theme element_blank scale_color_gradient2 aes_string
 #' @concept visualization
 #' @concept links
@@ -2793,7 +2788,6 @@ AnnotationPlot <- function(
   return(p)
 }
 
-globalVariables(names = "gene", package = "Signac")
 #' Plot gene expression
 #'
 #' Display gene expression values for different groups of cells and different
@@ -2814,7 +2808,7 @@ globalVariables(names = "gene", package = "Signac")
 #' @param slot Which slot to pull expression data from
 #'
 #' @importFrom SeuratObject GetAssayData DefaultAssay
-#' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic theme
+#' @importFrom ggplot2 ggplot geom_violin facet_wrap aes_string theme_classic theme
 #' element_blank scale_y_discrete scale_x_continuous scale_fill_manual
 #' @importFrom scales hue_pal
 #' @importFrom Seqinfo seqnames
@@ -2918,7 +2912,7 @@ ExpressionPlot <- function(
   lower.limit <- ifelse(test = slot == "scale.data", yes = NA, no = 0)
   for (i in seq_along(along.with = features)) {
     df.use <- df[df$gene == features[[i]], ]
-    p <- ggplot(data = df.use, aes(x = expression, y = gene, fill = group)) +
+    p <- ggplot(data = df.use, aes_string(x = 'expression', y = 'gene', fill = 'group')) +
       geom_violin(linewidth = 1/4) +
       facet_wrap(~group, ncol = 1, strip.position = "right") +
       theme_classic() +
