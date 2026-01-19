@@ -1,11 +1,6 @@
 # R/gwas.R
 # GWAS Visualization for Signac
 
-#' @importFrom utils globalVariables
-#'
-NULL
-globalVariables(names = c("in_credset", "ld_category", "log10p", "base_pair_location"), package = "Signac")
-
 #' Load GWAS-SSF file
 #'
 #' @param gwas.file Path to GWAS/QTL summary statistics file (TSV)
@@ -27,8 +22,8 @@ globalVariables(names = c("in_credset", "ld_category", "log10p", "base_pair_loca
 LoadGWAS <- function(gwas.file) {
   
   # Read file
-  gwas_data <- fread(gwas.file, data.table = FALSE)
-  colnames_lower <- tolower(colnames(gwas_data))
+  gwas_data <- fread(file = gwas.file, data.table = FALSE)
+  colnames_lower <- tolower(x = colnames(x = gwas_data))
   
   # Validate required columns
   required <- c("chromosome", "base_pair_location", "p_value")
@@ -40,36 +35,19 @@ LoadGWAS <- function(gwas.file) {
       "Format: SSF-based (chromosome, base_pair_location, p_value)"
     )
   }
-  
-  # Column lookup helper
-  get_col <- function(name) {
-    idx <- which(colnames_lower == name)
-    if (length(idx) == 0) return(NULL)
-    colnames(gwas_data)[idx[1]]
-  }
-  
-  # # Map to internal names
-  # gwas_data$chr <- gwas_data[[get_col("chromosome")]]
-  # gwas_data$pos <- as.integer(gwas_data[[get_col("base_pair_location")]])
-  # gwas_data$pval <- as.numeric(gwas_data[[get_col("p_value")]])
-  
+
   # Optional columns
-  snp_col <- get_col("variant_id")
-  effect_allele_col <- get_col("effect_allele")
-  other_allele_col <- get_col("other_allele")
+  variant_present <- "variant_id" %in% colnames(x = gwas_data)
+  effect_allele_present <- "effect_allele" %in% colnames(x = gwas_data)
+  other_allele_present <- "other_allele" %in% colnames(x = gwas_data)
   
-  if (is.null(snp_col) & !(is.null(x = effect_allele_col) | is.null(x = other_allele_col))) {
-    gwas_data$variant_id <- paste(
-      gwas_data$chromosome, gwas_data$base_pair_location,
-      gwas_data[[effect_allele_col]], gwas_data[[other_allele_col]], sep = "_"
+  if (!variant_present & (effect_allele_present & other_allele_present)) {
+    # fill in the variant id
+    gwas_data[['variant_id']] <- paste(
+      gwas_data[['chromosome']], gwas_data[['base_pair_location']],
+      gwas_data[['effect_allele']], gwas_data[['other_allele']], sep = "_"
     )
   }
-  
-  # beta_col <- get_col("beta")
-  # if (!is.null(beta_col)) gwas_data$beta <- as.numeric(gwas_data[[beta_col]])
-  # 
-  # se_col <- get_col("standard_error")
-  # if (!is.null(se_col)) gwas_data$se <- as.numeric(gwas_data[[se_col]])
   
   return(gwas_data)
 }
@@ -83,11 +61,12 @@ LoadGWAS <- function(gwas.file) {
 #' Required columns: \code{chromosome}, \code{position}, \code{r2}
 #'
 #' Column matching is case-insensitive. Values should be pairwise r-squared to a lead SNP.
-#'
+#' 
+#' @importFrom data.table fread
 #' @export
 LoadLDData <- function(ld.file) {
-  ld_data <- fread(ld.file, data.table = FALSE)
-  colnames_lower <- tolower(colnames(ld_data))
+  ld_data <- fread(input = ld.file, data.table = FALSE)
+  colnames_lower <- tolower(x = colnames(x = ld_data))
   
   # Validate required columns
   required <- c("chromosome", "position", "r2")
@@ -95,22 +74,16 @@ LoadLDData <- function(ld.file) {
   if (length(missing) > 0) {
     stop(
       "Missing required columns: ", paste(missing, collapse = ", "), "\n",
-      "Found: ", paste(colnames(ld_data), collapse = ", "), "\n",
+      "Found: ", paste(colnames(x = ld_data), collapse = ", "), "\n",
       "Format: chromosome, position, r2"
     )
   }
   
-  # Column lookup helper
-  get_col <- function(name) {
-    idx <- which(colnames_lower == name)
-    colnames(ld_data)[idx[1]]
-  }
-  
   # Extract and standardize
   result <- data.frame(
-    chr = gsub("^chr", "", as.character(ld_data[[get_col("chromosome")]])),
-    pos = as.integer(ld_data[[get_col("position")]]),
-    r2 = as.numeric(ld_data[[get_col("r2")]])
+    chromosome = as.character(x = ld_data[["chromosome"]]),
+    base_pair_location = as.integer(x = ld_data[["position"]]),
+    r2 = as.numeric(x = ld_data[["r2"]])
   )
   
   return(result)
@@ -126,14 +99,16 @@ LoadLDData <- function(ld.file) {
 #' Required columns: \code{chromosome}, \code{position}, \code{pip}, \code{cs}
 #'
 #' Column matching is case-insensitive. Variants with cs = -1 are not in a credible set.
+#' 
+#' @importFrom data.table fread
 #'
 #' @export
 LoadCredibleSets <- function(credset.file, credset.threshold = 0.01) {
-  cs_data <- fread(credset.file, data.table = FALSE)
-  colnames_lower <- tolower(colnames(cs_data))
+  cs_data <- fread(input = credset.file, data.table = FALSE)
+  colnames_lower <- tolower(x = colnames(x = cs_data))
   
   # Check for header
-  if (all(grepl("^V[0-9]+$", colnames(cs_data)))) {
+  if (all(grepl("^V[0-9]+$", colnames(x = cs_data)))) {
     stop("File has no header row")
   }
   
@@ -143,29 +118,24 @@ LoadCredibleSets <- function(credset.file, credset.threshold = 0.01) {
   if (length(missing) > 0) {
     stop(
       "Missing required columns: ", paste(missing, collapse = ", "), "\n",
-      "Found: ", paste(colnames(cs_data), collapse = ", "), "\n",
+      "Found: ", paste(colnames(x = cs_data), collapse = ", "), "\n",
       "Format: chromosome, position, pip, cs"
     )
   }
   
-  # Column lookup helper
-  get_col <- function(name) {
-    idx <- which(colnames_lower == name)
-    colnames(cs_data)[idx[1]]
-  }
-  
   # Extract and standardize
   result <- data.frame(
-    chr = gsub("^chr", "", as.character(cs_data[[get_col("chromosome")]])),
-    pos = as.integer(cs_data[[get_col("position")]]),
-    pip = as.numeric(cs_data[[get_col("pip")]]),
-    credset_id = cs_data[[get_col("cs")]]
+    chromosome = as.character(x = cs_data[["chromosome"]]),
+    base_pair_location = as.integer(x = cs_data[["position"]]),
+    pip = as.numeric(x = cs_data[["pip"]]),
+    credset_id = cs_data[["cs"]]
   )
   
   # Filter: PIP >= threshold AND in a credible set (cs != -1)
-  result <- result[result$pip >= credset.threshold & result$credset_id != -1, ]
+  result <- result[result[['pip']] >= 
+                     credset.threshold & result[['credset_id']] != -1, ]
   
-  if (nrow(result) == 0) {
+  if (nrow(x = result) == 0) {
     warning("No variants passed filters (pip >= ", credset.threshold, " and cs != -1)")
   }
   
@@ -188,9 +158,9 @@ LoadCredibleSets <- function(credset.file, credset.threshold = 0.01) {
 #' @param show.axis Show x-axis (default: TRUE)
 #' @return ggplot2 object
 #'
-#' @importFrom ggplot2 ggplot geom_point aes geom_hline scale_y_continuous
-#' @importFrom ggplot2 theme_classic labs theme element_blank element_line element_text
-#' @importFrom ggplot2 scale_shape_manual scale_size_manual scale_color_manual
+#' @importFrom ggplot2 ggplot geom_point aes_string geom_hline scale_y_continuous
+#' theme_classic labs theme element_blank element_line element_text
+#' scale_shape_manual scale_size_manual scale_color_manual
 #' @importFrom Seqinfo seqnames
 #' @importFrom GenomicRanges start end
 #' @export
@@ -211,7 +181,7 @@ GWASTrack <- function(
   
   # Load GWAS data
   if (is.character(x = gwas)) {
-    gwas <- LoadGWAS(gwas)
+    gwas <- LoadGWAS(gwas.file = gwas)
   } 
   
   if (!inherits(x = region, what = "GRanges")) {
@@ -221,20 +191,19 @@ GWASTrack <- function(
   # subset to region
   chromosome <- as.character(x = seqnames(x = region))
   gwas <- gwas[
-    gwas$chromosome == chromosome &
-      gwas$base_pair_location >= start(x = region) &
-      gwas$base_pair_location <= end(x = region),
+    gwas[['chromosome']] == chromosome &
+      gwas[['base_pair_location']] >= start(x = region) &
+      gwas[['base_pair_location']] <= end(x = region),
   ]
-  gwas <- gwas[!is.na(gwas$p_value), ]
-  
+  gwas <- gwas[!is.na(x = gwas[['p_value']]), ]
   
   if (nrow(x = gwas) == 0) {
     stop("No GWAS data found in region")
   }
-  gwas$log10p <- -log10(gwas$p_value)
+  gwas[['log10p']] <- -log10(x = gwas[['p_value']])
   
   # Validate LD parameters
-  if (!is.null(ld.file) && is.null(ld.lead.snp)) {
+  if (!is.null(x = ld.file) && is.null(x = ld.lead.snp)) {
     stop("ld.lead.snp required when ld.file provided")
   }
   
@@ -248,50 +217,90 @@ GWASTrack <- function(
   )
   
   # Merge LD data
-  if (!is.null(ld.file)) {
-    ld_data <- LoadLDData(ld.file)
-    # TODO need to update column names
-    gwas <- merge(gwas, ld_data, by = c("chr", "pos"), all.x = TRUE)
-    gwas$r2 <- as.numeric(gwas$r2)
-    gwas$ld_category <- cut(
-      gwas$r2,
+  if (!is.null(x = ld.file)) {
+    ld_data <- LoadLDData(ld.file = ld.file)
+    gwas <- merge(
+      x = gwas,
+      y = ld_data,
+      by = c("chromosome", "base_pair_location"),
+      all.x = TRUE
+    )
+    gwas[['r2']] <- as.numeric(x = gwas[['r2']])
+    gwas[['ld_category']] <- cut(
+      gwas[['r2']],
       breaks = c(-Inf, 0.2, 0.4, 0.6, 0.8, Inf),
       labels = c("r2_0-0.2", "r2_0.2-0.4", "r2_0.4-0.6", "r2_0.6-0.8", "r2_0.8-1.0"),
       include.lowest = TRUE
     )
   } else {
-    gwas$r2 <- NA
-    gwas$ld_category <- NA
+    gwas[['r2']] <- NA
+    gwas[['ld_category']] <- NA
   }
   
   # Merge credible set data
-  if (!is.null(credset.file)) {
-    credset_data <- LoadCredibleSets(credset.file, credset.threshold)
-    # TODO need to update column names
-    gwas <- merge(gwas, credset_data, by = c("chr", "pos"), all.x = TRUE)
-    gwas$in_credset <- !is.na(gwas$pip)
+  if (!is.null(x = credset.file)) {
+    credset_data <- LoadCredibleSets(
+      credset.file = credset.file, credset.threshold = credset.threshold
+    )
+    gwas <- merge(
+      x = gwas,
+      y = credset_data,
+      by = c("chromosome", "base_pair_location"),
+      all.x = TRUE
+    )
+    gwas[['in_credset']] <- !is.na(x = gwas[['pip']])
   }
   
   # Y-axis limit
-  if (is.null(ymax)) {
-    ymax <- max(gwas$log10p, na.rm = TRUE) * 1.1
+  if (is.null(x = ymax)) {
+    ymax <- max(gwas[['log10p']], na.rm = TRUE) * 1.1
   }
   
   # Build plot
   if ("in_credset" %in% colnames(x = gwas)) {
-    if (!is.null(ld.file)) {
+    if (!is.null(x = ld.file)) {
       # LD + credible sets
-      p <- ggplot(gwas, aes(x = base_pair_location, y = log10p, color = ld_category)) +
-        geom_point(aes(shape = in_credset, size = in_credset), alpha = 0.6) +
-        scale_shape_manual(values = c("FALSE" = 16, "TRUE" = 18), guide = "none") +
-        scale_size_manual(values = c("FALSE" = point.size, "TRUE" = point.size * 2), guide = "none") +
-        scale_color_manual(values = ld_colors, name = expression(LD~(r^2)), na.value = "grey50")
+      p <- ggplot(data = gwas, mapping = aes_string(
+        x = 'base_pair_location',
+        y = 'log10p',
+        color = 'ld_category'
+      )) +
+        geom_point(
+          aes_string(shape = 'in_credset', size = 'in_credset'), alpha = 0.6
+        ) +
+        scale_shape_manual(
+          values = c("FALSE" = 16, "TRUE" = 18),
+          guide = "none"
+        ) +
+        scale_size_manual(
+          values = c("FALSE" = point.size, "TRUE" = point.size * 2),
+          guide = "none"
+        ) +
+        scale_color_manual(
+          values = ld_colors,
+          name = expression(LD~(r^2)),
+          na.value = "grey50"
+        )
     } else {
       # Credible sets only
-      p <- ggplot(gwas, aes(x = base_pair_location, y = log10p)) +
-        geom_point(aes(shape = in_credset, size = in_credset, color = in_credset), alpha = 0.6) +
-        scale_shape_manual(values = c("FALSE" = 16, "TRUE" = 18), guide = "none") +
-        scale_size_manual(values = c("FALSE" = point.size, "TRUE" = point.size * 2), guide = "none") +
+      p <- ggplot(data = gwas, mapping = aes_string(
+        x = 'base_pair_location',
+        y = 'log10p')) +
+        geom_point(
+          mapping = aes_string(
+            shape = 'in_credset',
+            size = 'in_credset',
+            color = 'in_credset'),
+          alpha = 0.6
+        ) +
+        scale_shape_manual(
+          values = c("FALSE" = 16, "TRUE" = 18),
+          guide = "none"
+        ) +
+        scale_size_manual(
+          values = c("FALSE" = point.size, "TRUE" = point.size * 2),
+          guide = "none"
+        ) +
         scale_color_manual(
           values = c("FALSE" = point.color, "TRUE" = "#FF0000"),
           name = "Credible set",
@@ -299,21 +308,40 @@ GWASTrack <- function(
         )
     }
     
-  } else if (!is.null(ld.file)) {
+  } else if (!is.null(x = ld.file)) {
     # LD only
-    p <- ggplot(gwas, aes(x = base_pair_location, y = log10p, color = ld_category)) +
+    p <- ggplot(
+      data = gwas, mapping = aes_string(
+        x = 'base_pair_location',
+        y = 'log10p',
+        color = 'ld_category'
+        )
+      ) +
       geom_point(size = point.size, alpha = 0.6) +
-      scale_color_manual(values = ld_colors, name = expression(LD~(r^2)), na.value = "grey50")
-    
+      scale_color_manual(
+        values = ld_colors,
+        name = expression(LD~(r^2)),
+        na.value = "grey50"
+      )
   } else {
     # Basic plot
-    p <- ggplot(gwas, aes(x = base_pair_location, y = log10p)) +
+    p <- ggplot(
+      data = gwas, mapping = aes_string(
+        x = 'base_pair_location',
+        y = 'log10p'
+        )
+      ) +
       geom_point(color = point.color, size = point.size, alpha = 0.6)
   }
   
   # Common elements
   p <- p +
-    geom_hline(yintercept = -log10(p.threshold), linetype = "dashed", color = "red", alpha = 0.5) +
+    geom_hline(
+      yintercept = -log10(x = p.threshold),
+      linetype = "dashed",
+      color = "red",
+      alpha = 0.5
+    ) +
     scale_y_continuous(expand = c(0, 0), limits = c(0, ymax)) +
     theme_classic() +
     labs(x = paste0(chromosome, " position (bp)"),
