@@ -29,7 +29,7 @@ variants <- data.frame(
 # Create stacked plot
 VariantTrack(
   variants = variants,
-  region = "chr10-112990000-113010000",
+  region = "chr10-112990000-113010000"
 )
 }
 \concept{visualization}
