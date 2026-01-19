@@ -66,6 +66,7 @@ Collate:
     'footprinting.R'
     'fragments.R'
     'granges-methods.R'
+    'gwas.R'
     'heatmaps.R'
     'iranges-methods.R'
     'links.R'

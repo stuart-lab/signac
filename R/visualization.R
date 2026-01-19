@@ -260,6 +260,233 @@ get_density <- function(x, y, n_sub = 50000, ...) {
   return(out)
 }
 
+#' Create GWAS locus zoom track
+#' 
+#' This function will plot the p-values associated with variants in a given
+#' region of the genome (genome position: x-axis; -log10(p): y-axis).
+#' 
+#' If an LD file is provided using the \code{ld.file} parameter, or a column
+#' named \code{r2} is present in the input GWAS data, the variants will be
+#' colored according to their LD value.
+#' 
+#' If a fine mapping file is provided using the \code{credset.file} parameter,
+#' or a column named \code{in_credset} is present in the input GWAS data,
+#' variants in the credible set will be denoted by shape. If LD information is
+#' not provided, credible variants will also be denoted by color.
+#'
+#' @param region Genomic region (GRanges or string like "chr10-112900000-113100000")
+#' @param gwas Path to GWAS summary statistics file, or a dataframe
+#' containing the gwas data in the GWAS-SSF format
+#' @param ld.file Path to LD file. Optional.
+#' @param ld.lead.snp Lead SNP for LD (required if ld.file provided)
+#' @param credset.file Path to credible set file. Optional.
+#' @param credset.threshold PIP threshold for credible sets (default: 0.01)
+#' @param p.threshold Genome-wide significance threshold (default: 5e-8)
+#' @param ymax Maximum y-axis value (default: auto)
+#' @param point.size Point size (default: 1)
+#' @param point.color Point color when no LD (default: "steelblue")
+#' @param show.axis Show x-axis (default: TRUE)
+#' @return ggplot2 object
+#'
+#' @importFrom ggplot2 ggplot geom_point aes_string geom_hline scale_y_continuous
+#' theme_classic labs theme element_blank element_line element_text
+#' scale_shape_manual scale_size_manual scale_color_manual
+#' @importFrom Seqinfo seqnames
+#' @importFrom GenomicRanges start end
+#' @export
+#' @concept visualization
+GWASTrack <- function(
+    gwas,
+    region,
+    ld.file = NULL,
+    ld.lead.snp = NULL,
+    credset.file = NULL,
+    credset.threshold = 0.01,
+    p.threshold = 5e-8,
+    ymax = NULL,
+    point.size = 1,
+    point.color = "steelblue",
+    show.axis = TRUE
+) {
+  
+  # Load GWAS data
+  if (is.character(x = gwas)) {
+    gwas <- LoadGWAS(gwas.file = gwas)
+  } 
+  
+  if (!inherits(x = region, what = "GRanges")) {
+    region <- StringToGRanges(regions = region)
+  }
+  
+  # subset to region
+  chromosome <- as.character(x = seqnames(x = region))
+  gwas <- gwas[
+    gwas[['chromosome']] == chromosome &
+      gwas[['base_pair_location']] >= start(x = region) &
+      gwas[['base_pair_location']] <= end(x = region),
+  ]
+  gwas <- gwas[!is.na(x = gwas[['p_value']]), ]
+  
+  if (nrow(x = gwas) == 0) {
+    stop("No GWAS data found in region")
+  }
+  gwas[['log10p']] <- -log10(x = gwas[['p_value']])
+  
+  # Validate LD parameters
+  if (!is.null(x = ld.file) && is.null(x = ld.lead.snp)) {
+    stop("ld.lead.snp required when ld.file provided")
+  }
+  
+  # LocusZoom colors
+  ld_colors <- c(
+    "r2_0-0.2" = "#0000CD",
+    "r2_0.2-0.4" = "#00CED1",
+    "r2_0.4-0.6" = "#32CD32",
+    "r2_0.6-0.8" = "#FFA500",
+    "r2_0.8-1.0" = "#FF0000"
+  )
+  
+  # Merge LD data
+  if (!is.null(x = ld.file)) {
+    ld_data <- LoadLDData(ld.file = ld.file)
+    gwas <- merge(
+      x = gwas,
+      y = ld_data,
+      by = c("chromosome", "base_pair_location"),
+      all.x = TRUE
+    )
+    gwas[['r2']] <- as.numeric(x = gwas[['r2']])
+  }
+  
+  if ('r2' %in% colnames(x = gwas)) {
+    gwas[['ld_category']] <- cut(
+      gwas[['r2']],
+      breaks = c(-Inf, 0.2, 0.4, 0.6, 0.8, Inf),
+      labels = c("r2_0-0.2", "r2_0.2-0.4", "r2_0.4-0.6", "r2_0.6-0.8", "r2_0.8-1.0"),
+      include.lowest = TRUE
+    )
+  }
+  
+  # Merge credible set data
+  if (!is.null(x = credset.file)) {
+    credset_data <- LoadCredibleSets(
+      credset.file = credset.file, credset.threshold = credset.threshold
+    )
+    gwas <- merge(
+      x = gwas,
+      y = credset_data,
+      by = c("chromosome", "base_pair_location"),
+      all.x = TRUE
+    )
+    gwas[['in_credset']] <- !is.na(x = gwas[['pip']])
+  }
+  
+  # Y-axis limit
+  if (is.null(x = ymax)) {
+    ymax <- max(gwas[['log10p']], na.rm = TRUE) * 1.1
+  }
+  
+  # Build plot
+  if ("in_credset" %in% colnames(x = gwas)) {
+    if ("ld_category" %in% colnames(x = gwas)) {
+      # LD + credible sets
+      p <- ggplot(data = gwas, mapping = aes_string(
+        x = 'base_pair_location',
+        y = 'log10p',
+        color = 'ld_category'
+      )) +
+        geom_point(
+          aes_string(shape = 'in_credset', size = 'in_credset'), alpha = 0.6
+        ) +
+        scale_shape_manual(
+          values = c("FALSE" = 16, "TRUE" = 18),
+          guide = "none"
+        ) +
+        scale_size_manual(
+          values = c("FALSE" = point.size, "TRUE" = point.size * 2),
+          guide = "none"
+        ) +
+        scale_color_manual(
+          values = ld_colors,
+          name = expression(LD~(r^2)),
+          na.value = "grey50"
+        )
+    } else {
+      # Credible sets only
+      p <- ggplot(data = gwas, mapping = aes_string(
+        x = 'base_pair_location',
+        y = 'log10p')) +
+        geom_point(
+          mapping = aes_string(
+            shape = 'in_credset',
+            size = 'in_credset',
+            color = 'in_credset'),
+          alpha = 0.6
+        ) +
+        scale_shape_manual(
+          values = c("FALSE" = 16, "TRUE" = 18),
+          guide = "none"
+        ) +
+        scale_size_manual(
+          values = c("FALSE" = point.size, "TRUE" = point.size * 2),
+          guide = "none"
+        ) +
+        scale_color_manual(
+          values = c("FALSE" = point.color, "TRUE" = "#FF0000"),
+          name = "Credible set",
+          labels = c("FALSE" = "No", "TRUE" = "Yes")
+        )
+    }
+    
+  } else if ("ld_category" %in% colnames(x = gwas)) {
+    # LD only
+    p <- ggplot(
+      data = gwas, mapping = aes_string(
+        x = 'base_pair_location',
+        y = 'log10p',
+        color = 'ld_category'
+      )
+    ) +
+      geom_point(size = point.size, alpha = 0.6) +
+      scale_color_manual(
+        values = ld_colors,
+        name = expression(LD~(r^2)),
+        na.value = "grey50"
+      )
+  } else {
+    # Basic plot
+    p <- ggplot(
+      data = gwas, mapping = aes_string(
+        x = 'base_pair_location',
+        y = 'log10p'
+      )
+    ) +
+      geom_point(color = point.color, size = point.size, alpha = 0.6)
+  }
+  
+  # Common elements
+  p <- p +
+    geom_hline(
+      yintercept = -log10(x = p.threshold),
+      linetype = "dashed",
+      color = "red",
+      alpha = 0.5
+    ) +
+    scale_y_continuous(expand = c(0, 0), limits = c(0, ymax)) +
+    theme_classic() +
+    labs(x = paste0(chromosome, " position (bp)"),
+         y = expression(-log[10](italic(P)))) +
+    theme(
+      axis.title.x = if (show.axis) element_text() else element_blank(),
+      axis.text.x = if (show.axis) element_text() else element_blank(),
+      axis.line.x = if (show.axis) element_line() else element_blank(),
+      axis.ticks.x = if (show.axis) element_line() else element_blank()
+    ) +
+    xlim(c(start(x = region), end(x = region)))
+  
+  return(p)
+}
+
 globalVariables(".data")
 #' Scatterplot colored by point density
 #' 
@@ -1131,7 +1358,13 @@ SingleCoveragePlot <- function(
   sep = c("-", "-"),
   heights = NULL,
   max.downsample = 3000,
-  downsample.rate = 0.1
+  downsample.rate = 0.1,
+  gwas = NULL,
+  gwas.ld.file = NULL,
+  gwas.ld.lead.snp = NULL,
+  gwas.credset.file = NULL,
+  gwas.credset.threshold = 0.01,
+  variants = NULL
 ) {
   valid.assay.scale <- c("common", "separate")
   if (!(assay.scale %in% valid.assay.scale)) {
@@ -1381,16 +1614,87 @@ SingleCoveragePlot <- function(
   } else {
     bulk.plot <- NULL
   }
+
+  if (!is.null(x = gwas)) {
+    # Convert to list if needed (following bigwig pattern)
+    if (!inherits(x = gwas, what = "list")) {
+      gwas <- list(gwas)
+      names(gwas) <- "GWAS"
+    }
+    
+    # Handle associated parameters - convert to lists
+    if (length(x = gwas.ld.file) == 1 | !inherits(x = gwas.ld.file, what = "list")) {
+      gwas.ld.file <- rep(list(gwas.ld.file), length(x = gwas))
+    }
+    if (length(x = gwas.ld.lead.snp) == 1 | !inherits(x = gwas.ld.lead.snp, what = "list")) {
+      gwas.ld.lead.snp <- rep(list(gwas.ld.lead.snp), length(x = gwas))
+    }
+    if (length(x = gwas.credset.file) == 1 | !inherits(x = gwas.credset.file, what = "list")) {
+      gwas.credset.file <- rep(list(gwas.credset.file), length(x = gwas))
+    }
+    
+    # Create tracks
+    gwas.all <- list()
+    for (i in seq_along(along.with = gwas)) {
+      gwas.all[[i]] <- GWASTrack(
+        gwas = gwas[[i]],
+        region = region,
+        ld.file = gwas.ld.file[[i]],
+        ld.lead.snp = gwas.ld.lead.snp[[i]],
+        credset.file = gwas.credset.file[[i]],
+        credset.threshold = gwas.credset.threshold,
+        show.axis = FALSE
+      )
+      if (length(x = gwas) > 1) {
+        gwas.all[[i]] <- gwas.all[[i]] + ylab(label = names(x = gwas)[[i]])
+      }
+    }
+    
+    # Combine tracks (following bigwig pattern)
+    gwas.tracks <- CombineTracks(
+      plotlist = gwas.all,
+      heights = rep(10, length(x = gwas))
+    )
+  } else {
+    gwas.tracks <- NULL
+  }
+  
+  # variants
+  if (!is.null(x = variants)) {
+    variant.track <- VariantTrack(variants = variants, region = region)
+  } else {
+    variant.track <- NULL
+  }
+  
   nident <- length(x = unique(x = obj.groups))
   if (split.assays) {
     nident <- nident * length(x = assay)
   }
   bulk.height <- (1 / nident) * 10
   bw.height <- 10
-  heights <- heights %||% c(10, bulk.height, bw.height, 10, 3, 1, 1, 3)
+  gwas.height <- 3
+  variants.height <- 1
+  heights <- heights %||% c(
+    gwas.height,
+    variants.height,
+    10,
+    bulk.height,
+    bw.height,
+    10, 3, 1, 1, 3
+  )
   p <- CombineTracks(
-    plotlist = list(p, bulk.plot, bigwig.tracks, tile.plot, gene.plot,
-                    peak.plot, range.plot, link.plot),
+    plotlist = list(
+      gwas.tracks,
+      variant.track,
+      p,
+      bulk.plot,
+      bigwig.tracks,
+      tile.plot,
+      gene.plot,
+      peak.plot,
+      range.plot,
+      link.plot
+    ),
     expression.plot = ex.plot,
     heights = heights,
     widths = widths
@@ -1704,6 +2008,13 @@ CoverageTrack <- function(
 #' Retaining more positions can give a higher-resolution plot but can make the
 #' number of points large, resulting in larger file sizes when saving the plot
 #' and a longer period of time needed to draw the plot.
+#' @param gwas GWAS summary statistics to display on the plot. Can be the path
+#' to a GWAS-SSF file on-disk or a dataframe in the GWAS-SSF format.
+#' @param gwas.ld.file Path to LD data file for coloring GWAS points by r². Optional.
+#' @param gwas.ld.lead.snp Lead SNP for LD calculations. Required if gwas.ld.file provided.
+#' @param gwas.credset.file Path to fine-mapping credible sets file. Optional.
+#' @param gwas.credset.threshold Posterior probability threshold for credible sets (default: 0.01)
+#' @param variants Dataframe containing variants to display (see \code{\link{VariantTrack}})
 #' @param ... Additional arguments passed to \code{\link[patchwork]{wrap_plots}}
 #'
 #' @importFrom patchwork wrap_plots
@@ -1774,6 +2085,12 @@ CoveragePlot <- function(
   sep = c("-", "-"),
   max.downsample = 3000,
   downsample.rate = 0.1,
+  gwas = NULL,
+  gwas.ld.file = NULL,
+  gwas.ld.lead.snp = NULL,
+  gwas.credset.file = NULL,
+  gwas.credset.threshold = 0.01,
+  variants = NULL,
   ...
 ) {
   if (length(x = region) == 1) {
@@ -1818,7 +2135,13 @@ CoveragePlot <- function(
         sep = sep,
         heights = heights,
         max.downsample = max.downsample,
-        downsample.rate = downsample.rate
+        downsample.rate = downsample.rate,
+        gwas = gwas,
+        gwas.ld.file = gwas.ld.file,
+        gwas.ld.lead.snp = gwas.ld.lead.snp,
+        gwas.credset.file = gwas.credset.file,
+        gwas.credset.threshold = gwas.credset.threshold,
+        variants = variants
       )
     }
   )
@@ -2664,6 +2987,68 @@ VariantPlot <- function(
   return(p)
 }
 
+#' Plot variant positions
+#' 
+#' Plot variant positions within a genomic region.
+#'
+#' @param variants Data frame with columns: position (numeric), rsid (character),
+#' color (character). Each row defines one SNP marker to display.
+#' @param region Genomic region (GRanges or string like "chr10-112900000-113100000")
+#' 
+#' @return Returns a ggplot2 object
+#' @export
+#' @concept visualization
+#' @importFrom ggplot2 geom_segment geom_text ylim margin labs aes_string
+#' @examples
+#' # Define SNPs to mark
+#' variants <- data.frame(
+#'   position = c(112951996, 112952395),
+#'   rsid = c("rs10885396", "rs7094871"),
+#'   color = c("steelblue", "darkred")
+#' )
+#' 
+#' # Create stacked plot
+#' VariantTrack(
+#'   variants = variants,
+#'   region = "chr10-112990000-113010000"
+#' )
+VariantTrack <- function(
+    variants,
+    region
+) {
+  
+  if (!inherits(x = region, what = "GRanges")) {
+    region <- StringToGRanges(regions = region)
+  }
+  
+  chromosome <- as.character(x = seqnames(x = region))
+  start.pos <- start(x = region)
+  end.pos <- end(x = region)
+  
+  snp_plot <- ggplot(data = variants) +
+    geom_segment(
+      aes_string(
+        x = 'position',
+        xend = 'position',
+        y = 0,
+        yend = 1,
+        color = 'color'),
+      linewidth = 1,
+    ) +
+    geom_text(
+      aes_string(x = 'position', y = 1.2, label = 'rsid'),
+      size = 3.5, fontface = "italic"
+    ) +
+    scale_color_identity() +
+    theme_browser() +
+    xlim(start.pos, end.pos) +
+    ylim(0, 1.5) +
+    labs(x = paste0(chromosome, " position (bp)"),
+         y = "Variants") +
+    theme(plot.margin = margin(t = 5, r = 5, b = 0, l = 5))
+  
+  return(snp_plot)
+}
 
 #' Plot integration sites per cell
 #'
