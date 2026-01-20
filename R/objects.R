@@ -1546,11 +1546,8 @@ merge.ChromatinAssay5 <- function(
       all.frag <- all.frag[valid.frags]
     }
 
-    # TODO merge links information
-    # TODO merge Motif objects
-
     # create new ChromatinAssay5 object
-    # bias, motifs, region.aggregation, metafeatures not kept
+    # bias, motifs, region.aggregation, links, metafeatures not kept
     merged <- as.ChromatinAssay5(
       x = merged,
       annotation = annot.use,
