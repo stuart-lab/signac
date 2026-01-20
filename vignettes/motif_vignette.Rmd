@@ -101,7 +101,7 @@ da_peaks <- FindMarkers(
 )
 
 # get top differentially accessible peaks
-top.da.peak <- rownames(da_peaks[da_peaks$p_val_adj < 0.05 & da_peaks$pct.1 > 0.2, ])
+top.da.peak <- rownames(da_peaks[da_peaks$p_val_adj < 0.05, ])
 ```
 
 <details>
@@ -124,7 +124,7 @@ from this larger set using `MatchRegionStats()`.
 open.peaks <- AccessiblePeaks(mouse_brain, idents = c("Pvalb", "Sst"))
 
 # match the overall GC content in the peak set
-meta.feature <- GetAssayData(mouse_brain, assay = "peaks", layer = "meta.features")
+meta.feature <- mouse_brain[["peaks"]][[]]
 peaks.matched <- MatchRegionStats(
   meta.feature = meta.feature[open.peaks, ],
   query.feature = meta.feature[top.da.peak, ],
