@@ -18,17 +18,17 @@ setOldClass(Classes = "ChromatinAssay")
 #' Access and modify sequence information for ChromatinAssay objects
 #'
 #' Methods for accessing and modifying
-#' \code{Seqinfo} object information stored in a
-#' \code{\link{ChromatinAssay}} object.
+#' `Seqinfo` object information stored in a
+#' [ChromatinAssay()] object.
 #'
 #' @name seqinfo-methods
-#' @param x A \code{\link{ChromatinAssay}} object
+#' @param x A [ChromatinAssay()] object
 #'
 #' @aliases seqinfo seqinfo,ChromatinAssay-method
 #' @seealso
 #' \itemize{
 #'   \item{seqinfo in the \pkg{GenomeInfoDb} package.}
-#'   \item{\link{ChromatinAssay-class}}
+#'   \item{[ChromatinAssay-class]}
 #'  }
 #' @exportMethod seqinfo
 #' @concept seqinfo
@@ -40,8 +40,8 @@ setMethod(
   }
 )
 
-#' @param value A \code{Seqinfo} object or name of a UCSC
-#' genome to store in the \code{\link{ChromatinAssay}}
+#' @param value A `Seqinfo` object or name of a UCSC
+#' genome to store in the [ChromatinAssay()]
 #' @describeIn seqinfo-methods set method for ChromatinAssay objects
 #' @exportMethod seqinfo<-
 #' @concept seqinfo

@@ -21,13 +21,13 @@ SortIdents(
 
 \item{assay}{Name of assay to use. If NULL, use the default assay}
 
-\item{label}{Metadata attribute to sort. If NULL, 
+\item{label}{Metadata attribute to sort. If NULL,
 uses the active identities.}
 
 \item{dendrogram}{Logical, whether to plot the dendrogram (default is FALSE).}
 
 \item{method}{The distance method to use for hierarchical clustering
-(default is 'euclidean', other options from \code{\link[stats]{dist}} are
+(default is 'euclidean', other options from \code{\link[stats:dist]{stats::dist()}} are
 'maximum', 'manhattan', 'canberra', 'binary' and 'minkowski').}
 
 \item{verbose}{Display messages}
@@ -40,7 +40,7 @@ active identities were used (label=NULL), the levels will be updated according
 to similarity ordering.
 }
 \description{
-Compute distance matrix from a feature/variable matrix and 
+Compute distance matrix from a feature/variable matrix and
 perform hierarchical clustering to order variables (for example, cell types)
 according to their similarity.
 }

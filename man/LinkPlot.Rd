@@ -16,7 +16,7 @@ LinkPlot(
 )
 }
 \arguments{
-\item{object}{A \code{\link[SeuratObject]{Seurat}} object}
+\item{object}{A \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object}
 
 \item{region}{A genomic region to plot}
 
@@ -35,7 +35,7 @@ element is used to separate the start from end coordinate.}
 \item{scale.linewidth}{Scale thickness of the line according to link score.}
 }
 \value{
-Returns a \code{\link[ggplot2]{ggplot}} object
+Returns a \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} object
 }
 \description{
 Display links between pairs of genomic elements within a given region of the

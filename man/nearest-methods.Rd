@@ -100,28 +100,28 @@
 \S4method{distanceToNearest}{Seurat,Seurat}(x, subject, ignore.strand = FALSE, ...)
 }
 \arguments{
-\item{x}{A query \code{\link{ChromatinAssay}} object}
+\item{x}{A query \code{\link[=ChromatinAssay]{ChromatinAssay()}} object}
 
-\item{subject}{The subject \code{\link[GenomicRanges]{GRanges}} or
-\code{\link{ChromatinAssay}} object. If missing, \code{x} is used as the
+\item{subject}{The subject \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} or
+\code{\link[=ChromatinAssay]{ChromatinAssay()}} object. If missing, \code{x} is used as the
 subject.}
 
 \item{select}{Logic for handling ties.
-See \code{\link[GenomicRanges]{nearest-methods}} in the \pkg{GenomicRanges}
+See \code{\link[GenomicRanges:nearest-methods]{GenomicRanges::nearest-methods()}} in the \pkg{GenomicRanges}
 package.}
 
 \item{ignore.strand}{Logical argument controlling whether strand information
 should be ignored.}
 
 \item{y}{For the \code{distance} method, a
-\code{\link[GenomicRanges]{GRanges}} object or a \code{\link{ChromatinAssay}}
+\code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object or a \code{\link[=ChromatinAssay]{ChromatinAssay()}}
 object}
 
 \item{...}{Additional arguments for methods}
 }
 \description{
-The \code{precede, follow, nearest, distance, distanceToNearest} methods
-are available for \code{\link{ChromatinAssay}} objects.
+The \verb{precede, follow, nearest, distance, distanceToNearest} methods
+are available for \code{\link[=ChromatinAssay]{ChromatinAssay()}} objects.
 }
 \section{Functions}{
 \itemize{
@@ -186,10 +186,10 @@ are available for \code{\link{ChromatinAssay}} objects.
 }}
 \seealso{
 \itemize{
-  \item{\link[IRanges]{nearest-methods} in the \pkg{IRanges} package.}
-  \item{\link[GenomicRanges]{nearest-methods} in the \pkg{GenomicRanges}
-  package}
-  \item{\link{ChromatinAssay-class}}
- }
+\item{\link[IRanges:nearest-methods]{nearest-methods} in the \pkg{IRanges} package.}
+\item{\link[GenomicRanges:nearest-methods]{nearest-methods} in the \pkg{GenomicRanges}
+package}
+\item{\linkS4class{ChromatinAssay}}
+}
 }
 \concept{nearest}

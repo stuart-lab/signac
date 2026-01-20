@@ -26,13 +26,15 @@ itself}
 
 \item{verbose}{Display messages}
 
-\item{...}{Additional arguments passed to \code{\link{FeatureMatrix}}}
+\item{...}{Additional arguments passed to \code{\link[=FeatureMatrix]{FeatureMatrix()}}}
 }
 \value{
 Returns a list of sparse matrices
+
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
 }
 \description{
-Count the number of sequenced DNA fragments in a region surrounding each 
+Count the number of sequenced DNA fragments in a region surrounding each
 instance of a given DNA sequence motif.
 }
 \concept{motifs}

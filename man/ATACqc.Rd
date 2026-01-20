@@ -46,7 +46,7 @@ file.}
 
 \item{...}{Arguments passed to other methods}
 
-\item{annotations}{\code{\link[GenomicRanges]{GRanges}} object containing
+\item{annotations}{\code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object containing
 gene annotations. If NULL, attempt to extract this from the ChromatinAssay
 object if provided.}
 
@@ -62,7 +62,7 @@ automatically.}
 \item{assay}{Name of assay to use. If NULL, use the default assay.}
 }
 \description{
-Wrapper function to run \code{fragtk qc} and add the metadata to the Seurat
+Wrapper function to run \verb{fragtk qc} and add the metadata to the Seurat
 object.
 }
 \concept{qc}

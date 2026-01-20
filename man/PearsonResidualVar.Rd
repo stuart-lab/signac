@@ -78,7 +78,7 @@ Pearson residual variance for ranking features. \code{weight.mean=0} will
 rank features based on the Pearson residual variance only.}
 }
 \value{
-Returns a \code{\link[SeuratObject]{Seurat}} object
+Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
 }
 \description{
 Find the top features for a given assay based on analytic Pearson residual

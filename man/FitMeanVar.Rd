@@ -89,7 +89,7 @@ FitMeanVar(object, ...)
 
 \item{nfeatures}{Number of features to selected as top variable features.}
 
-\item{loess.span}{\code{span} parameter passed to the \code{\link[stats]{loess}} function}
+\item{loess.span}{\code{span} parameter passed to the \code{\link[stats:loess]{stats::loess()}} function}
 
 \item{min.cutoff}{Minimum number of counts for a feature to be eligible for variable feature selection.}
 
@@ -107,16 +107,16 @@ Setting \code{weight.mean=0} will rank features according to their residual vari
 \item{random.seed}{Random seed to set for sampling.}
 }
 \value{
-Returns a \code{\link[SeuratObject]{Seurat}} object
+Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
 }
 \description{
 Find highly variable features by fitting a locally polynomial regression
 model to the log(mean) and log(variance) of downsampled features.
 }
 \details{
-This function is similar to the \code{\link[Seurat]{FindVariableFeatures}}
+This function is similar to the \code{\link[Seurat:FindVariableFeatures]{Seurat::FindVariableFeatures()}}
 function (with \code{selection.method="vst"}), but downsamples the features
-evenly across the range of mean values. This speeds up fitting of the loess 
+evenly across the range of mean values. This speeds up fitting of the loess
 curve when the number of features is large.
 
 The function also provides the ability to combine ranking of features

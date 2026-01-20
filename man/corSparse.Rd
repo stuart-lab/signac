@@ -18,7 +18,7 @@ Compute the Pearson correlation matrix between
 columns of two sparse matrices.
 }
 \details{
-Originally from 
+Originally from
 \url{https://stackoverflow.com/questions/5888287/running-cor-or-any-variant-over-a-sparse-matrix-in-r}
 and the qlcMatrix package.
 }

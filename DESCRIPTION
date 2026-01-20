@@ -56,6 +56,7 @@ Imports:
     RSpectra
 Collate: 
     'RcppExports.R'
+    'Signac-package.R'
     'data.R'
     'differential_accessibility.R'
     'generics.R'
@@ -98,3 +99,4 @@ Suggests:
     MASS,
     wrswoR,
     fgsea
+Roxygen: list(markdown = TRUE)

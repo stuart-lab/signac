@@ -14,16 +14,16 @@ setOldClass(Classes = "ChromatinAssay")
 
 #' Find the nearest range neighbors for ChromatinAssay objects
 #'
-#' The \code{precede, follow, nearest, distance, distanceToNearest} methods
-#' are available for \code{\link{ChromatinAssay}} objects.
+#' The `precede, follow, nearest, distance, distanceToNearest` methods
+#' are available for [ChromatinAssay()] objects.
 #'
 #' @name nearest-methods
-#' @param x A query \code{\link{ChromatinAssay}} object
-#' @param subject The subject \code{\link[GenomicRanges]{GRanges}} or
-#' \code{\link{ChromatinAssay}} object. If missing, \code{x} is used as the
+#' @param x A query [ChromatinAssay()] object
+#' @param subject The subject [GenomicRanges::GRanges()] or
+#' [ChromatinAssay()] object. If missing, `x` is used as the
 #' subject.
 #' @param select Logic for handling ties.
-#' See \code{\link[GenomicRanges]{nearest-methods}} in the \pkg{GenomicRanges}
+#' See [GenomicRanges::nearest-methods()] in the \pkg{GenomicRanges}
 #' package.
 #' @param ignore.strand Logical argument controlling whether strand information
 #' should be ignored.
@@ -32,10 +32,10 @@ setOldClass(Classes = "ChromatinAssay")
 #' @aliases precede precede,ANY,ChromatinAssay-method
 #' @seealso
 #' \itemize{
-#'   \item{\link[IRanges]{nearest-methods} in the \pkg{IRanges} package.}
-#'   \item{\link[GenomicRanges]{nearest-methods} in the \pkg{GenomicRanges}
+#'   \item{[nearest-methods][IRanges::nearest-methods] in the \pkg{IRanges} package.}
+#'   \item{[nearest-methods][GenomicRanges::nearest-methods] in the \pkg{GenomicRanges}
 #'   package}
-#'   \item{\link{ChromatinAssay-class}}
+#'   \item{[ChromatinAssay-class]}
 #'  }
 #' @exportMethod precede
 #' @concept nearest
@@ -295,8 +295,8 @@ setMethod(
   }
 )
 
-#' @param y For the \code{distance} method, a
-#' \code{\link[GenomicRanges]{GRanges}} object or a \code{\link{ChromatinAssay}}
+#' @param y For the `distance` method, a
+#' [GenomicRanges::GRanges()] object or a [ChromatinAssay()]
 #' object
 #'
 #' @aliases distance
@@ -475,28 +475,28 @@ setMethod(
 
 #' Find overlapping ranges for ChromatinAssay objects
 #'
-#' The \code{findOverlaps, countOverlaps} methods are available for
-#' \code{\link{ChromatinAssay}} objects. This allows finding overlaps between
+#' The `findOverlaps, countOverlaps` methods are available for
+#' [ChromatinAssay()] objects. This allows finding overlaps between
 #' genomic ranges and the ranges stored in the ChromatinAssay.
 #'
 #' If a ChromatinAssay is set as the default assay in a
-#' \code{\link[SeuratObject]{Seurat}} object, you can also call \code{findOverlaps}
+#' [SeuratObject::Seurat()] object, you can also call `findOverlaps`
 #' directly on the Seurat object.
 #'
-#' @param query,subject A \code{\link{ChromatinAssay}} object
+#' @param query,subject A [ChromatinAssay()] object
 #' @param maxgap,minoverlap,type,select,ignore.strand See
-#' \code{?\link[GenomicRanges]{findOverlaps}} in the \pkg{GenomicRanges} and
+#' `?[findOverlaps][GenomicRanges::findOverlaps]` in the \pkg{GenomicRanges} and
 #' \pkg{IRanges} packages.
-#' @return See \code{\link[GenomicRanges]{findOverlaps}}
+#' @return See [GenomicRanges::findOverlaps()]
 #'
 #' @name findOverlaps-methods
 #' @aliases findOverlaps findOverlaps,Vector,ChromatinAssay-method
 #' @seealso
 #' \itemize{
-#'   \item{\link[IRanges]{findOverlaps-methods} in the \pkg{IRanges} package.}
-#'   \item{\link[GenomicRanges]{findOverlaps-methods} in the \pkg{GenomicRanges}
+#'   \item{[findOverlaps-methods][IRanges::findOverlaps-methods] in the \pkg{IRanges} package.}
+#'   \item{[findOverlaps-methods][GenomicRanges::findOverlaps-methods] in the \pkg{GenomicRanges}
 #'   package}
-#'   \item{\link{ChromatinAssay-class}}
+#'   \item{[ChromatinAssay-class]}
 #'  }
 #'
 #' @exportMethod findOverlaps
@@ -703,24 +703,24 @@ setMethod(
 
 #' Coverage of a ChromatinAssay object
 #'
-#' This is the \code{coverage} method for \code{\link{ChromatinAssay}} objects.
-#' @param x A \code{\link{ChromatinAssay}} object
+#' This is the `coverage` method for [ChromatinAssay()] objects.
+#' @param x A [ChromatinAssay()] object
 #' @param shift How much each range should be shifted before coverage is
-#' computed. See \code{\link[IRanges]{coverage}} in the \pkg{IRanges} package.
-#' @param weight Assigns weight to each range in \code{x}.
-#' See \code{\link[IRanges]{coverage}} in the \pkg{IRanges} package.
+#' computed. See [IRanges::coverage()] in the \pkg{IRanges} package.
+#' @param weight Assigns weight to each range in `x`.
+#' See [IRanges::coverage()] in the \pkg{IRanges} package.
 #' @param width Specifies the length of the returned coverage vectors.
-#' See \code{\link[IRanges]{coverage}} in the \pkg{IRanges} package.
-#' @param method See \code{\link[IRanges]{coverage}} in the \pkg{IRanges}
+#' See [IRanges::coverage()] in the \pkg{IRanges} package.
+#' @param method See [IRanges::coverage()] in the \pkg{IRanges}
 #' package
 #'
 #' @aliases coverage
 #' @seealso
 #' \itemize{
-#'   \item{\link[IRanges]{coverage-methods} in the \pkg{IRanges} package.}
-#'   \item{\link[GenomicRanges]{coverage-methods} in the \pkg{GenomicRanges}
+#'   \item{[coverage-methods][IRanges::coverage-methods] in the \pkg{IRanges} package.}
+#'   \item{[coverage-methods][GenomicRanges::coverage-methods] in the \pkg{GenomicRanges}
 #'   package}
-#'   \item{\link{ChromatinAssay-class}}
+#'   \item{[ChromatinAssay-class]}
 #'  }
 #' @exportMethod coverage
 #' @describeIn coverage-ChromatinAssay-method method for ChromatinAssay objects
@@ -756,23 +756,23 @@ setMethod(
 
 #' Inter-range transformations for ChromatinAssay objects
 #'
-#' The \code{range, reduce, gaps, disjoin, isDisjoint, disjointBins} methods
-#' are available for \code{\link{ChromatinAssay}} objects.
+#' The `range, reduce, gaps, disjoin, isDisjoint, disjointBins` methods
+#' are available for [ChromatinAssay()] objects.
 #'
 #' @name inter-range-methods
-#' @param x A \code{\link{ChromatinAssay}} object
+#' @param x A [ChromatinAssay()] object
 #' @param ... Additional arguments
-#' @param with.revmap See \code{\link[IRanges]{inter-range-methods}} in the
+#' @param with.revmap See [IRanges::inter-range-methods()] in the
 #' \pkg{IRanges} packages
 #' @param na.rm Ignored
 #'
 #' @aliases range range,ChromatinAssay-method
 #' @seealso
 #' \itemize{
-#'   \item{\link[IRanges]{inter-range-methods} in the \pkg{IRanges} package.}
-#'   \item{\link[GenomicRanges]{inter-range-methods} in the \pkg{GenomicRanges}
+#'   \item{[inter-range-methods][IRanges::inter-range-methods] in the \pkg{IRanges} package.}
+#'   \item{[inter-range-methods][GenomicRanges::inter-range-methods] in the \pkg{GenomicRanges}
 #'   package}
-#'   \item{\link{ChromatinAssay-class}}
+#'   \item{[ChromatinAssay-class]}
 #'  }
 #' @exportMethod range
 #' @concept inter_range
@@ -801,7 +801,7 @@ setMethod(
   }
 )
 
-#' @param drop.empty.ranges See \code{?\link[IRanges]{inter-range-methods}}
+#' @param drop.empty.ranges See `?[inter-range-methods][IRanges::inter-range-methods]`
 #' @aliases reduce
 #' @describeIn inter-range-methods method for ChromatinAssay objects
 #' @exportMethod reduce
@@ -831,7 +831,7 @@ setMethod(
   }
 )
 
-#' @param start,end See \code{?\link[IRanges]{inter-range-methods}}
+#' @param start,end See `?[inter-range-methods][IRanges::inter-range-methods]`
 #' @aliases gaps
 #' @describeIn inter-range-methods method for ChromatinAssay objects
 #' @exportMethod gaps

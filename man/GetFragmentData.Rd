@@ -7,11 +7,11 @@
 GetFragmentData(object, slot = "path")
 }
 \arguments{
-\item{object}{A \code{\link{Fragment}} object}
+\item{object}{A \code{\link[=Fragment]{Fragment()}} object}
 
 \item{slot}{Information to pull from object (path, hash, cells, prefix, suffix)}
 }
 \description{
-Extract data from a \code{\link{Fragment-class}} object
+Extract data from a \code{\link[=Fragment-class]{Fragment-class()}} object
 }
 \concept{assay}

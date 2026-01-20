@@ -2,7 +2,7 @@
 #'
 NULL
 
-#' @param regions A \code{\link[GenomicRanges]{GRanges}} object containing the
+#' @param regions A [GenomicRanges::GRanges()] object containing the
 #' set of genomic ranges to quantify
 #' @param key Name to store resulting matrices under
 #' @param assay Name of assay to use. If NULL, use the default assay

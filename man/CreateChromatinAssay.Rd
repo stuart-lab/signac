@@ -44,30 +44,30 @@ accumulate reads in all cells. A percentage cutoff can also be set using
 features detected in 90 percent of cells.
 If NULL (default), do not apply any maximum value.}
 
-\item{ranges}{A set of \code{\link[GenomicRanges]{GRanges}} corresponding to
+\item{ranges}{A set of \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} corresponding to
 the rows of the input matrix}
 
 \item{motifs}{A Motif object (not required)}
 
 \item{fragments}{Path to a tabix-indexed fragments file for the data
 contained in the input matrix. If multiple fragment files are required,
-you can add additional \code{\link{Fragment}} object to the assay after it is
-created using the \code{\link{CreateFragmentObject}} and
-\code{\link{Fragments}} functions. Alternatively, a list of
-\code{\link{Fragment}} objects can be provided.}
+you can add additional \code{\link[=Fragment]{Fragment()}} object to the assay after it is
+created using the \code{\link[=CreateFragmentObject]{CreateFragmentObject()}} and
+\code{\link[=Fragments]{Fragments()}} functions. Alternatively, a list of
+\code{\link[=Fragment]{Fragment()}} objects can be provided.}
 
 \item{genome}{A \code{Seqinfo} object containing basic
 information about the genome used. Alternatively, the name of a UCSC genome
 can be provided and the sequence information will be downloaded from UCSC.}
 
-\item{annotation}{A set of \code{\link[GenomicRanges]{GRanges}} containing
+\item{annotation}{A set of \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} containing
 annotations for the genome used. It must have the following columns:
 \itemize{
-  \item{tx_id or transcript_id: Transcript ID}
-  \item{gene_name: Gene name}
-  \item{gene_id: Gene ID}
-  \item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
-  \item{type: Annotation type (e.g. "exon", "gap")}
+\item{tx_id or transcript_id: Transcript ID}
+\item{gene_name: Gene name}
+\item{gene_id: Gene ID}
+\item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
+\item{type: Annotation type (e.g. "exon", "gap")}
 }}
 
 \item{bias}{A Tn5 integration bias matrix}
@@ -86,10 +86,10 @@ fragment file.}
 
 \item{verbose}{Display messages}
 
-\item{...}{Additional arguments passed to \code{\link{CreateFragmentObject}}}
+\item{...}{Additional arguments passed to \code{\link[=CreateFragmentObject]{CreateFragmentObject()}}}
 }
 \description{
-Create a \code{\link{ChromatinAssay}} object from a count matrix or
+Create a \code{\link[=ChromatinAssay]{ChromatinAssay()}} object from a count matrix or
 normalized data matrix. The expected format of the input matrix is features x
 cells. A set of genomic ranges must be supplied along with the matrix, with
 the length of the ranges equal to the number of rows in the matrix. If a set

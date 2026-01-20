@@ -7,14 +7,14 @@
 UpdatePath(object, new.path, verbose = TRUE)
 }
 \arguments{
-\item{object}{A \code{\link{Fragment}} object}
+\item{object}{A \code{\link[=Fragment]{Fragment()}} object}
 
 \item{new.path}{Path to the fragment file}
 
 \item{verbose}{Display messages}
 }
 \description{
-Change the path to a fragment file store in a \code{\link{Fragment}}
+Change the path to a fragment file store in a \code{\link[=Fragment]{Fragment()}}
 object. Path must be to the same file that was used to create the fragment
 object. An MD5 hash will be computed using the new path and compared to the
 hash stored in the Fragment object to verify that the files are the same.

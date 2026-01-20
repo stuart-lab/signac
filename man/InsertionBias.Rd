@@ -22,7 +22,7 @@ InsertionBias(object, ...)
 \arguments{
 \item{object}{A Seurat or ChromatinAssay object}
 
-\item{...}{Additional arguments passed to \code{\link{StringToGRanges}}}
+\item{...}{Additional arguments passed to \code{\link[=StringToGRanges]{StringToGRanges()}}}
 
 \item{genome}{A \code{BSgenome} object or any other object supported by
 \code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all

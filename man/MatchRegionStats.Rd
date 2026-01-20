@@ -40,13 +40,13 @@ query regions for any given set of characteristics, specified in the input
 }
 \details{
 For each requested feature to match, a density
-distribution is estimated using the \code{\link[stats]{density}} function,
+distribution is estimated using the \code{\link[stats:density]{stats::density()}} function,
 and a set of weights for each feature in the dataset estimated based on the
 density distribution. If multiple features are to be matched (for example,
 GC content and overall accessibility), a joint density distribution is then
 computed by multiplying the individual feature weights. A set of features
 with characteristics matching the query regions is then selected using the
-\code{\link[base]{sample}} function, with the probability of randomly
+\code{\link[base:sample]{base::sample()}} function, with the probability of randomly
 selecting each feature equal to the joint density distribution weight.
 }
 \examples{

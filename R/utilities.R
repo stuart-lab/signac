@@ -6,7 +6,7 @@ NULL
 #' Add chromatin module
 #'
 #' Compute chromVAR deviations for groups of peaks. The goal of this function is
-#' similar to that of \code{\link[Seurat]{AddModuleScore}} except that it is
+#' similar to that of [Seurat::AddModuleScore()] except that it is
 #' designed for single-cell chromatin data. The chromVAR deviations for each
 #' group of peaks will be added to the object metadata.
 #'
@@ -17,7 +17,7 @@ NULL
 #' @param genome A BSgenome object
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{RunChromVAR}
+#' @param ... Additional arguments passed to `RunChromVAR`
 #'
 #' @return Returns a Seurat object
 #'
@@ -193,7 +193,7 @@ CellsPerGroup <- function(
 #' uses the active identities.
 #' @param dendrogram Logical, whether to plot the dendrogram (default is FALSE).
 #' @param method The distance method to use for hierarchical clustering
-#' (default is 'euclidean', other options from \code{\link[stats]{dist}} are
+#' (default is 'euclidean', other options from [stats::dist()] are
 #' 'maximum', 'manhattan', 'canberra', 'binary' and 'minkowski').
 #' @param verbose Display messages
 #' 
@@ -318,8 +318,10 @@ SortIdents <- function(
 #' @param regions A set of genomic regions to query
 #' @param annotation A GRanges object containing annotation information. If
 #' NULL, use the annotations stored in the object.
-#' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
-#'
+#' @param ... Additional arguments passed to [StringToGRanges()]
+#' 
+#' `r lifecycle::badge("deprecated")`
+#' 
 #' @importMethodsFrom GenomicRanges distanceToNearest
 #' @importFrom S4Vectors subjectHits mcols
 #' @importFrom methods is
@@ -342,6 +344,7 @@ ClosestFeature <- function(
   annotation = NULL,
   ...
 ) {
+  lifecycle::deprecate_soft(when = "1.17.0", what = "ClosestFeature()")
   if (!is(object = regions, class2 = 'GRanges')) {
     regions <- StringToGRanges(regions = regions, ...)
   }
@@ -394,7 +397,7 @@ ClosestFeature <- function(
 #' columns of two sparse matrices.
 #' 
 #' Originally from 
-#' \url{https://stackoverflow.com/questions/5888287/running-cor-or-any-variant-over-a-sparse-matrix-in-r}
+#' <https://stackoverflow.com/questions/5888287/running-cor-or-any-variant-over-a-sparse-matrix-in-r>
 #' and the qlcMatrix package.
 #' 
 #' @param X A matrix
@@ -568,7 +571,7 @@ GeneActivity <- function(
 #' Extract genomic ranges from EnsDb object
 #'
 #' Pulls the transcript information for all chromosomes from an EnsDb object.
-#' This wraps \code{\link[biovizBase]{crunch}} and applies the extractor
+#' This wraps [biovizBase::crunch()] and applies the extractor
 #' function to all chromosomes present in the EnsDb object.
 #'
 #' @param ensdb An EnsDb object
@@ -656,6 +659,8 @@ GetTSSPositions <- function(ranges, biotypes = "protein_coding") {
 #' @param distance Maximum distance between regions allowed for an intersection
 #' to be recorded. Default is 0.
 #' @param verbose Display messages
+#' 
+#' `r lifecycle::badge("deprecated")`
 #'
 #' @importMethodsFrom GenomicRanges distanceToNearest
 #' @importFrom S4Vectors subjectHits queryHits mcols
@@ -679,6 +684,7 @@ GetIntersectingFeatures <- function(
   distance = 0,
   verbose = TRUE
 ) {
+  lifecycle::deprecate_soft(when = "1.17.0", what = "GetIntersectingFeatures()")
   assay.1 <- SetIfNull(x = assay.1, y = DefaultAssay(object = object.1))
   assay.2 <- SetIfNull(x = assay.2, y = DefaultAssay(object = object.2))
   if (!inherits(x = object.1[[assay.1]], what = "ChromatinAssay")) {
@@ -709,7 +715,7 @@ GetIntersectingFeatures <- function(
 #' used to separate chromosome and coordinates, second separator is used to
 #' separate start and end coordinates.
 #' @param ... Additional arguments passed to
-#' \code{\link[GenomicRanges]{makeGRangesFromDataFrame}}
+#' [GenomicRanges::makeGRangesFromDataFrame()]
 #' @return Returns a GRanges object
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @importFrom tidyr separate
@@ -758,7 +764,7 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
 #' Extend
 #'
 #' Resize GenomicRanges upstream and or downstream.
-#' From \url{https://support.bioconductor.org/p/78652/}
+#' From <https://support.bioconductor.org/p/78652/>
 #'
 #' @param x A range
 #' @param upstream Length to extend upstream
@@ -773,7 +779,7 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
 #' @importFrom IRanges ranges IRanges "ranges<-"
 #' @export
 #' @concept utilities
-#' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
+#' @return Returns a [GenomicRanges::GRanges()] object
 #' @examples
 #' Extend(x = blacklist_hg19, upstream = 100, downstream = 100)
 Extend <- function(
@@ -856,7 +862,9 @@ GetCellsInRegion <- function(tabix, region, cells = NULL) {
 #' @param object A Seurat object
 #' @param assay Name of a chromatin assay in the object to use
 #' @param regions A GRanges object
-#' @param ... Additional arguments passed to \code{\link[IRanges]{findOverlaps}}
+#' @param ... Additional arguments passed to [IRanges::findOverlaps()]
+#' 
+#' `r lifecycle::badge("deprecated")`
 #'
 #' @importFrom IRanges findOverlaps
 #' @importFrom S4Vectors queryHits
@@ -880,6 +888,7 @@ CountsInRegion <- function(
   regions,
   ...
 ) {
+  lifecycle::deprecate_soft(when = "1.17.0", what = "CountsInRegion()")
   if (!is(object = object[[assay]], class2 = "ChromatinAssay")) {
     stop("Must supply a ChromatinAssay")
   }
@@ -900,7 +909,10 @@ CountsInRegion <- function(
 #' @param object A Seurat object
 #' @param assay Name of assay to use
 #' @param regions A GRanges object containing a set of genomic regions
-#' @param ... Additional arguments passed to \code{\link{CountsInRegion}}
+#' @param ... Additional arguments passed to [CountsInRegion()]
+#' 
+#' `r lifecycle::badge("deprecated")`
+#' 
 #' @importFrom Matrix colSums
 #' @importFrom SeuratObject GetAssayData DefaultAssay
 #'
@@ -921,6 +933,7 @@ FractionCountsInRegion <- function(
   assay = NULL,
   ...
 ) {
+  lifecycle::deprecate_soft(when = "1.17.0", what = "FractionCountsInRegion()")
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   reads.in.region <- CountsInRegion(
     object = object,
@@ -949,7 +962,9 @@ FractionCountsInRegion <- function(
 #' used to separate the chromosome name from coordinates, and the second element
 #' used to separate start and end coordinates.
 #' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{\link[IRanges]{findOverlaps}}
+#' @param ... Additional arguments passed to [IRanges::findOverlaps()]
+#' 
+#' `r lifecycle::badge("deprecated")`
 #'
 #' @importFrom IRanges findOverlaps
 #' @importFrom S4Vectors queryHits
@@ -971,6 +986,7 @@ IntersectMatrix <- function(
   verbose = TRUE,
   ...
 ) {
+  lifecycle::deprecate_soft(when = "1.17.0", what = "IntersectMatrix()")
   if (is(object = regions, class2 = "character")) {
     regions <- StringToGRanges(regions = regions, sep = sep)
   }
@@ -1031,16 +1047,16 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
 #'
 #' Return a vector if genomic regions that match the distribution of a set of
 #' query regions for any given set of characteristics, specified in the input
-#' \code{meta.feature} dataframe.
+#' `meta.feature` dataframe.
 #'
 #' For each requested feature to match, a density
-#' distribution is estimated using the \code{\link[stats]{density}} function,
+#' distribution is estimated using the [stats::density()] function,
 #' and a set of weights for each feature in the dataset estimated based on the
 #' density distribution. If multiple features are to be matched (for example,
 #' GC content and overall accessibility), a joint density distribution is then
 #' computed by multiplying the individual feature weights. A set of features
 #' with characteristics matching the query regions is then selected using the
-#' \code{\link[base]{sample}} function, with the probability of randomly
+#' [base::sample()] function, with the probability of randomly
 #' selecting each feature equal to the joint density distribution weight.
 #'
 #' @param meta.feature A dataframe containing DNA sequence information for
@@ -1167,9 +1183,12 @@ MatchRegionStats <- function(
 #' @param object.list A list of Seurat objects or ChromatinAssay objects
 #' @param mode Function to use when combining genomic ranges. Can be "reduce"
 #' (default) or "disjoin".
-#' See \code{\link[GenomicRanges]{reduce}}
-#' and \code{\link[GenomicRanges]{disjoin}}
+#' See [GenomicRanges::reduce()]
+#' and [GenomicRanges::disjoin()]
 #' for more information on these functions.
+#' 
+#' `r lifecycle::badge("deprecated")`
+#' 
 #' @importFrom GenomicRanges reduce disjoin
 #' @export
 #' @concept utilities
@@ -1178,6 +1197,7 @@ MatchRegionStats <- function(
 #' @examples
 #' UnifyPeaks(object.list = list(atac_small, atac_small))
 UnifyPeaks <- function(object.list, mode = "reduce") {
+  lifecycle::deprecate_soft(when = "1.17.0", what = "UnifyPeaks()")
   peak.ranges <- list()
   for (i in seq_along(along.with = object.list)) {
     peak.ranges[[i]] <- granges(x = object.list[[i]])

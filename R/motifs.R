@@ -124,9 +124,9 @@ AddMotifs.StdAssay <- function(
 }
 
 #' @param assay Name of assay to use. If NULL, use the default assay
-#' @param genome A \code{BSgenome}, \code{DNAStringSet}, \code{FaFile}, or
-#' string stating the genome build recognized by \code{getBSgenome}.
-#' @param pfm A \code{PFMatrixList} or \code{PWMatrixList} object containing
+#' @param genome A `BSgenome`, `DNAStringSet`, `FaFile`, or
+#' string stating the genome build recognized by `getBSgenome`.
+#' @param pfm A `PFMatrixList` or `PWMatrixList` object containing
 #' position weight/frequency matrices to use
 #' @param verbose Display messages
 #' @importFrom SeuratObject DefaultAssay
@@ -291,11 +291,11 @@ globalVariables(names = "pvalue", package = "Signac")
 #' characteristics of the query features. To match the sequence characteristics,
 #' these characteristics must be stored in the feature metadata for the assay.
 #' This can be added using the
-#'  \code{\link{RegionStats}} function. If NULL, use all features in the assay.
+#'  [RegionStats()] function. If NULL, use all features in the assay.
 #' @param verbose Display messages
 #' @param p.adjust.method Multiple testing correction method to be applied.
-#' Passed to \code{\link[stats]{p.adjust}}.
-#' @param ... Arguments passed to \code{\link{MatchRegionStats}}.
+#' Passed to [stats::p.adjust()].
+#' @param ... Arguments passed to [MatchRegionStats()].
 #'
 #' @return Returns a data frame
 #'
@@ -412,7 +412,7 @@ FindMotifs <- function(
 }
 
 #' @param name A vector of motif names
-#' @param id A vector of motif IDs. Only one of \code{name} and \code{id} should
+#' @param id A vector of motif IDs. Only one of `name` and `id` should
 #' be supplied
 #' @rdname ConvertMotifID
 #' @concept motifs
@@ -478,7 +478,7 @@ ConvertMotifID.StdAssay <- function(object, ...) {
   stop("Cannot run ConvertMotifID on an Assay5 object")
 }
 
-#' @param assay For \code{Seurat} object. Name of assay to use.
+#' @param assay For `Seurat` object. Name of assay to use.
 #' If NULL, use the default assay
 #'
 #' @importFrom SeuratObject DefaultAssay
@@ -504,9 +504,11 @@ ConvertMotifID.Seurat <- function(object, assay = NULL, ...) {
 #' itself
 #' @param assay Name of assay to use. Must be a ChromatinAssay
 #' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{\link{FeatureMatrix}}
+#' @param ... Additional arguments passed to [FeatureMatrix()]
 #' 
 #' @return Returns a list of sparse matrices
+#' 
+#' `r lifecycle::badge("deprecated")`
 #' 
 #' @importFrom SeuratObject DefaultAssay
 #' @concept motifs
@@ -519,6 +521,7 @@ MotifCounts <- function(
   verbose = TRUE,
   ...
 ) {
+  lifecycle::deprecate_soft(when = "1.17.0", what = "MotifCounts()")
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   cells.use <- colnames(x = object)
   fraglist <- Fragments(object = object[[assay]])

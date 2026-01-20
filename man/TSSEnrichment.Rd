@@ -22,7 +22,7 @@ TSSEnrichment(
 \item{tss.positions}{A GRanges object containing the TSS positions. If NULL,
 use the genomic annotations stored in the assay.}
 
-\item{n}{Number of TSS positions to use. This will select the first _n_
+\item{n}{Number of TSS positions to use. This will select the first \emph{n}
 TSSs from the set. If NULL, use all TSSs (slower).}
 
 \item{fast}{Just compute the TSS enrichment score, without storing the
@@ -44,7 +44,7 @@ option.}
 in which to calculate enrichment and background.}
 }
 \value{
-Returns a \code{\link[SeuratObject]{Seurat}} object
+Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
 }
 \description{
 Compute the transcription start site (TSS) enrichment score for each cell,

@@ -14,7 +14,7 @@ used to separate chromosome and coordinates, second separator is used to
 separate start and end coordinates.}
 
 \item{...}{Additional arguments passed to
-\code{\link[GenomicRanges]{makeGRangesFromDataFrame}}}
+\code{\link[GenomicRanges:makeGRangesFromDataFrame]{GenomicRanges::makeGRangesFromDataFrame()}}}
 }
 \value{
 Returns a GRanges object

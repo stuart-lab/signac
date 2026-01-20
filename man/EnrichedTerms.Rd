@@ -31,7 +31,7 @@ identities.}
 \item{var.features}{Subset to only variable features for ontology term
 enrichment.}
 
-\item{scoreType}{\code{scoreType} parameter for \code{\link[fgsea]{fgseaSimple}}.
+\item{scoreType}{\code{scoreType} parameter for \code{\link[fgsea:fgseaSimple]{fgsea::fgseaSimple()}}.
 Options are "std", "pos", "neg" (two-tailed or one-tailed tests).}
 
 \item{top.n}{Number of top enriched terms to retain for each set of cells. If
@@ -39,7 +39,7 @@ NULL, retain all terms.}
 
 \item{verbose}{Display messages.}
 
-\item{...}{Additional arguments passed to \code{\link[Seurat]{FindMarkers}}}
+\item{...}{Additional arguments passed to \code{\link[Seurat:FindMarkers]{Seurat::FindMarkers()}}}
 }
 \value{
 Returns a named list of dataframes. Each element of the list contains
@@ -47,6 +47,6 @@ a dataframe with the term enrichment results for an identity class.
 }
 \description{
 Run ontology term enrichment testing on differential features for each of the
-identity classes. Runs \code{\link[fgsea]{fgsea}} on differential testing
+identity classes. Runs \code{\link[fgsea:fgsea]{fgsea::fgsea()}} on differential testing
 results from each identity class.
 }

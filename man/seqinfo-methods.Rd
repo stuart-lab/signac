@@ -83,15 +83,15 @@
 \S4method{isCircular}{Seurat}(x) <- value
 }
 \arguments{
-\item{x}{A \code{\link{ChromatinAssay}} object}
+\item{x}{A \code{\link[=ChromatinAssay]{ChromatinAssay()}} object}
 
 \item{value}{A \code{Seqinfo} object or name of a UCSC
-genome to store in the \code{\link{ChromatinAssay}}}
+genome to store in the \code{\link[=ChromatinAssay]{ChromatinAssay()}}}
 }
 \description{
 Methods for accessing and modifying
 \code{Seqinfo} object information stored in a
-\code{\link{ChromatinAssay}} object.
+\code{\link[=ChromatinAssay]{ChromatinAssay()}} object.
 }
 \section{Functions}{
 \itemize{
@@ -144,8 +144,8 @@ Methods for accessing and modifying
 }}
 \seealso{
 \itemize{
-  \item{seqinfo in the \pkg{GenomeInfoDb} package.}
-  \item{\link{ChromatinAssay-class}}
- }
+\item{seqinfo in the \pkg{GenomeInfoDb} package.}
+\item{\linkS4class{ChromatinAssay}}
+}
 }
 \concept{seqinfo}

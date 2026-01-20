@@ -16,7 +16,7 @@ setClassUnion(name = "AnyMatrix", c("matrix", "dgCMatrix"))
 #' fragment files.
 #'
 #' @slot path Path to the fragment file on disk.
-#' See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
+#' See <https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments>
 #' @slot hash A vector of two md5sums: first element is the md5sum of the
 #' fragment file, the second element is the md5sum of the index.
 #' @slot cells A named vector of cells where each element is the cell barcode
@@ -47,7 +47,7 @@ Fragment <- setClass(
 #' genomic feature contains the motif, and 0 otherwise.
 #' @slot pwm A named list of position weight matrices
 #' @slot motif.names A list containing the name of each motif
-#' @slot positions A \code{\link[GenomicRanges]{GRangesList}} object containing
+#' @slot positions A [GenomicRanges::GRangesList()] object containing
 #' exact positions of each motif.
 #' @slot meta.data A dataframe for storage of additional
 #' information related to each motif. This could include the
@@ -70,16 +70,16 @@ Motif <- setClass(
 
 #' The ChromatinAssay class
 #'
-#' The ChromatinAssay object is an extended \code{\link[SeuratObject]{Assay}}
+#' The ChromatinAssay object is an extended [SeuratObject::Assay()]
 #' for the storage and analysis of single-cell chromatin data.
 #'
-#' @slot ranges A \code{\link[GenomicRanges]{GRanges}} object describing the
+#' @slot ranges A [GenomicRanges::GRanges()] object describing the
 #' genomic location of features in the object
-#' @slot motifs A \code{\link{Motif}} object
-#' @slot fragments A list of \code{\link{Fragment}} objects.
-#' @slot seqinfo A \code{Seqinfo} object containing basic
+#' @slot motifs A [Motif()] object
+#' @slot fragments A list of [Fragment()] objects.
+#' @slot seqinfo A `Seqinfo` object containing basic
 #' information about the genome sequence used.
-#' @slot annotation A  \code{\link[GenomicRanges]{GRanges}} object containing
+#' @slot annotation A  [GenomicRanges::GRanges()] object containing
 #' genomic annotations. This should be a GRanges object with the following 
 #' columns:
 #' \itemize{
@@ -93,9 +93,9 @@ Motif <- setClass(
 #' (frequency of Tn5 integration at different kmers)
 #' @slot positionEnrichment A named list of matrices containing positional
 #' enrichment scores for Tn5 integration (for example, enrichment at the TSS)
-#' @slot links A \code{\link[GenomicRanges]{GRanges}} object describing linked
+#' @slot links A [GenomicRanges::GRanges()] object describing linked
 #' genomic positions, such as co-accessible sites or enhancer-gene regulatory
-#' relationships. This should be a \code{GRanges} object, where the start and
+#' relationships. This should be a `GRanges` object, where the start and
 #' end coordinates are the two linked genomic positions, and must contain a
 #' "score" metadata column.
 #'
@@ -121,7 +121,7 @@ ChromatinAssay <- setClass(
 
 #' Create ChromatinAssay object
 #'
-#' Create a \code{\link{ChromatinAssay}} object from a count matrix or
+#' Create a [ChromatinAssay()] object from a count matrix or
 #' normalized data matrix. The expected format of the input matrix is features x
 #' cells. A set of genomic ranges must be supplied along with the matrix, with
 #' the length of the ranges equal to the number of rows in the matrix. If a set
@@ -143,19 +143,19 @@ ChromatinAssay <- setClass(
 #' If NULL (default), do not apply any maximum value.
 #' @param min.features Include cells where at least this many features are
 #' detected.
-#' @param ranges A set of \code{\link[GenomicRanges]{GRanges}} corresponding to
+#' @param ranges A set of [GenomicRanges::GRanges()] corresponding to
 #' the rows of the input matrix
 #' @param motifs A Motif object (not required)
 #' @param fragments Path to a tabix-indexed fragments file for the data
 #' contained in the input matrix. If multiple fragment files are required,
-#' you can add additional \code{\link{Fragment}} object to the assay after it is
-#' created using the \code{\link{CreateFragmentObject}} and
-#' \code{\link{Fragments}} functions. Alternatively, a list of
-#' \code{\link{Fragment}} objects can be provided.
-#' @param genome A \code{Seqinfo} object containing basic
+#' you can add additional [Fragment()] object to the assay after it is
+#' created using the [CreateFragmentObject()] and
+#' [Fragments()] functions. Alternatively, a list of
+#' [Fragment()] objects can be provided.
+#' @param genome A `Seqinfo` object containing basic
 #' information about the genome used. Alternatively, the name of a UCSC genome
 #' can be provided and the sequence information will be downloaded from UCSC.
-#' @param annotation A set of \code{\link[GenomicRanges]{GRanges}} containing
+#' @param annotation A set of [GenomicRanges::GRanges()] containing
 #' annotations for the genome used. It must have the following columns:
 #' \itemize{
 #'   \item{tx_id or transcript_id: Transcript ID}
@@ -171,11 +171,11 @@ ChromatinAssay <- setClass(
 #' @param sep Separators to use for strings encoding genomic coordinates.
 #' First element is used to separate the chromosome from the coordinates,
 #' second element is used to separate the start from end coordinate. Only
-#' used if \code{ranges} is NULL.
+#' used if `ranges` is NULL.
 #' @param validate.fragments Check that cells in the assay are present in the
 #' fragment file.
 #' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{\link{CreateFragmentObject}}
+#' @param ... Additional arguments passed to [CreateFragmentObject()]
 #'
 #' @importFrom SeuratObject CreateAssayObject
 #' @importFrom Matrix rowSums colSums
@@ -363,7 +363,7 @@ CreateChromatinAssay <- function(
 }
 
 #' @param ranges A GRanges object
-#' @param seqinfo A \code{Seqinfo} object containing basic
+#' @param seqinfo A `Seqinfo` object containing basic
 #' information about the genome used. Alternatively, the name of a UCSC genome
 #' can be provided and the sequence information will be downloaded from UCSC.
 #' @param annotation Genomic annotation. It must have the following columns:
@@ -374,8 +374,8 @@ CreateChromatinAssay <- function(
 #'   \item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
 #'   \item{type: Annotation type (e.g. "exon", "gap")}
 #' }
-#' @param motifs A \code{\link{Motif}} object
-#' @param fragments A list of \code{\link{Fragment}} objects
+#' @param motifs A [Motif()] object
+#' @param fragments A list of [Fragment()] objects
 #' @param bias Tn5 integration bias matrix
 #' @param positionEnrichment A named list of position enrichment matrices.
 #' @param sep Characters used to separate the chromosome, start, and end
@@ -478,22 +478,22 @@ setAs(
 
 #' Create motif object
 #'
-#' Create a \code{\link{Motif-class}} object.
+#' Create a [Motif-class()] object.
 #'
 #' @param data A motif x region matrix
 #' @param pwm A named list of position weight matrices or position frequency
-#' matrices matching the motif names in \code{data}.
+#' matrices matching the motif names in `data`.
 #' Can be of class PFMatrixList.
 #' @param motif.names A named list of motif names. List element names
-#' must match the names given in \code{pwm}. If NULL, use the names from the
+#' must match the names given in `pwm`. If NULL, use the names from the
 #' list of position weight or position frequency matrices. This can be used to
 #' set a alternative common name for the motif. If a PFMatrixList is passed to
-#' \code{pwm}, it will pull the motif name from the PFMatrixList.
-#' @param positions A \code{\link[GenomicRanges]{GRangesList}} object containing
+#' `pwm`, it will pull the motif name from the PFMatrixList.
+#' @param positions A [GenomicRanges::GRangesList()] object containing
 #' exact positions of each motif.
 #' @param meta.data A data.frame containing metadata
 #' @export
-#' @return Returns a \code{\link{Motif}} object
+#' @return Returns a [Motif()] object
 #' @concept motifs
 #' @examples
 #' motif.matrix <- matrix(
@@ -708,9 +708,9 @@ LayerData.ChromatinAssay <- function(
 
 #' Get Fragment object data
 #'
-#' Extract data from a \code{\link{Fragment-class}} object
+#' Extract data from a [Fragment-class()] object
 #'
-#' @param object A \code{\link{Fragment}} object
+#' @param object A [Fragment()] object
 #' @param slot Information to pull from object (path, hash, cells, prefix, suffix)
 #' @export
 #' @concept assay
@@ -1106,7 +1106,7 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
 
 #' Subset a Motif object
 #'
-#' Returns a subset of a \code{\link{Motif-class}} object.
+#' Returns a subset of a [Motif-class()] object.
 #'
 #' @param x A Motif object
 #' @param features Which features to retain
@@ -1115,8 +1115,8 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
 #'
 #' @method subset Motif
 #'
-#' @seealso \code{\link[base]{subset}}
-#' @return Returns a subsetted \code{\link{Motif}} object
+#' @seealso [base::subset()]
+#' @return Returns a subsetted [Motif()] object
 #' @export
 #' @concept motifs
 #' @examples
@@ -1228,7 +1228,7 @@ subset.ChromatinAssay <- function(
 
 #' Subset a Fragment object
 #'
-#' Returns a subset of a \code{\link{Fragment-class}} object.
+#' Returns a subset of a [Fragment-class()] object.
 #'
 #' @param x A Fragment object
 #' @param cells Vector of cells to retain
@@ -1237,8 +1237,8 @@ subset.ChromatinAssay <- function(
 #' @method subset Fragment
 #'
 #' @importFrom fastmatch fmatch
-#' @seealso \code{\link[base]{subset}}
-#' @return Returns a subsetted \code{\link{Fragment}} object
+#' @seealso [base::subset()]
+#' @return Returns a subsetted [Fragment()] object
 #' @export
 #' @concept fragments
 #' @examples

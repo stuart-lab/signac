@@ -11,18 +11,18 @@ TSSPlot(object, assay = NULL, group.by = NULL, idents = NULL)
 
 \item{assay}{Name of the assay to use. Should have the TSS enrichment
 information for each cell
-already computed by running \code{\link{TSSEnrichment}}}
+already computed by running \code{\link[=TSSEnrichment]{TSSEnrichment()}}}
 
 \item{group.by}{Set of identities to group cells by}
 
 \item{idents}{Set of identities to include in the plot}
 }
 \value{
-Returns a \code{\link[ggplot2]{ggplot2}} object
+Returns a \code{\link[ggplot2:ggplot2-package]{ggplot2::ggplot2()}} object
 }
 \description{
 Plot the normalized TSS enrichment score at each position relative to the
-TSS. Requires that \code{\link{TSSEnrichment}} has already been run on the
+TSS. Requires that \code{\link[=TSSEnrichment]{TSSEnrichment()}} has already been run on the
 assay.
 }
 \concept{qc}

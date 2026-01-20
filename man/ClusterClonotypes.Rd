@@ -15,7 +15,7 @@ ClusterClonotypes(object, assay = NULL, group.by = NULL)
 }
 \value{
 Returns a list containing two objects of class
-\code{\link[stats]{hclust}}, one for the cell clustering and one for the
+\code{\link[stats:hclust]{stats::hclust()}}, one for the cell clustering and one for the
 feature (allele) clustering
 }
 \description{

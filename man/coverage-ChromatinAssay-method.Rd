@@ -23,22 +23,22 @@
 )
 }
 \arguments{
-\item{x}{A \code{\link{ChromatinAssay}} object}
+\item{x}{A \code{\link[=ChromatinAssay]{ChromatinAssay()}} object}
 
 \item{shift}{How much each range should be shifted before coverage is
-computed. See \code{\link[IRanges]{coverage}} in the \pkg{IRanges} package.}
+computed. See \code{\link[IRanges:coverage-methods]{IRanges::coverage()}} in the \pkg{IRanges} package.}
 
 \item{width}{Specifies the length of the returned coverage vectors.
-See \code{\link[IRanges]{coverage}} in the \pkg{IRanges} package.}
+See \code{\link[IRanges:coverage-methods]{IRanges::coverage()}} in the \pkg{IRanges} package.}
 
 \item{weight}{Assigns weight to each range in \code{x}.
-See \code{\link[IRanges]{coverage}} in the \pkg{IRanges} package.}
+See \code{\link[IRanges:coverage-methods]{IRanges::coverage()}} in the \pkg{IRanges} package.}
 
-\item{method}{See \code{\link[IRanges]{coverage}} in the \pkg{IRanges}
+\item{method}{See \code{\link[IRanges:coverage-methods]{IRanges::coverage()}} in the \pkg{IRanges}
 package}
 }
 \description{
-This is the \code{coverage} method for \code{\link{ChromatinAssay}} objects.
+This is the \code{coverage} method for \code{\link[=ChromatinAssay]{ChromatinAssay()}} objects.
 }
 \section{Functions}{
 \itemize{
@@ -49,10 +49,10 @@ This is the \code{coverage} method for \code{\link{ChromatinAssay}} objects.
 }}
 \seealso{
 \itemize{
-  \item{\link[IRanges]{coverage-methods} in the \pkg{IRanges} package.}
-  \item{\link[GenomicRanges]{coverage-methods} in the \pkg{GenomicRanges}
-  package}
-  \item{\link{ChromatinAssay-class}}
- }
+\item{\link[IRanges:coverage-methods]{coverage-methods} in the \pkg{IRanges} package.}
+\item{\link[GenomicRanges:coverage-methods]{coverage-methods} in the \pkg{GenomicRanges}
+package}
+\item{\linkS4class{ChromatinAssay}}
+}
 }
 \concept{coverage}

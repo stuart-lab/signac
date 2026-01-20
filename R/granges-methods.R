@@ -5,23 +5,23 @@ NULL
 
 #' Access genomic ranges for ChromatinAssay objects
 #'
-#' Methods for accessing \code{\link[GenomicRanges]{GRanges}} object
-#' information stored in a \code{\link{ChromatinAssay}} object.
+#' Methods for accessing [GenomicRanges::GRanges()] object
+#' information stored in a [ChromatinAssay()] object.
 #'
 #' @name granges-methods
-#' @param x A \code{\link{ChromatinAssay}} object
+#' @param x A [ChromatinAssay()] object
 #' @param use.names Whether the names on the genomic ranges should be
 #' propagated to the returned object.
-#' @param use.mcols Not supported for \code{\link{ChromatinAssay}} objects
+#' @param use.mcols Not supported for [ChromatinAssay()] objects
 #' @param ... Additional arguments
 #'
-#' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
+#' @return Returns a [GenomicRanges::GRanges()] object
 #'
 #' @aliases granges granges,ChromatinAssay-method
 #' @seealso
 #' \itemize{
-#'   \item{\link[GenomicRanges]{granges} in the \pkg{GenomicRanges} package.}
-#'   \item{\link{ChromatinAssay-class}}
+#'   \item{[granges][GenomicRanges::granges] in the \pkg{GenomicRanges} package.}
+#'   \item{[ChromatinAssay-class]}
 #'  }
 #' @exportMethod granges
 #' @concept granges

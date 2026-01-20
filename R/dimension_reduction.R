@@ -49,7 +49,7 @@ Jaccard <- function(x, y) {
 #' Default (NULL) is no clipping.
 #' @param scale.embeddings Scale cell embeddings within each component to
 #' mean 0 and SD 1 (default TRUE).
-#' @param tol Tolerance (tol) parameter for \code{\link[RSpectra]{svds}}.
+#' @param tol Tolerance (tol) parameter for [RSpectra::svds()].
 #' Larger values speed up convergence due to greater amount of allowed error.
 #' @param pca Run PCA. Setting this option to TRUE will perform implicit scaling
 #' and centering of the input matrix to enable memory-efficient computation of

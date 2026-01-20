@@ -18,7 +18,7 @@ NULL
 #' @method AggregateTiles Seurat
 #' @concept quantification
 #' @return When running on a Seurat object, returns the Seurat object with a new
-#' \code{\link{ChromatinAssay}} added.
+#' [ChromatinAssay()] added.
 AggregateTiles.Seurat <- function(
   object,
   genome,
@@ -45,8 +45,8 @@ AggregateTiles.Seurat <- function(
 #' @export
 #' @method AggregateTiles ChromatinAssay
 #' @concept quantification
-#' @return When running on a \code{\link{ChromatinAssay}}, returns a new
-#' \code{ChromatinAssay} containing the aggregated genome tiles.
+#' @return When running on a [ChromatinAssay()], returns a new
+#' `ChromatinAssay` containing the aggregated genome tiles.
 AggregateTiles.ChromatinAssay <- function(
   object,
   genome,
@@ -120,15 +120,15 @@ AggregateTiles.default <- function(
 #'
 #' Construct a bin x cell matrix from a fragments file.
 #'
-#' This function bins the genome and calls \code{\link{FeatureMatrix}} to
+#' This function bins the genome and calls [FeatureMatrix()] to
 #' construct a bin x cell matrix.
 #'
 #' @param fragments Path to tabix-indexed fragments file or a list of
-#' \code{\link{Fragment}} objects
+#' [Fragment()] objects
 #' @param genome A vector of chromosome sizes for the genome. This is used to
 #' construct the genome bin coordinates. The can be obtained by calling
-#' \code{seqlengths} on a
-#' \code{\link[BSgenome]{BSgenome-class}} object.
+#' `seqlengths` on a
+#' [BSgenome::BSgenome-class()] object.
 #' @param cells Vector of cells to include. If NULL, include all cells found
 #' in the fragments file
 #' @param binsize Size of the genome bins to use
@@ -184,10 +184,10 @@ GenomeBinMatrix <- function(
 #'
 #' Construct a feature x cell matrix from a genomic fragments file
 #'
-#' @param fragments A list of \code{\link{Fragment}} objects. Note that if
-#' setting the \code{cells} parameter, the requested cells should be present in
-#' the supplied \code{Fragment} objects. However, if the cells information in
-#' the fragment object is not set (\code{Cells(fragments)} is \code{NULL}), then
+#' @param fragments A list of [Fragment()] objects. Note that if
+#' setting the `cells` parameter, the requested cells should be present in
+#' the supplied `Fragment` objects. However, if the cells information in
+#' the fragment object is not set (`Cells(fragments)` is `NULL`), then
 #' the fragment object will still be searched.
 #' @param features A GRanges object containing a set of genomic intervals.
 #' These will form the rows of the matrix, with each entry recording the number

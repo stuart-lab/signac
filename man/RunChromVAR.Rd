@@ -23,7 +23,7 @@ RunChromVAR(object, ...)
 \item{object}{A Seurat object}
 
 \item{...}{Additional arguments passed to
-\code{\link[chromVAR]{getBackgroundPeaks}}}
+\code{\link[chromVAR:getBackgroundPeaks]{chromVAR::getBackgroundPeaks()}}}
 
 \item{genome}{A \code{BSgenome} object or string stating the genome build
 recognized by \code{getBSgenome}.}
@@ -39,10 +39,10 @@ matrix from a Motif object stored in the assay.}
 Default is "chromvar".}
 }
 \value{
-Returns a \code{\link[SeuratObject]{Seurat}} object with a new assay
+Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object with a new assay
 }
 \description{
-Wrapper to run \code{\link[chromVAR]{chromVAR}} on an assay with a motif
+Wrapper to run \code{\link[chromVAR:chromVAR]{chromVAR::chromVAR()}} on an assay with a motif
 object present. Will return a new Seurat assay with the motif activities
 (the deviations in chromatin accessibility across the set of regions) as
 a new assay.

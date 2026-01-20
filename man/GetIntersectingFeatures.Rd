@@ -27,7 +27,9 @@ the default assay}
 \item{distance}{Maximum distance between regions allowed for an intersection
 to be recorded. Default is 0.}
 
-\item{verbose}{Display messages}
+\item{verbose}{Display messages
+
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}}
 }
 \value{
 Returns a list of two character vectors containing the row names
