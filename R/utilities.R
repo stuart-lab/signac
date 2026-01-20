@@ -189,30 +189,30 @@ CellsPerGroup <- function(
 
 #' Sorts cell metadata variable by similarity using hierarchical clustering
 #'
-#' Compute distance matrix from a feature/variable matrix and 
+#' Compute distance matrix from a feature/variable matrix and
 #' perform hierarchical clustering to order variables (for example, cell types)
-#' according to their similarity. 
+#' according to their similarity.
 #'
 #' @param object A Seurat object containing single-cell data.
 #' @param layer The layer of the data to use (default is "data").
 #' @param assay Name of assay to use. If NULL, use the default assay
-#' @param label Metadata attribute to sort. If NULL, 
+#' @param label Metadata attribute to sort. If NULL,
 #' uses the active identities.
 #' @param dendrogram Logical, whether to plot the dendrogram (default is FALSE).
 #' @param method The distance method to use for hierarchical clustering
 #' (default is 'euclidean', other options from \code{\link[stats]{dist}} are
 #' 'maximum', 'manhattan', 'canberra', 'binary' and 'minkowski').
 #' @param verbose Display messages
-#' 
+#'
 #' @return The Seurat object with metadata variable reordered by similarity.
 #' If the metadata variable was a character vector, it will be converted to a
 #' factor and the factor levels set according to the similarity ordering. If
 #' active identities were used (label=NULL), the levels will be updated according
 #' to similarity ordering.
-#' 
+#'
 #' @examples
 #' atac_small$test <- sample(1:10, ncol(atac_small), replace = TRUE)
-#' atac_small <- SortIdents(object = atac_small, label = 'test')
+#' atac_small <- SortIdents(object = atac_small, label = "test")
 #' print(levels(atac_small$test))
 #'
 #' @importFrom stats dist hclust
@@ -220,23 +220,27 @@ CellsPerGroup <- function(
 #' @concept utilities
 #' @export
 SortIdents <- function(
-    object,
-    layer = "data",
-    assay = NULL,
-    label = NULL,
-    dendrogram = FALSE,
-    method = 'euclidean',
-    verbose = TRUE
-){
-  allowed.methods <- c("euclidean", "maximum", "manhattan",
-                       "canberra", "binary", "minkowski")
+  object,
+  layer = "data",
+  assay = NULL,
+  label = NULL,
+  dendrogram = FALSE,
+  method = "euclidean",
+  verbose = TRUE
+) {
+  allowed.methods <- c(
+    "euclidean", "maximum", "manhattan",
+    "canberra", "binary", "minkowski"
+  )
   if (!(method %in% allowed.methods)) {
-    stop("Selected method must be one of: ",
-         paste(allowed.methods, collapse = ", "))
+    stop(
+      "Selected method must be one of: ",
+      paste(allowed.methods, collapse = ", ")
+    )
   }
   if (is.null(x = label)) {
     cell_types <- Idents(object = object)
-    uniq_cell_types = unique(x = cell_types)
+    uniq_cell_types <- unique(x = cell_types)
   } else {
     if (length(x = label) > 1) {
       stop("Label must be a single character vector or NULL")
@@ -245,9 +249,9 @@ SortIdents <- function(
       stop("Requested metadata '", label, "' not present in object")
     }
     cell_types <- object[[label]]
-    uniq_cell_types = unique(x = cell_types[, 1])
+    uniq_cell_types <- unique(x = cell_types[, 1])
   }
-  
+
   if (length(x = uniq_cell_types) / ncol(x = object) > 0.7) {
     stop("Most cells have a different value for the requested metadata variable.
            Are you sure this is a categorical variable?")
@@ -256,18 +260,20 @@ SortIdents <- function(
     stop("Must have more than three different variables")
   }
   if (verbose) {
-    message("Creating pseudobulk profiles for ",
-            length(x = unique(x = Idents(object = object))),
-            " cell groups")
+    message(
+      "Creating pseudobulk profiles for ",
+      length(x = unique(x = Idents(object = object))),
+      " cell groups"
+    )
   }
-  
+
   pseudobulk <- AverageCountMatrix(
     object = object,
     assay = assay,
     group.by = label,
     layer = layer
   )
-  
+
   # Calculate distance matrix and perform hierarchical clustering
   if (verbose) {
     message("Computing ", method, " distance between pseudobulk profiles")
@@ -277,20 +283,26 @@ SortIdents <- function(
     message("Clustering distance matrix")
   }
   hc <- hclust(d = distance_matrix)
-  
-  if (dendrogram){
-    plot(hc, main = paste0("Assay: ", assay, "   Layer: ", layer), 
-         xlab = label %||% "Idents",
-         sub = "", cex = 0.9)
+
+  if (dendrogram) {
+    plot(hc,
+      main = paste0("Assay: ", assay, "   Layer: ", layer),
+      xlab = label %||% "Idents",
+      sub = "", cex = 0.9
+    )
   }
-  
+
   ordered_cell_types <- uniq_cell_types[hc$order]
   if (is.null(x = label)) {
-    Idents(object = object) <- factor(x = Idents(object = object), 
-                                      levels = ordered_cell_types)
+    Idents(object = object) <- factor(
+      x = Idents(object = object),
+      levels = ordered_cell_types
+    )
   } else {
-    object[[label]] <- factor(x = object[[label]][, 1], 
-                              levels = ordered_cell_types)
+    object[[label]] <- factor(
+      x = object[[label]][, 1],
+      levels = ordered_cell_types
+    )
   }
   return(object)
 }
@@ -298,11 +310,11 @@ SortIdents <- function(
 #' @importFrom SeuratObject DefaultAssay LayerData Layers
 #' @importFrom Matrix Diagonal tcrossprod rowSums
 AverageCountMatrix <- function(
-    object,
-    layer = "counts",
-    assay = NULL,
-    group.by = NULL,
-    idents = NULL
+  object,
+  layer = "counts",
+  assay = NULL,
+  group.by = NULL,
+  idents = NULL
 ) {
   assay <- assay %||% DefaultAssay(object = object)
   if (!(layer %in% Layers(object = object[[assay]]))) {
@@ -346,14 +358,14 @@ BinaryIdentMatrix <- function(object, group.by = NULL, idents = NULL) {
 }
 
 #' Sparse matrix correlation
-#' 
+#'
 #' Compute the Pearson correlation matrix between
 #' columns of two sparse matrices.
-#' 
-#' Originally from 
+#'
+#' Originally from
 #' \url{https://stackoverflow.com/questions/5888287/running-cor-or-any-variant-over-a-sparse-matrix-in-r}
 #' and the qlcMatrix package.
-#' 
+#'
 #' @param X A matrix
 #' @param Y A matrix
 #' @param cov return covariance matrix
@@ -372,19 +384,19 @@ corSparse <- function(X, Y = NULL, cov = FALSE) {
   X <- as(object = X, Class = "CsparseMatrix")
   n <- nrow(x = X)
   muX <- colMeans(x = X)
-  
+
   if (!is.null(x = Y)) {
     if (nrow(x = X) != nrow(x = Y)) {
       stop("Matrices must contain the same number of rows")
     }
     Y <- as(object = Y, Class = "CsparseMatrix")
     muY <- colMeans(x = Y)
-    covmat <- ( as.matrix(x = crossprod(x = X, y = Y)) - n * tcrossprod(x = muX, y = muY) ) / (n-1)
-    sdvecX <- sqrt( (colSums(x = X^2) - n*muX^2) / (n-1) )
-    sdvecY <- sqrt( (colSums(x = Y^2) - n*muY^2) / (n-1) )
+    covmat <- (as.matrix(x = crossprod(x = X, y = Y)) - n * tcrossprod(x = muX, y = muY)) / (n - 1)
+    sdvecX <- sqrt((colSums(x = X^2) - n * muX^2) / (n - 1))
+    sdvecY <- sqrt((colSums(x = Y^2) - n * muY^2) / (n - 1))
     cormat <- covmat / tcrossprod(x = sdvecX, y = sdvecY)
-  } else {		
-    covmat <- ( as.matrix(crossprod(x = X)) - n * tcrossprod(x = muX) ) / (n-1)
+  } else {
+    covmat <- (as.matrix(crossprod(x = X)) - n * tcrossprod(x = muX)) / (n - 1)
     sdvec <- sqrt(x = diag(x = covmat))
     cormat <- covmat / tcrossprod(x = sdvec)
   }
@@ -420,24 +432,27 @@ GetGRangesFromEnsDb <- function(
   verbose = TRUE
 ) {
   if (!requireNamespace("biovizBase", quietly = TRUE)) {
-    stop("Please install biovizBase\n",
-         "https://www.bioconductor.org/packages/biovizBase/")
+    stop(
+      "Please install biovizBase\n",
+      "https://www.bioconductor.org/packages/biovizBase/"
+    )
   }
   # convert seqinfo to granges
-  whole.genome <-  as(object = seqinfo(x = ensdb), Class = "GRanges")
+  whole.genome <- as(object = seqinfo(x = ensdb), Class = "GRanges")
   if (standard.chromosomes) {
     whole.genome <- keepStandardChromosomes(whole.genome, pruning.mode = "coarse")
   }
 
   # extract genes from each chromosome
   my_lapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
-  tx <- my_lapply(X = seq_along(whole.genome), FUN = function(x){
-        suppressMessages(expr = biovizBase::crunch(
-          obj = ensdb,
-          which = whole.genome[x],
-          columns = c("tx_id", "gene_name", "gene_id", "gene_biotype")))
-      })
-  
+  tx <- my_lapply(X = seq_along(whole.genome), FUN = function(x) {
+    suppressMessages(expr = biovizBase::crunch(
+      obj = ensdb,
+      which = whole.genome[x],
+      columns = c("tx_id", "gene_name", "gene_id", "gene_biotype")
+    ))
+  })
+
   # combine
   tx <- do.call(what = c, args = tx)
   tx <- tx[tx$gene_biotype %in% biotypes]
@@ -464,12 +479,12 @@ GetTSSPositions <- function(ranges, biotypes = "protein_coding") {
   if (!("gene_biotype" %in% colnames(x = mcols(x = ranges)))) {
     stop("Gene annotation does not contain gene_biotype information")
   }
-  if (!is.null(x = biotypes)){
+  if (!is.null(x = biotypes)) {
     ranges <- ranges[ranges$gene_biotype == "protein_coding"]
   }
   gene.ranges <- CollapseToLongestTranscript(ranges = ranges)
   # shrink to TSS position
-  tss <- resize(gene.ranges, width = 1, fix = 'start')
+  tss <- resize(gene.ranges, width = 1, fix = "start")
   return(tss)
 }
 
@@ -487,7 +502,7 @@ GetTSSPositions <- function(ranges, biotypes = "protein_coding") {
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @importFrom tidyr separate
 #' @examples
-#' regions <- c('chr1-1-10', 'chr2-12-3121')
+#' regions <- c("chr1-1-10", "chr2-12-3121")
 #' StringToGRanges(regions = regions)
 #' @export
 #' @concept utilities
@@ -595,7 +610,7 @@ Extend <- function(
 #' @concept utilities
 #' @return Returns a list
 #' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' GetCellsInRegion(tabix = fpath, region = "chr1-10245-762629")
 GetCellsInRegion <- function(tabix, region, cells = NULL) {
   if (!is(object = region, class2 = "GRanges")) {
@@ -655,9 +670,13 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
   if (length(x = annot.sub) == 0) {
     return(NULL)
   } else {
-    gr <- GRanges(seqnames = as.character(x = seqnames(x = annot.sub))[[1]],
-                  ranges = IRanges(start = min(start(x = annot.sub)),
-                                   end = max(end(x = annot.sub))))
+    gr <- GRanges(
+      seqnames = as.character(x = seqnames(x = annot.sub))[[1]],
+      ranges = IRanges(
+        start = min(start(x = annot.sub)),
+        end = max(end(x = annot.sub))
+      )
+    )
     return(gr)
   }
 }
@@ -695,14 +714,14 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
 #' @concept utilities
 #' @concept motifs
 #' @examples
-#' metafeatures <- atac_small[['peaks']][[]]
+#' metafeatures <- atac_small[["peaks"]][[]]
 #' query.feature <- metafeatures[1:10, ]
 #' features.choose <- metafeatures[11:nrow(metafeatures), ]
 #' MatchRegionStats(
-#' meta.feature = features.choose,
-#' query.feature = query.feature,
-#' features.match = "GC.percent",
-#' n = 10
+#'   meta.feature = features.choose,
+#'   query.feature = query.feature,
+#'   features.match = "GC.percent",
+#'   n = 10
 #' )
 MatchRegionStats <- function(
   meta.feature,
@@ -712,7 +731,7 @@ MatchRegionStats <- function(
   verbose = TRUE,
   ...
 ) {
-  if (!inherits(x = meta.feature, what = 'data.frame')) {
+  if (!inherits(x = meta.feature, what = "data.frame")) {
     stop("meta.feature should be a data.frame")
   }
   if (!inherits(x = query.feature, what = "data.frame")) {
@@ -721,37 +740,62 @@ MatchRegionStats <- function(
   if (length(x = features.match) == 0) {
     stop("Must supply at least one sequence characteristic to match")
   }
+
+  missing.q <- features.match[!(features.match %in% colnames(x = query.feature))]
+  missing.bg <- features.match[!(features.match %in% colnames(x = meta.feature))]
+  missing.feat <- unique(c(missing.bg, missing.q))
+
+  if (length(x = missing.feat) > 0) {
+    if ("GC.percent" %in% missing.feat) {
+      stop(
+        "GC.percent not present in meta.features.",
+        " Run RegionStats to compute GC.percent for each feature."
+      )
+    } else {
+      stop(paste(missing.feat, collapse = ", "), " not present in meta.features")
+    }
+  }
+
+  # check for missing values in query features
+  query.feature <- query.feature[, features.match, drop = FALSE]
+  if (any(is.na(x = query.feature))) {
+    stop("Query features contain NA values for requested features")
+  }
+
+  # remove features that have NA for any of the features to match
+  meta.feature <- na.omit(object = meta.feature[, features.match, drop = FALSE])
+  if (nrow(x = meta.feature) < n) {
+    n <- nrow(x = meta.feature)
+    warning("Requested more features than present in supplied data.
+            Returning ", n, " features")
+  }
+
+  # convert to uncorrelated variables
+  mat <- as.matrix(x = meta.feature)
+  chol_cov_mat <- chol(x = cov(x = mat))
+  trans_mf <- t(x = forwardsolve(l = t(x = chol_cov_mat), t(x = mat)))
+  colnames(x = trans_mf) <- features.match
+
+  # transform query features
+  q_mat <- as.matrix(x = query.feature)
+  trans_qf <- t(x = forwardsolve(l = t(x = chol_cov_mat), t(x = q_mat)))
+  colnames(x = trans_qf) <- features.match
+
+  # compute weights
   for (i in seq_along(along.with = features.match)) {
     featmatch <- features.match[[i]]
-    if (!(featmatch %in% colnames(x = query.feature))) {
-      if (featmatch == "GC.percent") {
-        stop("GC.percent not present in meta.features.",
-             " Run RegionStats to compute GC.percent for each feature.")
-      } else {
-        stop(featmatch, " not present in meta.features")
-      }
-    }
-    # remove features that have NA for any of the features to match
-    meta.feature <- na.omit(object = meta.feature[, features.match, drop = FALSE])
-    if (nrow(x = meta.feature) < n) {
-      n <- nrow(x = meta.feature)
-      warning("Requested more features than present in supplied data.
-            Returning ", n, " features")
-    }
+
     if (verbose) {
       message("Matching ", featmatch, " distribution")
     }
-    density.query <- density(
-      x = query.feature[[featmatch]], kernel = "gaussian", bw = 1
-    )
-    density.meta  <- density(
-      x = meta.feature[[featmatch]], kernel = "gaussian", bw = 1
-    )
-    
+
+    density.query <- density(x = trans_qf[, featmatch], kernel = "gaussian")
+    density.meta <- density(x = trans_mf[, featmatch], kernel = "gaussian")
+
     qvals <- approx(
       x = density.query$x,
       y = density.query$y,
-      xout = meta.feature[[featmatch]],
+      xout = trans_mf[, featmatch],
       yleft = 1e-6,
       yright = 1e-6
     )$y
@@ -759,21 +803,21 @@ MatchRegionStats <- function(
     mvals <- approx(
       x = density.meta$x,
       y = density.meta$y,
-      xout = meta.feature[[featmatch]],
+      xout = trans_mf[, featmatch],
       yleft = 1e-6,
       yright = 1e-6
     )$y
 
     weights <- qvals / mvals
     weights[!is.finite(weights)] <- 0
-    
+
     if (i > 1) {
       feature.weights <- feature.weights * weights
     } else {
       feature.weights <- weights
     }
   }
-  
+
   if (requireNamespace(package = "wrswoR", quietly = TRUE)) {
     feature.select <- wrswoR::sample_int_crank(
       n = nrow(x = meta.feature),
@@ -906,12 +950,14 @@ CollapseToLongestTranscript <- function(ranges) {
     no = range.df$strand
   )
   collapsed <- range.df[
-    , .(unique(seqnames),
-        min(start),
-        max(end),
-        strand[[1]],
-        gene_biotype[[1]],
-        gene_name[[1]]),
+    , .(
+      unique(seqnames),
+      min(start),
+      max(end),
+      strand[[1]],
+      gene_biotype[[1]],
+      gene_name[[1]]
+    ),
     "gene_id"
   ]
   colnames(x = collapsed) <- c(
@@ -963,14 +1009,14 @@ ChunkGRanges <- function(granges, nchunk) {
 # @param ncol Number of columns in the fragment file
 # @return Returns a string
 #' @importFrom stringi stri_split_fixed
-ExtractCell <- function(x, ncol=5) {
+ExtractCell <- function(x, ncol = 5) {
   if (length(x = x) == 0) {
     return(NULL)
   } else {
     x <- stri_split_fixed(str = x, pattern = "\t")
     n <- length(x = x)
     x <- unlist(x = x)
-    return(unlist(x = x)[ncol * (1:n) - (ncol-4)])
+    return(unlist(x = x)[ncol * (1:n) - (ncol - 4)])
   }
 }
 
@@ -1052,8 +1098,7 @@ FindRegion <- function(
     x = region,
     upstream = extend.upstream,
     downstream = extend.downstream
-  )
-  )
+  ))
   return(region)
 }
 
@@ -1066,7 +1111,7 @@ FindRegion <- function(
 # that appears in the fragment file and the name of each element is the
 # name of the cell in the Seurat object.
 # @param seqmap A mapping of sequence names in the fragment file to sequence
-# names in the peaks or gene annotations used in the Seurat object. Should be a 
+# names in the peaks or gene annotations used in the Seurat object. Should be a
 # named vector where each element is a sequence name that appears in the
 # fragment file and the name of each element is the name of the sequence in the
 # Seurat object.
@@ -1093,7 +1138,7 @@ GetReadsInRegion <- function(
 ) {
   file.to.object.cell <- names(x = cellmap)
   names(x = file.to.object.cell) <- cellmap
-  
+
   if (!is.null(x = seqmap)) {
     file.to.object.seqname <- names(x = seqmap)
     names(x = file.to.object.seqname) <- seqmap
@@ -1123,7 +1168,7 @@ GetReadsInRegion <- function(
     ]
     # convert cell names to match names in object
     reads$cell <- file.to.object.cell[reads$cell]
-    
+
     # convert seqnames to match names in object
     if (!is.null(x = seqmap)) {
       reads$chr <- file.to.object.seqname[reads$chr]
@@ -1240,7 +1285,7 @@ MultiGetReadsInRegion <- function(
 # that appears in the fragment file and the name of each element is the
 # name of the cell in the Seurat object.
 # @param seqmap A mapping of sequence names in the fragment file to sequence
-# names in the peaks or gene annotations used in the Seurat object. Should be a 
+# names in the peaks or gene annotations used in the Seurat object. Should be a
 # named vector where each element is a sequence name that appears in the
 # fragment file and the name of each element is the name of the sequence in the
 # Seurat object.
@@ -1293,7 +1338,7 @@ SingleFileCutMatrix <- function(
     )
     cut.df <- cut.df[
       (cut.df$position > 0) & (cut.df$position <= width(x = region)[[1]]),
-      ]
+    ]
     cell.vector <- seq_along(along.with = cells)
     names(x = cell.vector) <- cells
     cell.matrix.info <- cell.vector[cut.df$cell]
@@ -1597,7 +1642,7 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
   if (record.ident) {
     nrep <- elementNROWS(x = reads)
   }
-  original_names = names(reads)
+  original_names <- names(reads)
   reads <- unlist(x = reads, use.names = FALSE)
   if (length(x = reads) == 0 | is.null(x = original_names)) {
     df <- data.frame(
@@ -1652,15 +1697,16 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
 ExtractField <- function(string, field = 1, delim = "_") {
   fields <- as.numeric(
     x = unlist(x = stri_split_fixed(
-      str = as.character(x = field), pattern = ",")
-    )
+      str = as.character(x = field), pattern = ","
+    ))
   )
   if (length(x = fields) == 1) {
     return(stri_split_fixed(str = string, pattern = delim)[[1]][field])
   }
   return(paste(
     stri_split_fixed(str = string, pattern = delim)[[1]][fields],
-    collapse = delim))
+    collapse = delim
+  ))
 }
 
 # Check if a matrix is empty
@@ -1774,7 +1820,7 @@ PFMatrixToList <- function(x) {
 
 #' @importFrom Matrix rowMeans rowSums
 SparseRowVar <- function(x) {
-  return(rowSums(x = (x - rowMeans(x = x)) ^ 2) / (dim(x = x)[2] - 1))
+  return(rowSums(x = (x - rowMeans(x = x))^2) / (dim(x = x)[2] - 1))
 }
 
 #' @importMethodsFrom Matrix t
@@ -1794,7 +1840,7 @@ SparseColVar <- function(x) {
 # all also have a rank = (z+1)/2) where z is the number of zeros
 #
 # This rank matrix can then be used to calculate pearson correlation
-SparsifiedRanks <- function(X){
+SparsifiedRanks <- function(X) {
   if (!inherits(x = X, what = "CsparseMatrix")) {
     X <- as(object = X, Class = "CsparseMatrix")
   }
@@ -1812,8 +1858,8 @@ SparsifiedRanks <- function(X){
     x = lapply(
       X = seq_along(col_lst),
       FUN = function(i) rank(x = col_lst[[i]]) + offsets[i]
-      )
     )
+  )
   ## Create template rank matrix
   X.ranks <- X
   X.ranks@x <- sparsified_ranks
@@ -1823,10 +1869,10 @@ SparsifiedRanks <- function(X){
 SparseSpearmanCor <- function(X, Y = NULL, cov = FALSE) {
   # Get sparsified ranks
   rankX <- SparsifiedRanks(X = X)
-  if (is.null(Y)){
+  if (is.null(Y)) {
     # Calculate pearson correlation on rank matrices
-    return (corSparse(X = rankX, cov = cov))
-    }
+    return(corSparse(X = rankX, cov = cov))
+  }
   rankY <- SparsifiedRanks(X = Y)
   return(corSparse(X = rankX, Y = rankY, cov = cov))
 }
