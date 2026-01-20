@@ -9,45 +9,45 @@
 \title{ChromatinAssay5 and GRangesAssay object classes}
 \description{
 The \code{GRangesAssay} and \code{ChromatinAssay5} classes are extended
-\code{\link[SeuratObject]{Assay5}} classes for the storage and analysis of
+\code{\link[SeuratObject:Assay5-class]{SeuratObject::Assay5()}} classes for the storage and analysis of
 single-cell chromatin data. The \code{GRangesAssay} class requires that
 features in the assay are genomic ranges.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{fragments}}{A list of \code{\link{Fragment}} objects.}
+\item{\code{fragments}}{A list of \code{\link[=Fragment]{Fragment()}} objects.}
 
-\item{\code{annotation}}{A  \code{\link[GenomicRanges]{GRanges}} object containing
-genomic annotations. This should be a GRanges object with the following 
+\item{\code{annotation}}{A  \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object containing
+genomic annotations. This should be a GRanges object with the following
 columns:
 \itemize{
-  \item{tx_id: Transcript ID}
-  \item{gene_name: Gene name}
-  \item{gene_id: Gene ID}
-  \item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
-  \item{type: Annotation type (e.g. "exon", "gap")}
+\item{tx_id: Transcript ID}
+\item{gene_name: Gene name}
+\item{gene_id: Gene ID}
+\item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
+\item{type: Annotation type (e.g. "exon", "gap")}
 }}
 
 \item{\code{bias}}{A vector containing Tn5 integration bias information
-(frequency of Tn5 integration at different kmers). This must be a named 
+(frequency of Tn5 integration at different kmers). This must be a named
 numeric vector where the name of the element corresponds to the DNA sequence
 and the value represents the bias value. All DNA hexamers must be present in
 the vector.}
 
-\item{\code{region.aggregation}}{A list of \code{\link{RegionAggregation}} objects}
+\item{\code{region.aggregation}}{A list of \code{\link[=RegionAggregation]{RegionAggregation()}} objects}
 
-\item{\code{motifs}}{A \code{\link{Motif}} object}
+\item{\code{motifs}}{A \code{\link[=Motif]{Motif()}} object}
 
-\item{\code{links}}{A list of \code{\link[InteractionSet]{GInteractions}} objects
-describing linked genomic positions, such as co-accessible sites, eQTLs, 
+\item{\code{links}}{A list of \code{\link[InteractionSet:GInteractions-class]{InteractionSet::GInteractions()}} objects
+describing linked genomic positions, such as co-accessible sites, eQTLs,
 Hi-C contact, or enhancer-gene regulatory relationships.}
 
-\item{\code{ranges}}{A \code{\link[GenomicRanges]{GRanges}} object describing the
+\item{\code{ranges}}{A \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object describing the
 genomic location of features in the object}
 }}
 
 \seealso{
-\code{\link[SeuratObject]{Assay5}}
+\code{\link[SeuratObject:Assay5-class]{SeuratObject::Assay5()}}
 }
 \concept{assay}

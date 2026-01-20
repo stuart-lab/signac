@@ -26,7 +26,7 @@ Links(object, ...) <- value
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{A \code{\link[GenomicRanges]{GRanges}} object}
+\item{value}{A \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object}
 }
 \description{
 Get or set the genomic link information for a Seurat object or ChromatinAssay

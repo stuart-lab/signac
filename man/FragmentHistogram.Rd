@@ -33,7 +33,7 @@ cells by. Default is the current cell identities}
 \item{...}{Arguments passed to other functions}
 }
 \value{
-Returns a \code{\link[ggplot2]{ggplot}} object
+Returns a \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} object
 }
 \description{
 Plot the frequency that fragments of different lengths are present for

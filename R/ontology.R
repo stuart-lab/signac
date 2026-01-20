@@ -1,7 +1,7 @@
 #' Find enriched ontology terms
 #' 
 #' Run ontology term enrichment testing on differential features for each of the
-#' identity classes. Runs \code{\link[fgsea]{fgsea}} on differential testing
+#' identity classes. Runs [fgsea::fgsea()] on differential testing
 #' results from each identity class.
 #' 
 #' @param object A Seurat object.
@@ -13,12 +13,12 @@
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param var.features Subset to only variable features for ontology term
 #' enrichment.
-#' @param scoreType \code{scoreType} parameter for \code{\link[fgsea]{fgseaSimple}}.
+#' @param scoreType `scoreType` parameter for [fgsea::fgseaSimple()].
 #' Options are "std", "pos", "neg" (two-tailed or one-tailed tests).
 #' @param top.n Number of top enriched terms to retain for each set of cells. If
 #' NULL, retain all terms.
 #' @param verbose Display messages.
-#' @param ... Additional arguments passed to \code{\link[Seurat]{FindMarkers}}
+#' @param ... Additional arguments passed to [Seurat::FindMarkers()]
 #' 
 #' @importFrom SeuratObject VariableFeatures Idents RenameIdents DefaultAssay
 #' @importFrom utils txtProgressBar setTxtProgressBar

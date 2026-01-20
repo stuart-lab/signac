@@ -27,12 +27,12 @@ Annotation(object, ...) <- value
 \item{...}{Arguments passed to other methods}
 
 \item{value}{A value to set. Can be NULL, to remove the current annotation
-information, or a \code{\link[GenomicRanges]{GRanges}} object. If a
+information, or a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object. If a
 \code{GRanges} object is supplied and the genome information is stored in the
 assay, the genome of the new annotations must match the genome of the assay.}
 }
 \value{
-Returns a \code{\link[GenomicRanges]{GRanges}} object
+Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
 if the annotation data is present, otherwise returns NULL
 }
 \description{

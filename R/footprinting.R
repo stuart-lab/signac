@@ -8,7 +8,7 @@ NULL
 #' This function will pull accessibility data for a given feature (eg, a TF),
 #' and perform background normalization for each identity class. This is the
 #' data that's used to create TF footprinting plots with the
-#' \code{PlotFootprint} function.
+#' `PlotFootprint` function.
 #'
 #' @param object A Seurat object
 #' @param features A vector of features to extract data for
@@ -102,8 +102,8 @@ GetFootprintData <- function(
 
 #' @param regions A set of genomic ranges containing the motif instances. These
 #' should all be the same width.
-#' @param genome A \code{BSgenome} object or any other object supported by
-#' \code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all
+#' @param genome A `BSgenome` object or any other object supported by
+#' `getSeq`. Do `showMethods("getSeq")` to get the list of all
 #' supported object types.
 #' @param motif.name Name of a motif stored in the assay to footprint. If not
 #' supplied, must supply a set of regions.
@@ -258,12 +258,12 @@ Footprint.Seurat <- function(
   return(object)
 }
 
-#' @param genome A \code{BSgenome} object or any other object supported by
-#' \code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all
+#' @param genome A `BSgenome` object or any other object supported by
+#' `getSeq`. Do `showMethods("getSeq")` to get the list of all
 #' supported object types.
 #' @param region Genomic region to use when assessing bias.
 #' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{\link{StringToGRanges}}
+#' @param ... Additional arguments passed to [StringToGRanges()]
 #'
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges

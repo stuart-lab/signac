@@ -15,17 +15,17 @@ NULL
 #' Access and modify sequence information for GRangesAssay objects
 #'
 #' Methods for accessing and modifying
-#' \code{\link[Seqinfo]{Seqinfo}} object information stored in a
-#' \code{\link{GRangesAssay}} object.
+#' [Seqinfo::Seqinfo()] object information stored in a
+#' [GRangesAssay()] object.
 #'
 #' @name seqinfo-methods
-#' @param x A \code{\link{GRangesAssay}} object
+#' @param x A [GRangesAssay()] object
 #'
 #' @aliases seqinfo seqinfo,GRangesAssay-method
 #' @seealso
 #' \itemize{
-#'   \item{\link[Seqinfo]{seqinfo} in the \pkg{Seqinfo} package.}
-#'   \item{\link{GRangesAssay-class}}
+#'   \item{[seqinfo][Seqinfo::seqinfo] in the \pkg{Seqinfo} package.}
+#'   \item{[GRangesAssay-class]}
 #'  }
 #' @exportMethod seqinfo
 #' @concept seqinfo

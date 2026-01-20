@@ -17,7 +17,7 @@ PeakPlot(
 )
 }
 \arguments{
-\item{object}{A \code{\link[SeuratObject]{Seurat}} object}
+\item{object}{A \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object}
 
 \item{region}{A genomic region to plot}
 
@@ -42,10 +42,10 @@ element is used to separate the start from end coordinate.}
 \item{extend.downstream}{Number of bases to extend the region downstream.}
 }
 \value{
-Returns a \code{\link[ggplot2]{ggplot}} object
+Returns a \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} object
 }
 \description{
-Display the genomic ranges in a \code{\link{GRangesAssay}} object that fall
+Display the genomic ranges in a \code{\link[=GRangesAssay]{GRangesAssay()}} object that fall
 in a given genomic region
 }
 \examples{

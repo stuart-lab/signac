@@ -100,28 +100,28 @@
 \S4method{distanceToNearest}{Seurat,Seurat}(x, subject, ignore.strand = FALSE, ...)
 }
 \arguments{
-\item{x}{A query \code{\link{GRangesAssay}} object}
+\item{x}{A query \code{\link[=GRangesAssay]{GRangesAssay()}} object}
 
-\item{subject}{The subject \code{\link[GenomicRanges]{GRanges}} or
-\code{\link{GRangesAssay}} object. If missing, \code{x} is used as the
+\item{subject}{The subject \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} or
+\code{\link[=GRangesAssay]{GRangesAssay()}} object. If missing, \code{x} is used as the
 subject.}
 
 \item{select}{Logic for handling ties.
-See \code{\link[GenomicRanges]{nearest-methods}} in the \pkg{GenomicRanges}
+See \code{\link[GenomicRanges:nearest-methods]{GenomicRanges::nearest-methods()}} in the \pkg{GenomicRanges}
 package.}
 
 \item{ignore.strand}{Logical argument controlling whether strand information
 should be ignored.}
 
 \item{y}{For the \code{distance} method, a
-\code{\link[GenomicRanges]{GRanges}} object or a \code{\link{GRangesAssay}}
+\code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object or a \code{\link[=GRangesAssay]{GRangesAssay()}}
 object}
 
 \item{...}{Additional arguments for methods}
 }
 \description{
-The \code{precede, follow, nearest, distance, distanceToNearest} methods
-are available for \code{\link{GRangesAssay}} objects.
+The \verb{precede, follow, nearest, distance, distanceToNearest} methods
+are available for \code{\link[=GRangesAssay]{GRangesAssay()}} objects.
 }
 \section{Functions}{
 \itemize{
@@ -186,10 +186,10 @@ are available for \code{\link{GRangesAssay}} objects.
 }}
 \seealso{
 \itemize{
-  \item{\link[IRanges]{nearest-methods} in the \pkg{IRanges} package.}
-  \item{\link[GenomicRanges]{nearest-methods} in the \pkg{GenomicRanges}
-  package}
-  \item{\link{GRangesAssay-class}}
- }
+\item{\link[IRanges:nearest-methods]{nearest-methods} in the \pkg{IRanges} package.}
+\item{\link[GenomicRanges:nearest-methods]{nearest-methods} in the \pkg{GenomicRanges}
+package}
+\item{\linkS4class{GRangesAssay}}
+}
 }
 \concept{nearest}

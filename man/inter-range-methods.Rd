@@ -47,22 +47,22 @@
 \S4method{disjointBins}{Seurat}(x, ...)
 }
 \arguments{
-\item{x}{A \code{\link{GRangesAssay}} object}
+\item{x}{A \code{\link[=GRangesAssay]{GRangesAssay()}} object}
 
 \item{...}{Additional arguments}
 
-\item{with.revmap}{See \code{\link[IRanges]{inter-range-methods}} in the
+\item{with.revmap}{See \code{\link[IRanges:inter-range-methods]{IRanges::inter-range-methods()}} in the
 \pkg{IRanges} packages}
 
 \item{na.rm}{Ignored}
 
-\item{drop.empty.ranges}{See \code{?\link[IRanges]{inter-range-methods}}}
+\item{drop.empty.ranges}{See \verb{?[inter-range-methods][IRanges::inter-range-methods]}}
 
-\item{start, end}{See \code{?\link[IRanges]{inter-range-methods}}}
+\item{start, end}{See \verb{?[inter-range-methods][IRanges::inter-range-methods]}}
 }
 \description{
-The \code{range, reduce, gaps, disjoin, isDisjoint, disjointBins} methods
-are available for \code{\link{GRangesAssay}} objects.
+The \verb{range, reduce, gaps, disjoin, isDisjoint, disjointBins} methods
+are available for \code{\link[=GRangesAssay]{GRangesAssay()}} objects.
 }
 \section{Functions}{
 \itemize{
@@ -91,10 +91,10 @@ are available for \code{\link{GRangesAssay}} objects.
 }}
 \seealso{
 \itemize{
-  \item{\link[IRanges]{inter-range-methods} in the \pkg{IRanges} package.}
-  \item{\link[GenomicRanges]{inter-range-methods} in the \pkg{GenomicRanges}
-  package}
-  \item{\link{GRangesAssay-class}}
- }
+\item{\link[IRanges:inter-range-methods]{inter-range-methods} in the \pkg{IRanges} package.}
+\item{\link[GenomicRanges:inter-range-methods]{inter-range-methods} in the \pkg{GenomicRanges}
+package}
+\item{\linkS4class{GRangesAssay}}
+}
 }
 \concept{inter_range}

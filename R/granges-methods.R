@@ -5,23 +5,23 @@ NULL
 
 #' Access genomic ranges for GRangesAssay objects
 #'
-#' Methods for accessing \code{\link[GenomicRanges]{GRanges}} object
-#' information stored in a \code{\link{GRangesAssay}} object.
+#' Methods for accessing [GenomicRanges::GRanges()] object
+#' information stored in a [GRangesAssay()] object.
 #'
 #' @name granges-methods
-#' @param x A \code{\link{GRangesAssay}} object
+#' @param x A [GRangesAssay()] object
 #' @param use.names Whether the names on the genomic ranges should be
 #' propagated to the returned object.
-#' @param use.mcols Not supported for \code{\link{GRangesAssay}} objects
+#' @param use.mcols Not supported for [GRangesAssay()] objects
 #' @param ... Additional arguments
 #'
-#' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
+#' @return Returns a [GenomicRanges::GRanges()] object
 #'
 #' @aliases granges granges,GRangesAssay-method
 #' @seealso
 #' \itemize{
-#'   \item{\link[GenomicRanges]{granges} in the \pkg{GenomicRanges} package.}
-#'   \item{\link{GRangesAssay-class}}
+#'   \item{[granges][GenomicRanges::granges] in the \pkg{GenomicRanges} package.}
+#'   \item{[GRangesAssay-class]}
 #'  }
 #' @exportMethod granges
 #' @concept granges

@@ -7,7 +7,7 @@
 DepthCor(object, assay = NULL, reduction = "lsi", n = 10, ...)
 }
 \arguments{
-\item{object}{A \code{\link[SeuratObject]{Seurat}} object}
+\item{object}{A \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object}
 
 \item{assay}{Name of assay to use for sequencing depth. If NULL, use the
 default assay.}
@@ -17,10 +17,10 @@ input object}
 
 \item{n}{Number of components to use. If \code{NULL}, use all components.}
 
-\item{...}{Additional arguments passed to \code{\link[stats]{cor}}}
+\item{...}{Additional arguments passed to \code{\link[stats:cor]{stats::cor()}}}
 }
 \value{
-Returns a \code{\link[ggplot2]{ggplot}} object
+Returns a \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} object
 }
 \description{
 Compute the correlation between total counts and each reduced

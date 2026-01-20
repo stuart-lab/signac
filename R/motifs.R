@@ -132,9 +132,9 @@ AddMotifs.StdAssay <- function(
 }
 
 #' @param assay Name of assay to use. If NULL, use the default assay
-#' @param genome A \code{BSgenome}, \code{DNAStringSet}, \code{FaFile}, or
-#' string stating the genome build recognized by \code{getBSgenome}.
-#' @param pfm A \code{PFMatrixList} or \code{PWMatrixList} object containing
+#' @param genome A `BSgenome`, `DNAStringSet`, `FaFile`, or
+#' string stating the genome build recognized by `getBSgenome`.
+#' @param pfm A `PFMatrixList` or `PWMatrixList` object containing
 #' position weight/frequency matrices to use
 #' @param verbose Display messages
 #' @importFrom SeuratObject DefaultAssay
@@ -172,22 +172,22 @@ AddMotifs.Seurat <- function(
 #' the genome, and a set of position weight matrices.
 #'
 #' Requires that motifmatchr is installed
-#' \url{https://www.bioconductor.org/packages/motifmatchr/}.
+#' <https://www.bioconductor.org/packages/motifmatchr/>.
 #'
 #' @param features A GRanges object containing a set of genomic features
-#' @param pwm A \code{\link[TFBSTools]{PFMatrixList}} or
-#' \code{\link[TFBSTools]{PWMatrixList}}
+#' @param pwm A [TFBSTools::PFMatrixList()] or
+#' [TFBSTools::PWMatrixList()]
 #' object containing position weight/frequency matrices to use
-#' @param genome Any object compatible with the \code{genome} argument
-#' in \code{\link[motifmatchr]{matchMotifs}}
+#' @param genome Any object compatible with the `genome` argument
+#' in [motifmatchr::matchMotifs()]
 #' @param score Record the motif match score, rather than presence/absence
 #' (default FALSE)
 #' @param use.counts Record motif counts per region. If FALSE (default),
-#' record presence/absence of motif. Only applicable if \code{score=FALSE}.
+#' record presence/absence of motif. Only applicable if `score=FALSE`.
 #' @param sep A length-2 character vector containing the separators to be used
 #' when constructing matrix rownames from the GRanges
 #' @param ... Additional arguments passed to
-#' \code{\link[motifmatchr]{matchMotifs}}
+#' [motifmatchr::matchMotifs()]
 #'
 #' @return Returns a sparse matrix
 #' @export
@@ -424,11 +424,11 @@ globalVariables(names = "pvalue", package = "Signac")
 #' characteristics of the query features. To match the sequence characteristics,
 #' these characteristics must be stored in the feature metadata for the assay.
 #' This can be added using the
-#'  \code{\link{RegionStats}} function. If NULL, use all features in the assay.
+#'  [RegionStats()] function. If NULL, use all features in the assay.
 #' @param verbose Display messages
 #' @param p.adjust.method Multiple testing correction method to be applied.
-#' Passed to \code{\link[stats]{p.adjust}}.
-#' @param ... Arguments passed to \code{\link{MatchRegionStats}}.
+#' Passed to [stats::p.adjust()].
+#' @param ... Arguments passed to [MatchRegionStats()].
 #'
 #' @return Returns a data frame
 #'
@@ -551,7 +551,7 @@ FindMotifs <- function(
 }
 
 #' @param name A vector of motif names
-#' @param id A vector of motif IDs. Only one of \code{name} and \code{id} should
+#' @param id A vector of motif IDs. Only one of `name` and `id` should
 #' be supplied
 #' @rdname ConvertMotifID
 #' @concept motifs
@@ -617,7 +617,7 @@ ConvertMotifID.StdAssay <- function(object, ...) {
   stop("Cannot run ConvertMotifID on an Assay5 object")
 }
 
-#' @param assay For \code{Seurat} object. Name of assay to use.
+#' @param assay For `Seurat` object. Name of assay to use.
 #' If NULL, use the default assay
 #'
 #' @importFrom SeuratObject DefaultAssay

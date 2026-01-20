@@ -15,10 +15,10 @@ MotifPlot(object, motifs, assay = NULL, use.names = TRUE, ...)
 
 \item{use.names}{Use motif names stored in the motif object}
 
-\item{...}{Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}}
+\item{...}{Additional parameters passed to \code{\link[ggseqlogo:ggseqlogo]{ggseqlogo::ggseqlogo()}}}
 }
 \value{
-Returns a \code{\link[ggplot2]{ggplot}} object
+Returns a \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} object
 }
 \description{
 Plot position weight matrix or position frequency matrix for different DNA

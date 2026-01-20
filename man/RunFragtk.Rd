@@ -20,14 +20,14 @@ RunFragtk(
 \item{fragments}{A list of Fragment objects or fragment file paths}
 
 \item{features}{A GRanges object containing a set of genomic intervals to
-quantify. These genomic ranges will be passed to the `--bed` argument in
-`fragtk matrix`}
+quantify. These genomic ranges will be passed to the \code{--bed} argument in
+\verb{fragtk matrix}}
 
 \item{cells}{List of cells to include}
 
 \item{group}{Group genomic ranges according to a grouping variable. If NULL,
 no grouping variable is used. If a character string is provided, this should
-match a column in the provided GRanges object supplied in the `features`
+match a column in the provided GRanges object supplied in the \code{features}
 parameter.}
 
 \item{pic}{Use paired insertion counting}
@@ -45,7 +45,7 @@ automatically.}
 Returns a CsparseMatrix
 }
 \description{
-Wrapper function to run \code{fragtk matrix} and return the output as a sparse
+Wrapper function to run \verb{fragtk matrix} and return the output as a sparse
 matrix in R.
 }
 \details{

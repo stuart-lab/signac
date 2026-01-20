@@ -36,7 +36,7 @@ Returns a Seurat object
 }
 \description{
 Compute chromVAR deviations for groups of peaks. The goal of this function is
-similar to that of \code{\link[Seurat]{AddModuleScore}} except that it is
+similar to that of \code{\link[Seurat:AddModuleScore]{Seurat::AddModuleScore()}} except that it is
 designed for single-cell chromatin data. The chromVAR deviations for each
 group of peaks will be added to the object metadata.
 }

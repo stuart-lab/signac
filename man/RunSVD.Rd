@@ -86,7 +86,7 @@ Default (NULL) is no clipping.}
 
 \item{verbose}{Print messages}
 
-\item{tol}{Tolerance (tol) parameter for \code{\link[RSpectra]{svds}}.
+\item{tol}{Tolerance (tol) parameter for \code{\link[RSpectra:svds]{RSpectra::svds()}}.
 Larger values speed up convergence due to greater amount of allowed error.}
 
 \item{layer}{Name of layer to use.}
@@ -96,10 +96,10 @@ Larger values speed up convergence due to greater amount of allowed error.}
 \item{reduction.name}{Name for stored dimension reduction object.}
 }
 \value{
-Returns a \code{\link[SeuratObject]{Seurat}} object
+Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
 }
 \description{
-Run partial singular value decomposition using \code{\link[RSpectra]{svds}}
+Run partial singular value decomposition using \code{\link[RSpectra:svds]{RSpectra::svds()}}
 }
 \examples{
 x <- matrix(data = rnorm(100), ncol = 10)

@@ -58,6 +58,7 @@ Imports:
     Seqinfo
 Collate: 
     'RcppExports.R'
+    'Signac-package.R'
     'classes.R'
     'data.R'
     'differential_accessibility.R'
@@ -104,3 +105,4 @@ Suggests:
     scattermore,
     fields,
     fgsea
+Roxygen: list(markdown = TRUE)

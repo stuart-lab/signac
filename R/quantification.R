@@ -18,7 +18,7 @@ NULL
 #' @method AggregateTiles Seurat
 #' @concept quantification
 #' @return When running on a Seurat object, returns the Seurat object with a new
-#' \code{\link{ChromatinAssay5}} added.
+#' [ChromatinAssay5()] added.
 AggregateTiles.Seurat <- function(
   object,
   genome,
@@ -45,8 +45,8 @@ AggregateTiles.Seurat <- function(
 #' @export
 #' @method AggregateTiles ChromatinAssay5
 #' @concept quantification
-#' @return When running on a \code{\link{ChromatinAssay5}}, returns a new
-#' \code{ChromatinAssay5} containing the aggregated genome tiles.
+#' @return When running on a [ChromatinAssay5()], returns a new
+#' `ChromatinAssay5` containing the aggregated genome tiles.
 AggregateTiles.ChromatinAssay5 <- function(
   object,
   genome,
@@ -132,15 +132,15 @@ AggregateTiles.default <- function(
 #' on width.
 #' @param process_n Number of regions to load into memory at a time, per thread.
 #' Processing more regions at once can be faster but uses more memory.
-#' @param fragtk Use \code{fragtk} for fast and memory-efficient data
+#' @param fragtk Use `fragtk` for fast and memory-efficient data
 #' quantification. Can be TRUE/FALSE or a character vector. If TRUE,
-#' \code{fragtk} will be used and attempt to find the \code{fragtk} executable
+#' `fragtk` will be used and attempt to find the `fragtk` executable
 #' in the path. If FALSE, use the R implementation to produce the data matrix.
 #' If a character vector is provided, this should be the path to the
-#' \code{fragtk} executable and \code{fragtk} will be used. Note that
-#' \code{fragtk} uses the Paired Insertion Counting method, whereas the R
+#' `fragtk` executable and `fragtk` will be used. Note that
+#' `fragtk` uses the Paired Insertion Counting method, whereas the R
 #' implementation counts insertions. See
-#' \url{https://crates.io/crates/fragtk} for fragtk documentation.
+#' <https://crates.io/crates/fragtk> for fragtk documentation.
 #' @param gene.id Record gene IDs in output matrix rather than gene name.
 #' @param verbose Display messages
 #'
@@ -254,15 +254,15 @@ GeneActivity <- function(
 #'
 #' Construct a bin x cell matrix from a fragments file.
 #'
-#' This function bins the genome and calls \code{\link{FeatureMatrix}} to
+#' This function bins the genome and calls [FeatureMatrix()] to
 #' construct a bin x cell matrix.
 #'
 #' @param fragments Path to tabix-indexed fragments file or a list of
-#' \code{\link{Fragment}} objects
+#' [Fragment()] objects
 #' @param genome A vector of chromosome sizes for the genome. This is used to
 #' construct the genome bin coordinates. The can be obtained by calling
-#' \code{seqlengths} on a
-#' \code{\link[BSgenome]{BSgenome-class}} object.
+#' `seqlengths` on a
+#' [BSgenome::BSgenome-class()] object.
 #' @param cells Vector of cells to include. If NULL, include all cells found
 #' in the fragments file
 #' @param binsize Size of the genome bins to use
@@ -272,7 +272,7 @@ GeneActivity <- function(
 #' used to separate chromosome and coordinates, second separator is used to
 #' separate start and end coordinates.
 #' @param verbose Display messages.
-#' @param ... Arguments passed to \code{\link{FeatureMatrix}}.
+#' @param ... Arguments passed to [FeatureMatrix()].
 #'
 #' @importFrom GenomicRanges tileGenome
 #' @export
@@ -321,24 +321,24 @@ GenomeBinMatrix <- function(
 #'
 #' Construct a feature x cell matrix from a genomic fragments file
 #'
-#' @param fragments A list of \code{\link{Fragment}} objects. Note that if
-#' setting the \code{cells} parameter, the requested cells should be present in
-#' the supplied \code{Fragment} objects. However, if the cells information in
-#' the fragment object is not set (\code{Cells(fragments)} is \code{NULL}), then
+#' @param fragments A list of [Fragment()] objects. Note that if
+#' setting the `cells` parameter, the requested cells should be present in
+#' the supplied `Fragment` objects. However, if the cells information in
+#' the fragment object is not set (`Cells(fragments)` is `NULL`), then
 #' the fragment object will still be searched.
 #' @param features A GRanges object containing a set of genomic intervals.
 #' These will form the rows of the matrix, with each entry recording the number
 #' of unique reads falling in the genomic region for each cell.
-#' @param fragtk Use \code{fragtk} for fast and memory-efficient data
+#' @param fragtk Use `fragtk` for fast and memory-efficient data
 #' quantification. Can be TRUE/FALSE or a character vector. If TRUE,
-#' \code{fragtk} will be used and attempt to find the \code{fragtk} executable
+#' `fragtk` will be used and attempt to find the `fragtk` executable
 #' in the path. If FALSE, use the R implementation to produce the data matrix.
 #' If a character vector is provided, this should be the path to the
-#' \code{fragtk} executable and \code{fragtk} will be used. Note that
-#' \code{fragtk} uses the Paired Insertion Counting method, whereas the R
+#' `fragtk` executable and `fragtk` will be used. Note that
+#' `fragtk` uses the Paired Insertion Counting method, whereas the R
 #' implementation counts insertions. See
-#' \url{https://crates.io/crates/fragtk} for fragtk documentation. The R
-#' implementation (\code{fragtk=FALSE}) will be faster for quantifying a small
+#' <https://crates.io/crates/fragtk> for fragtk documentation. The R
+#' implementation (`fragtk=FALSE`) will be faster for quantifying a small
 #' number of genomic regions.
 #' @param keep_all_features By default, if a genomic region provided is on a
 #' chromosome that is not present in the fragment file,
@@ -494,10 +494,10 @@ FeatureMatrix <- function(
 
 #' Run fragtk matrix
 #' 
-#' Wrapper function to run \code{fragtk matrix} and return the output as a sparse
+#' Wrapper function to run `fragtk matrix` and return the output as a sparse
 #' matrix in R.
 #' 
-#' See \url{https://crates.io/crates/fragtk} for fragtk documentation.
+#' See <https://crates.io/crates/fragtk> for fragtk documentation.
 #' 
 #' @param fragments A list of Fragment objects or fragment file paths
 #' @param features A GRanges object containing a set of genomic intervals to

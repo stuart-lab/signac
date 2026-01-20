@@ -25,7 +25,7 @@ RegionHeatmap(
 \item{object}{A Seurat object}
 
 \item{key}{Name of key to pull data from. Stores the results from
-\code{\link{RegionMatrix}}}
+\code{\link[=RegionMatrix]{RegionMatrix()}}}
 
 \item{assay}{Name of assay to use. If a list or vector of assay names is
 given, data will be plotted from each assay. Note that all assays must

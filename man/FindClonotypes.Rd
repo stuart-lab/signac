@@ -24,16 +24,16 @@ FindClonotypes(
 \item{metric}{Distance metric to use}
 
 \item{resolution}{Clustering resolution to use. See
-\code{\link[Seurat]{FindClusters}}}
+\code{\link[Seurat:FindClusters]{Seurat::FindClusters()}}}
 
 \item{k}{Passed to \code{k.param} argument in
-\code{\link[Seurat]{FindNeighbors}}}
+\code{\link[Seurat:FindNeighbors]{Seurat::FindNeighbors()}}}
 
 \item{algorithm}{Community detection algorithm to use. See
-\code{\link[Seurat]{FindClusters}}}
+\code{\link[Seurat:FindClusters]{Seurat::FindClusters()}}}
 }
 \value{
-Returns a \code{\link[SeuratObject]{Seurat}} object
+Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
 }
 \description{
 Identify groups of related cells from allele frequency data. This will

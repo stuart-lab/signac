@@ -26,7 +26,7 @@ CreateChromatinAssay5(
 
 \item{data}{Optional pre-normalized count matrix}
 
-\item{ranges}{A set of \code{\link[GenomicRanges]{GRanges}} corresponding to
+\item{ranges}{A set of \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} corresponding to
 the rows of the input matrix}
 
 \item{sep}{Separators to use for strings encoding genomic coordinates.
@@ -34,34 +34,34 @@ First element is used to separate the chromosome from the coordinates,
 second element is used to separate the start from end coordinate. Only
 used if \code{ranges} is NULL.}
 
-\item{...}{Additional arguments passed to \code{\link{CreateChromatinAssay5}}
-and \code{\link[SeuratObject]{CreateAssay5Object}}.}
+\item{...}{Additional arguments passed to \code{\link[=CreateChromatinAssay5]{CreateChromatinAssay5()}}
+and \code{\link[SeuratObject:CreateAssay5Object]{SeuratObject::CreateAssay5Object()}}.}
 
 \item{fragments}{Path to a tabix-indexed fragments file for the data
 contained in the input matrix. If multiple fragment files are required,
-you can add additional \code{\link{Fragment}} object to the assay after it is
-created using the \code{\link{CreateFragmentObject}} and
-\code{\link{Fragments}} functions. Alternatively, a list of
-\code{\link{Fragment}} objects can be provided.}
+you can add additional \code{\link[=Fragment]{Fragment()}} object to the assay after it is
+created using the \code{\link[=CreateFragmentObject]{CreateFragmentObject()}} and
+\code{\link[=Fragments]{Fragments()}} functions. Alternatively, a list of
+\code{\link[=Fragment]{Fragment()}} objects can be provided.}
 
-\item{annotation}{A set of \code{\link[GenomicRanges]{GRanges}} containing
+\item{annotation}{A set of \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} containing
 annotations for the genome used. It must have the following columns:
 \itemize{
-  \item{tx_id or transcript_id: Transcript ID}
-  \item{gene_name: Gene name}
-  \item{gene_id: Gene ID}
-  \item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
-  \item{type: Annotation type (e.g. "exon", "gap")}
+\item{tx_id or transcript_id: Transcript ID}
+\item{gene_name: Gene name}
+\item{gene_id: Gene ID}
+\item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
+\item{type: Annotation type (e.g. "exon", "gap")}
 }}
 
 \item{motifs}{A Motif object}
 
-\item{links}{A named list of \code{\link[InteractionSet]{GInteractions}}
+\item{links}{A named list of \code{\link[InteractionSet:GInteractions-class]{InteractionSet::GInteractions()}}
 objects}
 
 \item{bias}{A Tn5 integration bias matrix}
 
-\item{region.aggregation}{A named list of \code{\link{RegionAggregation}}
+\item{region.aggregation}{A named list of \code{\link[=RegionAggregation]{RegionAggregation()}}
 objects.}
 
 \item{validate.fragments}{Check that cells in the assay are present in the
@@ -73,13 +73,13 @@ fragment file.}
 Returns a Seurat object
 }
 \description{
-The \code{\link{ChromatinAssay5-class}} and \code{\link{GRangesAssay-class}}
-classes extend \code{\link[SeuratObject]{Assay5}} objects for single-cell
+The \code{\link[=ChromatinAssay5-class]{ChromatinAssay5-class()}} and \code{\link[=GRangesAssay-class]{GRangesAssay-class()}}
+classes extend \code{\link[SeuratObject:Assay5-class]{SeuratObject::Assay5()}} objects for single-cell
 chromatin data, with or without genomic ranges for each feature in the assay.
 Use \code{CreateGRangesAssay} to construct a \code{GRangesAssay} object or
 \code{CreateChromatinAssay5} to construct a \code{ChromatinAssay5} object.
 }
 \seealso{
-\code{\link{CreateChromatinAssay5}}
+\code{\link[=CreateChromatinAssay5]{CreateChromatinAssay5()}}
 }
 \concept{assay}

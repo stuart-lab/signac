@@ -23,10 +23,10 @@
 \item{j}{Which rows to retain}
 }
 \value{
-Returns a subsetted \code{\link{Motif}} object
+Returns a subsetted \code{\link[=Motif]{Motif()}} object
 }
 \description{
-Returns a subset of a \code{\link{Motif-class}} object.
+Returns a subset of a \code{\link[=Motif-class]{Motif-class()}} object.
 }
 \examples{
 motif.obj <- SeuratObject::GetAssayData(
@@ -39,6 +39,6 @@ motif.obj <- SeuratObject::GetAssayData(
 motif.obj[1:10, 1:10]
 }
 \seealso{
-\code{\link[base]{subset}}
+\code{\link[base:subset]{base::subset()}}
 }
 \concept{motifs}

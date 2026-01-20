@@ -4,15 +4,15 @@ NULL
 
 #' Return the first rows of a fragment file
 #'
-#' Returns the first \code{n} rows of a fragment file. This allows the content
+#' Returns the first `n` rows of a fragment file. This allows the content
 #' of a fragment file to be inspected.
 #'
-#' @param x a \code{Fragment2} object
+#' @param x a `Fragment2` object
 #' @param n an integer specifying the number of rows to return from the fragment
 #' file
-#' @param ... additional arguments passed to \code{\link[utils]{read.table}}
+#' @param ... additional arguments passed to [utils::read.table()]
 #'
-#' @return The first \code{n} rows of a fragment file as a \code{data.frame}
+#' @return The first `n` rows of a fragment file as a `data.frame`
 #' with the following columns: chrom, start, end, barcode, readCount.
 #'
 #' @export
@@ -35,7 +35,7 @@ head.Fragment2 <- function(x, n = 6L, ...) {
 #' Returns any comment lines present at the start of the fragment file,
 #' before any fragment entries.
 #'
-#' @param x a \code{Fragment2} object
+#' @param x a `Fragment2` object
 #' @return Returns a character vector with the fragment file header lines
 #' @export
 #' @concept fragments
@@ -129,7 +129,7 @@ CountFragments <- function(
 #'
 #' Remove all fragments that are not from an allowed set of cell barcodes from
 #' the fragment file. This will create a new file on disk that only contains
-#' fragments from cells specified in the \code{cells} argument. The output file
+#' fragments from cells specified in the `cells` argument. The output file
 #' is block gzip-compressed and indexed, ready for use with Signac functions.
 #'
 #' @param fragments Path to a fragment file
@@ -211,7 +211,7 @@ FilterCells <- function(
 #' must be longer than the longest line in the file.
 #' @param outdir Directory to write output files
 #' @param file.suffix Suffix to add to all file names (before file extension).
-#' If splitting multiple fragment files without the \code{append} option set to
+#' If splitting multiple fragment files without the `append` option set to
 #' TRUE, an additional numeric suffix will be added to each file (eg, .1, .2).
 #' @param append If splitting multiple fragment files, append cells from the
 #' same group (eg cluster) to the same file. Note that this can cause the output
@@ -300,11 +300,11 @@ SplitFragments <- function(
 #' Will iterate through chunks of the fragment file until at least one fragment
 #' from each cell barcode requested is found.
 #'
-#' @param object A \code{\link{Fragment2}} object
+#' @param object A [Fragment2()] object
 #' @param cells A character vector containing cell barcodes to search for.
 #' If NULL, use the cells stored in the Fragment object.
 #' @param tolerance Fraction of input cells that can be unseen before returning
-#' TRUE. For example, \code{tolerance = 0.01} will return TRUE when 99% of cells
+#' TRUE. For example, `tolerance = 0.01` will return TRUE when 99% of cells
 #' have observed fragments in the file. This can be useful if there are cells
 #' present that have much fewer total counts, and would require extensive
 #' searching before a fragment from those cells are found.
@@ -350,7 +350,7 @@ ValidateCells <- function(
 
 #' Validate hashes for Fragment object
 #'
-#' @param object A \code{\link{Fragment2}} object
+#' @param object A [Fragment2()] object
 #' @param verbose Display messages
 #' @export
 #' @concept fragments
@@ -380,9 +380,9 @@ ValidateHash <- function(object, verbose = TRUE) {
 #' and that the fragment file or index have not changed since creating the
 #' fragment object.
 #'
-#' @param object A \code{\link{Fragment2}} object
+#' @param object A [Fragment2()] object
 #' @param verbose Display messages
-#' @param ... Additional parameters passed to \code{\link{ValidateCells}}
+#' @param ... Additional parameters passed to [ValidateCells()]
 #' @export
 #' @concept fragments
 ValidateFragments <- function(
@@ -395,17 +395,17 @@ ValidateFragments <- function(
   return(valid.cells & valid.hash)
 }
 
-#' Set and get cell barcode information for a \code{\link{Fragment2}} object
+#' Set and get cell barcode information for a [Fragment2()] object
 #'
 #' This returns the names of cells in the object that are contained in the
 #' fragment file. These cell barcodes may not match the barcodes present in the
-#' fragment file. The \code{\link{Fragment2}} object contains an internal mapping
-#' of the cell names in the \code{\link{ChromatinAssay5}} object to the cell
+#' fragment file. The [Fragment2()] object contains an internal mapping
+#' of the cell names in the [ChromatinAssay5()] object to the cell
 #' names in the fragment file, so that cell names can be changed in the
 #' assay without needing to change the cell names on disk.
 #'
 #' To access the cell names that are stored in the fragment file itself, use
-#' \code{GetFragmentData(object = x, name = "cells")}.
+#' `GetFragmentData(object = x, name = "cells")`.
 #' @param x A Fragment object
 #' @param ... Arguments passed to other methods
 #' @rdname Cells
@@ -423,7 +423,7 @@ Cells.Fragment2 <- function(x, ...) {
 #' @export
 SeuratObject::Cells
 
-#' @param value A vector of cell names to store in the \code{\link{Fragment2}}
+#' @param value A vector of cell names to store in the [Fragment2()]
 #' object
 #' @rdname Cells
 #' @export
@@ -442,7 +442,7 @@ SeuratObject::Cells
 }
 
 #' @describeIn Fragment2-class Get sequence levels
-#' @param x A \code{\link{Fragment2}} object
+#' @param x A [Fragment2()] object
 #' @importFrom Seqinfo seqlevels
 #' @exportMethod seqlevels
 setMethod(
@@ -537,12 +537,12 @@ setMethod(
 
 #' Update the file path for a Fragment object
 #'
-#' Change the path to a fragment file store in a \code{\link{Fragment2}}
+#' Change the path to a fragment file store in a [Fragment2()]
 #' object. Path must be to the same file that was used to create the fragment
 #' object. An MD5 hash will be computed using the new path and compared to the
 #' hash stored in the Fragment object to verify that the files are the same.
 #'
-#' @param object A \code{\link{Fragment2}} object.
+#' @param object A [Fragment2()] object.
 #' @param new.path Path to the fragment file.
 #' @param new.index.path Path to the fragment file index. If NULL, the index is
 #' assumed to be in the same directory as the fragment file.

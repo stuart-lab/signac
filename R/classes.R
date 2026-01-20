@@ -18,7 +18,7 @@ setClassUnion(name = "NumericOrNULL", members = c("numeric", "NULL"))
 #' fragment files.
 #'
 #' @slot file.path Path to the fragment file on disk.
-#' See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
+#' See <https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments>
 #' @slot file.index Path to the fragment file index on disk.
 #' @slot hash A vector of two md5sums: first element is the md5sum of the
 #' fragment file, the second element is the md5sum of the index.
@@ -57,7 +57,7 @@ Fragment2 <- setClass(
 #' genomic feature contains the motif, and 0 otherwise.
 #' @slot pwm A named list of position weight matrices
 #' @slot motif.names A list containing the name of each motif
-#' @slot positions A \code{\link[GenomicRanges]{GRangesList}} object containing
+#' @slot positions A [GenomicRanges::GRangesList()] object containing
 #' exact positions of each motif.
 #' @slot meta.data A dataframe for storage of additional
 #' information related to each motif. This could include the
@@ -95,7 +95,7 @@ setValidity(Class = "Motif", function(object) {
 #' object stored is a cell-by-position matrix.
 #' 
 #' @slot matrix A cell-by-position matrix
-#' @slot regions A \code{\link[GenomicRanges]{granges}} object containing the
+#' @slot regions A [GenomicRanges::granges()] object containing the
 #' regions aggregated across.
 #' @slot upstream Integer denoting number of bases upstream of the centered
 #' position that are stored in the matrix
@@ -120,8 +120,8 @@ RegionAggregation <- setClass(
 
 setClassUnion(name = "MotifOrNULL", members = c("Motif", "NULL"))
 
-#' @slot fragments A list of \code{\link{Fragment}} objects.
-#' @slot annotation A  \code{\link[GenomicRanges]{GRanges}} object containing
+#' @slot fragments A list of [Fragment()] objects.
+#' @slot annotation A  [GenomicRanges::GRanges()] object containing
 #' genomic annotations. This should be a GRanges object with the following 
 #' columns:
 #' \itemize{
@@ -136,9 +136,9 @@ setClassUnion(name = "MotifOrNULL", members = c("Motif", "NULL"))
 #' numeric vector where the name of the element corresponds to the DNA sequence
 #' and the value represents the bias value. All DNA hexamers must be present in
 #' the vector.
-#' @slot region.aggregation A list of \code{\link{RegionAggregation}} objects
-#' @slot motifs A \code{\link{Motif}} object
-#' @slot links A list of \code{\link[InteractionSet]{GInteractions}} objects
+#' @slot region.aggregation A list of [RegionAggregation()] objects
+#' @slot motifs A [Motif()] object
+#' @slot links A list of [InteractionSet::GInteractions()] objects
 #' describing linked genomic positions, such as co-accessible sites, eQTLs, 
 #' Hi-C contact, or enhancer-gene regulatory relationships.
 #'
@@ -200,19 +200,19 @@ setValidity(Class = "ChromatinAssay5", function(object) {
 
 #' ChromatinAssay5 and GRangesAssay object classes
 #'
-#' The \code{GRangesAssay} and \code{ChromatinAssay5} classes are extended
-#' \code{\link[SeuratObject]{Assay5}} classes for the storage and analysis of
-#' single-cell chromatin data. The \code{GRangesAssay} class requires that
+#' The `GRangesAssay` and `ChromatinAssay5` classes are extended
+#' [SeuratObject::Assay5()] classes for the storage and analysis of
+#' single-cell chromatin data. The `GRangesAssay` class requires that
 #' features in the assay are genomic ranges.
 #'
-#' @slot ranges A \code{\link[GenomicRanges]{GRanges}} object describing the
+#' @slot ranges A [GenomicRanges::GRanges()] object describing the
 #' genomic location of features in the object
 #' 
 #' @name GRangesAssay-class
 #' @rdname GRangesAssay-class
 #' @exportClass GRangesAssay
 #' @concept assay
-#' @seealso \code{\link[SeuratObject]{Assay5}}
+#' @seealso [SeuratObject::Assay5()]
 GRangesAssay <- setClass(
   Class = "GRangesAssay",
   contains = "ChromatinAssay5",
@@ -229,7 +229,7 @@ GRangesAssay <- setClass(
 #' fragment files.
 #'
 #' @slot path Path to the fragment file on disk.
-#' See \url{https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments}
+#' See <https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments>
 #' @slot hash A vector of two md5sums: first element is the md5sum of the
 #' fragment file, the second element is the md5sum of the index.
 #' @slot cells A named vector of cells where each element is the cell barcode
@@ -250,18 +250,18 @@ Fragment <- setClass(
 
 #' The ChromatinAssay class (old)
 #'
-#' The ChromatinAssay object is an extended \code{\link[SeuratObject]{Assay}}
+#' The ChromatinAssay object is an extended [SeuratObject::Assay()]
 #' for the storage and analysis of single-cell chromatin data.
 #' 
 #' This is an old object class used in Signac v1
 #'
-#' @slot ranges A \code{\link[GenomicRanges]{GRanges}} object describing the
+#' @slot ranges A [GenomicRanges::GRanges()] object describing the
 #' genomic location of features in the object
-#' @slot motifs A \code{\link{Motif}} object
-#' @slot fragments A list of \code{\link{Fragment}} objects.
-#' @slot seqinfo A \code{\link[Seqinfo]{Seqinfo}} object containing basic
+#' @slot motifs A [Motif()] object
+#' @slot fragments A list of [Fragment()] objects.
+#' @slot seqinfo A [Seqinfo::Seqinfo()] object containing basic
 #' information about the genome sequence used.
-#' @slot annotation A  \code{\link[GenomicRanges]{GRanges}} object containing
+#' @slot annotation A  [GenomicRanges::GRanges()] object containing
 #' genomic annotations. This should be a GRanges object with the following 
 #' columns:
 #' \itemize{
@@ -275,9 +275,9 @@ Fragment <- setClass(
 #' (frequency of Tn5 integration at different kmers)
 #' @slot positionEnrichment A named list of matrices containing positional
 #' enrichment scores for Tn5 integration (for example, enrichment at the TSS)
-#' @slot links A \code{\link[GenomicRanges]{GRanges}} object describing linked
+#' @slot links A [GenomicRanges::GRanges()] object describing linked
 #' genomic positions, such as co-accessible sites or enhancer-gene regulatory
-#' relationships. This should be a \code{GRanges} object, where the start and
+#' relationships. This should be a `GRanges` object, where the start and
 #' end coordinates are the two linked genomic positions, and must contain a
 #' "score" metadata column.
 #'

@@ -10,7 +10,7 @@ as.GRangesAssay(x, ...)
 \method{as.GRangesAssay}{ChromatinAssay5}(x, ranges = NULL, sep = c("-", "-"), ...)
 }
 \arguments{
-\item{x}{An object to convert to class \code{\link{GRangesAssay}}}
+\item{x}{An object to convert to class \code{\link[=GRangesAssay]{GRangesAssay()}}}
 
 \item{...}{Arguments passed to other methods}
 

@@ -6,7 +6,7 @@ NULL
 #' Add chromatin module
 #'
 #' Compute chromVAR deviations for groups of peaks. The goal of this function is
-#' similar to that of \code{\link[Seurat]{AddModuleScore}} except that it is
+#' similar to that of [Seurat::AddModuleScore()] except that it is
 #' designed for single-cell chromatin data. The chromVAR deviations for each
 #' group of peaks will be added to the object metadata.
 #'
@@ -18,7 +18,7 @@ NULL
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param layer Name of layer to use. If NULL, use the default layer.
 #' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{RunChromVAR}
+#' @param ... Additional arguments passed to `RunChromVAR`
 #'
 #' @return Returns a Seurat object
 #'
@@ -200,7 +200,7 @@ CellsPerGroup <- function(
 #' uses the active identities.
 #' @param dendrogram Logical, whether to plot the dendrogram (default is FALSE).
 #' @param method The distance method to use for hierarchical clustering
-#' (default is 'euclidean', other options from \code{\link[stats]{dist}} are
+#' (default is 'euclidean', other options from [stats::dist()] are
 #' 'maximum', 'manhattan', 'canberra', 'binary' and 'minkowski').
 #' @param verbose Display messages
 #'
@@ -363,7 +363,7 @@ BinaryIdentMatrix <- function(object, group.by = NULL, idents = NULL) {
 #' columns of two sparse matrices.
 #'
 #' Originally from
-#' \url{https://stackoverflow.com/questions/5888287/running-cor-or-any-variant-over-a-sparse-matrix-in-r}
+#' <https://stackoverflow.com/questions/5888287/running-cor-or-any-variant-over-a-sparse-matrix-in-r>
 #' and the qlcMatrix package.
 #'
 #' @param X A matrix
@@ -412,7 +412,7 @@ corSparse <- function(X, Y = NULL, cov = FALSE) {
 #' Extract genomic ranges from EnsDb object
 #'
 #' Pulls the transcript information for all chromosomes from an EnsDb object.
-#' This wraps \code{\link[biovizBase]{crunch}} and applies the extractor
+#' This wraps [biovizBase::crunch()] and applies the extractor
 #' function to all chromosomes present in the EnsDb object.
 #'
 #' @param ensdb An EnsDb object
@@ -497,7 +497,7 @@ GetTSSPositions <- function(ranges, biotypes = "protein_coding") {
 #' used to separate chromosome and coordinates, second separator is used to
 #' separate start and end coordinates.
 #' @param ... Additional arguments passed to
-#' \code{\link[GenomicRanges]{makeGRangesFromDataFrame}}
+#' [GenomicRanges::makeGRangesFromDataFrame()]
 #' @return Returns a GRanges object
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @importFrom tidyr separate
@@ -546,7 +546,7 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
 #' Extend
 #'
 #' Resize GenomicRanges upstream and or downstream.
-#' From \url{https://support.bioconductor.org/p/78652/}
+#' From <https://support.bioconductor.org/p/78652/>
 #'
 #' @param x A range
 #' @param upstream Length to extend upstream
@@ -561,7 +561,7 @@ GRangesToString <- function(grange, sep = c("-", "-")) {
 #' @importFrom IRanges ranges IRanges "ranges<-"
 #' @export
 #' @concept utilities
-#' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
+#' @return Returns a [GenomicRanges::GRanges()] object
 #' @examples
 #' Extend(x = granges(atac_small), upstream = 100, downstream = 100)
 Extend <- function(
@@ -685,20 +685,20 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
 #'
 #' Return a vector if genomic regions that match the distribution of a set of
 #' query regions for any given set of characteristics, specified in the input
-#' \code{meta.feature} dataframe.
+#' `meta.feature` dataframe.
 #'
 #' For each requested feature to match, a density distribution is estimated
-#' using the \code{\link[stats]{density}} function,
+#' using the [stats::density()] function,
 #' and a set of weights for each feature in the dataset estimated based on the
 #' density distribution. If multiple features are to be matched (for example,
 #' GC content and overall accessibility), features are first transformed such
 #' that they are uncorrelated with each other using a Cholesky decomposition and
 #' a joint density distribution is then computed by multiplying the individual
 #' feature weights. A set of features with characteristics matching the query
-#' regions is then selected using the \code{\link[base]{sample}} function, with
+#' regions is then selected using the [base::sample()] function, with
 #' the probability of randomly selecting each feature equal to the joint density
-#' distribution weight. If the \code{wrswoR} package is
-#' available, the \code{\link[wrswoR]{sample_int_crank}} function is used for
+#' distribution weight. If the `wrswoR` package is
+#' available, the [wrswoR::sample_int_crank()] function is used for
 #' faster sampling.
 #'
 #' @param meta.feature A dataframe containing DNA sequence information for

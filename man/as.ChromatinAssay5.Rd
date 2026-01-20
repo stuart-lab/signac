@@ -19,28 +19,28 @@ as.ChromatinAssay5(x, ...)
 )
 }
 \arguments{
-\item{x}{An object to convert to class \code{\link{ChromatinAssay5}}}
+\item{x}{An object to convert to class \code{\link[=ChromatinAssay5]{ChromatinAssay5()}}}
 
 \item{...}{Arguments passed to other methods}
 
 \item{annotation}{Genomic annotation. It must have the following columns:
 \itemize{
-  \item{tx_id or transcript_id: Transcript ID}
-  \item{gene_name: Gene name}
-  \item{gene_id: Gene ID}
-  \item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
-  \item{type: Annotation type (e.g. "exon", "gap")}
+\item{tx_id or transcript_id: Transcript ID}
+\item{gene_name: Gene name}
+\item{gene_id: Gene ID}
+\item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
+\item{type: Annotation type (e.g. "exon", "gap")}
 }}
 
-\item{fragments}{A list of \code{\link{Fragment}} objects}
+\item{fragments}{A list of \code{\link[=Fragment]{Fragment()}} objects}
 
 \item{bias}{Tn5 integration bias matrix}
 
-\item{motifs}{A \code{\link{Motif}} object}
+\item{motifs}{A \code{\link[=Motif]{Motif()}} object}
 
 \item{links}{Genomic links TODO}
 
-\item{region.aggregation}{A named list of \code{\link{RegionAggregation}}}
+\item{region.aggregation}{A named list of \code{\link[=RegionAggregation]{RegionAggregation()}}}
 }
 \description{
 Convert objects to a ChromatinAssay

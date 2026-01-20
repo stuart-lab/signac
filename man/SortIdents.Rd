@@ -27,7 +27,7 @@ uses the active identities.}
 \item{dendrogram}{Logical, whether to plot the dendrogram (default is FALSE).}
 
 \item{method}{The distance method to use for hierarchical clustering
-(default is 'euclidean', other options from \code{\link[stats]{dist}} are
+(default is 'euclidean', other options from \code{\link[stats:dist]{stats::dist()}} are
 'maximum', 'manhattan', 'canberra', 'binary' and 'minkowski').}
 
 \item{verbose}{Display messages}

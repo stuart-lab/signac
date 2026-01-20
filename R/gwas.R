@@ -6,9 +6,9 @@
 #' @details
 #' Input format based on GWAS-SSF (NHGRI-EBI GWAS Catalog standard).
 #'
-#' Required columns: \code{chromosome}, \code{base_pair_location}, \code{p_value}
+#' Required columns: `chromosome`, `base_pair_location`, `p_value`
 #'
-#' Optional columns: \code{variant_id}, \code{beta}, \code{standard_error}
+#' Optional columns: `variant_id`, `beta`, `standard_error`
 #'
 #' Column matching is case-insensitive. Also accepts QTL data in the same format.
 #'
@@ -55,7 +55,7 @@ LoadGWAS <- function(gwas.file) {
 #' @return data.frame with columns: chromosome, base_pair_location, r2
 #'
 #' @details
-#' Required columns: \code{chromosome}, \code{position}, \code{r2}
+#' Required columns: `chromosome`, `position`, `r2`
 #'
 #' Column matching is case-insensitive. Values should be pairwise r-squared to a lead SNP.
 #'
@@ -93,7 +93,7 @@ LoadLDData <- function(ld.file) {
 #' @return data.frame with columns: chromosome, base_pair_location, pip, credset_id
 #'
 #' @details
-#' Required columns: \code{chromosome}, \code{position}, \code{pip}, \code{credset_id}
+#' Required columns: `chromosome`, `position`, `pip`, `credset_id`
 #'
 #' Column matching is case-insensitive. Variants with cs = -1 are not in a credible set.
 #'

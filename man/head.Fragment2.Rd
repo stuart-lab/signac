@@ -12,7 +12,7 @@
 \item{n}{an integer specifying the number of rows to return from the fragment
 file}
 
-\item{...}{additional arguments passed to \code{\link[utils]{read.table}}}
+\item{...}{additional arguments passed to \code{\link[utils:read.table]{utils::read.table()}}}
 }
 \value{
 The first \code{n} rows of a fragment file as a \code{data.frame}

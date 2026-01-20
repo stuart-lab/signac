@@ -15,7 +15,7 @@ object stored is a cell-by-position matrix.
 \describe{
 \item{\code{matrix}}{A cell-by-position matrix}
 
-\item{\code{regions}}{A \code{\link[GenomicRanges]{granges}} object containing the
+\item{\code{regions}}{A \code{\link[GenomicRanges:genomic-range-squeezers]{GenomicRanges::granges()}} object containing the
 regions aggregated across.}
 
 \item{\code{upstream}}{Integer denoting number of bases upstream of the centered

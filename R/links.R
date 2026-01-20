@@ -119,11 +119,11 @@ GetLinkedGenes.GRangesAssay <- function(
 #' elements. Only elements on the same chromosome are included in the output.
 #'
 #' See the Cicero package for more information:
-#' \url{https://bioconductor.org/packages/cicero/}
+#' <https://bioconductor.org/packages/cicero/>
 #'
 #' @param conns A dataframe containing co-accessible elements. This would
-#' usually be the output of \code{run_cicero} or
-#' \code{assemble_connections}. Specifically, this should be a
+#' usually be the output of `run_cicero` or
+#' `assemble_connections`. Specifically, this should be a
 #' dataframe where the first column contains the genomic coordinates of the
 #' first element in the linked pair of elements, with chromosome, start, end
 #' coordinates separated by "-" characters. The second column should be the
@@ -131,7 +131,7 @@ GetLinkedGenes.GRangesAssay <- function(
 #' column. A third column should contain the co-accessibility scores.
 #' @param ccans This is optional, but if supplied should be a dataframe
 #' containing the cis-co-accessibility network (CCAN) information generated
-#' by \code{generate_ccans}. Specifically, this should be a
+#' by `generate_ccans`. Specifically, this should be a
 #' dataframe containing the name of the peak in the first column, and the
 #' CCAN that it belongs to in the second column.
 #' @param threshold Threshold for retaining a coaccessible site. Links with
@@ -146,7 +146,7 @@ GetLinkedGenes.GRangesAssay <- function(
 #' @importFrom stringi stri_split_fixed
 #'
 #' @concept links
-#' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
+#' @return Returns a [GenomicRanges::GRanges()] object
 ConnectionsToLinks <- function(
   conns,
   ccans = NULL,
@@ -248,8 +248,8 @@ ConnectionsToLinks <- function(
 #' @param gene.id Set to TRUE if genes in the expression assay are named
 #' using gene IDs rather than gene names.
 #' @param verbose Display messages
-#' @param peak.slot Deprecated (use \code{peak.layer})
-#' @param expression.slot Deprecated (used \code{expression.layer})
+#' @param peak.slot Deprecated (use `peak.layer`)
+#' @param expression.slot Deprecated (used `expression.layer`)
 #'
 #' @importFrom SeuratObject GetAssayData Layers
 #' @importFrom stats pnorm sd
@@ -260,8 +260,8 @@ ConnectionsToLinks <- function(
 #' @importFrom lifecycle is_present deprecated deprecate_warn
 #' @importMethodsFrom Matrix t
 #'
-#' @return Returns a Seurat object with the \code{Links} information set. This is
-#' a \code{\link[GenomicRanges]{granges}} object accessible via the \code{\link{Links}}
+#' @return Returns a Seurat object with the `Links` information set. This is
+#' a [GenomicRanges::granges()] object accessible via the [Links()]
 #' function, with the following information:
 #' \itemize{
 #'   \item{score: the correlation coefficient between the accessibility of the

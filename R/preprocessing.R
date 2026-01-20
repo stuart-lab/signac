@@ -273,8 +273,8 @@ BinarizeCounts.Seurat <- function(
 #' @param n Number of features to retain (default 20000).
 #' @param verbose Display messages
 #' @importFrom SeuratObject DefaultAssay GetAssayData "VariableFeatures<-"
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object with
-#' \code{\link[SeuratObject]{VariableFeatures}} set to the randomly sampled features.
+#' @return Returns a [SeuratObject::Seurat()] object with
+#' [SeuratObject::VariableFeatures()] set to the randomly sampled features.
 #' @export
 #' @concept preprocessing
 #' @examples
@@ -448,10 +448,10 @@ FindTopFeatures.Seurat <- function(
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param layer Name of layer to use. If NULL, use the default layer(s).
 #' @param nfeatures Number of features to selected as top variable features.
-#' @param loess.span \code{span} parameter passed to the \code{\link[stats]{loess}} function
+#' @param loess.span `span` parameter passed to the [stats::loess()] function
 #' @param min.cutoff Minimum number of counts for a feature to be eligible for variable feature selection.
 #' @param weight.mean How much to weight the ranking of features according to their mean.
-#' Setting \code{weight.mean=0} will rank features according to their residual variance only.
+#' Setting `weight.mean=0` will rank features according to their residual variance only.
 #' @param bins Number of bins to use when downsampling features across the range of mean count values.
 #' @param sample_per_bin Number of features to select per mean count bin in feature downsampling step.
 #' @param key Key to use when storing the highly variable feature information in the assay.
@@ -871,7 +871,7 @@ PearsonResidualVar.StdAssay <- function(
 
 #' @rdname PearsonResidualVar
 #' @param weight.mean Weighting to apply to the feature mean relative to the
-#' Pearson residual variance for ranking features. \code{weight.mean=0} will
+#' Pearson residual variance for ranking features. `weight.mean=0` will
 #' rank features based on the Pearson residual variance only.
 #' @importFrom SeuratObject DefaultAssay
 #' @export
@@ -911,7 +911,7 @@ PearsonResidualVar.Seurat <- function(
 #' @param assay Name of the assay containing a peak x cell matrix
 #' @param total.fragments Name of a metadata column containing the total number
 #' of sequenced fragments for each cell. This can be computed using the
-#' \code{\link{CountFragments}} function.
+#' [CountFragments()] function.
 #' @param col.name Name of column in metadata to store the FRiP information.
 #' @param verbose Display messages
 #'
@@ -920,7 +920,7 @@ PearsonResidualVar.Seurat <- function(
 #'
 #' @export
 #' @concept qc
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @return Returns a [SeuratObject::Seurat()] object
 #' @examples
 #' FRiP(object = atac_small, assay = "peaks", total.fragments = "fragments")
 FRiP <- function(
@@ -941,8 +941,8 @@ FRiP <- function(
   return(object)
 }
 
-#' @param genome A \code{BSgenome} object or any other object supported by
-#' \code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all
+#' @param genome A `BSgenome` object or any other object supported by
+#' `getSeq`. Do `showMethods("getSeq")` to get the list of all
 #' supported object types.
 #' @param verbose Display messages
 #'

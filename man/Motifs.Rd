@@ -26,7 +26,7 @@ Motifs(object, ...) <- value
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{A \code{\link{Motif}} object}
+\item{value}{A \code{\link[=Motif]{Motif()}} object}
 }
 \description{
 Get or set the Motif object for a Seurat object or ChromatinAssay.

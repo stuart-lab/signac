@@ -162,7 +162,7 @@ sequences in each group.}
 \itemize{
 \item{NULL: set to the highest value among all the tracks (default)}
 \item{qXX: clip the maximum value to the XX quantile (for example, q95 will
-set the maximum value to 95\% of the maximum value in the data). This can help
+set the maximum value to 95\\% of the maximum value in the data). This can help
 remove the effect of extreme values that may otherwise distort the scale.}
 \item{numeric: manually define a Y-axis limit}
 }}
@@ -197,12 +197,12 @@ to a GWAS-SSF file on-disk or a dataframe in the GWAS-SSF format.}
 
 \item{gwas.credset.threshold}{Posterior probability threshold for credible sets (default: 0.01)}
 
-\item{variants}{Dataframe containing variants to display (see \code{\link{VariantTrack}})}
+\item{variants}{Dataframe containing variants to display (see \code{\link[=VariantTrack]{VariantTrack()}})}
 
-\item{...}{Additional arguments passed to \code{\link[patchwork]{wrap_plots}}}
+\item{...}{Additional arguments passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}}
 }
 \value{
-Returns a \code{\link[patchwork]{patchwork}} object
+Returns a \code{\link[patchwork:patchwork-package]{patchwork::patchwork()}} object
 }
 \description{
 Plot frequency of Tn5 insertion events for different groups of cells within

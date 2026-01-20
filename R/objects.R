@@ -8,29 +8,29 @@ NULL
 
 #' ChromatinAssay5 and GRangesAssay object constructors
 #'
-#' The \code{\link{ChromatinAssay5-class}} and \code{\link{GRangesAssay-class}}
-#' classes extend \code{\link[SeuratObject]{Assay5}} objects for single-cell
+#' The [ChromatinAssay5-class()] and [GRangesAssay-class()]
+#' classes extend [SeuratObject::Assay5()] objects for single-cell
 #' chromatin data, with or without genomic ranges for each feature in the assay.
-#' Use \code{CreateGRangesAssay} to construct a \code{GRangesAssay} object or
-#' \code{CreateChromatinAssay5} to construct a \code{ChromatinAssay5} object.
+#' Use `CreateGRangesAssay` to construct a `GRangesAssay` object or
+#' `CreateChromatinAssay5` to construct a `ChromatinAssay5` object.
 #'
 #' @rdname CreateGRangesAssay
 #'
-#' @param ranges A set of \code{\link[GenomicRanges]{GRanges}} corresponding to
+#' @param ranges A set of [GenomicRanges::GRanges()] corresponding to
 #' the rows of the input matrix
 #' @param sep Separators to use for strings encoding genomic coordinates.
 #' First element is used to separate the chromosome from the coordinates,
 #' second element is used to separate the start from end coordinate. Only
-#' used if \code{ranges} is NULL.
-#' @param ... Additional arguments passed to \code{\link{CreateChromatinAssay5}}
-#' and \code{\link[SeuratObject]{CreateAssay5Object}}.
+#' used if `ranges` is NULL.
+#' @param ... Additional arguments passed to [CreateChromatinAssay5()]
+#' and [SeuratObject::CreateAssay5Object()].
 #'
 #' @importFrom SeuratObject CreateAssay5Object
 #' @importFrom Matrix rowSums colSums
 #' @importFrom GenomicRanges isDisjoint
 #' @importFrom S4Vectors mcols
 #' @concept assay
-#' @seealso \code{\link{CreateChromatinAssay5}}
+#' @seealso [CreateChromatinAssay5()]
 #' @return Returns a Seurat object
 #'
 #' @export
@@ -64,11 +64,11 @@ CreateGRangesAssay <- function(
 #' @param data Optional pre-normalized count matrix
 #' @param fragments Path to a tabix-indexed fragments file for the data
 #' contained in the input matrix. If multiple fragment files are required,
-#' you can add additional \code{\link{Fragment}} object to the assay after it is
-#' created using the \code{\link{CreateFragmentObject}} and
-#' \code{\link{Fragments}} functions. Alternatively, a list of
-#' \code{\link{Fragment}} objects can be provided.
-#' @param annotation A set of \code{\link[GenomicRanges]{GRanges}} containing
+#' you can add additional [Fragment()] object to the assay after it is
+#' created using the [CreateFragmentObject()] and
+#' [Fragments()] functions. Alternatively, a list of
+#' [Fragment()] objects can be provided.
+#' @param annotation A set of [GenomicRanges::GRanges()] containing
 #' annotations for the genome used. It must have the following columns:
 #' \itemize{
 #'   \item{tx_id or transcript_id: Transcript ID}
@@ -79,9 +79,9 @@ CreateGRangesAssay <- function(
 #' }
 #' @param bias A Tn5 integration bias matrix
 #' @param motifs A Motif object
-#' @param links A named list of \code{\link[InteractionSet]{GInteractions}}
+#' @param links A named list of [InteractionSet::GInteractions()]
 #' objects
-#' @param region.aggregation A named list of \code{\link{RegionAggregation}}
+#' @param region.aggregation A named list of [RegionAggregation()]
 #' objects.
 #' @param validate.fragments Check that cells in the assay are present in the
 #' fragment file.
@@ -301,11 +301,11 @@ as.GRangesAssay.ChromatinAssay5 <- function(
 #'   \item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
 #'   \item{type: Annotation type (e.g. "exon", "gap")}
 #' }
-#' @param fragments A list of \code{\link{Fragment}} objects
+#' @param fragments A list of [Fragment()] objects
 #' @param bias Tn5 integration bias matrix
-#' @param motifs A \code{\link{Motif}} object
+#' @param motifs A [Motif()] object
 #' @param links Genomic links TODO
-#' @param region.aggregation A named list of \code{\link{RegionAggregation}}
+#' @param region.aggregation A named list of [RegionAggregation()]
 #'
 #' @rdname as.ChromatinAssay5
 #' @export
@@ -414,7 +414,7 @@ setAs(
 
 #' Create a Fragment object
 #'
-#' Create a \code{Fragment} object to store fragment file information.
+#' Create a `Fragment` object to store fragment file information.
 #' This object stores a 32-bit MD5 hash of the fragment file and the fragment
 #' file index so that any changes to the files on-disk can be detected. A check
 #' is also performed to ensure that the expected cells are present in the
@@ -441,7 +441,7 @@ setAs(
 #' @param validate.fragments Check that expected cells are present in the
 #' fragment file.
 #' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{ValidateCells}
+#' @param ... Additional arguments passed to `ValidateCells`
 #'
 #' @importFrom tools md5sum file_ext
 #' @export
@@ -538,22 +538,22 @@ CreateFragmentObject <- function(
 
 #' Create motif object
 #'
-#' Create a \code{\link{Motif-class}} object.
+#' Create a [Motif-class()] object.
 #'
 #' @param data A motif x region matrix
 #' @param pwm A named list of position weight matrices or position frequency
-#' matrices matching the motif names in \code{data}.
+#' matrices matching the motif names in `data`.
 #' Can be of class PFMatrixList.
 #' @param motif.names A named list of motif names. List element names
-#' must match the names given in \code{pwm}. If NULL, use the names from the
+#' must match the names given in `pwm`. If NULL, use the names from the
 #' list of position weight or position frequency matrices. This can be used to
 #' set a alternative common name for the motif. If a PFMatrixList is passed to
-#' \code{pwm}, it will pull the motif name from the PFMatrixList.
-#' @param positions A \code{\link[GenomicRanges]{GRangesList}} object containing
+#' `pwm`, it will pull the motif name from the PFMatrixList.
+#' @param positions A [GenomicRanges::GRangesList()] object containing
 #' exact positions of each motif.
 #' @param meta.data A data.frame containing metadata
 #' @export
-#' @return Returns a \code{\link{Motif}} object
+#' @return Returns a [Motif()] object
 #' @concept motifs
 #' @examples
 #' motif.matrix <- matrix(
@@ -802,9 +802,9 @@ GetAssayData.ChromatinAssay5 <- function(
 
 #' Get Fragment object data
 #'
-#' Extract data from a \code{\link{Fragment2-class}} object
+#' Extract data from a [Fragment2-class()] object
 #'
-#' @param object A \code{\link{Fragment2}} object
+#' @param object A [Fragment2()] object
 #' @param slot Information to pull from object
 #' (file.path, index.path, hash, cells, seqlevels)
 #' @export
@@ -1214,7 +1214,7 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
 
 #' Subset a Motif object
 #'
-#' Returns a subset of a \code{\link{Motif-class}} object.
+#' Returns a subset of a [Motif-class()] object.
 #'
 #' @param x A Motif object
 #' @param features Which features to retain
@@ -1223,8 +1223,8 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
 #'
 #' @method subset Motif
 #'
-#' @seealso \code{\link[base]{subset}}
-#' @return Returns a subsetted \code{\link{Motif}} object
+#' @seealso [base::subset()]
+#' @return Returns a subsetted [Motif()] object
 #' @export
 #' @concept motifs
 #' @examples
@@ -1383,7 +1383,7 @@ subset.ChromatinAssay5 <- function(
 
 #' Subset a Fragment object
 #'
-#' Returns a subset of a \code{\link{Fragment}} object.
+#' Returns a subset of a [Fragment()] object.
 #'
 #' @param x A Fragment object
 #' @param cells Vector of cells to retain
@@ -1392,8 +1392,8 @@ subset.ChromatinAssay5 <- function(
 #' @method subset Fragment2
 #'
 #' @importFrom fastmatch fmatch
-#' @seealso \code{\link[base]{subset}}
-#' @return Returns a subsetted \code{\link{Fragment}} object
+#' @seealso [base::subset()]
+#' @return Returns a subsetted [Fragment()] object
 #' @export
 #' @concept fragments
 #' @examples

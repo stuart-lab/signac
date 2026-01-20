@@ -11,35 +11,35 @@ NULL
 #' using a grouping variable will require extra time to split the files and
 #' perform multiple MACS peak calls, and will store additional files on-disk
 #' that may be large. Note that we store split fragment files in the temp
-#' directory (\code{\link[base]{tempdir}}) by default, and if the program is
+#' directory ([base::tempdir()]) by default, and if the program is
 #' interrupted before completing these temporary files will not be removed. If
 #' NULL, peaks are called using all cells together (pseudobulk).
 #' @param idents List of identities to include if grouping cells (only valid if
-#' also setting the \code{group.by} parameter). If NULL, peaks will be called
+#' also setting the `group.by` parameter). If NULL, peaks will be called
 #' for all cell identities.
 #' @param macs2.path Path to MACS program. If NULL, try to find MACS
 #' automatically.
 #' @param combine.peaks Controls whether peak calls from different groups of
-#' cells are combined using \code{GenomicRanges::reduce} when calling peaks for
-#' different groups of cells (\code{group.by} parameter). If FALSE, a list of
-#' \code{GRanges} object will be returned. Note that metadata fields such as the
+#' cells are combined using `GenomicRanges::reduce` when calling peaks for
+#' different groups of cells (`group.by` parameter). If FALSE, a list of
+#' `GRanges` object will be returned. Note that metadata fields such as the
 #' p-value, q-value, and fold-change information for each peak will be lost if
 #' combining peaks.
-#' @param broad Call broad peaks (\code{--broad} parameter for MACS)
+#' @param broad Call broad peaks (`--broad` parameter for MACS)
 #' @param format File format to use. Should be either "BED" or "BEDPE" (see
 #' MACS documentation).
 #' @param outdir Path for output files
 #' @param fragment.tempdir Path to write temporary fragment files. Only used if
-#' \code{group.by} is not NULL.
+#' `group.by` is not NULL.
 #' @param effective.genome.size Effective genome size parameter for MACS
-#' (\code{-g}). Default is the human effective genome size (2.7e9).
-#' @param extsize \code{extsize} parameter for MACS. Only relevant if
+#' (`-g`). Default is the human effective genome size (2.7e9).
+#' @param extsize `extsize` parameter for MACS. Only relevant if
 #' format="BED"
-#' @param shift \code{shift} parameter for MACS. Only relevant if format="BED"
+#' @param shift `shift` parameter for MACS. Only relevant if format="BED"
 #' @param additional.args Additional arguments passed to MACS. This should be a
 #' single character string
 #' @param name Name for output MACS files. This will also be placed in the
-#' \code{name} field in the GRanges output.
+#' `name` field in the GRanges output.
 #' @param cleanup Remove MACS output files
 #' @param verbose Display messages
 #' @param ... Arguments passed to other methods

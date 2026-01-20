@@ -133,23 +133,23 @@
 )
 }
 \arguments{
-\item{query, subject}{A \code{\link{GRangesAssay}} object}
+\item{query, subject}{A \code{\link[=GRangesAssay]{GRangesAssay()}} object}
 
 \item{maxgap, minoverlap, type, select, ignore.strand}{See
-\code{?\link[GenomicRanges]{findOverlaps}} in the \pkg{GenomicRanges} and
+\verb{?[findOverlaps][GenomicRanges::findOverlaps]} in the \pkg{GenomicRanges} and
 \pkg{IRanges} packages.}
 }
 \value{
-See \code{\link[GenomicRanges]{findOverlaps}}
+See \code{\link[GenomicRanges:findOverlaps-methods]{GenomicRanges::findOverlaps()}}
 }
 \description{
-The \code{findOverlaps, countOverlaps} methods are available for
-\code{\link{GRangesAssay}} objects. This allows finding overlaps between
+The \verb{findOverlaps, countOverlaps} methods are available for
+\code{\link[=GRangesAssay]{GRangesAssay()}} objects. This allows finding overlaps between
 genomic ranges and the ranges stored in the GRangesAssay
 }
 \details{
 If a GRangesAssay is set as the default assay in a
-\code{\link[SeuratObject]{Seurat}} object, you can also call \code{findOverlaps}
+\code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object, you can also call \code{findOverlaps}
 directly on the Seurat object.
 }
 \section{Functions}{
@@ -179,10 +179,10 @@ directly on the Seurat object.
 }}
 \seealso{
 \itemize{
-  \item{\link[IRanges]{findOverlaps-methods} in the \pkg{IRanges} package.}
-  \item{\link[GenomicRanges]{findOverlaps-methods} in the \pkg{GenomicRanges}
-  package}
-  \item{\link{GRangesAssay-class}}
- }
+\item{\link[IRanges:findOverlaps-methods]{findOverlaps-methods} in the \pkg{IRanges} package.}
+\item{\link[GenomicRanges:findOverlaps-methods]{findOverlaps-methods} in the \pkg{GenomicRanges}
+package}
+\item{\linkS4class{GRangesAssay}}
+}
 }
 \concept{overlaps}

@@ -9,7 +9,7 @@
 #' }
 #'
 #' @concept data
-#' @source \url{https://www.10xgenomics.com/datasets/10k-human-pbmcs-atac-v2-chromium-controller-2-standard}
+#' @source <https://www.10xgenomics.com/datasets/10k-human-pbmcs-atac-v2-chromium-controller-2-standard>
 "atac_small"
 
 #' A small example scATAC-seq dataset (old)
@@ -25,5 +25,5 @@
 #' }
 #'
 #' @concept data
-#' @source \url{https://support.10xgenomics.com/single-cell-atac/datasets/1.1.0/atac_v1_pbmc_10k}
+#' @source <https://support.10xgenomics.com/single-cell-atac/datasets/1.1.0/atac_v1_pbmc_10k>
 "atac_small_old"

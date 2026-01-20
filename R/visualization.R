@@ -184,14 +184,14 @@ BigwigTrack <- function(
 #' Compute the correlation between total counts and each reduced
 #' dimension component.
 #'
-#' @param object A \code{\link[SeuratObject]{Seurat}} object
+#' @param object A [SeuratObject::Seurat()] object
 #' @param reduction Name of a dimension reduction stored in the
 #' input object
 #' @param assay Name of assay to use for sequencing depth. If NULL, use the
 #' default assay.
-#' @param n Number of components to use. If \code{NULL}, use all components.
-#' @param ... Additional arguments passed to \code{\link[stats]{cor}}
-#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @param n Number of components to use. If `NULL`, use all components.
+#' @param ... Additional arguments passed to [stats::cor()]
+#' @return Returns a [ggplot2::ggplot()] object
 #' @export
 #' @importFrom SeuratObject Embeddings DefaultAssay
 #' @importFrom ggplot2 ggplot geom_point scale_x_continuous
@@ -268,12 +268,12 @@ get_density <- function(x, y, n_sub = 50000, ...) {
 #' This function will plot the p-values associated with variants in a given
 #' region of the genome (genome position: x-axis; -log10(p): y-axis).
 #'
-#' If an LD file is provided using the \code{ld.file} parameter, or a column
-#' named \code{r2} is present in the input GWAS data, the variants will be
+#' If an LD file is provided using the `ld.file` parameter, or a column
+#' named `r2` is present in the input GWAS data, the variants will be
 #' colored according to their LD value.
 #'
-#' If a fine mapping file is provided using the \code{credset.file} parameter,
-#' or a column named \code{in_credset} is present in the input GWAS data,
+#' If a fine mapping file is provided using the `credset.file` parameter,
+#' or a column named `in_credset` is present in the input GWAS data,
 #' variants in the credible set will be denoted by shape. If LD information is
 #' not provided, credible variants will also be denoted by color.
 #'
@@ -508,7 +508,7 @@ globalVariables(".data")
 #' for x and y data distribution. Must be integer values
 #' between 0 and 100.
 #' TRUE can be passed as a shorthand way to set
-#' \code{c(5, 10, 90, 95)}. If FALSE or NULL, no quantile
+#' `c(5, 10, 90, 95)`. If FALSE or NULL, no quantile
 #' information is displayed
 #' @param raster Convert points to raster format. If NULL, points will
 #' automatically be rasterized if plotting more than 100,000 cells.
@@ -664,7 +664,7 @@ globalVariables(
 #' @param label.top Number of groups to label based on highest accessibility
 #' in motif flanking region.
 #' @param label.idents Vector of identities to label. If supplied,
-#' \code{label.top} will be ignored.
+#' `label.top` will be ignored.
 #' @export
 #' @concept visualization
 #' @concept footprinting
@@ -883,21 +883,21 @@ globalVariables(
 #' @param object A Seurat object
 #' @param assay Name of assay to use. If a list or vector of assay names is
 #' given, data will be plotted from each assay. Note that all assays must
-#' contain \code{RegionMatrix} results with the same key. Sorting will be
+#' contain `RegionMatrix` results with the same key. Sorting will be
 #' defined by the first assay in the list
 #' @param key Name of key to pull data from. Stores the results from
-#' \code{\link{RegionMatrix}}
+#' [RegionMatrix()]
 #' @param window Smoothing window to apply
 #' @param normalize Normalize by number of cells in each group
 #' @param order Order regions by the total number of fragments in the region
 #' across all included identities
 #' @param upstream Number of bases to include upstream of region. If NULL, use
-#' all bases that were included in the \code{RegionMatrix} function call. Note
-#' that this value cannot be larger than the value for \code{upstream} given in
-#' the original \code{RegionMatrix} function call. If NULL, use parameters that
-#' were given in the \code{RegionMatrix} function call
+#' all bases that were included in the `RegionMatrix` function call. Note
+#' that this value cannot be larger than the value for `upstream` given in
+#' the original `RegionMatrix` function call. If NULL, use parameters that
+#' were given in the `RegionMatrix` function call
 #' @param downstream Number of bases to include downstream of region. See
-#' documentation for \code{upstream}
+#' documentation for `upstream`
 #' @param max.cutoff Maximum cutoff value. Data above this value will be clipped
 #' to the maximum value. A quantile maximum can be specified in the form of
 #' "q##" where "##" is the quantile (eg, "q90" for 90th quantile). If NULL, no
@@ -907,7 +907,7 @@ globalVariables(
 #' colors are used.
 #' @param min.counts Minimum total counts to display region in plot
 #' @param idents Cell identities to include. Note that cells cannot be
-#' regrouped, this will require re-running \code{RegionMatrix} to generate a
+#' regrouped, this will require re-running `RegionMatrix` to generate a
 #' new set of matrices
 #' @param group.order Order of groups to be shown in the plot. This should be a
 #' character vector. If NULL, the group order will not be changed.
@@ -1188,21 +1188,21 @@ get_heatmap_data <- function(
 #' @param object A Seurat object
 #' @param assay Name of assay to use. If a list or vector of assay names is
 #' given, data will be plotted from each assay. Note that all assays must
-#' contain \code{RegionMatrix} results with the same key. Sorting will be
+#' contain `RegionMatrix` results with the same key. Sorting will be
 #' defined by the first assay in the list
 #' @param key Name of key to pull data from. Stores the results from
-#' \code{\link{RegionMatrix}}
+#' [RegionMatrix()]
 #' @param window Smoothing window to apply
 #' @param normalize Normalize by number of cells in each group
 #' @param upstream Number of bases to include upstream of region. If NULL, use
-#' all bases that were included in the \code{RegionMatrix} function call. Note
-#' that this value cannot be larger than the value for \code{upstream} given in
-#' the original \code{RegionMatrix} function call. If NULL, use parameters that
-#' were given in the \code{RegionMatrix} function call
+#' all bases that were included in the `RegionMatrix` function call. Note
+#' that this value cannot be larger than the value for `upstream` given in
+#' the original `RegionMatrix` function call. If NULL, use parameters that
+#' were given in the `RegionMatrix` function call
 #' @param downstream Number of bases to include downstream of region. See
-#' documentation for \code{upstream}
+#' documentation for `upstream`
 #' @param idents Cell identities to include. Note that cells cannot be
-#' regrouped, this will require re-running \code{RegionMatrix} to generate a
+#' regrouped, this will require re-running `RegionMatrix` to generate a
 #' new set of matrices
 #' @param group.order Order of groups to be shown in the plot. This should be a
 #' character vector. If NULL, the group order will not be changed.
@@ -1964,10 +1964,10 @@ CoverageTrack <- function(
 #' Note that this will plot the combined accessibility for all cells included in
 #' the plot (rather than all cells in the object).
 #' @param expression.assay Name of the assay containing expression data to plot
-#' alongside accessibility tracks. Only needed if supplying \code{features}
+#' alongside accessibility tracks. Only needed if supplying `features`
 #' argument.
 #' @param expression.slot Name of slot to pull expression data from. Only needed
-#' if supplying the \code{features} argument.
+#' if supplying the `features` argument.
 #' @param annotation Display gene annotations. Set to TRUE or FALSE to control
 #' whether genes models are displayed, or choose "transcript" to display all
 #' transcript isoforms, or "gene" to display gene models only (same as setting
@@ -1977,10 +1977,10 @@ CoverageTrack <- function(
 #' present in the feature metadata. If NULL, do not color peaks by any variable.
 #' @param ranges Additional genomic ranges to plot
 #' @param ranges.group.by Grouping variable to color ranges by. Must be a
-#' variable present in the metadata stored in the \code{ranges} genomic ranges.
+#' variable present in the metadata stored in the `ranges` genomic ranges.
 #' If NULL, do not color by any variable.
 #' @param ranges.title Y-axis title for ranges track. Only relevant if
-#' \code{ranges} parameter is set.
+#' `ranges` parameter is set.
 #' @param region.highlight Region to highlight on the plot. Should be a GRanges
 #' object containing the coordinates to highlight. By default, regions will be
 #' highlighted in grey. To change the color of the highlighting, include a
@@ -2002,8 +2002,8 @@ CoverageTrack <- function(
 #' @param bigwig.type Type of track to use for bigWig files ("line", "heatmap",
 #' or "coverage"). Should either be a single value, or a list of values giving
 #' the type for each individual track in the provided list of bigwig files.
-#' @param bigwig.scale Same as \code{assay.scale} parameter, except for bigWig
-#' files when plotted with \code{bigwig.type="coverage"}
+#' @param bigwig.scale Same as `assay.scale` parameter, except for bigWig
+#' files when plotted with `bigwig.type="coverage"`
 #' @param cells Which cells to plot. Default all cells
 #' @param idents Which identities to include in the plot. Default is all
 #' identities.
@@ -2045,13 +2045,13 @@ CoverageTrack <- function(
 #' @param gwas.ld.lead.snp Lead SNP for LD calculations. Required if gwas.ld.file provided.
 #' @param gwas.credset.file Path to fine-mapping credible sets file. Optional.
 #' @param gwas.credset.threshold Posterior probability threshold for credible sets (default: 0.01)
-#' @param variants Dataframe containing variants to display (see \code{\link{VariantTrack}})
-#' @param ... Additional arguments passed to \code{\link[patchwork]{wrap_plots}}
+#' @param variants Dataframe containing variants to display (see [VariantTrack()])
+#' @param ... Additional arguments passed to [patchwork::wrap_plots()]
 #'
 #' @importFrom patchwork wrap_plots
 #' @export
 #' @concept visualization
-#' @return Returns a \code{\link[patchwork]{patchwork}} object
+#' @return Returns a [patchwork::patchwork()] object
 #' @examples
 #' \donttest{
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
@@ -2188,13 +2188,13 @@ CoveragePlot <- function(
 #' @param motifs A list of motif IDs or motif names to plot
 #' @param assay Name of the assay to use
 #' @param use.names Use motif names stored in the motif object
-#' @param ... Additional parameters passed to \code{\link[ggseqlogo]{ggseqlogo}}
+#' @param ... Additional parameters passed to [ggseqlogo::ggseqlogo()]
 #'
 #' @importFrom SeuratObject DefaultAssay
 #' @export
 #' @concept visualization
 #' @concept motifs
-#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @return Returns a [ggplot2::ggplot()] object
 #' @examples
 #' \donttest{
 #' motif.obj <- Motifs(atac_small)
@@ -2262,7 +2262,7 @@ globalVariables(names = "group", package = "Signac")
 #' @export
 #' @concept visualization
 #' @concept qc
-#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @return Returns a [ggplot2::ggplot()] object
 #' @examples
 #' \donttest{
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
@@ -2410,10 +2410,10 @@ CombineTracks <- function(
 
 #' Plot peaks in a genomic region
 #'
-#' Display the genomic ranges in a \code{\link{GRangesAssay}} object that fall
+#' Display the genomic ranges in a [GRangesAssay()] object that fall
 #' in a given genomic region
 #'
-#' @param object A \code{\link[SeuratObject]{Seurat}} object
+#' @param object A [SeuratObject::Seurat()] object
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param region A genomic region to plot
 #' @param peaks A GRanges object containing peak coordinates. If NULL, use
@@ -2421,7 +2421,7 @@ CombineTracks <- function(
 #' @param group.by Name of variable in feature metadata (if using ranges in the
 #' Seurat object) or genomic ranges metadata (if using supplied ranges) to color
 #' ranges by. If NULL, do not color by any metadata variable.
-#' @param color Color to use. If \code{group.by} is not NULL, this can be a
+#' @param color Color to use. If `group.by` is not NULL, this can be a
 #' custom color scale (see examples).
 #' @param sep Separators to use for strings encoding genomic coordinates. First
 #' element is used to separate the chromosome from the coordinates, second
@@ -2429,7 +2429,7 @@ CombineTracks <- function(
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
 #'
-#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @return Returns a [ggplot2::ggplot()] object
 #' @export
 #' @concept visualization
 #' @importFrom SeuratObject DefaultAssay
@@ -2536,7 +2536,7 @@ PeakPlot <- function(
 #' Display links between pairs of genomic elements within a given region of the
 #' genome.
 #'
-#' @param object A \code{\link[SeuratObject]{Seurat}} object
+#' @param object A [SeuratObject::Seurat()] object
 #' @param region A genomic region to plot
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param min.cutoff Minimum absolute score for link to be plotted.
@@ -2548,7 +2548,7 @@ PeakPlot <- function(
 #' @param scale.linewidth Scale thickness of the line according to link score.
 #'
 #'
-#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @return Returns a [ggplot2::ggplot()] object
 #' @export
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom GenomicRanges start end
@@ -2659,7 +2659,7 @@ LinkPlot <- function(
 #'
 #' Display gene annotations in a given region of the genome.
 #'
-#' @param object A \code{\link[SeuratObject]{Seurat}} object
+#' @param object A [SeuratObject::Seurat()] object
 #' @param region A genomic region to plot
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param mode Display mode. Choose either "gene" or "transcript" to determine
@@ -2670,7 +2670,7 @@ LinkPlot <- function(
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
 #'
-#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @return Returns a [ggplot2::ggplot()] object
 #' @export
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom GenomicRanges start end
@@ -2992,7 +2992,7 @@ ExpressionPlot <- function(
 #' versus the log10 mean-variance ratio for the allele.
 #'
 #' @param variants A dataframe containing variant information. This should be
-#' computed using \code{\link{IdentifyVariants}}
+#' computed using [IdentifyVariants()]
 #' @param min.cells Minimum number of high-confidence cells detected with the
 #' variant for the variant to be displayed.
 #' @param concordance.threshold Strand concordance threshold
@@ -3125,7 +3125,7 @@ VariantTrack <- function(
 #' total number of fragments in the region, "random" will select randomly.
 #' @param cells Which cells to plot. Default all cells
 #'
-#' @return Returns a \code{\link[ggplot2]{ggplot}} object
+#' @return Returns a [ggplot2::ggplot()] object
 #' @importFrom SeuratObject DefaultAssay
 #' @importFrom ggplot2 xlab
 #' @importFrom Seqinfo seqnames
@@ -3296,7 +3296,7 @@ CreateTilePlot <- function(df, n, legend = TRUE) {
 
 #' Genome browser theme
 #'
-#' Theme applied to panels in the \code{\link{CoveragePlot}} function.
+#' Theme applied to panels in the [CoveragePlot()] function.
 #'
 #' @param ... Additional arguments
 #' @param legend Display plot legend

@@ -15,7 +15,7 @@ AnnotationPlot(
 )
 }
 \arguments{
-\item{object}{A \code{\link[SeuratObject]{Seurat}} object}
+\item{object}{A \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object}
 
 \item{region}{A genomic region to plot}
 
@@ -33,7 +33,7 @@ element is used to separate the start from end coordinate.}
 \item{extend.downstream}{Number of bases to extend the region downstream.}
 }
 \value{
-Returns a \code{\link[ggplot2]{ggplot}} object
+Returns a \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} object
 }
 \description{
 Display gene annotations in a given region of the genome.

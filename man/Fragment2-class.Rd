@@ -23,7 +23,7 @@
 \S4method{renameSeqlevels}{Fragment2}(x, value)
 }
 \arguments{
-\item{x}{A \code{\link{Fragment2}} object}
+\item{x}{A \code{\link[=Fragment2]{Fragment2()}} object}
 
 \item{value}{A named character vector or name of a seqlevelsStyle}
 }
@@ -61,7 +61,7 @@ corresponding cell barcode as stored in the ChromatinAssay5 object.}
 
 \item{\code{seqlevels}}{A named vector of sequence levels (eg, chromosome name) where
 each element is the sequence name as it appears in the fragment file, and the
-name of each element is the corresponding sequence name as stored in the 
+name of each element is the corresponding sequence name as stored in the
 ChromatinAssay5 object.}
 }}
 

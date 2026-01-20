@@ -16,7 +16,7 @@ FeatureMatrix(
 )
 }
 \arguments{
-\item{fragments}{A list of \code{\link{Fragment}} objects. Note that if
+\item{fragments}{A list of \code{\link[=Fragment]{Fragment()}} objects. Note that if
 setting the \code{cells} parameter, the requested cells should be present in
 the supplied \code{Fragment} objects. However, if the cells information in
 the fragment object is not set (\code{Cells(fragments)} is \code{NULL}), then
@@ -40,9 +40,9 @@ number of genomic regions.}
 
 \item{keep_all_features}{By default, if a genomic region provided is on a
 chromosome that is not present in the fragment file,
-it will not be included in the returned matrix. Set `keep_all_features` to
+it will not be included in the returned matrix. Set \code{keep_all_features} to
 TRUE to force output to include all features in the input ranges. Note that
-features on chromosomes that are not present in the fragment file will be 
+features on chromosomes that are not present in the fragment file will be
 filled with zero counts.}
 
 \item{cells}{Vector of cells to include. If NULL, include all cells found
