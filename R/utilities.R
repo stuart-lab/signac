@@ -1585,7 +1585,7 @@ ApplyMatrixByGroup <- function(
   scale.factor = NULL
 ) {
   if (normalize) {
-    if (is.null(x = group.scale.factors) | is.null(x = scale.factor)) {
+    if (is.null(x = group.scale.factors) || is.null(x = scale.factor)) {
       stop("If normalizing counts, supply group scale factors")
     }
   }
@@ -1648,7 +1648,7 @@ TabixOutputToDataFrame <- function(reads, record.ident = TRUE) {
   }
   original_names <- names(reads)
   reads <- unlist(x = reads, use.names = FALSE)
-  if (length(x = reads) == 0 | is.null(x = original_names)) {
+  if (length(x = reads) == 0 || is.null(x = original_names)) {
     df <- data.frame(
       "chr" = "",
       "start" = "",
@@ -1744,7 +1744,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
   close(con = tabix)
   gc(verbose = FALSE)
   nrep <- elementNROWS(x = cells.in.regions)
-  if (all(nrep == 0) & !is.null(x = cells)) {
+  if (all(nrep == 0) && !is.null(x = cells)) {
     # no fragments
     # zero for all requested cells
     featmat <- sparseMatrix(
@@ -1855,7 +1855,10 @@ SparsifiedRanks <- function(X) {
   ## split entries to columns
   col_lst <- split(
     x = x,
-    f = rep.int(x = 1:ncol(x = X), times = non_zeros_per_col)
+    f = rep.int(
+      x = seq_len(length.out = ncol(x = X)),
+      times = non_zeros_per_col
+    )
   )
   ## calculate sparsified ranks and do shifting
   sparsified_ranks <- unlist(
