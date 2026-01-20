@@ -709,7 +709,7 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
 #' @param ... Arguments passed to other functions
 #' @return Returns a character vector
 #'
-#' @importFrom stats density approx na.omit
+#' @importFrom stats density approx na.omit cov
 #' @export
 #' @concept utilities
 #' @concept motifs

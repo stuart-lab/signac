@@ -50,14 +50,14 @@ with characteristics matching the query regions is then selected using the
 selecting each feature equal to the joint density distribution weight.
 }
 \examples{
-metafeatures <- atac_small[['peaks']][[]]
+metafeatures <- atac_small[["peaks"]][[]]
 query.feature <- metafeatures[1:10, ]
 features.choose <- metafeatures[11:nrow(metafeatures), ]
 MatchRegionStats(
-meta.feature = features.choose,
-query.feature = query.feature,
-features.match = "GC.percent",
-n = 10
+  meta.feature = features.choose,
+  query.feature = query.feature,
+  features.match = "GC.percent",
+  n = 10
 )
 }
 \concept{motifs}

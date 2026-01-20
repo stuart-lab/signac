@@ -23,7 +23,7 @@ Returns a GRanges object
 Convert a genomic coordinate string to a GRanges object
 }
 \examples{
-regions <- c('chr1-1-10', 'chr2-12-3121')
+regions <- c("chr1-1-10", "chr2-12-3121")
 StringToGRanges(regions = regions)
 }
 \concept{utilities}

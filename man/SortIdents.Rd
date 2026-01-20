@@ -21,7 +21,7 @@ SortIdents(
 
 \item{assay}{Name of assay to use. If NULL, use the default assay}
 
-\item{label}{Metadata attribute to sort. If NULL, 
+\item{label}{Metadata attribute to sort. If NULL,
 uses the active identities.}
 
 \item{dendrogram}{Logical, whether to plot the dendrogram (default is FALSE).}
@@ -40,13 +40,13 @@ active identities were used (label=NULL), the levels will be updated according
 to similarity ordering.
 }
 \description{
-Compute distance matrix from a feature/variable matrix and 
+Compute distance matrix from a feature/variable matrix and
 perform hierarchical clustering to order variables (for example, cell types)
 according to their similarity.
 }
 \examples{
 atac_small$test <- sample(1:10, ncol(atac_small), replace = TRUE)
-atac_small <- SortIdents(object = atac_small, label = 'test')
+atac_small <- SortIdents(object = atac_small, label = "test")
 print(levels(atac_small$test))
 
 }
