@@ -7,7 +7,7 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' Plot data from BigWig files
 #'
 #' Create coverage tracks, heatmaps, or line plots from bigwig files.
-#' 
+#'
 #' Note that this function does not work on windows.
 #'
 #' @param region GRanges object specifying region to plot
@@ -118,16 +118,16 @@ BigwigTrack <- function(
     all.data <- rbind(all.data, region_data)
   }
   all.data$bw <- factor(x = all.data$bw, levels = names(x = bigwig))
-  window.size = width(x = region)
+  window.size <- width(x = region)
   sampling <- ceiling(x = max(max.downsample, window.size * downsample.rate))
   coverages <- slice_sample(.data = all.data, n = sampling)
-  
+
   covmax <- signif(x = max(coverages$score, na.rm = TRUE), digits = 2)
   if (is.null(x = ymax)) {
     ymax <- covmax
   } else if (is.character(x = ymax)) {
     if (!startsWith(x = ymax, prefix = "q")) {
-      stop("Unknown ymax requested. Must be NULL, a numeric value, or 
+      stop("Unknown ymax requested. Must be NULL, a numeric value, or
            a quantile denoted by 'qXX' with XX the desired quantile value,
            e.g. q95 for 95th percentile")
     }
@@ -136,16 +136,16 @@ BigwigTrack <- function(
     ) / 100
     ymax <- covmax * percentile.use
   }
-  ymin <- 0
-  
+
   # perform clipping
-  coverages$score[coverages$score > ymax] <- ymax 
-  
+  coverages$score[coverages$score > ymax] <- ymax
+
   if (type == "line") {
     p <- ggplot(
       data = coverages,
       mapping = aes_string(x = "position", y = "score", color = "bw")
-    ) + geom_line() +
+    ) +
+      geom_line() +
       facet_wrap(facets = ~bw, strip.position = "left", ncol = 1) +
       scale_color_grey()
   } else if (type == "heatmap") {
@@ -159,13 +159,16 @@ BigwigTrack <- function(
     p <- ggplot(
       data = all.data,
       mapping = aes_string(x = "bin", y = 1, fill = "score")
-    ) + geom_tile() + scale_fill_viridis_c() +
+    ) +
+      geom_tile() +
+      scale_fill_viridis_c() +
       facet_wrap(facets = ~bw, strip.position = "left", ncol = 1)
   } else if (type == "coverage") {
     p <- ggplot(
       data = coverages,
       mapping = aes_string(x = "position", y = "score", fill = "bw")
-    ) + geom_area() +
+    ) +
+      geom_area() +
       facet_wrap(facets = ~bw, strip.position = "left", ncol = 1) +
       scale_fill_grey()
   }
@@ -199,7 +202,7 @@ BigwigTrack <- function(
 #' \donttest{
 #' DepthCor(object = atac_small)
 #' }
-DepthCor <- function(object, assay = NULL, reduction = 'lsi', n = 10, ...) {
+DepthCor <- function(object, assay = NULL, reduction = "lsi", n = 10, ...) {
   assay <- assay %||% DefaultAssay(object = object)
   dr <- object[[reduction]]
   embed <- Embeddings(object = dr)
@@ -210,14 +213,15 @@ DepthCor <- function(object, assay = NULL, reduction = 'lsi', n = 10, ...) {
   depth.cor <- as.data.frame(cor(x = embed, y = counts, ...))
   depth.cor$counts <- depth.cor[, 1]
   depth.cor$Component <- seq_len(length.out = nrow(x = depth.cor))
-  p <- ggplot(depth.cor, aes_string('Component', 'counts')) +
+  p <- ggplot(depth.cor, aes_string("Component", "counts")) +
     geom_point() +
     scale_x_continuous(n.breaks = n, limits = c(1, n)) +
     ylab("Correlation") +
     ylim(c(-1, 1)) +
     theme_light() +
     ggtitle("Correlation between depth and reduced dimension components",
-            subtitle = paste0("Assay: ", assay, "\t", "Reduction: ", reduction))
+      subtitle = paste0("Assay: ", assay, "\t", "Reduction: ", reduction)
+    )
   return(p)
 }
 
@@ -237,7 +241,7 @@ get_density <- function(x, y, n_sub = 50000, ...) {
   if (!requireNamespace("fields", quietly = TRUE)) {
     stop("Please install fields: install.packages('fields')")
   }
-  
+
   n <- length(x)
   if (n > n_sub) {
     idx <- sample.int(n, n_sub)
@@ -247,10 +251,10 @@ get_density <- function(x, y, n_sub = 50000, ...) {
     xs <- x
     ys <- y
   }
-  
+
   # KDE on subsample
   dens <- MASS::kde2d(xs, ys, n = 1000, ...)
-  
+
   # Interpolate back onto full data
   out <- fields::interp.surface(
     obj = list(x = dens$x, y = dens$y, z = dens$z),
@@ -260,14 +264,14 @@ get_density <- function(x, y, n_sub = 50000, ...) {
 }
 
 #' Create GWAS locus zoom track
-#' 
+#'
 #' This function will plot the p-values associated with variants in a given
 #' region of the genome (genome position: x-axis; -log10(p): y-axis).
-#' 
+#'
 #' If an LD file is provided using the \code{ld.file} parameter, or a column
 #' named \code{r2} is present in the input GWAS data, the variants will be
 #' colored according to their LD value.
-#' 
+#'
 #' If a fine mapping file is provided using the \code{credset.file} parameter,
 #' or a column named \code{in_credset} is present in the input GWAS data,
 #' variants in the credible set will be denoted by shape. If LD information is
@@ -295,47 +299,46 @@ get_density <- function(x, y, n_sub = 50000, ...) {
 #' @export
 #' @concept visualization
 GWASTrack <- function(
-    gwas,
-    region,
-    ld.file = NULL,
-    ld.lead.snp = NULL,
-    credset.file = NULL,
-    credset.threshold = 0.01,
-    p.threshold = 5e-8,
-    ymax = NULL,
-    point.size = 1,
-    point.color = "steelblue",
-    show.axis = TRUE
+  gwas,
+  region,
+  ld.file = NULL,
+  ld.lead.snp = NULL,
+  credset.file = NULL,
+  credset.threshold = 0.01,
+  p.threshold = 5e-8,
+  ymax = NULL,
+  point.size = 1,
+  point.color = "steelblue",
+  show.axis = TRUE
 ) {
-  
   # Load GWAS data
   if (is.character(x = gwas)) {
     gwas <- LoadGWAS(gwas.file = gwas)
-  } 
-  
+  }
+
   if (!inherits(x = region, what = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
-  
+
   # subset to region
   chromosome <- as.character(x = seqnames(x = region))
   gwas <- gwas[
-    gwas[['chromosome']] == chromosome &
-      gwas[['base_pair_location']] >= start(x = region) &
-      gwas[['base_pair_location']] <= end(x = region),
+    gwas[["chromosome"]] == chromosome &
+      gwas[["base_pair_location"]] >= start(x = region) &
+      gwas[["base_pair_location"]] <= end(x = region),
   ]
-  gwas <- gwas[!is.na(x = gwas[['p_value']]), ]
-  
+  gwas <- gwas[!is.na(x = gwas[["p_value"]]), ]
+
   if (nrow(x = gwas) == 0) {
     stop("No GWAS data found in region")
   }
-  gwas[['log10p']] <- -log10(x = gwas[['p_value']])
-  
+  gwas[["log10p"]] <- -log10(x = gwas[["p_value"]])
+
   # Validate LD parameters
   if (!is.null(x = ld.file) && is.null(x = ld.lead.snp)) {
     stop("ld.lead.snp required when ld.file provided")
   }
-  
+
   # LocusZoom colors
   ld_colors <- c(
     "r2_0-0.2" = "#0000CD",
@@ -344,7 +347,7 @@ GWASTrack <- function(
     "r2_0.6-0.8" = "#FFA500",
     "r2_0.8-1.0" = "#FF0000"
   )
-  
+
   # Merge LD data
   if (!is.null(x = ld.file)) {
     ld_data <- LoadLDData(ld.file = ld.file)
@@ -354,18 +357,18 @@ GWASTrack <- function(
       by = c("chromosome", "base_pair_location"),
       all.x = TRUE
     )
-    gwas[['r2']] <- as.numeric(x = gwas[['r2']])
+    gwas[["r2"]] <- as.numeric(x = gwas[["r2"]])
   }
-  
-  if ('r2' %in% colnames(x = gwas)) {
-    gwas[['ld_category']] <- cut(
-      gwas[['r2']],
+
+  if ("r2" %in% colnames(x = gwas)) {
+    gwas[["ld_category"]] <- cut(
+      gwas[["r2"]],
       breaks = c(-Inf, 0.2, 0.4, 0.6, 0.8, Inf),
       labels = c("r2_0-0.2", "r2_0.2-0.4", "r2_0.4-0.6", "r2_0.6-0.8", "r2_0.8-1.0"),
       include.lowest = TRUE
     )
   }
-  
+
   # Merge credible set data
   if (!is.null(x = credset.file)) {
     credset_data <- LoadCredibleSets(
@@ -377,25 +380,26 @@ GWASTrack <- function(
       by = c("chromosome", "base_pair_location"),
       all.x = TRUE
     )
-    gwas[['in_credset']] <- !is.na(x = gwas[['pip']])
+    gwas[["in_credset"]] <- !is.na(x = gwas[["pip"]])
   }
-  
+
   # Y-axis limit
   if (is.null(x = ymax)) {
-    ymax <- max(gwas[['log10p']], na.rm = TRUE) * 1.1
+    ymax <- max(gwas[["log10p"]], na.rm = TRUE) * 1.1
   }
-  
+
   # Build plot
   if ("in_credset" %in% colnames(x = gwas)) {
     if ("ld_category" %in% colnames(x = gwas)) {
       # LD + credible sets
       p <- ggplot(data = gwas, mapping = aes_string(
-        x = 'base_pair_location',
-        y = 'log10p',
-        color = 'ld_category'
+        x = "base_pair_location",
+        y = "log10p",
+        color = "ld_category"
       )) +
         geom_point(
-          aes_string(shape = 'in_credset', size = 'in_credset'), alpha = 0.6
+          aes_string(shape = "in_credset", size = "in_credset"),
+          alpha = 0.6
         ) +
         scale_shape_manual(
           values = c("FALSE" = 16, "TRUE" = 18),
@@ -407,19 +411,21 @@ GWASTrack <- function(
         ) +
         scale_color_manual(
           values = ld_colors,
-          name = expression(LD~(r^2)),
+          name = expression(LD ~ (r^2)),
           na.value = "grey50"
         )
     } else {
       # Credible sets only
       p <- ggplot(data = gwas, mapping = aes_string(
-        x = 'base_pair_location',
-        y = 'log10p')) +
+        x = "base_pair_location",
+        y = "log10p"
+      )) +
         geom_point(
           mapping = aes_string(
-            shape = 'in_credset',
-            size = 'in_credset',
-            color = 'in_credset'),
+            shape = "in_credset",
+            size = "in_credset",
+            color = "in_credset"
+          ),
           alpha = 0.6
         ) +
         scale_shape_manual(
@@ -436,33 +442,32 @@ GWASTrack <- function(
           labels = c("FALSE" = "No", "TRUE" = "Yes")
         )
     }
-    
   } else if ("ld_category" %in% colnames(x = gwas)) {
     # LD only
     p <- ggplot(
       data = gwas, mapping = aes_string(
-        x = 'base_pair_location',
-        y = 'log10p',
-        color = 'ld_category'
+        x = "base_pair_location",
+        y = "log10p",
+        color = "ld_category"
       )
     ) +
       geom_point(size = point.size, alpha = 0.6) +
       scale_color_manual(
         values = ld_colors,
-        name = expression(LD~(r^2)),
+        name = expression(LD ~ (r^2)),
         na.value = "grey50"
       )
   } else {
     # Basic plot
     p <- ggplot(
       data = gwas, mapping = aes_string(
-        x = 'base_pair_location',
-        y = 'log10p'
+        x = "base_pair_location",
+        y = "log10p"
       )
     ) +
       geom_point(color = point.color, size = point.size, alpha = 0.6)
   }
-  
+
   # Common elements
   p <- p +
     geom_hline(
@@ -473,8 +478,10 @@ GWASTrack <- function(
     ) +
     scale_y_continuous(expand = c(0, 0), limits = c(0, ymax)) +
     theme_classic() +
-    labs(x = paste0(chromosome, " position (bp)"),
-         y = expression(-log[10](italic(P)))) +
+    labs(
+      x = paste0(chromosome, " position (bp)"),
+      y = expression(-log[10](italic(P)))
+    ) +
     theme(
       axis.title.x = if (show.axis) element_text() else element_blank(),
       axis.text.x = if (show.axis) element_text() else element_blank(),
@@ -482,13 +489,13 @@ GWASTrack <- function(
       axis.ticks.x = if (show.axis) element_line() else element_blank()
     ) +
     xlim(c(start(x = region), end(x = region)))
-  
+
   return(p)
 }
 
 globalVariables(".data")
 #' Scatterplot colored by point density
-#' 
+#'
 #' Create a scatterplot using variables in the object metadata
 #' and color cells by the density of points in the x-y space.
 #'
@@ -514,114 +521,124 @@ globalVariables(".data")
 #' @export
 #' @concept visualization
 DensityScatter <- function(
-    object,
-    x,
-    y,
-    log_x = FALSE,
-    log_y = FALSE,
-    quantiles = NULL,
-    raster = NULL,
-    raster.dpi = c(512, 512)
+  object,
+  x,
+  y,
+  log_x = FALSE,
+  log_y = FALSE,
+  quantiles = NULL,
+  raster = NULL,
+  raster.dpi = c(512, 512)
 ) {
-    md <- object[[]]
-    if (!(x %in% colnames(x = md))) {
-        stop(x, " not found")
-    }
-    if (!(y %in% colnames(x = md))) {
-        stop(y, " not found")
-    }
-    log10p <- function(x) {
-        return(log10(x = x + 1))
-    }
-    null_fn <- function(x) {
-        return(x)
-    }
-    logfnx <- ifelse(test = log_x, yes = log10p, no = null_fn)
-    logfny <- ifelse(test = log_y, yes = log10p, no = null_fn)
+  md <- object[[]]
+  if (!(x %in% colnames(x = md))) {
+    stop(x, " not found")
+  }
+  if (!(y %in% colnames(x = md))) {
+    stop(y, " not found")
+  }
+  log10p <- function(x) {
+    return(log10(x = x + 1))
+  }
+  null_fn <- function(x) {
+    return(x)
+  }
+  logfnx <- ifelse(test = log_x, yes = log10p, no = null_fn)
+  logfny <- ifelse(test = log_y, yes = log10p, no = null_fn)
 
-    md$Density <- get_density(
-      x = logfnx(md[[x]]),
-      y = logfny(md[[y]]),
-      h = c(1,1)
-    )
-    md <- md[order(md$Density), ]
-    
-    if (is.null(x = raster) & (nrow(x = md) > 100000)) {
-      raster <- TRUE
+  md$Density <- get_density(
+    x = logfnx(md[[x]]),
+    y = logfny(md[[y]]),
+    h = c(1, 1)
+  )
+  md <- md[order(md$Density), ]
+
+  if (is.null(x = raster) && (nrow(x = md) > 100000)) {
+    raster <- TRUE
+  }
+
+  if (!requireNamespace(package = "scattermore", quietly = TRUE)) {
+    if (raster) {
+      warning("scattermore is not installed, plot cannot be rasterized")
+      raster <- FALSE
     }
-    
-    if (!requireNamespace(package = "scattermore", quietly = TRUE)) {
-      if (raster) {
-        warning("scattermore is not installed, plot cannot be rasterized")
-        raster <- FALSE
+  }
+
+  # quantiles
+  use_quantile <- FALSE
+  if (!is.null(x = quantiles)) {
+    use_quantile <- TRUE
+    # set default if TRUE passed
+    if (is.logical(x = quantiles)) {
+      if (quantiles) {
+        quantiles <- c(5, 10, 90, 95)
+      } else {
+        use_quantile <- FALSE
       }
     }
-    
-    # quantiles
-    use_quantile <- FALSE
-    if (!is.null(x = quantiles)) {
-        use_quantile <- TRUE
-        # set default if TRUE passed
-        if (is.logical(x = quantiles)) {
-            if (quantiles) {
-                quantiles <- c(5, 10, 90, 95)
-            } else {
-                use_quantile <- FALSE
-            }
-        }
-        # make sure integers between 0 and 100
-        if (!(all(quantiles >= 0) & all(quantiles <= 100))) {
-            warning("Quantile values must be between 0 and 100",
-                    immediate. = TRUE)
-            use_quantile <- FALSE
-        }
-        if (any(sapply(X = quantiles, FUN = function(x) x %% 1 != 0))) {
-            warning("Quantile values must be integers",
-                    immediate. = TRUE)
-            use_quantile <- FALSE
-        }
+    # make sure integers between 0 and 100
+    if (!(all(quantiles >= 0) && all(quantiles <= 100))) {
+      warning("Quantile values must be between 0 and 100",
+        immediate. = TRUE
+      )
+      use_quantile <- FALSE
     }
-    if (use_quantile) {
-        # convert to string
-        quantiles <- paste0(quantiles, '%')
+    if (any(sapply(X = quantiles, FUN = function(x) x %% 1 != 0))) {
+      warning("Quantile values must be integers",
+        immediate. = TRUE
+      )
+      use_quantile <- FALSE
+    }
+  }
+  if (use_quantile) {
+    # convert to string
+    quantiles <- paste0(quantiles, "%")
 
-        # quantiles for x and y
-        x_quant <- quantile(x = md[[x]], probs = seq(0, 1, 0.01))
-        y_quant <- quantile(x = md[[y]], probs = seq(0, 1, 0.01))
-        xlines <- x_quant[quantiles]
-        ylines <- y_quant[quantiles]
+    # quantiles for x and y
+    x_quant <- quantile(x = md[[x]], probs = seq(0, 1, 0.01))
+    y_quant <- quantile(x = md[[y]], probs = seq(0, 1, 0.01))
+    xlines <- x_quant[quantiles]
+    ylines <- y_quant[quantiles]
 
-        # round
-        xlines <- round(x = xlines, digits = 2)
-        ylines <- round(x = ylines, digits = 2)
-    }        
-    p <- ggplot(
-           data = md,
-           mapping = aes(x = .data[[x]], y = .data[[y]], color = .data[["Density"]])
-         )
-    if (!is.null(x = raster)) {
-      p <- p + scattermore::geom_scattermore(pixels = raster.dpi, pointsize = 3.2)
-    } else {
-      p <- p + geom_point(size = 1)
-    }
-    p <- p + scale_color_viridis_c(option = "B") + theme_bw()
-    if (log_x) {
-        p <- p + scale_x_log10()
-    }
-    if (log_y) {
-        p <- p + scale_y_log10()
-    }
-    if (use_quantile) {
-        p <- p +
-          geom_vline(xintercept = unname(obj = xlines), color = "red") +
-          geom_hline(yintercept = unname(obj = ylines), color = "red") +
-          labs(title = "Quantiles",
-               subtitle = paste0(x, ": ", paste0(names(x = xlines), ":",
-                                                 xlines, collapse = " "), "\n",
-                                 y, ": ", paste0(names(x = ylines), ":",
-                                                 ylines, collapse = " ")))
-    }
-    return(p)
+    # round
+    xlines <- round(x = xlines, digits = 2)
+    ylines <- round(x = ylines, digits = 2)
+  }
+  p <- ggplot(
+    data = md,
+    mapping = aes(x = .data[[x]], y = .data[[y]], color = .data[["Density"]])
+  )
+  if (!is.null(x = raster)) {
+    p <- p + scattermore::geom_scattermore(pixels = raster.dpi, pointsize = 3.2)
+  } else {
+    p <- p + geom_point(size = 1)
+  }
+  p <- p + scale_color_viridis_c(option = "B") + theme_bw()
+  if (log_x) {
+    p <- p + scale_x_log10()
+  }
+  if (log_y) {
+    p <- p + scale_y_log10()
+  }
+  if (use_quantile) {
+    p <- p +
+      geom_vline(xintercept = unname(obj = xlines), color = "red") +
+      geom_hline(yintercept = unname(obj = ylines), color = "red") +
+      labs(
+        title = "Quantiles",
+        subtitle = paste0(
+          x, ": ", paste0(names(x = xlines), ":",
+            xlines,
+            collapse = " "
+          ), "\n",
+          y, ": ", paste0(names(x = ylines), ":",
+            ylines,
+            collapse = " "
+          )
+        )
+      )
+  }
+  return(p)
 }
 
 globalVariables(
@@ -719,7 +736,8 @@ PlotFootprint <- function(
       pos <- abs(obs[x, "position"])
       size <- base[[obs[x, "feature"]]]
       return((pos > size) & (pos < (size + 50)))
-    })
+    }
+  )
 
   if (!is.null(normalization)) {
     # need to group by position and motif
@@ -728,21 +746,21 @@ PlotFootprint <- function(
     if (normalization == "subtract") {
       obs$norm.value <- obs$norm.value - correction.vec[
         paste(obs$position, obs$feature)
-        ]
+      ]
     } else if (normalization == "divide") {
       obs$norm.value <- obs$norm.value / correction.vec[
         paste(obs$position, obs$feature)
-        ]
+      ]
     } else {
       stop("Unknown normalization method requested")
     }
   }
-  
+
   # split back into group.by and split.by
   if (!is.null(x = split.by)) {
-    splitvar <- strsplit(x = obs[['group']], split = splitby_str)
-    obs[['group']] <- sapply(X = splitvar, FUN = `[[`, 2)
-    obs[['split']] <- sapply(X = splitvar, FUN =`[[`, 1)
+    splitvar <- strsplit(x = obs[["group"]], split = splitby_str)
+    obs[["group"]] <- sapply(X = splitvar, FUN = `[[`, 2)
+    obs[["split"]] <- sapply(X = splitvar, FUN = `[[`, 1)
   }
 
   # find flanking accessibility for each group and each feature
@@ -755,7 +773,7 @@ PlotFootprint <- function(
 
   # find the top for each feature to determine axis limits
   ymax <- top_n(x = flankmeans, n = 1, wt = mn)
-  ymin <- top_n(x = flankmeans, n = 1, wt =-mn)
+  ymin <- top_n(x = flankmeans, n = 1, wt = -mn)
 
   # make df for labels
   label.df <- data.frame()
@@ -770,7 +788,8 @@ PlotFootprint <- function(
     }
     df.sub <- sub[
       (sub$feature == features[[i]]) &
-        (sub$group %in% groups.use), ]
+        (sub$group %in% groups.use),
+    ]
     label.df <- rbind(label.df, df.sub)
   }
   obs$label <- NA
@@ -789,10 +808,11 @@ PlotFootprint <- function(
     p <- ggplot(
       data = df,
       mapping = aes_string(
-        x = 'position',
-        y = 'norm.value',
-        color = 'group',
-        label = 'label')
+        x = "position",
+        y = "norm.value",
+        color = "group",
+        label = "label"
+      )
     )
     p <- p +
       geom_line(linewidth = 0.2) +
@@ -808,8 +828,10 @@ PlotFootprint <- function(
     if (label) {
       if (repel) {
         if (!requireNamespace(package = "ggrepel", quietly = TRUE)) {
-          warning("Please install ggrepel to enable repel=TRUE: ",
-                  "install.packages('ggrepel')")
+          warning(
+            "Please install ggrepel to enable repel=TRUE: ",
+            "install.packages('ggrepel')"
+          )
           p <- p + geom_label(show.legend = FALSE)
         } else {
           p <- p + ggrepel::geom_label_repel(
@@ -827,13 +849,13 @@ PlotFootprint <- function(
         df <- expect[expect$feature == features[[i]], ]
         p1 <- ggplot(
           data = df,
-          mapping = aes_string(x = 'position', y = 'norm.value')
+          mapping = aes_string(x = "position", y = "norm.value")
         ) +
           geom_line(linewidth = 0.2) +
           xlab("Distance from motif") +
           ylab(label = "Expected\nTn5 enrichment") +
           theme_classic()
-        
+
         # remove x-axis labels from top plot
         p <- p + theme(
           axis.title.x = element_blank(),
@@ -855,13 +877,13 @@ globalVariables(
   package = "Signac"
 )
 #' Region heatmap
-#' 
+#'
 #' Plot fragment counts within a set of regions.
-#' 
+#'
 #' @param object A Seurat object
 #' @param assay Name of assay to use. If a list or vector of assay names is
 #' given, data will be plotted from each assay. Note that all assays must
-#' contain \code{RegionMatrix} results with the same key. Sorting will be 
+#' contain \code{RegionMatrix} results with the same key. Sorting will be
 #' defined by the first assay in the list
 #' @param key Name of key to pull data from. Stores the results from
 #' \code{\link{RegionMatrix}}
@@ -877,25 +899,25 @@ globalVariables(
 #' @param downstream Number of bases to include downstream of region. See
 #' documentation for \code{upstream}
 #' @param max.cutoff Maximum cutoff value. Data above this value will be clipped
-#' to the maximum value. A quantile maximum can be specified in the form of 
+#' to the maximum value. A quantile maximum can be specified in the form of
 #' "q##" where "##" is the quantile (eg, "q90" for 90th quantile). If NULL, no
 #' cutoff will be set
 #' @param cols Vector of colors to use as the maximum value of the color scale.
 #' One color must be supplied for each assay. If NULL, the default ggplot2
-#' colors are used. 
+#' colors are used.
 #' @param min.counts Minimum total counts to display region in plot
 #' @param idents Cell identities to include. Note that cells cannot be
-#' regrouped, this will require re-running \code{RegionMatrix} to generate a 
+#' regrouped, this will require re-running \code{RegionMatrix} to generate a
 #' new set of matrices
-#' @param group.order Order of groups to be shown in the plot. This should be a 
+#' @param group.order Order of groups to be shown in the plot. This should be a
 #' character vector. If NULL, the group order will not be changed.
 #' @param nrow Number of rows to use when creating plot. If NULL, chosen
 #' automatically by ggplot2
-#' 
+#'
 #' @seealso RegionMatrix
-#' 
+#'
 #' @return Returns a ggplot2 object
-#' 
+#'
 #' @importFrom SeuratObject DefaultAssay GetAssayData
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
@@ -904,7 +926,7 @@ globalVariables(
 #' element_blank element_text scale_fill_gradient ylab guide_legend xlab
 #' @importFrom scales hue_pal
 #' @importFrom patchwork wrap_plots
-#' 
+#'
 #' @export
 #' @concept visualization
 #' @concept heatmap
@@ -920,7 +942,7 @@ RegionHeatmap <- function(
   max.cutoff = "q95",
   cols = NULL,
   min.counts = 1,
-  window = (upstream+downstream)/30,
+  window = (upstream + downstream) / 30,
   order = TRUE,
   nrow = NULL
 ) {
@@ -945,7 +967,7 @@ RegionHeatmap <- function(
       names(x = colors_all) <- assay
     }
   }
-  
+
   all.assay <- data.frame()
   for (j in seq_along(along.with = assay)) {
     heatmap_data <- get_heatmap_data(
@@ -955,19 +977,18 @@ RegionHeatmap <- function(
       downstream = downstream
     )
     upstream.max <- heatmap_data$upstream.max
-    downstream.max <- heatmap_data$downstream.max
     matlist <- heatmap_data$matlist
     cells.per.group <- heatmap_data$cells.per.group
     rm(heatmap_data)
-    
+
     # define clipping
     cols.keep <- (upstream.max - upstream + 1):(upstream.max + downstream + 1)
-    
+
     if (!is.null(x = idents)) {
       valid.idents <- intersect(x = idents, y = names(x = matlist))
       matlist <- matlist[valid.idents]
     }
-    
+
     if (j == 1) {
       rsums <- lapply(X = matlist, FUN = rowSums)
       rsums <- Reduce(f = `+`, x = rsums)
@@ -978,32 +999,32 @@ RegionHeatmap <- function(
     matlist <- lapply(X = matlist, FUN = function(x) {
       x[rows.retain, ]
     })
-    
-    if (order & j == 1) {
+
+    if (order && j == 1) {
       rsums <- lapply(X = matlist, FUN = rowSums)
       rsums <- Reduce(f = `+`, x = rsums)
       order.use <- base::order(rsums)
     }
-    
+
     for (i in seq_along(along.with = matlist)) {
       grp.name <- names(x = matlist)[[i]]
       m <- matlist[[i]]
-      
+
       # clip up/downstream
       m <- m[, cols.keep]
-      colnames(m) <- 1:ncol(x = m)
-      
+      colnames(m) <- seq_len(length.out = ncol(x = m))
+
       if (order) {
         m <- m[order.use, ]
       }
-      
+
       if (normalize) {
         m <- m / cells.per.group[[grp.name]]
         guide.label <- "Fragment counts\nper cell"
       } else {
         guide.label <- "Fragment\ncount"
       }
-      
+
       smoothed <- apply(
         X = m,
         MARGIN = 1,
@@ -1013,8 +1034,8 @@ RegionHeatmap <- function(
       )
       # create dataframe
       smoothed <- as.data.frame(x = smoothed)
-      colnames(smoothed) <- 1:ncol(x = smoothed)
-      
+      colnames(smoothed) <- seq_len(length.out = ncol(x = smoothed))
+
       # clip values
       if (!is.na(x = max.cutoff)) {
         if (!requireNamespace(package = "Seurat", quietly = TRUE)) {
@@ -1023,7 +1044,7 @@ RegionHeatmap <- function(
         cutoff <- Seurat::SetQuantile(cutoff = max.cutoff, data = smoothed)
         smoothed[smoothed > cutoff] <- cutoff
       }
-      
+
       # add extra column as bin ID
       regions <- colnames(x = smoothed)
       smoothed$bin <- seq_len(length.out = nrow(x = smoothed))
@@ -1038,26 +1059,28 @@ RegionHeatmap <- function(
         df <- rbind(df, smoothed)
       }
     }
-    
+
     # fix bin label
-    df$bin <- (df$bin - (upstream/window)) * window
+    df$bin <- (df$bin - (upstream / window)) * window
     df$name <- as.numeric(x = df$name)
     df$assay <- assay[[j]]
-    
+
     all.assay <- rbind(all.assay, df)
   }
-  
+
   maxval <- max(all.assay$value)
-  
+
   if (!is.null(x = group.order)) {
     if (length(x = group.order) != length(x = unique(x = all.assay$group))) {
-      warning("Incorrect number of groups provided in group.order parameter.",
-              " Groups will not be reordered")
-    } else{
+      warning(
+        "Incorrect number of groups provided in group.order parameter.",
+        " Groups will not be reordered"
+      )
+    } else {
       all.assay$group <- factor(x = all.assay$group, levels = group.order)
     }
   }
-  
+
   # create separate heatmap for each assay so that color scales are different
   plist <- list()
   for (i in seq_along(along.with = assay)) {
@@ -1085,8 +1108,9 @@ RegionHeatmap <- function(
           title = ifelse(
             test = length(x = assay) > 1,
             yes = assay[[i]],
-            no = guide.label),
-          keywidth = 1/2,
+            no = guide.label
+          ),
+          keywidth = 1 / 2,
           keyheight = 1
         )
       ) +
@@ -1107,10 +1131,10 @@ get_heatmap_data <- function(
   object,
   key,
   upstream,
-  downstream  
+  downstream
 ) {
   # each assay will set its own max value
-  
+
   if (!(key %in% names(x = GetAssayData(
     object = object, layer = "positionEnrichment"
   )))) {
@@ -1120,21 +1144,23 @@ get_heatmap_data <- function(
     object = object,
     layer = "positionEnrichment"
   )[[key]]
-  
+
   # extract RegionMatrix parameters
   function.params <- matlist$function.parameters
   matlist$function.parameters <- NULL
   cells.per.group <- function.params$cells
   upstream.max <- function.params$upstream
   downstream.max <- function.params$downstream
-  
+
   # set upstream/downstream parameters
   if (is.null(x = upstream)) {
     upstream <- upstream.max
   } else {
     if (upstream > upstream.max) {
-      warning("Requested more upstream bases than were computed. ",
-              "Re-run RegionMatrix with a different upstream parameter")
+      warning(
+        "Requested more upstream bases than were computed. ",
+        "Re-run RegionMatrix with a different upstream parameter"
+      )
       upstream <- upstream.max
     }
   }
@@ -1142,23 +1168,27 @@ get_heatmap_data <- function(
     downstream <- downstream.max
   } else {
     if (downstream > downstream.max) {
-      warning("Requested more downstream bases than were computed. ",
-              "Re-run RegionMatrix with a different downstream parameter")
+      warning(
+        "Requested more downstream bases than were computed. ",
+        "Re-run RegionMatrix with a different downstream parameter"
+      )
       downstream <- downstream.max
     }
   }
-  return(list("matlist" = matlist, "cells.per.group" = cells.per.group,
-              "upstream.max" = upstream.max, "downstream.max" = downstream.max))
+  return(list(
+    "matlist" = matlist, "cells.per.group" = cells.per.group,
+    "upstream.max" = upstream.max, "downstream.max" = downstream.max
+  ))
 }
 
 #' Region plot
-#' 
+#'
 #' Plot fragment counts within a set of regions.
-#' 
+#'
 #' @param object A Seurat object
 #' @param assay Name of assay to use. If a list or vector of assay names is
 #' given, data will be plotted from each assay. Note that all assays must
-#' contain \code{RegionMatrix} results with the same key. Sorting will be 
+#' contain \code{RegionMatrix} results with the same key. Sorting will be
 #' defined by the first assay in the list
 #' @param key Name of key to pull data from. Stores the results from
 #' \code{\link{RegionMatrix}}
@@ -1172,24 +1202,24 @@ get_heatmap_data <- function(
 #' @param downstream Number of bases to include downstream of region. See
 #' documentation for \code{upstream}
 #' @param idents Cell identities to include. Note that cells cannot be
-#' regrouped, this will require re-running \code{RegionMatrix} to generate a 
+#' regrouped, this will require re-running \code{RegionMatrix} to generate a
 #' new set of matrices
-#' @param group.order Order of groups to be shown in the plot. This should be a 
+#' @param group.order Order of groups to be shown in the plot. This should be a
 #' character vector. If NULL, the group order will not be changed.
 #' @param nrow Number of rows to use when creating plot. If NULL, chosen
 #' automatically by ggplot2
-#' 
+#'
 #' @seealso RegionMatrix
-#' 
+#'
 #' @return Returns a ggplot2 object
-#' 
+#'
 #' @importFrom SeuratObject DefaultAssay GetAssayData
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer
 #' @importFrom ggplot2 ggplot aes_string facet_wrap guides theme theme_classic
 #' element_blank element_text ylab xlab geom_line
-#' 
+#'
 #' @export
 #' @concept visualization
 #' @concept heatmap
@@ -1202,7 +1232,7 @@ RegionPlot <- function(
   normalize = TRUE,
   upstream = NULL,
   downstream = NULL,
-  window = (upstream+downstream)/500,
+  window = (upstream + downstream) / 500,
   nrow = NULL
 ) {
   assay <- assay %||% DefaultAssay(object = object)
@@ -1215,7 +1245,7 @@ RegionPlot <- function(
   if (!all(all.valid)) {
     stop("The requested assay is not a ChromatinAssay5")
   }
-  
+
   all.assay <- data.frame()
   for (j in seq_along(along.with = assay)) {
     heatmap_data <- get_heatmap_data(
@@ -1229,13 +1259,13 @@ RegionPlot <- function(
     matlist <- heatmap_data$matlist
     cells.per.group <- heatmap_data$cells.per.group
     rm(heatmap_data)
-    
+
     upstream <- upstream %||% upstream.max
     downstream <- downstream %||% downstream.max
-    
+
     # define clipping
     cols.keep <- (upstream.max - upstream + 1):(upstream.max + downstream + 1)
-    
+
     if (!is.null(x = idents)) {
       valid.idents <- intersect(x = idents, y = names(x = matlist))
       matlist <- matlist[valid.idents]
@@ -1243,63 +1273,66 @@ RegionPlot <- function(
     if (length(x = matlist) == 0) {
       stop("None of the requested idents found")
     }
-    
+
     for (i in seq_along(along.with = matlist)) {
       grp.name <- names(x = matlist)[[i]]
       m <- matlist[[i]]
-      
+
       # clip up/downstream
       m <- m[, cols.keep]
-      colnames(m) <- 1:ncol(x = m)
-      
+      colnames(m) <- seq_len(length.out = ncol(x = m))
+
       if (normalize) {
         m <- m / cells.per.group[[grp.name]]
         guide.label <- "Fragment counts\nper cell"
       } else {
         guide.label <- "Fragment\ncount"
       }
-      
+
       totals <- colSums(x = m)
       smoothed <- roll_sum(x = totals, n = window, by = window)
       grp.name <- names(x = matlist)[[i]]
-      
+
       if (i == 1) {
         df <- data.frame(
-          'data' = smoothed,
-          'group' = grp.name,
-          'bin' = seq_along(along.with = smoothed)
+          "data" = smoothed,
+          "group" = grp.name,
+          "bin" = seq_along(along.with = smoothed)
         )
       } else {
         df <- rbind(
           df,
           data.frame(
-            'data' = smoothed,
-            'group' = grp.name,
-            'bin' = seq_along(along.with = smoothed)
+            "data" = smoothed,
+            "group" = grp.name,
+            "bin" = seq_along(along.with = smoothed)
           )
         )
       }
     }
-    
+
     # fix bin label
-    df$bin <- (df$bin - (upstream/window)) * window
+    df$bin <- (df$bin - (upstream / window)) * window
 
     df$assay <- assay[[j]]
     all.assay <- rbind(all.assay, df)
   }
-  
+
   if (!is.null(x = group.order)) {
     if (length(x = group.order) != length(x = unique(x = all.assay$group))) {
-      warning("Incorrect number of groups provided in group.order parameter.",
-              " Groups will not be reordered")
-    } else{
+      warning(
+        "Incorrect number of groups provided in group.order parameter.",
+        " Groups will not be reordered"
+      )
+    } else {
       all.assay$group <- factor(x = all.assay$group, levels = group.order)
     }
   }
 
   p <- ggplot(
     data = all.assay,
-    aes_string(x = "bin", y = "data", color = "assay")) +
+    aes_string(x = "bin", y = "data", color = "assay")
+  ) +
     facet_wrap(facets = "group") +
     geom_line() +
     theme_classic() +
@@ -1307,10 +1340,10 @@ RegionPlot <- function(
       strip.background = element_blank(),
       legend.title = element_text(size = 8),
       legend.text = element_text(size = 8)
-      ) +
+    ) +
     ylab(label = guide.label) +
     xlab("Distance from center (bp)")
-  
+
   return(p)
 }
 
@@ -1379,11 +1412,13 @@ SingleCoveragePlot <- function(
     }
   })
   is.granges <- inherits(x = object[[assay[[1]]]], what = "GRangesAssay")
-  if(length(colnames(object)) > length(colnames(object[[assay[[1]]]]))) {
-    object <- UpdateChromatinObject(object = object,
-                                    chromatin.assay = assay, 
-                                    expression.assay = expression.assay,
-                                    features = features)
+  if (length(colnames(object)) > length(colnames(object[[assay[[1]]]]))) {
+    object <- UpdateChromatinObject(
+      object = object,
+      chromatin.assay = assay,
+      expression.assay = expression.assay,
+      features = features
+    )
   }
   if (!is.null(x = group.by)) {
     Idents(object = object) <- group.by
@@ -1417,16 +1452,16 @@ SingleCoveragePlot <- function(
     object = object,
     group.by = group.by
   )
-  
+
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
     idents = idents
   )
-  
+
   # subset to used cells
   obj.groups <- obj.groups[cells]
-  
+
   cm.list <- list()
   sf.list <- list()
   gsf.list <- list()
@@ -1527,19 +1562,19 @@ SingleCoveragePlot <- function(
       mode = annotation
     )
   }
-  if (is.character(x = links) & is.granges) {
+  if (is.character(x = links) && is.granges) {
     # subset to genes in the desired list
     links.use <- Links(object = object)
     links.use <- links.use[links.use$gene %in% links]
     Links(object = object) <- links.use
     links <- TRUE
   }
-  if (links & is.granges) {
+  if (links && is.granges) {
     link.plot <- LinkPlot(object = object[[assay[[1]]]], region = region)
   } else {
     link.plot <- NULL
   }
-  if (peaks & is.granges) {
+  if (peaks && is.granges) {
     peak.plot <- PeakPlot(
       object = object,
       assay = assay[[1]],
@@ -1556,7 +1591,8 @@ SingleCoveragePlot <- function(
       region = region,
       peaks = ranges,
       group.by = ranges.group.by,
-      color = "brown3") +
+      color = "brown3"
+    ) +
       ylab(ranges.title)
   } else {
     range.plot <- NULL
@@ -1616,18 +1652,18 @@ SingleCoveragePlot <- function(
       gwas <- list(gwas)
       names(gwas) <- "GWAS"
     }
-    
+
     # Handle associated parameters - convert to lists
-    if (length(x = gwas.ld.file) == 1 | !inherits(x = gwas.ld.file, what = "list")) {
+    if (length(x = gwas.ld.file) == 1 || !inherits(x = gwas.ld.file, what = "list")) {
       gwas.ld.file <- rep(list(gwas.ld.file), length(x = gwas))
     }
-    if (length(x = gwas.ld.lead.snp) == 1 | !inherits(x = gwas.ld.lead.snp, what = "list")) {
+    if (length(x = gwas.ld.lead.snp) == 1 || !inherits(x = gwas.ld.lead.snp, what = "list")) {
       gwas.ld.lead.snp <- rep(list(gwas.ld.lead.snp), length(x = gwas))
     }
-    if (length(x = gwas.credset.file) == 1 | !inherits(x = gwas.credset.file, what = "list")) {
+    if (length(x = gwas.credset.file) == 1 || !inherits(x = gwas.credset.file, what = "list")) {
       gwas.credset.file <- rep(list(gwas.credset.file), length(x = gwas))
     }
-    
+
     # Create tracks
     gwas.all <- list()
     for (i in seq_along(along.with = gwas)) {
@@ -1644,7 +1680,7 @@ SingleCoveragePlot <- function(
         gwas.all[[i]] <- gwas.all[[i]] + ylab(label = names(x = gwas)[[i]])
       }
     }
-    
+
     # Combine tracks (following bigwig pattern)
     gwas.tracks <- CombineTracks(
       plotlist = gwas.all,
@@ -1653,14 +1689,14 @@ SingleCoveragePlot <- function(
   } else {
     gwas.tracks <- NULL
   }
-  
+
   # variants
   if (!is.null(x = variants)) {
     variant.track <- VariantTrack(variants = variants, region = region)
   } else {
     variant.track <- NULL
   }
-  
+
   nident <- length(x = unique(x = obj.groups))
   if (split.assays) {
     nident <- nident * length(x = assay)
@@ -1694,7 +1730,7 @@ SingleCoveragePlot <- function(
     heights = heights,
     widths = widths
   ) & theme(
-    legend.key.size = unit(x = 1/2, units = "lines"),
+    legend.key.size = unit(x = 1 / 2, units = "lines"),
     legend.text = element_text(size = 7),
     legend.title = element_text(size = 8)
   )
@@ -1737,7 +1773,7 @@ CoverageTrack <- function(
   start.pos <- start(x = region)
   end.pos <- end(x = region)
   multicov <- length(x = cutmat) > 1
-  
+
   cov.df <- data.frame()
   for (i in seq_along(along.with = cutmat)) {
     coverages <- ApplyMatrixByGroup(
@@ -1757,7 +1793,7 @@ CoverageTrack <- function(
     } else {
       coverages$coverage <- coverages$norm.value
     }
-  
+
     coverages <- coverages[!is.na(x = coverages$coverage), ]
     coverages <- group_by(.data = coverages, group)
     sampling <- min(max.downsample, window.size * downsample.rate)
@@ -1776,7 +1812,7 @@ CoverageTrack <- function(
   coverages <- cov.df
   coverages$Assay <- factor(x = coverages$Assay, levels = names(x = cutmat))
   coverages$assay_group <- paste(coverages$group, coverages$Assay, sep = "_")
-  
+
   # restore factor levels
   if (!is.null(x = levels.use)) {
     colors_all <- hue_pal()(length(x = levels.use))
@@ -1788,7 +1824,7 @@ CoverageTrack <- function(
     ymax <- covmax
   } else if (is.character(x = ymax)) {
     if (!startsWith(x = ymax, prefix = "q")) {
-      stop("Unknown ymax requested. Must be NULL, a numeric value, or 
+      stop("Unknown ymax requested. Must be NULL, a numeric value, or
            a quantile denoted by 'qXX' with XX the desired quantile value,
            e.g. q95 for 95th percentile")
     }
@@ -1798,29 +1834,26 @@ CoverageTrack <- function(
     ymax <- covmax * percentile.use
   }
   ymin <- 0
-  
-  # perform clipping
-  coverages$coverage[coverages$coverage > ymax] <- ymax 
 
-  gr <- GRanges(
-    seqnames = chromosome,
-    IRanges(start = start.pos, end = end.pos)
-  )
+  # perform clipping
+  coverages$coverage[coverages$coverage > ymax] <- ymax
+
   if (multicov) {
     p <- ggplot(
       data = coverages,
-      mapping = aes_string(x = 'position', y = 'coverage', fill = 'Assay')
+      mapping = aes_string(x = "position", y = "coverage", fill = "Assay")
     )
   } else {
     p <- ggplot(
       data = coverages,
-      mapping = aes_string(x = 'position', y = 'coverage', fill = 'group')
+      mapping = aes_string(x = "position", y = "coverage", fill = "group")
     )
   }
   p <- p +
     geom_area(
       stat = "identity",
-      alpha = ifelse(test = !split.assays & multicov, yes = 0.5, no = 1)) +
+      alpha = ifelse(test = !split.assays & multicov, yes = 0.5, no = 1)
+    ) +
     geom_hline(yintercept = 0, linewidth = 0.1)
   if (split.assays) {
     p <- p +
@@ -1830,13 +1863,15 @@ CoverageTrack <- function(
   }
   p <- p +
     xlab(label = paste0(chromosome, " position (bp)")) +
-    ylab(label = paste0("Normalized signal \n(range ",
-                        as.character(x = ymin), " - ",
-                        as.character(x = ymax), ")")) +
+    ylab(label = paste0(
+      "Normalized signal \n(range ",
+      as.character(x = ymin), " - ",
+      as.character(x = ymax), ")"
+    )) +
     ylim(c(ymin, ymax)) +
     theme_browser(legend = multicov) +
     theme(panel.spacing.y = unit(x = 0, units = "line"))
-  if (!is.null(x = levels.use) & !multicov) {
+  if (!is.null(x = levels.use) && !multicov) {
     p <- p + scale_fill_manual(values = colors_all)
   }
   if (!is.null(x = region.highlight)) {
@@ -1872,7 +1907,8 @@ CoverageTrack <- function(
             xmin = "start",
             xmax = "end",
             ymin = 0,
-            ymax = ymax),
+            ymax = ymax
+          ),
           fill = rep(x = df$color, length(x = unique(x = coverages$group))),
           color = "transparent",
           alpha = 0.2
@@ -1889,7 +1925,7 @@ CoverageTrack <- function(
 #' factor computed as the number of cells in the group multiplied by the mean
 #' sequencing depth for that group of cells. This accounts for differences in
 #' number of cells and potential differences in sequencing depth between groups.
-#' 
+#'
 #' Additional information can be layered on the coverage plot by setting several
 #' different options in the CoveragePlot function. This includes showing:
 #' \itemize{
@@ -1950,7 +1986,7 @@ CoverageTrack <- function(
 #' highlighted in grey. To change the color of the highlighting, include a
 #' metadata column in the GRanges object named "color" containing the color to
 #' use for each region.
-#' @param links Display links. This can be a TRUE/FALSE value which will 
+#' @param links Display links. This can be a TRUE/FALSE value which will
 #' determine whether a links track is displayed, and if TRUE links for all genes
 #' in the plotted region will be shown. Alternatively, a character vector can be
 #' provided, giving a list of gene names to plot links for. If this is provided,
@@ -2018,7 +2054,7 @@ CoverageTrack <- function(
 #' @return Returns a \code{\link[patchwork]{patchwork}} object
 #' @examples
 #' \donttest{
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' fragments <- CreateFragmentObject(
 #'   path = fpath,
 #'   cells = colnames(atac_small),
@@ -2229,7 +2265,7 @@ globalVariables(names = "group", package = "Signac")
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @examples
 #' \donttest{
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' Fragments(atac_small) <- CreateFragmentObject(
 #'   path = fpath,
 #'   cells = colnames(atac_small),
@@ -2270,10 +2306,10 @@ FragmentHistogram <- function(
   }
   reads$group <- groups[reads$cell]
   if (length(x = unique(x = reads$group)) == 1) {
-    p <- ggplot(data = reads, mapping = aes_string('length')) +
+    p <- ggplot(data = reads, mapping = aes_string("length")) +
       geom_histogram(bins = 200)
   } else {
-    p <- ggplot(data = reads, mapping = aes_string(x = 'length', fill = 'group')) +
+    p <- ggplot(data = reads, mapping = aes_string(x = "length", fill = "group")) +
       geom_histogram(bins = 200) +
       facet_wrap(~group, scales = "free_y")
   }
@@ -2364,7 +2400,8 @@ CombineTracks <- function(
 
     p <- p + p2 + guide_area() + plot_layout(
       ncol = 2, heights = c(heights[[1]], sum(heights.2)),
-      guides = "collect")
+      guides = "collect"
+    )
   } else {
     p <- wrap_plots(plotlist, ncol = 1, heights = heights)
   }
@@ -2391,7 +2428,7 @@ CombineTracks <- function(
 #' element is used to separate the start from end coordinate.
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
-#' 
+#'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
 #' @concept visualization
@@ -2469,17 +2506,20 @@ PeakPlot <- function(
       data = peak.df,
       aes_string(color = group.by %||% "color")
     ) +
-      geom_segment(aes_string(x = 'start', y = 0, xend = 'end', yend = 0),
-                   linewidth = 2,
-                   data = peak.df)
+      geom_segment(aes_string(x = "start", y = 0, xend = "end", yend = 0),
+        linewidth = 2,
+        data = peak.df
+      )
   } else {
     # no peaks present in region, make empty panel
     peak.plot <- ggplot(data = peak.df)
   }
   peak.plot <- peak.plot + theme_classic() +
     ylab(label = "Peaks") +
-    theme(axis.ticks.y = element_blank(),
-          axis.text.y = element_blank()) +
+    theme(
+      axis.ticks.y = element_blank(),
+      axis.text.y = element_blank()
+    ) +
     xlab(label = paste0(chromosome, " position (bp)")) +
     xlim(c(start.pos, end.pos))
   if (is.null(x = group.by)) {
@@ -2506,7 +2546,7 @@ PeakPlot <- function(
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
 #' @param scale.linewidth Scale thickness of the line according to link score.
-#' 
+#'
 #'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
@@ -2558,19 +2598,25 @@ LinkPlot <- function(
   # plot
   if (nrow(x = link.df) > 0) {
     if (!requireNamespace(package = "ggforce", quietly = TRUE)) {
-      warning("Please install ggforce to enable LinkPlot plotting: ",
-              "install.packages('ggforce')")
+      warning(
+        "Please install ggforce to enable LinkPlot plotting: ",
+        "install.packages('ggforce')"
+      )
       p <- ggplot(data = link.df)
     } else {
       # convert to format for geom_bezier
       link.df$group <- seq_len(length.out = nrow(x = link.df))
       df <- data.frame(
-        x = c(link.df$start,
-              (link.df$start + link.df$end) / 2,
-              link.df$end),
-        y = c(rep(x = 0, nrow(x = link.df)),
-              rep(x = -1, nrow(x = link.df)),
-              rep(x = 0, nrow(x = link.df))),
+        x = c(
+          link.df$start,
+          (link.df$start + link.df$end) / 2,
+          link.df$end
+        ),
+        y = c(
+          rep(x = 0, nrow(x = link.df)),
+          rep(x = -1, nrow(x = link.df)),
+          rep(x = 0, nrow(x = link.df))
+        ),
         group = rep(x = link.df$group, 3),
         score = rep(link.df$score, 3)
       )
@@ -2587,18 +2633,22 @@ LinkPlot <- function(
           )
       }
       p <- p +
-        geom_hline(yintercept = 0, color = 'grey') +
-        scale_color_gradient2(low = "red", mid = "grey", high = "blue",
-                              limits = c(min.color, max(df$score)),
-                              n.breaks = 3)
+        geom_hline(yintercept = 0, color = "grey") +
+        scale_color_gradient2(
+          low = "red", mid = "grey", high = "blue",
+          limits = c(min.color, max(df$score)),
+          n.breaks = 3
+        )
     }
   } else {
     p <- ggplot(data = link.df)
   }
   p <- p +
     theme_classic() +
-    theme(axis.ticks.y = element_blank(),
-          axis.text.y = element_blank()) +
+    theme(
+      axis.ticks.y = element_blank(),
+      axis.text.y = element_blank()
+    ) +
     ylab("Links") +
     xlab(label = paste0(chromosome, " position (bp)")) +
     xlim(c(start(x = region), end(x = region)))
@@ -2619,7 +2669,7 @@ LinkPlot <- function(
 #' element is used to separate the start from end coordinate.
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
-#' 
+#'
 #' @return Returns a \code{\link[ggplot2]{ggplot}} object
 #' @export
 #' @importFrom IRanges subsetByOverlaps
@@ -2644,7 +2694,7 @@ AnnotationPlot <- function(
   extend.upstream = 0,
   extend.downstream = 0
 ) {
-  if(mode == "gene") {
+  if (mode == "gene") {
     collapse_transcript <- TRUE
     label <- "gene_name"
   } else if (mode == "transcript") {
@@ -2720,7 +2770,7 @@ AnnotationPlot <- function(
           color = "strand"
         ),
         show.legend = FALSE,
-        linewidth = 1/2
+        linewidth = 1 / 2
       )
     if (nrow(x = annotation_df_list$plus) > 0) {
       # forward strand arrows
@@ -2740,7 +2790,7 @@ AnnotationPlot <- function(
           length = unit(x = 0.04, units = "inches")
         ),
         show.legend = FALSE,
-        linewidth = 1/2
+        linewidth = 1 / 2
       )
     }
     if (nrow(x = annotation_df_list$minus) > 0) {
@@ -2761,7 +2811,7 @@ AnnotationPlot <- function(
           length = unit(x = 0.04, units = "inches")
         ),
         show.legend = FALSE,
-        linewidth = 1/2
+        linewidth = 1 / 2
       )
     }
     # label genes
@@ -2834,9 +2884,9 @@ ExpressionPlot <- function(
 ) {
   if (is_present(arg = slot)) {
     deprecate_soft(
-      when = '2.0.0',
-      what = 'ExpressionPlot(slot = )',
-      with = 'ExpressionPlot(layer = )'
+      when = "2.0.0",
+      what = "ExpressionPlot(slot = )",
+      with = "ExpressionPlot(layer = )"
     )
     layer <- slot %||% layer
   }
@@ -2846,9 +2896,10 @@ ExpressionPlot <- function(
   if (length(x = common.features) == 0) {
     stop("None of the requested features were found in the assay")
   } else if (length(x = common.features) != length(x = features)) {
-    warning("Some features not found: ",
-            setdiff(x = features, y = rownames(x = data.plot))
-            )
+    warning(
+      "Some features not found: ",
+      setdiff(x = features, y = rownames(x = data.plot))
+    )
     features <- common.features
   }
   data.plot <- data.plot[features, ]
@@ -2857,7 +2908,7 @@ ExpressionPlot <- function(
     group.by = group.by,
     idents = NULL
   )
-  obj.groups <- obj.groups[colnames(object[[assay]])] 
+  obj.groups <- obj.groups[colnames(object[[assay]])]
   # if levels set, define colors based on all groups
   levels.use <- levels(x = obj.groups)
   if (!is.null(x = levels.use)) {
@@ -2912,8 +2963,8 @@ ExpressionPlot <- function(
   lower.limit <- ifelse(test = slot == "scale.data", yes = NA, no = 0)
   for (i in seq_along(along.with = features)) {
     df.use <- df[df$gene == features[[i]], ]
-    p <- ggplot(data = df.use, aes_string(x = 'expression', y = 'gene', fill = 'group')) +
-      geom_violin(linewidth = 1/4) +
+    p <- ggplot(data = df.use, aes_string(x = "expression", y = "gene", fill = "group")) +
+      geom_violin(linewidth = 1 / 4) +
       facet_wrap(~group, ncol = 1, strip.position = "right") +
       theme_classic() +
       scale_y_discrete(position = "top") +
@@ -2965,15 +3016,15 @@ VariantPlot <- function(
   p <- ggplot(
     data = high.conf,
     mapping = aes_string(x = "strand_correlation", y = "vmr", color = "pos")
-    ) +
+  ) +
     geom_point() +
     labs(x = "Strand concordance", y = "Variance-mean ratio") +
     geom_vline(
       xintercept = concordance.threshold, color = "black", linetype = 2
-      ) +
+    ) +
     geom_hline(
       yintercept = vmr.threshold, color = "black", linetype = 2
-      ) +
+    ) +
     scale_color_manual(values = c("black", "firebrick")) +
     scale_y_log10(labels = comma) +
     theme_classic() +
@@ -2982,13 +3033,13 @@ VariantPlot <- function(
 }
 
 #' Plot variant positions
-#' 
+#'
 #' Plot variant positions within a genomic region.
 #'
 #' @param variants Data frame with columns: position (numeric), rsid (character),
 #' color (character). Each row defines one SNP marker to display.
 #' @param region Genomic region (GRanges or string like "chr10-112900000-113100000")
-#' 
+#'
 #' @return Returns a ggplot2 object
 #' @export
 #' @concept visualization
@@ -3000,47 +3051,49 @@ VariantPlot <- function(
 #'   rsid = c("rs10885396", "rs7094871"),
 #'   color = c("steelblue", "darkred")
 #' )
-#' 
+#'
 #' # Create stacked plot
 #' VariantTrack(
 #'   variants = variants,
 #'   region = "chr10-112990000-113010000"
 #' )
 VariantTrack <- function(
-    variants,
-    region
+  variants,
+  region
 ) {
-  
   if (!inherits(x = region, what = "GRanges")) {
     region <- StringToGRanges(regions = region)
   }
-  
+
   chromosome <- as.character(x = seqnames(x = region))
   start.pos <- start(x = region)
   end.pos <- end(x = region)
-  
+
   snp_plot <- ggplot(data = variants) +
     geom_segment(
       aes_string(
-        x = 'position',
-        xend = 'position',
+        x = "position",
+        xend = "position",
         y = 0,
         yend = 1,
-        color = 'color'),
+        color = "color"
+      ),
       linewidth = 1,
     ) +
     geom_text(
-      aes_string(x = 'position', y = 1.2, label = 'rsid'),
+      aes_string(x = "position", y = 1.2, label = "rsid"),
       size = 3.5, fontface = "italic"
     ) +
     scale_color_identity() +
     theme_browser() +
     xlim(start.pos, end.pos) +
     ylim(0, 1.5) +
-    labs(x = paste0(chromosome, " position (bp)"),
-         y = "Variants") +
+    labs(
+      x = paste0(chromosome, " position (bp)"),
+      y = "Variants"
+    ) +
     theme(plot.margin = margin(t = 5, r = 5, b = 0, l = 5))
-  
+
   return(snp_plot)
 }
 
@@ -3081,7 +3134,7 @@ VariantTrack <- function(
 #' @concept visualization
 #' @examples
 #' \donttest{
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' fragments <- CreateFragmentObject(
 #'   path = fpath,
 #'   cells = colnames(atac_small),
@@ -3216,7 +3269,8 @@ CreateTilePlot <- function(df, n, legend = TRUE) {
   # create plot
   p <- ggplot(
     data = df,
-    aes_string(x = "bin", y = "idx", fill = "value")) +
+    aes_string(x = "bin", y = "idx", fill = "value")
+  ) +
     facet_wrap(
       facets = ~group,
       scales = "free_y",
@@ -3231,9 +3285,8 @@ CreateTilePlot <- function(df, n, legend = TRUE) {
     scale_y_reverse() +
     guides(fill = guide_legend(
       title = "Fragment\ncount",
-      keywidth = 1/2, keyheight = 1
-      )
-    ) +
+      keywidth = 1 / 2, keyheight = 1
+    )) +
     theme(
       legend.title = element_text(size = 8),
       legend.text = element_text(size = 8)

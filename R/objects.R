@@ -13,9 +13,9 @@ NULL
 #' chromatin data, with or without genomic ranges for each feature in the assay.
 #' Use \code{CreateGRangesAssay} to construct a \code{GRangesAssay} object or
 #' \code{CreateChromatinAssay5} to construct a \code{ChromatinAssay5} object.
-#' 
+#'
 #' @rdname CreateGRangesAssay
-#' 
+#'
 #' @param ranges A set of \code{\link[GenomicRanges]{GRanges}} corresponding to
 #' the rows of the input matrix
 #' @param sep Separators to use for strings encoding genomic coordinates.
@@ -35,11 +35,11 @@ NULL
 #'
 #' @export
 CreateGRangesAssay <- function(
-    counts,
-    data,
-    ranges = NULL,
-    sep = c("-", "-"),
-    ...
+  counts,
+  data,
+  ranges = NULL,
+  sep = c("-", "-"),
+  ...
 ) {
   chrom.assay <- CreateChromatinAssay5(counts = counts, data = data, ...)
   if (!missing(x = counts)) {
@@ -108,7 +108,7 @@ CreateChromatinAssay5 <- function(
   verbose = TRUE,
   ...
 ) {
-  if (!is.null(x = annotation) & !inherits(x = annotation, what = "GRanges")) {
+  if (!is.null(x = annotation) && !inherits(x = annotation, what = "GRanges")) {
     stop("Annotation must be a GRanges object.")
   }
   if (!is.null(x = annotation)) {
@@ -119,7 +119,7 @@ CreateChromatinAssay5 <- function(
       stop("Annotation must have `gene_name`, `gene_id`, `gene_biotype` and `type`.")
     }
   }
-  
+
   # CreateAssay5Object throws error if counts or data is missing rather than NULL
   if (missing(x = counts)) {
     counts <- NULL
@@ -133,7 +133,7 @@ CreateChromatinAssay5 <- function(
             allowed by Seurat; replacing underscores with '.'")
     rownames(x = counts) <- gsub("_", ".", rownames(x = counts))
   }
-  
+
   seurat.assay <- CreateAssay5Object(counts = counts, data = data, ...)
   if (inherits(x = fragments, what = "list")) {
     # check each object in the list is a fragment object
@@ -157,7 +157,7 @@ CreateChromatinAssay5 <- function(
       FUN = subset,
       cells = colnames(x = seurat.assay)
     )
-   } else if (inherits(x = fragments, what = "Fragment2")) {
+  } else if (inherits(x = fragments, what = "Fragment2")) {
     # single Fragment object supplied
     frags <- AssignFragCellnames(
       fragments = fragments, cellnames = colnames(x = seurat.assay)
@@ -180,7 +180,7 @@ CreateChromatinAssay5 <- function(
       }
     }
   }
-  
+
   # TODO this should be move to the SetAssayData method
   if (!is.null(x = motifs)) {
     # pre-computed motif object, make sure features are formatted the same
@@ -194,8 +194,10 @@ CreateChromatinAssay5 <- function(
         motif.mat <- GetMotifData(object = motifs, slot = "data")
         # subset
         if (!all(rownames(x = chrom.assay) %in% rownames(x = motif.mat))) {
-          warning("Some peak regions missing from supplied motif object. ",
-                  "Motif information will not be added")
+          warning(
+            "Some peak regions missing from supplied motif object. ",
+            "Motif information will not be added"
+          )
           motifs <- NULL
         }
         motif.mat <- motif.mat[rownames(x = chrom.assay), ]
@@ -205,7 +207,7 @@ CreateChromatinAssay5 <- function(
       }
     }
   }
-  
+
   chrom.assay <- as.ChromatinAssay5(
     x = seurat.assay,
     fragments = frags,
@@ -222,16 +224,16 @@ CreateChromatinAssay5 <- function(
 #' @export
 #' @concept assay
 as.GRangesAssay.Assay5 <- function(
-    x,
-    annotation = NULL,
-    fragments = NULL,
-    bias = NULL,
-    region.aggregation = NULL,
-    ranges = NULL,
-    motifs = NULL,
-    links = NULL,
-    sep = c("-", "-"),
-    ...
+  x,
+  annotation = NULL,
+  fragments = NULL,
+  bias = NULL,
+  region.aggregation = NULL,
+  ranges = NULL,
+  motifs = NULL,
+  links = NULL,
+  sep = c("-", "-"),
+  ...
 ) {
   x <- as.ChromatinAssay5(
     object = x,
@@ -260,10 +262,10 @@ as.GRangesAssay.Assay5 <- function(
 #' @concept assay
 #'
 as.GRangesAssay.ChromatinAssay5 <- function(
-    x,
-    ranges = NULL,
-    sep = c("-", "-"),
-    ...
+  x,
+  ranges = NULL,
+  sep = c("-", "-"),
+  ...
 ) {
   if (!is.null(x = ranges)) {
     if (length(x = ranges) != nrow(x = x)) {
@@ -276,11 +278,11 @@ as.GRangesAssay.ChromatinAssay5 <- function(
   if (!isDisjoint(x = ranges)) {
     warning("Overlapping ranges supplied. Ranges should be non-overlapping.")
   }
-  
+
   # re-assign row names of matrix so that it's a known granges transformation
   new.rownames <- GRangesToString(grange = ranges, sep = c("-", "-"))
   rownames(x = x) <- new.rownames
-  
+
   new.assay <- as(object = x, Class = "GRangesAssay")
   ranges <- ranges %||% StringToGRanges(regions = rownames(x = x), sep = sep)
   new.assay <- SetAssayData(
@@ -435,7 +437,7 @@ setAs(
 #' name of each element is the corresponding sequence name as stored in the
 #' object. If NULL, the sequence names are assumed to be the same in the
 #' fragment file and object.
-#' 
+#'
 #' @param validate.fragments Check that expected cells are present in the
 #' fragment file.
 #' @param verbose Display messages
@@ -446,18 +448,18 @@ setAs(
 #' @concept fragments
 #'
 #' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' cells <- colnames(x = atac_small)
 #' names(x = cells) <- paste0("test_", cells)
 #' frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)
 CreateFragmentObject <- function(
-    path,
-    index = NULL,
-    cells = NULL,
-    seqlevels = NULL,
-    validate.fragments = TRUE,
-    verbose = TRUE,
-    ...
+  path,
+  index = NULL,
+  cells = NULL,
+  seqlevels = NULL,
+  validate.fragments = TRUE,
+  verbose = TRUE,
+  ...
 ) {
   # check that file exists and is indexed
   # don't check if supplying remote file
@@ -465,11 +467,11 @@ CreateFragmentObject <- function(
   if (is.remote) {
     validate.fragments <- FALSE
   }
-  if (!file.exists(path) & !is.remote) {
+  if (!file.exists(path) && !is.remote) {
     stop("Fragment file does not exist.")
   }
   index.file <- index %||% GetIndexFile(fragment = path, verbose = verbose)
-  if (!file.exists(index.file) & !is.remote) {
+  if (!file.exists(index.file) && !is.remote) {
     stop("Fragment file index does not exist.")
   }
   if (is.remote) {
@@ -479,11 +481,11 @@ CreateFragmentObject <- function(
   }
   df <- readLines(con = con, n = 10000)
   for (i in df) {
-    if (grepl(pattern = '^#', x = i)) {
+    if (grepl(pattern = "^#", x = i)) {
       next
     } else {
       ncol_frag <- length(x = strsplit(x = i, split = "\t")[[1]])
-      if (!(ncol_frag == 5 | ncol_frag == 6)) {
+      if (!(ncol_frag == 5 || ncol_frag == 6)) {
         # cellranger-atac v2.2 introduces strand column in fragment file
         stop("Incorrect number of columns found in fragment file")
       } else {
@@ -523,7 +525,7 @@ CreateFragmentObject <- function(
     seqlevels = seqlevels
   )
   # validate cells
-  if (!is.null(x = cells) & validate.fragments) {
+  if (!is.null(x = cells) && validate.fragments) {
     if (ValidateCells(object = frags, verbose = verbose, ...)) {
       return(frags)
     } else {
@@ -555,9 +557,10 @@ CreateFragmentObject <- function(
 #' @concept motifs
 #' @examples
 #' motif.matrix <- matrix(
-#'   data = sample(c(0,1),
+#'   data = sample(c(0, 1),
 #'     size = 100,
-#'     replace = TRUE),
+#'     replace = TRUE
+#'   ),
 #'   ncol = 5
 #' )
 #' rownames(motif.matrix) <- 1:nrow(motif.matrix)
@@ -572,21 +575,23 @@ CreateMotifObject <- function(
   data <- data %||% new(Class = "dgCMatrix")
   meta.data <- meta.data %||% data.frame()
   if (
-    !(inherits(x = data, what = "matrix") |
+    !(inherits(x = data, what = "matrix") ||
       inherits(x = data, what = "CsparseMatrix"))
-    ) {
-    stop("Data must be matrix or sparse matrix class. Supplied ",
-         class(x = data))
+  ) {
+    stop(
+      "Data must be matrix or sparse matrix class. Supplied ",
+      class(x = data)
+    )
   }
   if (inherits(x = data, what = "matrix")) {
     data <- as(Class = "CsparseMatrix", object = data)
   }
-  if ((nrow(x = data) > 0) & (length(x = pwm) > 0)) {
+  if ((nrow(x = data) > 0) && (length(x = pwm) > 0)) {
     if (!all(names(x = pwm) == colnames(x = data))) {
       stop("Motif names in data matrix and PWM list are inconsistent")
     }
   }
-  if ((nrow(x = data) > 0) & (nrow(x = meta.data) > 0)) {
+  if ((nrow(x = data) > 0) && (nrow(x = meta.data) > 0)) {
     if (!all(rownames(x = meta.data) == rownames(x = data))) {
       stop("Motif names in data matrix and metadata are inconsistent")
     }
@@ -605,9 +610,9 @@ CreateMotifObject <- function(
     stop("Row names of data matrix cannot be NULL")
   }
   if (
-    inherits(x = pwm, what = "PFMatrixList") |
-    inherits(x = pwm, what = "PWMatrixList")
-    ) {
+    inherits(x = pwm, what = "PFMatrixList") ||
+      inherits(x = pwm, what = "PWMatrixList")
+  ) {
     pwm.converted <- lapply(X = as.list(x = pwm), FUN = PFMatrixToList)
     pwm <- lapply(X = pwm.converted, FUN = "[[", 1)
     motif.names <- lapply(X = pwm.converted, FUN = "[[", 2)
@@ -637,24 +642,24 @@ CreateMotifObject <- function(
   return(motif.obj)
 }
 
-# Update chromatin object 
+# Update chromatin object
 #
-# Create a new \code{\link[SeuratObject]} with the cells only in the 
-# chromatin/expression assays. This is used for V5 objects, such as an 
-# extended reference object, that can have more cells in the whole object 
-# than are in the chromatin assay. 
+# Create a new \code{\link[SeuratObject]} with the cells only in the
+# chromatin/expression assays. This is used for V5 objects, such as an
+# extended reference object, that can have more cells in the whole object
+# than are in the chromatin assay.
 #
 # @param object A \code{\link[SeuratObject]}
-# @param chromatin.assay A list of the name(s) of the chromatin assay 
+# @param chromatin.assay A list of the name(s) of the chromatin assay
 # @param expression.assay The name of the expression assay
-# @param features NULL or a list of features. If features is not null, 
-# the expression assay will be added to the object 
-# @return Returns a new \code{\link[SeuratObject]} that only contains 
-# the cells in the chromatin assay 
+# @param features NULL or a list of features. If features is not null,
+# the expression assay will be added to the object
+# @return Returns a new \code{\link[SeuratObject]} that only contains
+# the cells in the chromatin assay
 #' @importFrom SeuratObject Assays CreateSeuratObject
 UpdateChromatinObject <- function(
-  object, 
-  chromatin.assay, 
+  object,
+  chromatin.assay,
   expression.assay = NULL,
   features = NULL
 ) {
@@ -665,60 +670,73 @@ UpdateChromatinObject <- function(
       stop("The requested assay is not in the object.")
     }
   })
-  # Create new seurat object 
+  # Create new seurat object
   new.object <- CreateSeuratObject(
-    counts = object[[chromatin.assay[[1]]]], 
+    counts = object[[chromatin.assay[[1]]]],
     assay = chromatin.assay[[1]],
     meta.data = slot(object, name = "meta.data")
   )
-  if (length(chromatin.assay) > 1){
-    for (i in 2:length(chromatin.assay)){
-      if (!identical(colnames(new.object[[chromatin.assay[[1]]]]), 
-                     colnames(object[[chromatin.assay[[i]]]]))) {
+  if (length(chromatin.assay) > 1) {
+    for (i in 2:length(chromatin.assay)) {
+      if (!identical(
+        colnames(new.object[[chromatin.assay[[1]]]]),
+        colnames(object[[chromatin.assay[[i]]]])
+      )) {
         stop("All chromatin assays must have the same cells.")
       }
       new.object[[chromatin.assay[[i]]]] <- object[[chromatin.assay[[i]]]]
     }
   }
   # Add expression assay if applicable and if Seurat Object v5 is loaded
-  if (!is.null(features)){
-    if (!is.null(expression.assay)){
+  if (!is.null(features)) {
+    if (!is.null(expression.assay)) {
       if (utils::packageVersion("SeuratObject") >= package_version("4.9.9")) {
-        if (!(expression.assay %in% Assays(object))){
+        if (!(expression.assay %in% Assays(object))) {
           stop("The requested assay is not in the object.")
         }
-        if (!all(colnames(new.object) %in% colnames(object[[expression.assay]]))){
+        if (!all(colnames(new.object) %in% colnames(object[[expression.assay]]))) {
           stop("Chromatin and expression assays have different cells.")
         }
-        # Convert BP Cells to sparse matrix 
-        for (i in SeuratObject::Layers(object[[expression.assay]])){
-          layer.data <- SeuratObject::LayerData(object = object, 
-                                  assay = expression.assay, 
-                                  layer = i)
-          if(inherits(layer.data, what = "IterableMatrix")) {
-            warning("Converting IterableMatrix to sparse dgCMatrix", 
-                    call. = FALSE)
-            SeuratObject::LayerData(object = object, 
-                      assay = expression.assay, 
-                      layer = i) <- as(object = layer.data, 
-                                       Class = "dgCMatrix")
+        # Convert BP Cells to sparse matrix
+        for (i in SeuratObject::Layers(object[[expression.assay]])) {
+          layer.data <- SeuratObject::LayerData(
+            object = object,
+            assay = expression.assay,
+            layer = i
+          )
+          if (inherits(layer.data, what = "IterableMatrix")) {
+            warning("Converting IterableMatrix to sparse dgCMatrix",
+              call. = FALSE
+            )
+            SeuratObject::LayerData(
+              object = object,
+              assay = expression.assay,
+              layer = i
+            ) <- as(
+              object = layer.data,
+              Class = "dgCMatrix"
+            )
           }
         }
         # Subset expression data if necessary
-        if(!suppressWarnings(all(colnames(object[[expression.assay]]) == colnames(new.object)))){
-          warning("Subsetting expression assay to have same cells as chromatin assay.", 
-                  call. = FALSE)
-          new.object[[expression.assay]] <- subset(x = object[[expression.assay]], 
-                                                   cells = colnames(new.object))
+        if (!suppressWarnings(all(colnames(object[[expression.assay]]) == colnames(new.object)))) {
+          warning("Subsetting expression assay to have same cells as chromatin assay.",
+            call. = FALSE
+          )
+          new.object[[expression.assay]] <- subset(
+            x = object[[expression.assay]],
+            cells = colnames(new.object)
+          )
         } else {
           new.object[[expression.assay]] <- object[[expression.assay]]
         }
       } else {
-        warning("Cannot access layers if SeuratObject version is not 5.0.0 or greater.", 
-                "Please update SeuratObject to also visualize expression data when your",
-                "object has layers with different numbers of cells.", 
-                call. = FALSE, 
-                immediate. = TRUE)
+        warning("Cannot access layers if SeuratObject version is not 5.0.0 or greater.",
+          "Please update SeuratObject to also visualize expression data when your",
+          "object has layers with different numbers of cells.",
+          call. = FALSE,
+          immediate. = TRUE
+        )
       }
     }
   }
@@ -731,11 +749,11 @@ UpdateChromatinObject <- function(
 #' @export
 #' @concept assay
 GetAssayData.GRangesAssay <- function(
-    object,
-    layer = "data",
-    assay = NULL,
-    slot = deprecated(),
-    ...
+  object,
+  layer = "data",
+  assay = NULL,
+  slot = deprecated(),
+  ...
 ) {
   if (is_present(arg = slot)) {
     layer <- slot
@@ -802,7 +820,7 @@ GetFragmentData <- function(object, slot = "file.path") {
 #' @concept motifs
 #' @examples
 #' motif.obj <- SeuratObject::GetAssayData(
-#'   object = atac_small[['peaks']], slot = "motifs"
+#'   object = atac_small[["peaks"]], slot = "motifs"
 #' )
 #' GetMotifData(object = motif.obj)
 GetMotifData.Motif <- function(object, slot = "data", ...) {
@@ -845,12 +863,11 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = "data", ...) {
 #' @method RenameCells ChromatinAssay5
 #' @export
 RenameCells.ChromatinAssay5 <- function(object, new.names = NULL, ...) {
-  
   # there's currently nothing cell-centric that needs to be renamed in the GRangesAssay class
-  
+
   # rename cells in the parental class
   object <- NextMethod()
-  
+
   # rename cells in fragment objects
   frags <- Fragments(object = object)
   for (i in seq_along(along.with = frags)) {
@@ -858,7 +875,7 @@ RenameCells.ChromatinAssay5 <- function(object, new.names = NULL, ...) {
   }
   Fragments(object = object) <- NULL
   Fragments(object = object) <- frags
-  
+
   region.aggr <- GetAssayData(object = object, layer = "region.aggregation")
   for (i in seq_along(along.with = region.aggr)) {
     # TODO implement RenameCells.RegionAggregation
@@ -879,8 +896,10 @@ RenameCells.ChromatinAssay5 <- function(object, new.names = NULL, ...) {
 RenameCells.Fragment2 <- function(object, new.names, ...) {
   cells <- GetFragmentData(object = object, slot = "cells")
   if (is.null(x = cells)) {
-    stop("Cannot rename cells in Fragment object ",
-         "with no cell information stored")
+    stop(
+      "Cannot rename cells in Fragment object ",
+      "with no cell information stored"
+    )
   }
   cells <- cells[names(x = new.names)]
   names(x = cells) <- new.names[names(x = cells)]
@@ -896,14 +915,16 @@ RenameCells.Fragment2 <- function(object, new.names, ...) {
 #' @concept assay
 #' @export
 SetAssayData.GRangesAssay <- function(
-    object,
-    layer,
-    new.data,
-    slot = deprecated(),
-    ...
+  object,
+  layer,
+  new.data,
+  slot = deprecated(),
+  ...
 ) {
-  if (layer %in% c("counts", "data", "scale.data", "meta.data", "misc", "key",
-                   "fragments", "annotation", "bias", "region.aggregation")) {
+  if (layer %in% c(
+    "counts", "data", "scale.data", "meta.data", "misc", "key",
+    "fragments", "annotation", "bias", "region.aggregation"
+  )) {
     return(NextMethod())
   }
   if (is_present(arg = slot)) {
@@ -940,22 +961,23 @@ SetAssayData.GRangesAssay <- function(
         data = GetMotifData(object = new.data, slot = "data")
       )
     )
-    
+
     # TODO allow mismatching row names, but check that the genomic ranges
     # are equivalent. Requires adding a granges slot to the motif class
     if (nrow(x = object) != nrow(x = new.data) ||
-        !all(rownames(x = object) == rownames(x = new.data))) {
-      keep.features <- intersect(x = rownames(x = new.data),
-                                 y = rownames(x = object))
+      !all(rownames(x = object) == rownames(x = new.data))) {
+      keep.features <- intersect(
+        x = rownames(x = new.data),
+        y = rownames(x = object)
+      )
       if (length(x = keep.features) == 0) {
         stop("No features in common between the GRangesAssay
              and Motif objects")
-      }
-      else {
+      } else {
         warning("Features do not match in GRangesAssay and Motif object.
                 Subsetting/Filling the Motif object.")
         new.data <- new.data[keep.features, ]
-        
+
         new.data <- SetMotifData(
           object = new.data,
           slot = "data",
@@ -981,11 +1003,11 @@ SetAssayData.GRangesAssay <- function(
 #' @concept assay
 #' @export
 SetAssayData.ChromatinAssay5 <- function(
-    object,
-    layer,
-    new.data,
-    slot = deprecated(),
-    ...
+  object,
+  layer,
+  new.data,
+  slot = deprecated(),
+  ...
 ) {
   if (layer %in% c("counts", "data", "scale.data", "meta.data", "misc", "key")) {
     return(NextMethod())
@@ -1016,7 +1038,7 @@ SetAssayData.ChromatinAssay5 <- function(
     if (length(x = frag.list) != 0) {
       warning("Overwriting existing fragment objects")
     }
-    
+
     # resolve any duplicated fragment file paths
     all.path <- lapply(X = new.data, FUN = GetFragmentData, slot = "file.path")
     unique.paths <- unique(all.path)
@@ -1026,7 +1048,7 @@ SetAssayData.ChromatinAssay5 <- function(
         idx <- which(all.path == p)
         objs <- new.data[idx]
         # merge cell vectors
-        all.cells <- do.call(c, lapply(objs, GetFragmentData, slot = 'cells'))
+        all.cells <- do.call(c, lapply(objs, GetFragmentData, slot = "cells"))
         duplicate.cells <- duplicated(x = all.cells)
         all.cells <- all.cells[!duplicate.cells]
         objs[[1]]@cells <- all.cells
@@ -1102,14 +1124,15 @@ SetAssayData.ChromatinAssay5 <- function(
 #' @concept motifs
 #' @examples
 #' motif.obj <- SeuratObject::GetAssayData(
-#'   object = atac_small[['peaks']], slot = "motifs"
+#'   object = atac_small[["peaks"]], slot = "motifs"
 #' )
-#' SetMotifData(object = motif.obj, slot = 'data', new.data = matrix(1:2))
+#' SetMotifData(object = motif.obj, slot = "data", new.data = matrix(1:2))
 SetMotifData.Motif <- function(object, slot, new.data, ...) {
   if (!(slot %in% slotNames(x = object))) {
     stop("slot must be one of ",
-         paste(slotNames(x = object), collapse = ", "),
-         call. = FALSE)
+      paste(slotNames(x = object), collapse = ", "),
+      call. = FALSE
+    )
   }
   if (slot == "data") {
     if (inherits(x = new.data, what = "matrix")) {
@@ -1130,21 +1153,25 @@ SetMotifData.Motif <- function(object, slot, new.data, ...) {
 #' @export
 #' @concept motifs
 #' @examples
-#' new.data <- matrix(sample(c(0, 1), size = nrow(atac_small[["peaks"]]) * 10,
-#'                    replace = TRUE), nrow = nrow(atac_small[["peaks"]]))
+#' new.data <- matrix(sample(c(0, 1),
+#'   size = nrow(atac_small[["peaks"]]) * 10,
+#'   replace = TRUE
+#' ), nrow = nrow(atac_small[["peaks"]]))
 #' rownames(new.data) <- rownames(atac_small[["peaks"]])
 #' SetMotifData(
-#'   object = atac_small[['peaks']], slot = 'data', new.data = new.data
+#'   object = atac_small[["peaks"]], slot = "data", new.data = new.data
 #' )
 #' @method SetMotifData ChromatinAssay5
 SetMotifData.ChromatinAssay5 <- function(object, slot, new.data, ...) {
   if (slot == "data") {
     if (
-      !(inherits(x = new.data, what = "matrix") |
+      !(inherits(x = new.data, what = "matrix") ||
         inherits(x = new.data, what = "CsparseMatrix"))
-      ) {
-      stop("Data must be matrix or sparse matrix class. Supplied ",
-           class(x = new.data))
+    ) {
+      stop(
+        "Data must be matrix or sparse matrix class. Supplied ",
+        class(x = new.data)
+      )
     }
     if (!all(rownames(x = object) == rownames(x = new.data))) {
       stop("Features do not match existing assay data.
@@ -1177,7 +1204,7 @@ SetMotifData.ChromatinAssay5 <- function(object, slot, new.data, ...) {
 #' @examples
 #' motif.matrix <- GetMotifData(object = atac_small)
 #' SetMotifData(
-#' object = atac_small, assay = 'peaks', slot = 'data', new.data = motif.matrix
+#'   object = atac_small, assay = "peaks", slot = "data", new.data = motif.matrix
 #' )
 SetMotifData.Seurat <- function(object, assay = NULL, ...) {
   assay <- assay %||% DefaultAssay(object = object)
@@ -1202,7 +1229,7 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
 #' @concept motifs
 #' @examples
 #' motif.obj <- SeuratObject::GetAssayData(
-#'   object = atac_small[['peaks']], layer = "motifs"
+#'   object = atac_small[["peaks"]], layer = "motifs"
 #' )
 #' subset(x = motif.obj, features = head(rownames(motif.obj), 10))
 subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
@@ -1232,18 +1259,18 @@ subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
 #' @concept assay
 #' @method subset GRangesAssay
 subset.GRangesAssay <- function(
-    x,
-    features = NULL,
-    cells = NULL,
-    ...
+  x,
+  features = NULL,
+  cells = NULL,
+  ...
 ) {
-  if (inherits(x = features, what = 'Rle')) {
+  if (inherits(x = features, what = "Rle")) {
     features <- as.vector(x = features)
   }
-  if (inherits(x = cells, what = 'Rle')) {
+  if (inherits(x = cells, what = "Rle")) {
     cells <- as.vector(x = cells)
   }
-  
+
   # subset genomic ranges
   ranges.keep <- granges(x = x)
   if (!is.null(x = features)) {
@@ -1254,7 +1281,7 @@ subset.GRangesAssay <- function(
     }
     ranges.keep <- ranges.keep[idx.keep]
   }
-  
+
   # subset elements in the parent classes assay
   x <- NextMethod()
 
@@ -1267,7 +1294,7 @@ subset.GRangesAssay <- function(
     motifs <- subset(x = motifs, features = features)
   }
   Motifs(object = x) <- motifs
-  
+
   return(x)
 }
 
@@ -1281,14 +1308,13 @@ subset.ChromatinAssay5 <- function(
   cells = NULL,
   ...
 ) {
-  
-  if (inherits(x = features, what = 'Rle')) {
+  if (inherits(x = features, what = "Rle")) {
     features <- as.vector(x = features)
   }
-  if (inherits(x = cells, what = 'Rle')) {
+  if (inherits(x = cells, what = "Rle")) {
     cells <- as.vector(x = cells)
   }
-  
+
   if (is.logical(x = features)) {
     if (length(x = features) != nrow(x = x)) {
       stop("Incorrect number of logical values provided to subset features")
@@ -1296,7 +1322,7 @@ subset.ChromatinAssay5 <- function(
       features <- Features(x = x)[features]
     }
   }
-  
+
   if (is.logical(x = cells)) {
     if (length(x = cells) != ncol(x = x)) {
       stop("Incorrect number of logical values provided to subset cells")
@@ -1304,10 +1330,10 @@ subset.ChromatinAssay5 <- function(
       cells <- Cells(x = x)[cells]
     }
   }
-  
+
   # subset elements in the standard assay
   x <- NextMethod()
-  
+
   # recompute meta features
   x <- FindTopFeatures(
     object = x,
@@ -1318,16 +1344,16 @@ subset.ChromatinAssay5 <- function(
   # subset cells in region aggregation matrices
   cells <- cells %||% colnames(x = x)
   posmat <- GetAssayData(object = x, layer = "region.aggregation")
-  
+
   # TODO update for RegionAggregation class
-  
+
   for (i in seq_along(along.with = posmat)) {
     # TODO need to make the formatting for positionEnrichment slot better defined
     # currently the RegionMatrix and Footprint functions write differently
     # formatted information
     # regionmatrix is group x position
     # footprint is cell x position
-    if (inherits(x = posmat[[i]], what = 'list')) {
+    if (inherits(x = posmat[[i]], what = "list")) {
       # from RegionMatrix
       # group x position matrix
       # do not subset as we don't have per-cell information here
@@ -1371,7 +1397,7 @@ subset.ChromatinAssay5 <- function(
 #' @export
 #' @concept fragments
 #' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' cells <- colnames(x = atac_small)
 #' names(x = cells) <- paste0("test_", cells)
 #' frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)
@@ -1394,26 +1420,26 @@ subset.Fragment2 <- function(
 #' @importFrom SeuratObject RowMergeSparseMatrices Key Key<-
 #' @importFrom S4Vectors subjectHits queryHits mcols
 merge.GRangesAssay <- function(
-    x = NULL,
-    y = NULL,
-    add.cell.ids = NULL,
-    ...
+  x = NULL,
+  y = NULL,
+  add.cell.ids = NULL,
+  ...
 ) {
   # call NextMethod to get merged ChromatinAssay5 object
   merged <- NextMethod()
-  
+
   # need to do all operations over a list of assays
   assays <- c(x, y)
-  
+
   # check that all features are equal
   all.features <- lapply(X = assays, FUN = rownames)
   all.features <- table(do.call(what = c, args = all.features))
   all.identical <- all(all.features == length(x = assays))
-  
+
   if (!all.identical) {
     warning("Merging objects with different feature sets")
   }
-  
+
   # if any are standard Assay class, coerce all to Assay and run merge
   isGranges <- sapply(
     X = assays, FUN = function(x) inherits(x = x, what = "GRangesAssay")
@@ -1426,7 +1452,7 @@ merge.GRangesAssay <- function(
     return(merged)
   } else {
     # list of GRangesAssay
-    
+
     # merge granges across all objects
     granges.all <- StringToGRanges(regions = rownames(x = merged))
     merged <- as.GRangesAssay(x = merged, ranges = granges.all)
@@ -1445,7 +1471,7 @@ merge.ChromatinAssay5 <- function(
 ) {
   # call NextMethod to get merged standard assay object
   merged <- NextMethod()
-  
+
   # need to do all operations over a list of assays
   assays <- c(x, y)
 
@@ -1466,11 +1492,10 @@ merge.ChromatinAssay5 <- function(
     )
     return(new.assay)
   } else {
-    
     # rename cells in each assay
     # merge.Seurat already does this, so should only happen here when merging
     # assay objects outside of a Seurat object
-    
+
     if (is.null(x = add.cell.ids)) {
       # check if any cell names clash, if so add a prefix
       cellnames.all <- sapply(X = assays, FUN = colnames)
@@ -1492,7 +1517,7 @@ merge.ChromatinAssay5 <- function(
         )
       }
     }
-    
+
     # merge annotations
     all.annot <- lapply(X = assays, FUN = function(x) Annotation(object = x))
     annot.present <- !sapply(X = all.annot, FUN = is.null)
@@ -1510,7 +1535,7 @@ merge.ChromatinAssay5 <- function(
     } else {
       annot.use <- NULL
     }
-    
+
     # merge fragments
     all.frag <- lapply(X = assays, FUN = function(x) Fragments(object = x))
     all.frag <- Reduce(f = c, x = all.frag)
@@ -1520,10 +1545,10 @@ merge.ChromatinAssay5 <- function(
             Removing invalid files from merged ChromatinAssay5")
       all.frag <- all.frag[valid.frags]
     }
-    
+
     # TODO merge links information
     # TODO merge Motif objects
-    
+
     # create new ChromatinAssay5 object
     # bias, motifs, region.aggregation, metafeatures not kept
     merged <- as.ChromatinAssay5(
@@ -1546,9 +1571,9 @@ merge.ChromatinAssay5 <- function(
 #' @method [ Motif
 #' @examples
 #' motif.obj <- SeuratObject::GetAssayData(
-#'   object = atac_small, assay = 'peaks', layer = 'motifs'
+#'   object = atac_small, assay = "peaks", layer = "motifs"
 #' )
-#' motif.obj[1:10,1:10]
+#' motif.obj[1:10, 1:10]
 "[.Motif" <- function(x, i, j, ...) {
   if (missing(x = i) && missing(x = j)) {
     return(x)
@@ -1603,9 +1628,11 @@ setMethod(
     if (is.null(x = sl)) {
       sl.text <- "Unknown seqlevels\n"
     } else {
-      sl.text <- paste0("Seqlevels: ",
-                        paste(head(x = sl), collapse = ", "),
-                        " ...\n")
+      sl.text <- paste0(
+        "Seqlevels: ",
+        paste(head(x = sl), collapse = ", "),
+        " ...\n"
+      )
     }
     cat(
       "A Fragment v2 object for",
@@ -2008,7 +2035,7 @@ dim.Motif <- function(x) {
 #' @concept fragments
 #' @importFrom SeuratObject DefaultAssay
 #' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' fragments <- CreateFragmentObject(
 #'   path = fpath,
 #'   cells = colnames(atac_small),
@@ -2016,10 +2043,10 @@ dim.Motif <- function(x) {
 #' )
 #' # Seurat object method
 #' Fragments(atac_small) <- fragments
-#' 
+#'
 #' # Remove fragment objects
 #' Fragments(atac_small) <- NULL
-#' 
+#'
 #' # Assay method
 #' Fragments(atac_small[["peaks"]]) <- fragments
 "Fragments<-.Seurat" <- function(object, ..., value) {

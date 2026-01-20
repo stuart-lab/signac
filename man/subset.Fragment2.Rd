@@ -20,7 +20,7 @@ Returns a subsetted \code{\link{Fragment}} object
 Returns a subset of a \code{\link{Fragment}} object.
 }
 \examples{
-fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 cells <- colnames(x = atac_small)
 names(x = cells) <- paste0("test_", cells)
 frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)

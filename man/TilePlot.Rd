@@ -63,7 +63,7 @@ within a genomic region.
 }
 \examples{
 \donttest{
-fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 fragments <- CreateFragmentObject(
   path = fpath,
   cells = colnames(atac_small),

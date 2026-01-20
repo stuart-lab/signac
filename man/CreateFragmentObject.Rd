@@ -51,7 +51,7 @@ is also performed to ensure that the expected cells are present in the
 fragment file.
 }
 \examples{
-fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 cells <- colnames(x = atac_small)
 names(x = cells) <- paste0("test_", cells)
 frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)

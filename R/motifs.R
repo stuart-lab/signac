@@ -16,12 +16,16 @@ AddMotifs.default <- function(
   ...
 ) {
   if (!requireNamespace("motifmatchr", quietly = TRUE)) {
-    stop("Please install motifmatchr.\n",
-         "https://www.bioconductor.org/packages/motifmatchr/")
+    stop(
+      "Please install motifmatchr.\n",
+      "https://www.bioconductor.org/packages/motifmatchr/"
+    )
   }
   if (is.null(x = names(x = pfm))) {
     warning("No 'names' attribute found in PFMatrixList. ",
-            "Extracting names from individual entries.", immediate. = TRUE)
+      "Extracting names from individual entries.",
+      immediate. = TRUE
+    )
     names(x = pfm) <- vapply(
       X = pfm, FUN = slot, FUN.VALUE = "character", "name"
     )
@@ -46,7 +50,7 @@ AddMotifs.default <- function(
   if (verbose) {
     message("Finding motif positions")
   }
-  
+
   # for positions, a list of granges is returned
   # each element of list is a PFM name
   # each entry in granges is the position within a feature that matches motif
@@ -54,7 +58,7 @@ AddMotifs.default <- function(
   motif.positions <- motifmatchr::matchMotifs(
     pwms = pfm,
     subject = object[obj_keep],
-    out = 'positions',
+    out = "positions",
     genome = genome
   )
   if (verbose) {
@@ -87,7 +91,7 @@ AddMotifs.GRangesAssay <- function(
   )
   object <- SetAssayData(
     object = object,
-    layer = 'motifs',
+    layer = "motifs",
     new.data = motif
   )
   return(object)
@@ -98,14 +102,16 @@ AddMotifs.GRangesAssay <- function(
 #' @concept motifs
 #' @export
 AddMotifs.Assay <- function(
-    object,
-    genome,
-    pfm,
-    verbose = TRUE,
-    ...
+  object,
+  genome,
+  pfm,
+  verbose = TRUE,
+  ...
 ) {
-  stop("Attempting to run AddMotifs on a standard Assay.\n",
-       "Please supply a GRangesAssay instead.")
+  stop(
+    "Attempting to run AddMotifs on a standard Assay.\n",
+    "Please supply a GRangesAssay instead."
+  )
 }
 
 #' @rdname AddMotifs
@@ -113,14 +119,16 @@ AddMotifs.Assay <- function(
 #' @concept motifs
 #' @export
 AddMotifs.StdAssay <- function(
-    object,
-    genome,
-    pfm,
-    verbose = TRUE,
-    ...
+  object,
+  genome,
+  pfm,
+  verbose = TRUE,
+  ...
 ) {
-  stop("Attempting to run AddMotifs on an Assay5 assay.\n",
-       "Please supply a GRangesAssay instead.")
+  stop(
+    "Attempting to run AddMotifs on an Assay5 assay.\n",
+    "Please supply a GRangesAssay instead."
+  )
 }
 
 #' @param assay Name of assay to use. If NULL, use the default assay
@@ -193,7 +201,7 @@ AddMotifs.Seurat <- function(
 #'
 #' pwm <- getMatrixSet(
 #'   x = JASPAR2018,
-#'   opts = list(collection = "CORE", tax_group = 'vertebrates', all_versions = FALSE)
+#'   opts = list(collection = "CORE", tax_group = "vertebrates", all_versions = FALSE)
 #' )
 #' motif.matrix <- CreateMotifMatrix(
 #'   features = granges(atac_small),
@@ -202,19 +210,19 @@ AddMotifs.Seurat <- function(
 #' )
 #' }
 CreateMotifMatrix <- function(
-    features,
-    pwm,
-    genome,
-    score = FALSE,
-    use.counts = FALSE,
-    sep = c("-", "-"),
-    ...
+  features,
+  pwm,
+  genome,
+  score = FALSE,
+  use.counts = FALSE,
+  sep = c("-", "-"),
+  ...
 ) {
   if (!requireNamespace("motifmatchr", quietly = TRUE)) {
     stop("Please install motifmatchr.
          https://www.bioconductor.org/packages/motifmatchr/")
   }
-  
+
   # genome can be string
   if (is.character(x = genome)) {
     if (!requireNamespace("BSgenome", quietly = TRUE)) {
@@ -223,13 +231,14 @@ CreateMotifMatrix <- function(
     }
     genome <- BSgenome::getBSgenome(genome = genome)
   }
-  
+
   # check that all seqnames in features are in genome
   # remove missing, replace later with zeros and show warning
   miss_sn <- !(as.character(seqnames(x = features)) %in% seqlevels(x = genome))
   if (sum(miss_sn) > 0) {
     warning("Not all seqlevels present in supplied genome",
-            immediate. = TRUE)
+      immediate. = TRUE
+    )
     # remove from features and remember original order
     feature_order <- features
     features <- features[!miss_sn]
@@ -253,8 +262,10 @@ CreateMotifMatrix <- function(
   }
   rownames(motif.matrix) <- GRangesToString(grange = features, sep = sep)
   if (is.null(x = names(x = pwm))) {
-    warning("No 'names' attribute found in PFMatrixList. ",
-            "Extracting names from individual entries.")
+    warning(
+      "No 'names' attribute found in PFMatrixList. ",
+      "Extracting names from individual entries."
+    )
     colnames(x = motif.matrix) <- vapply(
       X = pwm, FUN = slot, FUN.VALUE = "character", "name"
     )
@@ -451,19 +462,24 @@ FindMotifs <- function(
   }
   if (is(object = background, class2 = "numeric")) {
     if (verbose) {
-      message("Selecting background regions to match input ",
-              "sequence characteristics")
+      message(
+        "Selecting background regions to match input ",
+        "sequence characteristics"
+      )
     }
     meta.feature <- object[[assay]][[]]
     mf.choose <- meta.feature[
-      setdiff(x = rownames(x = meta.feature), y = features), , drop = FALSE
+      setdiff(x = rownames(x = meta.feature), y = features), ,
+      drop = FALSE
     ]
     missing.features <- setdiff(x = features, y = rownames(x = meta.feature))
     if (length(x = missing.features) > 0) {
       warning(
         "The following features were not found in the assay: ",
         missing.features,
-        "\nRemoving missing features", immediate. = TRUE)
+        "\nRemoving missing features",
+        immediate. = TRUE
+      )
       features <- intersect(x = features, y = rownames(x = meta.feature))
     }
     mf.query <- meta.feature[features, , drop = FALSE]
@@ -485,8 +501,10 @@ FindMotifs <- function(
     message("Testing motif enrichment in ", length(x = features), msg)
   }
   if (length(x = features) < 10) {
-    warning("Testing motif enrichment using a small number of regions is ",
-            "not recommended")
+    warning(
+      "Testing motif enrichment using a small number of regions is ",
+      "not recommended"
+    )
   }
   motif.all <- GetMotifData(
     object = object, assay = assay, slot = "data"
@@ -540,7 +558,7 @@ FindMotifs <- function(
 #' @importFrom methods hasArg
 #' @export
 ConvertMotifID.default <- function(object, name, id, ...) {
-  if (hasArg(name = name) & hasArg(name = id)) {
+  if (hasArg(name = name) && hasArg(name = id)) {
     stop("Supply either name or ID, not both")
   } else if (!hasArg(name = name) & !(hasArg(name = id))) {
     stop("Supply vector of names or IDs to convert")

@@ -104,8 +104,8 @@ Run partial singular value decomposition using \code{\link[RSpectra]{svds}}
 \examples{
 x <- matrix(data = rnorm(100), ncol = 10)
 RunSVD(x)
-RunSVD(atac_small[['peaks']], features = rownames(atac_small))
-RunSVD(atac_small[['peaks']], features = rownames(atac_small))
+RunSVD(atac_small[["peaks"]], features = rownames(atac_small))
+RunSVD(atac_small[["peaks"]], features = rownames(atac_small))
 RunSVD(atac_small, features = rownames(atac_small))
 }
 \concept{dimension_reduction}

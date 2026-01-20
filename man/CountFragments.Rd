@@ -32,7 +32,7 @@ Returns a data.frame with the following columns:
 Count total fragments per cell barcode present in a fragment file.
 }
 \examples{
-fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 counts <- CountFragments(fragments = fpath)
 }
 \concept{fragments}

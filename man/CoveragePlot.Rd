@@ -113,7 +113,7 @@ highlighted in grey. To change the color of the highlighting, include a
 metadata column in the GRanges object named "color" containing the color to
 use for each region.}
 
-\item{links}{Display links. This can be a TRUE/FALSE value which will 
+\item{links}{Display links. This can be a TRUE/FALSE value which will
 determine whether a links track is displayed, and if TRUE links for all genes
 in the plotted region will be shown. Alternatively, a character vector can be
 provided, giving a list of gene names to plot links for. If this is provided,
@@ -228,7 +228,7 @@ different options in the CoveragePlot function. This includes showing:
 }
 \examples{
 \donttest{
-fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 fragments <- CreateFragmentObject(
   path = fpath,
   cells = colnames(atac_small),

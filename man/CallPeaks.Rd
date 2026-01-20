@@ -106,7 +106,7 @@ automatically.}
 
 \item{broad}{Call broad peaks (\code{--broad} parameter for MACS)}
 
-\item{format}{File format to use. Should be either "BED" or "BEDPE" (see 
+\item{format}{File format to use. Should be either "BED" or "BEDPE" (see
 MACS documentation).}
 
 \item{outdir}{Path for output files}
@@ -124,7 +124,7 @@ combining peaks.}
 \item{effective.genome.size}{Effective genome size parameter for MACS
 (\code{-g}). Default is the human effective genome size (2.7e9).}
 
-\item{extsize}{\code{extsize} parameter for MACS. Only relevant if 
+\item{extsize}{\code{extsize} parameter for MACS. Only relevant if
 format="BED"}
 
 \item{shift}{\code{shift} parameter for MACS. Only relevant if format="BED"}

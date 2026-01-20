@@ -66,7 +66,7 @@ GetFootprintData <- function(
       fp <- fp[1:(nrow(x = fp) - 2), ]
       bg.norm <- lapply(X = all.groups, FUN = function(x) {
         cells.use <- names(x = obj.groups)[obj.groups == x]
-        mat.use <- fp[cells.use, ,drop = FALSE]
+        mat.use <- fp[cells.use, , drop = FALSE]
         return(BackgroundMeanNorm(x = mat.use, background = 50))
       })
       bg.norm <- do.call(what = rbind, args = bg.norm)
@@ -138,9 +138,9 @@ Footprint.ChromatinAssay5 <- function(
   verbose = TRUE,
   ...
 ) {
-  if (is.null(x = motif.name) & is.null(x = regions)) {
+  if (is.null(x = motif.name) && is.null(x = regions)) {
     stop("Must supply the name of a motif or a set of regions")
-  } else if (!is.null(x = motif.name) & !is.null(x = regions)) {
+  } else if (!is.null(x = motif.name) && !is.null(x = regions)) {
     stop("Supplied both a motif name and set of regions. Choose one only.")
   } else if (!is.null(x = motif.name)) {
     if (!inherits(x = object, what = "GRangesAssay")) {
@@ -210,7 +210,8 @@ Footprint.ChromatinAssay5 <- function(
         in.peaks = in.peaks,
         verbose = verbose
       )
-    })
+    }
+  )
 
   # store in object
   for (i in seq_along(along.with = matrices)) {
@@ -275,24 +276,24 @@ Footprint.Seurat <- function(
 #' library(BSgenome.Hsapiens.UCSC.hg38)
 #'
 #' region.use <- GRanges(
-#'   seqnames = c('chr1', 'chr2'),
-#'   IRanges(start = c(1,1), end = c(195471971, 182113224))
+#'   seqnames = c("chr1", "chr2"),
+#'   IRanges(start = c(1, 1), end = c(195471971, 182113224))
 #' )
 #'
 #' InsertionBias(
-#'  object = atac_small,
-#'  genome = BSgenome.Hsapiens.UCSC.hg38,
-#'  region = region.use
+#'   object = atac_small,
+#'   genome = BSgenome.Hsapiens.UCSC.hg38,
+#'   region = region.use
 #' )
 #' }
 InsertionBias.ChromatinAssay5 <- function(
   object,
   genome,
-  region = 'chr1-1-249250621',
+  region = "chr1-1-249250621",
   verbose = TRUE,
   ...
 ) {
-  if (!requireNamespace('Biostrings', quietly = TRUE)) {
+  if (!requireNamespace("Biostrings", quietly = TRUE)) {
     stop("Please install Biostrings: BiocManager::install('Biostrings')")
   }
   chr.use <- unlist(x = strsplit(x = region, split = "-", fixed = TRUE))[[1]]
@@ -310,7 +311,7 @@ InsertionBias.ChromatinAssay5 <- function(
       start = c(reads$start, reads$end),
       width = 1
     ),
-    strand = '+'
+    strand = "+"
   )
   insertions <- Extend(x = insertions, upstream = 3, downstream = 2)
   sequences <- as.vector(x = Biostrings::getSeq(x = genome, insertions))
@@ -344,7 +345,7 @@ InsertionBias.Seurat <- function(
   object,
   genome,
   assay = NULL,
-  region = 'chr1-1-249250621',
+  region = "chr1-1-249250621",
   verbose = TRUE,
   ...
 ) {
@@ -365,7 +366,7 @@ InsertionBias.Seurat <- function(
 #' @importMethodsFrom Matrix mean
 BackgroundMeanNorm <- function(x, background = 50) {
   positions.use <- c(1:background, (ncol(x = x) - background):ncol(x = x))
-  flanks <- mean(x = x[ ,positions.use])
+  flanks <- mean(x = x[, positions.use])
   x <- x / flanks
   return(x)
 }
@@ -415,10 +416,10 @@ FindExpectedInsertions <- function(dna.sequence, bias, verbose = TRUE) {
     # append
     x[current.pos:end.pos] <- as.numeric(x = frequencies)
     j[current.pos:end.pos] <- jj
-    
+
     # remove frequencies not present in hex.key
     frequencies <- frequencies[names(x = frequencies) %in% names(x = hex.key)]
-    
+
     i[current.pos:end.pos] <- as.vector(x = hex.key[names(x = frequencies)])
     # shift current position
     current.pos <- end.pos + 1
@@ -449,10 +450,12 @@ FindExpectedInsertions <- function(dna.sequence, bias, verbose = TRUE) {
   # normalize expected by dividing by flanks
   # TODO use BackgroundMeanNorm function here
   flanks <- mean(
-    x = c(expected.insertions[1:50],
-          expected.insertions[
-            (total.hexamer.positions - 50):total.hexamer.positions
-            ])
+    x = c(
+      expected.insertions[1:50],
+      expected.insertions[
+        (total.hexamer.positions - 50):total.hexamer.positions
+      ]
+    )
   )
   expected.insertions <- expected.insertions / flanks
   return(expected.insertions)
@@ -529,7 +532,7 @@ RunFootprint <- function(
   in.peaks = FALSE,
   verbose = TRUE
 ) {
-  if (!requireNamespace('Biostrings', quietly = TRUE)) {
+  if (!requireNamespace("Biostrings", quietly = TRUE)) {
     stop("Please install Biostrings: BiocManager::install('Biostrings')")
   }
   motif.size <- width(x = regions)[[1]]
@@ -550,8 +553,7 @@ RunFootprint <- function(
     x = regions,
     upstream = 3,
     downstream = 3
-    )
-  )
+  ))
   if (compute.expected) {
     bias <- GetAssayData(object = object, layer = "bias")
     if (is.null(x = bias)) {
@@ -587,8 +589,7 @@ RunFootprint <- function(
       rep(x = 1, motif.size),
       rep(x = 0, downstream)
     )
-   )
-  )
+  ))
   rownames(x = motif.vec) <- "motif"
   insertion.matrix <- rbind(insertion.matrix, motif.vec)
   return(insertion.matrix)

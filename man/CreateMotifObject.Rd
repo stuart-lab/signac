@@ -38,9 +38,10 @@ Create a \code{\link{Motif-class}} object.
 }
 \examples{
 motif.matrix <- matrix(
-  data = sample(c(0,1),
+  data = sample(c(0, 1),
     size = 100,
-    replace = TRUE),
+    replace = TRUE
+  ),
   ncol = 5
 )
 rownames(motif.matrix) <- 1:nrow(motif.matrix)

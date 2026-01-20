@@ -46,7 +46,7 @@ RegionStats(
 \dontrun{
 library(BSgenome.Hsapiens.UCSC.hg38)
 RegionStats(
-  object = atac_small[['peaks']],
+  object = atac_small[["peaks"]],
   genome = BSgenome.Hsapiens.UCSC.hg38
 )
 }
@@ -54,7 +54,7 @@ RegionStats(
 library(BSgenome.Hsapiens.UCSC.hg38)
 RegionStats(
   object = atac_small,
-  assay = 'bins',
+  assay = "bins",
   genome = BSgenome.Hsapiens.UCSC.hg38
 )
 }

@@ -24,17 +24,17 @@ head.Fragment2 <- function(x, n = 6L, ...) {
   df <- read.table(file = fpath, nrows = n, ...)
   if (ncol(x = df) == 5) {
     colnames(x = df) <- c("chrom", "start", "end", "barcode", "readCount")
-  } else if(ncol(x = df) == 6) {
+  } else if (ncol(x = df) == 6) {
     colnames(x = df) <- c("chrom", "start", "end", "barcode", "readCount", "strand")
   }
   return(df)
 }
 
 #' Return the fragment file header
-#' 
+#'
 #' Returns any comment lines present at the start of the fragment file,
 #' before any fragment entries.
-#' 
+#'
 #' @param x a \code{Fragment2} object
 #' @return Returns a character vector with the fragment file header lines
 #' @export
@@ -76,7 +76,7 @@ header <- function(x) {
 #'   \item{reads_count: total number of reads sequenced for the cell}
 #' }
 #' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' counts <- CountFragments(fragments = fpath)
 CountFragments <- function(
   fragments,
@@ -93,7 +93,7 @@ CountFragments <- function(
     }
     fragments[[i]] <- normalizePath(path = fragments[[i]], mustWork = TRUE)
     max_lines <- max_lines %||% 0
-    verbose = as.logical(x = verbose)
+    verbose <- as.logical(x = verbose)
     if (!is.null(x = cells)) {
       cells <- unique(x = cells)
     }
@@ -144,7 +144,7 @@ CountFragments <- function(
 #' @export
 #' @concept fragments
 #' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' tmpf <- tempfile(fileext = ".gz")
 #' FilterCells(
 #'   fragments = fpath,
@@ -168,7 +168,8 @@ FilterCells <- function(
   }
   if (file.exists(outfile)) {
     warning("Output file already exists, file will be overwritten",
-            immediate. = TRUE)
+      immediate. = TRUE
+    )
   }
   verbose <- as.logical(x = verbose)
   tf <- tempfile(pattern = "filtercells", tmpdir = tempdir(), fileext = "")
@@ -253,7 +254,7 @@ SplitFragments <- function(
   # split cells from each fragment file
   # append to existing file when more than one fragment file used
   for (i in seq_along(along.with = frags)) {
-    if (!append & (length(x = frags) > 1)) {
+    if (!append && (length(x = frags) > 1)) {
       suffix.use <- paste0(file.suffix, ".", i)
     } else {
       suffix.use <- file.suffix
@@ -565,7 +566,7 @@ UpdatePath <- function(object, new.path, new.index.path = NULL, verbose = TRUE) 
   if (identical(x = old.path, y = new.path)) {
     return(object)
   }
-  if (!old.is.remote & new.is.remote) {
+  if (!old.is.remote && new.is.remote) {
     warning("Replacing local file path with a remote file")
   }
   slot(object = object, name = "file.path") <- new.path
@@ -597,16 +598,18 @@ AssignFragCellnames <- function(fragments, cellnames) {
 # @return returns the index file path
 GetIndexFile <- function(fragment, verbose = TRUE) {
   is.remote <- isRemote(x = fragment)
-  index.filepaths <- c(paste0(fragment, ".tbi"),
-                       paste0(fragment, ".csi"))
+  index.filepaths <- c(
+    paste0(fragment, ".tbi"),
+    paste0(fragment, ".csi")
+  )
   index.file <- index.filepaths[file.exists(index.filepaths)]
-  if (length(x = index.file) == 0 & !is.remote) {
+  if (length(x = index.file) == 0 && !is.remote) {
     stop("Fragment file is not indexed.")
-  } else if(length(x = index.file) == 0) {
+  } else if (length(x = index.file) == 0) {
     if (verbose) {
       message("Fragment file is on a remote server")
     }
-    index.file = paste0(fragment, ".tbi")
+    index.file <- paste0(fragment, ".tbi")
   } else if (length(x = index.file) == 2) {
     if (verbose) {
       message("TBI and CSI index both present, using TBI index")

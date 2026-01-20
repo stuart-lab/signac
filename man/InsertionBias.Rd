@@ -45,14 +45,14 @@ Counts the Tn5 insertion frequency for each DNA hexamer.
 library(BSgenome.Hsapiens.UCSC.hg38)
 
 region.use <- GRanges(
-  seqnames = c('chr1', 'chr2'),
-  IRanges(start = c(1,1), end = c(195471971, 182113224))
+  seqnames = c("chr1", "chr2"),
+  IRanges(start = c(1, 1), end = c(195471971, 182113224))
 )
 
 InsertionBias(
- object = atac_small,
- genome = BSgenome.Hsapiens.UCSC.hg38,
- region = region.use
+  object = atac_small,
+  genome = BSgenome.Hsapiens.UCSC.hg38,
+  region = region.use
 )
 }
 }

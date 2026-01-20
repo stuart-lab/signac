@@ -25,14 +25,14 @@ RegionPlot(
 
 \item{assay}{Name of assay to use. If a list or vector of assay names is
 given, data will be plotted from each assay. Note that all assays must
-contain \code{RegionMatrix} results with the same key. Sorting will be 
+contain \code{RegionMatrix} results with the same key. Sorting will be
 defined by the first assay in the list}
 
 \item{idents}{Cell identities to include. Note that cells cannot be
-regrouped, this will require re-running \code{RegionMatrix} to generate a 
+regrouped, this will require re-running \code{RegionMatrix} to generate a
 new set of matrices}
 
-\item{group.order}{Order of groups to be shown in the plot. This should be a 
+\item{group.order}{Order of groups to be shown in the plot. This should be a
 character vector. If NULL, the group order will not be changed.}
 
 \item{normalize}{Normalize by number of cells in each group}

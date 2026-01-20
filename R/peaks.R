@@ -26,14 +26,14 @@ NULL
 #' p-value, q-value, and fold-change information for each peak will be lost if
 #' combining peaks.
 #' @param broad Call broad peaks (\code{--broad} parameter for MACS)
-#' @param format File format to use. Should be either "BED" or "BEDPE" (see 
+#' @param format File format to use. Should be either "BED" or "BEDPE" (see
 #' MACS documentation).
 #' @param outdir Path for output files
 #' @param fragment.tempdir Path to write temporary fragment files. Only used if
 #' \code{group.by} is not NULL.
 #' @param effective.genome.size Effective genome size parameter for MACS
 #' (\code{-g}). Default is the human effective genome size (2.7e9).
-#' @param extsize \code{extsize} parameter for MACS. Only relevant if 
+#' @param extsize \code{extsize} parameter for MACS. Only relevant if
 #' format="BED"
 #' @param shift \code{shift} parameter for MACS. Only relevant if format="BED"
 #' @param additional.args Additional arguments passed to MACS. This should be a
@@ -66,7 +66,7 @@ CallPeaks.Seurat <- function(
   combine.peaks = TRUE,
   effective.genome.size = 2.7e9,
   extsize = 200,
-  shift = -extsize/2,
+  shift = -extsize / 2,
   additional.args = NULL,
   name = Project(object),
   cleanup = TRUE,
@@ -81,9 +81,11 @@ CallPeaks.Seurat <- function(
     # first check macs2 path before we spend time splitting the files
     macs2.path <- macs2.path %||% unname(obj = Sys.which(names = "macs2"))
     macs.exists <- file.exists(macs2.path)
-    if (nchar(x = macs2.path) == 0 | !macs.exists) {
-      stop("MACS2 not found. Please install MACS:",
-           "https://macs3-project.github.io/MACS/")
+    if (nchar(x = macs2.path) == 0 || !macs.exists) {
+      stop(
+        "MACS2 not found. Please install MACS:",
+        "https://macs3-project.github.io/MACS/"
+      )
     }
     if (fragment.tempdir != tempdir()) {
       if (!dir.exists(paths = fragment.tempdir)) {
@@ -192,7 +194,7 @@ CallPeaks.ChromatinAssay <- function(
   format = "BED",
   effective.genome.size = 2.7e9,
   extsize = 200,
-  shift = -extsize/2,
+  shift = -extsize / 2,
   additional.args = NULL,
   name = "macs2",
   cleanup = TRUE,
@@ -233,7 +235,7 @@ CallPeaks.Fragment <- function(
   format = "BED",
   effective.genome.size = 2.7e9,
   extsize = 200,
-  shift = -extsize/2,
+  shift = -extsize / 2,
   additional.args = NULL,
   name = "macs2",
   cleanup = TRUE,
@@ -273,7 +275,7 @@ CallPeaks.default <- function(
   format = "BED",
   effective.genome.size = 2.7e9,
   extsize = 200,
-  shift = -extsize/2,
+  shift = -extsize / 2,
   additional.args = NULL,
   name = "macs2",
   cleanup = TRUE,
@@ -286,8 +288,10 @@ CallPeaks.default <- function(
   # find macs2
   macs2.path <- macs2.path %||% unname(obj = Sys.which(names = "macs2"))
   if (nchar(x = macs2.path) == 0) {
-    stop("MACS2 not found. Please install MACS:",
-         "https://macs3-project.github.io/MACS/")
+    stop(
+      "MACS2 not found. Please install MACS:",
+      "https://macs3-project.github.io/MACS/"
+    )
   }
   name <- gsub(pattern = " ", replacement = "_", x = name)
   name <- gsub(pattern = .Platform$file.sep, replacement = "_", x = name)
@@ -308,14 +312,15 @@ CallPeaks.default <- function(
   broadstring <- ifelse(test = broad, yes = " --broad ", no = "")
   nomod_str <- ifelse(
     test = format == "BED",
-    yes = paste0(" --nomodel --extsize ",
-    as.character(x = extsize),
-    " --shift ",
-    as.character(x = shift)
+    yes = paste0(
+      " --nomodel --extsize ",
+      as.character(x = extsize),
+      " --shift ",
+      as.character(x = shift)
     ),
     no = ""
   )
-  
+
   cmd <- paste0(
     macs2.path,
     " callpeak -t ",
@@ -348,9 +353,11 @@ CallPeaks.default <- function(
     # read in broadpeak
     df <- read.table(
       file = paste0(outdir, .Platform$file.sep, name, "_peaks.broadPeak"),
-      col.names = c("chr", "start", "end", "name",
-                    "score", "strand", "fold_change",
-                    "neg_log10pvalue_summit", "neg_log10qvalue_summit")
+      col.names = c(
+        "chr", "start", "end", "name",
+        "score", "strand", "fold_change",
+        "neg_log10pvalue_summit", "neg_log10qvalue_summit"
+      )
     )
     files.to.remove <- paste0(
       name,
@@ -360,10 +367,12 @@ CallPeaks.default <- function(
     # read in narrowpeak file
     df <- read.table(
       file = paste0(outdir, .Platform$file.sep, name, "_peaks.narrowPeak"),
-      col.names = c("chr", "start", "end", "name",
-                    "score", "strand", "fold_change",
-                    "neg_log10pvalue_summit", "neg_log10qvalue_summit",
-                    "relative_summit_position")
+      col.names = c(
+        "chr", "start", "end", "name",
+        "score", "strand", "fold_change",
+        "neg_log10pvalue_summit", "neg_log10qvalue_summit",
+        "relative_summit_position"
+      )
     )
     files.to.remove <- paste0(
       name,

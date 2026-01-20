@@ -23,7 +23,7 @@ NULL
 #' x <- matrix(data = sample(c(0, 1), size = 25, replace = TRUE), ncol = 5)
 #' Jaccard(x = x, y = x)
 Jaccard <- function(x, y) {
-  if (any(x > 1) | any(y > 1)) {
+  if (any(x > 1) || any(y > 1)) {
     warning("Matrices contain values greater than 1.
             Please binarize matrices before running Jaccard")
   }
@@ -67,16 +67,16 @@ Jaccard <- function(x, y) {
 #' x <- matrix(data = rnorm(100), ncol = 10)
 #' RunSVD(x)
 RunSVD.default <- function(
-    object,
-    assay = NULL,
-    n = 50,
-    scale.embeddings = !pca,
-    pca = FALSE,
-    reduction.key = ifelse(pca, "PCA_", "LSI_"),
-    scale.max = NULL,
-    verbose = TRUE,
-    tol = 1e-05,
-    ...
+  object,
+  assay = NULL,
+  n = 50,
+  scale.embeddings = !pca,
+  pca = FALSE,
+  reduction.key = ifelse(pca, "PCA_", "LSI_"),
+  scale.max = NULL,
+  verbose = TRUE,
+  tol = 1e-05,
+  ...
 ) {
   if (is.null(x = rownames(x = object))) {
     rownames(x = object) <- seq_len(length.out = nrow(x = object))
@@ -85,7 +85,7 @@ RunSVD.default <- function(
     colnames(x = object) <- seq_len(length.out = ncol(x = object))
   }
   n <- min(n, (ncol(x = object) - 1))
-  
+
   opts <- list("tol" = tol)
   if (pca) {
     if (verbose) {
@@ -95,7 +95,7 @@ RunSVD.default <- function(
     if (inherits(x = object, what = "IterableMatrix")) {
       # scale and center BPCells matrix
       # opts params in BPCells:::svds.IterableMatrix not implemented
-      s <- BPCells::matrix_stats(object, row_stats="variance")
+      s <- BPCells::matrix_stats(object, row_stats = "variance")
       r_means <- s$row_stats["mean", ]
       r_vars <- s$row_stats["variance", ]
       object <- (object - r_means) / r_vars
@@ -107,7 +107,7 @@ RunSVD.default <- function(
       message("Running SVD")
     }
   }
-  
+
   components <- svds(A = t(x = object), k = n, opts = opts)
   feature.loadings <- components$v
   sdev <- components$d / sqrt(x = max(1, nrow(x = object) - 1))
@@ -152,7 +152,7 @@ RunSVD.default <- function(
 
 # from SeuratObject (not exported)
 #' @importFrom stats var
-PrepDR5 <- function(object, features = NULL, layer = 'scale.data', verbose = TRUE) {
+PrepDR5 <- function(object, features = NULL, layer = "scale.data", verbose = TRUE) {
   layer <- layer[1L]
   olayer <- layer
   layer <- Layers(object = object, search = layer)
@@ -165,7 +165,7 @@ PrepDR5 <- function(object, features = NULL, layer = 'scale.data', verbose = TRU
     stop("No variable features, run FindVariableFeatures() or provide a vector of features", call. = FALSE)
   }
   if (is(data.use, "IterableMatrix")) {
-    features.var <- BPCells::matrix_stats(matrix=data.use, row_stats="variance")$row_stats["variance",]
+    features.var <- BPCells::matrix_stats(matrix = data.use, row_stats = "variance")$row_stats["variance", ]
   } else {
     features.var <- sparseMatrixStats::rowVars(x = data.use)
     # features.var <- apply(X = data.use, MARGIN = 1L, FUN = var)
@@ -180,7 +180,7 @@ PrepDR5 <- function(object, features = NULL, layer = 'scale.data', verbose = TRU
         "The following ",
         length(x = exclude),
         " features requested have zero variance; running reduction without them: ",
-        paste(exclude, collapse = ', '),
+        paste(exclude, collapse = ", "),
         call. = FALSE,
         immediate. = TRUE
       )
@@ -189,12 +189,14 @@ PrepDR5 <- function(object, features = NULL, layer = 'scale.data', verbose = TRU
   features <- features.keep
   features <- features[!is.na(x = features)]
   features.use <- features[features %in% rownames(data.use)]
-  if(!isTRUE(all.equal(features, features.use))) {
+  if (!isTRUE(all.equal(features, features.use))) {
     missing_features <- setdiff(features, features.use)
-    if(length(missing_features) > 0) {
+    if (length(missing_features) > 0) {
       warning_message <- paste("The following features were not available: ",
-                               paste(missing_features, collapse = ", "),
-                               ".", sep = "")
+        paste(missing_features, collapse = ", "),
+        ".",
+        sep = ""
+      )
       warning(warning_message, immediate. = TRUE)
     }
   }
@@ -210,7 +212,7 @@ PrepDR5 <- function(object, features = NULL, layer = 'scale.data', verbose = TRU
 #' @concept dimension_reduction
 #' @method RunSVD Assay5
 #' @examples
-#' RunSVD(atac_small[['peaks']], features = rownames(atac_small))
+#' RunSVD(atac_small[["peaks"]], features = rownames(atac_small))
 RunSVD.Assay5 <- function(
   object,
   assay = NULL,
@@ -251,18 +253,18 @@ RunSVD.Assay5 <- function(
 #' @concept dimension_reduction
 #' @method RunSVD StdAssay
 #' @examples
-#' RunSVD(atac_small[['peaks']], features = rownames(atac_small))
+#' RunSVD(atac_small[["peaks"]], features = rownames(atac_small))
 RunSVD.StdAssay <- function(
-    object,
-    assay = NULL,
-    layer = "data",
-    features = NULL,
-    pca = FALSE,
-    n = 50,
-    reduction.key = ifelse(pca, "PCA_", "LSI_"),
-    scale.max = NULL,
-    verbose = TRUE,
-    ...
+  object,
+  assay = NULL,
+  layer = "data",
+  features = NULL,
+  pca = FALSE,
+  n = 50,
+  reduction.key = ifelse(pca, "PCA_", "LSI_"),
+  scale.max = NULL,
+  verbose = TRUE,
+  ...
 ) {
   RunSVD.Assay5(
     object = object,
@@ -287,17 +289,17 @@ RunSVD.StdAssay <- function(
 #' RunSVD(atac_small, features = rownames(atac_small))
 #' @method RunSVD Seurat
 RunSVD.Seurat <- function(
-    object,
-    assay = NULL,
-    features = NULL,
-    layer = "data",
-    n = 50,
-    pca = FALSE,
-    reduction.key = ifelse(pca, "PCA_", "LSI_"),
-    reduction.name = ifelse(pca, "pca", "lsi"),
-    scale.max = NULL,
-    verbose = TRUE,
-    ...
+  object,
+  assay = NULL,
+  features = NULL,
+  layer = "data",
+  n = 50,
+  pca = FALSE,
+  reduction.key = ifelse(pca, "PCA_", "LSI_"),
+  reduction.name = ifelse(pca, "pca", "lsi"),
+  scale.max = NULL,
+  verbose = TRUE,
+  ...
 ) {
   assay <- assay %||% DefaultAssay(object = object)
   assay.data <- object[[assay]]
