@@ -59,10 +59,9 @@ metadata <- read.csv(
   row.names = 1
 )
 
-brain_assay <- CreateChromatinAssay(
+brain_assay <- CreateGRangesAssay(
   counts = counts,
   sep = c(":", "-"),
-  genome = "mm10",
   fragments = 'atac_v1_adult_brain_fresh_5k_fragments.tsv.gz',
   min.cells = 1
 )
@@ -92,44 +91,17 @@ Annotation(brain) <- annotations
 
 ## Computing QC Metrics
 
-Next we compute some useful per-cell QC metrics.
+Next we compute some useful per-cell QC metrics including the nucleosome signal,
+TSS enrichment score, and total counts per cell using the `ATACqc()` function:
 
 ```{r message=FALSE, warning=FALSE}
-brain <- NucleosomeSignal(object = brain)
-```
-
-We can look at the fragment length periodicity for all the cells, and group by
-cells with high or low nucleosomal signal strength. You can see that cells which
-are outliers for the  mononucleosomal/ nucleosome-free ratio have different
-banding patterns. The remaining cells exhibit a pattern that is typical for a
-successful ATAC-seq experiment.
-
-```{r message=FALSE, warning=FALSE}
-brain$nucleosome_group <- ifelse(brain$nucleosome_signal > 4, 'NS > 4', 'NS < 4')
-FragmentHistogram(object = brain, group.by = 'nucleosome_group', region = 'chr1-1-10000000')
-```
-
-The enrichment of Tn5 integration events at transcriptional start sites (TSSs)
-can also be an important quality control metric to assess the targeting of Tn5
-in ATAC-seq experiments. The ENCODE consortium defined a TSS enrichment score as
-the number of Tn5 integration site around the TSS normalized to the number of
-Tn5 integration sites in flanking regions. See the ENCODE documentation for more
-information about the TSS enrichment score
-(https://www.encodeproject.org/data-standards/terms/). We can calculate the TSS
-enrichment score for each cell using the `TSSEnrichment()` function in Signac.
-
-```{r message=FALSE, warning=FALSE}
-brain <- TSSEnrichment(brain)
+brain <- ATACqc(brain)
 ```
 
 ```{r message=FALSE, warning=FALSE, fig.width=18, fig.height=6}
-brain$pct_reads_in_peaks <- brain$peak_region_fragments / brain$passed_filters * 100
-brain$blacklist_ratio <- brain$blacklist_region_fragments / brain$peak_region_fragments
-
 VlnPlot(
   object = brain,
-  features = c('pct_reads_in_peaks', 'peak_region_fragments',
-               'TSS.enrichment', 'blacklist_ratio', 'nucleosome_signal'),
+  features = c('total_fragments', 'TSS_enrichment', 'Nucleosome_signal', 'FRiP'),
   pt.size = 0.1,
   ncol = 5
 )
@@ -140,12 +112,10 @@ We remove cells that are outliers for these QC metrics.
 ```{r}
 brain <- subset(
   x = brain,
-  subset = peak_region_fragments > 3000 &
-    peak_region_fragments < 100000 &
-    pct_reads_in_peaks > 40 &
-    blacklist_ratio < 0.025 &
-    nucleosome_signal < 4 &
-    TSS.enrichment > 2
+  subset = total_fragments > 3000 &
+    total_fragments < 100000 &
+    Nucleosome_signal < 4 &
+    TSS_enrichment > 7
 )
 brain
 ```
@@ -208,12 +178,7 @@ gene.activities <- GeneActivity(brain)
 
 # add the gene activity matrix to the Seurat object as a new assay
 brain[['RNA']] <- CreateAssayObject(counts = gene.activities)
-brain <- NormalizeData(
-  object = brain,
-  assay = 'RNA',
-  normalization.method = 'LogNormalize',
-  scale.factor = median(brain$nCount_RNA)
-)
+brain <- NormalizeData(brain, assay = 'RNA')
 ```
 
 ```{r fig.width=12, fig.height=10}
@@ -313,18 +278,6 @@ plot2 <- FeaturePlot(
   max.cutoff = 'q95'
 )
 plot1 | plot2
-```
-
-```{r warning=FALSE, message=FALSE}
-open_l23 <- rownames(da_peaks[da_peaks$avg_log2FC > 3, ])
-open_l456 <- rownames(da_peaks[da_peaks$avg_log2FC < 3, ])
-closest_l23 <- ClosestFeature(brain, open_l23)
-closest_l456 <- ClosestFeature(brain, open_l456)
-head(closest_l23)
-```
-
-```{r warning=FALSE, message=FALSE}
-head(closest_l456)
 ```
 
 ## Plotting genomic regions
