@@ -28,76 +28,94 @@ NULL
 #' @concept footprinting
 #' @importFrom SeuratObject DefaultAssay
 GetFootprintData <- function(
-  object,
-  features,
-  assay = NULL,
-  group.by = NULL,
-  idents = NULL
+    object,
+    features,
+    assay = NULL,
+    group.by = NULL,
+    idents = NULL
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
-    stop("The requested assay is not a ChromatinAssay5")
-  }
-  positionEnrichment <- GetAssayData(
-    object = object,
-    assay = assay,
-    layer = "positionEnrichment"
-  )
-  obj.groups <- GetGroups(
-    object = object,
-    group.by = group.by,
-    idents = idents
-  )
-  levels.stash <- levels(x = obj.groups)
-  all.groups <- unique(x = obj.groups)
-  plot.data <- lapply(X = features, FUN = function(x) {
-    if (!(x %in% names(x = positionEnrichment))) {
-      warning("Footprint information for ", x, " not found in assay")
-      return()
-    } else {
-      fp <- positionEnrichment[[x]]
-      # extract expected
-      if (!("expected" %in% rownames(x = fp))) {
-        warning("Footprint data incomplete for ", x)
-        return()
-      }
-      expected <- fp["expected", ]
-      # remove expected and motif position from main matrix
-      fp <- fp[1:(nrow(x = fp) - 2), ]
-      bg.norm <- lapply(X = all.groups, FUN = function(x) {
-        cells.use <- names(x = obj.groups)[obj.groups == x]
-        mat.use <- fp[cells.use, , drop = FALSE]
-        return(BackgroundMeanNorm(x = mat.use, background = 50))
-      })
-      bg.norm <- do.call(what = rbind, args = bg.norm)
-      groupmeans <- ApplyMatrixByGroup(
-        mat = bg.norm,
-        groups = obj.groups,
-        fun = colMeans,
-        normalize = FALSE
-      )
-      # add feature information
-      groupmeans$feature <- x
-      groupmeans$class <- "Observed"
-
-      # add expected insertions
-      expect.df <- data.frame(
-        group = NA,
-        count = expected,
-        norm.value = expected,
-        position = as.numeric(x = names(x = expected)),
-        feature = x,
-        class = "Expected"
-      )
-      groupmeans <- rbind(groupmeans, expect.df)
-      return(groupmeans)
+    assay <- assay %||% DefaultAssay(object = object)
+    if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+        stop("The requested assay is not a ChromatinAssay5")
     }
-  })
-  plot.data <- do.call(what = rbind, args = plot.data)
-  if (!is.null(x = levels.stash)) {
-    plot.data$group <- factor(x = plot.data$group, levels = levels.stash)
-  }
-  return(plot.data)
+    #positionEnrichment <- GetAssayData(
+    #  object = object,
+    #  assay = assay,
+    #  layer = "positionEnrichment"
+    #) 
+    region.enrichment <- object[[assay]]@region.enrichment 
+    
+    obj.groups <- GetGroups(
+        object = object,
+        group.by = group.by,
+        idents = idents
+    )
+    levels.stash <- levels(x = obj.groups)
+    all.groups <- unique(x = obj.groups)
+    plot.data <- lapply(X = features, FUN = function(feature) {
+        if (!(feature %in% names(region.enrichment))) {
+            warning("Footprint information for ", feature, " not found in assay")
+            return()
+        } 
+        # fp <- positionEnrichment[[x]]
+        # V2 edit: 
+        ### observed <- object@region.aggregation[[x]]@matrix
+        ### expected <- object@region.aggregation[[paste0(x, "_expected")]]@matrix[1, ]
+        agg <- region.enrichment[[feature]]
+        if (!inherits(agg, "RegionAggregation")){
+            warning("Footprint data for ", feature, " is not a RegionAggregation")
+            return()
+        }
+        # extract cell x position insertion matrix 
+        fp <- agg@matrix 
+        
+        # extract cell x position expected 
+        expected.name <- paste0(feature, "_expected")
+        if (!(expected.name %in% names(region.enrichment))) {
+            warning("Footprint data incomplete for ", feature)
+            return()
+        } 
+        expected <- region.enrichment[[expected.name]]@matrix
+
+        # background normalization by group 
+        bg.norm <- lapply(X = all.groups, FUN = function(x) {
+            cells.use <- names(x = obj.groups)[obj.groups == x]
+            mat.use <- fp[cells.use, , drop = FALSE]
+            return(BackgroundMeanNorm(x = mat.use, background = 50))
+        })
+        bg.norm <- do.call(what = rbind, args = bg.norm)
+        groupmeans <- ApplyMatrixByGroup(
+            mat = bg.norm,
+            groups = obj.groups,
+            fun = colMeans,
+            normalize = FALSE
+        )
+
+        # construct df for observed insertions
+        positions <- seq( -agg@upstream, agg@downstream)
+        groupmeans$position <- positions
+        groupmeans$feature <- feature
+        groupmeans$class <- "Observed"
+        
+        # add expected insertions
+        expected.mean <- colMeans(expected)
+        expect.df <- data.frame(
+            group = NA,
+            count = expected.mean,
+            norm.value = expected,
+            position = positions,
+            feature = feature,
+            class = "Expected"
+        )
+        groupmeans <- rbind(groupmeans, expect.df)
+        return(groupmeans)
+    })
+             
+    plot.data <- do.call(what = rbind, args = plot.data)
+    if (!is.null(x = levels.stash)) {
+        plot.data$group <- factor(x = plot.data$group, levels = levels.stash)
+    }
+    return(plot.data)
 }
 
 #' @param regions A set of genomic ranges containing the motif instances. These
@@ -125,104 +143,111 @@ GetFootprintData <- function(
 #' @rdname Footprint
 #' @method Footprint ChromatinAssay5
 Footprint.ChromatinAssay5 <- function(
-  object,
-  genome,
-  motif.name = NULL,
-  key = motif.name,
-  regions = NULL,
-  assay = NULL,
-  upstream = 250,
-  downstream = 250,
-  compute.expected = TRUE,
-  in.peaks = FALSE,
-  verbose = TRUE,
-  ...
+    object,
+    genome,
+    motif.name = NULL,
+    key = motif.name,
+    regions = NULL,
+    assay = NULL,
+    upstream = 250,
+    downstream = 250,
+    compute.expected = TRUE,
+    in.peaks = FALSE,
+    verbose = TRUE,
+    ...
 ) {
-  if (is.null(x = motif.name) && is.null(x = regions)) {
-    stop("Must supply the name of a motif or a set of regions")
-  } else if (!is.null(x = motif.name) && !is.null(x = regions)) {
-    stop("Supplied both a motif name and set of regions. Choose one only.")
-  } else if (!is.null(x = motif.name)) {
-    if (!inherits(x = object, what = "GRangesAssay")) {
-      stop("Must supply motif positions")
+    if (is.null(x = motif.name) && is.null(x = regions)) {
+        stop("Must supply the name of a motif or a set of regions")
+    } else if (!is.null(x = motif.name) && !is.null(x = regions)) {
+        stop("Supplied both a motif name and set of regions. Choose one only.")
+    } else if (!is.null(x = motif.name)) {
+        if (!inherits(x = object, what = "GRangesAssay")) {
+            stop("Must supply motif positions")
+        } else {
+            # pull motif positions from object
+            motif.obj <- Motifs(object = object)
+        }
+        if (length(x = motif.name) != length(x = key)) {
+            stop("A Key needs to be supplied for each motif")
+        }
+        regionlist <- lapply(X = motif.name, FUN = function(x) {
+            GetFootprintRegions(motif.obj = motif.obj, motif.name = x)
+        })
     } else {
-      # pull motif positions from object
-      motif.obj <- Motifs(object = object)
+        if (is.null(x = key)) {
+            stop("Must set a key to store positional enrichment information")
+        }
+        # supplied regions, put into list
+        if (!inherits(x = regions, what = "list")) {
+            regionlist <- list(regions)
+        } else {
+            regionlist <- regions
+        }
+        all.widths <- sapply(X = regionlist, FUN = function(x) {
+            length(x = unique(x = width(x = x))) == 1
+        })
+        if (!all(all.widths)) {
+            stop("Manually-supplied regions must all have the same width.")
+        }
     }
-    if (length(x = motif.name) != length(x = key)) {
-      stop("A Key needs to be supplied for each motif")
+    if (compute.expected) {
+        # check that bias is computed
+        bias <- GetAssayData(object = object, layer = "bias")
+        if (is.null(x = bias)) {
+            if (verbose) {
+                message("Computing Tn5 insertion bias")
+            }
+            region.end <- seqlengths(x = genome)[1]
+            object <- InsertionBias(
+                object = object,
+                genome = genome,
+                region = paste0(
+                    names(x = region.end),
+                    "-1-",
+                    as.character(x = region.end)
+                )
+            )
+        }
     }
-    regionlist <- lapply(X = motif.name, FUN = function(x) {
-      GetFootprintRegions(motif.obj = motif.obj, motif.name = x)
-    })
-  } else {
-    if (is.null(x = key)) {
-      stop("Must set a key to store positional enrichment information")
-    }
-    # supplied regions, put into list
-    if (!inherits(x = regions, what = "list")) {
-      regionlist <- list(regions)
+    # run in parallel
+    if (nbrOfWorkers() > 1) {
+        mylapply <- future_lapply
     } else {
-      regionlist <- regions
+        mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
     }
-    all.widths <- sapply(X = regionlist, FUN = function(x) {
-      length(x = unique(x = width(x = x))) == 1
-    })
-    if (!all(all.widths)) {
-      stop("Manually-supplied regions must all have the same width.")
-    }
-  }
-  if (compute.expected) {
-    # check that bias is computed
-    bias <- GetAssayData(object = object, layer = "bias")
-    if (is.null(x = bias)) {
-      if (verbose) {
-        message("Computing Tn5 insertion bias")
-      }
-      region.end <- seqlengths(x = genome)[1]
-      object <- InsertionBias(
-        object = object,
-        genome = genome,
-        region = paste0(
-          names(x = region.end),
-          "-1-",
-          as.character(x = region.end)
-        )
-      )
-    }
-  }
-  # run in parallel
-  if (nbrOfWorkers() > 1) {
-    mylapply <- future_lapply
-  } else {
-    mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
-  }
-  matrices <- mylapply(
-    X = seq_along(along.with = regionlist),
-    FUN = function(x) {
-      RunFootprint(
-        object = object,
-        genome = genome,
-        regions = regionlist[[x]],
-        upstream = upstream,
-        downstream = downstream,
-        compute.expected = compute.expected,
-        in.peaks = in.peaks,
-        verbose = verbose
-      )
-    }
-  )
 
-  # store in object
-  for (i in seq_along(along.with = matrices)) {
-    object <- SetAssayData(
-      object = object,
-      layer = "positionEnrichment",
-      new.data = matrices[[i]],
-      key = key[[i]]
+    # v2 edit 
+    matrices <- mylapply(
+        X = seq_along(along.with = regionlist),
+        FUN = function(x) {
+            RunFootprint(
+                object = object,
+                genome = genome,
+                regions = regionlist[[x]],
+                upstream = upstream,
+                downstream = downstream,
+                compute.expected = compute.expected,
+                in.peaks = in.peaks,
+                verbose = verbose
+            )
+        }
     )
-  }
-  return(object)
+    # store in object
+    for (i in seq_along(along.with = matrices)) {
+        object@region.aggregation[[key[[i]]]] <- matrices[[i]]$observed
+
+        if ("expected" %in% names(matrices[[i]])) {
+            object@region.aggregation[[paste0(key[[i]], "_expected")]] <- matrices[[i]]$expected
+        }
+    }
+    # old code      
+    #object <- SetAssayData(
+    #  object = object,
+    #  layer = "positionEnrichment",
+    #  new.data = matrices[[i]],
+    #  key = key[[i]]
+    #)
+    return(object)
 }
 
 #' @rdname Footprint
@@ -465,27 +490,27 @@ FindExpectedInsertions <- function(dna.sequence, bias, verbose = TRUE) {
 # @param motif.obj A Motif object
 # @param motif.name Name of a motif to pull positional information for
 GetFootprintRegions <- function(
-  motif.obj,
-  motif.name
+    motif.obj,
+    motif.name
 ) {
-  motif.positions <- GetMotifData(object = motif.obj, slot = "positions")
-  if (is.null(x = motif.positions)) {
-    stop("Motif positions not present in Motif object.")
-  } else {
-    if (motif.name %in% names(x = motif.positions)) {
-      regions <- motif.positions[[motif.name]]
+    motif.positions <- GetMotifData(object = motif.obj, slot = "positions")
+    if (is.null(x = motif.positions)) {
+        stop("Motif positions not present in Motif object.")
     } else {
-      # convert to common name and look up
-      common.names <- GetMotifData(object = motif.obj, slot = "motif.names")
-      if (motif.name %in% common.names) {
-        motif.idx <- names(x = which(x = common.names == motif.name))
-        regions <- motif.positions[[motif.idx]]
-      } else {
-        stop("Motif not found")
-      }
+        if (motif.name %in% names(x = motif.positions)) {
+            regions <- motif.positions[[motif.name]]
+        } else {
+            # convert to common name and look up
+            common.names <- GetMotifData(object = motif.obj, slot = "motif.names")
+            if (motif.name %in% common.names) {
+                motif.idx <- names(x = which(x = common.names == motif.name))
+                regions <- motif.positions[[motif.idx]]
+            } else {
+                stop("Motif not found")
+            }
+        }
+        return(regions)
     }
-    return(regions)
-  }
 }
 
 # Get size of motif that was footprinted
@@ -494,23 +519,33 @@ GetFootprintRegions <- function(
 # @param assay Name of assay to use
 #' @importFrom SeuratObject DefaultAssay GetAssayData
 GetMotifSize <- function(
-  object,
-  features,
-  assay = NULL
+    object,
+    features,
+    assay = NULL
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
-  positionEnrichment <- GetAssayData(
-    object = object,
-    assay = assay,
-    layer = "positionEnrichment"
-  )
-  sizes <- c()
-  for (i in features) {
-    motif <- positionEnrichment[[i]]["motif", ]
-    sizes <- c(sizes, sum(motif))
-  }
-  names(x = sizes) <- features
-  return(sizes)
+    assay <- assay %||% DefaultAssay(object = object)
+    agg.list <- object[[assay]]@region.aggregation 
+    
+    #positionEnrichment <- GetAssayData(
+    #    object = object,
+    #    assay = assay,
+    #    layer = "positionEnrichment")
+    
+    sizes <- c()
+    for (i in features) {
+        # motif <- positionEnrichment[[i]]["motif", ]
+        if (!i %in% names(agg.list)){
+            stop("No footprinting data found for feature: ", i)
+        }
+        motif.agg <- agg.list[[i]] 
+        w <- unique(width(motif.agg@regions))
+        if (length(w) != 1){
+            stop("Regions for feature ", i, " have inconsistent widths")
+        }
+        sizes <- c(sizes, w)
+    }
+    names(x = sizes) <- features
+    return(sizes)
 }
 
 # Run Footprint function for a single set of regions
@@ -523,74 +558,90 @@ GetMotifSize <- function(
 #' @importFrom IRanges width subsetByOverlaps
 #' @importFrom BiocGenerics sort
 RunFootprint <- function(
-  object,
-  genome,
-  regions,
-  upstream = 250,
-  downstream = 250,
-  compute.expected = TRUE,
-  in.peaks = FALSE,
-  verbose = TRUE
+    object,
+    genome,
+    regions,
+    upstream = 250,
+    downstream = 250,
+    compute.expected = TRUE,
+    in.peaks = FALSE,
+    verbose = TRUE
 ) {
-  if (!requireNamespace("Biostrings", quietly = TRUE)) {
-    stop("Please install Biostrings: BiocManager::install('Biostrings')")
-  }
-  motif.size <- width(x = regions)[[1]]
-  regions <- sort(x = regions)
-  if (in.peaks) {
-    regions <- subsetByOverlaps(x = regions, ranges = granges(x = object))
-  }
-  # extend upstream and downstream
-  regions <- Extend(
-    x = regions,
-    upstream = upstream,
-    downstream = downstream
-  )
-  if (verbose) {
-    message("Computing observed Tn5 insertions per base")
-  }
-  dna.sequence <- Biostrings::getSeq(x = genome, Extend(
-    x = regions,
-    upstream = 3,
-    downstream = 3
-  ))
-  if (compute.expected) {
-    bias <- GetAssayData(object = object, layer = "bias")
-    if (is.null(x = bias)) {
-      stop("Insertion bias not computed")
-    } else {
-      # add three bases each side here so we can get the hexamer frequencies
-      # for every position
-      expected.insertions <- FindExpectedInsertions(
-        dna.sequence = dna.sequence,
-        bias = bias,
-        verbose = verbose
-      )
+    if (!requireNamespace("Biostrings", quietly = TRUE)) {
+        stop("Please install Biostrings: BiocManager::install('Biostrings')")
     }
-  } else {
-    expected.insertions <- rep(1, width(x = dna.sequence)[[1]] - 6)
-  }
-
-  # count insertions at each position for each cell
-  insertion.matrix <- CreateRegionPileupMatrix(
-    object = object,
-    regions = regions
-  )
-
-  # store expected as one additional row in the matrix
-  expected.insertions <- t(x = as.matrix(x = expected.insertions))
-  rownames(x = expected.insertions) <- "expected"
-  insertion.matrix <- rbind(insertion.matrix, expected.insertions)
-
-  # encode motif position as additional row in matrix
-  motif.vec <- t(x = matrix(
-    data = c(
-      rep(x = 0, upstream),
-      rep(x = 1, motif.size),
-      rep(x = 0, downstream)
+    motif.size <- width(x = regions)[[1]]
+    regions <- sort(x = regions)
+    if (in.peaks) {
+        regions <- subsetByOverlaps(x = regions, ranges = granges(x = object))
+    }
+    # extend upstream and downstream
+    regions <- Extend(
+        x = regions,
+        upstream = upstream,
+        downstream = downstream
     )
-  ))
-  rownames(x = motif.vec) <- "motif"
-  insertion.matrix <- rbind(insertion.matrix, motif.vec)
-  return(insertion.matrix)
-}
+    if (verbose) {
+        message("Computing observed Tn5 insertions per base")
+    }
+    dna.sequence <- Biostrings::getSeq(x = genome, Extend(
+        x = regions,
+        upstream = 3,
+        downstream = 3
+    ))
+    if (compute.expected) {
+        bias <- GetAssayData(object = object, layer = "bias")
+        if (is.null(x = bias)) {
+            stop("Insertion bias not computed")
+        } else {
+            # add three bases each side here so we can get the hexamer frequencies
+            # for every position
+            expected.insertions <- FindExpectedInsertions(
+                dna.sequence = dna.sequence,
+                bias = bias,
+                verbose = verbose
+            )
+        }
+    } else {
+        expected.insertions <- rep(1, width(x = dna.sequence)[[1]] - 6)
+    }
+    
+    # count insertions at each position for each cell
+    insertion.matrix <- CreateRegionPileupMatrix(
+        object = object,
+        regions = regions
+    )
+    # broadcast expected to cells x position matrix
+    expected.matrix <- matrix(
+        expected.insertions, 
+        nrow = nrow(insertion.matrix), 
+        ncol = ncol(insertion.matrix), 
+        byrow = TRUE, dimnames = dimnames(insertion.matrix))
+    #expected.insertions <- t(x = as.matrix(x = expected.insertions))
+    #rownames(x = expected.insertions) <- "expected"
+    #insertion.matrix <- rbind(insertion.matrix, expected.insertions)
+    # encode motif position as additional row in matrix
+    # motif.vec <- t(x = matrix(data = c(rep(x = 0, upstream),rep(x = 1, motif.size),rep(x = 0, downstream))))
+    # rownames(x = motif.vec) <- "motif"
+    # insertion.matrix <- rbind(insertion.matrix, motif.vec)
+    
+    # edit: motif metadata will computed on fly when plotting by looking up regions width 
+
+    # create RegionAggregation objects
+    insertion.agg <- RegionAggregation(
+        matrix = insertion.matrix, 
+        regions = regions, 
+        upstream = upstream, 
+        downstream = downstream, 
+        name = "observed"
+    )
+    expected.agg <- RegionAggregation(
+        matrix = expected.matrix, 
+        regions = regions, 
+        upstream = upstream, 
+        downstream = downstream, 
+        name = "expected"
+    )
+    return(list(observed = insertion.agg, expected = expected.agg))
+    # return(insertion.matrix)
+} 
