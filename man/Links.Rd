@@ -19,7 +19,7 @@ Links(object, ...) <- value
 
 \method{Links}{ChromatinAssay5}(object, ...) <- value
 
-\method{Links}{Seurat}(object, ...) <- value
+\method{Links}{Seurat}(object, assay = NULL, ...) <- value
 }
 \arguments{
 \item{object}{A Seurat or ChromatinAssay5 object}
@@ -31,7 +31,7 @@ Links(object, ...) <- value
 \item{assay}{Name of assay to use}
 }
 \description{
-Get or set the genomic link information for a Seurat object or ChromatinAssay
+Get or set the genomic link information for a Seurat object or \link{ChromatinAssay5}
 }
 \examples{
 Links(atac_small[["peaks"]])

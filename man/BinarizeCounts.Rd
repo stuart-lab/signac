@@ -19,7 +19,7 @@ BinarizeCounts(object, ...)
 \method{BinarizeCounts}{Seurat}(object, assay = NULL, verbose = TRUE, ...)
 }
 \arguments{
-\item{object}{A Seurat object}
+\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object}
 
 \item{...}{Arguments passed to other methods}
 
@@ -29,7 +29,7 @@ and binarization will be applied to each.}
 \item{verbose}{Display messages}
 }
 \value{
-Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
+Returns a \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object
 }
 \description{
 Set counts >1 to 1 in a count matrix

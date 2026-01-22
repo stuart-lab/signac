@@ -32,11 +32,11 @@ Returns a character vector of genes
 }
 \description{
 Retrieve peak-gene links for a given set of genes. Links must be first
-obtained by running the \code{LinkPeaks} function.
+obtained by running the \code{\link[=LinkPeaks]{LinkPeaks()}} function.
 }
 \details{
 This function is designed to obtain the stored results from running the
-\code{LinkPeaks} function. Alternatively, custom peak-gene linkage methods
+\code{\link[=LinkPeaks]{LinkPeaks()}} function. Alternatively, custom peak-gene linkage methods
 can be used as long as they store the gene name, peak name, and a peak-gene
 score information as metadata columns named "gene," "peak," and "score"
 respectively.

@@ -2023,8 +2023,8 @@ dim.Motif <- function(x) {
 #' @examples
 #' motifs <- Motifs(atac_small)
 #' Motifs(atac_small) <- motifs
-"Motifs<-.Seurat" <- function(object, ..., value) {
-  assay <- DefaultAssay(object = object)
+"Motifs<-.Seurat" <- function(object, assay = NULL, ..., value) {
+  assay <- assay %||% DefaultAssay(object = object)
   Motifs(object = object[[assay]]) <- value
   return(object)
 }
@@ -2050,9 +2050,36 @@ dim.Motif <- function(x) {
 #' @examples
 #' links <- Links(atac_small)
 #' Links(atac_small) <- links
-"Links<-.Seurat" <- function(object, ..., value) {
-  assay <- DefaultAssay(object = object)
+"Links<-.Seurat" <- function(object, assay = NULL, ..., value) {
+  assay <- assay %||% DefaultAssay(object = object)
   Links(object[[assay]]) <- value
+  return(object)
+}
+
+#' @export
+#' @rdname RegionAggregation
+#' @method RegionAggregation<- ChromatinAssay5
+#' @concept assay
+#' @concept links
+#' @examples
+#' ra <- RegionAggregation(atac_small)
+#' RegionAggregation(atac_small[["peaks"]]) <- ra
+"RegionAggregation<-.ChromatinAssay5" <- function(object, ..., value) {
+  object <- SetAssayData(object = object, layer = "region.aggregation", new.data = value)
+  return(object)
+}
+
+#' @export
+#' @rdname RegionAggregation
+#' @method RegionAggregation<- Seurat
+#' @concept assay
+#' @concept links
+#' @examples
+#' ra <- RegionAggregation(atac_small)
+#' RegionAggregation(atac_small) <- ra
+"RegionAggregation<-.Seurat" <- function(object, assay = NULL, ..., value) {
+  assay <- assay %||% DefaultAssay(object = object)
+  RegionAggregation(object[[assay]]) <- value
   return(object)
 }
 
@@ -2076,9 +2103,35 @@ dim.Motif <- function(x) {
 #' @examples
 #' genes <- Annotation(atac_small)
 #' Annotation(atac_small) <- genes
-"Annotation<-.Seurat" <- function(object, ..., value) {
-  assay <- DefaultAssay(object = object)
+"Annotation<-.Seurat" <- function(object, assay = NULL, ..., value) {
+  assay <- assay %||% DefaultAssay(object = object)
   Annotation(object = object[[assay]]) <- value
+  return(object)
+}
+
+#' @export
+#' @method Bias<- ChromatinAssay5
+#' @concept assay
+#' @rdname Bias
+#' @examples
+#' bias <- Bias(atac_small[["peaks"]])
+#' Bias(atac_small[["peaks"]]) <- bias
+"Bias<-.ChromatinAssay5" <- function(object, ..., value) {
+  object <- SetAssayData(object = object, layer = "bias", new.data = value)
+  return(object)
+}
+
+#' @export
+#' @importFrom SeuratObject DefaultAssay
+#' @method Bias<- Seurat
+#' @concept assay
+#' @rdname Bias
+#' @examples
+#' bias <- Bias(atac_small)
+#' Bias(atac_small) <- bias
+"Bias<-.Seurat" <- function(object, assay = NULL, ..., value) {
+  assay <- assay %||% DefaultAssay(object = object)
+  Bias(object = object[[assay]]) <- value
   return(object)
 }
 
@@ -2130,8 +2183,8 @@ dim.Motif <- function(x) {
 #'
 #' # Assay method
 #' Fragments(atac_small[["peaks"]]) <- fragments
-"Fragments<-.Seurat" <- function(object, ..., value) {
-  assay <- DefaultAssay(object = object)
+"Fragments<-.Seurat" <- function(object, assay = NULL, ..., value) {
+  assay <- assay %||% DefaultAssay(object = object)
   Fragments(object = object[[assay]]) <- value
   return(object)
 }

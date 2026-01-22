@@ -41,16 +41,16 @@ ATACqc(object, ...)
 )
 }
 \arguments{
-\item{object}{A Seurat object, ChromatinAssay object, or path to a fragment
+\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object, \link{ChromatinAssay5} object, or path to a fragment
 file.}
 
 \item{...}{Arguments passed to other methods}
 
 \item{annotations}{\code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object containing
-gene annotations. If NULL, attempt to extract this from the ChromatinAssay
+gene annotations. If \code{NULL}, attempt to extract this from the \code{ChromatinAssay5}
 object if provided.}
 
-\item{fragtk.path}{Path to fragtk executable. If NULL, try to find fragtk
+\item{fragtk.path}{Path to \code{fragtk} executable. If NULL, try to find \code{fragtk}
 automatically.}
 
 \item{outdir}{Path for output directory}

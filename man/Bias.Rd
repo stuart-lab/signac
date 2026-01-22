@@ -2,29 +2,40 @@
 % Please edit documentation in R/generics.R, R/objects.R
 \name{Bias}
 \alias{Bias}
+\alias{Bias<-}
 \alias{Bias.ChromatinAssay5}
 \alias{Bias.Seurat}
+\alias{Bias<-.ChromatinAssay5}
+\alias{Bias<-.Seurat}
 \title{Bias}
 \usage{
 Bias(object, ...)
 
+Bias(object, ...) <- value
+
 \method{Bias}{ChromatinAssay5}(object, ...)
 
 \method{Bias}{Seurat}(object, assay = NULL, ...)
+
+\method{Bias}{ChromatinAssay5}(object, ...) <- value
+
+\method{Bias}{Seurat}(object, assay = NULL, ...) <- value
 }
 \arguments{
 \item{object}{A Seurat, GRangesAssay, or ChromatinAssay5 object}
 
 \item{...}{Arguments passed to other methods}
 
+\item{value}{A value to set. Can be \code{NULL}, to remove the current bias
+information, or a numeric vector object.}
+
 \item{assay}{Name of assay to use}
 }
 \value{
-Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
-if the annotation data is present, otherwise returns NULL
+Returns a numeric vector or \code{NULL}
 }
 \description{
-Get the bias information from a ChromatinAssay5 object
+Get the bias information from a \link{ChromatinAssay5} object
 }
 \examples{
 \donttest{
@@ -33,5 +44,9 @@ Bias(atac_small[["peaks"]])
 \donttest{
 Bias(atac_small)
 }
+bias <- Bias(atac_small[["peaks"]])
+Bias(atac_small[["peaks"]]) <- bias
+bias <- Bias(atac_small)
+Bias(atac_small) <- bias
 }
 \concept{assay}

@@ -19,20 +19,20 @@ Fragments(object, ...) <- value
 
 \method{Fragments}{ChromatinAssay5}(object, ...) <- value
 
-\method{Fragments}{Seurat}(object, ...) <- value
+\method{Fragments}{Seurat}(object, assay = NULL, ...) <- value
 }
 \arguments{
 \item{object}{A Seurat, GRangesAssay, or ChromatinAssay5 object}
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{A \code{\link[=Fragment]{Fragment()}} object or list of Fragment objects}
+\item{value}{A \link{Fragment} object or list of Fragment objects}
 
 \item{assay}{Name of assay to use}
 }
 \value{
-Returns a list of \code{\link[=Fragment]{Fragment()}} objects. If there are
-no Fragment objects present, returns an empty list.
+Returns a list of \link{Fragment} objects. If there are
+no \link{Fragment} objects present, returns an empty list.
 }
 \description{
 Get the Fragment objects

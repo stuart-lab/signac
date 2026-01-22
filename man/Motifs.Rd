@@ -19,19 +19,19 @@ Motifs(object, ...) <- value
 
 \method{Motifs}{ChromatinAssay5}(object, ...) <- value
 
-\method{Motifs}{Seurat}(object, ...) <- value
+\method{Motifs}{Seurat}(object, assay = NULL, ...) <- value
 }
 \arguments{
 \item{object}{A Seurat or ChromatinAssay5 object}
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{A \code{\link[=Motif]{Motif()}} object}
+\item{value}{A \link{Motif} object}
 
 \item{assay}{Name of assay to use}
 }
 \description{
-Get or set the Motif object for a Seurat object or ChromatinAssay.
+Get or set the \link{Motif} object for a Seurat object or \link{ChromatinAssay5}.
 }
 \examples{
 Motifs(atac_small[["peaks"]])
