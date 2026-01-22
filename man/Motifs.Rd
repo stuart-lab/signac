@@ -15,7 +15,7 @@ Motifs(object, ...) <- value
 
 \method{Motifs}{ChromatinAssay5}(object, ...)
 
-\method{Motifs}{Seurat}(object, ...)
+\method{Motifs}{Seurat}(object, assay = NULL, ...)
 
 \method{Motifs}{ChromatinAssay5}(object, ...) <- value
 
@@ -27,6 +27,8 @@ Motifs(object, ...) <- value
 \item{...}{Arguments passed to other methods}
 
 \item{value}{A \code{\link[=Motif]{Motif()}} object}
+
+\item{assay}{Name of assay to use}
 }
 \description{
 Get or set the Motif object for a Seurat object or ChromatinAssay.

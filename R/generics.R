@@ -95,7 +95,7 @@ AlleleFreq <- function(object, ...) {
 
 #' Annotation
 #'
-#' Get the annotation from a ChromatinAssay
+#' Get the annotation from a ChromatinAssay5 object
 #'
 #' @param ... Arguments passed to other methods
 #' @return Returns a [GenomicRanges::GRanges()] object
@@ -104,6 +104,19 @@ AlleleFreq <- function(object, ...) {
 #' @export Annotation
 Annotation <- function(object, ...) {
   UseMethod(generic = "Annotation", object = object)
+}
+
+#' Bias
+#'
+#' Get the bias information from a ChromatinAssay5 object
+#'
+#' @param ... Arguments passed to other methods
+#' @return Returns a [GenomicRanges::GRanges()] object
+#' if the annotation data is present, otherwise returns NULL
+#' @rdname Bias
+#' @export Bias
+Bias <- function(object, ...) {
+  UseMethod(generic = "Bias", object = object)
 }
 
 #' @param value A value to set. Can be NULL, to remove the current annotation
@@ -393,6 +406,18 @@ IdentifyVariants <- function(object, ...) {
 #' <https://doi.org/10.1186/s13059-021-02451-7>
 PearsonResidualVar <- function(object, ...) {
   UseMethod(generic = "PearsonResidualVar", object = object)
+}
+
+#' Region Aggregation
+#'
+#' Get the region aggregation information from a ChromatinAssay5 object
+#'
+#' @param ... Arguments passed to other methods
+#' @return Returns a list of `RegionAggregation` objects
+#' @rdname RegionAggregation
+#' @export RegionAggregation
+RegionAggregation <- function(object, ...) {
+  UseMethod(generic = "RegionAggregation", object = object)
 }
 
 #' Region enrichment analysis

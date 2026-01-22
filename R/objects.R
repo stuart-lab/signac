@@ -1840,6 +1840,7 @@ Annotation.ChromatinAssay5 <- function(object, ...) {
 }
 
 #' @param object A Seurat, GRangesAssay, or ChromatinAssay5 object
+#' @param assay Name of assay to use
 #' @importFrom SeuratObject DefaultAssay
 #' @rdname Annotation
 #' @method Annotation Seurat
@@ -1849,9 +1850,37 @@ Annotation.ChromatinAssay5 <- function(object, ...) {
 #' \donttest{
 #' Annotation(atac_small)
 #' }
-Annotation.Seurat <- function(object, ...) {
-  assay <- DefaultAssay(object = object)
+Annotation.Seurat <- function(object, assay = NULL, ...) {
+  assay <- assay %||% DefaultAssay(object = object)
   return(Annotation(object = object[[assay]]))
+}
+
+#' @rdname Bias
+#' @method Bias ChromatinAssay5
+#' @export
+#' @concept assay
+#' @examples
+#' \donttest{
+#' Bias(atac_small[["peaks"]])
+#' }
+Bias.ChromatinAssay5 <- function(object, ...) {
+  return(slot(object = object, name = "bias"))
+}
+
+#' @param object A Seurat, GRangesAssay, or ChromatinAssay5 object
+#' @param assay Name of assay to use
+#' @rdname Bias
+#' @method Bias Seurat
+#' @importFrom SeuratObject DefaultAssay
+#' @export
+#' @concept assay
+#' @examples
+#' \donttest{
+#' Bias(atac_small)
+#' }
+Bias.Seurat <- function(object, assay = NULL, ...) {
+  assay <- assay %||% DefaultAssay(object = object)
+  return(Bias(object = object[[assay]]))
 }
 
 #' @rdname Fragments
@@ -1866,6 +1895,7 @@ Fragments.ChromatinAssay5 <- function(object, ...) {
 }
 
 #' @param object A Seurat, GRangesAssay, or ChromatinAssay5 object
+#' @param assay Name of assay to use
 #' @importFrom SeuratObject DefaultAssay
 #' @rdname Fragments
 #' @method Fragments Seurat
@@ -1874,8 +1904,8 @@ Fragments.ChromatinAssay5 <- function(object, ...) {
 #' @concept fragments
 #' @examples
 #' Fragments(atac_small)
-Fragments.Seurat <- function(object, ...) {
-  assay <- DefaultAssay(object = object)
+Fragments.Seurat <- function(object, assay = NULL, ...) {
+  assay <- assay %||% DefaultAssay(object = object)
   return(Fragments(object = object[[assay]]))
 }
 
@@ -1891,6 +1921,7 @@ Motifs.ChromatinAssay5 <- function(object, ...) {
 }
 
 #' @param object A Seurat or ChromatinAssay5 object
+#' @param assay Name of assay to use
 #' @rdname Motifs
 #' @importFrom SeuratObject DefaultAssay
 #' @method Motifs Seurat
@@ -1899,8 +1930,8 @@ Motifs.ChromatinAssay5 <- function(object, ...) {
 #' @concept motifs
 #' @examples
 #' Motifs(atac_small)
-Motifs.Seurat <- function(object, ...) {
-  assay <- DefaultAssay(object = object)
+Motifs.Seurat <- function(object, assay = NULL, ...) {
+  assay <- assay %||% DefaultAssay(object = object)
   return(Motifs(object = object[[assay]]))
 }
 
@@ -1916,6 +1947,7 @@ Links.ChromatinAssay5 <- function(object, ...) {
 }
 
 #' @param object A Seurat or ChromatinAssay5 object
+#' @param assay Name of assay to use
 #' @rdname Links
 #' @method Links Seurat
 #' @importFrom SeuratObject DefaultAssay
@@ -1924,9 +1956,35 @@ Links.ChromatinAssay5 <- function(object, ...) {
 #' @concept assay
 #' @examples
 #' Links(atac_small)
-Links.Seurat <- function(object, ...) {
-  assay <- DefaultAssay(object = object)
+Links.Seurat <- function(object, assay = NULL, ...) {
+  assay <- assay %||% DefaultAssay(object = object)
   return(Links(object = object[[assay]]))
+}
+
+#' @rdname RegionAggregation
+#' @method RegionAggregation ChromatinAssay5
+#' @export
+#' @concept footprinting
+#' @concept assay
+#' @examples
+#' RegionAggregation(atac_small[["peaks"]])
+RegionAggregation.ChromatinAssay5 <- function(object, ...) {
+  return(slot(object = object, name = "region.aggregation"))
+}
+
+#' @param object A Seurat or ChromatinAssay5 object
+#' @param assay Name of assay to use
+#' @rdname RegionAggregation
+#' @method RegionAggregation Seurat
+#' @importFrom SeuratObject DefaultAssay
+#' @export
+#' @concept footprinting
+#' @concept assay
+#' @examples
+#' RegionAggregation(atac_small)
+RegionAggregation.Seurat <- function(object, assay = NULL, ...) {
+  assay <- assay %||% DefaultAssay(object = object)
+  return(RegionAggregation(object = object[[assay]]))
 }
 
 #' @method dimnames Motif

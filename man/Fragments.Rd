@@ -15,7 +15,7 @@ Fragments(object, ...) <- value
 
 \method{Fragments}{ChromatinAssay5}(object, ...)
 
-\method{Fragments}{Seurat}(object, ...)
+\method{Fragments}{Seurat}(object, assay = NULL, ...)
 
 \method{Fragments}{ChromatinAssay5}(object, ...) <- value
 
@@ -27,6 +27,8 @@ Fragments(object, ...) <- value
 \item{...}{Arguments passed to other methods}
 
 \item{value}{A \code{\link[=Fragment]{Fragment()}} object or list of Fragment objects}
+
+\item{assay}{Name of assay to use}
 }
 \value{
 Returns a list of \code{\link[=Fragment]{Fragment()}} objects. If there are

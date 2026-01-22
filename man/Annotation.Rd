@@ -15,7 +15,7 @@ Annotation(object, ...) <- value
 
 \method{Annotation}{ChromatinAssay5}(object, ...)
 
-\method{Annotation}{Seurat}(object, ...)
+\method{Annotation}{Seurat}(object, assay = NULL, ...)
 
 \method{Annotation}{ChromatinAssay5}(object, ...) <- value
 
@@ -30,13 +30,15 @@ Annotation(object, ...) <- value
 information, or a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object. If a
 \code{GRanges} object is supplied and the genome information is stored in the
 assay, the genome of the new annotations must match the genome of the assay.}
+
+\item{assay}{Name of assay to use}
 }
 \value{
 Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
 if the annotation data is present, otherwise returns NULL
 }
 \description{
-Get the annotation from a ChromatinAssay
+Get the annotation from a ChromatinAssay5 object
 }
 \examples{
 \donttest{
