@@ -800,32 +800,6 @@ GetAssayData.ChromatinAssay5 <- function(
   return(methods::slot(object = object, name = layer))
 }
 
-#' @importFrom SeuratObject LayerData
-#' @method LayerData GRangesAssay
-#' @export
-#' @concept assay
-LayerData.GRangesAssay <- function(
-    object,
-    layer = "data",
-    assay = NULL,
-    ...
-) {
-  return(GetAssayData(object, layer = layer))
-}
-
-#' @importFrom SeuratObject LayerData
-#' @method LayerData ChromatinAssay5
-#' @export
-#' @concept assay
-LayerData.ChromatinAssay5 <- function(
-    object,
-    layer = "data",
-    assay = NULL,
-    ...
-) {
-  return(GetAssayData(object, layer = layer))
-}
-
 #' Get Fragment object data
 #'
 #' Extract data from a [Fragment2-class()] object
