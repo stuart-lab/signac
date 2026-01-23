@@ -44,9 +44,15 @@ Bias(atac_small[["peaks"]])
 \donttest{
 Bias(atac_small)
 }
-bias <- Bias(atac_small[["peaks"]])
-Bias(atac_small[["peaks"]]) <- bias
-bias <- Bias(atac_small)
-Bias(atac_small) <- bias
+bases <- c("A","C","G","T")
+hexamers <- apply(expand.grid(rep(list(bases), 6)), 1, paste0, collapse = "")
+b <- 1:length(hexamers)
+names(b) <- hexamers
+
+# assign bias in a Seurat object
+Bias(atac_small) <- b
+
+# assign bias in a ChromatinAssay5 or GRangesAssay
+Bias(atac_small[["peaks"]]) <- b
 }
 \concept{assay}

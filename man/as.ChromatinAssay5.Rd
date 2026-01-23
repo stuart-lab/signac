@@ -40,7 +40,7 @@ as.ChromatinAssay5(x, ...)
 
 \item{links}{Genomic links TODO}
 
-\item{region.aggregation}{A named list of \code{\link[=RegionAggregation]{RegionAggregation()}}}
+\item{region.aggregation}{A named list of \link{RegionAggregation}}
 }
 \description{
 Convert objects to a \link{ChromatinAssay5} object

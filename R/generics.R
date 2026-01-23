@@ -423,19 +423,19 @@ PearsonResidualVar <- function(object, ...) {
 #'
 #' @param ... Arguments passed to other methods
 #' @return Returns a list of [RegionAggregation-class] objects
-#' @rdname RegionAggregation
-#' @export RegionAggregation
-RegionAggregation <- function(object, ...) {
-  UseMethod(generic = "RegionAggregation", object = object)
+#' @rdname RegionAggr
+#' @export RegionAggr
+RegionAggr <- function(object, ...) {
+  UseMethod(generic = "RegionAggr", object = object)
 }
 
 #' @param value A [RegionAggregation-class] object or list of [RegionAggregation-class] objects
 #'
-#' @rdname RegionAggregation
-#' @export RegionAggregation<-
+#' @rdname RegionAggr
+#' @export RegionAggr<-
 #'
-"RegionAggregation<-" <- function(object, ..., value) {
-  UseMethod(generic = 'RegionAggregation<-', object = object)
+"RegionAggr<-" <- function(object, ..., value) {
+  UseMethod(generic = 'RegionAggr<-', object = object)
 }
 
 #' Region enrichment analysis

@@ -61,7 +61,7 @@ objects}
 
 \item{bias}{A Tn5 integration bias matrix}
 
-\item{region.aggregation}{A named list of \code{\link[=RegionAggregation]{RegionAggregation()}}
+\item{region.aggregation}{A named list of \link{RegionAggregation}
 objects.}
 
 \item{validate.fragments}{Check that cells in the assay are present in the
