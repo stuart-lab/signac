@@ -411,6 +411,65 @@ setAs(
 )
 
 ## Functions
+#' Create a RegionAggregation object 
+#'
+#' Create a [RegionAggregation-class()] object to store the insertions over group of regions 
+#' 
+#' @param matrix A cell x position matrix 
+#' @param regions,
+#' @param 
+#' @param 
+#' @export 
+#' @return Returns a [RegionAggregation()] object 
+#' @concept regionaggregation 
+CreateRegionAggregationObject <- function(
+    matrix = NULL,
+    regions = NULL,
+    upstream = NULL, 
+    downstream = NULL, 
+    name = NULL, 
+    expected = NULL, 
+    cells = NULL
+){
+    if (!inherits(matrix, c("matrix", "CsparseMatrix", "dgCMatrix"))) {
+        stop("data must be a matrix or sparse matrix. Supplied ", class(x=matrix))
+    }
+    if (!inherits(regions, "GRanges")){
+        stop("regions must be a GRanges object")
+    }
+    # in footprinting if ocmpute.expected = False, 
+    #  expected.insertions <- rep(1, width(x = dna.sequence)[[1]] - 6)
+    if (!is.null(expected)){
+        if (!is.numeric(expected)) {
+            stop("expected insertions must be a numeric vector")
+        }
+    }
+    # if cells not given, create the cells from colnames of the matrix
+    if (is.null(cells)){
+        cells <- setNames(rownames(matrix), rownames(matrix))
+    } else {
+        cells <- as.character(cells)
+        if (length(cells) != length(rownames(matrix))){
+            stop("Number of cells: (", length(cells), 
+                 ") does not match number of matrix rows (",length(rownames(matrix)), ")")
+        }
+        # if unnamed or partially named -> force names from matrix 
+        if (is.null(names(cells)) || any(names(cells) == "")) {
+            names(cells) <- rownames(matrix)
+        }
+        
+    agg.obj <- new(
+        Class = "RegionAggregation", 
+        matrix = matrix, 
+        regions = regions, 
+        upstream = upstream, 
+        downstream = downstream, 
+        name = name, 
+        expected = expected, 
+        cells = cells
+    )
+    return(agg)
+}
 
 #' Create a Fragment object
 #'
@@ -904,6 +963,31 @@ RenameCells.Fragment2 <- function(object, new.names, ...) {
   cells <- cells[names(x = new.names)]
   names(x = cells) <- new.names[names(x = cells)]
   slot(object = object, name = "cells") <- cells
+  return(object)
+}
+
+#' @importFrom SeuratObject RenameCells
+#' @concept RegionAggregation
+#' @method RenameCells RegionAggregation
+#' @export
+RenameCells.RegionAggregation <- function(object, new.names, ...) {
+  cells <- object@cells 
+  # ^ update to cells <- GetRegionAggregation(object = object, slot = "cells")
+  if (is.null(x = cells)) {
+    stop(
+      "Cannot rename cells in RegionAggregation object ",
+      "with no cell information stored"
+    )
+  }
+  # subset and rename 
+  cells <- cells[names(x = new.names)]
+  names(x = cells) <- new.names[names(x = cells)]
+  slot(object = object, name = "cells") <- cells
+  # also rename matrix rownames 
+  old.rows <- rownames(object@matrix)
+  # ^ update to get using GetRegionAggregation(object, slot = "matrix")
+  rownames(object@matrix) <- new.names(old.rows, names(new.names))]
+
   return(object)
 }
 
