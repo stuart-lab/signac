@@ -468,7 +468,7 @@ CreateRegionAggregationObject <- function(
         expected = expected, 
         cells = cells
     )
-    return(agg)
+    return(agg.obj)
 }
 
 #' Create a Fragment object
@@ -1160,44 +1160,53 @@ SetAssayData.ChromatinAssay5 <- function(
     }
     methods::slot(object = object, name = layer) <- new.data
   } else if (layer == "region.aggregation") {
-    # TODO update to use RegionAggregation class
-    # if (inherits(x = new.data, what = "list")) {
-    #   # list of position enrichment matrices being added
-    #   if (length(x = new.data) == 0) {
-    #     # if list is empty, assign and overwrite slot
-    #     methods::slot(object = object, name = layer) <- new.data
-    #   } else if (is.null(x = names(x = new.data))) {
-    #     stop("If supplying a list of position enrichment matrices,
-    #          each element must be named")
-    #   } else {
-    #     current.data <- GetAssayData(object = object, layer = layer)
-    #     if (length(x = current.data) != 0) {
-    #       warning("Overwriting current list of position enrichement matrices")
-    #     }
-    #     for (i in seq_along(along.with = new.data)) {
-    #       if (!is(object = new.data[[i]], class2 = "AnyMatrix")) {
-    #         stop(
-    #           "Position enrichment must be provided as a matrix or sparseMatrix"
-    #           )
-    #       }
-    #     }
-    #     methods::slot(object = object, name = layer) <- new.data
-    #   }
-    # } else if (!is(object = new.data, class2 = "AnyMatrix")) {
-    #   # TODO support other matrix formats here
-    #   stop("Position enrichment must be provided as a matrix or sparseMatrix")
-    # } else {
-    #   # single new matrix being added, needs a key
-    #   args <- list(...)
-    #   if (!("key" %in% names(x = args))) {
-    #     stop("Must supply a key when adding positionEnrichment data")
-    #   } else {
-    #     key <- args$key
-    #   }
-    #   current.pos <- methods::slot(object = object, name = layer)
-    #   current.pos[[key]] <- new.data
-    #   methods::slot(object = object, name = layer) <- current.pos
-    # }
+    if (inherits(x = new.data, what = "list")){
+      # check if its a list containing RegionAggregation class objects
+      for (i in seq_along(new.data)){
+        if (!inherits(x = new.data[[i]], what = "RegionAggregation")){
+          stop("New data is not a RegionAggregation object")
+        }
+      }
+    } else if (inherits(x = new.data, what = "RegionAggregation")){
+      # single RegionAggregation object
+      new.data <- list(new.data)
+    }
+    # get existing RegionAggregation object 
+    agg.list <- GetAssayData(object = object, layer = "RegionAggregation")
+    if (length(x = agg.list) == 0 {
+      # nothing exists yet -> assign directly 
+      methods::slot(object, layer) <- new.data
+      return(object)
+    } 
+    # try to merge compatible RegionAggregation objects 
+    for (i in seq_along(new.data)){
+      new.agg <- new.data[[i]]
+      merged <- FALSE
+      # compare against same-name objects 
+      same.name.idx <- which(vapply(
+        agg.list, function(x) identical(x@name, new.agg@name), logical(1)))
+      if (length(same.name.idx) > 0) {
+        for (j in same.name.idx){
+          old.agg <- agg.list[[j]]
+          compatible <- 
+            identical(old.agg@upstream, new.agg@upstream) && 
+            identical(old.agg@downstream, new.agg@downstream) && 
+            identical(old.agg@expected, new.agg@expected) && 
+            identical(old.agg@regions, new.agg@regions)
+          if (compatible) {
+            # concatenate the matrix and the cells vector
+            old.agg@matrix <- rbind(old.agg@matrix, new.agg@matrix)
+            old.agg@cells <- c(old.agg@cells, new.agg@cells)
+            agg.list[[j]] <- old.agg
+            merged <- TRUE 
+            break
+        }
+      }
+    }
+    if (!merged) { 
+      agg.list <- c(agg.list, list(new.agg))
+    }
+    methods::slot(object = object, name = layer) <- agg.list
   }
   return(object)
 }
