@@ -26,7 +26,7 @@ setClassUnion(name = "NumericOrNULL", members = c("numeric", "NULL"))
 #' as it appears in the fragment file, and the name of each element is the
 #' corresponding cell barcode as stored in the ChromatinAssay5 object.
 #' @slot seqlevels A named vector of sequence levels (eg, chromosome name) where
-#' each element is the sequence name as it appears in the fragment file, and the
+#' each element is the sequence name as it appears in the fragment file, and then
 #' name of each element is the corresponding sequence name as stored in the 
 #' ChromatinAssay5 object.
 #'
@@ -87,7 +87,10 @@ setValidity(Class = "Motif", function(object) {
   }
   TRUE
 })
+setClassUnion(name = "MotifOrNULL", members = c("Motif", "NULL"))
 
+# expected vector should be allowed to be null (if compute.expected=FALSE)
+setClassUnion(name = "NumericOrNULL", members = c("numeric", "NULL")) 
 #' RegionAggregation class
 #' 
 #' The RegionAggregation class enables storage of counts centered on a group of
@@ -102,7 +105,11 @@ setValidity(Class = "Motif", function(object) {
 #' @slot downstream Integer denoting number of bases downstream of the centered
 #' position that are stored in the matrix
 #' @slot name A name for the set of regions
-#' 
+#' @slot expected  A vector containing expected number of Tn5 insertions per position
+#' @slot cells A named vector of cells where each element is the cell barcode 
+#' (kept unchanged), and the name of each element is the corresponding cell barcode
+#' as stored in the ChromatinAssay5 object
+#'
 #' @name RegionAggregation-class
 #' @rdname RegionAggregation-class
 #' @exportClass RegionAggregation
@@ -112,13 +119,39 @@ RegionAggregation <- setClass(
   slots = list(
     matrix = "AnyMatrix",
     regions = "GRanges",
-    upstream = "numeric",
-    downstream = "numeric",
-    name = "character"
+    upstream = "numeric", # change to integer?
+    downstream = "numeric", # change to integer?
+    name = "character",
+    expected = "NumericOrNULL",
+    cells = "ANY"
   )
 )
+setValidity(Class = "RegionAggregation", function(object) {
+  # make sure cell names are not null 
+  if (any(is.na(objects@cells)) || any(is.null(objects@cells))){
+    return("Cells slot must not contain NA values")
+  }
+  # matrix rows must match cells number 
+  if (nrow(object@matrix) != length(object@cells)){
+    return("Number of rows in matrix must match length of cells")
+  }
+  # region width must be identical
+  w <- unique(width(object@regions))
+  if (lenght(w) !=1 ){
+    return("All regions must have identical width")
+  }
+  # region width must match matrix columns 
+  if (ncol(object@matrix) != (object@upstream + object@downstream + w)){
+    return("Matrix columns do not match upstream + downstream + region width")
+  }
+  # expected vector length must match matrix columns 
+  if (!is.null(object@expected)) {
+    if (lnegth(object@expected) != ncol(object@matrix)){
+      return("Expected vector length must match number of matrix columns")
+    }
+  TRUE
+})
 
-setClassUnion(name = "MotifOrNULL", members = c("Motif", "NULL"))
 
 #' @slot fragments A list of [Fragment()] objects.
 #' @slot annotation A  [GenomicRanges::GRanges()] object containing
