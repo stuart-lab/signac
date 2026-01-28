@@ -1443,35 +1443,37 @@ subset.ChromatinAssay5 <- function(
     min.cutoff = NA,
     verbose = FALSE
   )
-
   # subset cells in region aggregation matrices
-  cells <- cells %||% colnames(x = x)
+  # cells <- cells %||% colnames(x = x)
   posmat <- GetAssayData(object = x, layer = "region.aggregation")
 
   # TODO update for RegionAggregation class
+  if (length(posmat) > 0) { 
+    posmat <- lapply(posmat, subset, cells = cells)
+    posmat <- Filter(Negate(is.null), posmat)
+  }
+  x <- SetAssayData(object = x, layer = "region.aggregation", new.data = posmat)
 
-  for (i in seq_along(along.with = posmat)) {
+  # for (i in seq_along(along.with = posmat)) {
     # TODO need to make the formatting for positionEnrichment slot better defined
     # currently the RegionMatrix and Footprint functions write differently
     # formatted information
     # regionmatrix is group x position
     # footprint is cell x position
-    if (inherits(x = posmat[[i]], what = "list")) {
+    # if (inherits(x = posmat[[i]], what = "list")) {
       # from RegionMatrix
       # group x position matrix
       # do not subset as we don't have per-cell information here
-      next
-    } else {
+      # next
+    # } else {
       # from Footprint
       # cell x position matrix
       # with expected and motif position rows
-      added_rows <- c("expected", "motif")
-      added_rows <- added_rows[added_rows %in% rownames(x = posmat[[i]])]
-      posmat[[i]] <- posmat[[i]][c(cells, added_rows), ]
-    }
-  }
-  # TODO fix how the RegionMatrix and Footprint functions use positionEnrichment
-  x <- SetAssayData(object = x, layer = "region.aggregation", new.data = posmat)
+      # added_rows <- c("expected", "motif")
+      # added_rows <- added_rows[added_rows %in% rownames(x = posmat[[i]])]
+      # posmat[[i]] <- posmat[[i]][c(cells, added_rows), ]
+    # }
+  # }
 
   # subset cells in Fragments objects
   frags <- Fragments(object = x)
@@ -1481,6 +1483,36 @@ subset.ChromatinAssay5 <- function(
   }
   Fragments(object = x) <- frags
 
+  return(x)
+}
+
+#' Subset a single RegionAggregation object
+#'
+#' @method subset RegionAggregation 
+#' @export
+#' @concept RegionAggregation 
+subset.RegionAggregation <- function(
+    x,
+    cells = NULL,
+    ...
+){
+  if (is.null(cells)) {
+    return(x)
+  }
+  mat <- x@matrix # TODO change this to a proper func
+  agg.cells <- x@cells 
+  
+  # sanity check 
+  stopifnot(all(rownames(mat) == names(agg.cells)))
+  
+  keep <- names(agg.cells) %in% cells
+  if (!any(keep)){
+    return(NULL)
+  }
+  
+  x@matrix <- mat[keep, , drop = FALSE]
+  x@cells <- ra.cells[keep]
+  
   return(x)
 }
 
