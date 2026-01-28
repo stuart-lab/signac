@@ -415,10 +415,19 @@ setAs(
 #'
 #' Create a [RegionAggregation-class()] object to store the insertions over group of regions 
 #' 
-#' @param matrix A cell x position matrix 
-#' @param regions,
-#' @param 
-#' @param 
+#' @param matrix A cell-by-position matrix 
+#' @param regions, A [GenomicRanges::granges()] object containing the
+#' regions aggregated across. 
+#' @param upstream Integer denoting number of bases upstream of the 
+#' centered position that are stored in the matrix 
+#' @param downstream Integer denoting number of bases downstream of the 
+#' centered position that are stored in the matrix
+#' @param name A name for the set of regions aggregated
+#' @param expected A vector containing expected number of Tn5 insertions per position
+#' @param cells A named vector of cells where each element is the cell barcode
+#' and the name of each element is the corresponding cell barcode as stored 
+#' in the ChromatinAssay5 object
+#' 
 #' @export 
 #' @return Returns a [RegionAggregation()] object 
 #' @concept regionaggregation 
@@ -457,6 +466,7 @@ CreateRegionAggregationObject <- function(
         if (is.null(names(cells)) || any(names(cells) == "")) {
             names(cells) <- rownames(matrix)
         }
+    }
         
     agg.obj <- new(
         Class = "RegionAggregation", 
@@ -986,7 +996,7 @@ RenameCells.RegionAggregation <- function(object, new.names, ...) {
   # also rename matrix rownames 
   old.rows <- rownames(object@matrix)
   # ^ update to get using GetRegionAggregation(object, slot = "matrix")
-  rownames(object@matrix) <- new.names(old.rows, names(new.names))]
+  rownames(object@matrix) <- new.names(old.rows, names(new.names))
 
   return(object)
 }
@@ -1172,10 +1182,10 @@ SetAssayData.ChromatinAssay5 <- function(
       new.data <- list(new.data)
     }
     # get existing RegionAggregation object 
-    agg.list <- GetAssayData(object = object, layer = "RegionAggregation")
-    if (length(x = agg.list) == 0 {
+    agg.list <- GetAssayData(object = object, layer = layer)
+    if (length(x = agg.list) == 0) {
       # nothing exists yet -> assign directly 
-      methods::slot(object, layer) <- new.data
+      methods::slot(object, "region.aggregation") <- new.data
       return(object)
     } 
     # try to merge compatible RegionAggregation objects 
@@ -1200,17 +1210,17 @@ SetAssayData.ChromatinAssay5 <- function(
             agg.list[[j]] <- old.agg
             merged <- TRUE 
             break
+          }
         }
       }
+      if (!merged) { 
+        agg.list <- c(agg.list, list(new.agg))
+      }
+      methods::slot(object = object, layer) <- agg.list
     }
-    if (!merged) { 
-      agg.list <- c(agg.list, list(new.agg))
-    }
-    methods::slot(object = object, name = layer) <- agg.list
   }
   return(object)
 }
-
 #' @rdname SetMotifData
 #' @method SetMotifData Motif
 #' @export
@@ -1638,15 +1648,23 @@ merge.ChromatinAssay5 <- function(
             Removing invalid files from merged ChromatinAssay5")
       all.frag <- all.frag[valid.frags]
     }
+    
+    # merge region.aggregations
+    all.agg <- lapply(X = assays, FUN = function(x) {
+      GetAssayData(object = x, layer = "region.aggregation")
+    })
+    # flatten list-of-lists 
+    all.agg <- Reduce(f=c, x= all.agg)
+    
 
     # create new ChromatinAssay5 object
-    # bias, motifs, region.aggregation, links, metafeatures not kept
+    # bias, motifs, links, metafeatures not kept
     merged <- as.ChromatinAssay5(
       x = merged,
       annotation = annot.use,
       fragments = all.frag,
       bias = NULL,
-      region.aggregation = NULL
+      region.aggregation = all.agg
     )
     return(merged)
   }

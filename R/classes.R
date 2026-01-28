@@ -104,7 +104,7 @@ setClassUnion(name = "NumericOrNULL", members = c("numeric", "NULL"))
 #' position that are stored in the matrix
 #' @slot downstream Integer denoting number of bases downstream of the centered
 #' position that are stored in the matrix
-#' @slot name A name for the set of regions
+#' @slot name A name for the set of regions aggregated
 #' @slot expected  A vector containing expected number of Tn5 insertions per position
 #' @slot cells A named vector of cells where each element is the cell barcode 
 #' (kept unchanged), and the name of each element is the corresponding cell barcode
@@ -149,6 +149,7 @@ setValidity(Class = "RegionAggregation", function(object) {
     if (lnegth(object@expected) != ncol(object@matrix)){
       return("Expected vector length must match number of matrix columns")
     }
+  }
   TRUE
 })
 
@@ -327,7 +328,7 @@ ChromatinAssay <- setClass(
     "seqinfo" = "ANY",
     "annotation" = "ANY",
     "bias" = "ANY",
-    "positionEnrichment" = "list",
+    "region.aggregation" = "list",
     "links" = "GRanges"
   )
 )
