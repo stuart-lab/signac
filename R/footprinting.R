@@ -217,13 +217,14 @@ Footprint.ChromatinAssay5 <- function(
     }
 
     # v2 edit 
-    matrices <- mylapply(
+    reg.agg.list <- mylapply(
         X = seq_along(along.with = regionlist),
         FUN = function(x) {
             RunFootprint(
                 object = object,
                 genome = genome,
                 regions = regionlist[[x]],
+                name = key[[x]],
                 upstream = upstream,
                 downstream = downstream,
                 compute.expected = compute.expected,
@@ -233,15 +234,13 @@ Footprint.ChromatinAssay5 <- function(
         }
     )
     # store in object
-    for (i in seq_along(along.with = matrices)) {
-        object@region.aggregation[[key[[i]]]] <- matrices[[i]]$observed
-
-        if ("expected" %in% names(matrices[[i]])) {
-            object@region.aggregation[[paste0(key[[i]], "_expected")]] <- matrices[[i]]$expected
-        }
-    }
+    object <- SetAssayData(
+      object = object, 
+      layer = "region.aggregation", 
+      new.data = reg.agg.list
+    )
     # old code      
-    #object <- SetAssayData(
+    # object <- SetAssayData(
     #  object = object,
     #  layer = "positionEnrichment",
     #  new.data = matrices[[i]],
@@ -561,6 +560,7 @@ RunFootprint <- function(
     object,
     genome,
     regions,
+    name = NULL , 
     upstream = 250,
     downstream = 250,
     compute.expected = TRUE,
@@ -570,11 +570,24 @@ RunFootprint <- function(
     if (!requireNamespace("Biostrings", quietly = TRUE)) {
         stop("Please install Biostrings: BiocManager::install('Biostrings')")
     }
+    # resolve footprint name 
+    if (is.null(name)){
+        # try to infer from GRanges names
+        gr.names <- unique(names(regions))
+        gr.names <- gr.names[!is.na(gr.names)]
+        if (length(gr.names) ==1){
+          name <- gr.names
+        } else {
+          stop("Footprint name not provided and could not be inferred from regions (",
+               gr.names, "), please supply name explicitly")
+        }
+    }
     motif.size <- width(x = regions)[[1]]
     regions <- sort(x = regions)
     if (in.peaks) {
         regions <- subsetByOverlaps(x = regions, ranges = granges(x = object))
-    }
+    } 
+    browser()
     # extend upstream and downstream
     regions <- Extend(
         x = regions,
@@ -611,13 +624,8 @@ RunFootprint <- function(
         object = object,
         regions = regions
     )
-    # broadcast expected to cells x position matrix
-    expected.matrix <- matrix(
-        expected.insertions, 
-        nrow = nrow(insertion.matrix), 
-        ncol = ncol(insertion.matrix), 
-        byrow = TRUE, dimnames = dimnames(insertion.matrix))
-    #expected.insertions <- t(x = as.matrix(x = expected.insertions))
+    # get expected insertions 
+    expected.insertions <- t(x = as.matrix(x = expected.insertions))
     #rownames(x = expected.insertions) <- "expected"
     #insertion.matrix <- rbind(insertion.matrix, expected.insertions)
     # encode motif position as additional row in matrix
@@ -628,20 +636,15 @@ RunFootprint <- function(
     # edit: motif metadata will computed on fly when plotting by looking up regions width 
 
     # create RegionAggregation objects
-    insertion.agg <- RegionAggregation(
+    agg.obj <- CreateRegionAggregationObject(
         matrix = insertion.matrix, 
         regions = regions, 
         upstream = upstream, 
         downstream = downstream, 
-        name = "observed"
+        name = name, 
+        expected = expected.insertions, 
+        cells = NULL # will be created from rownames of matrix 
     )
-    expected.agg <- RegionAggregation(
-        matrix = expected.matrix, 
-        regions = regions, 
-        upstream = upstream, 
-        downstream = downstream, 
-        name = "expected"
-    )
-    return(list(observed = insertion.agg, expected = expected.agg))
-    # return(insertion.matrix)
+
+    return(agg.obj)
 } 
