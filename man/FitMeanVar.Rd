@@ -64,7 +64,7 @@ FitMeanVar(object, ...)
 )
 }
 \arguments{
-\item{object}{A Seurat object}
+\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object}
 
 \item{...}{Arguments passed to other methods}
 

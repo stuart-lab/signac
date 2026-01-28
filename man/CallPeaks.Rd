@@ -143,7 +143,7 @@ single character string}
 Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
 }
 \description{
-Call peaks using MACS. Fragment files linked to the specified assay will be
+Call peaks using \code{MACS}. Fragment files linked to the specified assay will be
 used to call peaks. If multiple fragment files are present, all will be used
 in a single MACS invocation. Returns the \code{.narrowPeak} MACS output as a
 \code{GRanges} object.

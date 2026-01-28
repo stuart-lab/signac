@@ -15,28 +15,28 @@ Annotation(object, ...) <- value
 
 \method{Annotation}{ChromatinAssay5}(object, ...)
 
-\method{Annotation}{Seurat}(object, ...)
+\method{Annotation}{Seurat}(object, assay = NULL, ...)
 
 \method{Annotation}{ChromatinAssay5}(object, ...) <- value
 
-\method{Annotation}{Seurat}(object, ...) <- value
+\method{Annotation}{Seurat}(object, assay = NULL, ...) <- value
 }
 \arguments{
 \item{object}{A Seurat, GRangesAssay, or ChromatinAssay5 object}
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{A value to set. Can be NULL, to remove the current annotation
-information, or a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object. If a
-\code{GRanges} object is supplied and the genome information is stored in the
-assay, the genome of the new annotations must match the genome of the assay.}
+\item{value}{A value to set. Can be \code{NULL}, to remove the current annotation
+information, or a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object.}
+
+\item{assay}{Name of assay to use}
 }
 \value{
 Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
 if the annotation data is present, otherwise returns NULL
 }
 \description{
-Get the annotation from a ChromatinAssay
+Get the annotation from a \link{ChromatinAssay5} object
 }
 \examples{
 \donttest{

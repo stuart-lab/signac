@@ -3,7 +3,7 @@
 \name{as.ChromatinAssay5}
 \alias{as.ChromatinAssay5}
 \alias{as.ChromatinAssay5.Assay5}
-\title{Convert objects to a ChromatinAssay}
+\title{Convert objects to a \link{ChromatinAssay5} object}
 \usage{
 as.ChromatinAssay5(x, ...)
 
@@ -19,7 +19,7 @@ as.ChromatinAssay5(x, ...)
 )
 }
 \arguments{
-\item{x}{An object to convert to class \code{\link[=ChromatinAssay5]{ChromatinAssay5()}}}
+\item{x}{An object to convert to class \link{ChromatinAssay5}}
 
 \item{...}{Arguments passed to other methods}
 
@@ -40,9 +40,9 @@ as.ChromatinAssay5(x, ...)
 
 \item{links}{Genomic links TODO}
 
-\item{region.aggregation}{A named list of \code{\link[=RegionAggregation]{RegionAggregation()}}}
+\item{region.aggregation}{A named list of \link{RegionAggregation}}
 }
 \description{
-Convert objects to a ChromatinAssay
+Convert objects to a \link{ChromatinAssay5} object
 }
 \concept{assay}

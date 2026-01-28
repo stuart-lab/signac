@@ -37,7 +37,7 @@ Footprint(object, ...)
 )
 }
 \arguments{
-\item{object}{A Seurat or ChromatinAssay object}
+\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} or \link{ChromatinAssay5} object}
 
 \item{...}{Arguments passed to other methods}
 
@@ -67,7 +67,7 @@ position given the local DNA sequence context and the insertion bias of Tn5}
 \item{verbose}{Display messages}
 }
 \value{
-Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
+Returns a \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object
 }
 \description{
 Compute the normalized observed/expected Tn5 insertion frequency

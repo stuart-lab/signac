@@ -196,8 +196,6 @@ BinarizeCounts.default <- function(
 #' @importFrom SeuratObject GetAssayData SetAssayData
 #' @export
 #' @concept preprocessing
-#' @examples
-#' BinarizeCounts(atac_small[["peaks"]])
 BinarizeCounts.Assay <- function(
   object,
   assay = NULL,

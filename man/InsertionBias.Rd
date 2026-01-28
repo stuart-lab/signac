@@ -20,7 +20,7 @@ InsertionBias(object, ...)
 )
 }
 \arguments{
-\item{object}{A Seurat or ChromatinAssay object}
+\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} or \link{ChromatinAssay5} object}
 
 \item{...}{Additional arguments passed to \code{\link[=StringToGRanges]{StringToGRanges()}}}
 
