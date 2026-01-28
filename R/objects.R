@@ -453,7 +453,7 @@ CreateRegionAggregationObject <- function(
             stop("expected insertions must be a numeric vector")
         }
     }
-    # if cells not given, create the cells from colnames of the matrix
+    # if cells not given, create the cells from rownames of the matrix
     if (is.null(cells)){
         cells <- setNames(rownames(matrix), rownames(matrix))
     } else {
