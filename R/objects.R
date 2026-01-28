@@ -1216,8 +1216,8 @@ SetAssayData.ChromatinAssay5 <- function(
       if (!merged) { 
         agg.list <- c(agg.list, list(new.agg))
       }
-      methods::slot(object = object, layer) <- agg.list
     }
+    methods::slot(object = object, layer) <- agg.list
   }
   return(object)
 }
