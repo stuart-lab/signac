@@ -326,7 +326,7 @@ setClass(
     "seqinfo" = "ANY",
     "annotation" = "ANY",
     "bias" = "ANY",
-    "region.aggregation" = "list",
+    "positionEnrichment" = "list",
     "links" = "GRanges"
   )
 )
