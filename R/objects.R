@@ -969,7 +969,8 @@ RenameCells.ChromatinAssay5 <- function(object, new.names = NULL, ...) {
   Fragments(object = object) <- NULL
   Fragments(object = object) <- frags
 
-  region.aggr <- GetAssayData(object = object, layer = "region.aggregation")
+  # rename cells in RegionAggregation objects
+  region.aggr <- RegionAggr(object = object)
   for (i in seq_along(along.with = region.aggr)) {
     # TODO implement RenameCells.RegionAggregation
     region.aggr[[i]] <- RenameCells(
@@ -977,8 +978,9 @@ RenameCells.ChromatinAssay5 <- function(object, new.names = NULL, ...) {
       new.names = new.names
     )
   }
-  # TODO implement region aggregation assignment method
-  slot(object = object, name = "region.aggregation") <- region.aggr
+  RegionAggr(object = object) <- NULL
+  RegionAggr(object = object) <- region.aggr
+
   return(object)
 }
 
@@ -1691,11 +1693,10 @@ merge.ChromatinAssay5 <- function(
     
     # merge region.aggregations
     all.agg <- lapply(X = assays, FUN = function(x) {
-      GetAssayData(object = x, layer = "region.aggregation")
+      RegionAggr(object = x)
     })
     # flatten list-of-lists 
     all.agg <- Reduce(f=c, x= all.agg)
-    
 
     # create new ChromatinAssay5 object
     # bias, motifs, links, metafeatures not kept
