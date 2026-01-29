@@ -5,19 +5,20 @@
 \title{Create a RegionAggregation object}
 \usage{
 CreateRegionAggregationObject(
-  matrix = NULL,
-  regions = NULL,
-  upstream = NULL,
-  downstream = NULL,
-  name = NULL,
+  mat,
+  regions,
+  upstream,
+  downstream,
+  name,
+  cells = NULL,
   expected = NULL,
-  cells = NULL
+  verbose = TRUE
 )
 }
 \arguments{
-\item{matrix}{A cell-by-position matrix}
+\item{mat}{A cell-by-position matrix}
 
-\item{regions, }{A \code{\link[GenomicRanges:genomic-range-squeezers]{GenomicRanges::granges()}} object containing the
+\item{regions}{A \code{\link[GenomicRanges:genomic-range-squeezers]{GenomicRanges::granges()}} object containing the
 regions aggregated across.}
 
 \item{upstream}{Integer denoting number of bases upstream of the
@@ -28,11 +29,16 @@ centered position that are stored in the matrix}
 
 \item{name}{A name for the set of regions aggregated}
 
-\item{expected}{A vector containing expected number of Tn5 insertions per position}
+\item{cells}{A vector of cells where each element is the cell barcode
+included in the region aggregation matrix. The order of cells in this
+vector should correspond to the order of cells in the matrix. If \code{NULL}, cell
+names will be extracted from the rownames of the matrix.}
 
-\item{cells}{A named vector of cells where each element is the cell barcode
-and the name of each element is the corresponding cell barcode as stored
-in the ChromatinAssay5 object}
+\item{expected}{A vector containing expected number of Tn5 insertions per
+position. If \code{NULL}, the expected value will be set uniformly to 1 for each
+position.}
+
+\item{verbose}{Display messages.}
 }
 \value{
 Returns a \code{\link[=RegionAggregation]{RegionAggregation()}} object
