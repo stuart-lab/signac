@@ -209,42 +209,6 @@ CreateChromatinAssay5 <- function(
 #' @export
 #' @concept assay
 as.GRangesAssay.ChromatinAssay <- function(x, ...) {
-
-  # setClass(
-  #   Class = "ChromatinAssay",
-  #   contains = "Assay",
-  #   slots = list(
-  #     "ranges" = "GRanges",
-  #     "motifs" = "ANY",
-  #     "fragments" = "list",
-  #     "seqinfo" = "ANY",
-  #     "annotation" = "ANY",
-  #     "bias" = "ANY",
-  #     "positionEnrichment" = "list",
-  #     "links" = "GRanges"
-  #   )
-  # )
-  
-  # setClass(
-  #   Class = "ChromatinAssay5",
-  #   contains = "Assay5",
-  #   slots = list(
-  #     "fragments" = "list",
-  #     "annotation" = "GRangesOrNULL",
-  #     "bias" = "NumericOrNULL",
-  #     "region.aggregation" = "list",
-  #     "links" = "list",
-  #     "motifs" = "MotifOrNULL"
-  #   )
-  # )
-  
-  # setClass(
-  #   Class = "GRangesAssay",
-  #   contains = "ChromatinAssay5",
-  #   slots = list(
-  #     "ranges" = "GRanges"
-  #   )
-  # )
   
   # extract information
   annot <- x@annotation
@@ -258,7 +222,7 @@ as.GRangesAssay.ChromatinAssay <- function(x, ...) {
   # update fragment objects
   if (length(x = frags) > 0) {
     for (i in seq_along(along.with = frags)) {
-      frags[[i]] <- as(object = frags[[i]], "Fragment2")
+      frags[[i]] <- as.Fragment2(x = frags[[i]])
     }
   }
   
@@ -270,15 +234,15 @@ as.GRangesAssay.ChromatinAssay <- function(x, ...) {
   
   # construct new assay object
   x <- as(object = x, Class = "Assay5")
-  x <- as(
-    object = x,
+  x <- as.GRangesAssay(
+    x = x,
     Class = "GRangesAssay",
-    ranges = ranges,
+    ranges = gr,
     annotation = annot,
     fragments = frags,
     bias = bias,
     motifs = motifs,
-    links = links,
+    links = NULL, # TODO
     region.aggregation = ragg,
   )
   
@@ -286,6 +250,7 @@ as.GRangesAssay.ChromatinAssay <- function(x, ...) {
 }
 
 #' @rdname as.Fragment2
+#' @method as.Fragment2 Fragment
 #' @export 
 #' @concept fragments
 as.Fragment2.Fragment <- function(x, ...) {
@@ -326,16 +291,16 @@ as.GRangesAssay.Assay5 <- function(
   ...
 ) {
   x <- as.ChromatinAssay5(
-    object = x,
+    x = x,
     annotation = annotation,
     fragments = fragments,
     bias = bias,
     motifs = motifs,
     links = links,
-    region.aggregation = region.aggregation,
+    region.aggregation = region.aggregation
   )
   x <- as.GRangesAssay(
-    object = x,
+    x = x,
     ranges = ranges,
     sep = sep
   )
@@ -457,68 +422,6 @@ as.ChromatinAssay5.Assay5 <- function(
   return(new.assay)
 }
 
-setAs(
-  from = "ChromatinAssay",
-  to = "GRangesAssay",
-  def = function(from) {
-    object.list <- sapply(
-      X = slotNames(x = from),
-      FUN = slot,
-      object = from,
-      simplify = FALSE,
-      USE.NAMES = TRUE
-    )
-    object.list <- c(
-      list(
-        "Class" = "GRangesAssay"
-      ),
-      object.list
-    )
-    return(do.call(what = "new", args = object.list))
-  }
-)
-
-setAs(
-  from = "ChromatinAssay5",
-  to = "GRangesAssay",
-  def = function(from) {
-    object.list <- sapply(
-      X = slotNames(x = from),
-      FUN = slot,
-      object = from,
-      simplify = FALSE,
-      USE.NAMES = TRUE
-    )
-    object.list <- c(
-      list(
-        "Class" = "GRangesAssay"
-      ),
-      object.list
-    )
-    return(do.call(what = "new", args = object.list))
-  }
-)
-
-setAs(
-  from = "Assay5",
-  to = "ChromatinAssay5",
-  def = function(from) {
-    object.list <- sapply(
-      X = slotNames(x = from),
-      FUN = slot,
-      object = from,
-      simplify = FALSE,
-      USE.NAMES = TRUE
-    )
-    object.list <- c(
-      list(
-        "Class" = "ChromatinAssay5"
-      ),
-      object.list
-    )
-    return(do.call(what = "new", args = object.list))
-  }
-)
 
 ## Functions
 #' Create a RegionAggregation object 
