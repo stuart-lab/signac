@@ -415,62 +415,86 @@ setAs(
 #'
 #' Create a [RegionAggregation-class()] object to store the insertions over group of regions 
 #' 
-#' @param matrix A cell-by-position matrix 
-#' @param regions, A [GenomicRanges::granges()] object containing the
+#' @param mat A cell-by-position matrix 
+#' @param regions A [GenomicRanges::granges()] object containing the
 #' regions aggregated across. 
 #' @param upstream Integer denoting number of bases upstream of the 
 #' centered position that are stored in the matrix 
 #' @param downstream Integer denoting number of bases downstream of the 
 #' centered position that are stored in the matrix
 #' @param name A name for the set of regions aggregated
-#' @param expected A vector containing expected number of Tn5 insertions per position
-#' @param cells A named vector of cells where each element is the cell barcode
-#' and the name of each element is the corresponding cell barcode as stored 
-#' in the ChromatinAssay5 object
+#' @param cells A vector of cells where each element is the cell barcode
+#' included in the region aggregation matrix. The order of cells in this 
+#' vector should correspond to the order of cells in the matrix. If `NULL`, cell
+#' names will be extracted from the rownames of the matrix.
+#' @param expected A vector containing expected number of Tn5 insertions per
+#' position. If `NULL`, the expected value will be set uniformly to 1 for each 
+#' position.
+#' @param verbose Display messages.
 #' 
+#' @importFrom rlang is_integerish
 #' @export 
 #' @return Returns a [RegionAggregation()] object 
 #' @concept regionaggregation 
 CreateRegionAggregationObject <- function(
-    matrix = NULL,
-    regions = NULL,
-    upstream = NULL, 
-    downstream = NULL, 
-    name = NULL, 
-    expected = NULL, 
-    cells = NULL
-){
-    if (!inherits(matrix, c("matrix", "CsparseMatrix", "dgCMatrix"))) {
-        stop("data must be a matrix or sparse matrix. Supplied ", class(x=matrix))
+    mat,
+    regions,
+    upstream, 
+    downstream, 
+    name, 
+    cells = NULL,
+    expected = NULL,
+    verbose = TRUE
+) {
+    if (!inherits(x = mat, what = c("matrix", "CsparseMatrix"))) {
+        stop("data must be a matrix or sparse matrix. Supplied ",
+             class(x = mat))
     }
-    if (!inherits(regions, "GRanges")){
-        stop("regions must be a GRanges object")
+    if (any(dim(x = mat) == 0)) {
+      stop("Provided matrix has zero dimensions")
     }
-    # in footprinting if ocmpute.expected = False, 
-    #  expected.insertions <- rep(1, width(x = dna.sequence)[[1]] - 6)
-    if (!is.null(expected)){
-        if (!is.numeric(expected)) {
-            stop("expected insertions must be a numeric vector")
-        }
+    if (!inherits(x = regions, what = "GRanges")){
+        stop("regions must be a GRanges object. Supplied ", class(x = regions))
+    }
+    # make upstream and downstream integer
+    if (!is_integerish(x = upstream)) {
+      stop("upstream value must be an integer")
+    } else {
+      upstream <- as.integer(x = upstream)
+    }
+    if (!is_integerish(x = downstream)) {
+      stop("downstream value must be an integer")
+    } else {
+      downstream <- as.integer(x = downstream)
+    }
+    if (!is.null(x = expected)){
+      if (!is.numeric(x = expected)) {
+        stop("expected insertions must be a numeric vector")
+      }
+      if (length(x = expected) != ncol(x = mat)) {
+        stop("expected insertion must match the number of positions in the matrix")
+      }
+    } else {
+      expected <- rep(x = 1, ncol(x = mat))
     }
     # if cells not given, create the cells from rownames of the matrix
-    if (is.null(cells)){
-        cells <- setNames(rownames(matrix), rownames(matrix))
-    } else {
-        cells <- as.character(cells)
-        if (length(cells) != length(rownames(matrix))){
-            stop("Number of cells: (", length(cells), 
-                 ") does not match number of matrix rows (",length(rownames(matrix)), ")")
+    if (is.null(x = cells)){
+        cells <- rownames(x = matrix)
+        if (is.null(x = cells)) {
+          stop("cells information not provided, and the provided matrix has no",
+               " row names")
         }
-        # if unnamed or partially named -> force names from matrix 
-        if (is.null(names(cells)) || any(names(cells) == "")) {
-            names(cells) <- rownames(matrix)
+    } else {
+        cells <- as.character(x = cells)
+        if (length(x = cells) != nrow(x = matrix)) {
+            stop("Number of cells: (", length(x = cells), 
+                 ") does not match number of matrix rows (", nrow(x = matrix), ")")
         }
     }
         
     agg.obj <- new(
         Class = "RegionAggregation", 
-        matrix = matrix, 
+        matrix = mat, 
         regions = regions, 
         upstream = upstream, 
         downstream = downstream, 
