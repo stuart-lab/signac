@@ -24,7 +24,14 @@ position that are stored in the matrix}
 \item{\code{downstream}}{Integer denoting number of bases downstream of the centered
 position that are stored in the matrix}
 
-\item{\code{name}}{A name for the set of regions}
+\item{\code{name}}{A name for the set of regions aggregated}
+
+\item{\code{expected}}{A vector containing expected number of Tn5 insertions per
+position}
+
+\item{\code{cells}}{A vector of cell barcodes present in the region aggregation
+matrix. Each entry in the cells vector corresponds to a row in the region
+aggregation matrix.}
 }}
 
 \concept{footprinting}
