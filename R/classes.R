@@ -89,8 +89,6 @@ setValidity(Class = "Motif", function(object) {
 })
 setClassUnion(name = "MotifOrNULL", members = c("Motif", "NULL"))
 
-# expected vector should be allowed to be null (if compute.expected=FALSE)
-setClassUnion(name = "NumericOrNULL", members = c("numeric", "NULL")) 
 #' RegionAggregation class
 #' 
 #' The RegionAggregation class enables storage of counts centered on a group of
@@ -105,10 +103,11 @@ setClassUnion(name = "NumericOrNULL", members = c("numeric", "NULL"))
 #' @slot downstream Integer denoting number of bases downstream of the centered
 #' position that are stored in the matrix
 #' @slot name A name for the set of regions aggregated
-#' @slot expected  A vector containing expected number of Tn5 insertions per position
-#' @slot cells A named vector of cells where each element is the cell barcode 
-#' (kept unchanged), and the name of each element is the corresponding cell barcode
-#' as stored in the ChromatinAssay5 object
+#' @slot expected  A vector containing expected number of Tn5 insertions per
+#' position
+#' @slot cells A vector of cell barcodes present in the region aggregation
+#' matrix. Each entry in the cells vector corresponds to a row in the region
+#' aggregation matrix.
 #'
 #' @name RegionAggregation-class
 #' @rdname RegionAggregation-class
@@ -119,16 +118,16 @@ RegionAggregation <- setClass(
   slots = list(
     matrix = "AnyMatrix",
     regions = "GRanges",
-    upstream = "numeric", # change to integer?
-    downstream = "numeric", # change to integer?
+    upstream = "integer",
+    downstream = "integer",
     name = "character",
-    expected = "NumericOrNULL",
-    cells = "ANY"
+    expected = "numeric",
+    cells = "character"
   )
 )
 setValidity(Class = "RegionAggregation", function(object) {
-  # make sure cell names are not null 
-  if (any(is.na(x = objects@cells)) || any(is.null(x = objects@cells))){
+  # make sure cell names do not contain NA
+  if (any(is.na(x = objects@cells))){
     return("Cells slot must not contain NA values")
   }
   # matrix rows must match cells number 
@@ -145,10 +144,8 @@ setValidity(Class = "RegionAggregation", function(object) {
     return("Matrix columns do not match upstream + downstream + region width")
   }
   # expected vector length must match matrix columns 
-  if (!is.null(x = object@expected)) {
-    if (length(x = object@expected) != ncol(x = object@matrix)){
-      return("Expected vector length must match number of matrix columns")
-    }
+  if (length(x = object@expected) != ncol(x = object@matrix)){
+    return("Expected vector length must match number of matrix columns")
   }
   TRUE
 })
