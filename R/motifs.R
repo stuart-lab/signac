@@ -457,6 +457,7 @@ FindMotifs <- function(
 ) {
   assay <- assay %||% DefaultAssay(object = object)
   background <- background %||% rownames(x = object)
+  # TODO allow FindMotifs on a ChromatinAssay5 object
   if (!inherits(x = object[[assay]], what = "GRangesAssay")) {
     stop("Cannot run FindMotifs on ", class(x = object[[assay]]))
   }
@@ -483,6 +484,10 @@ FindMotifs <- function(
       features <- intersect(x = features, y = rownames(x = meta.feature))
     }
     mf.query <- meta.feature[features, , drop = FALSE]
+    
+    # we can run FindMotifs on some object that does not have genomic ranges as the features
+    # but the user will have to supply the meta.features containing GC.percent
+    # to identify the matched background set of features
     background <- MatchRegionStats(
       meta.feature = mf.choose,
       query.feature = mf.query,
@@ -512,6 +517,11 @@ FindMotifs <- function(
   motif.names <- GetMotifData(
     object = object, assay = assay, slot = "motif.names"
   )
+  
+  # TODO update this for new ChromatinAssay5 class definition
+  # no longer require that features in motif matrix match features in the data layer
+  # will need to check that all features are in the motif object
+  
   query.motifs <- motif.all[features, , drop = FALSE]
   background.motifs <- motif.all[background, , drop = FALSE]
   query.counts <- colSums(x = query.motifs)
