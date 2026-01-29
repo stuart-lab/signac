@@ -2410,7 +2410,7 @@ CombineTracks <- function(
 
 #' Plot peaks in a genomic region
 #'
-#' Display the genomic ranges in a [GRangesAssay()] object that fall
+#' Display the genomic ranges in a [GRangesAssay-class] object that fall
 #' in a given genomic region
 #'
 #' @param object A [SeuratObject::Seurat()] object

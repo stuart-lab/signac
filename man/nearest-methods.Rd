@@ -100,10 +100,10 @@
 \S4method{distanceToNearest}{Seurat,Seurat}(x, subject, ignore.strand = FALSE, ...)
 }
 \arguments{
-\item{x}{A query \code{\link[=GRangesAssay]{GRangesAssay()}} object}
+\item{x}{A query \linkS4class{GRangesAssay} object}
 
 \item{subject}{The subject \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} or
-\code{\link[=GRangesAssay]{GRangesAssay()}} object. If missing, \code{x} is used as the
+\linkS4class{GRangesAssay} object. If missing, \code{x} is used as the
 subject.}
 
 \item{select}{Logic for handling ties.
@@ -114,14 +114,14 @@ package.}
 should be ignored.}
 
 \item{y}{For the \code{distance} method, a
-\code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object or a \code{\link[=GRangesAssay]{GRangesAssay()}}
+\code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object or a \linkS4class{GRangesAssay}
 object}
 
 \item{...}{Additional arguments for methods}
 }
 \description{
 The \verb{precede, follow, nearest, distance, distanceToNearest} methods
-are available for \code{\link[=GRangesAssay]{GRangesAssay()}} objects.
+are available for \linkS4class{GRangesAssay} objects.
 }
 \section{Functions}{
 \itemize{

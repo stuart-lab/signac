@@ -42,7 +42,7 @@ returns a modified version of the input object. When running on a matrix,
 returns a \code{Motif} object.
 }
 \description{
-Construct a \link{Motif} object containing DNA sequence motif
+Construct a \linkS4class{Motif} object containing DNA sequence motif
 information and add it to an existing Seurat object or ChromatinAssay.
 If running on a Seurat object, \code{AddMotifs} will also run
 \code{\link[=RegionStats]{RegionStats()}} to compute the GC content of each peak and store

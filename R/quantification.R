@@ -18,7 +18,7 @@ NULL
 #' @method AggregateTiles Seurat
 #' @concept quantification
 #' @return When running on a Seurat object, returns the Seurat object with a new
-#' [ChromatinAssay5()] added.
+#' [ChromatinAssay5-class] assay added.
 AggregateTiles.Seurat <- function(
   object,
   genome,
@@ -45,7 +45,7 @@ AggregateTiles.Seurat <- function(
 #' @export
 #' @method AggregateTiles ChromatinAssay5
 #' @concept quantification
-#' @return When running on a [ChromatinAssay5()], returns a new
+#' @return When running on a [ChromatinAssay5-class], returns a new
 #' `ChromatinAssay5` containing the aggregated genome tiles.
 AggregateTiles.ChromatinAssay5 <- function(
   object,

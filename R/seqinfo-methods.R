@@ -16,10 +16,10 @@ NULL
 #'
 #' Methods for accessing and modifying
 #' [Seqinfo::Seqinfo()] object information stored in a
-#' [GRangesAssay()] object.
+#' [GRangesAssay-class] object.
 #'
 #' @name seqinfo-methods
-#' @param x A [GRangesAssay()] object
+#' @param x A [GRangesAssay-class] object
 #'
 #' @aliases seqinfo seqinfo,GRangesAssay-method
 #' @seealso

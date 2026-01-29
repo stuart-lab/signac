@@ -81,7 +81,7 @@ CreateGRangesAssay <- function(
 #' @param motifs A Motif object
 #' @param links A named list of [InteractionSet::GInteractions()]
 #' objects
-#' @param region.aggregation A named list of [RegionAggregation]
+#' @param region.aggregation A named list of [RegionAggregation-class]
 #' objects.
 #' @param validate.fragments Check that cells in the assay are present in the
 #' fragment file.
@@ -203,6 +203,15 @@ CreateChromatinAssay5 <- function(
   return(chrom.assay)
 }
 
+#' Update ChromatinAssay object to GRangesAssay
+#' @method as.GRangesAssay ChromatinAssay
+#' @export
+#' @concept assay
+as.GRangesAssay.ChromatinAssay <- function(x, ...) {
+  # TODO
+  return(x)
+}
+
 #' @method as.GRangesAssay Assay5
 #' @export
 #' @concept assay
@@ -283,11 +292,11 @@ as.GRangesAssay.ChromatinAssay5 <- function(
 #'   \item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
 #'   \item{type: Annotation type (e.g. "exon", "gap")}
 #' }
-#' @param fragments A list of [Fragment()] objects
+#' @param fragments A list of [Fragment2-class] objects
 #' @param bias Tn5 integration bias matrix
-#' @param motifs A [Motif()] object
+#' @param motifs A [Motif-class] object
 #' @param links Genomic links TODO
-#' @param region.aggregation A named list of [RegionAggregation]
+#' @param region.aggregation A named list of [RegionAggregation-class]
 #'
 #' @rdname as.ChromatinAssay5
 #' @export
@@ -349,6 +358,27 @@ as.ChromatinAssay5.Assay5 <- function(
   }
   return(new.assay)
 }
+
+setAs(
+  from = "ChromatinAssay",
+  to = "GRangesAssay",
+  def = function(from) {
+    object.list <- sapply(
+      X = slotNames(x = from),
+      FUN = slot,
+      object = from,
+      simplify = FALSE,
+      USE.NAMES = TRUE
+    )
+    object.list <- c(
+      list(
+        "Class" = "GRangesAssay"
+      ),
+      object.list
+    )
+    return(do.call(what = "new", args = object.list))
+  }
+)
 
 setAs(
   from = "ChromatinAssay5",
@@ -416,7 +446,7 @@ setAs(
 #' 
 #' @importFrom rlang is_integerish
 #' @export 
-#' @return Returns a [RegionAggregation()] object 
+#' @return Returns a [RegionAggregation-class] object 
 #' @concept regionaggregation 
 CreateRegionAggregationObject <- function(
     mat,
@@ -631,7 +661,7 @@ CreateFragmentObject <- function(
 #' exact positions of each motif.
 #' @param meta.data A data.frame containing metadata
 #' @export
-#' @return Returns a [Motif()] object
+#' @return Returns a [Motif-class()] object
 #' @concept motifs
 #' @examples
 #' motif.matrix <- matrix(
@@ -885,9 +915,9 @@ GetAssayData.ChromatinAssay5 <- function(
 
 #' Get Fragment object data
 #'
-#' Extract data from a [Fragment2-class()] object
+#' Extract data from a [Fragment2-class] object
 #'
-#' @param object A [Fragment2()] object
+#' @param object A [Fragment2-class] object
 #' @param slot Information to pull from object
 #' (file.path, index.path, hash, cells, seqlevels)
 #' @export
@@ -1347,7 +1377,7 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
 #' @method subset Motif
 #'
 #' @seealso [base::subset()]
-#' @return Returns a subsetted [Motif()] object
+#' @return Returns a subsetted [Motif-class] object
 #' @export
 #' @concept motifs
 #' @examples
@@ -1485,7 +1515,7 @@ subset.ChromatinAssay5 <- function(
 
 #' Subset a RegionAggregation object
 #' 
-#' @param x A [RegionAggregation] object
+#' @param x A [RegionAggregation-class] object
 #' @param cells Vector of cells to retain
 #' @param ... Arguments passed to other methods
 #' 

@@ -3,7 +3,6 @@
 \docType{class}
 \name{Fragment2-class}
 \alias{Fragment2-class}
-\alias{Fragment2}
 \alias{Fragment}
 \alias{seqlevels,Fragment2-method}
 \alias{seqlevels<-,Fragment2-method}
@@ -23,7 +22,7 @@
 \S4method{renameSeqlevels}{Fragment2}(x, value)
 }
 \arguments{
-\item{x}{A \code{\link[=Fragment2]{Fragment2()}} object}
+\item{x}{A \linkS4class{Fragment2} object}
 
 \item{value}{A named character vector or name of a seqlevelsStyle}
 }

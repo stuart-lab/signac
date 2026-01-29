@@ -41,8 +41,8 @@ ATACqc(object, ...)
 )
 }
 \arguments{
-\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object, \link{ChromatinAssay5} object, or path to a fragment
-file.}
+\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object, \linkS4class{ChromatinAssay5} object
+, or path to a fragment file.}
 
 \item{...}{Arguments passed to other methods}
 

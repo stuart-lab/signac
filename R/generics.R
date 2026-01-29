@@ -1,6 +1,6 @@
 #' Add DNA sequence motif information
 #'
-#' Construct a [Motif] object containing DNA sequence motif
+#' Construct a [Motif-class] object containing DNA sequence motif
 #' information and add it to an existing Seurat object or ChromatinAssay.
 #' If running on a Seurat object, `AddMotifs` will also run
 #' [RegionStats()] to compute the GC content of each peak and store
@@ -40,8 +40,8 @@ AggregateTiles <- function(object, ...) {
 #' Wrapper function to run `fragtk qc` and add the metadata to the Seurat
 #' object.
 #' 
-#' @param object A [SeuratObject::Seurat] object, [ChromatinAssay5] object, or path to a fragment
-#' file.
+#' @param object A [SeuratObject::Seurat] object, [ChromatinAssay5-class] object
+#' , or path to a fragment file.
 #' @param fragtk.path Path to `fragtk` executable. If NULL, try to find `fragtk`
 #' automatically.
 #' @param annotations [GenomicRanges::GRanges()] object containing
@@ -58,9 +58,9 @@ ATACqc <- function(object, ...) {
   UseMethod(generic = "ATACqc", object = object)
 }
 
-#' Convert objects to a [ChromatinAssay5] object
+#' Convert objects to a [ChromatinAssay5-class] object
 #' 
-#' @param x An object to convert to class [ChromatinAssay5]
+#' @param x An object to convert to class [ChromatinAssay5-class]
 #' @param ... Arguments passed to other methods
 #' @rdname as.ChromatinAssay5
 #' @export as.ChromatinAssay5
@@ -68,9 +68,9 @@ as.ChromatinAssay5 <- function(x, ...) {
   UseMethod(generic = "as.ChromatinAssay5", object = x)
 }
 
-#' Convert objects to a [GRangesAssay] object
+#' Convert objects to a [GRangesAssay-class] object
 #' 
-#' @param x An object to convert to class [GRangesAssay]
+#' @param x An object to convert to class [GRangesAssay-class]
 #' @param ... Arguments passed to other methods
 #' @rdname as.GRangesAssay
 #' @export as.GRangesAssay
@@ -97,7 +97,7 @@ AlleleFreq <- function(object, ...) {
 
 #' Annotation
 #'
-#' Get the annotation from a [ChromatinAssay5] object
+#' Get the annotation from a [ChromatinAssay5-class] object
 #'
 #' @param ... Arguments passed to other methods
 #' @return Returns a [GenomicRanges::GRanges()] object
@@ -120,7 +120,7 @@ Annotation <- function(object, ...) {
 
 #' Bias
 #'
-#' Get the bias information from a [ChromatinAssay5] object
+#' Get the bias information from a [ChromatinAssay5-class] object
 #'
 #' @param ... Arguments passed to other methods
 #' @return Returns a numeric vector or `NULL`
@@ -175,7 +175,7 @@ CallPeaks <- function(object, ...) {
   UseMethod(generic = "CallPeaks", object = object)
 }
 
-#' Set and get cell barcode information for a [Fragment] object
+#' Set and get cell barcode information for a [Fragment2-class] object
 #'
 #' @param x A Seurat object
 #' @param value A character vector of cell barcodes
@@ -192,7 +192,8 @@ CallPeaks <- function(object, ...) {
 #' to IDs, use the `name` parameter. To convert IDs to common names, use
 #' the `id` parameter.
 #'
-#' @param object A [SeuratObject::Seurat], [ChromatinAssay5], or [Motif] object
+#' @param object A [SeuratObject::Seurat], [ChromatinAssay5-class], or
+#' [Motif-class] object
 #' @param ... Arguments passed to other methods
 #'
 #' @return Returns a character vector with the same length and order as the
@@ -252,7 +253,7 @@ FindTopFeatures <- function(object, ...) {
 #' Compute the normalized observed/expected Tn5 insertion frequency
 #' for each position surrounding a set of motif instances.
 #'
-#' @param object A [SeuratObject::Seurat] or [ChromatinAssay5] object
+#' @param object A [SeuratObject::Seurat] or [ChromatinAssay5-class] object
 #' @param ... Arguments passed to other methods
 #' @return Returns a [SeuratObject::Seurat] object
 #' @rdname Footprint
@@ -264,15 +265,15 @@ Footprint <- function(object, ...) {
 #' Get the Fragment objects
 #'
 #' @param ... Arguments passed to other methods
-#' @return Returns a list of [Fragment] objects. If there are
-#' no [Fragment] objects present, returns an empty list.
+#' @return Returns a list of [Fragment2-class] objects. If there are
+#' no [Fragment2-class] objects present, returns an empty list.
 #' @rdname Fragments
 #' @export Fragments
 Fragments <- function(object, ...) {
   UseMethod(generic = "Fragments", object = object)
 }
 
-#' @param value A [Fragment] object or list of Fragment objects
+#' @param value A [Fragment2-class] object or list of Fragment objects
 #'
 #' @rdname Fragments
 #' @export Fragments<-
@@ -284,7 +285,7 @@ Fragments <- function(object, ...) {
 #' Compute Tn5 insertion bias
 #'
 #' Counts the Tn5 insertion frequency for each DNA hexamer.
-#' @param object A [SeuratObject::Seurat] or [ChromatinAssay5] object
+#' @param object A [SeuratObject::Seurat] or [ChromatinAssay5-class] object
 #' @param ... Arguments passed to other methods
 #' @return Returns a Seurat object
 #' @rdname InsertionBias
@@ -326,7 +327,7 @@ GetLinkedGenes <- function(object, ...) {
 #' score information as metadata columns named "gene," "peak," and "score"
 #' respectively.
 #'
-#' @param object A Seurat object
+#' @return Returns a [SeuratObject::Seurat()] object
 #' @param ... Arguments passed to other methods
 #' @return Returns a character vector of genes
 #' 
@@ -352,7 +353,8 @@ GetMotifData <- function(object, ...) {
 
 #' Get or set a motif information
 #'
-#' Get or set the [Motif] object for a Seurat object or [ChromatinAssay5].
+#' Get or set the [Motif-class] object for a Seurat object or
+#' [ChromatinAssay5-class].
 #'
 #' @param ... Arguments passed to other methods
 #' @rdname Motifs
@@ -361,7 +363,7 @@ Motifs <- function(object, ...) {
   UseMethod(generic = "Motifs", object = object)
 }
 
-#' @param value A [Motif] object
+#' @param value A [Motif-class] object
 #' @rdname Motifs
 #' @export Motifs<-
 "Motifs<-" <- function(object, ..., value) {
@@ -370,7 +372,8 @@ Motifs <- function(object, ...) {
 
 #' Get or set links information
 #'
-#' Get or set the genomic link information for a Seurat object or [ChromatinAssay5]
+#' Get or set the genomic link information for a Seurat object or
+#' [ChromatinAssay5-class]
 #'
 #' @param ... Arguments passed to other methods
 #' @rdname Links
@@ -419,7 +422,7 @@ PearsonResidualVar <- function(object, ...) {
 
 #' Region Aggregation
 #'
-#' Get the region aggregation information from a [ChromatinAssay5] object
+#' Get the region aggregation information from a [ChromatinAssay5-class] object
 #'
 #' @param ... Arguments passed to other methods
 #' @return Returns a list of [RegionAggregation-class] objects
@@ -443,7 +446,7 @@ RegionAggr <- function(object, ...) {
 #' Count fragments within a set of regions for different groups of
 #' cells.
 #'
-#' @param object A Seurat or [ChromatinAssay5] object
+#' @param object A Seurat or [ChromatinAssay5-class] object
 #' @param ... Arguments passed to other methods
 #' @return Returns a [SeuratObject::Seurat()] object
 #' @rdname RegionMatrix

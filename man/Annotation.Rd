@@ -36,7 +36,7 @@ Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} ob
 if the annotation data is present, otherwise returns NULL
 }
 \description{
-Get the annotation from a \link{ChromatinAssay5} object
+Get the annotation from a \linkS4class{ChromatinAssay5} object
 }
 \examples{
 \donttest{

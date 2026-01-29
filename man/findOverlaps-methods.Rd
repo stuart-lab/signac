@@ -133,7 +133,7 @@
 )
 }
 \arguments{
-\item{query, subject}{A \code{\link[=GRangesAssay]{GRangesAssay()}} object}
+\item{query, subject}{A \linkS4class{GRangesAssay} object}
 
 \item{maxgap, minoverlap, type, select, ignore.strand}{See
 \verb{?[findOverlaps][GenomicRanges::findOverlaps]} in the \pkg{GenomicRanges} and
@@ -144,7 +144,7 @@ See \code{\link[GenomicRanges:findOverlaps-methods]{GenomicRanges::findOverlaps(
 }
 \description{
 The \verb{findOverlaps, countOverlaps} methods are available for
-\code{\link[=GRangesAssay]{GRangesAssay()}} objects. This allows finding overlaps between
+\linkS4class{GRangesAssay} objects. This allows finding overlaps between
 genomic ranges and the ranges stored in the GRangesAssay
 }
 \details{

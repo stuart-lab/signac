@@ -23,7 +23,7 @@
 \item{j}{Which rows to retain}
 }
 \value{
-Returns a subsetted \code{\link[=Motif]{Motif()}} object
+Returns a subsetted \linkS4class{Motif} object
 }
 \description{
 Returns a subset of a \code{\link[=Motif-class]{Motif-class()}} object.

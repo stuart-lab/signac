@@ -3,14 +3,13 @@
 \docType{class}
 \name{RegionAggregation-class}
 \alias{RegionAggregation-class}
-\alias{RegionAggregation}
 \alias{subset.RegionAggregation}
 \title{RegionAggregation class}
 \usage{
 \method{subset}{RegionAggregation}(x, cells = NULL, ...)
 }
 \arguments{
-\item{x}{A \link{RegionAggregation} object}
+\item{x}{A \linkS4class{RegionAggregation} object}
 
 \item{cells}{Vector of cells to retain}
 

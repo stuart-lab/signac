@@ -3,14 +3,14 @@
 \name{as.GRangesAssay}
 \alias{as.GRangesAssay}
 \alias{as.GRangesAssay.ChromatinAssay5}
-\title{Convert objects to a \link{GRangesAssay} object}
+\title{Convert objects to a \linkS4class{GRangesAssay} object}
 \usage{
 as.GRangesAssay(x, ...)
 
 \method{as.GRangesAssay}{ChromatinAssay5}(x, ranges = NULL, sep = c("-", "-"), ...)
 }
 \arguments{
-\item{x}{An object to convert to class \link{GRangesAssay}}
+\item{x}{An object to convert to class \linkS4class{GRangesAssay}}
 
 \item{...}{Arguments passed to other methods}
 
@@ -20,6 +20,6 @@ as.GRangesAssay(x, ...)
 coordinates in the row names of the data matrix}
 }
 \description{
-Convert objects to a \link{GRangesAssay} object
+Convert objects to a \linkS4class{GRangesAssay} object
 }
 \concept{assay}

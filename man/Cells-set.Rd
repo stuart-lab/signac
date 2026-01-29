@@ -2,7 +2,7 @@
 % Please edit documentation in R/generics.R
 \name{Cells<-}
 \alias{Cells<-}
-\title{Set and get cell barcode information for a \link{Fragment} object}
+\title{Set and get cell barcode information for a \linkS4class{Fragment2} object}
 \usage{
 Cells(x, ...) <- value
 }
@@ -14,6 +14,6 @@ Cells(x, ...) <- value
 \item{value}{A character vector of cell barcodes}
 }
 \description{
-Set and get cell barcode information for a \link{Fragment} object
+Set and get cell barcode information for a \linkS4class{Fragment2} object
 }
 \concept{assay}
