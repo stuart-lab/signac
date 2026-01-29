@@ -1489,6 +1489,7 @@ subset.ChromatinAssay5 <- function(
 #' Subset a single RegionAggregation object
 #'
 #' @method subset RegionAggregation 
+#' @importFrom methods slot "slot<-"
 #' @export
 #' @concept RegionAggregation 
 subset.RegionAggregation <- function(
@@ -1496,22 +1497,19 @@ subset.RegionAggregation <- function(
     cells = NULL,
     ...
 ){
-  if (is.null(cells)) {
+  if (is.null(x = cells)) {
     return(x)
   }
-  mat <- x@matrix # TODO change this to a proper func
-  agg.cells <- x@cells 
+  mat <- slot(object = x, name = "matrix")
+  agg.cells <- slot(object = x, name = "cells")
   
-  # sanity check 
-  stopifnot(all(rownames(mat) == names(agg.cells)))
-  
-  keep <- names(agg.cells) %in% cells
+  keep <- names(x = agg.cells) %in% cells
   if (!any(keep)){
     return(NULL)
   }
   
-  x@matrix <- mat[keep, , drop = FALSE]
-  x@cells <- ra.cells[keep]
+  slot(object = x, name = "matrix") <- mat[keep, , drop = FALSE]
+  slot(object = x, name = "cells") <- agg.cells[keep]
   
   return(x)
 }
