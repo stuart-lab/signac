@@ -1488,7 +1488,8 @@ subset.ChromatinAssay5 <- function(
 
 #' Subset a single RegionAggregation object
 #'
-#' @method subset RegionAggregation 
+#' @method subset RegionAggregation
+#' @importFrom fastmatch fmatch
 #' @importFrom methods slot "slot<-"
 #' @export
 #' @concept RegionAggregation 
@@ -1503,7 +1504,7 @@ subset.RegionAggregation <- function(
   mat <- slot(object = x, name = "matrix")
   agg.cells <- slot(object = x, name = "cells")
   
-  keep <- names(x = agg.cells) %in% cells
+  keep <- fmatch(x = agg.cells, table = cells, nomatch = 0L) > 0
   if (!any(keep)){
     return(NULL)
   }
@@ -1542,6 +1543,9 @@ subset.Fragment2 <- function(
 ) {
   frag.cells <- GetFragmentData(object = x, slot = "cells")
   keep <- fmatch(x = names(x = frag.cells), table = cells, nomatch = 0L) > 0
+  if (!any(keep)){
+    return(NULL)
+  }
   slot(object = x, name = "cells") <- frag.cells[keep]
   return(x)
 }
