@@ -986,7 +986,6 @@ RenameCells.ChromatinAssay5 <- function(object, new.names = NULL, ...) {
   # rename cells in RegionAggregation objects
   region.aggr <- RegionAggr(object = object)
   for (i in seq_along(along.with = region.aggr)) {
-    # TODO implement RenameCells.RegionAggregation
     region.aggr[[i]] <- RenameCells(
       object = region.aggr[[i]],
       new.names = new.names
