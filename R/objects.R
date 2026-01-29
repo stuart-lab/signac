@@ -1220,6 +1220,9 @@ SetAssayData.ChromatinAssay5 <- function(
     if (!inherits(x = new.data, what = "Motif")) {
       stop("Must provide a Motif class object")
     }
+    if (!is.null(x = GetAssayData(object = object, layer = "motifs"))) {
+      warning("Overwriting motif information")
+    }
     methods::slot(object = object, name = layer) <- new.data
   } else if (layer == "links") {
     if (is.null(x = new.data)) {
