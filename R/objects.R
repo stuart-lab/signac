@@ -108,6 +108,7 @@ CreateChromatinAssay5 <- function(
   verbose = TRUE,
   ...
 ) {
+  # Annotations
   if (!is.null(x = annotation) && !inherits(x = annotation, what = "GRanges")) {
     stop("Annotation must be a GRanges object.")
   }
@@ -135,6 +136,8 @@ CreateChromatinAssay5 <- function(
   }
 
   seurat.assay <- CreateAssay5Object(counts = counts, data = data, ...)
+  
+  # Fragments
   if (inherits(x = fragments, what = "list")) {
     # check each object in the list is a fragment object
     # fragment list usually supplied when doing object merge,
@@ -181,30 +184,10 @@ CreateChromatinAssay5 <- function(
     }
   }
 
-  # TODO this should be move to the SetAssayData method
+  # Motifs
   if (!is.null(x = motifs)) {
-    # pre-computed motif object, make sure features are formatted the same
-    # as count matrix and subset features
     if (!inherits(x = motifs, what = "Motif")) {
       stop("Provided motif object is not a Motif-class object")
-    }
-    if (!is.null(x = GetMotifData(object = motifs, slot = "data"))) {
-      if (!(all(rownames(x = motifs) == rownames(x = chrom.assay)))) {
-        # rownames don't match
-        motif.mat <- GetMotifData(object = motifs, slot = "data")
-        # subset
-        if (!all(rownames(x = chrom.assay) %in% rownames(x = motif.mat))) {
-          warning(
-            "Some peak regions missing from supplied motif object. ",
-            "Motif information will not be added"
-          )
-          motifs <- NULL
-        }
-        motif.mat <- motif.mat[rownames(x = chrom.assay), ]
-        motifs <- SetMotifData(
-          object = motifs, slot = "data", new.data = motif.mat
-        )
-      }
     }
   }
 
@@ -284,7 +267,6 @@ as.GRangesAssay.ChromatinAssay5 <- function(
   rownames(x = x) <- new.rownames
 
   new.assay <- as(object = x, Class = "GRangesAssay")
-  ranges <- ranges %||% StringToGRanges(regions = rownames(x = x), sep = sep)
   new.assay <- SetAssayData(
     object = new.assay,
     layer = "ranges",
@@ -738,6 +720,11 @@ CreateMotifObject <- function(
   return(motif.obj)
 }
 
+#' Update Chromatin Assay
+#' 
+#' Update an old ChromatinAssay object to the current GRangesAssay object class
+# TODO
+
 # Update chromatin object
 #
 # Create a new \code{\link[SeuratObject]} with the cells only in the
@@ -1048,7 +1035,7 @@ RenameCells.RegionAggregation <- function(object, new.names, ...) {
   return(object)
 }
 
-#' @importFrom SeuratObject SetAssayData CheckFeaturesNames
+#' @importFrom SeuratObject SetAssayData
 #' @importFrom Seqinfo genome Seqinfo
 #' @importFrom lifecycle deprecated is_present
 #' @importFrom S4Vectors mcols
@@ -1064,7 +1051,7 @@ SetAssayData.GRangesAssay <- function(
 ) {
   if (layer %in% c(
     "counts", "data", "scale.data", "meta.data", "misc", "key",
-    "fragments", "annotation", "bias", "region.aggregation"
+    "fragments", "annotation", "bias", "region.aggregation", "motifs", "links"
   )) {
     return(NextMethod())
   }
@@ -1086,57 +1073,13 @@ SetAssayData.GRangesAssay <- function(
            of features in the assay")
     }
     methods::slot(object = object, name = layer) <- new.data
-  } else if (layer == "motifs") {
-    if (is.null(x = new.data)) {
-      methods::slot(object = object, name = layer) <- NULL
-      return(object)
-    }
-    if (!inherits(x = new.data, what = "Motif")) {
-      stop("Must provide a Motif class object")
-    }
-    # Set the feature names compatible with Seurat
-    new.data <- SetMotifData(
-      object = new.data,
-      slot = "data",
-      new.data = CheckFeaturesNames(
-        data = GetMotifData(object = new.data, slot = "data")
-      )
-    )
-
-    # TODO allow mismatching row names, but check that the genomic ranges
-    # are equivalent. Requires adding a granges slot to the motif class
-    if (nrow(x = object) != nrow(x = new.data) ||
-      !all(rownames(x = object) == rownames(x = new.data))) {
-      keep.features <- intersect(
-        x = rownames(x = new.data),
-        y = rownames(x = object)
-      )
-      if (length(x = keep.features) == 0) {
-        stop("No features in common between the GRangesAssay
-             and Motif objects")
-      } else {
-        warning("Features do not match in GRangesAssay and Motif object.
-                Subsetting/Filling the Motif object.")
-        new.data <- new.data[keep.features, ]
-
-        new.data <- SetMotifData(
-          object = new.data,
-          slot = "data",
-          new.data = AddMissing(
-            GetMotifData(object = new.data, slot = "data"),
-            features = rownames(x = object)
-          )
-        )
-      }
-    }
-    methods::slot(object = object, name = layer) <- new.data
-  } else if (layer == "links") {
-    methods::slot(object = object, name = layer) <- new.data
+  } else {
+    stop("SetAssayData not implemented for ", layer)
   }
   return(object)
 }
 
-#' @importFrom SeuratObject SetAssayData CheckFeaturesNames
+#' @importFrom SeuratObject SetAssayData
 #' @importFrom Seqinfo genome Seqinfo
 #' @importFrom lifecycle deprecated is_present
 #' @importFrom S4Vectors mcols
@@ -1163,10 +1106,14 @@ SetAssayData.ChromatinAssay5 <- function(
       call. = FALSE
     )
   }
+  
   if (layer == "fragments") {
+    # this will overwrite the slot with new data
+    # Fragments<- will append new fragment objects to the list
+    # Fragments function is the recommended user-facing function
     if (inherits(x = new.data, what = "list")) {
       # check that it's a list containing fragment class objects
-      for (i in seq_along(new.data)) {
+      for (i in seq_along(along.with = new.data)) {
         if (!inherits(x = new.data[[i]], what = "Fragment2")) {
           stop("New data is not a Fragment object")
         }
@@ -1260,11 +1207,38 @@ SetAssayData.ChromatinAssay5 <- function(
           }
         }
       }
-      if (!merged) { 
+      if (!merged) {
         agg.list <- c(agg.list, list(new.agg))
       }
     }
     methods::slot(object = object, layer) <- agg.list
+  } else if (layer == "motifs") {
+    if (is.null(x = new.data)) {
+      methods::slot(object = object, name = layer) <- NULL
+      return(object)
+    }
+    if (!inherits(x = new.data, what = "Motif")) {
+      stop("Must provide a Motif class object")
+    }
+    methods::slot(object = object, name = layer) <- new.data
+  } else if (layer == "links") {
+    if (is.null(x = new.data)) {
+      # empty links list
+      methods::slot(object = object, name = layer) <- list()
+    } else {
+      # ensure object is a list of GInteractions objects
+      if (inherits(x = new.data, what = "list")) {
+        # check that it's a list containing GInteraction objects
+        for (i in seq_along(new.data)) {
+          if (!inherits(x = new.data[[i]], what = "GInteractions")) {
+            stop("New data is not a GInteractions object")
+          }
+        }
+      }
+      methods::slot(object = object, name = layer) <- new.data
+    }
+  } else {
+    stop("SetAssayData not implemented for ", layer)
   }
   return(object)
 }
@@ -1322,10 +1296,6 @@ SetMotifData.ChromatinAssay5 <- function(object, slot, new.data, ...) {
         "Data must be matrix or sparse matrix class. Supplied ",
         class(x = new.data)
       )
-    }
-    if (!all(rownames(x = object) == rownames(x = new.data))) {
-      stop("Features do not match existing assay data.
-           Column names in motif matrix should match row names in assay data")
     }
     if (inherits(x = new.data, what = "matrix")) {
       new.data <- as(Class = "CsparseMatrix", object = new.data)
@@ -2298,16 +2268,11 @@ dim.Motif <- function(x) {
     slot(object = object, name = "fragments") <- list()
     return(object)
   }
+  # append new fragment objects to existing list
   if (inherits(x = value, what = "list")) {
     for (i in seq_along(along.with = value)) {
       object <- AddFragments(object = object, fragments = value[[i]])
     }
-  } else if (is.null(x = value)) {
-    object <- SetAssayData(
-      object = object,
-      layer = "fragments",
-      new.data = list()
-    )
   } else {
     object <- AddFragments(object = object, fragments = value)
   }
@@ -2390,8 +2355,18 @@ AddFragments <- function(object, fragments) {
       }
     }
   }
-  # append fragments to list
+  # check file is not already linked to the object
   current.frags <- GetAssayData(object = object, layer = "fragments")
+  all.path <- lapply(
+    X = current.frags,
+    FUN = GetFragmentData,
+    slot = "file.path"
+  )
+  new.path <- GetFragmentData(object = fragments, slot = "file.path")
+  if (new.path %in% all.path) {
+    stop("Fragment file already present in the object")
+  }
+  # append fragments to list
   current.frags[[length(x = current.frags) + 1]] <- fragments
   slot(object = object, name = "fragments") <- current.frags
   return(object)
