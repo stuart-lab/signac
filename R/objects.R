@@ -203,15 +203,113 @@ CreateChromatinAssay5 <- function(
   return(chrom.assay)
 }
 
-#' Update ChromatinAssay object to GRangesAssay
+
+#' @rdname as.GRangesAssay
 #' @method as.GRangesAssay ChromatinAssay
 #' @export
 #' @concept assay
 as.GRangesAssay.ChromatinAssay <- function(x, ...) {
+
+  # setClass(
+  #   Class = "ChromatinAssay",
+  #   contains = "Assay",
+  #   slots = list(
+  #     "ranges" = "GRanges",
+  #     "motifs" = "ANY",
+  #     "fragments" = "list",
+  #     "seqinfo" = "ANY",
+  #     "annotation" = "ANY",
+  #     "bias" = "ANY",
+  #     "positionEnrichment" = "list",
+  #     "links" = "GRanges"
+  #   )
+  # )
+  
+  # setClass(
+  #   Class = "ChromatinAssay5",
+  #   contains = "Assay5",
+  #   slots = list(
+  #     "fragments" = "list",
+  #     "annotation" = "GRangesOrNULL",
+  #     "bias" = "NumericOrNULL",
+  #     "region.aggregation" = "list",
+  #     "links" = "list",
+  #     "motifs" = "MotifOrNULL"
+  #   )
+  # )
+  
+  # setClass(
+  #   Class = "GRangesAssay",
+  #   contains = "ChromatinAssay5",
+  #   slots = list(
+  #     "ranges" = "GRanges"
+  #   )
+  # )
+  
+  # extract information
+  annot <- x@annotation
+  motifs <- x@motifs
+  bias <- x@bias
+  frags <- x@fragments
+  ragg <- x@positionEnrichment
+  links <- x@links
+  gr <- x@ranges
+  
+  # update fragment objects
+  if (length(x = frags) > 0) {
+    for (i in seq_along(along.with = frags)) {
+      frags[[i]] <- as(object = frags[[i]], "Fragment2")
+    }
+  }
+  
+  # update region aggregation
   # TODO
+  
+  # update links to list of GInteractions objects
+  # TODO
+  
+  # construct new assay object
+  x <- as(object = x, Class = "Assay5")
+  x <- as(
+    object = x,
+    Class = "GRangesAssay",
+    ranges = ranges,
+    annotation = annot,
+    fragments = frags,
+    bias = bias,
+    motifs = motifs,
+    links = links,
+    region.aggregation = ragg,
+  )
+  
   return(x)
 }
 
+#' @rdname as.Fragment2
+#' @export 
+#' @concept fragments
+as.Fragment2.Fragment <- function(x, ...) {
+  # convert from old Fragment class to new Fragment2 class
+
+  # extract information from old object
+  file.path <- x@path
+  file.index <- paste0(file.path, ".tbi")
+  hash <- x@hash
+  cells <- x@cells
+  
+  # construct new object
+  x <- new(
+    Class = "Fragment2",
+    file.path = file.path,
+    file.index = file.index,
+    hash = hash,
+    cells = cells,
+    seqlevels = NULL
+  )
+  return(x)
+}
+
+#' @rdname as.GRangesAssay
 #' @method as.GRangesAssay Assay5
 #' @export
 #' @concept assay
@@ -753,7 +851,10 @@ CreateMotifObject <- function(
 #' Update Chromatin Assay
 #' 
 #' Update an old ChromatinAssay object to the current GRangesAssay object class
+UpdateChromatinAssay <- function(object) {
 # TODO
+  return(object)
+}
 
 # Update chromatin object
 #

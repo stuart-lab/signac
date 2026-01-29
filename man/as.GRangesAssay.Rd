@@ -2,10 +2,27 @@
 % Please edit documentation in R/generics.R, R/objects.R
 \name{as.GRangesAssay}
 \alias{as.GRangesAssay}
+\alias{as.GRangesAssay.ChromatinAssay}
+\alias{as.GRangesAssay.Assay5}
 \alias{as.GRangesAssay.ChromatinAssay5}
 \title{Convert objects to a \linkS4class{GRangesAssay} object}
 \usage{
 as.GRangesAssay(x, ...)
+
+\method{as.GRangesAssay}{ChromatinAssay}(x, ...)
+
+\method{as.GRangesAssay}{Assay5}(
+  x,
+  annotation = NULL,
+  fragments = NULL,
+  bias = NULL,
+  region.aggregation = NULL,
+  ranges = NULL,
+  motifs = NULL,
+  links = NULL,
+  sep = c("-", "-"),
+  ...
+)
 
 \method{as.GRangesAssay}{ChromatinAssay5}(x, ranges = NULL, sep = c("-", "-"), ...)
 }

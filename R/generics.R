@@ -78,6 +78,16 @@ as.GRangesAssay <- function(x, ...) {
   UseMethod(generic = "as.GRangesAssay", object = x)
 }
 
+#' Convert objects to a [Fragment2-class] object
+#' 
+#' @param x An object to convert to class [Fragment2-class]
+#' @param ... Arguments passed to other methods
+#' @rdname as.Fragment2
+#' @export as.Fragment2
+as.Fragment2 <- function(x, ...) {
+  UseMethod(generic = "as.Fragment2", object = x)
+}
+
 #' Compute allele frequencies per cell
 #'
 #' Collapses allele counts for each strand and normalize by the total number of
