@@ -1460,37 +1460,14 @@ subset.ChromatinAssay5 <- function(
     min.cutoff = NA,
     verbose = FALSE
   )
-  # subset cells in region aggregation matrices
-  # cells <- cells %||% colnames(x = x)
-  posmat <- GetAssayData(object = x, layer = "region.aggregation")
 
-  # TODO update for RegionAggregation class
-  if (length(posmat) > 0) { 
-    posmat <- lapply(posmat, subset, cells = cells)
-    posmat <- Filter(Negate(is.null), posmat)
+  # subset cells in Fragments objects
+  ragg <- RegionAggr(object = x)
+  if (length(x = ragg) > 0) {
+    # list of region aggregation objects
+    ragg <- lapply(X = ragg, FUN = subset, cells = cells)
   }
-  x <- SetAssayData(object = x, layer = "region.aggregation", new.data = posmat)
-
-  # for (i in seq_along(along.with = posmat)) {
-    # TODO need to make the formatting for positionEnrichment slot better defined
-    # currently the RegionMatrix and Footprint functions write differently
-    # formatted information
-    # regionmatrix is group x position
-    # footprint is cell x position
-    # if (inherits(x = posmat[[i]], what = "list")) {
-      # from RegionMatrix
-      # group x position matrix
-      # do not subset as we don't have per-cell information here
-      # next
-    # } else {
-      # from Footprint
-      # cell x position matrix
-      # with expected and motif position rows
-      # added_rows <- c("expected", "motif")
-      # added_rows <- added_rows[added_rows %in% rownames(x = posmat[[i]])]
-      # posmat[[i]] <- posmat[[i]][c(cells, added_rows), ]
-    # }
-  # }
+  RegionAggr(object = x) <- ragg
 
   # subset cells in Fragments objects
   frags <- Fragments(object = x)
