@@ -1486,13 +1486,18 @@ subset.ChromatinAssay5 <- function(
   return(x)
 }
 
-#' Subset a single RegionAggregation object
-#'
+#' Subset a RegionAggregation object
+#' 
+#' @param x A [RegionAggregation] object
+#' @param cells Vector of cells to retain
+#' @param ... Arguments passed to other methods
+#' 
 #' @method subset RegionAggregation
 #' @importFrom fastmatch fmatch
 #' @importFrom methods slot "slot<-"
+#' @rdname RegionAggregation-class
 #' @export
-#' @concept RegionAggregation 
+#' @concept RegionAggregation
 subset.RegionAggregation <- function(
     x,
     cells = NULL,
