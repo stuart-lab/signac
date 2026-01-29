@@ -637,7 +637,7 @@ RunFootprint <- function(
 
     # create RegionAggregation objects
     agg.obj <- CreateRegionAggregationObject(
-        matrix = insertion.matrix, 
+        mat = insertion.matrix, 
         regions = regions, 
         upstream = upstream, 
         downstream = downstream, 
