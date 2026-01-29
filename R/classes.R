@@ -52,13 +52,13 @@ Fragment2 <- setClass(
 #' including motif PWMs or PFMs, motif positions, and metadata.
 #'
 #' @slot data A feature x motif matrix. Columns
-#' correspond to motif IDs, rows correspond to genomic features
-#' (peaks or bins). Entries in the matrix should be 1 if the
-#' genomic feature contains the motif, and 0 otherwise.
+#' correspond to motif IDs, rows correspond to features of interest (for 
+#' example, genomic regions). Entries in the matrix should be 1 if the feature
+#' contains the motif and 0 otherwise.
 #' @slot pwm A named list of position weight matrices
 #' @slot motif.names A list containing the name of each motif
 #' @slot positions A [GenomicRanges::GRangesList()] object containing
-#' exact positions of each motif.
+#' exact positions of each motif in the genome.
 #' @slot meta.data A dataframe for storage of additional
 #' information related to each motif. This could include the
 #' names of proteins that bind the motif.
