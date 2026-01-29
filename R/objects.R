@@ -1288,13 +1288,6 @@ subset.GRangesAssay <- function(
   # subset granges
   x <- SetAssayData(object = x, layer = "ranges", new.data = ranges.keep)
 
-  # subset motifs
-  motifs <- Motifs(object = x)
-  if (!is.null(x = motifs)) {
-    motifs <- subset(x = motifs, features = features)
-  }
-  Motifs(object = x) <- motifs
-
   return(x)
 }
 
@@ -1377,6 +1370,13 @@ subset.ChromatinAssay5 <- function(
     frags[[i]] <- subset(x = frags[[i]], cells = cells)
   }
   Fragments(object = x) <- frags
+  
+  # subset motifs
+  motifs <- Motifs(object = x)
+  if (!is.null(x = motifs)) {
+    motifs <- subset(x = motifs, features = features)
+  }
+  Motifs(object = x) <- motifs
 
   return(x)
 }
