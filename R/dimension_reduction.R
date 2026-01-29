@@ -245,6 +245,36 @@ RunSVD.Assay5 <- function(
   return(reduction.data)
 }
 
+#' @rdname RunSVD
+#' @export
+#' @concept dimension_reduction
+#' @method RunSVD Assay
+RunSVD.Assay <- function(
+    object,
+    assay = NULL,
+    layer = "data",
+    features = NULL,
+    pca = FALSE,
+    n = 50,
+    reduction.key = ifelse(pca, "PCA_", "LSI_"),
+    scale.max = NULL,
+    verbose = TRUE,
+    ...
+) {
+  RunSVD.Assay5(
+    object = object,
+    assay = assay,
+    features = features,
+    layer = layer,
+    n = n,
+    pca = pca,
+    reduction.key = reduction.key,
+    scale.max = scale.max,
+    verbose = verbose,
+    ...
+  )
+}
+
 #' @param features Which features to use. If NULL, use variable features
 #'
 #' @rdname RunSVD
