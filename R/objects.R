@@ -491,7 +491,10 @@ CreateRegionAggregationObject <- function(
                  ") does not match number of matrix rows (", nrow(x = matrix), ")")
         }
     }
-        
+    
+    # strip matrix dimnames
+    dimnames(x = mat) <- NULL
+
     agg.obj <- new(
         Class = "RegionAggregation", 
         matrix = mat, 
@@ -956,8 +959,19 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = "data", ...) {
 #' @method RenameCells ChromatinAssay5
 #' @export
 RenameCells.ChromatinAssay5 <- function(object, new.names = NULL, ...) {
-  # there's currently nothing cell-centric that needs to be renamed in the GRangesAssay class
-
+  
+  # name of each element is the existing cell name
+  # element itself is the corresponding new name
+  # new.names vector names will be set in the Seurat method. Need to set here
+  # in case RenameCells is called directly on a ChromatinAssay5 object
+  if (is.null(x = names(x = new.names))) {
+    if (length(x = new.names) != ncol(x = object)) {
+      stop("Insufficient names supplied to rename cells")
+    }
+    names(x = new.names) <- colnames(x = object)
+  }
+  
+  # there's nothing that needs to be renamed in the GRangesAssay class
   # rename cells in the parental class
   object <- NextMethod()
 
@@ -996,6 +1010,12 @@ RenameCells.Fragment2 <- function(object, new.names, ...) {
       "with no cell information stored"
     )
   }
+  if (is.null(x = names(x = new.names))) {
+    if (length(x = new.names) != length(x = cells)) {
+      stop("Insufficient names supplied to rename cells")
+    }
+    names(x = new.names) <- cells
+  }
   cells <- cells[names(x = new.names)]
   names(x = cells) <- new.names[names(x = cells)]
   slot(object = object, name = "cells") <- cells
@@ -1003,27 +1023,29 @@ RenameCells.Fragment2 <- function(object, new.names, ...) {
 }
 
 #' @importFrom SeuratObject RenameCells
+#' @importFrom methods slot "slot<-"
 #' @concept RegionAggregation
 #' @method RenameCells RegionAggregation
 #' @export
 RenameCells.RegionAggregation <- function(object, new.names, ...) {
-  cells <- object@cells 
-  # ^ update to cells <- GetRegionAggregation(object = object, slot = "cells")
+  cells <- slot(object = object, name = "cells")
   if (is.null(x = cells)) {
+    # invalid object
     stop(
       "Cannot rename cells in RegionAggregation object ",
       "with no cell information stored"
     )
   }
+  if (is.null(x = names(x = new.names))) {
+    if (length(x = new.names) != length(x = cells)) {
+      stop("Insufficient names supplied to rename cells")
+    }
+    names(x = new.names) <- cells
+  }
   # subset and rename 
   cells <- cells[names(x = new.names)]
   names(x = cells) <- new.names[names(x = cells)]
   slot(object = object, name = "cells") <- cells
-  # also rename matrix rownames 
-  old.rows <- rownames(object@matrix)
-  # ^ update to get using GetRegionAggregation(object, slot = "matrix")
-  rownames(object@matrix) <- new.names(old.rows, names(new.names))
-
   return(object)
 }
 
