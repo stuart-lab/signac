@@ -33,7 +33,6 @@ test_that("AddMotifs works with fakechr", {
   )
   expect_warning(object <- CreateGRangesAssay(
     counts = mat,
-    sep = c("-", "-"),
     fragments = fragments,
     verbose = FALSE
   ))

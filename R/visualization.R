@@ -87,7 +87,6 @@ BigwigTrack <- function(
   region <- FindRegion(
     object = NULL,
     region = region,
-    sep = c("-", "-"),
     extend.upstream = extend.upstream,
     extend.downstream = extend.downstream
   )
@@ -317,7 +316,7 @@ GWASTrack <- function(
   }
 
   if (!inherits(x = region, what = "GRanges")) {
-    region <- StringToGRanges(regions = region)
+    region <- GRanges(region)
   }
 
   # subset to region
@@ -1383,7 +1382,6 @@ SingleCoveragePlot <- function(
   scale.factor = NULL,
   cells = NULL,
   idents = NULL,
-  sep = c("-", "-"),
   heights = NULL,
   max.downsample = 3000,
   downsample.rate = 0.1,
@@ -1430,7 +1428,6 @@ SingleCoveragePlot <- function(
   region <- FindRegion(
     object = object,
     region = region,
-    sep = sep,
     assay = assay[[1]],
     extend.upstream = extend.upstream,
     extend.downstream = extend.downstream
@@ -2026,9 +2023,6 @@ CoverageTrack <- function(
 #' @param split.by A metadata variable to split the tracks by. For example,
 #' grouping by "celltype" and splitting by "batch" will create separate tracks
 #' for each combination of celltype and batch.
-#' @param sep Separators to use for strings encoding genomic coordinates. First
-#' element is used to separate the chromosome from the coordinates, second
-#' element is used to separate the start from end coordinate.
 #' @param heights Relative heights for each track (accessibility, gene
 #' annotations, peaks, links).
 #' @param max.downsample Minimum number of positions kept when downsampling.
@@ -2063,21 +2057,21 @@ CoverageTrack <- function(
 #' Fragments(atac_small) <- fragments
 #'
 #' # Basic coverage plot
-#' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"))
+#' CoveragePlot(object = atac_small, region = c("chr1:713500-714500"))
 #'
 #' # Show additional ranges
-#' ranges.show <- StringToGRanges("chr1-713750-714000")
-#' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), ranges = ranges.show)
+#' ranges.show <- GenomicRanges::GRanges("chr1:713750-714000")
+#' CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), ranges = ranges.show)
 #'
 #' # Highlight region
-#' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), region.highlight = ranges.show)
+#' CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), region.highlight = ranges.show)
 #'
 #' # Change highlight color
 #' ranges.show$color <- "orange"
-#' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), region.highlight = ranges.show)
+#' CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), region.highlight = ranges.show)
 #'
 #' # Show expression data
-#' CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), features = "GYG2")
+#' CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), features = "GYG2")
 #' }
 CoveragePlot <- function(
   object,
@@ -2113,7 +2107,6 @@ CoveragePlot <- function(
   ymax = NULL,
   cells = NULL,
   idents = NULL,
-  sep = c("-", "-"),
   max.downsample = 3000,
   downsample.rate = 0.1,
   gwas = NULL,
@@ -2163,7 +2156,6 @@ CoveragePlot <- function(
         extend.downstream = extend.downstream,
         cells = cells,
         idents = idents,
-        sep = sep,
         heights = heights,
         max.downsample = max.downsample,
         downsample.rate = downsample.rate,
@@ -2271,12 +2263,12 @@ globalVariables(names = "group", package = "Signac")
 #'   cells = colnames(atac_small),
 #'   validate.fragments = FALSE
 #' )
-#' FragmentHistogram(object = atac_small, region = "chr1-10245-780007")
+#' FragmentHistogram(object = atac_small, region = "chr1:10245-780007")
 #' }
 FragmentHistogram <- function(
   object,
   assay = NULL,
-  region = "chr1-1-2000000",
+  region = "chr1:1-2000000",
   group.by = NULL,
   cells = NULL,
   log.scale = FALSE,
@@ -2350,8 +2342,8 @@ FragmentHistogram <- function(
 #' @concept visualization
 #' @examples
 #' \donttest{
-#' p1 <- PeakPlot(atac_small, region = "chr1-29554-39554")
-#' p2 <- AnnotationPlot(atac_small, region = "chr1-29554-39554")
+#' p1 <- PeakPlot(atac_small, region = "chr1:29554-39554")
+#' p2 <- AnnotationPlot(atac_small, region = "chr1:29554-39554")
 #' CombineTracks(plotlist = list(p1, p2), heights = c(1, 1))
 #' }
 CombineTracks <- function(
@@ -2423,9 +2415,6 @@ CombineTracks <- function(
 #' ranges by. If NULL, do not color by any metadata variable.
 #' @param color Color to use. If `group.by` is not NULL, this can be a
 #' custom color scale (see examples).
-#' @param sep Separators to use for strings encoding genomic coordinates. First
-#' element is used to separate the chromosome from the coordinates, second
-#' element is used to separate the start from end coordinate.
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
 #'
@@ -2434,7 +2423,7 @@ CombineTracks <- function(
 #' @concept visualization
 #' @importFrom SeuratObject DefaultAssay
 #' @importFrom S4Vectors mcols<-
-#' @importFrom GenomicRanges start end
+#' @importFrom GenomicRanges start end GRanges
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom Seqinfo seqnames
 #' @importFrom ggplot2 ggplot aes_string geom_segment theme_classic element_blank
@@ -2442,13 +2431,13 @@ CombineTracks <- function(
 #' @examples
 #' \donttest{
 #' # plot peaks in assay
-#' PeakPlot(atac_small, region = "chr1-710000-715000")
+#' PeakPlot(atac_small, region = "chr1:710000-715000")
 #'
 #' # manually set color
-#' PeakPlot(atac_small, region = "chr1-710000-715000", color = "red")
+#' PeakPlot(atac_small, region = "chr1:710000-715000", color = "red")
 #'
 #' # color by a variable in the feature metadata
-#' PeakPlot(atac_small, region = "chr1-710000-715000", group.by = "count")
+#' PeakPlot(atac_small, region = "chr1:710000-715000", group.by = "count")
 #' }
 PeakPlot <- function(
   object,
@@ -2457,7 +2446,6 @@ PeakPlot <- function(
   peaks = NULL,
   group.by = NULL,
   color = "dimgrey",
-  sep = c("-", "-"),
   extend.upstream = 0,
   extend.downstream = 0
 ) {
@@ -2467,7 +2455,7 @@ PeakPlot <- function(
   }
 
   if (!inherits(x = region, what = "GRanges")) {
-    region <- StringToGRanges(regions = region)
+    region <- GRanges(region)
   }
   if (is.null(x = peaks)) {
     if (!inherits(x = object[[assay]], what = "GRangesAssay")) {
@@ -2481,7 +2469,6 @@ PeakPlot <- function(
   region <- FindRegion(
     object = object,
     region = region,
-    sep = sep,
     assay = assay[[1]],
     extend.upstream = extend.upstream,
     extend.downstream = extend.downstream
@@ -2540,9 +2527,6 @@ PeakPlot <- function(
 #' @param region A genomic region to plot
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param min.cutoff Minimum absolute score for link to be plotted.
-#' @param sep Separators to use for strings encoding genomic coordinates. First
-#' element is used to separate the chromosome from the coordinates, second
-#' element is used to separate the start from end coordinate.
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
 #' @param scale.linewidth Scale thickness of the line according to link score.
@@ -2562,7 +2546,6 @@ LinkPlot <- function(
   region,
   assay = NULL,
   min.cutoff = 0,
-  sep = c("-", "-"),
   extend.upstream = 0,
   extend.downstream = 0,
   scale.linewidth = FALSE
@@ -2570,7 +2553,6 @@ LinkPlot <- function(
   region <- FindRegion(
     object = object,
     region = region,
-    sep = sep,
     assay = assay,
     extend.upstream = extend.upstream,
     extend.downstream = extend.downstream
@@ -2664,9 +2646,6 @@ LinkPlot <- function(
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param mode Display mode. Choose either "gene" or "transcript" to determine
 #' whether genes or transcripts are plotted.
-#' @param sep Separators to use for strings encoding genomic coordinates. First
-#' element is used to separate the chromosome from the coordinates, second
-#' element is used to separate the start from end coordinate.
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
 #'
@@ -2683,14 +2662,13 @@ LinkPlot <- function(
 #' @concept visualization
 #' @examples
 #' \donttest{
-#' AnnotationPlot(object = atac_small, region = c("chr1-29554-39554"))
+#' AnnotationPlot(object = atac_small, region = c("chr1:29554-39554"))
 #' }
 AnnotationPlot <- function(
   object,
   region,
   assay = NULL,
   mode = "gene",
-  sep = c("-", "-"),
   extend.upstream = 0,
   extend.downstream = 0
 ) {
@@ -2710,7 +2688,6 @@ AnnotationPlot <- function(
   region <- FindRegion(
     object = object,
     region = region,
-    sep = sep,
     assay = assay,
     extend.upstream = extend.upstream,
     extend.downstream = extend.downstream
@@ -3055,14 +3032,14 @@ VariantPlot <- function(
 #' # Create stacked plot
 #' VariantTrack(
 #'   variants = variants,
-#'   region = "chr10-112990000-113010000"
+#'   region = "chr10:112990000-113010000"
 #' )
 VariantTrack <- function(
   variants,
   region
 ) {
   if (!inherits(x = region, what = "GRanges")) {
-    region <- StringToGRanges(regions = region)
+    region <- GRanges(region)
   }
 
   chromosome <- as.character(x = seqnames(x = region))
@@ -3112,9 +3089,6 @@ VariantTrack <- function(
 #' current cell identities
 #' @param idents List of cell identities to include in the plot. If NULL, use
 #' all identities.
-#' @param sep Separators to use for strings encoding genomic coordinates. First
-#' element is used to separate the chromosome from the coordinates, second
-#' element is used to separate the start from end coordinate.
 #' @param tile.size Size of the sliding window for per-cell fragment tile plot
 #' @param tile.cells Number of cells to display fragment information for in tile
 #' plot.
@@ -3141,12 +3115,11 @@ VariantTrack <- function(
 #'   validate.fragments = FALSE
 #' )
 #' Fragments(atac_small) <- fragments
-#' TilePlot(object = atac_small, region = c("chr1-713500-714500"))
+#' TilePlot(object = atac_small, region = c("chr1:713500-714500"))
 #' }
 TilePlot <- function(
   object,
   region,
-  sep = c("-", "-"),
   tile.size = 100,
   tile.cells = 100,
   extend.upstream = 0,
@@ -3164,7 +3137,6 @@ TilePlot <- function(
   region <- FindRegion(
     object = object,
     region = region,
-    sep = sep,
     assay = assay,
     extend.upstream = extend.upstream,
     extend.downstream = extend.downstream
@@ -3307,7 +3279,7 @@ CreateTilePlot <- function(df, n, legend = TRUE) {
 #' @concept visualization
 #' @examples
 #' \donttest{
-#' PeakPlot(atac_small, region = "chr1-710000-715000") + theme_browser()
+#' PeakPlot(atac_small, region = "chr1:710000-715000") + theme_browser()
 #' }
 theme_browser <- function(..., legend = TRUE, axis.text.y = FALSE) {
   browser.theme <- theme_classic() +

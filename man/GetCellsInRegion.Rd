@@ -21,6 +21,6 @@ Extract cell names containing reads mapped within a given genomic region
 }
 \examples{
 fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
-GetCellsInRegion(tabix = fpath, region = "chr1-10245-762629")
+GetCellsInRegion(tabix = fpath, region = "chr1:10245-762629")
 }
 \concept{utilities}

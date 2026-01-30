@@ -9,7 +9,6 @@ AnnotationPlot(
   region,
   assay = NULL,
   mode = "gene",
-  sep = c("-", "-"),
   extend.upstream = 0,
   extend.downstream = 0
 )
@@ -24,10 +23,6 @@ AnnotationPlot(
 \item{mode}{Display mode. Choose either "gene" or "transcript" to determine
 whether genes or transcripts are plotted.}
 
-\item{sep}{Separators to use for strings encoding genomic coordinates. First
-element is used to separate the chromosome from the coordinates, second
-element is used to separate the start from end coordinate.}
-
 \item{extend.upstream}{Number of bases to extend the region upstream.}
 
 \item{extend.downstream}{Number of bases to extend the region downstream.}
@@ -40,7 +35,7 @@ Display gene annotations in a given region of the genome.
 }
 \examples{
 \donttest{
-AnnotationPlot(object = atac_small, region = c("chr1-29554-39554"))
+AnnotationPlot(object = atac_small, region = c("chr1:29554-39554"))
 }
 }
 \concept{visualization}

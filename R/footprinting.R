@@ -287,7 +287,6 @@ Footprint.Seurat <- function(
 #' supported object types.
 #' @param region Genomic region to use when assessing bias.
 #' @param verbose Display messages
-#' @param ... Additional arguments passed to [StringToGRanges()]
 #'
 #' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
@@ -313,22 +312,17 @@ Footprint.Seurat <- function(
 InsertionBias.ChromatinAssay5 <- function(
   object,
   genome,
-  region = "chr1-1-249250621",
-  verbose = TRUE,
-  ...
+  region = "chr1:1-249250621",
+  verbose = TRUE
 ) {
   if (!requireNamespace("Biostrings", quietly = TRUE)) {
     stop("Please install Biostrings: BiocManager::install('Biostrings')")
   }
   chr.use <- unlist(x = strsplit(x = region, split = "-", fixed = TRUE))[[1]]
   if (inherits(x = genome, what = "FaFile")) {
-    chr.use <- StringToGRanges(regions = region)
+    chr.use <- GRanges(region)
   }
-  reads <- MultiGetReadsInRegion(
-    object = object,
-    region = region,
-    ...
-  )
+  reads <- MultiGetReadsInRegion(object = object, region = region)
   insertions <- GRanges(
     seqnames = c(reads$chr, reads$chr),
     ranges = IRanges(
@@ -369,7 +363,7 @@ InsertionBias.Seurat <- function(
   object,
   genome,
   assay = NULL,
-  region = "chr1-1-249250621",
+  region = "chr1:1-249250621",
   verbose = TRUE,
   ...
 ) {
@@ -587,7 +581,6 @@ RunFootprint <- function(
     if (in.peaks) {
         regions <- subsetByOverlaps(x = regions, ranges = granges(x = object))
     } 
-    browser()
     # extend upstream and downstream
     regions <- Extend(
         x = regions,

@@ -38,7 +38,6 @@ CoveragePlot(
   ymax = NULL,
   cells = NULL,
   idents = NULL,
-  sep = c("-", "-"),
   max.downsample = 3000,
   downsample.rate = 0.1,
   gwas = NULL,
@@ -172,10 +171,6 @@ remove the effect of extreme values that may otherwise distort the scale.}
 \item{idents}{Which identities to include in the plot. Default is all
 identities.}
 
-\item{sep}{Separators to use for strings encoding genomic coordinates. First
-element is used to separate the chromosome from the coordinates, second
-element is used to separate the start from end coordinate.}
-
 \item{max.downsample}{Minimum number of positions kept when downsampling.
 Downsampling rate is adaptive to the window size, but this parameter will set
 the minimum possible number of positions to include so that plots do not
@@ -237,21 +232,21 @@ fragments <- CreateFragmentObject(
 Fragments(atac_small) <- fragments
 
 # Basic coverage plot
-CoveragePlot(object = atac_small, region = c("chr1-713500-714500"))
+CoveragePlot(object = atac_small, region = c("chr1:713500-714500"))
 
 # Show additional ranges
-ranges.show <- StringToGRanges("chr1-713750-714000")
-CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), ranges = ranges.show)
+ranges.show <- GenomicRanges::GRanges("chr1:713750-714000")
+CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), ranges = ranges.show)
 
 # Highlight region
-CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), region.highlight = ranges.show)
+CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), region.highlight = ranges.show)
 
 # Change highlight color
 ranges.show$color <- "orange"
-CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), region.highlight = ranges.show)
+CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), region.highlight = ranges.show)
 
 # Show expression data
-CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), features = "GYG2")
+CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), features = "GYG2")
 }
 }
 \concept{visualization}

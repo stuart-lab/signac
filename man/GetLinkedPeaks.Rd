@@ -16,6 +16,8 @@ GetLinkedPeaks(object, ...)
 \method{GetLinkedPeaks}{GRangesAssay}(object, features, min.abs.score = 0, ...)
 }
 \arguments{
+\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object}
+
 \item{...}{Arguments passed to other methods}
 
 \item{features}{A list of genes to find linked peaks for}
@@ -26,8 +28,6 @@ GetLinkedPeaks(object, ...)
 be returned}
 }
 \value{
-Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
-
 Returns a character vector of genes
 }
 \description{

@@ -114,9 +114,8 @@ GetLinkedGenes.GRangesAssay <- function(
 
 #' Cicero connections to links
 #'
-#' Convert the output of Cicero connections to a set of genomic ranges where
-#' the start and end coordinates of the range are the midpoints of the linked
-#' elements. Only elements on the same chromosome are included in the output.
+#' Convert the output of Cicero connections to a
+#' `InteractionSet::GInteractions()` object.
 #'
 #' See the Cicero package for more information:
 #' <https://bioconductor.org/packages/cicero/>
@@ -136,36 +135,19 @@ GetLinkedGenes.GRangesAssay <- function(
 #' CCAN that it belongs to in the second column.
 #' @param threshold Threshold for retaining a coaccessible site. Links with
 #' a value less than or equal to this threshold will be discarded.
-#' @param sep Separators to use for strings encoding genomic coordinates.
-#' First element is used to separate the chromosome from the coordinates, second
-#' element is used to separate the start from end coordinate.
 #'
 #' @export
-#' @importFrom GenomicRanges start end makeGRangesFromDataFrame
-#' @importFrom Seqinfo seqnames
-#' @importFrom stringi stri_split_fixed
+#' @importFrom GenomicRanges GRanges
+#' @importFrom InteractionSet GInteractions
 #'
 #' @concept links
-#' @return Returns a [GenomicRanges::GRanges()] object
+#' @return Returns a [InteractionSet::GInteractions()] object
 ConnectionsToLinks <- function(
   conns,
   ccans = NULL,
-  threshold = 0,
-  sep = c("-", "-")
+  threshold = 0
 ) {
-  # add chromosome information
-  chr1 <- stri_split_fixed(str = conns$Peak1, pattern = sep[[1]])
-  conns$chr1 <- unlist(x = chr1)[3 * (seq_along(along.with = chr1)) - 2]
-  chr2 <- stri_split_fixed(str = conns$Peak2, pattern = sep[[1]])
-  conns$chr2 <- unlist(x = chr2)[3 * (seq_along(along.with = chr2)) - 2]
-
-  # filter out trans-chr links
-  conns <- conns[conns$chr1 == conns$chr2, ]
-
-  # filter based on threshold
-  conns <- conns[!is.na(conns$coaccess), ]
-  conns <- conns[conns$coaccess > threshold, ]
-
+  
   # add group information
   if (!is.null(x = ccans)) {
     ccan.lookup <- ccans$CCAN
@@ -180,36 +162,17 @@ ConnectionsToLinks <- function(
   } else {
     conns$group <- NA
   }
+  
+  # filter based on threshold
+  conns <- conns[!is.na(conns$coaccess), ]
+  conns <- conns[conns$coaccess > threshold, ]
+  
+  # create ginteractions
+  gi <- GInteractions(GRanges(conns$Peak1), GRanges(conns$Peak2))
+  gi$score <- conns$coaccess
+  gi$group <- conns$group
 
-  # extract genomic regions
-  coords.1 <- StringToGRanges(regions = conns$Peak1, sep = sep)
-  coords.2 <- StringToGRanges(regions = conns$Peak2, sep = sep)
-  chr <- seqnames(x = coords.1)
-
-  # find midpoints
-  midpoints.1 <- start(x = coords.1) + (width(x = coords.1) / 2)
-  midpoints.2 <- start(x = coords.2) + (width(x = coords.2) / 2)
-
-  startpos <- ifelse(
-    test = midpoints.1 > midpoints.2,
-    yes = midpoints.2,
-    no = midpoints.1
-  )
-  endpos <- ifelse(
-    test = midpoints.1 > midpoints.2,
-    yes = midpoints.1,
-    no = midpoints.2
-  )
-
-  link.df <- data.frame(chromosome = chr,
-                        start = startpos,
-                        end = endpos,
-                        score = conns$coaccess,
-                        group = conns$group)
-
-  # convert to genomic ranges
-  links <- makeGRangesFromDataFrame(df = link.df, keep.extra.columns = TRUE)
-  return(links)
+  return(gi)
 }
 
 #' Link peaks to genes
@@ -568,7 +531,7 @@ LinkPeaks <- function(
 #' @importFrom GenomicRanges resize start width GRanges makeGRangesFromDataFrame
 #' @importFrom IRanges IRanges
 #' @importFrom BiocGenerics sort
-LinksToGRanges <- function(linkmat, gene.coords, sep = c("-", "-")) {
+LinksToGRanges <- function(linkmat, gene.coords) {
   # get TSS for each gene
   tss <- resize(gene.coords, width = 1, fix = 'start')
   gene.idx <- sapply(
@@ -580,10 +543,7 @@ LinksToGRanges <- function(linkmat, gene.coords, sep = c("-", "-")) {
   tss <- tss[gene.idx]
 
   # get midpoint of each peak
-  peak.ranges <- StringToGRanges(
-    regions = colnames(x = linkmat),
-    sep = sep
-  )
+  peak.ranges <- GRanges(colnames(x = linkmat))
   midpoints <- start(x = peak.ranges) + (width(x = peak.ranges) / 2)
 
   # convert to triplet form
@@ -619,7 +579,6 @@ LinksToGRanges <- function(linkmat, gene.coords, sep = c("-", "-")) {
 # @param genes A GRanges object containing gene coordinates
 # @param distance Distance threshold. Peaks within this distance from the gene
 # will be recorded.
-# @param sep Separator for peak names when creating results matrix
 #
 #' @importFrom GenomicRanges findOverlaps
 #' @importFrom S4Vectors queryHits subjectHits
@@ -630,8 +589,7 @@ LinksToGRanges <- function(linkmat, gene.coords, sep = c("-", "-")) {
 DistanceToTSS <- function(
   peaks,
   genes,
-  distance = 200000,
-  sep = c("-", "-")
+  distance = 200000
   ) {
   tss <- resize(x = genes, width = 1, fix = 'start')
   genes.extended <- suppressWarnings(
@@ -651,7 +609,7 @@ DistanceToTSS <- function(
     x = 1,
     dims = c(length(x = peaks), length(x = genes.extended))
   )
-  rownames(x = hit_matrix) <- GRangesToString(grange = peaks, sep = sep)
+  rownames(x = hit_matrix) <- as.character(x = peaks)
   colnames(x = hit_matrix) <- genes.extended$gene_name
   return(hit_matrix)
 }

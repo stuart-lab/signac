@@ -243,7 +243,7 @@ GeneActivity <- function(
   )
   # set row names
   gene.key <- transcripts$gene_name
-  names(x = gene.key) <- GRangesToString(grange = transcripts)
+  names(x = gene.key) <- as.character(x = transcripts)
   rownames(x = counts) <- as.vector(x = gene.key[rownames(x = counts)])
   counts <- counts[rownames(x = counts) != "", ]
   
@@ -268,9 +268,6 @@ GeneActivity <- function(
 #' @param binsize Size of the genome bins to use
 #' @param process_n Number of regions to load into memory at a time, per thread.
 #' Processing more regions at once can be faster but uses more memory.
-#' @param sep Vector of separators to use for genomic string. First element is
-#' used to separate chromosome and coordinates, second separator is used to
-#' separate start and end coordinates.
 #' @param verbose Display messages.
 #' @param ... Arguments passed to [FeatureMatrix()].
 #'
@@ -296,7 +293,6 @@ GenomeBinMatrix <- function(
   cells = NULL,
   binsize = 5000,
   process_n = 2000,
-  sep = c("-", "-"),
   verbose = TRUE,
   ...
 ) {
@@ -310,7 +306,6 @@ GenomeBinMatrix <- function(
     features = tiles,
     cells = cells,
     process_n = process_n,
-    sep = sep,
     verbose = verbose,
     ...
   )
@@ -350,14 +345,12 @@ GenomeBinMatrix <- function(
 #' in the fragments file
 #' @param process_n Number of regions to load into memory at a time, per thread.
 #' Processing more regions at once can be faster but uses more memory.
-#' @param sep Vector of separators to use for genomic string. First element is
-#' used to separate chromosome and coordinates, second separator is used to
-#' separate start and end coordinates.
 #' @param verbose Display messages
 #'
 #' @export
 #' @importFrom SeuratObject RowMergeSparseMatrices
 #' @importFrom GenomeInfoDb renameSeqlevels
+#' @importFrom GenomicRanges GRanges
 #' @concept quantification
 #' @return Returns a sparse matrix
 #' @examples
@@ -375,15 +368,11 @@ FeatureMatrix <- function(
   keep_all_features = FALSE,
   cells = NULL,
   process_n = 2000,
-  sep = c("-", "-"),
   verbose = TRUE
 ) {
   if (!inherits(x = features, what = "GRanges")) {
     if (inherits(x = features, what = "character")) {
-      features <- StringToGRanges(
-        regions = features,
-        sep = sep
-      )
+      features <- GRanges(features)
     } else {
       stop("features should be a GRanges object")
     }
@@ -453,7 +442,7 @@ FeatureMatrix <- function(
           cleanup = TRUE
         )
         colnames(x = mat) <- names(x = cell.vec)
-        rownames(x = mat) <- GRangesToString(grange = features)
+        rownames(x = mat) <- as.character(x = features)
         mat
       }
     )
@@ -466,7 +455,6 @@ FeatureMatrix <- function(
           features = features,
           keep_all_features = keep_all_features,
           cells = cells,
-          sep = sep,
           verbose = verbose,
           process_n = process_n
         )
@@ -485,7 +473,7 @@ FeatureMatrix <- function(
       X = mat.list,
       FUN = AddMissing,
       cells = all.cells,
-      features = GRangesToString(grange = features, sep = sep)
+      features = as.character(x = features)
     )
     featmat <- Reduce(f = `+`, x = mat.list)
     return(featmat)
@@ -647,12 +635,12 @@ RunFragtk <- function(
 #### Not Exported ####
 
 # matrix multiplication method for summing matrix rows
-#' @importFrom GenomicRanges reduce
+#' @importFrom GenomicRanges reduce GRanges
 #' @importFrom S4Vectors elementNROWS
 #' @importFrom Matrix crossprod sparseMatrix
 #' @importMethodsFrom Matrix t
 CombineTiles <- function(bins) {
-  ranges <- StringToGRanges(regions = rownames(x = bins))
+  ranges <- GRanges(rownames(x = bins))
   reduced.tiles <- reduce(x = ranges, with.revmap = TRUE)
   rmap <- reduced.tiles$revmap
 
@@ -666,7 +654,7 @@ CombineTiles <- function(bins) {
   # sum bin matrix rows via matrix multiplication
   collapsed <- crossprod(x = bins, y = collapse_matrix)
   collapsed <- t(x = collapsed)
-  rownames(x = collapsed) <- GRangesToString(grange = reduced.tiles)
+  rownames(x = collapsed) <- as.character(x = reduced.tiles)
 
   return(collapsed)
 }
@@ -678,7 +666,7 @@ CombineTiles <- function(bins) {
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
 #' @importFrom Matrix sparseMatrix
-#' @importMethodsFrom GenomicRanges intersect
+#' @importMethodsFrom GenomicRanges intersect GRanges
 #' @importFrom Rsamtools TabixFile seqnamesTabix
 #' @importFrom fastmatch fmatch
 SingleFeatureMatrix <- function(
@@ -687,7 +675,6 @@ SingleFeatureMatrix <- function(
   keep_all_features = FALSE,
   cells = NULL,
   process_n = 2000,
-  sep = c("-", "-"),
   verbose = TRUE
 ) {
   fragment.path <- GetFragmentData(object = fragment, slot = "file.path")
@@ -730,7 +717,7 @@ SingleFeatureMatrix <- function(
   tbx <- TabixFile(file = fragment.path, index = fragment.index)
   n_feat_start <- length(x = feat.use)
   if (keep_all_features) {
-    features_to_get <- GRangesToString(grange = feat.use, sep = sep)
+    features_to_get <- as.character(x = feat.use)
   } else {
     features_to_get <- NULL
   }
@@ -768,7 +755,6 @@ SingleFeatureMatrix <- function(
       FUN = PartialMatrix,
       tabix = tbx,
       cells = cells,
-      sep = sep,
       future.globals = list(),
       future.scheduling = FALSE
     )
@@ -778,8 +764,7 @@ SingleFeatureMatrix <- function(
       X = feature.list,
       FUN = PartialMatrix,
       tabix = tbx,
-      cells = cells,
-      sep = sep
+      cells = cells
     )
   }
   # remove any that are NULL (no fragments for any cells in the region)
@@ -814,7 +799,7 @@ SingleFeatureMatrix <- function(
   if (keep_all_features) {
     feat.str <- features_to_get
   } else {
-    feat.str <- GRangesToString(grange = feat.use, sep = sep)
+    feat.str <- as.character(x = feat.use)
   }
   featmat <- featmat[feat.str, , drop=FALSE]
   if (!is.null(x = seqlevel.conversion)) {
@@ -824,7 +809,7 @@ SingleFeatureMatrix <- function(
     features <- suppressWarnings(
       expr = renameSeqlevels(x = feat.use, value = sl)
     )
-    feat.str <- GRangesToString(grange = features, sep = sep)
+    feat.str <- as.character(x = features)
     rownames(x = featmat) <- feat.str
   }
   return(featmat)

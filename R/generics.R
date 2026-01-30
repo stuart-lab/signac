@@ -337,7 +337,7 @@ GetLinkedGenes <- function(object, ...) {
 #' score information as metadata columns named "gene," "peak," and "score"
 #' respectively.
 #'
-#' @return Returns a [SeuratObject::Seurat()] object
+#' @param object A [SeuratObject::Seurat] object
 #' @param ... Arguments passed to other methods
 #' @return Returns a character vector of genes
 #' 

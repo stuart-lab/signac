@@ -10,7 +10,6 @@ CreateMotifMatrix(
   genome,
   score = FALSE,
   use.counts = FALSE,
-  sep = c("-", "-"),
   ...
 )
 }
@@ -29,9 +28,6 @@ in \code{\link[motifmatchr:matchMotifs]{motifmatchr::matchMotifs()}}}
 
 \item{use.counts}{Record motif counts per region. If FALSE (default),
 record presence/absence of motif. Only applicable if \code{score=FALSE}.}
-
-\item{sep}{A length-2 character vector containing the separators to be used
-when constructing matrix rownames from the GRanges}
 
 \item{...}{Additional arguments passed to
 \code{\link[motifmatchr:matchMotifs]{motifmatchr::matchMotifs()}}}

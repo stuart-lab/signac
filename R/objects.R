@@ -17,11 +17,9 @@ NULL
 #' @rdname CreateGRangesAssay
 #'
 #' @param ranges A set of [GenomicRanges::GRanges()] corresponding to
-#' the rows of the input matrix
-#' @param sep Separators to use for strings encoding genomic coordinates.
-#' First element is used to separate the chromosome from the coordinates,
-#' second element is used to separate the start from end coordinate. Only
-#' used if `ranges` is NULL.
+#' the rows of the input matrix. If `NULL`, genomic ranges will be extracted
+#' from the rownames of the input data matrix, and those rownames must be
+#' formatted as `chromosome:start-end`.
 #' @param ... Additional arguments passed to [CreateChromatinAssay5()]
 #' and [SeuratObject::CreateAssay5Object()].
 #'
@@ -38,7 +36,6 @@ CreateGRangesAssay <- function(
   counts,
   data,
   ranges = NULL,
-  sep = c("-", "-"),
   ...
 ) {
   chrom.assay <- CreateChromatinAssay5(counts = counts, data = data, ...)
@@ -51,12 +48,7 @@ CreateGRangesAssay <- function(
   if (!is.null(x = ranges)) {
     ranges <- ranges[features.keep, ]
   }
-  granges.assay <- as.GRangesAssay(
-    x = chrom.assay,
-    ranges = ranges,
-    sep = sep,
-    ...
-  )
+  granges.assay <- as.GRangesAssay(x = chrom.assay, ranges = ranges, ...)
   return(granges.assay)
 }
 
@@ -248,9 +240,13 @@ as.GRangesAssay.ChromatinAssay <- function(x, ...) {
   }
   
   # construct new assay object
-  x <- as(object = x, Class = "Assay5")
-  x <- as.GRangesAssay(
-    x = x,
+  newobj <- as(object = x, Class = "Assay5")
+  
+  # update rownames
+  rownames(x = newobj) <- as.character(x = x@ranges)
+  
+  newobj <- as.GRangesAssay(
+    x = newobj,
     Class = "GRangesAssay",
     ranges = x@ranges,
     annotation = x@annotation,
@@ -261,7 +257,7 @@ as.GRangesAssay.ChromatinAssay <- function(x, ...) {
     region.aggregation = NULL,
   )
   
-  return(x)
+  return(newobj)
 }
 
 #' @rdname as.Fragment2
@@ -289,6 +285,19 @@ as.Fragment2.Fragment <- function(x, ...) {
   return(x)
 }
 
+#' @param annotation A set of `GenomicRanges::GRanges()` containing gene
+#' annotations for the genome used. It must have the following columns:
+#' - `tx_id` or `transcript_id`: Transcript ID
+#' - `gene_name`: Gene name
+#' - `gene_id`: Gene ID
+#' - `gene_biotype`: Gene biotype (e.g. "protein_coding", "lincRNA")
+#' - `type`: Annotation type (e.g. "exon", "gap")
+#' @param fragments Path to a tabix-indexed fragments file for the data
+#' contained in the input matrix.
+#' @param bias A Tn5 integration bias matrix vector
+#' @param region.aggregation A named list of `RegionAggregation-class` objects.
+#' @param motifs A `Motif-class` object
+#' @param links A named list of `InteractionSet::GInteractions()` objects
 #' @rdname as.GRangesAssay
 #' @method as.GRangesAssay Assay5
 #' @export
@@ -302,7 +311,6 @@ as.GRangesAssay.Assay5 <- function(
   ranges = NULL,
   motifs = NULL,
   links = NULL,
-  sep = c("-", "-"),
   ...
 ) {
   x <- as.ChromatinAssay5(
@@ -314,17 +322,12 @@ as.GRangesAssay.Assay5 <- function(
     links = links,
     region.aggregation = region.aggregation
   )
-  x <- as.GRangesAssay(
-    x = x,
-    ranges = ranges,
-    sep = sep
-  )
+  x <- as.GRangesAssay(x = x, ranges = ranges)
   return(x)
 }
 
 #' @param ranges A GRanges object
-#' @param sep Characters used to separate the chromosome, start, and end
-#' coordinates in the row names of the data matrix
+#' @importFrom GenomicRanges GRanges
 #'
 #' @rdname as.GRangesAssay
 #' @export
@@ -334,7 +337,6 @@ as.GRangesAssay.Assay5 <- function(
 as.GRangesAssay.ChromatinAssay5 <- function(
   x,
   ranges = NULL,
-  sep = c("-", "-"),
   ...
 ) {
   if (!is.null(x = ranges)) {
@@ -343,14 +345,14 @@ as.GRangesAssay.ChromatinAssay5 <- function(
            of rows in matrix")
     }
   } else {
-    ranges <- StringToGRanges(regions = rownames(x = x), sep = sep)
+    ranges <- GRanges(rownames(x = x))
   }
   if (!isDisjoint(x = ranges)) {
     warning("Overlapping ranges supplied. Ranges should be non-overlapping.")
   }
 
-  # re-assign row names of matrix so that it's a known granges transformation
-  new.rownames <- GRangesToString(grange = ranges, sep = c("-", "-"))
+  # re-assign row names of matrix so that it's a valid granges transformation
+  new.rownames <- as.character(x = ranges)
   rownames(x = x) <- new.rownames
 
   new.assay <- as(object = x, Class = "GRangesAssay")
@@ -764,14 +766,6 @@ CreateMotifObject <- function(
     meta.data = meta.data
   )
   return(motif.obj)
-}
-
-#' Update Chromatin Assay
-#' 
-#' Update an old ChromatinAssay object to the current GRangesAssay object class
-UpdateChromatinAssay <- function(object) {
-# TODO
-  return(object)
 }
 
 # Update chromatin object
@@ -1642,7 +1636,7 @@ merge.GRangesAssay <- function(
     # list of GRangesAssay
 
     # merge granges across all objects
-    granges.all <- StringToGRanges(regions = rownames(x = merged))
+    granges.all <- GRanges(rownames(x = merged))
     merged <- as.GRangesAssay(x = merged, ranges = granges.all)
     return(merged)
   }

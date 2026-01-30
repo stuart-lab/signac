@@ -20,21 +20,38 @@ as.GRangesAssay(x, ...)
   ranges = NULL,
   motifs = NULL,
   links = NULL,
-  sep = c("-", "-"),
   ...
 )
 
-\method{as.GRangesAssay}{ChromatinAssay5}(x, ranges = NULL, sep = c("-", "-"), ...)
+\method{as.GRangesAssay}{ChromatinAssay5}(x, ranges = NULL, ...)
 }
 \arguments{
 \item{x}{An object to convert to class \linkS4class{GRangesAssay}}
 
 \item{...}{Arguments passed to other methods}
 
+\item{annotation}{A set of \code{GenomicRanges::GRanges()} containing gene
+annotations for the genome used. It must have the following columns:
+\itemize{
+\item \code{tx_id} or \code{transcript_id}: Transcript ID
+\item \code{gene_name}: Gene name
+\item \code{gene_id}: Gene ID
+\item \code{gene_biotype}: Gene biotype (e.g. "protein_coding", "lincRNA")
+\item \code{type}: Annotation type (e.g. "exon", "gap")
+}}
+
+\item{fragments}{Path to a tabix-indexed fragments file for the data
+contained in the input matrix.}
+
+\item{bias}{A Tn5 integration bias matrix vector}
+
+\item{region.aggregation}{A named list of \code{RegionAggregation-class} objects.}
+
 \item{ranges}{A GRanges object}
 
-\item{sep}{Characters used to separate the chromosome, start, and end
-coordinates in the row names of the data matrix}
+\item{motifs}{A \code{Motif-class} object}
+
+\item{links}{A named list of \code{InteractionSet::GInteractions()} objects}
 }
 \description{
 Convert objects to a \linkS4class{GRangesAssay} object

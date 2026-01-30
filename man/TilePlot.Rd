@@ -7,7 +7,6 @@
 TilePlot(
   object,
   region,
-  sep = c("-", "-"),
   tile.size = 100,
   tile.cells = 100,
   extend.upstream = 0,
@@ -26,10 +25,6 @@ TilePlot(
 a string encoding a genomic position, a gene name, or a vector of strings
 describing the genomic coordinates or gene names to plot. If a gene name is
 supplied, annotations must be present in the assay.}
-
-\item{sep}{Separators to use for strings encoding genomic coordinates. First
-element is used to separate the chromosome from the coordinates, second
-element is used to separate the start from end coordinate.}
 
 \item{tile.size}{Size of the sliding window for per-cell fragment tile plot}
 
@@ -70,7 +65,7 @@ fragments <- CreateFragmentObject(
   validate.fragments = FALSE
 )
 Fragments(atac_small) <- fragments
-TilePlot(object = atac_small, region = c("chr1-713500-714500"))
+TilePlot(object = atac_small, region = c("chr1:713500-714500"))
 }
 }
 \concept{visualization}

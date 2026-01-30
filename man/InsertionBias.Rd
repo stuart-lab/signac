@@ -8,13 +8,13 @@
 \usage{
 InsertionBias(object, ...)
 
-\method{InsertionBias}{ChromatinAssay5}(object, genome, region = "chr1-1-249250621", verbose = TRUE, ...)
+\method{InsertionBias}{ChromatinAssay5}(object, genome, region = "chr1:1-249250621", verbose = TRUE)
 
 \method{InsertionBias}{Seurat}(
   object,
   genome,
   assay = NULL,
-  region = "chr1-1-249250621",
+  region = "chr1:1-249250621",
   verbose = TRUE,
   ...
 )
@@ -22,7 +22,7 @@ InsertionBias(object, ...)
 \arguments{
 \item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} or \linkS4class{ChromatinAssay5} object}
 
-\item{...}{Additional arguments passed to \code{\link[=StringToGRanges]{StringToGRanges()}}}
+\item{...}{Arguments passed to other methods}
 
 \item{genome}{A \code{BSgenome} object or any other object supported by
 \code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all
