@@ -215,12 +215,8 @@ CreateChromatinAssay5 <- function(
 as.GRangesAssay.ChromatinAssay <- function(x, ...) {
   
   # extract information
-  annot <- x@annotation
-  motifs <- x@motifs
-  bias <- x@bias
   frags <- x@fragments
   links <- x@links
-  gr <- x@ranges
   
   # update fragment objects
   if (length(x = frags) > 0) {
@@ -245,7 +241,7 @@ as.GRangesAssay.ChromatinAssay <- function(x, ...) {
       ranges = IRanges(start = end(x = links))
     )
     gi <- GInteractions(start.gr, end.gr)
-    mcols(gi) <- mcols(links)
+    mcols(x = gi) <- mcols(x = links)
     gi <- list("links" = gi)
   } else {
     gi <- NULL
@@ -256,11 +252,11 @@ as.GRangesAssay.ChromatinAssay <- function(x, ...) {
   x <- as.GRangesAssay(
     x = x,
     Class = "GRangesAssay",
-    ranges = gr,
-    annotation = annot,
+    ranges = x@ranges,
+    annotation = x@annotation,
     fragments = frags,
-    bias = bias,
-    motifs = motifs,
+    bias = x@bias,
+    motifs = x@motifs,
     links = gi,
     region.aggregation = NULL,
   )
