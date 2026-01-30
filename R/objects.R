@@ -206,6 +206,10 @@ CreateChromatinAssay5 <- function(
 
 #' @rdname as.GRangesAssay
 #' @method as.GRangesAssay ChromatinAssay
+#' @importFrom InteractionSet GInteractions
+#' @importFrom GenomicRanges start end
+#' @importFrom IRanges IRanges
+#' @importFrom Seqinfo seqnames
 #' @export
 #' @concept assay
 as.GRangesAssay.ChromatinAssay <- function(x, ...) {
@@ -215,7 +219,6 @@ as.GRangesAssay.ChromatinAssay <- function(x, ...) {
   motifs <- x@motifs
   bias <- x@bias
   frags <- x@fragments
-  ragg <- x@positionEnrichment
   links <- x@links
   gr <- x@ranges
   
@@ -225,12 +228,28 @@ as.GRangesAssay.ChromatinAssay <- function(x, ...) {
       frags[[i]] <- as.Fragment2(x = frags[[i]])
     }
   }
-  
-  # update region aggregation
-  # TODO
+
+  if (length(x = x@positionEnrichment) > 0) {
+    warning("Cannot convert old positionEnrichment information, dropping ", 
+            length(x = x@positionEnrichment), " positionEnrichment matrices")
+  }
   
   # update links to list of GInteractions objects
-  # TODO
+  if (length(x = links) > 0) {
+    start.gr <- GRanges(
+      seqnames = seqnames(x = links),
+      ranges = IRanges(start = start(x = links))
+    )
+    end.gr <- GRanges(
+      seqnames = seqnames(x = links),
+      ranges = IRanges(start = end(x = links))
+    )
+    gi <- GInteractions(start.gr, end.gr)
+    mcols(gi) <- mcols(links)
+    gi <- list("links" = gi)
+  } else {
+    gi <- NULL
+  }
   
   # construct new assay object
   x <- as(object = x, Class = "Assay5")
@@ -242,8 +261,8 @@ as.GRangesAssay.ChromatinAssay <- function(x, ...) {
     fragments = frags,
     bias = bias,
     motifs = motifs,
-    links = NULL, # TODO
-    region.aggregation = ragg,
+    links = gi,
+    region.aggregation = NULL,
   )
   
   return(x)
