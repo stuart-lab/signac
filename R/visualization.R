@@ -1746,7 +1746,6 @@ SingleCoveragePlot <- function(
 #' @importFrom dplyr mutate group_by ungroup slice_sample
 #' @importFrom RcppRoll roll_sum
 #' @importFrom methods is
-#' @importFrom GenomicRanges GRanges
 #' @importFrom scales hue_pal
 #' @importFrom S4Vectors mcols
 #' @importMethodsFrom GenomicRanges start end
@@ -2423,7 +2422,7 @@ CombineTracks <- function(
 #' @concept visualization
 #' @importFrom SeuratObject DefaultAssay
 #' @importFrom S4Vectors mcols<-
-#' @importFrom GenomicRanges start end GRanges
+#' @importFrom GenomicRanges start end
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom Seqinfo seqnames
 #' @importFrom ggplot2 ggplot aes_string geom_segment theme_classic element_blank

@@ -327,7 +327,6 @@ as.GRangesAssay.Assay5 <- function(
 }
 
 #' @param ranges A GRanges object
-#' @importFrom GenomicRanges GRanges
 #'
 #' @rdname as.GRangesAssay
 #' @export

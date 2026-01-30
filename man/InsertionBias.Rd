@@ -8,7 +8,7 @@
 \usage{
 InsertionBias(object, ...)
 
-\method{InsertionBias}{ChromatinAssay5}(object, genome, region = "chr1:1-249250621", verbose = TRUE)
+\method{InsertionBias}{ChromatinAssay5}(object, genome, region = "chr1:1-249250621", verbose = TRUE, ...)
 
 \method{InsertionBias}{Seurat}(
   object,
@@ -44,7 +44,7 @@ Counts the Tn5 insertion frequency for each DNA hexamer.
 \dontrun{
 library(BSgenome.Hsapiens.UCSC.hg38)
 
-region.use <- GRanges(
+region.use <- GenomicRanges::GRanges(
   seqnames = c("chr1", "chr2"),
   IRanges(start = c(1, 1), end = c(195471971, 182113224))
 )

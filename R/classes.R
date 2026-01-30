@@ -1,7 +1,7 @@
 #' @importFrom methods setClass setClassUnion
 #' slotNames
 #' @importClassesFrom Matrix CsparseMatrix
-#' @importClassesFrom GenomicRanges GRanges
+#' @import GenomicRanges
 #' @importClassesFrom InteractionSet GInteractions
 #' @useDynLib Signac
 NULL

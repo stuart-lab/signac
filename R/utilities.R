@@ -549,7 +549,6 @@ Extend <- function(
 #' @param cells Vector of cells to include in output. If NULL, include all cells
 #'
 #' @importFrom Rsamtools scanTabix
-#' @importFrom GenomicRanges GRanges
 #' @importFrom methods is
 #' @importFrom fastmatch fmatch
 #' @export
@@ -593,7 +592,6 @@ GetCellsInRegion <- function(tabix, region, cells = NULL) {
 #' @param assay Name of assay to use
 #'
 #' @importFrom SeuratObject DefaultAssay
-#' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges start end
 #' @importFrom Seqinfo seqnames
 #' @export
@@ -890,7 +888,7 @@ globalVariables(
   package = "Signac"
 )
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
-#' @import data.table
+#' @importFrom data.table as.data.table
 CollapseToLongestTranscript <- function(ranges) {
   range.df <- as.data.table(x = ranges)
   range.df$strand <- as.character(x = range.df$strand)
@@ -900,7 +898,7 @@ CollapseToLongestTranscript <- function(ranges) {
     no = range.df$strand
   )
   collapsed <- range.df[
-    , .(
+    , list(
       unique(seqnames),
       min(start),
       max(end),
@@ -1017,7 +1015,6 @@ ExtractFragments <- function(fragments, n = NULL, verbose = TRUE) {
 
 # convert region argument to genomic coordinates
 # region can be a string, name of a gene, or GRanges object
-#' @importFrom GenomicRanges GRanges
 FindRegion <- function(
   object,
   region,
@@ -1072,7 +1069,6 @@ FindRegion <- function(
 # @param verbose Display messages
 #
 #' @importFrom Rsamtools TabixFile scanTabix
-#' @importFrom GenomicRanges GRanges
 #' @importFrom SeuratObject Idents
 #' @importFrom fastmatch fmatch
 #

@@ -137,7 +137,6 @@ GetLinkedGenes.GRangesAssay <- function(
 #' a value less than or equal to this threshold will be discarded.
 #'
 #' @export
-#' @importFrom GenomicRanges GRanges
 #' @importFrom InteractionSet GInteractions
 #'
 #' @concept links
@@ -528,7 +527,7 @@ LinkPeaks <- function(
 # columns
 # @param gene.coords Genomic coordinates for each gene
 # @return Returns a GRanges object
-#' @importFrom GenomicRanges resize start width GRanges makeGRangesFromDataFrame
+#' @importFrom GenomicRanges resize start width makeGRangesFromDataFrame
 #' @importFrom IRanges IRanges
 #' @importFrom BiocGenerics sort
 LinksToGRanges <- function(linkmat, gene.coords) {

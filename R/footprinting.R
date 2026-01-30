@@ -288,7 +288,6 @@ Footprint.Seurat <- function(
 #' @param region Genomic region to use when assessing bias.
 #' @param verbose Display messages
 #'
-#' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 #' @export
 #' @concept footprinting
@@ -298,7 +297,7 @@ Footprint.Seurat <- function(
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg38)
 #'
-#' region.use <- GRanges(
+#' region.use <- GenomicRanges::GRanges(
 #'   seqnames = c("chr1", "chr2"),
 #'   IRanges(start = c(1, 1), end = c(195471971, 182113224))
 #' )
@@ -313,7 +312,8 @@ InsertionBias.ChromatinAssay5 <- function(
   object,
   genome,
   region = "chr1:1-249250621",
-  verbose = TRUE
+  verbose = TRUE,
+  ...
 ) {
   if (!requireNamespace("Biostrings", quietly = TRUE)) {
     stop("Please install Biostrings: BiocManager::install('Biostrings')")

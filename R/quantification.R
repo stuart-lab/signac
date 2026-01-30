@@ -350,7 +350,6 @@ GenomeBinMatrix <- function(
 #' @export
 #' @importFrom SeuratObject RowMergeSparseMatrices
 #' @importFrom GenomeInfoDb renameSeqlevels
-#' @importFrom GenomicRanges GRanges
 #' @concept quantification
 #' @return Returns a sparse matrix
 #' @examples
@@ -635,7 +634,7 @@ RunFragtk <- function(
 #### Not Exported ####
 
 # matrix multiplication method for summing matrix rows
-#' @importFrom GenomicRanges reduce GRanges
+#' @importFrom GenomicRanges reduce
 #' @importFrom S4Vectors elementNROWS
 #' @importFrom Matrix crossprod sparseMatrix
 #' @importMethodsFrom Matrix t
@@ -666,7 +665,7 @@ CombineTiles <- function(bins) {
 #' @importFrom future nbrOfWorkers
 #' @importFrom pbapply pblapply
 #' @importFrom Matrix sparseMatrix
-#' @importMethodsFrom GenomicRanges intersect GRanges
+#' @importMethodsFrom GenomicRanges intersect
 #' @importFrom Rsamtools TabixFile seqnamesTabix
 #' @importFrom fastmatch fmatch
 SingleFeatureMatrix <- function(
