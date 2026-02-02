@@ -127,7 +127,7 @@ RegionAggregation <- setClass(
 )
 setValidity(Class = "RegionAggregation", function(object) {
   # make sure cell names do not contain NA
-  if (any(is.na(x = objects@cells))){
+  if (any(is.na(x = object@cells))){
     return("Cells slot must not contain NA values")
   }
   # matrix rows must match cells number 
