@@ -1216,6 +1216,19 @@ SetAssayData.ChromatinAssay5 <- function(
     }
     methods::slot(object = object, name = layer) <- new.data
   } else if (layer == "region.aggregation") {
+    # pull overwrite from ... , only interpret inside layer==region.aggregation
+    dots <- list(...) 
+    overwrite <- dots$overwrite %||% FALSE #default FALSE if not provided
+    
+    # rule: (name + cells) identity key, everything else is content.
+    ## same name:
+      ## 1) same cells: 
+         ## -> warn + skip (if overwrite = F)
+          ## -> replace (if overwrite = T)
+      ## 2) different cells: 
+          ## -> if content is the same: merge
+          ## else keep as separate obj in list
+    
     if (inherits(x = new.data, what = "list")){
       # check if its a list containing RegionAggregation class objects
       for (i in seq_along(new.data)){
@@ -1234,33 +1247,80 @@ SetAssayData.ChromatinAssay5 <- function(
       methods::slot(object, "region.aggregation") <- new.data
       return(object)
     } 
-    # try to merge compatible RegionAggregation objects 
+    
     for (i in seq_along(new.data)){
       new.agg <- new.data[[i]]
       merged <- FALSE
-      # compare against same-name objects 
+      # compare against same-name objects    
       same.name.idx <- which(vapply(
         agg.list, function(x) identical(x@name, new.agg@name), logical(1)))
+      
+      to.drop <- logical(length(agg.list)) # list of (FALSE, FALSE,...)
+      
       if (length(same.name.idx) > 0) {
         for (j in same.name.idx){
           old.agg <- agg.list[[j]]
-          compatible <- 
-            identical(old.agg@upstream, new.agg@upstream) && 
-            identical(old.agg@downstream, new.agg@downstream) && 
-            identical(old.agg@expected, new.agg@expected) && 
-            identical(old.agg@regions, new.agg@regions)
-          if (compatible) {
-            # concatenate the matrix and the cells vector
-            old.agg@matrix <- rbind(old.agg@matrix, new.agg@matrix)
-            old.agg@cells <- c(old.agg@cells, new.agg@cells)
-            agg.list[[j]] <- old.agg
-            merged <- TRUE 
-            break
+          
+          # detect identity collision
+          overlap.cells < - intersect(old.agg@cells, new.agg@cells) 
+          new.cells <- setdiff(new.agg@cells, old.agg@cells) # new.cells should be unique to new.agg 
+          
+          # overlapping cells  
+          if (length(overlap.cells)>0) {
+            if (overwrite) {
+              warning(sprintf("Overwriting RegionAggregation for '%s' for %d cells",
+                             new.agg@name, 
+                             length(overlap.cells)), call. = FALSE)
+              # replace:  
+              # remove the overlapping cells from old.agg then add the overlap.cells into the new.cells 
+              # if after removal of overlapping cells, old.agg@cells ==0, then remove this obj from list
+              keep.idx <- !(old.agg@cells %in% overlap.cells)
+              if (length(keep.idx) == 0){
+                to.drop[j] <- TRUE
+              }
+              old.agg@cells <- old.agg@cells[keep.idx] # character(0)
+              old.agg@matrix <- old.agg@matrix[keep.idx, , drop = FALSE] # 0xncol matrix
+              
+              new.cells <- c(new.cells, overlap.cells)
+              
+            } else {
+              # skip 
+              warning(sprintf(paste0(
+                "RegionAggregation '%s' already exists for %d cells and will not be recomputed", 
+                "Set overwrite=TRUE to replace the existing RegionAggregation, ", 
+                "or supply a different name to store it separately"
+                ),
+                new.agg@name,
+                length(overlap.cells)
+              ), call. = FALSE)
+            }
+          }
+          
+          # non-overlapping cells
+          if (length(new.cells)>0) {
+            compatible <- 
+              identical(old.agg@upstream, new.agg@upstream) && 
+              identical(old.agg@downstream, new.agg@downstream) && 
+              identical(old.agg@expected, new.agg@expected) && 
+              identical(old.agg@regions, new.agg@regions)
+            
+            if (compatible) {
+              # concatenate the matrix and the cells vector
+              old.agg@matrix <- rbind(old.agg@matrix, new.agg@matrix)
+              old.agg@cells <- c(old.agg@cells, new.agg@cells)
+              agg.list[[j]] <- old.agg
+              merged <- TRUE 
+              break
+            }
           }
         }
       }
+      # remove null objects 
+      agg.list <- agg.list[!to.drop]
+    
       if (!merged) { 
-        agg.list <- c(agg.list, list(new.agg))
+        new.sub <- subset(new.agg, cells = new.cells)
+        agg.list <- c(agg.list, list(new.sub))
       }
     }
     methods::slot(object = object, layer) <- agg.list
