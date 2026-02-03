@@ -559,7 +559,7 @@ GetMotifSize <- function(
 RunFootprint <- function(
     object,
     genome,
-    regions,
+    regions,   
     name = NULL , 
     upstream = 250,
     downstream = 250,
@@ -587,7 +587,7 @@ RunFootprint <- function(
     if (in.peaks) {
         regions <- subsetByOverlaps(x = regions, ranges = granges(x = object))
     } 
-    browser()
+
     # extend upstream and downstream
     regions <- Extend(
         x = regions,
@@ -625,7 +625,7 @@ RunFootprint <- function(
         regions = regions
     )
     # get expected insertions 
-    expected.insertions <- t(x = as.matrix(x = expected.insertions))
+    expected.insertions <- as.numeric(x = expected.insertions)
     #rownames(x = expected.insertions) <- "expected"
     #insertion.matrix <- rbind(insertion.matrix, expected.insertions)
     # encode motif position as additional row in matrix
