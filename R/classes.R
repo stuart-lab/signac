@@ -149,6 +149,7 @@ setValidity(Class = "RegionAggregation", function(object) {
   }
   TRUE
 })
+setClassUnion(name = "ListOrNULL", members = c("list", "NULL"))
 
 
 #' @slot fragments A list of [Fragment()] objects.
@@ -185,7 +186,7 @@ ChromatinAssay5 <- setClass(
     "fragments" = "list",
     "annotation" = "GRangesOrNULL",
     "bias" = "NumericOrNULL",
-    "region.aggregation" = "list",
+    "region.aggregation" = "ListOrNULL",
     "links" = "list",
     "motifs" = "MotifOrNULL"
   )
