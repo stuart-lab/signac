@@ -363,7 +363,7 @@ CallPeaks.Fragment <- function(
 CallPeaks.default <- function(
     object,
     macs3.path = NULL,
-    mode = "callpeak", # add callpeak/hmmratac command option
+    mode = "callpeak",
     outdir = tempdir(),
     broad = FALSE,
     barcodes = NULL,
@@ -380,7 +380,7 @@ CallPeaks.default <- function(
     }
     # find macs3
     macs3.path <- macs3.path %||% unname(obj = Sys.which(names = "macs3"))
-    if (nchar(x = macs3.path) == 0) {
+    if (nchar(x = macs3.path) == 0 && file.access(macs3.path, 1) == 0) {
         stop(
             "MACS3 not found. Please install MACS:",
             "https://macs3-project.github.io/MACS/"
@@ -390,8 +390,8 @@ CallPeaks.default <- function(
     name <- gsub(pattern = .Platform$file.sep, replacement = "_", x = name)
 
     # check mode
-    if (!mode %in% c("callpeak", "hmmratac")) {
-        stop("Invalid macs3 command, choose between `callpeak` or `hmmratac`")
+    if (!mode %in% c("callpeak")) {
+        stop("Invalid macs3 command")
     }
 
     # if list of paths given, collapse to a single space-separated string
@@ -429,7 +429,7 @@ CallPeaks.default <- function(
     # macs3 command
     cmd <- paste0(
         macs3.path, " ",
-        mode, ### TODO: once hmmratac is fixed, make callpeak/hmmratac an option
+        mode, 
         " -t ",  object,
         genome_string,
         broad_string,
