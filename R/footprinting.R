@@ -668,7 +668,7 @@ RunFootprint <- function(
     insertion.matrix <- CreateRegionPileupMatrix(
         object = object,
         regions = regions
-    )
+    ) # returns a sparse dgcMatrix that does not have nrows()
     # get expected insertions 
     expected.insertions <- as.numeric(x = expected.insertions)
     #rownames(x = expected.insertions) <- "expected"
@@ -681,6 +681,7 @@ RunFootprint <- function(
     # edit: motif metadata will computed on fly when plotting by looking up regions width 
 
     # create RegionAggregation objects
+    # browser()
     agg.obj <- CreateRegionAggregationObject(
         mat = insertion.matrix, 
         regions = regions, 
@@ -688,7 +689,7 @@ RunFootprint <- function(
         downstream = downstream, 
         name = name, 
         expected = expected.insertions, 
-        cells = NULL # will be created from rownames of matrix 
+        cells = Cells(object)
     )
 
     return(agg.obj)
