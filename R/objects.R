@@ -479,14 +479,14 @@ CreateRegionAggregationObject <- function(
     }
     # if cells not given, create the cells from rownames of the matrix
     if (is.null(x = cells)){
-        cells <- rownames(x = matrix)
+        cells <- rownames(x = mat)
         if (is.null(x = cells)) {
           stop("cells information not provided, and the provided matrix has no",
                " row names")
         }
     } else {
         cells <- as.character(x = cells)
-        if (length(x = cells) != dim(x = matrix)[1]) {
+        if (length(x = cells) != dim(x = mat)[1]) {
             stop("Number of cells: (", length(x = cells), 
                  ") does not match number of matrix rows (", dim(x = matrix)[1], ")")
         }
