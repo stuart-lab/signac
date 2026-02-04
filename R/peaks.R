@@ -305,17 +305,18 @@ CallPeaks.ChromatinAssay <- function(
     return(gr_list)
 }
 
-#' @method CallPeaks Fragment
+#' @method CallPeaks Fragment2
 #' @rdname CallPeaks
 #' @concept quantification
 #' @export
-CallPeaks.Fragment <- function(
+CallPeaks.Fragment2 <- function( 
     object,
     macs3.path = NULL,
-    mode = "callpeak", # add callpeak/hmmratac command option
+    mode = "callpeak",
     outdir = tempdir(),
     broad = FALSE,
     barcodes = NULL,
+    cells = NULL,     
     genome = "hs",
     gsize = NULL,
     additional.args = NULL,
@@ -325,12 +326,16 @@ CallPeaks.Fragment <- function(
     ...
 ) {
     # get fragment file paths
-    fragpath <- sapply(X = object, FUN = GetFragmentData, slot = "file.path") 
+    fragpath <- GetFragmentData(object)
 
     # write cell barcodes
-    cell_barcodes <- object[[1]]@`cells`
-    barcode_path <- paste0(outdir, .Platform$file.sep, paste0("barcodes.txt"))
-    writeLines(cell_barcodes, con = barcode_path)
+    if (!is.null(cells)) {
+        cell_barcodes <- object@cells[cells]
+    } else {
+        cell_barcodes <- object@cells
+    }
+    barcode_path <- paste0(outdir, .Platform$file.sep, paste0(name,"_barcodes.txt"))
+    writeLines(cell_barcodes, con = barcode_path) 
 
     # clean objects
     rm(object)
@@ -350,7 +355,7 @@ CallPeaks.Fragment <- function(
         cleanup = cleanup,
         verbose = verbose,
         ...)
-    
+
     return(gr)
 }
 
