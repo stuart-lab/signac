@@ -471,11 +471,11 @@ CreateRegionAggregationObject <- function(
       if (!is.numeric(x = expected)) {
         stop("expected insertions must be a numeric vector")
       }
-      if (length(x = expected) != ncol(x = mat)) {
+      if (length(x = expected) != dim(x = mat)[2]) {
         stop("expected insertion must match the number of positions in the matrix")
       }
     } else {
-      expected <- rep(x = 1, ncol(x = mat))
+      expected <- rep(x = 1, dim(x = mat)[2])
     }
     # if cells not given, create the cells from rownames of the matrix
     if (is.null(x = cells)){
@@ -486,9 +486,9 @@ CreateRegionAggregationObject <- function(
         }
     } else {
         cells <- as.character(x = cells)
-        if (length(x = cells) != nrow(x = matrix)) {
+        if (length(x = cells) != dim(x = matrix)[1]) {
             stop("Number of cells: (", length(x = cells), 
-                 ") does not match number of matrix rows (", nrow(x = matrix), ")")
+                 ") does not match number of matrix rows (", dim(x = matrix)[1], ")")
         }
     }
     

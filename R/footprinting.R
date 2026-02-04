@@ -34,88 +34,133 @@ GetFootprintData <- function(
     group.by = NULL,
     idents = NULL
 ) {
-    assay <- assay %||% DefaultAssay(object = object)
-    if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
-        stop("The requested assay is not a ChromatinAssay5")
-    }
-    #positionEnrichment <- GetAssayData(
-    #  object = object,
-    #  assay = assay,
-    #  layer = "positionEnrichment"
-    #) 
-    region.enrichment <- object[[assay]]@region.enrichment 
+  assay <- assay %||% DefaultAssay(object = object)
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("The requested assay is not a ChromatinAssay5")
+  }
+  
+  region.enrichment <- object[[assay]]@region.aggregation
+  # get existing features 
+  region.enrichment.names <- vapply(region.enrichment, FUN = function(x) x@name, FUN.VALUE = character(1))
+  
+  obj.groups <- GetGroups(
+    object = object,
+    group.by = group.by,
+    idents = idents
+  )
+  levels.stash <- levels(x = obj.groups)
+  all.groups <- unique(x = obj.groups)
+  
+  # Loop through features to plot
+  plot.data <- lapply(X = features, FUN = function(feature) {
+    if (!(feature %in% region.enrichment.names)) {
+      warning("Footprint information for ", feature, " not found in assay")
+      return()
+    } 
+    # V2 edit: 
+    agg.idx <- which(region.enrichment.names == feature) # could be a list of more than one 
+    region.agg.list <- region.enrichment[agg.idx] # get a list of agg.obj
     
-    obj.groups <- GetGroups(
-        object = object,
-        group.by = group.by,
-        idents = idents
-    )
-    levels.stash <- levels(x = obj.groups)
-    all.groups <- unique(x = obj.groups)
-    plot.data <- lapply(X = features, FUN = function(feature) {
-        if (!(feature %in% names(region.enrichment))) {
-            warning("Footprint information for ", feature, " not found in assay")
-            return()
-        } 
-        # fp <- positionEnrichment[[x]]
-        # V2 edit: 
-        ### observed <- object@region.aggregation[[x]]@matrix
-        ### expected <- object@region.aggregation[[paste0(x, "_expected")]]@matrix[1, ]
-        agg <- region.enrichment[[feature]]
-        if (!inherits(agg, "RegionAggregation")){
-            warning("Footprint data for ", feature, " is not a RegionAggregation")
-            return()
+    if (length(region.agg.list)>1){
+      # assert same motif size 
+      w <- unique(unlist(lapply(region.agg.list, function(x) width(x@regions))))
+      if (length(w) != 1) {
+        warning("Feature ",feature, " have different motif width! Skipping")
+        return(NULL)
+      }
+      motif.width <- w[[1]]
+      # ensure upstream & downstream matches
+      matrix.upstream <- vapply(region.agg.list, function(x) x@upstream, integer(1))
+      target.upstream <- min(matrix.upstream)
+      
+      matrix.downstream <- vapply(region.agg.list, function(x) x@downstream, integer(1))
+      target.downstream <- min(matrix.downstream)
+      
+      if (any(matrix.downstream != target.downstream ) || any(matrix.upstream != target.upstream)){
+         warning("Truncating matrices to the smallest width to align Footprint for ",feature)
+      }
+      
+      all.mat <- lapply(region.agg.list, function(x){
+        mat <- x@matrix
+        start_col <- x@upstream - target.upstream + 1
+        end_col <- ncol(mat) - x@downstream + target.downstream
+        if (start_col <1 || end_col > ncol(mat) || start_col > end_col){
+          warning("Skipping incompatible RegionAggregation for ", feature)
+          return(NULL)
         }
-        # extract cell x position insertion matrix 
-        fp <- agg@matrix 
-        
-        # extract cell x position expected 
-        expected.name <- paste0(feature, "_expected")
-        if (!(expected.name %in% names(region.enrichment))) {
-            warning("Footprint data incomplete for ", feature)
-            return()
-        } 
-        expected <- region.enrichment[[expected.name]]@matrix
-
-        # background normalization by group 
-        bg.norm <- lapply(X = all.groups, FUN = function(x) {
-            cells.use <- names(x = obj.groups)[obj.groups == x]
-            mat.use <- fp[cells.use, , drop = FALSE]
-            return(BackgroundMeanNorm(x = mat.use, background = 50))
-        })
-        bg.norm <- do.call(what = rbind, args = bg.norm)
-        groupmeans <- ApplyMatrixByGroup(
-            mat = bg.norm,
-            groups = obj.groups,
-            fun = colMeans,
-            normalize = FALSE
-        )
-
-        # construct df for observed insertions
-        positions <- seq( -agg@upstream, agg@downstream)
-        groupmeans$position <- positions
-        groupmeans$feature <- feature
-        groupmeans$class <- "Observed"
-        
-        # add expected insertions
-        expected.mean <- colMeans(expected)
-        expect.df <- data.frame(
-            group = NA,
-            count = expected.mean,
-            norm.value = expected,
-            position = positions,
-            feature = feature,
-            class = "Expected"
-        )
-        groupmeans <- rbind(groupmeans, expect.df)
-        return(groupmeans)
-    })
-             
-    plot.data <- do.call(what = rbind, args = plot.data)
-    if (!is.null(x = levels.stash)) {
-        plot.data$group <- factor(x = plot.data$group, levels = levels.stash)
+        mat <- mat[,start_col:end_col]
+        rownames(mat) <- x@cells 
+        expected <- x@expected[start_col: end_col]
+        list(
+          matrix = mat,
+          expected = expected, 
+          weight = nrow(mat) # number of cells
+          )
+      })
+      
+      fp <- do.call(rbind, lapply(all.mat, '[[', "matrix"))
+      expected.mat <- do.call(rbind, lapply(all.mat, function(x) x$expected * x$weight))
+      weights <- vapply(all.mat, '[[', numeric(1), "weight")
+      # expected.weighted.mean
+      expected <- colSums(expected.mat)/sum(weights) 
+      
+    } else { # if only one agg.obj
+      agg <- region.agg.list[[1]]
+      motif.width <- width(x = agg@regions)[[1]]
+      target.upstream <- agg@upstream
+      target.downstream <- agg@downstream
+      # extract cell x position insertion matrix 
+      fp <- agg@matrix
+      rownames(fp) <- agg@cells
+      # extract vector of expected 
+      expected <- agg@expected
     }
-    return(plot.data)
+
+    ## --- Split into groups ----------------
+    # background normalization by group 
+    bg.norm <- lapply(X = all.groups, FUN = function(x) {
+      cells.use <- names(x = obj.groups)[obj.groups == x]
+      mat.use <- fp[cells.use, , drop = FALSE]
+      return(BackgroundMeanNorm(x = mat.use, background = 50))
+    })
+    bg.norm <- do.call(what = rbind, args = bg.norm)
+    groupmeans <- ApplyMatrixByGroup(
+      mat = bg.norm,
+      groups = obj.groups,
+      fun = colMeans,
+      normalize = FALSE
+    )
+    # add feature information 
+    groupmeans$feature <- feature 
+    groupmeans$class <- "Observed"
+    
+    # add position
+    center.offset <- floor(motif.width/2)
+    positions <-seq(
+      from = -target.upstream - center.offset,
+      to = target.downstream + motif.width - center.offset - 1
+    )
+    groupmeans$position <- positions
+    
+    # add expected insertions
+    expect.df <- data.frame(
+      group = NA,
+      count = expected,
+      norm.value = expected,
+      position = positions,
+      feature = feature,
+      class = "Expected"
+    )
+    groupmeans <- rbind(groupmeans, expect.df)
+    return(groupmeans)
+  })
+  
+  plot.data <- Filter(Negate(is.null), plot.data)
+  plot.data <- do.call(what = rbind, args = plot.data)
+  if (!is.null(x = levels.stash)) {
+      plot.data$group <- factor(x = plot.data$group, levels = levels.stash)
+  }
+  return(plot.data)
 }
 
 #' @param regions A set of genomic ranges containing the motif instances. These
