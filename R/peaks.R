@@ -216,93 +216,80 @@ CallPeaks.Seurat <- function(
     return(gr_list)
 }
 
-#' @method CallPeaks ChromatinAssay
+#' @method CallPeaks ChromatinAssay5
 #' @rdname CallPeaks
 #' @concept quantification
 #' @export
-CallPeaks.ChromatinAssay <- function(
+CallPeaks.ChromatinAssay5 <- function(
     object,
     macs3.path = NULL,
-    mode = "callpeak", # add callpeak/hmmratac command option
+    combine.peaks = TRUE,
+    mode = "callpeak",
     outdir = tempdir(),
     broad = FALSE,
     barcodes = NULL,
-    format = "FRAG",
     genome = "hs",
     gsize = NULL,
     additional.args = NULL,
     name = "macs3",
-    parallel = TRUE,  ## add parallelization
     cleanup = TRUE,
-    verbose = TRUE
+    verbose = TRUE,
+    ...
 ) {
-    # get fragment files
+    # get fragment path(s)
     frags <- Fragments(object = object)
-    # get all fragment file paths
     allfragpaths <- as.list(sapply(X = frags, FUN = GetFragmentData, slot = "file.path"))
 
-    # write cell barcodes
-    n_frags <- seq_along(frags)
-    barcode_paths <- c()
-    
-    for (i in seq_along(n_frags)) {
-        cell_barcodes <- frags[[i]]@`cells`
-        barcode_path <- paste0(outdir, .Platform$file.sep, paste0(i, "_barcodes.txt"))
-        writeLines(cell_barcodes, con = barcode_path)
+    # check number of fragments
+    if (length(allfragpaths) > 1) {
+        # check number of workers for parallelization
+        if (nbrOfWorkers() > 1) {
+            mylapply <- future_lapply
+        } else {
+            mylapply <- ifelse(test = verbose, yes = pbapply::pblapply, no = parallel::lapply)
+        }
+    } else {
+        mylapply <- parallel::lapply
+    }
+
+    # write cell barcodes per fragment
+    barcode_paths <- list()
+    for (i in seq_along(frags)) {
+        # get all cell barcodes in fragment
+        bc <- frags[[i]]@cells
+
+        # write barcodes to file
+        barcode_path <- paste0(outdir, .Platform$file.sep, paste0(name,"_",i,"_barcodes.txt"))
+        writeLines(bc, con = barcode_path) 
         barcode_paths[[i]] <- barcode_path
     }
 
-    # clean objects
-    rm(object)
-    rm(frags)
-    gc()
+    # call peaks
+    peakcalls <- mylapply(
+        X = seq_along(along.with = allfragpaths),
+        FUN = function(i) {
+            CallPeaks(
+                object = allfragpaths[[i]],
+                macs3.path = macs3.path,
+                mode = mode,
+                outdir = outdir,
+                broad = broad,
+                barcodes = barcode_paths[[i]],
+                genome = genome,
+                gsize = gsize,
+                additional.args = additional.args,
+                name = "macs3",
+                cleanup = TRUE,
+                verbose = TRUE)
+        }
+    )
 
-    # MACS3 parallelization
-    if (parallel) {
-        # detect maximum number of cores
-        num_fragments <- length(allfragpaths)
-        actual_cpus <- parallelly::availableCores()
-        plan(future::multisession, workers = min(num_fragments, actual_cpus))
-        
-        # run CallPeaks in parallel
-        gr_list <- future_lapply(n_frags, function(i) {
-            CallPeaks(
-                object = allfragpaths[i],
-                macs3.path = macs3.path,
-                mode = mode,
-                outdir = outdir,
-                broad = broad,
-                barcodes = barcode_paths[i],
-                genome = genome,
-                gsize = gsize,
-                additional.args = additional.args,
-                name = paste0(i, "_", name),
-                cleanup = cleanup,
-                verbose = verbose
-            )
-        }, future.seed = TRUE)
-        
-    } else {
-        # If parallel = FALSE, run CallPeaks sequentially
-        gr_list <- lapply(n_frags, function(i) {
-            CallPeaks(
-                object = allfragpaths[i],
-                macs3.path = macs3.path,
-                mode = mode,
-                outdir = outdir,
-                broad = broad,
-                barcodes = barcode_paths[i],
-                genome = genome,
-                gsize = gsize,
-                additional.args = additional.args,
-                name = paste0(i, "_", name),
-                cleanup = cleanup,
-                verbose = verbose
-            )
-        })
+    # combine into 1 granges
+    if (combine.peaks == TRUE) {
+        peakcalls <- reduce(do.call(c, peakcalls))
     }
 
-    return(gr_list)
+    return(peakcalls)
 }
 
 #' @method CallPeaks Fragment2
