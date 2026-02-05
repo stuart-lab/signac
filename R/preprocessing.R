@@ -427,6 +427,7 @@ FindTopFeatures.StdAssay <- function(
   )
 }
 
+#' @param key Key to use when storing the highly variable feature information in the assay.
 #' @rdname FindTopFeatures
 #' @importFrom SeuratObject DefaultAssay
 #' @export
@@ -607,7 +608,7 @@ FitMeanVar.default <- function(
     message("Retained ", nrow(x = object), " features after count filtering")
   }
   if (nrow(x = object) == 0) {
-    stop("No modules remain after filtering by min.cutoff")
+    stop("No features remain after filtering by min.cutoff")
   }
   df <- data.frame(
     mean = rowMeans(x = object),

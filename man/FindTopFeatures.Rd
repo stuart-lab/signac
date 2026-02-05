@@ -61,6 +61,8 @@ include all features in VariableFeatures.}
 \item{verbose}{Display messages}
 
 \item{layer}{Name of layer to use}
+
+\item{key}{Key to use when storing the highly variable feature information in the assay.}
 }
 \value{
 Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
