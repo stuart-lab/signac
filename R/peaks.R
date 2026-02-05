@@ -56,18 +56,19 @@ NULL
 CallPeaks.Seurat <- function(
     object,
     assay = NULL,
-    group.by = NULL,   # call peaks separately per group.by variable (call multiple peaks)
-    idents = NULL,     # call peaks by barcodes using idents (one peak call)
+    group.by = NULL,  
+    idents = NULL,     
+    cells = NULL,      
     macs3.path = NULL,
-    mode = "callpeak", # add hmmratac mode once available
+    mode = "callpeak",
     broad = FALSE,
+    barcodes = NULL,   
     genome = "hs",
     gsize = NULL,
     outdir = tempdir(),
     combine.peaks = TRUE,
     additional.args = NULL,
     name = Project(object),
-    parallel = TRUE, 
     cleanup = TRUE,
     verbose = TRUE,
     ...
@@ -75,145 +76,149 @@ CallPeaks.Seurat <- function(
     if (!dir.exists(paths = outdir)) {
         stop("Requested output directory does not exist")
     }
-    master_outdir <- outdir
     
     # find macs3
     macs3.path <- macs3.path %||% unname(obj = Sys.which(names = "macs3"))
-    if (nchar(x = macs3.path) == 0) {
+    if (nchar(x = macs3.path) == 0 && file.access(macs3.path, 1) == 0) {
         stop(
             "MACS3 not found. Please install MACS:",
             "https://macs3-project.github.io/MACS/"
         )
-      }
+    }
+    
+    # check object assay
+    assay <- assay %||% DefaultAssay(object = object)
+    
+    # check group.by & idents
+    if (is.null(group.by) && !is.null(idents)) {
+        stop("Set `group.by` parameter if calling peaks per ident")
+        }
 
-    # get object fragment(s) path
+    if (!is.null(group.by) && is.null(idents)) {
+        idents <- unique(object[[group.by]])[, group.by]
+    }
+
+    # get number of fragments
     frags <- Fragments(object = object)
     allfragpaths <- as.list(sapply(X = frags, FUN = GetFragmentData, slot = "file.path"))
-    
-    assay <- assay %||% DefaultAssay(object = object)
 
-    # call peaks in parallel if using group.by
-    if (!is.null(x = group.by)) {
-        unique_groups <- unique(object[[group.by]])[,1]
-
-        # split barcodes per group
-        barcode_path_list <- c()
-        for (i in seq_along(unique_groups)) {
-            group <- as.character(unique_groups[i])
-            barcodes_vec <- WhichCells(pbmc, idents = group)
-            barcodes_vec <- sub("^[^_]*_", "", barcodes_vec) # remove any cell id
-            barcode_path <- paste0(master_outdir, .Platform$file.sep, paste0(group, "_barcodes.txt"))
-            writeLines(barcodes_vec, con = barcode_path)
-            barcode_path_list[[group]] <- barcode_path
-        }
-
-        # MACS3 parallelization
-        if (parallel) {
-            # detect maximum number of cores
-            num_groups <- length(unique_groups)
-            actual_cpus <- parallelly::availableCores()
-            plan(future::multisession, workers = min(num_groups, actual_cpus))
-
-            message(actual_cpus) ### DEBUG
-            message(num_groups)  ### DEBUG
-        
-            # run CallPeaks in parallel
-            gr_list <- future_lapply(unique_groups, function(i) {
-                CallPeaks(
-                    object = unlist(allfragpaths),  ### object fragment(s)
-                    macs3.path = macs3.path,
-                    mode = mode,
-                    outdir = master_outdir,
-                    broad = broad,
-                    barcodes = barcode_path_list[[unique_groups[i]]],
-                    genome = genome,
-                    gsize = gsize,
-                    additional.args = additional.args,
-                    name = paste0(unique_groups[i], "_", name),
-                    cleanup = cleanup,
-                    verbose = verbose
-                )
-            }, future.seed = TRUE,
-                future.globals = c(
-                    "CallPeaks", # for testing function only
-                    "allfragpaths", "macs3.path", "mode", "master_outdir", "broad", 
-                    "barcode_path_list", "unique_groups", "genome", "gsize", 
-                    "additional.args", "name", "cleanup", "verbose"
-            ))
-            
-            return(gr_list)
-            
+    # check parallelization
+    if (length(allfragpaths) > 1 || !is.null(group.by)) {
+        # check n workers for parallelization
+        if (nbrOfWorkers() > 1) {
+            mylapply <- future_lapply
         } else {
-            # If parallel = FALSE, run CallPeaks sequentially
-            gr_list <- lapply(n_frags, function(i) {
-                CallPeaks(
-                    object = unlist(allfragpaths),
-                    macs3.path = macs3.path,
-                    mode = mode,
-                    outdir = master_outdir,
-                    broad = broad,
-                    barcodes = barcode_path_list[[unique_groups[i]]],
-                    genome = genome,
-                    gsize = gsize,
-                    additional.args = additional.args,
-                    name = paste0(unique_groups[i], "_", name),
-                    cleanup = cleanup,
-                    verbose = verbose
-                )
-            })
-            return(gr_list)
+            mylapply <- ifelse(test = verbose, yes = pbapply::pblapply, no = lapply)
+        }
+    } else {
+        mylapply <- lapply
+    }
+
+    # check callpeaks barcode input
+    if (!is.null(group.by)) {
+        # get cell barcodes per ident
+        group_barcodes <- list()
+        for (i in seq_along(idents)) {
+            ident_barcodes <- names(Signac:::GetGroups(object, group.by = group.by, idents = idents[[i]]))
+
+            # if set cells, subset
+            if (!is.null(cells)) {
+                ident_barcodes <- ident_barcodes[ident_barcodes %in% cells]
+            }
+
+            group_barcodes[[i]] <- ident_barcodes
         }
     }
 
-    # call peaks by ident
-    if (!is.null(x = idents)) {
-        # get ident barcodes
-        barcodes_vec <- WhichCells(pbmc, idents = idents)
-        barcodes_vec <- sub("^[^_]*_", "", barcodes_vec) # remove any cell id
-        barcode_path <- paste0(master_outdir, .Platform$file.sep, paste0(idents, "_barcodes.txt"))
-        writeLines(barcodes_vec, con = barcode_path)
-        
-        # call peaks
-        gr_list <- CallPeaks(
-                        object = unlist(allfragpaths),  ### object fragment(s)
-                        macs3.path = macs3.path,
-                        mode = mode,
-                        outdir = master_outdir,
-                        broad = broad,
-                        barcodes = barcode_path,
-                        genome = genome,
-                        gsize = gsize,
-                        additional.args = additional.args,
-                        name = paste0(idents, "_", name),
-                        cleanup = cleanup,
-                        verbose = verbose
+    # call peaks per fragment
+    if (!is.null(group.by)) {
+        idx <- expand.grid(
+            frag = seq_along(frags),
+            ident = seq_along(idents)
         )
+        peakcalls <- mylapply(
+            X = seq_len(nrow(idx)),
+            FUN = function(k) {
+                i <- idx$frag[k]
+                j <- idx$ident[k]
 
-        return(gr_list)
-    }
-
-    # write obj cell barcodes
-    barcodes_vec <- rownames(object[[assay]]@`cells`)
-    barcodes_vec <- sub("^[^_]*_", "", barcodes_vec) # remove any cell id
-    barcode_path <- paste0(master_outdir, .Platform$file.sep, paste0("barcodes.txt"))
-    writeLines(barcodes_vec, con = barcode_path)
-
-    # call peaks
-    gr_list <- CallPeaks(
-                    object = unlist(allfragpaths),  ### object fragment(s)
+                CallPeaks(
+                    object = frags[[i]],
                     macs3.path = macs3.path,
                     mode = mode,
-                    outdir = master_outdir,
+                    outdir = outdir,
                     broad = broad,
-                    barcodes = barcode_path,
+                    barcodes = barcodes,
+                    cells = group_barcodes[[j]],
+                    genome = genome,
+                    gsize = gsize,
+                    additional.args = additional.args,
+                    name = paste0(name, "_frag", i, "_ident", j),
+                    cleanup = TRUE,
+                    verbose = TRUE,
+                    ...
+                )
+            }
+        )
+    } else if (is.null(group.by) && !is.null(cells)) {
+        # separate cells per fragment
+        frag_cells <- list()
+        for (i in seq_along(frags)) {
+            frag_cells[[i]] <- names(frags[[i]]@cells[cells])
+        }
+
+        # call peaks
+        peakcalls <- mylapply(
+            X = seq_along(frags),
+            FUN = function(i) {
+                CallPeaks(
+                    object = frags[[i]],
+                    macs3.path = macs3.path,
+                    mode = mode,
+                    outdir = outdir,
+                    broad = broad,
+                    barcodes = barcodes,
+                    cells = frag_cells[[i]],
+                    genome = genome,
+                    gsize = gsize,
+                    additional.args = additional.args,
+                    name = paste0(name,"_",i),
+                    cleanup = TRUE,
+                    verbose = TRUE,
+                    ...)
+            }
+        )
+    } else { 
+        peakcalls <- mylapply(
+            X = 1L,
+            FUN = function(i) {
+                CallPeaks(
+                    object = object[[assay]],
+                    macs3.path = macs3.path,
+                    combine.peaks = combine.peaks,
+                    mode = mode,
+                    outdir = outdir,
+                    broad = broad,
+                    barcodes = barcodes,
+                    cells = cells,
                     genome = genome,
                     gsize = gsize,
                     additional.args = additional.args,
                     name = name,
                     cleanup = cleanup,
-                    verbose = verbose)
-    
-    return(gr_list)
+                    verbose = verbose,
+                    ...
+                )
+            }
+        )
+    }
+
+    # combine into 1 granges
+    if (combine.peaks == TRUE) {
+        peakcalls <- reduce(do.call(c, peakcalls))
+    }
+
+    return(peakcalls)
 }
 
 #' @method CallPeaks ChromatinAssay5
@@ -247,10 +252,10 @@ CallPeaks.ChromatinAssay5 <- function(
         if (nbrOfWorkers() > 1) {
             mylapply <- future_lapply
         } else {
-            mylapply <- ifelse(test = verbose, yes = pbapply::pblapply, no = parallel::lapply)
+            mylapply <- ifelse(test = verbose, yes = pbapply::pblapply, no = lapply)
         }
     } else {
-        mylapply <- parallel::lapply
+        mylapply <- lapply
     }
 
     # write cell barcodes per fragment
