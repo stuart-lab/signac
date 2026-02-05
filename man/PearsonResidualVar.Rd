@@ -3,7 +3,7 @@
 \name{PearsonResidualVar}
 \alias{PearsonResidualVar}
 \alias{PearsonResidualVar.default}
-\alias{PearsonResidualVar.Assay}
+\alias{PearsonResidualVar.Assay5}
 \alias{PearsonResidualVar.StdAssay}
 \alias{PearsonResidualVar.Seurat}
 \title{Compute analytic Pearson residual variance}
@@ -17,11 +17,12 @@ PearsonResidualVar(object, ...)
   min.counts = 100,
   ncell.batch = 100,
   theta = 10,
+  weight.mean = 0,
   verbose = TRUE,
   ...
 )
 
-\method{PearsonResidualVar}{Assay}(
+\method{PearsonResidualVar}{Assay5}(
   object,
   assay = NULL,
   nfeatures = 20000,
@@ -29,6 +30,7 @@ PearsonResidualVar(object, ...)
   min.counts = 100,
   weight.mean = 0,
   ncell.batch = 100,
+  key = "pearson",
   verbose = TRUE,
   ...
 )
@@ -40,6 +42,7 @@ PearsonResidualVar(object, ...)
   weight.mean = 0,
   theta = 10,
   ncell.batch = 100,
+  key = "pearson",
   verbose = TRUE,
   ...
 )
@@ -51,6 +54,7 @@ PearsonResidualVar(object, ...)
   weight.mean = 0.5,
   theta = 10,
   ncell.batch = 100,
+  key = "pearson",
   verbose = TRUE,
   ...
 )
@@ -71,11 +75,13 @@ increases speed but uses more memory.}
 
 \item{theta}{Theta value for analytic Pearson residual calculation}
 
-\item{verbose}{Display messages}
-
 \item{weight.mean}{Weighting to apply to the feature mean relative to the
 Pearson residual variance for ranking features. \code{weight.mean=0} will
 rank features based on the Pearson residual variance only.}
+
+\item{verbose}{Display messages}
+
+\item{key}{Key to use when storing the highly variable feature information in the assay.}
 }
 \value{
 Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
