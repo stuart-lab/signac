@@ -740,11 +740,12 @@ PearsonResidualVar.default <- function(
   if (verbose) {
     message("Retaining ", sum(nonzero_mean), " features with mean greater than zero")
   }
-
+  rn <- rownames(x = object)
+  rcount <- rowSums(x = object)
   object <- object[nonzero_mean, ]
-  feature_means <- feature_means[nonzero_mean]
+  feature_means.nonzero <- feature_means[nonzero_mean]
 
-  denominator <- sqrt(feature_means + ((feature_means * feature_means) / theta))
+  denominator <- sqrt(feature_means.nonzero + ((feature_means.nonzero * feature_means.nonzero) / theta))
 
   # iterate over the values for each feature, compute the pearson residual variance
   resid_sums <- vector(mode = "numeric", length = nrow(x = object))
@@ -757,7 +758,7 @@ PearsonResidualVar.default <- function(
     cells.interval.start <- 1 + ((i - 1) * ncell.batch)
     cells.interval.end <- min(N, (i * ncell.batch))
 
-    resid <- as.matrix((object[, cells.interval.start:cells.interval.end] - feature_means) / denominator)
+    resid <- as.matrix((object[, cells.interval.start:cells.interval.end] - feature_means.nonzero) / denominator)
     resid[resid > clip_threshold] <- clip_threshold
     resid[resid < -clip_threshold] <- -clip_threshold
     rs <- rowSums(x = resid)
@@ -771,18 +772,21 @@ PearsonResidualVar.default <- function(
   # Variance = [sum_of_squares - n * mean^2] / n
   resid_mean <- resid_sums / N
   pearson_residual_variance <- (resid_sum_square - (N * resid_mean^2)) / N
+  resid.all <- rep(x = 0, length(x = feature_means))
+  resid.all[nonzero_mean] <- pearson_residual_variance
   
-  res_rank <- rank(x = -pearson_residual_variance, ties.method = "average")
+  res_rank <- rank(x = -resid.all, ties.method = "average")
   mean_rank <- rank(x = -feature_means, ties.method = "average")
   
   # construct dataframe
   hvf.info <- data.frame(
-    row.names = rownames(x = object),
-    count = rowSums(x = object),
+    row.names = rn,
+    count = rcount,
     mean = feature_means,
-    ResidualVariance = pearson_residual_variance,
+    ResidualVariance = resid.all,
     rank = (weight.mean * mean_rank) + ((1 - weight.mean) * res_rank)
   )
+
   return(hvf.info)
 }
 
