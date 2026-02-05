@@ -7,18 +7,16 @@ NULL
 #' @param assay Name of assay to use
 #' @param group.by Grouping variable to use. If set, peaks will be called
 #' independently on each group of cells and then combined. Note that to call
-#' peaks using subsets of cells we first split the fragment file/s used, so
-#' using a grouping variable will require extra time to split the files and
-#' perform multiple MACS peak calls, and will store additional files on-disk
-#' that may be large. Note that we store split fragment files in the temp
-#' directory ([base::tempdir()]) by default, and if the program is
-#' interrupted before completing these temporary files will not be removed. If
-#' NULL, peaks are called using all cells together (pseudobulk).
+#' peaks using a subset of cells, we write the cell barcodes into .txt file/s that 
+#' are stored in the temp directory ([base::tempdir()]) by default. If the 
+#' program is interrupted before completing these temporary files will not be removed. 
+#' If NULL, peaks are called using all cells together (pseudobulk).
 #' @param idents List of identities to include if grouping cells (only valid if
 #' also setting the `group.by` parameter). If NULL, peaks will be called
 #' for all cell identities.
-#' @param macs2.path Path to MACS program. If NULL, try to find MACS
+#' @param macs3.path Path to MACS program. If NULL, try to find MACS
 #' automatically.
+#' @param mode MACS function to call, default is `callpeak`
 #' @param combine.peaks Controls whether peak calls from different groups of
 #' cells are combined using `GenomicRanges::reduce` when calling peaks for
 #' different groups of cells (`group.by` parameter). If FALSE, a list of
@@ -26,16 +24,14 @@ NULL
 #' p-value, q-value, and fold-change information for each peak will be lost if
 #' combining peaks.
 #' @param broad Call broad peaks (`--broad` parameter for MACS)
-#' @param format File format to use. Should be either "BED" or "BEDPE" (see
-#' MACS documentation).
 #' @param outdir Path for output files
-#' @param fragment.tempdir Path to write temporary fragment files. Only used if
-#' `group.by` is not NULL.
-#' @param effective.genome.size Effective genome size parameter for MACS
-#' (`-g`). Default is the human effective genome size (2.7e9).
-#' @param extsize `extsize` parameter for MACS. Only relevant if
-#' format="BED"
-#' @param shift `shift` parameter for MACS. Only relevant if format="BED"
+#' @param barcodes Path to cell barcodes (`--barcodes` parameter for MACS)
+#' @param cells Vector of cell barcodes to call peaks on.
+#' @param genome MACS3 built-in effective genome size. Default is `hs` (human, GRCh38). 
+#' Genome sizes for `mm` (mice, GRCm38), `ce` (c elegans, WBcel235), and `dm` (drosophila m, dm6) 
+#' are also available.
+#' @param gsize Manually set effective genome size parameter. If specified, overrides MACS3 
+#' built-in genome sizes
 #' @param additional.args Additional arguments passed to MACS. This should be a
 #' single character string
 #' @param name Name for output MACS files. This will also be placed in the
