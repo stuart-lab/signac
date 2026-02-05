@@ -17,6 +17,7 @@ FindTopFeatures(object, ...)
   assay = NULL,
   layer = "counts",
   min.cutoff = "q5",
+  key = "topfeatures",
   verbose = TRUE,
   ...
 )
@@ -26,6 +27,7 @@ FindTopFeatures(object, ...)
   assay = NULL,
   layer = "counts",
   min.cutoff = "q5",
+  key = "topfeatures",
   verbose = TRUE,
   ...
 )
@@ -35,6 +37,7 @@ FindTopFeatures(object, ...)
   assay = NULL,
   layer = "counts",
   min.cutoff = "q5",
+  key = "topfeatures",
   verbose = TRUE,
   ...
 )
@@ -48,14 +51,12 @@ FindTopFeatures(object, ...)
 
 \item{min.cutoff}{Cutoff for feature to be included in the VariableFeatures
 for the object. This can be a percentile specified as 'q' followed by the
-minimum percentile, for example 'q5' to set the top 95\\% most common features
+minimum percentile, for example 'q5' to set the top 95\% most common features
 as the VariableFeatures for the object. Alternatively, this can be an integer
 specifying the minimum number of counts for the feature
 to be included in the set of VariableFeatures. For example, setting to 10
 will include features with >10 total counts in the set of VariableFeatures. If NULL,
-include all features in VariableFeatures. If NA, VariableFeatures will not be
-altered, and only the feature metadata will be updated with the total counts
-and percentile rank for each feature.}
+include all features in VariableFeatures.}
 
 \item{verbose}{Display messages}
 
