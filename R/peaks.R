@@ -228,6 +228,7 @@ CallPeaks.ChromatinAssay5 <- function(
     outdir = tempdir(),
     broad = FALSE,
     barcodes = NULL,
+    cells = NULL,
     genome = "hs",
     gsize = NULL,
     additional.args = NULL,
@@ -258,6 +259,10 @@ CallPeaks.ChromatinAssay5 <- function(
         # get all cell barcodes in fragment
         bc <- frags[[i]]@cells
 
+        if (!is.null(cells)) {
+            bc <- frags[[i]]@cells[cells]
+        }
+
         # write barcodes to file
         barcode_path <- paste0(outdir, .Platform$file.sep, paste0(name,"_",i,"_barcodes.txt"))
         writeLines(bc, con = barcode_path) 
@@ -278,7 +283,7 @@ CallPeaks.ChromatinAssay5 <- function(
                 genome = genome,
                 gsize = gsize,
                 additional.args = additional.args,
-                name = "macs3",
+                name = paste0(name,"_",i),
                 cleanup = TRUE,
                 verbose = TRUE)
         }
