@@ -1244,6 +1244,7 @@ SetAssayData.ChromatinAssay5 <- function(
     agg.list <- GetAssayData(object = object, layer = layer)
     if (length(x = agg.list) == 0) {
       # nothing exists yet -> assign directly 
+      # call a function that will "condense" the list of RegionAgg
       methods::slot(object, "region.aggregation") <- new.data
       return(object)
     } 
@@ -1298,7 +1299,7 @@ SetAssayData.ChromatinAssay5 <- function(
           
           # non-overlapping cells
           if (length(new.cells)>0) {
-            compatible <- 
+            compatible <- # have a separate function for checking compatibility 
               identical(old.agg@upstream, new.agg@upstream) && 
               identical(old.agg@downstream, new.agg@downstream) && 
               identical(old.agg@expected, new.agg@expected) && 

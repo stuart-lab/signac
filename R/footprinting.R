@@ -41,7 +41,7 @@ GetFootprintData <- function(
   
   region.enrichment <- RegionAggr(object[[assay]])#@region.aggregation
   # get existing features 
-  slot(object = region.enrichment, name = 'name')
+  #slot(object = region.enrichment, name = 'name')
   region.enrichment.names <- vapply(region.enrichment, FUN = function(x) x@name, FUN.VALUE = character(1))
   
   obj.groups <- GetGroups(
@@ -125,6 +125,14 @@ GetFootprintData <- function(
       return(BackgroundMeanNorm(x = mat.use, background = 50))
     })
     bg.norm <- do.call(what = rbind, args = bg.norm)
+    # add position
+    center.offset <- floor(motif.width/2)
+    positions <-seq(
+      from = -target.upstream - center.offset,
+      to = target.downstream + motif.width - center.offset - 1
+    )
+    
+    colnames(bg.norm) <- positions
     groupmeans <- ApplyMatrixByGroup(
       mat = bg.norm,
       groups = obj.groups,
@@ -134,15 +142,8 @@ GetFootprintData <- function(
     # add feature information 
     groupmeans$feature <- feature 
     groupmeans$class <- "Observed"
-    
-    # add position
-    center.offset <- floor(motif.width/2)
-    positions <-seq(
-      from = -target.upstream - center.offset,
-      to = target.downstream + motif.width - center.offset - 1
-    )
     groupmeans$position <- positions
-    
+    # browser()
     # add expected insertions
     expect.df <- data.frame(
       group = NA,
@@ -577,12 +578,13 @@ GetMotifSize <- function(
     #    layer = "positionEnrichment")
     
     sizes <- c()
+    agg.list.names <- vapply(agg.list, FUN = function(x) x@name, FUN.VALUE = character(1))
     for (i in features) {
         # motif <- positionEnrichment[[i]]["motif", ]
-        if (!i %in% names(agg.list)){
+        if (!i %in% agg.list.names){
             stop("No footprinting data found for feature: ", i)
         }
-        motif.agg <- agg.list[[i]] 
+        motif.agg <- agg.list[which(agg.list.names==i)][[1]]
         w <- unique(width(motif.agg@regions))
         if (length(w) != 1){
             stop("Regions for feature ", i, " have inconsistent widths")
