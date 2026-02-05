@@ -299,14 +299,12 @@ DownsampleFeatures <- function(
 #' @param assay Name of assay to use
 #' @param min.cutoff Cutoff for feature to be included in the VariableFeatures
 #' for the object. This can be a percentile specified as 'q' followed by the
-#' minimum percentile, for example 'q5' to set the top 95\% most common features
+#' minimum percentile, for example 'q5' to set the top 95% most common features
 #' as the VariableFeatures for the object. Alternatively, this can be an integer
 #' specifying the minimum number of counts for the feature
 #' to be included in the set of VariableFeatures. For example, setting to 10
 #' will include features with >10 total counts in the set of VariableFeatures. If NULL,
-#' include all features in VariableFeatures. If NA, VariableFeatures will not be
-#' altered, and only the feature metadata will be updated with the total counts
-#' and percentile rank for each feature.
+#' include all features in VariableFeatures.
 #' @param verbose Display messages
 #'
 #' @importFrom Matrix rowSums
@@ -330,7 +328,6 @@ FindTopFeatures.default <- function(
     count = featurecounts,
     percentile = e.dist(featurecounts)
   )
-  hvf.info <- hvf.info[order(hvf.info$count, decreasing = TRUE), ]
   return(hvf.info)
 }
 
@@ -348,47 +345,62 @@ FindTopFeatures.Assay5 <- function(
   assay = NULL,
   layer = "counts",
   min.cutoff = "q5",
+  key = "topfeatures",
   verbose = TRUE,
   ...
 ) {
-  # TODO enable running across list of layers
-  data.use <- LayerData(object = object, layer = layer)
-  if (IsMatrixEmpty(x = data.use)) {
-    if (verbose) {
-      message("Count slot empty")
+  layer <- Layers(object = object, search = layer)
+  feature.ranks <- list()
+  for (i in seq_along(along.with = layer)) {
+    if (isTRUE(x = verbose)) {
+      message("Finding variable features for layer ", layer[i])
     }
-    return(object)
-  }
-  hvf.info <- FindTopFeatures(
-    object = data.use,
-    assay = assay,
-    min.cutoff = min.cutoff,
-    verbose = verbose,
-    ...
-  )
-  object[[names(x = hvf.info)]] <- hvf.info
-  if (is.null(x = min.cutoff)) {
-    VariableFeatures(object = object) <- rownames(x = hvf.info)
-  } else if (is.numeric(x = min.cutoff)) {
-    VariableFeatures(object = object) <- rownames(
-      x = hvf.info[hvf.info$count > min.cutoff, ]
+    data.use <- LayerData(object = object, layer = layer[i], fast = TRUE)
+    hvf <- FindTopFeatures(
+      object = data.use,
+      assay = assay,
+      min.cutoff = min.cutoff,
+      verbose = verbose,
+      ...
     )
-  } else if (is.na(x = min.cutoff)) {
-    # don't change the variable features
-    return(object)
+    rownames(x = hvf) <- Features(x = object, layer = layer[i])
+    if (i == 1) {
+      hvf.use <- hvf
+    } else {
+      # sum feature counts across layers
+      hvf.use[rownames(x = hvf), ] <- hvf.use[rownames(x = hvf), ] + hvf
+    }
+  }
+  # re-compute percentile due to multiple layers
+  e.dist <- ecdf(x = hvf.use$count)
+  hvf.use$percentile <- e.dist(hvf.use$count)
+  hvf.use$rank <- rank(x = hvf.use$percentile)
+  hvf.use$variable <- FALSE
+  
+  if (is.null(x = min.cutoff)) {
+    hvf.use$variable <- TRUE
+  } else if (is.numeric(x = min.cutoff)) {
+    hvf.use[hvf.use[, 1] > min.cutoff, 'variable'] <- TRUE
   } else {
     percentile.use <- as.numeric(
       x = sub(pattern = "q", replacement = "", x = as.character(x = min.cutoff))
     ) / 100
-    VariableFeatures(object = object) <- rownames(
-      x = hvf.info[hvf.info$percentile > percentile.use, ]
-    )
+    hvf.use[hvf.use[, 2] > percentile.use, 'variable'] <- TRUE
   }
+  colnames(x = hvf.use) <- paste(
+    "vf",
+    key,
+    layer[i],
+    colnames(x = hvf.use),
+    sep = "_"
+  )
+  object[["var.features"]] <- NULL
+  object[["var.features.rank"]] <- NULL
+  object[[names(x = hvf.use)]] <- hvf.use
   return(object)
 }
 
 #' @rdname FindTopFeatures
-#' @importFrom SeuratObject GetAssayData VariableFeatures
 #' @importFrom utils packageVersion
 #' @export
 #' @method FindTopFeatures StdAssay
@@ -400,6 +412,7 @@ FindTopFeatures.StdAssay <- function(
   assay = NULL,
   layer = "counts",
   min.cutoff = "q5",
+  key = "topfeatures",
   verbose = TRUE,
   ...
 ) {
@@ -408,6 +421,7 @@ FindTopFeatures.StdAssay <- function(
     assay = assay,
     layer = layer,
     min.cutoff = min.cutoff,
+    key = key,
     verbose = verbose,
     ...
   )
@@ -425,6 +439,7 @@ FindTopFeatures.Seurat <- function(
   assay = NULL,
   layer = "counts",
   min.cutoff = "q5",
+  key = "topfeatures",
   verbose = TRUE,
   ...
 ) {
@@ -435,6 +450,7 @@ FindTopFeatures.Seurat <- function(
     assay = assay,
     layer = layer,
     min.cutoff = min.cutoff,
+    key = key,
     verbose = verbose,
     ...
   )
