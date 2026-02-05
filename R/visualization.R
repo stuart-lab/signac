@@ -3337,7 +3337,7 @@ reformat_annotations <- function(
   total.width <- end.pos - start.pos
   tick.freq <- total.width / 50
   annotation <- annotation[annotation$type == "exon"]
-  exons <- as.data.frame(x = annotation)
+  exons <- as.data.frame(x = annotation, row.names = NULL)
   if (collapse_transcript) {
     annotation <- split(
       x = annotation,
@@ -3349,7 +3349,7 @@ reformat_annotations <- function(
       f = annotation$tx_id
     )
   }
-  annotation <- lapply(X = annotation, FUN = as.data.frame)
+  annotation <- lapply(X = annotation, FUN = as.data.frame, row.names = NULL)
 
   # add gene total start / end
   gene_bodies <- list()
