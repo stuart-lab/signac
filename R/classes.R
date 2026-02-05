@@ -149,8 +149,6 @@ setValidity(Class = "RegionAggregation", function(object) {
   }
   TRUE
 })
-setClassUnion(name = "ListOrNULL", members = c("list", "NULL"))
-
 
 #' @slot fragments A list of [Fragment()] objects.
 #' @slot annotation A  [GenomicRanges::GRanges()] object containing
@@ -186,7 +184,7 @@ setClass(
     "fragments" = "list",
     "annotation" = "GRangesOrNULL",
     "bias" = "NumericOrNULL",
-    "region.aggregation" = "ListOrNULL",
+    "region.aggregation" = "list",
     "links" = "list",
     "motifs" = "MotifOrNULL"
   )
