@@ -39,8 +39,9 @@ GetFootprintData <- function(
     stop("The requested assay is not a ChromatinAssay5")
   }
   
-  region.enrichment <- object[[assay]]@region.aggregation
+  region.enrichment <- RegionAggr(object[[assay]])#@region.aggregation
   # get existing features 
+  slot(object = region.enrichment, name = 'name')
   region.enrichment.names <- vapply(region.enrichment, FUN = function(x) x@name, FUN.VALUE = character(1))
   
   obj.groups <- GetGroups(
@@ -632,6 +633,7 @@ RunFootprint <- function(
     if (in.peaks) {
         regions <- subsetByOverlaps(x = regions, ranges = granges(x = object))
     } 
+    motif.regions <- regions
 
     # extend upstream and downstream
     regions <- Extend(
@@ -667,7 +669,7 @@ RunFootprint <- function(
     # count insertions at each position for each cell
     insertion.matrix <- CreateRegionPileupMatrix(
         object = object,
-        regions = regions
+        regions = regions 
     ) # returns a sparse dgcMatrix that does not have nrows()
     # get expected insertions 
     expected.insertions <- as.numeric(x = expected.insertions)
@@ -684,7 +686,7 @@ RunFootprint <- function(
     # browser()
     agg.obj <- CreateRegionAggregationObject(
         mat = insertion.matrix, 
-        regions = regions, 
+        regions = motif.regions, 
         upstream = upstream, 
         downstream = downstream, 
         name = name, 
