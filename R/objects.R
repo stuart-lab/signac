@@ -1206,6 +1206,11 @@ SetAssayData.ChromatinAssay5 <- function(
     }
     methods::slot(object = object, name = layer) <- new.data
   } else if (layer == "region.aggregation") {
+    if (is.null(x = new.data)) {
+      # overwrite with empty list
+      methods::slot(object = object, name = layer) <- list()
+      return(object)
+    }
     if (inherits(x = new.data, what = "list")){
       # check if its a list containing RegionAggregation class objects
       for (i in seq_along(new.data)){
