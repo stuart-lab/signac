@@ -142,7 +142,6 @@ GetFootprintData <- function(
     groupmeans$feature <- feature 
     groupmeans$class <- "Observed"
     groupmeans$position <- positions
-    # browser()
     # add expected insertions
     expect.df <- data.frame(
       group = NA,
@@ -279,6 +278,7 @@ Footprint.ChromatinAssay5 <- function(
             )
         }
     )
+    # browser()
     # store in object
     object <- SetAssayData(
       object = object, 

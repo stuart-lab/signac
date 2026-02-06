@@ -1305,12 +1305,15 @@ SetAssayData.ChromatinAssay5 <- function(
           
         }
       }
-      if (!merged) { 
-        new.sub <- subset(new.agg, cells = new.cells)
-        agg.list <- c(agg.list, list(new.sub))
-      }
       # remove null objects 
       agg.list <- agg.list[!to.drop]
+      
+      if (!merged) { 
+        new.sub <- subset(new.agg, cells = new.cells)
+        if (!is.null(new.sub)){
+          agg.list <- append(agg.list, list(new.sub))
+        }
+      }
     }
     methods::slot(object = object, layer) <- agg.list
   }
