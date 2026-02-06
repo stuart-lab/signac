@@ -115,7 +115,7 @@ CallPeaks.Seurat <- function(
         # get cell barcodes per ident
         group_barcodes <- list()
         for (i in seq_along(idents)) {
-            ident_barcodes <- names(Signac:::GetGroups(object, group.by = group.by, idents = idents[[i]]))
+            ident_barcodes <- names(GetGroups(object, group.by = group.by, idents = idents[[i]]))
 
             # if set cells, subset
             if (!is.null(cells)) {
@@ -178,7 +178,7 @@ CallPeaks.Seurat <- function(
                     genome = genome,
                     gsize = gsize,
                     additional.args = additional.args,
-                    name = paste0(name,"_",i),
+                    name = paste0(name,"_frag",i),
                     cleanup = TRUE,
                     verbose = TRUE,
                     ...)
@@ -208,6 +208,14 @@ CallPeaks.Seurat <- function(
             }
         )
     }
+
+    # name granges
+    names(peakcalls) <- vapply(
+        peakcalls,
+        function(gr) mcols(gr)$name[1],
+        character(1)
+    )
+    names(peakcalls) <- sub("_peak_\\d+$", "", names(peakcalls))
 
     # combine into 1 granges
     if (combine.peaks == TRUE) {
