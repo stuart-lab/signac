@@ -1244,7 +1244,7 @@ SetAssayData.ChromatinAssay5 <- function(
     agg.list <- GetAssayData(object = object, layer = layer)
     if (length(x = agg.list) == 0) {
       # nothing exists yet -> assign directly 
-      # call a function that will "condense" the list of RegionAgg
+      new.data <- MergeRegionAggregation(new.data)
       methods::slot(object, "region.aggregation") <- new.data
       return(object)
     } 
