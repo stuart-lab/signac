@@ -1708,6 +1708,92 @@ merge.GRangesAssay <- function(
     return(merged)
   }
 }
+#' Condense a list of RegionAggregation objects
+#' 
+#' Function takes in a list of RegionAggregation objects, merges compatible ones,
+#' returns a condensed list 
+#' helper function (should it be exported or not?)
+#' 
+#' This will merge compatible regionaggregation object 
+#' checks for (identical expectation values, upstream, downstream)
+#' will throw out error if there exists:
+#' 1) objects with the same feature name but different region width
+#' 2) objects with the same feature name and overlapping cells 
+#' 
+#'
+#' @concept RegionAggregation 
+#' @method merge RegionAggregation in a list 
+MergeRegionAggregation <- function(
+    x = NULL
+){
+  stopifnot(is.list(x))
+  stopifnot(all(vapply(x, inherits, logical(1), "RegionAggregation")))
+  
+  # extract feature names
+  features.names <-vapply(x, FUN = function(x) x@name, FUN.VALUE=character(1))
+  # group by feature names
+  grouped.agg <- split(x, feature.names)
+  
+  condensed.list <- lapply(grouped.agg, function(aggs){
+    if (length(aggs) == 1){
+      # only one agg obj with this feature name 
+      # nothing to do
+      out <- aggs[[1]]
+    } else {
+      ## single motif width per feature 
+      w <- unique(unlist(lapply(aggs, function(x) width(x@regions))))
+      if (length(w) != 1) {
+        stop("RegionAggregation for ", names(aggs), " have different widths ", w)
+      }
+      ## feature should not have duplicated cell barcodes 
+      cells.all <- unlist(lapply(aggs, function(x) x@cells), use.names = FALSE)
+      dup.cells <- cells.all[duplicated(cells.all)]
+      if (length(dup.cells) > 0){
+        stop("Duplicated cell barcodes across RegionAggregation objects for ", names(aggs))
+      }
+      
+      ## opportunistic merging
+      merged.obj.list <- list()
+      for (i in seq_along(aggs)){
+        if (length(merged.obj.list) == 0){
+          merged.obj.list <- list(aggs[[i]])
+        } else {
+          for (w in seq_along(merged.obj.list)){
+            if (IsCompatibleRegionAggregation(aggs[i], merged.obj.list[w])){
+              # replace merged.obj.list[w] with the merged 
+              merged.obj.list[]@matrix <- rbind(merged.obj.list[[w]]@matrix, aggs[[i]]@matrix)
+              merged.obj.list[[w]]@cells <- c((merged.obj.list[[w]]@cells, aggs[[i]]@cells)
+              break # break from cycle  # stop looping through merged.obj.list 
+            }
+          }
+          # if reach here means hasnt been merged with any obj in merged.obj.list 
+          merged.obj.list <- append(merged.obj.list, aggs[[i]])
+        }
+      }
+      out <- merged.obj.list 
+    }
+    out
+  }
+  # return as a flatten list 
+  condensed.list <- unname(condensed.list)
+  return(condensed.list)
+}
+
+#' helper function to check if 
+#' region aggregation objects are compatible 
+#' for merging
+IsCompatibleRegionAggregation <- function(
+    x = NULL, 
+    y = NULL
+){
+  stopifnot(inherits(x, "RegionAggregation"))
+  stopifnot(inherits(y, "RegionAggregation"))
+  
+  identical(x@upstream,   y@upstream) && 
+  identical(x@downstream, y@downstream) && 
+  identical(x@expected,   y@expected) && 
+  identical(x@regions,    y@regions)
+}
 
 #' @export
 #' @concept assay
