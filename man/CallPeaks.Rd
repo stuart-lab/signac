@@ -3,8 +3,8 @@
 \name{CallPeaks}
 \alias{CallPeaks}
 \alias{CallPeaks.Seurat}
-\alias{CallPeaks.ChromatinAssay}
-\alias{CallPeaks.Fragment}
+\alias{CallPeaks.ChromatinAssay5}
+\alias{CallPeaks.Fragment2}
 \alias{CallPeaks.default}
 \title{Call peaks}
 \usage{
@@ -15,15 +15,15 @@ CallPeaks(object, ...)
   assay = NULL,
   group.by = NULL,
   idents = NULL,
-  macs2.path = NULL,
+  cells = NULL,
+  macs3.path = NULL,
+  mode = "callpeak",
   broad = FALSE,
-  format = "BED",
+  barcodes = NULL,
+  genome = "hs",
+  gsize = NULL,
   outdir = tempdir(),
-  fragment.tempdir = tempdir(),
   combine.peaks = TRUE,
-  effective.genome.size = 2.7e+09,
-  extsize = 200,
-  shift = -extsize/2,
   additional.args = NULL,
   name = Project(object),
   cleanup = TRUE,
@@ -31,33 +31,36 @@ CallPeaks(object, ...)
   ...
 )
 
-\method{CallPeaks}{ChromatinAssay}(
+\method{CallPeaks}{ChromatinAssay5}(
   object,
-  macs2.path = NULL,
+  macs3.path = NULL,
+  combine.peaks = TRUE,
+  mode = "callpeak",
   outdir = tempdir(),
   broad = FALSE,
-  format = "BED",
-  effective.genome.size = 2.7e+09,
-  extsize = 200,
-  shift = -extsize/2,
+  barcodes = NULL,
+  cells = NULL,
+  genome = "hs",
+  gsize = NULL,
   additional.args = NULL,
-  name = "macs2",
+  name = "macs3",
   cleanup = TRUE,
   verbose = TRUE,
   ...
 )
 
-\method{CallPeaks}{Fragment}(
+\method{CallPeaks}{Fragment2}(
   object,
-  macs2.path = NULL,
+  macs3.path = NULL,
+  mode = "callpeak",
   outdir = tempdir(),
   broad = FALSE,
-  format = "BED",
-  effective.genome.size = 2.7e+09,
-  extsize = 200,
-  shift = -extsize/2,
+  barcodes = NULL,
+  cells = NULL,
+  genome = "hs",
+  gsize = NULL,
   additional.args = NULL,
-  name = "macs2",
+  name = "macs3",
   cleanup = TRUE,
   verbose = TRUE,
   ...
@@ -65,15 +68,15 @@ CallPeaks(object, ...)
 
 \method{CallPeaks}{default}(
   object,
-  macs2.path = NULL,
+  macs3.path = NULL,
+  mode = "callpeak",
   outdir = tempdir(),
   broad = FALSE,
-  format = "BED",
-  effective.genome.size = 2.7e+09,
-  extsize = 200,
-  shift = -extsize/2,
+  barcodes = NULL,
+  genome = "hs",
+  gsize = NULL,
   additional.args = NULL,
-  name = "macs2",
+  name = "macs3",
   cleanup = TRUE,
   verbose = TRUE,
   ...
@@ -89,30 +92,34 @@ path to fragment file/s.}
 
 \item{group.by}{Grouping variable to use. If set, peaks will be called
 independently on each group of cells and then combined. Note that to call
-peaks using subsets of cells we first split the fragment file/s used, so
-using a grouping variable will require extra time to split the files and
-perform multiple MACS peak calls, and will store additional files on-disk
-that may be large. Note that we store split fragment files in the temp
-directory (\code{\link[base:tempfile]{base::tempdir()}}) by default, and if the program is
-interrupted before completing these temporary files will not be removed. If
-NULL, peaks are called using all cells together (pseudobulk).}
+peaks using a subset of cells, we write the cell barcodes into .txt file/s that
+are stored in the temp directory (\code{\link[base:tempfile]{base::tempdir()}}) by default. If the
+program is interrupted before completing these temporary files will not be removed.
+If NULL, peaks are called using all cells together (pseudobulk).}
 
 \item{idents}{List of identities to include if grouping cells (only valid if
 also setting the \code{group.by} parameter). If NULL, peaks will be called
 for all cell identities.}
 
-\item{macs2.path}{Path to MACS program. If NULL, try to find MACS
+\item{cells}{Vector of cell barcodes to call peaks on.}
+
+\item{macs3.path}{Path to MACS program. If NULL, try to find MACS
 automatically.}
+
+\item{mode}{MACS function to call, default is \code{callpeak}}
 
 \item{broad}{Call broad peaks (\code{--broad} parameter for MACS)}
 
-\item{format}{File format to use. Should be either "BED" or "BEDPE" (see
-MACS documentation).}
+\item{barcodes}{Path to cell barcodes (\code{--barcodes} parameter for MACS)}
+
+\item{genome}{MACS3 built-in effective genome size. Default is \code{hs} (human, GRCh38).
+Genome sizes for \code{mm} (mice, GRCm38), \code{ce} (c elegans, WBcel235), and \code{dm} (drosophila m, dm6)
+are also available.}
+
+\item{gsize}{Manually set effective genome size parameter. If specified, overrides MACS3
+built-in genome sizes}
 
 \item{outdir}{Path for output files}
-
-\item{fragment.tempdir}{Path to write temporary fragment files. Only used if
-\code{group.by} is not NULL.}
 
 \item{combine.peaks}{Controls whether peak calls from different groups of
 cells are combined using \code{GenomicRanges::reduce} when calling peaks for
@@ -120,14 +127,6 @@ different groups of cells (\code{group.by} parameter). If FALSE, a list of
 \code{GRanges} object will be returned. Note that metadata fields such as the
 p-value, q-value, and fold-change information for each peak will be lost if
 combining peaks.}
-
-\item{effective.genome.size}{Effective genome size parameter for MACS
-(\code{-g}). Default is the human effective genome size (2.7e9).}
-
-\item{extsize}{\code{extsize} parameter for MACS. Only relevant if
-format="BED"}
-
-\item{shift}{\code{shift} parameter for MACS. Only relevant if format="BED"}
 
 \item{additional.args}{Additional arguments passed to MACS. This should be a
 single character string}
