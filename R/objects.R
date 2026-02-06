@@ -1790,10 +1790,22 @@ MergeRegionAggregation <- function(
   return(condensed.list)
 }
 
-#' helper function to check if 
-#' region aggregation objects are compatible 
-#' for merging
-#' not exported 
+#' Check compatibility of two RegionAggregation objects
+#' 
+#' Determines whether two \code{RegionAggregation} objects can be merged. 
+#' Compatibility id  defined as having identical non-cell-specific slots,
+#' including:
+#' \itemize{
+#'    \item \code{upstream} and \code{downstream} extensions
+#'    \item \code{expected} insertion vector
+#'    \item \code{regions} (\code{Granges} object)
+#' }
+#' 
+#' @ returns \code{TRUE} if \code{x} and \code{y} are compatible for merging
+#' \code{FALSE} otherwise.
+#' 
+#' @concept RegionAggregation
+#' @export
 IsCompatibleRegionAggregation <- function(
     x = NULL, 
     y = NULL
