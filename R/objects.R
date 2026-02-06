@@ -1710,19 +1710,30 @@ merge.GRangesAssay <- function(
 }
 #' Condense a list of RegionAggregation objects
 #' 
-#' Function takes in a list of RegionAggregation objects, merges compatible ones,
-#' returns a condensed list 
-#' helper function (should it be exported or not?)
+#' Takes a list of \code{RegionAggregation} objects and merges compatible
+#' objects that share the same feature na,e. Compatibility is defined by 
+#' identical upstream/downstream extension, regions, and expected insertion 
+#' values. Objects with different feature names are never merged. 
 #' 
-#' This will merge compatible regionaggregation object 
-#' checks for (identical expectation values, upstream, downstream)
-#' will throw out error if there exists:
-#' 1) objects with the same feature name but different region width
-#' 2) objects with the same feature name and overlapping cells 
+#' The function performs strict invariant checks and will error if:
+#' \itemize{
+#'  \item RegionAggregation objects with the same feature name have different 
+#'        region widths.
+#'  \item RegionAggregation objects with the same feature name contain 
+#'        overlapping cell barcodes. 
+#' }
 #' 
+#' @param x A list of \code{RegionAggregation} objects
+#' 
+#' @return A list of \code{RegionAggregation} objects, where compatible objects
+#'  have been merged. 
+#'  
+#' @details
+#' Compatibility between two RegionAggregation objects is determined by
+#' \code{IsCompatibleRegionAggregation()}
 #'
 #' @concept RegionAggregation 
-#' @method merge RegionAggregation in a list 
+#' @export 
 MergeRegionAggregation <- function(
     x = NULL
 ){
@@ -1762,7 +1773,7 @@ MergeRegionAggregation <- function(
             if (IsCompatibleRegionAggregation(aggs[i], merged.obj.list[w])){
               # replace merged.obj.list[w] with the merged 
               merged.obj.list[]@matrix <- rbind(merged.obj.list[[w]]@matrix, aggs[[i]]@matrix)
-              merged.obj.list[[w]]@cells <- c((merged.obj.list[[w]]@cells, aggs[[i]]@cells)
+              merged.obj.list[[w]]@cells <- c(merged.obj.list[[w]]@cells, aggs[[i]]@cells)
               break # break from cycle  # stop looping through merged.obj.list 
             }
           }
@@ -1773,15 +1784,16 @@ MergeRegionAggregation <- function(
       out <- merged.obj.list 
     }
     out
-  }
+  })
   # return as a flatten list 
-  condensed.list <- unname(condensed.list)
+  condensed.list <- unname(do.call(c, condensed.list))
   return(condensed.list)
 }
 
 #' helper function to check if 
 #' region aggregation objects are compatible 
 #' for merging
+#' not exported 
 IsCompatibleRegionAggregation <- function(
     x = NULL, 
     y = NULL
