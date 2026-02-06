@@ -1299,11 +1299,7 @@ SetAssayData.ChromatinAssay5 <- function(
           
           # non-overlapping cells
           if (length(new.cells)>0) {
-            compatible <- # have a separate function for checking compatibility 
-              identical(old.agg@upstream, new.agg@upstream) && 
-              identical(old.agg@downstream, new.agg@downstream) && 
-              identical(old.agg@expected, new.agg@expected) && 
-              identical(old.agg@regions, new.agg@regions)
+            compatible <- IsCompatibleRegionAggregation(old.agg, new.agg)
             
             if (compatible) {
               # concatenate the matrix and the cells vector
