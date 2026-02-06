@@ -982,8 +982,8 @@ RenameCells.ChromatinAssay5 <- function(object, new.names = NULL, ...) {
   }
   Fragments(object = object) <- NULL
   Fragments(object = object) <- frags
-
-  region.aggr <- GetAssayData(object = object, layer = "region.aggregation")
+  
+  region.aggr <- RegionAggr(object = object)
   for (i in seq_along(along.with = region.aggr)) {
     # TODO implement RenameCells.RegionAggregation
     region.aggr[[i]] <- RenameCells(
@@ -1219,16 +1219,6 @@ SetAssayData.ChromatinAssay5 <- function(
     # pull overwrite from ... , only interpret inside layer==region.aggregation
     dots <- list(...) 
     overwrite <- dots$overwrite %||% FALSE #default FALSE if not provided
-    
-    # rule: (name + cells) identity key, everything else is content.
-    ## same name:
-      ## 1) same cells: 
-         ## -> warn + skip (if overwrite = F)
-          ## -> replace (if overwrite = T)
-      ## 2) different cells: 
-          ## -> if content is the same: merge
-          ## else keep as separate obj in list
-    
     if (inherits(x = new.data, what = "list")){
       # check if its a list containing RegionAggregation class objects
       for (i in seq_along(new.data)){
@@ -1541,8 +1531,7 @@ subset.ChromatinAssay5 <- function(
   )
   # subset cells in region aggregation matrices
   # cells <- cells %||% colnames(x = x)
-  posmat <- GetAssayData(object = x, layer = "region.aggregation")
-
+  posmat <- RegionAggr(object=x)
   # TODO update for RegionAggregation class
   if (length(posmat) > 0) { 
     posmat <- lapply(posmat, subset, cells = cells)
@@ -1903,7 +1892,7 @@ merge.ChromatinAssay5 <- function(
     
     # merge region.aggregations
     all.agg <- lapply(X = assays, FUN = function(x) {
-      GetAssayData(object = x, layer = "region.aggregation")
+      RegionAggr(object = x)
     })
     # flatten list-of-lists 
     all.agg <- Reduce(f=c, x= all.agg)

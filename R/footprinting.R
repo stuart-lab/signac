@@ -39,9 +39,8 @@ GetFootprintData <- function(
     stop("The requested assay is not a ChromatinAssay5")
   }
   
-  region.enrichment <- RegionAggr(object[[assay]])#@region.aggregation
+  region.enrichment <- RegionAggr(object[[assay]])
   # get existing features 
-  #slot(object = region.enrichment, name = 'name')
   region.enrichment.names <- vapply(region.enrichment, FUN = function(x) x@name, FUN.VALUE = character(1))
   
   obj.groups <- GetGroups(
@@ -570,12 +569,7 @@ GetMotifSize <- function(
     assay = NULL
 ) {
     assay <- assay %||% DefaultAssay(object = object)
-    agg.list <- object[[assay]]@region.aggregation 
-    
-    #positionEnrichment <- GetAssayData(
-    #    object = object,
-    #    assay = assay,
-    #    layer = "positionEnrichment")
+    agg.list <- RegionAggr(object[[assay]])
     
     sizes <- c()
     agg.list.names <- vapply(agg.list, FUN = function(x) x@name, FUN.VALUE = character(1))
