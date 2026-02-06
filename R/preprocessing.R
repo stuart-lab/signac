@@ -490,7 +490,7 @@ FitMeanVar.Seurat <- function(
   bins = 1000,
   sample_per_bin = 50,
   key = "dsLoess",
-  verbose = FALSE,
+  verbose = TRUE,
   ...
 ) {
   assay <- assay %||% DefaultAssay(object)
@@ -526,7 +526,7 @@ FitMeanVar.Assay5 <- function(
   bins = 1000,
   sample_per_bin = 50,
   key = "dsLoess",
-  verbose = FALSE,
+  verbose = TRUE,
   ...
 ) {
   layer <- Layers(object = object, search = layer)
@@ -591,7 +591,7 @@ FitMeanVar.default <- function(
   bins = 1000,
   sample_per_bin = 50,
   random.seed = 1234,
-  verbose = FALSE,
+  verbose = TRUE,
   ...
 ) {
   rs <- rowSums(x = object)
@@ -652,7 +652,7 @@ FitMeanVar.data.frame <- function(
   bins = 1000,
   sample_per_bin = 50,
   random.seed = 1234,
-  verbose = FALSE,
+  verbose = TRUE,
   ...
 ) {
   if (!all(c("mean", "variance") %in% colnames(x = object))) {
