@@ -278,6 +278,12 @@ CallPeaks.ChromatinAssay5 <- function(
         barcode_paths[[i]] <- barcode_path
     }
 
+    # clean objects
+    rm(object)
+    rm(frags)
+    rm(bc)
+    gc()
+
     # call peaks
     peakcalls <- mylapply(
         X = seq_along(along.with = allfragpaths),
@@ -340,6 +346,7 @@ CallPeaks.Fragment2 <- function(
 
     # clean objects
     rm(object)
+    rm(cell_barcodes)
     gc()
 
     gr <- CallPeaks(
@@ -457,42 +464,51 @@ CallPeaks.default <- function(
     if (broad) {
     # read in broadpeak
     df <- read.table(
-      file = paste0(outdir, .Platform$file.sep, name, "_peaks.broadPeak"),
-      col.names = c(
-        "chr", "start", "end", "name",
-        "score", "strand", "fold_change",
-        "neg_log10pvalue_summit", "neg_log10qvalue_summit"
-      )
-    )
-    files.to.remove <- paste0(
-      name,
-      c("_peaks.broadPeak", "_peaks.xls", "_peaks.gappedPeak")
-    )
-  } else {
+        file = paste0(outdir, .Platform$file.sep, name, "_peaks.broadPeak"),
+        col.names = c(
+            "chr", "start", "end", "name",
+            "score", "strand", "fold_change",
+            "neg_log10pvalue_summit", "neg_log10qvalue_summit"
+            )
+        )
+        files.to.remove <- paste0(
+            name,
+            c("_peaks.broadPeak", "_peaks.xls", "_peaks.gappedPeak")
+        )
+    } else {
     # read in narrowpeak file
     df <- read.table(
-      file = paste0(outdir, .Platform$file.sep, name, "_peaks.narrowPeak"),
-      col.names = c(
-        "chr", "start", "end", "name",
-        "score", "strand", "fold_change",
-        "neg_log10pvalue_summit", "neg_log10qvalue_summit",
-        "relative_summit_position"
-      )
-    )
-    files.to.remove <- paste0(
-      name,
-      c("_peaks.narrowPeak", "_peaks.xls", "_summits.bed")
-    )
-  }
-
-  gr <- makeGRangesFromDataFrame(df = df, keep.extra.columns = TRUE, starts.in.df.are.0based = TRUE)
-  if (cleanup) {
-    files.to.remove <- paste0(outdir, .Platform$file.sep, files.to.remove)
-    for (i in files.to.remove) {
-      if (file.exists(i)) {
-        file.remove(i)
-      }
+        file = paste0(outdir, .Platform$file.sep, name, "_peaks.narrowPeak"),
+            col.names = c(
+            "chr", "start", "end", "name",
+            "score", "strand", "fold_change",
+            "neg_log10pvalue_summit", "neg_log10qvalue_summit",
+            "relative_summit_position"
+            )
+        )
+        files.to.remove <- paste0(
+            name,
+            c("_peaks.narrowPeak", "_peaks.xls", "_summits.bed")
+        )
     }
-  }
-  return(gr)
+
+    gr <- makeGRangesFromDataFrame(df = df, keep.extra.columns = TRUE, starts.in.df.are.0based = TRUE)
+    
+    if (cleanup) {
+        # remove macs3 files
+        files.to.remove <- paste0(outdir, .Platform$file.sep, files.to.remove)
+        for (i in files.to.remove) {
+            if (file.exists(i)) {
+                file.remove(i)
+            }
+        }
+        # remove barcode file
+        if (!is.null(barcodes)) {
+            if (file.exists(barcodes)) {
+                file.remove(barcodes)
+            }
+        }
+    }
+
+    return(gr)
 }
