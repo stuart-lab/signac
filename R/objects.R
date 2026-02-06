@@ -1247,13 +1247,14 @@ SetAssayData.ChromatinAssay5 <- function(
         agg.list, function(x) identical(x@name, new.agg@name), logical(1)))
       
       to.drop <- logical(length(agg.list)) # list of (FALSE, FALSE,...)
+      new.cells <- new.agg@cells
       
       if (length(same.name.idx) > 0) {
-        for (j in same.name.idx){
+        for (j in same.name.idx){ 
           old.agg <- agg.list[[j]]
           
           # detect identity collision
-          overlap.cells < - intersect(old.agg@cells, new.agg@cells) 
+          overlap.cells <- intersect(old.agg@cells, new.agg@cells) 
           new.cells <- setdiff(new.agg@cells, old.agg@cells) # new.cells should be unique to new.agg 
           
           # overlapping cells  
@@ -1277,7 +1278,7 @@ SetAssayData.ChromatinAssay5 <- function(
             } else {
               # skip 
               warning(sprintf(paste0(
-                "RegionAggregation '%s' already exists for %d cells and will not be recomputed", 
+                "RegionAggregation '%s' already exists for %d cells and will not be recomputed. \n", 
                 "Set overwrite=TRUE to replace the existing RegionAggregation, ", 
                 "or supply a different name to store it separately"
                 ),
@@ -1300,15 +1301,16 @@ SetAssayData.ChromatinAssay5 <- function(
               break
             }
           }
+          # "new.cells"
+          
         }
       }
-      # remove null objects 
-      agg.list <- agg.list[!to.drop]
-    
       if (!merged) { 
         new.sub <- subset(new.agg, cells = new.cells)
         agg.list <- c(agg.list, list(new.sub))
       }
+      # remove null objects 
+      agg.list <- agg.list[!to.drop]
     }
     methods::slot(object = object, layer) <- agg.list
   }
