@@ -1497,13 +1497,6 @@ subset.ChromatinAssay5 <- function(
   # subset elements in the standard assay
   x <- NextMethod()
 
-  # recompute meta features
-  x <- FindTopFeatures(
-    object = x,
-    min.cutoff = NA,
-    verbose = FALSE
-  )
-
   # subset cells in Fragments objects
   ragg <- RegionAggr(object = x)
   if (length(x = ragg) > 0) {
