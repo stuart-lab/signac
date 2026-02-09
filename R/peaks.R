@@ -157,7 +157,7 @@ CallPeaks.Seurat <- function(
         pk.all <- mylapply(
             X = unique_groups,
             FUN = function(x) {
-                CallPeaks(
+                gr <- CallPeaks(
                     object = object[[assay]],
                     cells = names(x = groups[groups == x]),
                     macs3.path = macs3.path,
@@ -170,9 +170,10 @@ CallPeaks.Seurat <- function(
                     additional.args = additional.args,
                     name = x,
                     cleanup = cleanup,
-                    verbose = verbose,
-                    ...
+                    verbose = FALSE
                 )
+                gr$ident <- x
+                gr
             }
         )
         peakcalls <- CombinePeaks(grlist = pk.all)
@@ -190,8 +191,7 @@ CallPeaks.Seurat <- function(
             additional.args = additional.args,
             name = name,
             cleanup = cleanup,
-            verbose = verbose,
-            ...
+            verbose = verbose
         )
     }
     return(peakcalls)
@@ -241,7 +241,7 @@ CallPeaks.ChromatinAssay5 <- function(
         # call out to the Fragment2 method on each fragment file
         pk.all <- list()
         for (i in seq_along(along.with = frags)) {
-            pk.all[[i]] <- CallPeaks(
+            gr <- CallPeaks(
                 object = frags[[i]],
                 cells = cells,
                 macs3.path = macs3.path,
@@ -255,6 +255,8 @@ CallPeaks.ChromatinAssay5 <- function(
                 cleanup = cleanup,
                 verbose = verbose
             )
+            gr$ident <- i
+            pk.all[[i]] <- gr
         }
 
         # combine output
