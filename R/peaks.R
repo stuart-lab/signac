@@ -119,7 +119,7 @@ CallPeaks.Seurat <- function(
     # check parallelization
     if (length(allfragpaths) > 1 || !is.null(group.by)) {
         # check n workers for parallelization
-        if (nbrOfWorkers() > 1) {
+        if (future::nbrOfWorkers() > 1) {
             mylapply <- future_lapply
         } else {
             mylapply <- ifelse(test = verbose, yes = pbapply::pblapply, no = lapply)
@@ -264,7 +264,7 @@ CallPeaks.ChromatinAssay5 <- function(
     # check number of fragments
     if (length(allfragpaths) > 1) {
         # check number of workers for parallelization
-        if (nbrOfWorkers() > 1) {
+        if (future::nbrOfWorkers() > 1) {
             mylapply <- future_lapply
         } else {
             mylapply <- ifelse(test = verbose, yes = pbapply::pblapply, no = lapply)
