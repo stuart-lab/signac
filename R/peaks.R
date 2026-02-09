@@ -446,11 +446,21 @@ CallPeaks.default <- function(
                              yes = paste0(" --barcodes ", barcodes), 
                              no = "")
 
+    # object path
+    if (mode == "callpeak") {
+        object_string <- paste0(" -t ",  object)
+    } else if (mode == "hmmratac") {
+        object_string <- paste0(" -i ", object)
+        genome_string <- " "
+    } else {
+        stop("invalid macs3 mode")
+    }
+
     # macs3 command
     cmd <- paste0(
         macs3.path, " ",
         mode, 
-        " -t ",  object,
+        object_string,
         genome_string,
         broad_string,
         " -f FRAG ",
