@@ -19,7 +19,6 @@ CallPeaks(object, ...)
   macs3.path = NULL,
   mode = "callpeak",
   broad = FALSE,
-  barcodes = NULL,
   genome = "hs",
   gsize = NULL,
   outdir = tempdir(),
@@ -38,7 +37,6 @@ CallPeaks(object, ...)
   mode = "callpeak",
   outdir = tempdir(),
   broad = FALSE,
-  barcodes = NULL,
   cells = NULL,
   genome = "hs",
   gsize = NULL,
@@ -55,7 +53,6 @@ CallPeaks(object, ...)
   mode = "callpeak",
   outdir = tempdir(),
   broad = FALSE,
-  barcodes = NULL,
   cells = NULL,
   genome = "hs",
   gsize = NULL,
@@ -102,7 +99,8 @@ directory (\code{\link[base:tempfile]{base::tempdir()}}) by default and removed 
 also setting the \code{group.by} parameter). If \code{NULL}, peaks will be called
 for all cell identities.}
 
-\item{cells}{Vector of cell barcodes to call peaks on.}
+\item{cells}{Vector of cell barcodes to call peaks on. If \code{NULL}, use all
+cells present in the fragment files, unless \code{group.by} or \code{idents} is set.}
 
 \item{macs3.path}{Path to MACS3 program. If \code{NULL}, try to find MACS3
 automatically.}
@@ -111,8 +109,6 @@ automatically.}
 Default is \code{callpeak}.}
 
 \item{broad}{Call broad peaks (\code{--broad} parameter for MACS).}
-
-\item{barcodes}{Path to cell barcodes (\code{--barcodes} parameter for MACS).}
 
 \item{genome}{MACS3 built-in effective genome size. Default is \code{hs} (Human,
 GRCh38). Genome sizes for \code{mm} (Mice, GRCm38), \code{ce} (C. elegans, WBcel235),
@@ -139,6 +135,8 @@ single character string.}
 \item{cleanup}{Remove MACS output files.}
 
 \item{verbose}{Display messages.}
+
+\item{barcodes}{Path to cell barcodes (\code{--barcodes} parameter for MACS).}
 }
 \value{
 Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
