@@ -260,7 +260,11 @@ CallPeaks.ChromatinAssay5 <- function(
         }
 
         # combine output
-        peakcalls <- CombinePeaks(grlist = pk.all)
+        if (length(x = pk.all) > 1) {
+          peakcalls <- CombinePeaks(grlist = pk.all)
+        } else {
+          peakcalls <- pk.all[[1]]
+        }
     }
     return(peakcalls)
 }
