@@ -1731,7 +1731,7 @@ MergeRegionAggregation <- function(
   stopifnot(all(vapply(x, inherits, logical(1), "RegionAggregation")))
   
   # extract feature names
-  features.names <-vapply(x, FUN = function(x) x@name, FUN.VALUE=character(1))
+  feature.names <-vapply(x, FUN = function(x) x@name, FUN.VALUE=character(1))
   # group by feature names
   grouped.agg <- split(x, feature.names)
   
