@@ -146,13 +146,14 @@ Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} ob
 \description{
 Call peaks using \code{MACS}. Fragment files linked to the specified assay will be
 used to call peaks. If multiple fragment files are present, all will be used
-in a single MACS invocation. Returns the \code{.narrowPeak} MACS output as a
-\code{GRanges} object.
+in a single MACS invocation unless the \code{cells} or \code{group.by} parameters are
+used. Returns the \code{.narrowPeak} MACS output as a \link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges}
+object.
 }
 \details{
 See \url{https://macs3-project.github.io/MACS/} for MACS documentation.
 
-If you call peaks using MACS2 please cite:
+If you call peaks using MACS3 please cite:
 \doi{10.1186/gb-2008-9-9-r137}
 }
 \concept{quantification}
