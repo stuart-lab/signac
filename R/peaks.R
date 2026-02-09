@@ -188,7 +188,7 @@ CallPeaks.Seurat <- function(
             genome = genome,
             gsize = gsize,
             additional.args = additional.args,
-            name = unique_groups[[i]],
+            name = name,
             cleanup = cleanup,
             verbose = verbose,
             ...
