@@ -21,38 +21,38 @@ macs3_pathcheck <- function(macs3.path) {
   return(macs3.path)
 }
 
-#' @param object A Seurat object, ChromatinAssay object, Fragment object, or the
-#' path to fragment file/s.
+#' @param object A [SeuratObject::Seurat] object, [ChromatinAssay5-class]
+#' object, [Fragment2-class] object, or the path to fragment file/s.
 #' @param assay Name of assay to use.
 #' @param group.by Grouping variable to use. If set, peaks will be called
-#' independently on each group of cells. If multiple fragments are present in the object, 
-#' peaks will be called separately for each fragment and for each group of cells.
-#' Note that to call peaks using a subset of cells, we write the cell barcodes into `.txt` 
-#' file/s that are stored in the temp directory ([base::tempdir()]) by default. If the 
-#' program is interrupted before completing these temporary files will not be removed. 
-#' If NULL, peaks are called using all cells together (pseudobulk).
+#' independently on each group of cells. If multiple fragments are present in
+#' the object,  peaks will be called separately for each fragment file and for
+#' each group of cells. Note that to call peaks using a subset of cells, we
+#' write the cell barcodes into `.txt` file/s that are stored in the temp
+#' directory ([base::tempdir()]) by default and removed upon completion (if 
+#' `cleanup=TRUE`). If `NULL`, peaks are called using all cells.
 #' @param idents List of identities to include if grouping cells (only valid if
-#' also setting the `group.by` parameter). If NULL, peaks will be called
+#' also setting the `group.by` parameter). If `NULL`, peaks will be called
 #' for all cell identities.
-#' @param macs3.path Path to MACS program. If NULL, try to find MACS
+#' @param macs3.path Path to MACS3 program. If `NULL`, try to find MACS3
 #' automatically.
 #' @param mode MACS function to call, choose between `callpeak` or `hmmratac`.
 #' Default is `callpeak`.
 #' @param combine.peaks Controls whether peak calls from different groups of
-#' cells are combined using `GenomicRanges::reduce` when calling peaks for
-#' different groups of cells (`group.by` parameter). If FALSE, a list of
-#' `GRanges` object will be returned. Note that metadata fields such as the
-#' p-value, q-value, and fold-change information for each peak will be lost if
-#' combining peaks.
+#' cells are combined using [GenomicRanges::reduce()] when calling peaks for
+#' different groups of cells (`group.by` parameter). If `FALSE`, a list of
+#' [GenomicRanges::GRanges] object will be returned. Note that metadata fields
+#' such as the p-value, q-value, and fold-change information for each peak will
+#' be lost if combining peaks.
 #' @param broad Call broad peaks (`--broad` parameter for MACS).
 #' @param outdir Path for output files.
 #' @param barcodes Path to cell barcodes (`--barcodes` parameter for MACS).
 #' @param cells Vector of cell barcodes to call peaks on.
-#' @param genome MACS3 built-in effective genome size. Default is `hs` (Human, GRCh38). 
-#' Genome sizes for `mm` (Mice, GRCm38), `ce` (C. elegans, WBcel235), and `dm` (Drosophila M., dm6) 
-#' are also available.
-#' @param gsize Manually set effective genome size parameter. If specified, overrides MACS3 
-#' built-in genome sizes.
+#' @param genome MACS3 built-in effective genome size. Default is `hs` (Human,
+#' GRCh38). Genome sizes for `mm` (Mice, GRCm38), `ce` (C. elegans, WBcel235),
+#' and `dm` (Drosophila M., dm6) are also available.
+#' @param gsize Manually set effective genome size parameter. If specified,
+#' overrides MACS3 built-in genome sizes.
 #' @param additional.args Additional arguments passed to MACS. This should be a
 #' single character string.
 #' @param name Name for output MACS files. This will also be placed in the
@@ -94,10 +94,10 @@ CallPeaks.Seurat <- function(
         stop("Requested output directory does not exist")
     }
     macs3.path <- macs3_pathcheck(macs3.path = macs3.path)
-
+    
     # check macs3 mode
     if (!mode %in% c("callpeak", "hmmratac")) {
-        stop("Invalid macs3 command, choose between `callpeak` or `hmmratac`")
+      stop("Invalid macs3 command, choose between `callpeak` or `hmmratac`")
     }
     
     # check object assay
@@ -348,19 +348,12 @@ CallPeaks.Fragment2 <- function(
     # get fragment file paths
     fragpath <- GetFragmentData(object)
 
-    # write cell barcodes
-    if (!is.null(cells)) {
+    # write cell barcodes file
+    if (!is.null(x = cells)) {
         cell_barcodes <- object@cells[cells]
-    } else {
-        cell_barcodes <- object@cells
     }
-    barcode_path <- paste0(outdir, .Platform$file.sep, paste0(name,"_barcodes.txt"))
-    writeLines(cell_barcodes, con = barcode_path) 
-
-    # clean objects
-    rm(object)
-    rm(cell_barcodes)
-    gc()
+    barcodes <- paste0(outdir, .Platform$file.sep, paste0(name,"_barcodes.txt"))
+    writeLines(cell_barcodes, con = barcodes)
 
     gr <- CallPeaks(
         object = fragpath,
@@ -368,7 +361,7 @@ CallPeaks.Fragment2 <- function(
         mode = mode,
         outdir = outdir,
         broad = broad,
-        barcodes = barcode_path,
+        barcodes = barcodes,
         genome = genome,
         gsize = gsize,
         additional.args = additional.args,
@@ -445,7 +438,7 @@ CallPeaks.default <- function(
     barcode_string <- ifelse(test = !is.null(barcodes), 
                              yes = paste0(" --barcodes ", barcodes), 
                              no = "")
-
+    
     # object path
     if (mode == "callpeak") {
         object_string <- paste0(" -t ",  object)
