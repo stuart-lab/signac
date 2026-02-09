@@ -2,6 +2,24 @@
 #'
 NULL
 
+# find macs3 & check if macs3 is executable
+macs3_pathcheck <- function(macs3.path) {
+  macs3.path <- macs3.path %||% unname(obj = Sys.which(names = "macs3"))
+  if (nchar(x = macs3.path) == 0) {
+    stop(
+      "MACS3 not found. Please install MACS3: ",
+      "https://macs3-project.github.io/MACS/"
+    )
+  } else if(file.access(names = macs3.path, mode = 0) == -1) {
+    stop(
+      "MACS3 does not exist at specified path. Please install MACS3: ",
+      "https://macs3-project.github.io/MACS/"
+    )
+  } else if(file.access(names = macs3.path, mode = 1) == -1) {
+    stop("MACS3 exists but is not executable")
+  }
+}
+
 #' @param object A Seurat object, ChromatinAssay object, Fragment object, or the
 #' path to fragment file/s.
 #' @param assay Name of assay to use.
@@ -73,15 +91,7 @@ CallPeaks.Seurat <- function(
     if (!dir.exists(paths = outdir)) {
         stop("Requested output directory does not exist")
     }
-    
-    # find macs3 & check if macs3 is executable
-    macs3.path <- macs3.path %||% unname(obj = Sys.which(names = "macs3"))
-    if (nchar(x = macs3.path) == 0 && file.access(macs3.path, 1) == 0) {
-        stop(
-            "MACS3 not found. Please install MACS:",
-            "https://macs3-project.github.io/MACS/"
-        )
-    }
+    macs3_pathcheck(macs3.path = macs3.path)
     
     # check object assay
     assay <- assay %||% DefaultAssay(object = object)
@@ -239,6 +249,7 @@ CallPeaks.ChromatinAssay5 <- function(
     verbose = TRUE,
     ...
 ) {
+    macs3_pathcheck(macs3.path = macs3.path)
     # get fragment path(s)
     frags <- Fragments(object = object)
     allfragpaths <- as.list(sapply(X = frags, FUN = GetFragmentData, slot = "file.path"))
@@ -325,6 +336,8 @@ CallPeaks.Fragment2 <- function(
     verbose = TRUE,
     ...
 ) {
+    macs3_pathcheck(macs3.path = macs3.path)
+
     # get fragment file paths
     fragpath <- GetFragmentData(object)
 
@@ -384,14 +397,8 @@ CallPeaks.default <- function(
     if (!dir.exists(paths = outdir)) {
         stop("Requested output directory does not exist")
     }
-    # find macs3 & check if macs3 is executable
-    macs3.path <- macs3.path %||% unname(obj = Sys.which(names = "macs3"))
-    if (nchar(x = macs3.path) == 0 && file.access(macs3.path, 1) == 0) {
-        stop(
-            "MACS3 not found. Please install MACS:",
-            "https://macs3-project.github.io/MACS/"
-        )
-      }
+    macs3_pathcheck(macs3.path = macs3.path)
+
     name <- gsub(pattern = " ", replacement = "_", x = name)
     name <- gsub(pattern = .Platform$file.sep, replacement = "_", x = name)
 
