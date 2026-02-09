@@ -392,6 +392,7 @@ CallPeaks.default <- function(
     } else if (mode == "hmmratac") {
         object_string <- paste0(" -i ", object)
         genome_string <- " "
+        broad_string <- " "
         if (verbose) {
             message(paste0(
             "`hmmratac` mode selected. This will run slower than `callpeak` mode."
@@ -437,6 +438,21 @@ CallPeaks.default <- function(
         files.to.remove <- paste0(
             name,
             c("_peaks.broadPeak", "_peaks.xls", "_peaks.gappedPeak")
+        )
+    } else if (mode == "hmmratac") {
+        # read in narrowpeak file
+        df <- read.table(
+            file = paste0(outdir, .Platform$file.sep, name, "_accessible_regions.narrowPeak"),
+            col.names = c(
+                "chr", "start", "end", "name",
+                "score", "strand", "fold_change",
+                "neg_log10pvalue_summit", "neg_log10qvalue_summit",
+                "relative_summit_position"
+            )
+        )
+        files.to.remove <- paste0(
+            name,
+            c("_accessible_regions.narrowPeak", "_model.json", "_cutoff_analysis.tsv")
         )
     } else {
         # read in narrowpeak file
