@@ -54,7 +54,9 @@ CombinePeaks <- function(grlist) {
 #' @param macs3.path Path to MACS3 program. If `NULL`, try to find MACS3
 #' automatically.
 #' @param mode MACS function to call, choose between `callpeak` or `hmmratac`.
-#' Default is `callpeak`.
+#' Default is `callpeak`. If using `hmmratac` mode, runtime may be longer than
+#' `callpeak` and additional arguments may be needed. See MACS HMMRATAC documentation 
+#' for more details: https://deepwiki.com/macs3-project/MACS/3.2-atac-seq-analysis-with-hmmratac
 #' @param combine.peaks Controls whether peak calls from different groups of
 #' cells are combined using [GenomicRanges::reduce()] when calling peaks for
 #' different groups of cells (`group.by` parameter). If `FALSE`, a list of
@@ -390,13 +392,13 @@ CallPeaks.default <- function(
     } else if (mode == "hmmratac") {
         object_string <- paste0(" -i ", object)
         genome_string <- " "
-        message(paste0(
-            "Warning: `hmmratac` mode selected. This will run slower than `callpeak` mode. ",
-            "Additional arguments may be needed to select cutoff-values. See MACS3 HMMRATAC manual for details: ",
-            "https://deepwiki.com/macs3-project/MACS/3.2-atac-seq-analysis-with-hmmratac"
-        ))
+        if (verbose) {
+            message(paste0(
+            "`hmmratac` mode selected. This will run slower than `callpeak` mode."
+            )) 
+        }
     } else {
-        stop("invalid macs3 mode")
+        stop("Invalid macs3 mode")
     }
 
     # macs3 command
