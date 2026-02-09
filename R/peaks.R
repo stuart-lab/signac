@@ -302,7 +302,7 @@ CallPeaks.Fragment2 <- function(
         )
         writeLines(text = cell_barcodes, con = barcodes)
     } else {
-      barcodes = NULL
+      barcodes <- NULL
     }
 
     gr <- CallPeaks(
