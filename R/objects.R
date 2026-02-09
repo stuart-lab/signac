@@ -2299,9 +2299,17 @@ Links.Seurat <- function(object, assay = NULL, ...) {
 #' @concept assay
 #' @examples
 #' RegionAggr(atac_small[["peaks"]])
-RegionAggr.ChromatinAssay5 <- function(object, ...) {
-  return(slot(object = object, name = "region.aggregation"))
+RegionAggr.ChromatinAssay5 <- function(object, features=NULL) {
+  
+  agg.list <- slot(object = object, name = "region.aggregation")
+  
+  if (!is.null(features)){
+    agg.list.names <- vapply(agg.list, function(x) x@name, character(1))
+    agg.list <- agg.list[agg.list.names %in% features]
+  }
+  return(agg.list)
 }
+
 
 #' @param object A Seurat or ChromatinAssay5 object
 #' @param assay Name of assay to use
@@ -2315,7 +2323,7 @@ RegionAggr.ChromatinAssay5 <- function(object, ...) {
 #' RegionAggr(atac_small)
 RegionAggr.Seurat <- function(object, assay = NULL, ...) {
   assay <- assay %||% DefaultAssay(object = object)
-  return(RegionAggr(object = object[[assay]]))
+  return(RegionAggr(object = object[[assay]], ...))
 }
 
 #' @method dimnames Motif
