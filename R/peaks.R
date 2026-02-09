@@ -150,7 +150,7 @@ CallPeaks.Seurat <- function(
 
     # call peaks per fragment
     if (!is.null(group.by)) {
-        message(paste0("Calling peaks for ",length(frags)," fragment file(s) and ",lenght(idents)," group(s)."))
+        message(paste0("Calling peaks for ",length(frags)," fragment file(s) and ",length(idents)," group(s)."))
         idx <- expand.grid(
             frag = seq_along(frags),
             ident = seq_along(idents)
@@ -302,7 +302,7 @@ CallPeaks.ChromatinAssay5 <- function(
     gc()
 
     # call peaks
-    message(paste0("Calling peaks for ",lenght(allfragpaths), " fragment file(s)."))
+    message(paste0("Calling peaks for ",length(allfragpaths), " fragment file(s)."))
     peakcalls <- mylapply(
         X = seq_along(along.with = allfragpaths),
         FUN = function(i) {
