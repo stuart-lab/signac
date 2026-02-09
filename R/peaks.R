@@ -36,7 +36,8 @@ macs3_pathcheck <- function(macs3.path) {
 #' for all cell identities.
 #' @param macs3.path Path to MACS program. If NULL, try to find MACS
 #' automatically.
-#' @param mode MACS function to call, default is `callpeak`.
+#' @param mode MACS function to call, choose between `callpeak` or `hmmratac`.
+#' Default is `callpeak`.
 #' @param combine.peaks Controls whether peak calls from different groups of
 #' cells are combined using `GenomicRanges::reduce` when calling peaks for
 #' different groups of cells (`group.by` parameter). If FALSE, a list of
@@ -93,6 +94,11 @@ CallPeaks.Seurat <- function(
         stop("Requested output directory does not exist")
     }
     macs3.path <- macs3_pathcheck(macs3.path = macs3.path)
+
+    # check macs3 mode
+    if (!mode %in% c("callpeak", "hmmratac")) {
+        stop("Invalid macs3 command, choose between `callpeak` or `hmmratac`")
+    }
     
     # check object assay
     assay <- assay %||% DefaultAssay(object = object)
@@ -403,9 +409,9 @@ CallPeaks.default <- function(
     name <- gsub(pattern = " ", replacement = "_", x = name)
     name <- gsub(pattern = .Platform$file.sep, replacement = "_", x = name)
 
-    # check mode
-    if (!mode %in% c("callpeak")) {
-        stop("Invalid macs3 command")
+    # check macs3 mode
+    if (!mode %in% c("callpeak", "hmmratac")) {
+        stop("Invalid macs3 command, choose between `callpeak` or `hmmratac`")
     }
 
     # if list of paths given, collapse to a single space-separated string
