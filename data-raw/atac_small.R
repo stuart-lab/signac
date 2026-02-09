@@ -19,7 +19,6 @@ counts <- Read10X_h5(filename = "10k_pbmc_ATACv2_nextgem_Chromium_Controller_fil
 
 gr_assay <- CreateGRangesAssay(
   counts = counts[1:100, 1:100],
-  sep = c(":", "-"),
   fragments = "10k_pbmc_ATACv2_nextgem_Chromium_Controller_fragments.tsv.gz"
 )
 

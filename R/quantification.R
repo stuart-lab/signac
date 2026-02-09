@@ -68,7 +68,7 @@ AggregateTiles.ChromatinAssay5 <- function(
   if (verbose) {
     message("Constructing assay")
   }
-  assay.obj <- CreateChromatinAssay5(counts = bins, fragments = frags)
+  assay.obj <- CreateGRangesAssay(counts = bins, fragments = frags)
   return(assay.obj)
 }
 

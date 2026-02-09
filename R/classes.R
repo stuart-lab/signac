@@ -150,7 +150,6 @@ setValidity(Class = "RegionAggregation", function(object) {
   TRUE
 })
 
-
 #' @slot fragments A list of [Fragment()] objects.
 #' @slot annotation A  [GenomicRanges::GRanges()] object containing
 #' genomic annotations. This should be a GRanges object with the following 
