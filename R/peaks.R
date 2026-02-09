@@ -4,11 +4,12 @@ NULL
 
 #' @param object A Seurat object, ChromatinAssay object, Fragment object, or the
 #' path to fragment file/s.
-#' @param assay Name of assay to use
+#' @param assay Name of assay to use.
 #' @param group.by Grouping variable to use. If set, peaks will be called
-#' independently on each group of cells and then combined. Note that to call
-#' peaks using a subset of cells, we write the cell barcodes into .txt file/s that 
-#' are stored in the temp directory ([base::tempdir()]) by default. If the 
+#' independently on each group of cells. If multiple fragments are present in the object, 
+#' peaks will be called separately for each fragment and for each group of cells.
+#' Note that to call peaks using a subset of cells, we write the cell barcodes into `.txt` 
+#' file/s that are stored in the temp directory ([base::tempdir()]) by default. If the 
 #' program is interrupted before completing these temporary files will not be removed. 
 #' If NULL, peaks are called using all cells together (pseudobulk).
 #' @param idents List of identities to include if grouping cells (only valid if
@@ -16,29 +17,29 @@ NULL
 #' for all cell identities.
 #' @param macs3.path Path to MACS program. If NULL, try to find MACS
 #' automatically.
-#' @param mode MACS function to call, default is `callpeak`
+#' @param mode MACS function to call, default is `callpeak`.
 #' @param combine.peaks Controls whether peak calls from different groups of
 #' cells are combined using `GenomicRanges::reduce` when calling peaks for
 #' different groups of cells (`group.by` parameter). If FALSE, a list of
 #' `GRanges` object will be returned. Note that metadata fields such as the
 #' p-value, q-value, and fold-change information for each peak will be lost if
 #' combining peaks.
-#' @param broad Call broad peaks (`--broad` parameter for MACS)
-#' @param outdir Path for output files
-#' @param barcodes Path to cell barcodes (`--barcodes` parameter for MACS)
+#' @param broad Call broad peaks (`--broad` parameter for MACS).
+#' @param outdir Path for output files.
+#' @param barcodes Path to cell barcodes (`--barcodes` parameter for MACS).
 #' @param cells Vector of cell barcodes to call peaks on.
-#' @param genome MACS3 built-in effective genome size. Default is `hs` (human, GRCh38). 
-#' Genome sizes for `mm` (mice, GRCm38), `ce` (c elegans, WBcel235), and `dm` (drosophila m, dm6) 
+#' @param genome MACS3 built-in effective genome size. Default is `hs` (Human, GRCh38). 
+#' Genome sizes for `mm` (Mice, GRCm38), `ce` (C. elegans, WBcel235), and `dm` (Drosophila M., dm6) 
 #' are also available.
 #' @param gsize Manually set effective genome size parameter. If specified, overrides MACS3 
-#' built-in genome sizes
+#' built-in genome sizes.
 #' @param additional.args Additional arguments passed to MACS. This should be a
-#' single character string
+#' single character string.
 #' @param name Name for output MACS files. This will also be placed in the
 #' `name` field in the GRanges output.
-#' @param cleanup Remove MACS output files
-#' @param verbose Display messages
-#' @param ... Arguments passed to other methods
+#' @param cleanup Remove MACS output files.
+#' @param verbose Display messages.
+#' @param ... Arguments passed to other methods.
 #'
 #' @method CallPeaks Seurat
 #' @rdname CallPeaks
@@ -73,7 +74,7 @@ CallPeaks.Seurat <- function(
         stop("Requested output directory does not exist")
     }
     
-    # find macs3
+    # find macs3 & check if macs3 is executable
     macs3.path <- macs3.path %||% unname(obj = Sys.which(names = "macs3"))
     if (nchar(x = macs3.path) == 0 && file.access(macs3.path, 1) == 0) {
         stop(
@@ -209,16 +210,8 @@ CallPeaks.Seurat <- function(
         )
     }
 
-    # name granges
-    names(peakcalls) <- vapply(
-        peakcalls,
-        function(gr) mcols(gr)$name[1],
-        character(1)
-    )
-    names(peakcalls) <- sub("_peak_\\d+$", "", names(peakcalls))
-
     # combine into 1 granges
-    if (combine.peaks == TRUE) {
+    if (combine.peaks == TRUE && length(peakcalls) > 1) {
         peakcalls <- reduce(do.call(c, peakcalls))
     }
 
@@ -273,7 +266,7 @@ CallPeaks.ChromatinAssay5 <- function(
         }
 
         # write barcodes to file
-        barcode_path <- paste0(outdir, .Platform$file.sep, paste0(name,"_",i,"_barcodes.txt"))
+        barcode_path <- paste0(outdir, .Platform$file.sep, paste0(name,"_frag",i,"_barcodes.txt"))
         writeLines(bc, con = barcode_path) 
         barcode_paths[[i]] <- barcode_path
     }
@@ -298,14 +291,14 @@ CallPeaks.ChromatinAssay5 <- function(
                 genome = genome,
                 gsize = gsize,
                 additional.args = additional.args,
-                name = paste0(name,"_",i),
+                name = paste0(name,"_frag",i),
                 cleanup = TRUE,
                 verbose = TRUE)
         }
     )
 
     # combine into 1 granges
-    if (combine.peaks == TRUE) {
+    if (combine.peaks == TRUE && length(allfragpaths) > 1) {
         peakcalls <- reduce(do.call(c, peakcalls))
     }
 
@@ -391,7 +384,7 @@ CallPeaks.default <- function(
     if (!dir.exists(paths = outdir)) {
         stop("Requested output directory does not exist")
     }
-    # find macs3
+    # find macs3 & check if macs3 is executable
     macs3.path <- macs3.path %||% unname(obj = Sys.which(names = "macs3"))
     if (nchar(x = macs3.path) == 0 && file.access(macs3.path, 1) == 0) {
         stop(
