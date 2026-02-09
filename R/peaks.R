@@ -264,6 +264,7 @@ CallPeaks.ChromatinAssay5 <- function(
           peakcalls <- CombinePeaks(grlist = pk.all)
         } else {
           peakcalls <- pk.all[[1]]
+          peakcalls$ident <- NULL
         }
     }
     return(peakcalls)
@@ -300,6 +301,8 @@ CallPeaks.Fragment2 <- function(
             outdir, .Platform$file.sep, paste0(name, "_barcodes.txt")
         )
         writeLines(text = cell_barcodes, con = barcodes)
+    } else {
+      barcodes = NULL
     }
 
     gr <- CallPeaks(
