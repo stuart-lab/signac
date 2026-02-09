@@ -198,101 +198,133 @@ Footprint.ChromatinAssay5 <- function(
     downstream = 250,
     compute.expected = TRUE,
     in.peaks = FALSE,
+    overwrite = FALSE,
     verbose = TRUE,
     ...
 ) {
-    if (is.null(x = motif.name) && is.null(x = regions)) {
-        stop("Must supply the name of a motif or a set of regions")
-    } else if (!is.null(x = motif.name) && !is.null(x = regions)) {
-        stop("Supplied both a motif name and set of regions. Choose one only.")
-    } else if (!is.null(x = motif.name)) {
-        if (!inherits(x = object, what = "GRangesAssay")) {
-            stop("Must supply motif positions")
-        } else {
-            # pull motif positions from object
-            motif.obj <- Motifs(object = object)
-        }
-        if (length(x = motif.name) != length(x = key)) {
-            stop("A Key needs to be supplied for each motif")
-        }
-        regionlist <- lapply(X = motif.name, FUN = function(x) {
-            GetFootprintRegions(motif.obj = motif.obj, motif.name = x)
-        })
+  if (is.null(x = motif.name) && is.null(x = regions)) {
+    stop("Must supply the name of a motif or a set of regions")
+  } else if (!is.null(x = motif.name) && !is.null(x = regions)) {
+    stop("Supplied both a motif name and set of regions. Choose one only.")
+  } else if (!is.null(x = motif.name)) {
+    if (!inherits(x = object, what = "GRangesAssay")) {
+      stop("Must supply motif positions")
     } else {
-        if (is.null(x = key)) {
-            stop("Must set a key to store positional enrichment information")
-        }
-        # supplied regions, put into list
-        if (!inherits(x = regions, what = "list")) {
-            regionlist <- list(regions)
-        } else {
-            regionlist <- regions
-        }
-        all.widths <- sapply(X = regionlist, FUN = function(x) {
-            length(x = unique(x = width(x = x))) == 1
-        })
-        if (!all(all.widths)) {
-            stop("Manually-supplied regions must all have the same width.")
-        }
+      # pull motif positions from object
+      motif.obj <- Motifs(object = object)
     }
-    if (compute.expected) {
-        # check that bias is computed
-        bias <- GetAssayData(object = object, layer = "bias")
-        if (is.null(x = bias)) {
-            if (verbose) {
-                message("Computing Tn5 insertion bias")
-            }
-            region.end <- seqlengths(x = genome)[1]
-            object <- InsertionBias(
-                object = object,
-                genome = genome,
-                region = paste0(
-                    names(x = region.end),
-                    "-1-",
-                    as.character(x = region.end)
-                )
-            )
-        }
+    if (length(x = motif.name) != length(x = key)) {
+      stop("A Key needs to be supplied for each motif")
     }
-    # run in parallel
-    if (nbrOfWorkers() > 1) {
-        mylapply <- future_lapply
+    regionlist <- lapply(X = motif.name, FUN = function(x) {
+      GetFootprintRegions(motif.obj = motif.obj, motif.name = x)
+    })
+  } else {
+    if (is.null(x = key)) {
+      stop("Must set a key to store positional enrichment information")
+    }
+    # supplied regions, put into list
+    if (!inherits(x = regions, what = "list")) {
+      regionlist <- list(regions)
     } else {
-        mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
+      regionlist <- regions
     }
+    all.widths <- sapply(X = regionlist, FUN = function(x) {
+      length(x = unique(x = width(x = x))) == 1
+    })
+    if (!all(all.widths)) {
+      stop("Manually-supplied regions must all have the same width.")
+    }
+  }
+  if (compute.expected) {
+    # check that bias is computed
+    bias <- GetAssayData(object = object, layer = "bias")
+    if (is.null(x = bias)) {
+      if (verbose) {
+        message("Computing Tn5 insertion bias")
+      }
+      region.end <- seqlengths(x = genome)[1]
+      object <- InsertionBias(
+        object = object,
+        genome = genome,
+        region = paste0(
+          names(x = region.end),
+          "-1-",
+          as.character(x = region.end)
+        )
+      )
+    }
+  }
+  # if overwrite is FALSE, skip motifs that already exist for Cells(object)
+  if (!overwrite){
+    existing <- RegionAggr(object)
+    if (length(existing) > 0) {
+      existing.names <- vapply(existing, function(x) x@name, character(1))
+      
+      keep.idx <- logical(length(key)) # which motifs to recompute
+      for (i in seq_along(key)){
+        same.name.idx <- which(existing.names ==  key[[i]])
+        if (length(same.name.idx) == 0){
+          keep.idx[i] <- TRUE 
+          next
+        }
+        # union cells 
+        existing.cells <- unique(unlist(
+          lapply(existing[same.name.idx], function(x) x@cells),
+          use.names = FALSE
+        ))
+        if (all(Cells(object) %in% existing.cells)){
+          warning(sprintf(paste0(
+            "Footprint for '%s' already exists and will not be recomputed. \n", 
+            "Set overwrite=TRUE to replace the existing Footprint, ", 
+            "or supply a different name to store it separately"
+          ), key[[i]]), call. = FALSE)
+          
+          # subset key and regionlist
+          keep.idx[i] <- FALSE
+        } else {
+          keep.idx[i] <- TRUE
+        }
+      }
+      key <- key[keep.idx]
+      regionlist <- regionlist[keep.idx]
+    }
+  }
+  
+  
+  # run in parallel
+  if (nbrOfWorkers() > 1) {
+    mylapply <- future_lapply
+  } else {
+    mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
+  }
+  
+  # v2 edit 
+  reg.agg.list <- mylapply(
+    X = seq_along(along.with = regionlist),
+    FUN = function(x) {
+      RunFootprint(
+        object = object,
+        genome = genome,
+        regions = regionlist[[x]],
+        name = key[[x]],
+        upstream = upstream,
+        downstream = downstream,
+        compute.expected = compute.expected,
+        in.peaks = in.peaks,
+        verbose = verbose
+      )
+    }
+  )
+  # store in object
+  object <- SetAssayData(
+    object = object, 
+    layer = "region.aggregation", 
+    new.data = reg.agg.list,
+    overwrite = overwrite
+  )
 
-    # v2 edit 
-    reg.agg.list <- mylapply(
-        X = seq_along(along.with = regionlist),
-        FUN = function(x) {
-            RunFootprint(
-                object = object,
-                genome = genome,
-                regions = regionlist[[x]],
-                name = key[[x]],
-                upstream = upstream,
-                downstream = downstream,
-                compute.expected = compute.expected,
-                in.peaks = in.peaks,
-                verbose = verbose
-            )
-        }
-    )
-    # browser()
-    # store in object
-    object <- SetAssayData(
-      object = object, 
-      layer = "region.aggregation", 
-      new.data = reg.agg.list
-    )
-    # old code      
-    # object <- SetAssayData(
-    #  object = object,
-    #  layer = "positionEnrichment",
-    #  new.data = matrices[[i]],
-    #  key = key[[i]]
-    #)
-    return(object)
+  return(object)
 }
 
 #' @rdname Footprint
