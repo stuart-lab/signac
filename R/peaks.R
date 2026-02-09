@@ -21,6 +21,23 @@ macs3_pathcheck <- function(macs3.path) {
   return(macs3.path)
 }
 
+#' @importFrom GenomicRanges reduce
+CombinePeaks <- function(grlist) {
+  # combine peaks and reduce, maintaining ident information
+  gr.combined <- Reduce(f = c, x = grlist)
+  gr <- reduce(x = gr.combined, with.revmap = TRUE)
+  dset.vec <- vector(mode = "character", length = length(x = gr))
+  ident.vec <- gr.combined$ident
+  revmap <- gr$revmap
+  for (i in seq_len(length.out = length(x = gr))) {
+    datasets <- ident.vec[revmap[[i]]]
+    dset.vec[[i]] <- paste(unique(x = datasets), collapse = ",")
+  }
+  gr$peak_called_in <- dset.vec
+  gr$revmap <- NULL
+  return(gr)
+}
+
 #' @param object A [SeuratObject::Seurat] object, [ChromatinAssay5-class]
 #' object, [Fragment2-class] object, or the path to fragment file/s.
 #' @param assay Name of assay to use.
@@ -46,8 +63,8 @@ macs3_pathcheck <- function(macs3.path) {
 #' be lost if combining peaks.
 #' @param broad Call broad peaks (`--broad` parameter for MACS).
 #' @param outdir Path for output files.
-#' @param barcodes Path to cell barcodes (`--barcodes` parameter for MACS).
-#' @param cells Vector of cell barcodes to call peaks on.
+#' @param cells Vector of cell barcodes to call peaks on. If `NULL`, use all
+#' cells present in the fragment files, unless `group.by` or `idents` is set.
 #' @param genome MACS3 built-in effective genome size. Default is `hs` (Human,
 #' GRCh38). Genome sizes for `mm` (Mice, GRCm38), `ce` (C. elegans, WBcel235),
 #' and `dm` (Drosophila M., dm6) are also available.
@@ -73,13 +90,12 @@ macs3_pathcheck <- function(macs3.path) {
 CallPeaks.Seurat <- function(
     object,
     assay = NULL,
-    group.by = NULL,  
+    group.by = NULL,
     idents = NULL,     
     cells = NULL,      
     macs3.path = NULL,
     mode = "callpeak",
     broad = FALSE,
-    barcodes = NULL,   
     genome = "hs",
     gsize = NULL,
     outdir = tempdir(),
@@ -104,134 +120,78 @@ CallPeaks.Seurat <- function(
     assay <- assay %||% DefaultAssay(object = object)
     
     # check group.by & idents
-    if (is.null(group.by) && !is.null(idents)) {
-        stop("Set `group.by` parameter if calling peaks per ident")
-        }
-
-    if (!is.null(group.by) && is.null(idents)) {
-        idents <- unique(object[[group.by]])[, group.by]
+    if (is.null(x = group.by) && !is.null(x = idents)) {
+        stop("Set group.by parameter if calling peaks per ident")
     }
 
-    # get number of fragments
-    frags <- Fragments(object = object)
-    allfragpaths <- as.list(sapply(X = frags, FUN = GetFragmentData, slot = "file.path"))
-
-    # check parallelization
-    if (length(allfragpaths) > 1 || !is.null(group.by)) {
-        # check n workers for parallelization
-        if (future::nbrOfWorkers() > 1) {
-            mylapply <- future_lapply
-        } else {
-            mylapply <- ifelse(test = verbose, yes = pbapply::pblapply, no = lapply)
+    if (!is.null(x = group.by)) {
+      # get cell barcodes and the group they belong to
+      groups <- GetGroups(object = object, group.by = group.by, idents = idents)
+      
+      # filter to list of cells
+      if (!is.null(x = cells)) {
+        groups <- groups[names(x = groups) %in% cells]
+      }
+      
+      # iterate over cell groups and combine outputs
+      unique_groups <- unique(x = groups)
+      
+      # check parallelization
+      if (length(x = unique_groups) > 1) {
+          # check n workers for parallelization
+          if (future::nbrOfWorkers() > 1) {
+              mylapply <- future_lapply
+          } else {
+              mylapply <- ifelse(
+                test = verbose,
+                yes = pbapply::pblapply,
+                no = lapply
+              )
+          }
+      } else {
+          mylapply <- lapply
+      }
+      
+      pk.all <- mylapply(
+        X = unique_groups,
+        FUN = function(x) {
+          CallPeaks(
+            object = object[[assay]],
+            cells = names(x = groups[groups == x]),
+            macs3.path = macs3.path,
+            combine.peaks = combine.peaks,
+            mode = mode,
+            outdir = outdir,
+            broad = broad,
+            genome = genome,
+            gsize = gsize,
+            additional.args = additional.args,
+            name = x,
+            cleanup = cleanup,
+            verbose = verbose,
+            ...
+          )
         }
+      )
+      peakcalls <- CombinePeaks(grlist = pk.all)
     } else {
-        mylapply <- lapply
+      peakcalls <- CallPeaks(
+        object = object[[assay]],
+        cells = cells,
+        macs3.path = macs3.path,
+        combine.peaks = combine.peaks,
+        mode = mode,
+        outdir = outdir,
+        broad = broad,
+        genome = genome,
+        gsize = gsize,
+        additional.args = additional.args,
+        name = unique_groups[[i]],
+        cleanup = cleanup,
+        verbose = verbose,
+        ...
+      )
     }
-
-    # check callpeaks barcode input
-    if (!is.null(group.by)) {
-        # get cell barcodes per ident
-        group_barcodes <- list()
-        for (i in seq_along(idents)) {
-            ident_barcodes <- names(GetGroups(object, group.by = group.by, idents = idents[[i]]))
-
-            # if set cells, subset
-            if (!is.null(cells)) {
-                ident_barcodes <- ident_barcodes[ident_barcodes %in% cells]
-            }
-
-            group_barcodes[[i]] <- ident_barcodes
-        }
-    }
-
-    # call peaks per fragment
-    if (!is.null(group.by)) {
-        idx <- expand.grid(
-            frag = seq_along(frags),
-            ident = seq_along(idents)
-        )
-        peakcalls <- mylapply(
-            X = seq_len(nrow(idx)),
-            FUN = function(k) {
-                i <- idx$frag[k]
-                j <- idx$ident[k]
-
-                CallPeaks(
-                    object = frags[[i]],
-                    macs3.path = macs3.path,
-                    mode = mode,
-                    outdir = outdir,
-                    broad = broad,
-                    barcodes = barcodes,
-                    cells = group_barcodes[[j]],
-                    genome = genome,
-                    gsize = gsize,
-                    additional.args = additional.args,
-                    name = paste0(name, "_frag", i, "_ident", j),
-                    cleanup = TRUE,
-                    verbose = TRUE,
-                    ...
-                )
-            }
-        )
-    } else if (is.null(group.by) && !is.null(cells)) {
-        # separate cells per fragment
-        frag_cells <- list()
-        for (i in seq_along(frags)) {
-            frag_cells[[i]] <- names(frags[[i]]@cells[cells])
-        }
-
-        # call peaks
-        peakcalls <- mylapply(
-            X = seq_along(frags),
-            FUN = function(i) {
-                CallPeaks(
-                    object = frags[[i]],
-                    macs3.path = macs3.path,
-                    mode = mode,
-                    outdir = outdir,
-                    broad = broad,
-                    barcodes = barcodes,
-                    cells = frag_cells[[i]],
-                    genome = genome,
-                    gsize = gsize,
-                    additional.args = additional.args,
-                    name = paste0(name,"_frag",i),
-                    cleanup = TRUE,
-                    verbose = TRUE,
-                    ...)
-            }
-        )
-    } else { 
-        peakcalls <- mylapply(
-            X = 1L,
-            FUN = function(i) {
-                CallPeaks(
-                    object = object[[assay]],
-                    macs3.path = macs3.path,
-                    combine.peaks = combine.peaks,
-                    mode = mode,
-                    outdir = outdir,
-                    broad = broad,
-                    barcodes = barcodes,
-                    cells = cells,
-                    genome = genome,
-                    gsize = gsize,
-                    additional.args = additional.args,
-                    name = name,
-                    cleanup = cleanup,
-                    verbose = verbose,
-                    ...
-                )
-            }
-        )
-    }
-
-    # combine into 1 granges
-    if (combine.peaks == TRUE && length(peakcalls) > 1) {
-        peakcalls <- reduce(do.call(c, peakcalls))
-    }
-
     return(peakcalls)
 }
 
@@ -246,7 +206,6 @@ CallPeaks.ChromatinAssay5 <- function(
     mode = "callpeak",
     outdir = tempdir(),
     broad = FALSE,
-    barcodes = NULL,
     cells = NULL,
     genome = "hs",
     gsize = NULL,
@@ -257,69 +216,48 @@ CallPeaks.ChromatinAssay5 <- function(
     ...
 ) {
     macs3.path <- macs3_pathcheck(macs3.path = macs3.path)
-    # get fragment path(s)
     frags <- Fragments(object = object)
-    allfragpaths <- as.list(sapply(X = frags, FUN = GetFragmentData, slot = "file.path"))
-
-    # check number of fragments
-    if (length(allfragpaths) > 1) {
-        # check number of workers for parallelization
-        if (future::nbrOfWorkers() > 1) {
-            mylapply <- future_lapply
-        } else {
-            mylapply <- ifelse(test = verbose, yes = pbapply::pblapply, no = lapply)
-        }
+    
+    if (is.null(x = cells)) {
+      # cells not set, one combined MACS3 call with all fragment files
+      allfragpaths <- lapply(X = frags, FUN = GetFragmentData, slot = "file.path")
+      allfragpaths <- paste(allfragpaths, collapse = " ")
+      peakcalls <- CallPeaks(
+        object = allfragpaths,
+        macs3.path = macs3.path,
+        mode = mode,
+        outdir = outdir,
+        broad = broad,
+        genome = genome,
+        gsize = gsize,
+        additional.args = additional.args,
+        name = name,
+        cleanup = cleanup,
+        verbose = verbose
+      )
     } else {
-        mylapply <- lapply
+      # call out to the Fragment2 method on each fragment file
+      pk.all <- list()
+      for (i in seq_along(along.with = frags)) {
+        pk.all[[i]] <- CallPeaks(
+          object = frags[[i]],
+          cells = cells,
+          macs3.path = macs3.path,
+          mode = mode,
+          outdir = outdir,
+          broad = broad,
+          genome = genome,
+          gsize = gsize,
+          additional.args = additional.args,
+          name = paste0(name, as.character(x = i)),
+          cleanup = cleanup,
+          verbose = verbose
+        )
+      }
+      
+      # combine output
+      peakcalls <- CombinePeaks(grlist = pk.all)
     }
-
-    # write cell barcodes per fragment
-    barcode_paths <- list()
-    for (i in seq_along(frags)) {
-        # get all cell barcodes in fragment
-        bc <- frags[[i]]@cells
-
-        if (!is.null(cells)) {
-            bc <- frags[[i]]@cells[cells]
-        }
-
-        # write barcodes to file
-        barcode_path <- paste0(outdir, .Platform$file.sep, paste0(name,"_frag",i,"_barcodes.txt"))
-        writeLines(bc, con = barcode_path) 
-        barcode_paths[[i]] <- barcode_path
-    }
-
-    # clean objects
-    rm(object)
-    rm(frags)
-    rm(bc)
-    gc()
-
-    # call peaks
-    peakcalls <- mylapply(
-        X = seq_along(along.with = allfragpaths),
-        FUN = function(i) {
-            CallPeaks(
-                object = allfragpaths[[i]],
-                macs3.path = macs3.path,
-                mode = mode,
-                outdir = outdir,
-                broad = broad,
-                barcodes = barcode_paths[[i]],
-                genome = genome,
-                gsize = gsize,
-                additional.args = additional.args,
-                name = paste0(name,"_frag",i),
-                cleanup = TRUE,
-                verbose = TRUE)
-        }
-    )
-
-    # combine into 1 granges
-    if (combine.peaks == TRUE && length(allfragpaths) > 1) {
-        peakcalls <- reduce(do.call(c, peakcalls))
-    }
-
     return(peakcalls)
 }
 
@@ -333,7 +271,6 @@ CallPeaks.Fragment2 <- function(
     mode = "callpeak",
     outdir = tempdir(),
     broad = FALSE,
-    barcodes = NULL,
     cells = NULL,     
     genome = "hs",
     gsize = NULL,
@@ -345,34 +282,37 @@ CallPeaks.Fragment2 <- function(
 ) {
     macs3.path <- macs3_pathcheck(macs3.path = macs3.path)
 
-    # get fragment file paths
-    fragpath <- GetFragmentData(object)
-
     # write cell barcodes file
     if (!is.null(x = cells)) {
-        cell_barcodes <- object@cells[cells]
+      cell_barcodes <- GetFragmentData(object = object, slot = "cells")
+      cell_barcodes <- unname(
+        obj = cell_barcodes[names(x = cell_barcodes) %in% cells]
+      )
+      barcodes <- paste0(
+        outdir, .Platform$file.sep, paste0(name,"_barcodes.txt")
+      )
+      writeLines(text = cell_barcodes, con = barcodes)
     }
-    barcodes <- paste0(outdir, .Platform$file.sep, paste0(name,"_barcodes.txt"))
-    writeLines(cell_barcodes, con = barcodes)
 
     gr <- CallPeaks(
-        object = fragpath,
-        macs3.path = macs3.path, 
-        mode = mode,
-        outdir = outdir,
-        broad = broad,
-        barcodes = barcodes,
-        genome = genome,
-        gsize = gsize,
-        additional.args = additional.args,
-        name = name,
-        cleanup = cleanup,
-        verbose = verbose,
-        ...)
+      object = GetFragmentData(object = object, slot = "file.path"),
+      macs3.path = macs3.path, 
+      mode = mode,
+      outdir = outdir,
+      broad = broad,
+      barcodes = barcodes,
+      genome = genome,
+      gsize = gsize,
+      additional.args = additional.args,
+      name = name,
+      cleanup = cleanup,
+      verbose = verbose
+    )
 
     return(gr)
 }
 
+#' @param barcodes Path to cell barcodes (`--barcodes` parameter for MACS).
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @importFrom utils read.table
 #' @method CallPeaks default
@@ -398,6 +338,10 @@ CallPeaks.default <- function(
         stop("Requested output directory does not exist")
     }
     macs3.path <- macs3_pathcheck(macs3.path = macs3.path)
+    
+    if (nchar(x = object) == 0 || object == " ") {
+      stop("Empty path given for fragment file")
+    }
 
     name <- gsub(pattern = " ", replacement = "_", x = name)
     name <- gsub(pattern = .Platform$file.sep, replacement = "_", x = name)
@@ -409,25 +353,23 @@ CallPeaks.default <- function(
 
     # if list of paths given, collapse to a single space-separated string
     if (length(x = object) > 1) {
-        object <- sapply(
-        X = object, FUN = function(x) paste0(" ", x, " "), USE.NAMES = FALSE
-        )
-        object <- Reduce(f = paste, x = object)
-    } else {
-        object <- paste0(" ", object, " ")
-        if (object == "  ") {
-            stop("No fragment files supplied")
-        }
+      object <- paste(" ", object, collapse = " ")
     }
+    
+    # buffer with whitespace
+    object <- paste0(" ", object, " ")
 
     # check genome format    
-    if (!is.null(genome) && genome %in% c("hs", "mm", "ce", "dm")) {
+    if (!is.null(x = genome) && genome %in% c("hs", "mm", "ce", "dm")) {
         genome_string <- paste0(" -g ", genome, " ")
-    } else if (is.null(genome) && !is.null(gsize) && is.numeric(gsize) && length(gsize) == 1 && !is.na(gsize)) {
-        genome_string <- paste0(" --gsize ", gsize, " ")
+    } else if (is.null(x = genome) && !is.null(x = gsize) && !is.na(x = gsize)) {
+      if (is.na(x = as.numeric(x = gsize))) {
+        stop("Requested non-numeric gsize value")
+      }
+      genome_string <- paste0(" --gsize ", gsize, " ")
     } else {
         stop("Invalid genome size, choose between `hs` (human, GRCh38)",
-            "`mm` (mice, GRCm38), `ce` (c elegans, WBcel235), `dm` (drosophila m, dm6) for MACS3 built in genome size,",
+            "`mm` (mice, GRCm38), `ce` (c elegans, WBcel235), `dm` (drosophila m, dm6) for MACS3 built-in genome size,",
             " or manually set genome size with the gzise parameter")
     }
 
@@ -435,7 +377,7 @@ CallPeaks.default <- function(
     broad_string <- ifelse(test = broad, yes = " --broad ", no = "")
     
     # add cell barcode
-    barcode_string <- ifelse(test = !is.null(barcodes), 
+    barcode_string <- ifelse(test = !is.null(x = barcodes), 
                              yes = paste0(" --barcodes ", barcodes), 
                              no = "")
     
@@ -502,7 +444,9 @@ CallPeaks.default <- function(
         )
     }
 
-    gr <- makeGRangesFromDataFrame(df = df, keep.extra.columns = TRUE, starts.in.df.are.0based = TRUE)
+    gr <- makeGRangesFromDataFrame(
+      df = df, keep.extra.columns = TRUE, starts.in.df.are.0based = TRUE
+    )
     
     if (cleanup) {
         # remove macs3 files
