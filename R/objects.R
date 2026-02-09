@@ -1241,42 +1241,27 @@ SetAssayData.ChromatinAssay5 <- function(
     
     for (i in seq_along(new.data)){
       new.agg <- new.data[[i]]
+      new.cells <- new.agg@cells
       merged <- FALSE
       # compare against same-name objects    
       same.name.idx <- which(vapply(
         agg.list, function(x) identical(x@name, new.agg@name), logical(1)))
       
-      to.drop <- logical(length(agg.list)) # list of (FALSE, FALSE,...)
-      new.cells <- new.agg@cells
-      
       if (length(same.name.idx) > 0) {
-        for (j in same.name.idx){ 
-          old.agg <- agg.list[[j]]
-          
-          # detect identity collision
-          overlap.cells <- intersect(old.agg@cells, new.agg@cells) 
-          new.cells <- setdiff(new.agg@cells, old.agg@cells) # new.cells should be unique to new.agg 
-          
-          # overlapping cells  
-          if (length(overlap.cells)>0) {
-            if (overwrite) {
-              warning(sprintf("Overwriting RegionAggregation for '%s' for %d cells",
-                             new.agg@name, 
-                             length(overlap.cells)), call. = FALSE)
-              # replace:  
-              # remove the overlapping cells from old.agg then add the overlap.cells into the new.cells 
-              # if after removal of overlapping cells, old.agg@cells ==0, then remove this obj from list
-              keep.idx <- !(old.agg@cells %in% overlap.cells)
-              if (length(keep.idx) == 0){
-                to.drop[j] <- TRUE
-              }
-              old.agg@cells <- old.agg@cells[keep.idx] # character(0)
-              old.agg@matrix <- old.agg@matrix[keep.idx, , drop = FALSE] # 0xncol matrix
-              
-              new.cells <- c(new.cells, overlap.cells)
-              
-            } else {
-              # skip 
+        
+        if (overwrite) {
+          # remove every exisiting RegAggr object with the same feature name
+          warning(sprintf("Overwriting RegionAggregation for '%s' ",
+                          new.agg@name), call. = FALSE)
+          agg.list <- agg.list[!same.name.idx]
+          agg.list <- append(agg.list, new.agg)
+          merged <- TRUE
+        } else { # skip the new cells that already exists in the old object 
+          for (j in same.name.idx){
+            old.agg <- agg.list[[j]]
+            overlap.cells <- intersect(old.agg@cells, new.agg@cells) 
+            new.cells <- setdiff(new.agg@cells, old.agg@cells)
+            if (length(overlap.cells)>0) {
               warning(sprintf(paste0(
                 "RegionAggregation '%s' already exists for %d cells and will not be recomputed. \n", 
                 "Set overwrite=TRUE to replace the existing RegionAggregation, ", 
@@ -1286,28 +1271,21 @@ SetAssayData.ChromatinAssay5 <- function(
                 length(overlap.cells)
               ), call. = FALSE)
             }
-          }
-          
-          # non-overlapping cells
-          if (length(new.cells)>0) {
-            compatible <- IsCompatibleRegionAggregation(old.agg, new.agg)
-            
-            if (compatible) {
-              # concatenate the matrix and the cells vector
-              old.agg@matrix <- rbind(old.agg@matrix, new.agg@matrix)
-              old.agg@cells <- c(old.agg@cells, new.agg@cells)
-              agg.list[[j]] <- old.agg
-              merged <- TRUE 
-              break
+            if (length(new.cells)>0) {
+              compatible <- IsCompatibleRegionAggregation(old.agg, new.agg)
+              
+              if (compatible) {
+                # concatenate the matrix and the cells vector
+                old.agg@matrix <- rbind(old.agg@matrix, new.agg@matrix)
+                old.agg@cells <- c(old.agg@cells, new.agg@cells)
+                agg.list[[j]] <- old.agg
+                merged <- TRUE 
+                break
+              }
             }
           }
-          # "new.cells"
-          
         }
       }
-      # remove null objects 
-      agg.list <- agg.list[!to.drop]
-      
       if (!merged) { 
         new.sub <- subset(new.agg, cells = new.cells)
         if (!is.null(new.sub)){
@@ -1524,6 +1502,7 @@ subset.ChromatinAssay5 <- function(
       cells <- Cells(x = x)[cells]
     }
   }
+  
 
   # subset elements in the standard assay
   x <- NextMethod()
@@ -1542,7 +1521,9 @@ subset.ChromatinAssay5 <- function(
     posmat <- lapply(posmat, subset, cells = cells)
     posmat <- Filter(Negate(is.null), posmat)
   }
-  x <- SetAssayData(object = x, layer = "region.aggregation", new.data = posmat)
+  # RegionAggr(object = x) <- posmat does not work because overwrite=F
+  
+  x <- SetAssayData(object = x, layer = "region.aggregation", new.data = posmat, overwrite=T)
 
   # for (i in seq_along(along.with = posmat)) {
     # TODO need to make the formatting for positionEnrichment slot better defined
@@ -1744,13 +1725,13 @@ MergeRegionAggregation <- function(
       ## single motif width per feature 
       w <- unique(unlist(lapply(aggs, function(x) width(x@regions))))
       if (length(w) != 1) {
-        stop("RegionAggregation for ", names(aggs), " have different widths ", w)
+        stop("RegionAggregation for ", aggs[[1]]@name, " have different widths ", w)
       }
       ## feature should not have duplicated cell barcodes 
       cells.all <- unlist(lapply(aggs, function(x) x@cells), use.names = FALSE)
       dup.cells <- cells.all[duplicated(cells.all)]
       if (length(dup.cells) > 0){
-        stop("Duplicated cell barcodes across RegionAggregation objects for ", names(aggs))
+        stop("Duplicated cell barcodes across RegionAggregation objects for ", aggs[[1]]@name)
       }
       
       ## opportunistic merging
