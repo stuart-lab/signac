@@ -110,11 +110,13 @@ CallPeaks.Seurat <- function(
 
     if (!is.null(group.by) && is.null(idents)) {
         idents <- unique(object[[group.by]])[, group.by]
+         message(paste0("Warning: ", length(idents), " groups detected, MACS3 will call peaks for every group separately and for each fragment file in the object."))
     }
 
     # get number of fragments
     frags <- Fragments(object = object)
     allfragpaths <- as.list(sapply(X = frags, FUN = GetFragmentData, slot = "file.path"))
+    message(paste0("Number of fragment file(s) in object: ", length(frags)))
 
     # check parallelization
     if (length(allfragpaths) > 1 || !is.null(group.by)) {
@@ -123,6 +125,8 @@ CallPeaks.Seurat <- function(
             mylapply <- future_lapply
         } else {
             mylapply <- ifelse(test = verbose, yes = pbapply::pblapply, no = lapply)
+            message("Warning: Multiple fragment files and/or groups detected with no parallelization enabled. MACS3 will run sequentially for every fragment and/or group. To enable parallelization with future, run `plan(multisession, workers = n)`.")
+
         }
     } else {
         mylapply <- lapply
@@ -146,6 +150,7 @@ CallPeaks.Seurat <- function(
 
     # call peaks per fragment
     if (!is.null(group.by)) {
+        message(paste0("Calling peaks for ",length(frags)," fragment file(s) and ",lenght(idents)," group(s)."))
         idx <- expand.grid(
             frag = seq_along(frags),
             ident = seq_along(idents)
@@ -182,6 +187,7 @@ CallPeaks.Seurat <- function(
         }
 
         # call peaks
+        message(paste0("Calling peaks for ",length(frags), " fragments and ",length(cells)," cells."))
         peakcalls <- mylapply(
             X = seq_along(frags),
             FUN = function(i) {
@@ -296,6 +302,7 @@ CallPeaks.ChromatinAssay5 <- function(
     gc()
 
     # call peaks
+    message(paste0("Calling peaks for ",lenght(allfragpaths), " fragment file(s)."))
     peakcalls <- mylapply(
         X = seq_along(along.with = allfragpaths),
         FUN = function(i) {
@@ -445,6 +452,9 @@ CallPeaks.default <- function(
     } else if (mode == "hmmratac") {
         object_string <- paste0(" -i ", object)
         genome_string <- " "
+        message(paste0("Warning: `hmmratac` mode selected. This will run slower than `callpeak` mode. ", 
+                       "Additional arguments may be needed to select cutoff-values. See MACS3 HMMRATAC manual for details: ",
+                       "https://deepwiki.com/macs3-project/MACS/3.2-atac-seq-analysis-with-hmmratac"))
     } else {
         stop("invalid macs3 mode")
     }
