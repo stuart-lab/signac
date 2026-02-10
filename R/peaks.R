@@ -273,6 +273,7 @@ CallPeaks.ChromatinAssay5 <- function(
 #' @method CallPeaks Fragment2
 #' @rdname CallPeaks
 #' @concept quantification
+#' @importFrom GenomicRanges GRanges
 #' @export
 CallPeaks.Fragment2 <- function(
   object,
@@ -290,6 +291,8 @@ CallPeaks.Fragment2 <- function(
   ...
 ) {
     macs3.path <- macs3_pathcheck(macs3.path = macs3.path)
+    
+    fpath <- GetFragmentData(object = object, slot = "file.path")
 
     # write cell barcodes file
     if (!is.null(x = cells)) {
@@ -297,6 +300,11 @@ CallPeaks.Fragment2 <- function(
         cell_barcodes <- unname(
             obj = cell_barcodes[names(x = cell_barcodes) %in% cells]
         )
+        if (length(x = cell_barcodes) < 5) {
+          warning("Insufficient cells present in fragment file: ", fpath)
+          gr <- GRanges()
+          return(gr)
+        }
         barcodes <- paste0(
             outdir, .Platform$file.sep, paste0(name, "_barcodes.txt")
         )
@@ -306,7 +314,7 @@ CallPeaks.Fragment2 <- function(
     }
 
     gr <- CallPeaks(
-        object = GetFragmentData(object = object, slot = "file.path"),
+        object = fpath,
         macs3.path = macs3.path,
         mode = mode,
         outdir = outdir,
