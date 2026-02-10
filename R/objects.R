@@ -1284,8 +1284,27 @@ SetAssayData.ChromatinAssay5 <- function(
             stop("New data is not a GInteractions object")
           }
         }
+        # if passing a list, replace existing data
+        methods::slot(object = object, name = layer) <- new.data
+      } else {
+        if (!inherits(x = new.data, what = "GInteractions")) {
+          stop("New data is not a GInteractions object")
+        } else {
+          # append to list of GInteractions using key
+          args <- list(...)
+          key <- args[["key"]]
+          if (is.null(x = key)) {
+            stop("Key not supplied")
+          }
+          existing <- Links(object = object)
+          if (key %in% names(x = existing)) {
+            stop("Links with requested key already exists")
+          } else {
+            existing[[key]] <- new.data
+            methods::slot(object = object, name = layer) <- existing
+          }
+        }
       }
-      methods::slot(object = object, name = layer) <- new.data
     }
   } else {
     stop("SetAssayData not implemented for ", layer)
@@ -2198,7 +2217,7 @@ dim.Motif <- function(x) {
 #' links <- Links(atac_small)
 #' Links(atac_small[["peaks"]]) <- links
 "Links<-.ChromatinAssay5" <- function(object, ..., value) {
-  object <- SetAssayData(object = object, layer = "links", new.data = value)
+  object <- SetAssayData(object = object, layer = "links", new.data = value, ...)
   return(object)
 }
 
@@ -2212,7 +2231,7 @@ dim.Motif <- function(x) {
 #' Links(atac_small) <- links
 "Links<-.Seurat" <- function(object, assay = NULL, ..., value) {
   assay <- assay %||% DefaultAssay(object = object)
-  Links(object[[assay]]) <- value
+  Links(object[[assay]], ...) <- value
   return(object)
 }
 
