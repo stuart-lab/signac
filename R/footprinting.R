@@ -39,10 +39,10 @@ GetFootprintData <- function(
     stop("The requested assay is not a ChromatinAssay5")
   }
   
-  region.enrichment <- RegionAggr(object[[assay]])
+  region.enrichment <- RegionAggr(object[[assay]], features = features)
   # get existing features 
   region.enrichment.names <- vapply(region.enrichment, FUN = function(x) x@name, FUN.VALUE = character(1))
-  
+
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
@@ -120,9 +120,14 @@ GetFootprintData <- function(
     # background normalization by group 
     bg.norm <- lapply(X = all.groups, FUN = function(x) {
       cells.use <- names(x = obj.groups)[obj.groups == x]
+      cells.present <- intersect(cells.use, rownames(fp))
+      if (length(cells.present) == 0) {
+        return(NULL)
+      }
       mat.use <- fp[cells.use, , drop = FALSE]
       return(BackgroundMeanNorm(x = mat.use, background = 50))
     })
+    bg.norm <- Filter(Negate(is.null), bg.norm)
     bg.norm <- do.call(what = rbind, args = bg.norm)
     # add position
     center.offset <- floor(motif.width/2)
@@ -134,7 +139,7 @@ GetFootprintData <- function(
     colnames(bg.norm) <- positions
     groupmeans <- ApplyMatrixByGroup(
       mat = bg.norm,
-      groups = obj.groups,
+      groups = obj.groups[rownames(bg.norm)],
       fun = colMeans,
       normalize = FALSE
     )
