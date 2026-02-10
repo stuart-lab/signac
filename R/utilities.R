@@ -737,8 +737,16 @@ MatchRegionStats <- function(
       message("Matching ", featmatch, " distribution")
     }
 
-    density.query <- density(x = trans_qf[, featmatch], kernel = "gaussian")
-    density.meta <- density(x = trans_mf[, featmatch], kernel = "gaussian")
+    if (nrow(x = trans_qf) < 3) {
+      density.query <- density(x = trans_qf[, featmatch], kernel = "gaussian", bw = 1)
+    } else {
+      density.query <- density(x = trans_qf[, featmatch], kernel = "gaussian")
+    }
+    if (nrow(x = trans_mf) < 3) {
+      density.meta <- density(x = trans_mf[, featmatch], kernel = "gaussian", bw = 1)
+    } else {
+      density.meta <- density(x = trans_mf[, featmatch], kernel = "gaussian")
+    }
 
     qvals <- approx(
       x = density.query$x,
