@@ -1741,7 +1741,7 @@ MergeRegionAggregation <- function(
           merged.obj.list <- list(aggs[[i]])
         } else {
           for (w in seq_along(merged.obj.list)){
-            if (IsCompatibleRegionAggregation(aggs[i], merged.obj.list[w])){
+            if (IsCompatibleRegionAggregation(aggs[[i]], merged.obj.list[[w]])){
               # replace merged.obj.list[w] with the merged 
               merged.obj.list[[w]]@matrix <- rbind(merged.obj.list[[w]]@matrix, aggs[[i]]@matrix)
               merged.obj.list[[w]]@cells <- c(merged.obj.list[[w]]@cells, aggs[[i]]@cells)
