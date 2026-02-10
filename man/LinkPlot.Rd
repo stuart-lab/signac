@@ -7,6 +7,7 @@
 LinkPlot(
   object,
   region,
+  key,
   assay = NULL,
   min.cutoff = 0,
   extend.upstream = 0,
@@ -18,6 +19,8 @@ LinkPlot(
 \item{object}{A \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object}
 
 \item{region}{A genomic region to plot}
+
+\item{key}{Key to use when extracting link information from the Seurat object}
 
 \item{assay}{Name of assay to use. If NULL, use the default assay.}
 

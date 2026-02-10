@@ -185,7 +185,7 @@ ConnectionsToLinks <- function(
 #'
 #' This function was inspired by the method originally described by SHARE-seq
 #' (Sai Ma et al. 2020, Cell). Please consider citing the original SHARE-seq
-#' work if using this function: \doi{10.1016/j.cell.2020.09.056}
+#' work if using this function: [doi: 10.1016/j.cell.2020.09.056](https://pubmed.ncbi.nlm.nih.gov/33098772/)
 #'
 #' @param object A Seurat object
 #' @param peak.assay Name of assay containing peak information
@@ -223,18 +223,20 @@ ConnectionsToLinks <- function(
 #' @importFrom lifecycle is_present deprecated deprecate_warn
 #' @importMethodsFrom Matrix t
 #'
-#' @return Returns a Seurat object with the `Links` information set. This is
-#' a [GenomicRanges::granges()] object accessible via the [Links()]
-#' function, with the following information:
-#' \itemize{
-#'   \item{score: the correlation coefficient between the accessibility of the
-#'   peak and expression of the gene}
-#'   \item{zscore: the z-score of the correlation coefficient, computed based on
-#'   the distribution of correlation coefficients from a set of background peaks}
-#'   \item{pvalue: the p-value associated with the z-score for the link}
-#'   \item{gene: name of the linked gene}
-#'   \item{peak: name of the linked peak}
-#' }
+#' @return Returns a Seurat object with results added to the `links` slot in the
+#' assay, stored under the key specified in the function. The results are stored
+#' as an [InteractionSet::GInteractions] object accessible via the [Links()]
+#' function. This contains the [GenomicRanges::GRanges] for the pair of linked
+#' regions (peak and gene), with `anchor1` corresponding to the peak region and
+#' `anchor2` corresponding to the gene region linked to the peak. The following
+#'  metadata is also stored in the `GInteractions` object:
+#' * `anchor2.gene_id`: The gene ID for the linked gene
+#' * `anchor2.gene_name`: The name of the linked gene
+#' * `score`: the correlation coefficient between the accessibility of the
+#' peak and expression of the gene
+#' * `zscore`: the z-score of the correlation coefficient, computed based on
+#' the distribution of correlation coefficients from a set of background peaks
+#' * `pvalue`: the p-value associated with the z-score for the link
 #'
 #' @export
 #' @concept links
@@ -583,7 +585,6 @@ LinksToGRanges <- function(linkmat, gene.coords) {
 LinksToGInteractions <- function(linkmat, gene.coords) {
   x <- as(object = linkmat, Class = 'TsparseMatrix')
   peak.coords <- GRanges(colnames(x = linkmat))
-  gene.coords$strand <- strand(x = gene.coords)
   region1 <- peak.coords[x@j+1]
   region2 <- gene.coords[x@i+1]
   gi <- GInteractions(region1, region2)
