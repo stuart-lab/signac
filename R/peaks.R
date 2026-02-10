@@ -178,7 +178,11 @@ CallPeaks.Seurat <- function(
                 gr
             }
         )
-        peakcalls <- CombinePeaks(grlist = pk.all)
+        if (combine.peaks) {
+            peakcalls <- CombinePeaks(grlist = pk.all)
+        } else {
+            peakcalls <- pk.all
+        }
     } else {
         peakcalls <- CallPeaks(
             object = object[[assay]],
@@ -263,7 +267,11 @@ CallPeaks.ChromatinAssay5 <- function(
 
         # combine output
         if (length(x = pk.all) > 1) {
-          peakcalls <- CombinePeaks(grlist = pk.all)
+            if (combine.peaks == TRUE) {
+                peakcalls <- CombinePeaks(grlist = pk.all)
+            } else {
+                peakcalls <- pk.all
+            }
         } else {
           peakcalls <- pk.all[[1]]
           peakcalls$ident <- NULL
