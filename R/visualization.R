@@ -1559,15 +1559,23 @@ SingleCoveragePlot <- function(
       mode = annotation
     )
   }
-  if (is.character(x = links) && is.granges) {
-    # subset to genes in the desired list
-    links.use <- Links(object = object)
-    links.use <- links.use[links.use$gene %in% links]
-    Links(object = object) <- links.use
-    links <- TRUE
-  }
-  if (links && is.granges) {
-    link.plot <- LinkPlot(object = object[[assay[[1]]]], region = region)
+  if (!is.null(x = links)) {
+    linkplot.list <- list()
+    for (i in seq_along(along.with = links)) {
+      # generate links plot for each key
+      linkplot.list[[i]] <- LinkPlot(
+        object = object[[assay[[1]]]],
+        region = region,
+        key = links[[i]]
+      )
+      if (length(x = links) > 1) {
+        linkplot.list[[i]] <- linkplot.list[[i]] + ylab(links[[i]])
+      }
+    }
+    link.plot <- CombineTracks(
+      plotlist = linkplot.list,
+      heights = rep(1, length(x = links))
+    )
   } else {
     link.plot <- NULL
   }
@@ -1982,11 +1990,10 @@ CoverageTrack <- function(
 #' highlighted in grey. To change the color of the highlighting, include a
 #' metadata column in the GRanges object named "color" containing the color to
 #' use for each region.
-#' @param links Display links. This can be a TRUE/FALSE value which will
-#' determine whether a links track is displayed, and if TRUE links for all genes
-#' in the plotted region will be shown. Alternatively, a character vector can be
-#' provided, giving a list of gene names to plot links for. If this is provided,
-#' only links for those genes will be displayed in the plot.
+#' @param links Character vector containing the keys of link information present
+#' in the assay to display. Default is "linkpeaks" which is the default key for
+#' peak-gene links stored using the [LinkPeaks()] function. If `NULL`, links
+#' will not be displayed.
 #' @param tile Display per-cell fragment information in sliding windows. If
 #' plotting multi-assay data, only the first assay is shown in the tile plot.
 #' @param tile.size Size of the sliding window for per-cell fragment tile plot
@@ -2089,7 +2096,7 @@ CoveragePlot <- function(
   ranges.group.by = NULL,
   ranges.title = "Ranges",
   region.highlight = NULL,
-  links = TRUE,
+  links = "linkpeaks",
   tile = FALSE,
   tile.size = 100,
   tile.cells = 100,
@@ -2524,6 +2531,7 @@ PeakPlot <- function(
 #'
 #' @param object A [SeuratObject::Seurat()] object
 #' @param region A genomic region to plot
+#' @param key Key to use when extracting link information from the Seurat object
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param min.cutoff Minimum absolute score for link to be plotted.
 #' @param extend.upstream Number of bases to extend the region upstream.
@@ -2543,6 +2551,7 @@ PeakPlot <- function(
 LinkPlot <- function(
   object,
   region,
+  key,
   assay = NULL,
   min.cutoff = 0,
   extend.upstream = 0,
@@ -2560,7 +2569,8 @@ LinkPlot <- function(
 
   # extract link information
   links <- Links(object = object)
-
+  links <- links[[key]]
+  
   # if links not set, return NULL
   if (length(x = links) == 0) {
     return(NULL)
@@ -2572,6 +2582,25 @@ LinkPlot <- function(
   # filter out links below threshold
   link.df <- as.data.frame(x = links.keep)
   link.df <- link.df[abs(x = link.df$score) > min.cutoff, ]
+  
+  # convert to single start and end position
+  # take start of gene and midpoint of peak
+  link.df$peak_midpoint <- (link.df$start1 + link.df$end1) / 2
+  link.df$genestart <- ifelse(
+    test = link.df$strand2 == "-",
+    yes = link.df$end2,
+    no = link.df$start2
+  )
+  link.df$start <- ifelse(
+    test = link.df$peak_midpoint < link.df$genestart,
+    yes = link.df$peak_midpoint,
+    no = link.df$genestart
+  )
+  link.df$end <- ifelse(
+    test = link.df$peak_midpoint < link.df$genestart,
+    yes = link.df$genestart,
+    no = link.df$peak_midpoint
+  )
 
   # remove links outside region
   link.df <- link.df[link.df$start >= start(x = region) & link.df$end <= end(x = region), ]
