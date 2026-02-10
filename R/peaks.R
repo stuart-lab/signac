@@ -22,18 +22,20 @@ macs3_pathcheck <- function(macs3.path) {
 }
 
 #' @importFrom GenomicRanges reduce
+#' @importFrom IRanges extractList
+#' @importFrom S4Vectors unstrsplit
 CombinePeaks <- function(grlist) {
     # combine peaks and reduce, maintaining ident information
-    gr.combined <- Reduce(f = c, x = grlist)
-    gr <- reduce(x = gr.combined, with.revmap = TRUE)
-    dset.vec <- vector(mode = "character", length = length(x = gr))
-    ident.vec <- gr.combined$ident
-    revmap <- gr$revmap
-    for (i in seq_len(length.out = length(x = gr))) {
-        datasets <- ident.vec[revmap[[i]]]
-        dset.vec[[i]] <- paste(unique(x = datasets), collapse = ",")
+    if (is(object = grlist, class2 = "GRangesList")) {
+      gr.combined <- unlist(x = grlist)
+    } else {
+      gr.combined <- do.call(c, grlist)
     }
-    gr$peak_called_in <- dset.vec
+    gr <- reduce(x = gr.combined, with.revmap = TRUE)
+    ids_char <- as.character(x = gr.combined$ident)
+    ids_list <- extractList(x = ids_char, i = gr$revmap)
+    ids_list <- unique(x = ids_list)
+    gr$peak_called_in <- unstrsplit(ids_list, sep = ",")
     gr$revmap <- NULL
     return(gr)
 }
