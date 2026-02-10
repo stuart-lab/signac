@@ -1298,11 +1298,10 @@ SetAssayData.ChromatinAssay5 <- function(
           }
           existing <- Links(object = object)
           if (key %in% names(x = existing)) {
-            stop("Links with requested key already exists")
-          } else {
-            existing[[key]] <- new.data
-            methods::slot(object = object, name = layer) <- existing
+            warning("Overwriting existing links key: ", key)
           }
+          existing[[key]] <- new.data
+          methods::slot(object = object, name = layer) <- existing
         }
       }
     }
