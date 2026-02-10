@@ -1756,8 +1756,9 @@ MergeRegionAggregation <- function(
           }
         }
       }
+      out <- merged.obj.list 
     }
-    merged.obj.list 
+    out
   })
   # return as a flatten list 
   condensed.list <- unname(do.call(c, condensed.list))
