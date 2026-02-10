@@ -193,6 +193,7 @@ ConnectionsToLinks <- function(
 #' @param expression.assay Name of assay containing gene expression information
 #' @param expression.layer Name of layer to pull expression data from
 #' @param method Correlation method to use. One of "pearson" or "spearman"
+#' @param key Key to use when storing link information in the assay
 #' @param gene.coords GRanges object containing coordinates of genes in the
 #' expression assay. If NULL, extract from gene annotations stored in the assay.
 #' @param distance Distance threshold for peaks to include in regression model
@@ -244,6 +245,7 @@ LinkPeaks <- function(
   peak.layer = "counts",
   expression.layer = "data",
   method = "pearson",
+  key = "linkpeaks",
   gene.coords = NULL,
   distance = 5e+05,
   min.distance = NULL,
@@ -305,29 +307,28 @@ LinkPeaks <- function(
       ranges = annot
     )
   }
-  meta.features <- GetAssayData(
-    object = object, assay = peak.assay, layer = "meta.features"
-  )
+  meta.features <- object[[peak.assay]][[]]
   if (!(all(
     c("GC.percent", "sequence.length") %in% colnames(x = meta.features)
     ))) {
     stop("DNA sequence information for each peak has not been computed.\n",
-         "Run RegionsStats before calling this function.")
+         "Run RegionStats before calling this function.")
   }
   if (!("count" %in% colnames(x = meta.features))) {
-    data.use <- GetAssayData(object = object[[peak.assay]], layer = "counts")
+    data.use <- GetAssayData(object = object[[peak.assay]], layer = peak.layer)
     hvf.info <- FindTopFeatures(object = data.use, verbose = FALSE)
     hvf.info <- hvf.info[rownames(meta.features), , drop = FALSE]
     meta.features <- cbind(meta.features, hvf.info)
   }
-  peak.data <- GetAssayData(
-    object = object, assay = peak.assay, layer = peak.slot
-  )
-  if (!(expression.slot %in% Layers(object = object))) {
+  if (!(peak.layer %in% Layers(object = object[[peak.assay]]))) {
+    stop("Requested peak layer not found")
+  }
+  peak.data <- LayerData(object = object[[peak.assay]], layer = peak.layer)
+  if (!(expression.layer %in% Layers(object = object[[expression.assay]]))) {
     stop("Requested expression layer not found")
   }
-  expression.data <- GetAssayData(
-    object = object, assay = expression.assay, layer = expression.slot
+  expression.data <- LayerData(
+    object = object[[expression.assay]], layer = expression.layer
   )
   peakcounts <- rowSums(x = peak.data > 0)
   genecounts <- rowSums(x = expression.data > 0)
@@ -499,7 +500,11 @@ LinkPeaks <- function(
   )
   rownames(x = coef.matrix) <- genes.use
   colnames(x = coef.matrix) <- names(x = peak.key)
-  links <- LinksToGRanges(linkmat = coef.matrix, gene.coords = gene.coords.use)
+  # links <- LinksToGRanges(linkmat = coef.matrix, gene.coords = gene.coords.use)
+  links <- LinksToGInteractions(
+    linkmat = coef.matrix,
+    gene.coords = gene.coords.use
+  )
   # add zscores
   z.matrix <- sparseMatrix(
     i = gene.vec,
@@ -509,11 +514,15 @@ LinkPeaks <- function(
   )
   rownames(x = z.matrix) <- genes.use
   colnames(x = z.matrix) <- names(x = peak.key)
-  z.lnk <- LinksToGRanges(linkmat = z.matrix, gene.coords = gene.coords.use)
+  # z.lnk <- LinksToGRanges(linkmat = z.matrix, gene.coords = gene.coords.use)
+  z.lnk <- LinksToGInteractions(
+    linkmat = z.matrix,
+    gene.coords = gene.coords.use
+  )
   links$zscore <- z.lnk$score
   links$pvalue <- pnorm(q = -abs(x = links$zscore))
   links <- links[links$pvalue < pvalue_cutoff]
-  Links(object = object[[peak.assay]]) <- links
+  Links(object = object[[peak.assay]], key = key) <- links
   return(object)
 }
 
@@ -569,6 +578,16 @@ LinksToGRanges <- function(linkmat, gene.coords) {
   return(sort(x = gr.use))
 }
 
+LinksToGInteractions <- function(linkmat, gene.coords) {
+  x <- as(object = linkmat, Class = 'TsparseMatrix')
+  peak.coords <- GRanges(colnames(x = linkmat))
+  gene.coords$strand <- strand(x = gene.coords)
+  region1 <- peak.coords[x@j+1]
+  region2 <- gene.coords[x@i+1]
+  gi <- GInteractions(region1, region2)
+  gi$score <- x@x
+  return(gi)
+}
 
 # Find peaks near genes
 #
