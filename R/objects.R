@@ -1253,7 +1253,7 @@ SetAssayData.ChromatinAssay5 <- function(
           # remove every exisiting RegAggr object with the same feature name
           warning(sprintf("Overwriting RegionAggregation for '%s' ",
                           new.agg@name), call. = FALSE)
-          agg.list <- agg.list[!same.name.idx]
+          agg.list <- agg.list[-same.name.idx]
           agg.list <- append(agg.list, new.agg)
           merged <- TRUE
         } else { # skip the new cells that already exists in the old object 
@@ -1743,7 +1743,7 @@ MergeRegionAggregation <- function(
           for (w in seq_along(merged.obj.list)){
             if (IsCompatibleRegionAggregation(aggs[i], merged.obj.list[w])){
               # replace merged.obj.list[w] with the merged 
-              merged.obj.list[]@matrix <- rbind(merged.obj.list[[w]]@matrix, aggs[[i]]@matrix)
+              merged.obj.list[[w]]@matrix <- rbind(merged.obj.list[[w]]@matrix, aggs[[i]]@matrix)
               merged.obj.list[[w]]@cells <- c(merged.obj.list[[w]]@cells, aggs[[i]]@cells)
               break # break from cycle  # stop looping through merged.obj.list 
             }
