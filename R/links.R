@@ -578,6 +578,8 @@ LinksToGRanges <- function(linkmat, gene.coords) {
   return(sort(x = gr.use))
 }
 
+#' @importFrom GenomicRanges GRanges
+#' @importFrom InteractionSet GInteractions
 LinksToGInteractions <- function(linkmat, gene.coords) {
   x <- as(object = linkmat, Class = 'TsparseMatrix')
   peak.coords <- GRanges(colnames(x = linkmat))
