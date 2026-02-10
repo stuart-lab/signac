@@ -706,17 +706,6 @@ RunFootprint <- function(
     ) # returns a sparse dgcMatrix that does not have nrows()
     # get expected insertions 
     expected.insertions <- as.numeric(x = expected.insertions)
-    #rownames(x = expected.insertions) <- "expected"
-    #insertion.matrix <- rbind(insertion.matrix, expected.insertions)
-    # encode motif position as additional row in matrix
-    # motif.vec <- t(x = matrix(data = c(rep(x = 0, upstream),rep(x = 1, motif.size),rep(x = 0, downstream))))
-    # rownames(x = motif.vec) <- "motif"
-    # insertion.matrix <- rbind(insertion.matrix, motif.vec)
-    
-    # edit: motif metadata will computed on fly when plotting by looking up regions width 
-
-    # create RegionAggregation objects
-    # browser()
     agg.obj <- CreateRegionAggregationObject(
         mat = insertion.matrix, 
         regions = motif.regions, 
