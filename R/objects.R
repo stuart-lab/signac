@@ -1026,6 +1026,9 @@ RenameCells.Fragment2 <- function(object, new.names, ...) {
 #' @method RenameCells RegionAggregation
 #' @export
 RenameCells.RegionAggregation <- function(object, new.names, ...) {
+  # name of each element is the existing cell name
+  # element itself is the corresponding new name
+  
   cells <- slot(object = object, name = "cells")
   if (is.null(x = cells)) {
     # invalid object
@@ -1040,10 +1043,8 @@ RenameCells.RegionAggregation <- function(object, new.names, ...) {
     }
     names(x = new.names) <- cells
   }
-  # subset and rename 
-  cells <- cells[names(x = new.names)]
-  names(x = cells) <- new.names[names(x = cells)]
-  slot(object = object, name = "cells") <- cells
+  new_cells <- unname(new.names[cells])
+  slot(object = object, name = "cells") <- new_cells
   return(object)
 }
 
@@ -1740,21 +1741,23 @@ MergeRegionAggregation <- function(
         if (length(merged.obj.list) == 0){
           merged.obj.list <- list(aggs[[i]])
         } else {
+          merged <- FALSE 
           for (w in seq_along(merged.obj.list)){
             if (IsCompatibleRegionAggregation(aggs[[i]], merged.obj.list[[w]])){
               # replace merged.obj.list[w] with the merged 
               merged.obj.list[[w]]@matrix <- rbind(merged.obj.list[[w]]@matrix, aggs[[i]]@matrix)
               merged.obj.list[[w]]@cells <- c(merged.obj.list[[w]]@cells, aggs[[i]]@cells)
-              break # break from cycle  # stop looping through merged.obj.list 
+              merged <- TRUE 
+              break # stop looping through merged.obj.list 
             }
           }
-          # if reach here means hasnt been merged with any obj in merged.obj.list 
-          merged.obj.list <- append(merged.obj.list, aggs[[i]])
+          if (!merged){
+            merged.obj.list <- append(merged.obj.list, aggs[[i]])
+          }
         }
       }
-      out <- merged.obj.list 
     }
-    out
+    merged.obj.list 
   })
   # return as a flatten list 
   condensed.list <- unname(do.call(c, condensed.list))
