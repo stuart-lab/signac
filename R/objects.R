@@ -2216,11 +2216,13 @@ dim.Motif <- function(x) {
 #' @examples
 #' links <- Links(atac_small)
 #' Links(atac_small[["peaks"]]) <- links
-"Links<-.ChromatinAssay5" <- function(object, ..., value) {
-  object <- SetAssayData(object = object, layer = "links", new.data = value, ...)
+"Links<-.ChromatinAssay5" <- function(object, ..., value, key = NULL) {
+  object <- SetAssayData(object = object, layer = "links", new.data = value, key = key)
   return(object)
 }
 
+#' @param key Key to use when adding a new [InteractionSet::GInteractions]
+#' object
 #' @export
 #' @rdname Links
 #' @method Links<- Seurat
@@ -2229,9 +2231,9 @@ dim.Motif <- function(x) {
 #' @examples
 #' links <- Links(atac_small)
 #' Links(atac_small) <- links
-"Links<-.Seurat" <- function(object, assay = NULL, ..., value) {
+"Links<-.Seurat" <- function(object, assay = NULL, ..., value, key = NULL) {
   assay <- assay %||% DefaultAssay(object = object)
-  Links(object[[assay]], ...) <- value
+  Links(object[[assay]], key = key) <- value
   return(object)
 }
 
