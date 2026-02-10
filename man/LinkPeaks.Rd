@@ -11,6 +11,7 @@ LinkPeaks(
   peak.layer = "counts",
   expression.layer = "data",
   method = "pearson",
+  key = "linkpeaks",
   gene.coords = NULL,
   distance = 5e+05,
   min.distance = NULL,
@@ -37,6 +38,8 @@ LinkPeaks(
 \item{expression.layer}{Name of layer to pull expression data from}
 
 \item{method}{Correlation method to use. One of "pearson" or "spearman"}
+
+\item{key}{Key to use when storing link information in the assay}
 
 \item{gene.coords}{GRanges object containing coordinates of genes in the
 expression assay. If NULL, extract from gene annotations stored in the assay.}
