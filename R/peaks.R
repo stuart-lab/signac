@@ -178,7 +178,7 @@ CallPeaks.Seurat <- function(
                 gr
             }
         )
-        if (combine.peaks) {
+        if (combine.peaks == TRUE) {
             peakcalls <- CombinePeaks(grlist = pk.all)
         } else {
             peakcalls <- pk.all
