@@ -2399,7 +2399,7 @@ dim.Motif <- function(x) {
 #' ra <- RegionAggr(atac_small)
 #' RegionAggr(atac_small[["peaks"]]) <- ra
 "RegionAggr<-.ChromatinAssay5" <- function(object, ..., value) {
-  object <- SetAssayData(object = object, layer = "region.aggregation", new.data = value)
+  object <- SetAssayData(object = object, layer = "region.aggregation", new.data = value, ...)
   return(object)
 }
 
@@ -2413,7 +2413,7 @@ dim.Motif <- function(x) {
 #' RegionAggr(atac_small) <- ra
 "RegionAggr<-.Seurat" <- function(object, assay = NULL, ..., value) {
   assay <- assay %||% DefaultAssay(object = object)
-  RegionAggr(object[[assay]]) <- value
+  RegionAggr(object[[assay]], ...) <- value
   return(object)
 }
 
