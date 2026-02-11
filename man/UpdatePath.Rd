@@ -7,7 +7,7 @@
 UpdatePath(object, new.path, new.index.path = NULL, verbose = TRUE)
 }
 \arguments{
-\item{object}{A \code{\link[=Fragment2]{Fragment2()}} object.}
+\item{object}{A \linkS4class{Fragment2} object.}
 
 \item{new.path}{Path to the fragment file.}
 
@@ -17,7 +17,7 @@ assumed to be in the same directory as the fragment file.}
 \item{verbose}{Display messages.}
 }
 \description{
-Change the path to a fragment file store in a \code{\link[=Fragment2]{Fragment2()}}
+Change the path to a fragment file store in a \linkS4class{Fragment2}
 object. Path must be to the same file that was used to create the fragment
 object. An MD5 hash will be computed using the new path and compared to the
 hash stored in the Fragment object to verify that the files are the same.

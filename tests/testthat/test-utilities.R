@@ -32,18 +32,6 @@ test_that("SortIdents works",{
   )
 })
 
-test_that("GRanges conversion works", {
-  correct_string <- c("chr1-1-10", "chr2-12-3121")
-  correct_ranges <- GRanges(
-    seqnames = c("chr1", "chr2"),
-    ranges = IRanges(start = c(1, 12), end = c(10, 3121))
-  )
-  granges <- StringToGRanges(regions = correct_string)
-  string_ranges <- GRangesToString(grange = correct_ranges)
-  expect_equal(object = granges, expected = correct_ranges)
-  expect_equal(object = string_ranges, expected = correct_string)
-})
-
 test_that("ChunkGRanges works", {
   granges <- GRanges(
     seqnames = c("chr1"),

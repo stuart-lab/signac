@@ -12,12 +12,12 @@
 \S4method{granges}{Seurat}(x, use.names = TRUE, use.mcols = FALSE, ...)
 }
 \arguments{
-\item{x}{A \code{\link[=GRangesAssay]{GRangesAssay()}} object}
+\item{x}{A \linkS4class{GRangesAssay} object}
 
 \item{use.names}{Whether the names on the genomic ranges should be
 propagated to the returned object.}
 
-\item{use.mcols}{Not supported for \code{\link[=GRangesAssay]{GRangesAssay()}} objects}
+\item{use.mcols}{Not supported for \linkS4class{GRangesAssay} objects}
 
 \item{...}{Additional arguments}
 }
@@ -26,7 +26,7 @@ Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} ob
 }
 \description{
 Methods for accessing \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
-information stored in a \code{\link[=GRangesAssay]{GRangesAssay()}} object.
+information stored in a \linkS4class{GRangesAssay} object.
 }
 \section{Functions}{
 \itemize{

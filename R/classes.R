@@ -1,7 +1,7 @@
 #' @importFrom methods setClass setClassUnion
 #' slotNames
 #' @importClassesFrom Matrix CsparseMatrix
-#' @importClassesFrom GenomicRanges GRanges
+#' @import GenomicRanges
 #' @importClassesFrom InteractionSet GInteractions
 #' @useDynLib Signac
 NULL
@@ -35,7 +35,7 @@ setClassUnion(name = "NumericOrNULL", members = c("numeric", "NULL"))
 #' @aliases Fragment
 #' @exportClass Fragment2
 #' @concept fragments
-Fragment2 <- setClass(
+setClass(
   Class = "Fragment2",
   slots = list(
     file.path = "character",
@@ -52,13 +52,13 @@ Fragment2 <- setClass(
 #' including motif PWMs or PFMs, motif positions, and metadata.
 #'
 #' @slot data A feature x motif matrix. Columns
-#' correspond to motif IDs, rows correspond to genomic features
-#' (peaks or bins). Entries in the matrix should be 1 if the
-#' genomic feature contains the motif, and 0 otherwise.
+#' correspond to motif IDs, rows correspond to features of interest (for 
+#' example, genomic regions). Entries in the matrix should be 1 if the feature
+#' contains the motif and 0 otherwise.
 #' @slot pwm A named list of position weight matrices
 #' @slot motif.names A list containing the name of each motif
 #' @slot positions A [GenomicRanges::GRangesList()] object containing
-#' exact positions of each motif.
+#' exact positions of each motif in the genome.
 #' @slot meta.data A dataframe for storage of additional
 #' information related to each motif. This could include the
 #' names of proteins that bind the motif.
@@ -67,13 +67,13 @@ Fragment2 <- setClass(
 #' @rdname Motif-class
 #' @exportClass Motif
 #' @concept motifs
-Motif <- setClass(
+setClass(
   Class = "Motif",
   slots = list(
     data = "MatrixOrNULL",
     pwm = "list",
     motif.names = "list",
-    positions = "ANY",
+    positions = "ANY",  # TODO positions should be NULL or GRangesList
     meta.data = "data.frame"
   )
 )
@@ -113,7 +113,7 @@ setClassUnion(name = "MotifOrNULL", members = c("Motif", "NULL"))
 #' @rdname RegionAggregation-class
 #' @exportClass RegionAggregation
 #' @concept footprinting
-RegionAggregation <- setClass(
+setClass(
   Class = "RegionAggregation",
   slots = list(
     matrix = "AnyMatrix",
@@ -151,7 +151,6 @@ setValidity(Class = "RegionAggregation", function(object) {
 })
 setClassUnion(name = "ListOrNULL", members = c("list", "NULL"))
 
-
 #' @slot fragments A list of [Fragment()] objects.
 #' @slot annotation A  [GenomicRanges::GRanges()] object containing
 #' genomic annotations. This should be a GRanges object with the following 
@@ -168,8 +167,8 @@ setClassUnion(name = "ListOrNULL", members = c("list", "NULL"))
 #' numeric vector where the name of the element corresponds to the DNA sequence
 #' and the value represents the bias value. All DNA hexamers must be present in
 #' the vector.
-#' @slot region.aggregation A list of [RegionAggregation()] objects
-#' @slot motifs A [Motif()] object
+#' @slot region.aggregation A list of [RegionAggregation-class] objects
+#' @slot motifs A [Motif-class] object
 #' @slot links A list of [InteractionSet::GInteractions()] objects
 #' describing linked genomic positions, such as co-accessible sites, eQTLs, 
 #' Hi-C contact, or enhancer-gene regulatory relationships.
@@ -179,7 +178,7 @@ setClassUnion(name = "ListOrNULL", members = c("list", "NULL"))
 #' @importClassesFrom SeuratObject Assay5
 #' @exportClass ChromatinAssay5
 #' @concept assay
-ChromatinAssay5 <- setClass(
+setClass(
   Class = "ChromatinAssay5",
   contains = "Assay5",
   slots = list(
@@ -245,7 +244,7 @@ setValidity(Class = "ChromatinAssay5", function(object) {
 #' @exportClass GRangesAssay
 #' @concept assay
 #' @seealso [SeuratObject::Assay5()]
-GRangesAssay <- setClass(
+setClass(
   Class = "GRangesAssay",
   contains = "ChromatinAssay5",
   slots = list(
@@ -271,7 +270,7 @@ GRangesAssay <- setClass(
 #' @rdname oldfragment-class
 #' @keywords internal
 #' @noRd
-Fragment <- setClass(
+setClass(
   Class = "Fragment",
   slots = list(
     path = "character",
@@ -289,8 +288,8 @@ Fragment <- setClass(
 #'
 #' @slot ranges A [GenomicRanges::GRanges()] object describing the
 #' genomic location of features in the object
-#' @slot motifs A [Motif()] object
-#' @slot fragments A list of [Fragment()] objects.
+#' @slot motifs A [Motif-class] object
+#' @slot fragments A list of [Fragment2-class] objects.
 #' @slot seqinfo A [Seqinfo::Seqinfo()] object containing basic
 #' information about the genome sequence used.
 #' @slot annotation A  [GenomicRanges::GRanges()] object containing
@@ -313,10 +312,11 @@ Fragment <- setClass(
 #' end coordinates are the two linked genomic positions, and must contain a
 #' "score" metadata column.
 #'
-#' @name chromatinassay-class
-#' @noRd
+#' @name ChromatinAssay-class
+#' @export
+#' @keywords internal
 #' @importClassesFrom SeuratObject Assay
-ChromatinAssay <- setClass(
+setClass(
   Class = "ChromatinAssay",
   contains = "Assay",
   slots = list(
@@ -326,7 +326,7 @@ ChromatinAssay <- setClass(
     "seqinfo" = "ANY",
     "annotation" = "ANY",
     "bias" = "ANY",
-    "region.aggregation" = "list",
+    "positionEnrichment" = "list",
     "links" = "GRanges"
   )
 )

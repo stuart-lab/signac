@@ -26,13 +26,13 @@ Fragments(object, ...) <- value
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{A \link{Fragment} object or list of Fragment objects}
+\item{value}{A \linkS4class{Fragment2} object or list of Fragment objects}
 
 \item{assay}{Name of assay to use}
 }
 \value{
-Returns a list of \link{Fragment} objects. If there are
-no \link{Fragment} objects present, returns an empty list.
+Returns a list of \linkS4class{Fragment2} objects. If there are
+no \linkS4class{Fragment2} objects present, returns an empty list.
 }
 \description{
 Get the Fragment objects

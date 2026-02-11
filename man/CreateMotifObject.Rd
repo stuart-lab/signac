@@ -31,7 +31,7 @@ exact positions of each motif.}
 \item{meta.data}{A data.frame containing metadata}
 }
 \value{
-Returns a \code{\link[=Motif]{Motif()}} object
+Returns a \code{\link[=Motif-class]{Motif-class()}} object
 }
 \description{
 Create a \code{\link[=Motif-class]{Motif-class()}} object.

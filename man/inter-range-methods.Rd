@@ -47,7 +47,7 @@
 \S4method{disjointBins}{Seurat}(x, ...)
 }
 \arguments{
-\item{x}{A \code{\link[=GRangesAssay]{GRangesAssay()}} object}
+\item{x}{A \linkS4class{GRangesAssay} object}
 
 \item{...}{Additional arguments}
 
@@ -62,7 +62,7 @@
 }
 \description{
 The \verb{range, reduce, gaps, disjoin, isDisjoint, disjointBins} methods
-are available for \code{\link[=GRangesAssay]{GRangesAssay()}} objects.
+are available for \linkS4class{GRangesAssay} objects.
 }
 \section{Functions}{
 \itemize{

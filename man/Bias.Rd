@@ -35,7 +35,7 @@ information, or a numeric vector object.}
 Returns a numeric vector or \code{NULL}
 }
 \description{
-Get the bias information from a \link{ChromatinAssay5} object
+Get the bias information from a \linkS4class{ChromatinAssay5} object
 }
 \examples{
 \donttest{

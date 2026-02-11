@@ -41,7 +41,7 @@ position.}
 \item{verbose}{Display messages.}
 }
 \value{
-Returns a \code{\link[=RegionAggregation]{RegionAggregation()}} object
+Returns a \linkS4class{RegionAggregation} object
 }
 \description{
 Create a \code{\link[=RegionAggregation-class]{RegionAggregation-class()}} object to store the insertions over group of regions

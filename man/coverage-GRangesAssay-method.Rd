@@ -23,7 +23,7 @@
 )
 }
 \arguments{
-\item{x}{A \code{\link[=GRangesAssay]{GRangesAssay()}} object}
+\item{x}{A \linkS4class{GRangesAssay} object}
 
 \item{shift}{How much each range should be shifted before coverage is
 computed. See \code{\link[IRanges:coverage-methods]{IRanges::coverage()}} in the \pkg{IRanges} package.}
@@ -38,7 +38,7 @@ See \code{\link[IRanges:coverage-methods]{IRanges::coverage()}} in the \pkg{IRan
 package}
 }
 \description{
-This is the \code{coverage} method for \code{\link[=GRangesAssay]{GRangesAssay()}} objects.
+This is the \code{coverage} method for \linkS4class{GRangesAssay} objects.
 }
 \section{Functions}{
 \itemize{

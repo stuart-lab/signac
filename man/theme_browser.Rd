@@ -18,7 +18,7 @@ Theme applied to panels in the \code{\link[=CoveragePlot]{CoveragePlot()}} funct
 }
 \examples{
 \donttest{
-PeakPlot(atac_small, region = "chr1-710000-715000") + theme_browser()
+PeakPlot(atac_small, region = "chr1:710000-715000") + theme_browser()
 }
 }
 \concept{visualization}

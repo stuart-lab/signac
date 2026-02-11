@@ -21,7 +21,7 @@ CoveragePlot(
   ranges.group.by = NULL,
   ranges.title = "Ranges",
   region.highlight = NULL,
-  links = TRUE,
+  links = "linkpeaks",
   tile = FALSE,
   tile.size = 100,
   tile.cells = 100,
@@ -38,7 +38,6 @@ CoveragePlot(
   ymax = NULL,
   cells = NULL,
   idents = NULL,
-  sep = c("-", "-"),
   max.downsample = 3000,
   downsample.rate = 0.1,
   gwas = NULL,
@@ -113,11 +112,10 @@ highlighted in grey. To change the color of the highlighting, include a
 metadata column in the GRanges object named "color" containing the color to
 use for each region.}
 
-\item{links}{Display links. This can be a TRUE/FALSE value which will
-determine whether a links track is displayed, and if TRUE links for all genes
-in the plotted region will be shown. Alternatively, a character vector can be
-provided, giving a list of gene names to plot links for. If this is provided,
-only links for those genes will be displayed in the plot.}
+\item{links}{Character vector containing the keys of link information present
+in the assay to display. Default is "linkpeaks" which is the default key for
+peak-gene links stored using the \code{\link[=LinkPeaks]{LinkPeaks()}} function. If \code{NULL}, links
+will not be displayed.}
 
 \item{tile}{Display per-cell fragment information in sliding windows. If
 plotting multi-assay data, only the first assay is shown in the tile plot.}
@@ -171,10 +169,6 @@ remove the effect of extreme values that may otherwise distort the scale.}
 
 \item{idents}{Which identities to include in the plot. Default is all
 identities.}
-
-\item{sep}{Separators to use for strings encoding genomic coordinates. First
-element is used to separate the chromosome from the coordinates, second
-element is used to separate the start from end coordinate.}
 
 \item{max.downsample}{Minimum number of positions kept when downsampling.
 Downsampling rate is adaptive to the window size, but this parameter will set
@@ -237,21 +231,21 @@ fragments <- CreateFragmentObject(
 Fragments(atac_small) <- fragments
 
 # Basic coverage plot
-CoveragePlot(object = atac_small, region = c("chr1-713500-714500"))
+CoveragePlot(object = atac_small, region = c("chr1:713500-714500"))
 
 # Show additional ranges
-ranges.show <- StringToGRanges("chr1-713750-714000")
-CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), ranges = ranges.show)
+ranges.show <- GenomicRanges::GRanges("chr1:713750-714000")
+CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), ranges = ranges.show)
 
 # Highlight region
-CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), region.highlight = ranges.show)
+CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), region.highlight = ranges.show)
 
 # Change highlight color
 ranges.show$color <- "orange"
-CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), region.highlight = ranges.show)
+CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), region.highlight = ranges.show)
 
 # Show expression data
-CoveragePlot(object = atac_small, region = c("chr1-713500-714500"), features = "GYG2")
+CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), features = "GYG2")
 }
 }
 \concept{visualization}

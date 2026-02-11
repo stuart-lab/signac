@@ -37,7 +37,7 @@ Footprint(object, ...)
 )
 }
 \arguments{
-\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} or \link{ChromatinAssay5} object}
+\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} or \linkS4class{ChromatinAssay5} object}
 
 \item{...}{Arguments passed to other methods}
 

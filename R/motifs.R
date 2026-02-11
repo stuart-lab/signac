@@ -184,8 +184,6 @@ AddMotifs.Seurat <- function(
 #' (default FALSE)
 #' @param use.counts Record motif counts per region. If FALSE (default),
 #' record presence/absence of motif. Only applicable if `score=FALSE`.
-#' @param sep A length-2 character vector containing the separators to be used
-#' when constructing matrix rownames from the GRanges
 #' @param ... Additional arguments passed to
 #' [motifmatchr::matchMotifs()]
 #'
@@ -215,7 +213,6 @@ CreateMotifMatrix <- function(
   genome,
   score = FALSE,
   use.counts = FALSE,
-  sep = c("-", "-"),
   ...
 ) {
   if (!requireNamespace("motifmatchr", quietly = TRUE)) {
@@ -260,7 +257,7 @@ CreateMotifMatrix <- function(
       motif.matrix <- as(Class = "CsparseMatrix", object = motif.matrix)
     }
   }
-  rownames(motif.matrix) <- GRangesToString(grange = features, sep = sep)
+  rownames(motif.matrix) <- as.character(x = features)
   if (is.null(x = names(x = pwm))) {
     warning(
       "No 'names' attribute found in PFMatrixList. ",
@@ -276,14 +273,10 @@ CreateMotifMatrix <- function(
       i = sum(miss_sn),
       j = ncol(x = motif.matrix)
     )
-    rownames(x = replacement_matrix) <- GRangesToString(
-      grange = feature_order[miss_sn], sep = sep
-    )
+    rownames(x = replacement_matrix) <- as.character(x = feature_order[miss_sn])
     colnames(x = replacement_matrix) <- colnames(x = motif.matrix)
     motif.matrix <- rbind(motif.matrix, replacement_matrix)
-    motif.matrix <- motif.matrix[GRangesToString(
-      grange = feature_order, sep = sep
-    ), ]
+    motif.matrix <- motif.matrix[as.character(x = feature_order), ]
   }
   return(motif.matrix)
 }
@@ -457,6 +450,7 @@ FindMotifs <- function(
 ) {
   assay <- assay %||% DefaultAssay(object = object)
   background <- background %||% rownames(x = object)
+  # TODO allow FindMotifs on a ChromatinAssay5 object
   if (!inherits(x = object[[assay]], what = "GRangesAssay")) {
     stop("Cannot run FindMotifs on ", class(x = object[[assay]]))
   }
@@ -483,6 +477,10 @@ FindMotifs <- function(
       features <- intersect(x = features, y = rownames(x = meta.feature))
     }
     mf.query <- meta.feature[features, , drop = FALSE]
+    
+    # we can run FindMotifs on some object that does not have genomic ranges as the features
+    # but the user will have to supply the meta.features containing GC.percent
+    # to identify the matched background set of features
     background <- MatchRegionStats(
       meta.feature = mf.choose,
       query.feature = mf.query,
@@ -512,6 +510,11 @@ FindMotifs <- function(
   motif.names <- GetMotifData(
     object = object, assay = assay, slot = "motif.names"
   )
+  
+  # TODO update this for new ChromatinAssay5 class definition
+  # no longer require that features in motif matrix match features in the data layer
+  # will need to check that all features are in the motif object
+  
   query.motifs <- motif.all[features, , drop = FALSE]
   background.motifs <- motif.all[background, , drop = FALSE]
   query.counts <- colSums(x = query.motifs)

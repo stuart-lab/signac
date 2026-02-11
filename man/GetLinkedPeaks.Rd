@@ -16,7 +16,7 @@ GetLinkedPeaks(object, ...)
 \method{GetLinkedPeaks}{GRangesAssay}(object, features, min.abs.score = 0, ...)
 }
 \arguments{
-\item{object}{A Seurat object}
+\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object}
 
 \item{...}{Arguments passed to other methods}
 

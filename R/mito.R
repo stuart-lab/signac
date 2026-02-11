@@ -580,7 +580,7 @@ globalVariables(
 # @param coverage Total coverage for all bases and strands
 # @param verbose Display messages
 #' @importFrom Matrix summary rowMeans rowSums
-#' @import data.table
+#' @importFrom data.table data.table
 ProcessLetter <- function(
   object,
   letter,
@@ -640,7 +640,7 @@ ProcessLetter <- function(
   both.strand$i <- variant_name[both.strand$i]
   colnames(both.strand) <- c("variant", "cell_idx", "forward", "reverse")
 
-  cor_dt <- suppressWarnings(expr = both.strand[, .(cor = cor(
+  cor_dt <- suppressWarnings(expr = both.strand[, list(cor = cor(
     x = forward, y = reverse, method = "pearson", use = "pairwise.complete")
   ), by = list(variant)])
 

@@ -25,7 +25,8 @@ ConvertMotifID(object, ...)
 \method{ConvertMotifID}{Seurat}(object, assay = NULL, ...)
 }
 \arguments{
-\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat}, \link{ChromatinAssay5}, or \link{Motif} object}
+\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat}, \linkS4class{ChromatinAssay5}, or
+\linkS4class{Motif} object}
 
 \item{...}{Arguments passed to other methods}
 

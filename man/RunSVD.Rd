@@ -4,6 +4,7 @@
 \alias{RunSVD}
 \alias{RunSVD.default}
 \alias{RunSVD.Assay5}
+\alias{RunSVD.Assay}
 \alias{RunSVD.StdAssay}
 \alias{RunSVD.Seurat}
 \title{Run singular value decomposition}
@@ -24,6 +25,19 @@ RunSVD(object, ...)
 )
 
 \method{RunSVD}{Assay5}(
+  object,
+  assay = NULL,
+  layer = "data",
+  features = NULL,
+  pca = FALSE,
+  n = 50,
+  reduction.key = ifelse(pca, "PCA_", "LSI_"),
+  scale.max = NULL,
+  verbose = TRUE,
+  ...
+)
+
+\method{RunSVD}{Assay}(
   object,
   assay = NULL,
   layer = "data",

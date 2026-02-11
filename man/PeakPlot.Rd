@@ -11,7 +11,6 @@ PeakPlot(
   peaks = NULL,
   group.by = NULL,
   color = "dimgrey",
-  sep = c("-", "-"),
   extend.upstream = 0,
   extend.downstream = 0
 )
@@ -33,10 +32,6 @@ ranges by. If NULL, do not color by any metadata variable.}
 \item{color}{Color to use. If \code{group.by} is not NULL, this can be a
 custom color scale (see examples).}
 
-\item{sep}{Separators to use for strings encoding genomic coordinates. First
-element is used to separate the chromosome from the coordinates, second
-element is used to separate the start from end coordinate.}
-
 \item{extend.upstream}{Number of bases to extend the region upstream.}
 
 \item{extend.downstream}{Number of bases to extend the region downstream.}
@@ -45,19 +40,19 @@ element is used to separate the start from end coordinate.}
 Returns a \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} object
 }
 \description{
-Display the genomic ranges in a \code{\link[=GRangesAssay]{GRangesAssay()}} object that fall
+Display the genomic ranges in a \linkS4class{GRangesAssay} object that fall
 in a given genomic region
 }
 \examples{
 \donttest{
 # plot peaks in assay
-PeakPlot(atac_small, region = "chr1-710000-715000")
+PeakPlot(atac_small, region = "chr1:710000-715000")
 
 # manually set color
-PeakPlot(atac_small, region = "chr1-710000-715000", color = "red")
+PeakPlot(atac_small, region = "chr1:710000-715000", color = "red")
 
 # color by a variable in the feature metadata
-PeakPlot(atac_small, region = "chr1-710000-715000", group.by = "count")
+PeakPlot(atac_small, region = "chr1:710000-715000", group.by = "count")
 }
 }
 \concept{visualization}

@@ -5,7 +5,7 @@
 \alias{CreateChromatinAssay5}
 \title{ChromatinAssay5 and GRangesAssay object constructors}
 \usage{
-CreateGRangesAssay(counts, data, ranges = NULL, sep = c("-", "-"), ...)
+CreateGRangesAssay(counts, data, ranges = NULL, ...)
 
 CreateChromatinAssay5(
   counts,
@@ -27,12 +27,9 @@ CreateChromatinAssay5(
 \item{data}{Optional pre-normalized count matrix}
 
 \item{ranges}{A set of \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} corresponding to
-the rows of the input matrix}
-
-\item{sep}{Separators to use for strings encoding genomic coordinates.
-First element is used to separate the chromosome from the coordinates,
-second element is used to separate the start from end coordinate. Only
-used if \code{ranges} is NULL.}
+the rows of the input matrix. If \code{NULL}, genomic ranges will be extracted
+from the rownames of the input data matrix, and those rownames must be
+formatted as \code{chromosome:start-end}.}
 
 \item{...}{Additional arguments passed to \code{\link[=CreateChromatinAssay5]{CreateChromatinAssay5()}}
 and \code{\link[SeuratObject:CreateAssay5Object]{SeuratObject::CreateAssay5Object()}}.}
@@ -61,7 +58,7 @@ objects}
 
 \item{bias}{A Tn5 integration bias matrix}
 
-\item{region.aggregation}{A named list of \link{RegionAggregation}
+\item{region.aggregation}{A named list of \linkS4class{RegionAggregation}
 objects.}
 
 \item{validate.fragments}{Check that cells in the assay are present in the

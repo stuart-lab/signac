@@ -4,7 +4,7 @@
 \alias{ConnectionsToLinks}
 \title{Cicero connections to links}
 \usage{
-ConnectionsToLinks(conns, ccans = NULL, threshold = 0, sep = c("-", "-"))
+ConnectionsToLinks(conns, ccans = NULL, threshold = 0)
 }
 \arguments{
 \item{conns}{A dataframe containing co-accessible elements. This would
@@ -24,18 +24,13 @@ CCAN that it belongs to in the second column.}
 
 \item{threshold}{Threshold for retaining a coaccessible site. Links with
 a value less than or equal to this threshold will be discarded.}
-
-\item{sep}{Separators to use for strings encoding genomic coordinates.
-First element is used to separate the chromosome from the coordinates, second
-element is used to separate the start from end coordinate.}
 }
 \value{
-Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
+Returns a \code{\link[InteractionSet:GInteractions-class]{InteractionSet::GInteractions()}} object
 }
 \description{
-Convert the output of Cicero connections to a set of genomic ranges where
-the start and end coordinates of the range are the midpoints of the linked
-elements. Only elements on the same chromosome are included in the output.
+Convert the output of Cicero connections to a
+\code{InteractionSet::GInteractions()} object.
 }
 \details{
 See the Cicero package for more information:

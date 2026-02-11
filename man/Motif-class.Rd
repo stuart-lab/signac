@@ -3,7 +3,6 @@
 \docType{class}
 \name{Motif-class}
 \alias{Motif-class}
-\alias{Motif}
 \title{The Motif class}
 \description{
 The Motif class is designed to store DNA sequence motif information,
@@ -13,16 +12,16 @@ including motif PWMs or PFMs, motif positions, and metadata.
 
 \describe{
 \item{\code{data}}{A feature x motif matrix. Columns
-correspond to motif IDs, rows correspond to genomic features
-(peaks or bins). Entries in the matrix should be 1 if the
-genomic feature contains the motif, and 0 otherwise.}
+correspond to motif IDs, rows correspond to features of interest (for
+example, genomic regions). Entries in the matrix should be 1 if the feature
+contains the motif and 0 otherwise.}
 
 \item{\code{pwm}}{A named list of position weight matrices}
 
 \item{\code{motif.names}}{A list containing the name of each motif}
 
 \item{\code{positions}}{A \code{\link[GenomicRanges:GRangesList-class]{GenomicRanges::GRangesList()}} object containing
-exact positions of each motif.}
+exact positions of each motif in the genome.}
 
 \item{\code{meta.data}}{A dataframe for storage of additional
 information related to each motif. This could include the
