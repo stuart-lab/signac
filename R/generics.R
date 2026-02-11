@@ -395,7 +395,7 @@ Links <- function(object, ...) {
 #' @param value A [GenomicRanges::GRanges()] object
 #' @rdname Links
 #' @export Links<-
-"Links<-" <- function(object, ..., value, key = NULL) {
+"Links<-" <- function(object, ..., value) {
   UseMethod(generic = "Links<-", object = object)
 }
 

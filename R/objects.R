@@ -2215,7 +2215,7 @@ dim.Motif <- function(x) {
 #' @examples
 #' links <- Links(atac_small)
 #' Links(atac_small[["peaks"]]) <- links
-"Links<-.ChromatinAssay5" <- function(object, ..., value, key = NULL) {
+"Links<-.ChromatinAssay5" <- function(object, key = NULL, ..., value) {
   object <- SetAssayData(object = object, layer = "links", new.data = value, key = key)
   return(object)
 }
@@ -2230,7 +2230,7 @@ dim.Motif <- function(x) {
 #' @examples
 #' links <- Links(atac_small)
 #' Links(atac_small) <- links
-"Links<-.Seurat" <- function(object, assay = NULL, ..., value, key = NULL) {
+"Links<-.Seurat" <- function(object, assay = NULL, key = NULL, ..., value) {
   assay <- assay %||% DefaultAssay(object = object)
   Links(object[[assay]], key = key) <- value
   return(object)

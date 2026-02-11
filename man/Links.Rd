@@ -11,15 +11,15 @@
 \usage{
 Links(object, ...)
 
-Links(object, ..., key = NULL) <- value
+Links(object, ...) <- value
 
 \method{Links}{ChromatinAssay5}(object, ...)
 
 \method{Links}{Seurat}(object, assay = NULL, ...)
 
-\method{Links}{ChromatinAssay5}(object, ..., key = NULL) <- value
+\method{Links}{ChromatinAssay5}(object, key = NULL, ...) <- value
 
-\method{Links}{Seurat}(object, assay = NULL, ..., key = NULL) <- value
+\method{Links}{Seurat}(object, assay = NULL, key = NULL, ...) <- value
 }
 \arguments{
 \item{object}{A Seurat or ChromatinAssay5 object}
@@ -28,10 +28,10 @@ Links(object, ..., key = NULL) <- value
 
 \item{value}{A \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object}
 
+\item{assay}{Name of assay to use}
+
 \item{key}{Key to use when adding a new \link[InteractionSet:GInteractions-class]{InteractionSet::GInteractions}
 object}
-
-\item{assay}{Name of assay to use}
 }
 \description{
 Get or set the genomic link information for a Seurat object or
