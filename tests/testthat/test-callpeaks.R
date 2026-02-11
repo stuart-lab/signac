@@ -1,43 +1,52 @@
 library(GenomicRanges)
+library(SeuratObject)
+library(Signac)
+library(testthat)
 
 # data set up
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
 cells <- colnames(x = atac_small)
-names(x = cells) <- paste0("test_", cells)
-
-# make obj
-frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)
-
-peaks <- atac_small[['peaks']]$counts
-chrom_assay <- CreateChromatinAssay5(
-  counts = peaks,
-  fragments = fpath,
-  min.cells = 1
-)
-
-test_obj <- CreateSeuratObject(
-  counts = chrom_assay,
-  assay = "ATAC",
-  min.cells = 1
-)
-
-# rename obj
-test_obj <- RenameCells(test_obj, "test")
-
-# make groups
-seurat_clusters <- c(rep("cell1",20), rep("cell2",20), rep("cell3",20), rep("cell4",20), rep("cell5",20))
-test_obj <- AddMetaData(test_obj, metadata = seurat_clusters, col.name = "seurat_clusters")
-Idents(test_obj) <- test_obj$seurat_clusters
+atac_small2 <- atac_small
 
 # subset cells & write to file
 bc <- colnames(x = atac_small)[1:50]
 cells_path <- file.path(tempdir(), "test_barcodes.txt")
 writeLines(text = bc, con = cells_path)
 
+frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE)
+Fragments(atac_small) <- frags
+
+# rename cells
+atac_small <- RenameCells(atac_small, "test")
+
+# make groups
+seurat_clusters <- c(rep("cell1",20), rep("cell2",20), rep("cell3",20), rep("cell4",20), rep("cell5",20))
+atac_small <- AddMetaData(atac_small, metadata = seurat_clusters, col.name = "seurat_clusters")
+Idents(atac_small) <- atac_small$seurat_clusters
+
+# make 2nd object
+fpath_headered <- system.file("extdata", "fragments_header.tsv.gz", package="Signac")
+frags_headered <- CreateFragmentObject(path = fpath_headered, cells = cells, verbose = FALSE)
+Fragments(atac_small2) <- frags_headered
+atac_small2 <- RenameCells(atac_small2, "test")
+
+seurat_clusters <- c(rep("cell1",20), rep("cell2",20), rep("cell3",20), rep("cell4",20), rep("cell5",20))
+atac_small2 <- AddMetaData(atac_small2, metadata = seurat_clusters, col.name = "seurat_clusters")
+Idents(atac_small2) <- atac_small2$seurat_clusters
+
+# combine obj 
+combined <- merge(
+  x = atac_small,
+  y = atac_small2,
+  add.cell.ids = c("obj1", "obj2")
+)
 
 
 # Default parameters
 test_that("CallPeaks with default parameters works", {
+    # Check if macs3 is available in the system PATH
+    skip_if(Sys.which("macs3") == "", message = "macs3 command line tool not found, skipping test-callpeaks")
+    
     output_default_params <- GRanges(
         seqnames = Rle(rep("chr1", 9)),
         ranges = IRanges(
@@ -67,19 +76,22 @@ test_that("CallPeaks with default parameters works", {
     )
     # ChromatinAssay5 class
     expect_equal(
-        object = CallPeaks(object = chrom_assay),
+        object = CallPeaks(object = atac_small[['peaks']]),
         expected = output_default_params,
         tolerance = 0.5
     )
     # Seurat class
     expect_equal(
-        object = CallPeaks(object = test_obj, name="macs3"),
+        object = CallPeaks(object = atac_small, name="macs3"),
         expected = output_default_params,
         tolerance = 0.5
     )
 })
 
 test_that("CallPeaks with cell barcodes works", {
+    # Check if macs3 is available in the system PATH
+    skip_if(Sys.which("macs3") == "", message = "macs3 command line tool not found, skipping test-callpeaks")
+    
     output_cells <- GRanges(
         seqnames = Rle(rep("chr1", 8)),
         ranges = IRanges(
@@ -109,21 +121,24 @@ test_that("CallPeaks with cell barcodes works", {
     )
     # CallPeaks.ChromatinAssay5 with cells vector
     expect_equal(
-        object = CallPeaks(object = chrom_assay, cells = Cells(chrom_assay)[1:50], cleanup=FALSE),
+        object = CallPeaks(object = atac_small[['peaks']], cells = Cells(atac_small[['peaks']])[1:50], cleanup=FALSE),
         expected = output_cells,
         tolerance = 0.5
     )
     # CallPeaks.Seurat with cells vector
     expect_equal(
-        object = CallPeaks(object = test_obj, cells = Cells(test_obj)[1:50], cleanup=FALSE, name="macs3"),
+        object = CallPeaks(object = atac_small, cells = Cells(atac_small)[1:50], cleanup=FALSE, name="macs3"),
         expected = output_cells,
         tolerance = 0.5
     )
 })
 
 test_that("CallPeaks group.by works", {
+    # Check if macs3 is available in the system PATH
+    skip_if(Sys.which("macs3") == "", message = "macs3 command line tool not found, skipping test-callpeaks")
+    
     expect_equal(
-        object = CallPeaks(object = test_obj, group.by = "seurat_clusters"),
+        object = CallPeaks(object = atac_small, group.by = "seurat_clusters"),
         expected = GRanges(
             seqnames = Rle(rep("chr1", 9)),
             ranges = IRanges(
@@ -136,14 +151,17 @@ test_that("CallPeaks group.by works", {
         tolerance = 0.5
     )
     expect_length(
-        object = CallPeaks(object = test_obj, group.by = "seurat_clusters", combine.peaks = FALSE),
-        n = length(unique(test_obj$seurat_clusters))
+        object = CallPeaks(object = atac_small, group.by = "seurat_clusters", combine.peaks = FALSE),
+        n = length(unique(atac_small$seurat_clusters))
     )
 })
 
 test_that("CallPeaks group.by & idents works", {
+    # Check if macs3 is available in the system PATH
+    skip_if(Sys.which("macs3") == "", message = "macs3 command line tool not found, skipping test-callpeaks")
+    
     expect_equal(
-        object = CallPeaks(object = test_obj, group.by = "seurat_clusters", idents = "cell5"),
+        object = CallPeaks(object = atac_small, group.by = "seurat_clusters", idents = "cell5"),
         expected = GRanges(
             seqnames = "chr1",
             ranges = IRanges(
@@ -156,7 +174,7 @@ test_that("CallPeaks group.by & idents works", {
         tolerance = 0.5
     )
     expect_equal(
-        object = CallPeaks(object = test_obj, group.by = "seurat_clusters", idents = c("cell1","cell5")),
+        object = CallPeaks(object = atac_small, group.by = "seurat_clusters", idents = c("cell1","cell5")),
         expected = GRanges(
             seqnames = "chr1",
             ranges = IRanges(
@@ -169,17 +187,20 @@ test_that("CallPeaks group.by & idents works", {
         tolerance = 0.5
     )
     expect_length(
-        object = CallPeaks(object = test_obj, group.by = "seurat_clusters", idents = c("cell1","cell5"), combine.peaks = FALSE),
+        object = CallPeaks(object = atac_small, group.by = "seurat_clusters", idents = c("cell1","cell5"), combine.peaks = FALSE),
         n = length(c("cell1","cell5"))
     )
     expect_error(
-        object = CallPeaks(object = test_obj, group.by = NULL, idents = "cell1")
+        object = CallPeaks(object = atac_small, group.by = NULL, idents = "cell1")
     )
 })
 
 test_that("CallPeaks group.by & idents & cells works", {
+    # Check if macs3 is available in the system PATH
+    skip_if(Sys.which("macs3") == "", message = "macs3 command line tool not found, skipping test-callpeaks")
+    
     expect_equal(
-        object = CallPeaks(object = test_obj, group.by = "seurat_clusters", idents = c("cell1","cell3"), cells = Cells(test_obj)[1:50]),
+        object = CallPeaks(object = atac_small, group.by = "seurat_clusters", idents = c("cell1","cell3"), cells = Cells(atac_small)[1:50]),
         expected = GRanges(
             seqnames = "chr1",
             ranges = IRanges(
@@ -192,14 +213,17 @@ test_that("CallPeaks group.by & idents & cells works", {
         tolerance = 0.5
     )
     expect_error(
-        object = CallPeaks(object = test_obj, group.by = NULL, idents = c("cell1","cell3"), cells = Cells(test_obj)[1:50]),
+        object = CallPeaks(object = atac_small, group.by = NULL, idents = c("cell1","cell3"), cells = Cells(atac_small)[1:50]),
     )
 })
 
 test_that("CallPeaks broad option works", {
+    # Check if macs3 is available in the system PATH
+    skip_if(Sys.which("macs3") == "", message = "macs3 command line tool not found, skipping test-callpeaks")
+    
     # broad option
     expect_equal(
-        object = CallPeaks(object = test_obj, broad = TRUE, name = 'macs3'),
+        object = CallPeaks(object = atac_small, broad = TRUE, name = 'macs3'),
         expected = GRanges(
             seqnames = "chr1",
             ranges = IRanges(
@@ -217,33 +241,10 @@ test_that("CallPeaks broad option works", {
     )
 })
 
-## multiple fragments
-# make 2nd object
-fpath_headered <- system.file("extdata", "fragments_header.tsv.gz", package="Signac")
-chrom_assay2 <- CreateChromatinAssay5(
-  counts = peaks,
-  fragments = fpath_headered,
-  min.cells = 1
-)
-test_obj2 <- CreateSeuratObject(
-  counts = chrom_assay2,
-  assay = "ATAC",
-  min.cells = 1
-)
-test_obj2 <- RenameCells(test_obj2, "test2")
-# make groups
-seurat_clusters <- c(rep("cell1",20), rep("cell2",20), rep("cell3",20), rep("cell4",20), rep("cell5",20))
-test_obj2 <- AddMetaData(test_obj2, metadata = seurat_clusters, col.name = "seurat_clusters")
-Idents(test_obj2) <- test_obj2$seurat_clusters
-
-# combine obj 
-combined <- merge(
-  x = test_obj,
-  y = test_obj2,
-  add.cell.ids = c("obj1", "obj2")
-)
-
 test_that("CallPeaks multiple fragments works", {
+    # Check if macs3 is available in the system PATH
+    skip_if(Sys.which("macs3") == "", message = "macs3 command line tool not found, skipping test-callpeaks")
+    
     # CallPeaks.Seurat with multiple fragments
     expect_equal(
         object = CallPeaks(object = combined, name = "macs3"),
