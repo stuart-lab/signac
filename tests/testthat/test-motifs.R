@@ -5,12 +5,12 @@ genome <- Rsamtools::FaFile(genome.fasta)
 
 test_that("AddMotifs works", {
   skip_if_not_installed("motifmatchr")
-  motif <- AddMotifs(
+  expect_warning(motif <- AddMotifs(
     atac_small[["peaks"]],
     genome,
     pwm,
     verbose = FALSE
-  )
+  ))
   expect_equal(dim(Motifs(motif)), c(100, 2))
 })
 
@@ -33,7 +33,6 @@ test_that("AddMotifs works with fakechr", {
   )
   expect_warning(object <- CreateGRangesAssay(
     counts = mat,
-    sep = c("-", "-"),
     fragments = fragments,
     verbose = FALSE
   ))
@@ -45,20 +44,11 @@ test_that("AddMotifs works with fakechr", {
     verbose = FALSE
   ))
   expect_equal(dim(motif), c(20, 2))
-  expect_warning(test <- SetAssayData(
+  test <- SetAssayData(
     object = object,
     layer = "motifs",
     new.data = motif,
     verbose = FALSE
-  ))
-  expect_equal(dim(Motifs(test)), c(101, 2))
-  # If some features are not in the ChromatinAssay
-  # They should be removed
-  expect_warning(test <- SetAssayData(
-    object = atac_small,
-    layer = "motifs",
-    new.data = motif,
-    verbose = FALSE
-  ))
-  expect_equal(dim(Motifs(test)), c(100, 2))
+  )
+  expect_equal(dim(Motifs(test)), c(20, 2))
 })

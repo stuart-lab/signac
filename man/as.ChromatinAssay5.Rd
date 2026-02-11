@@ -3,7 +3,7 @@
 \name{as.ChromatinAssay5}
 \alias{as.ChromatinAssay5}
 \alias{as.ChromatinAssay5.Assay5}
-\title{Convert objects to a \link{ChromatinAssay5} object}
+\title{Convert objects to a \linkS4class{ChromatinAssay5} object}
 \usage{
 as.ChromatinAssay5(x, ...)
 
@@ -19,7 +19,7 @@ as.ChromatinAssay5(x, ...)
 )
 }
 \arguments{
-\item{x}{An object to convert to class \link{ChromatinAssay5}}
+\item{x}{An object to convert to class \linkS4class{ChromatinAssay5}}
 
 \item{...}{Arguments passed to other methods}
 
@@ -32,17 +32,17 @@ as.ChromatinAssay5(x, ...)
 \item{type: Annotation type (e.g. "exon", "gap")}
 }}
 
-\item{fragments}{A list of \code{\link[=Fragment]{Fragment()}} objects}
+\item{fragments}{A list of \linkS4class{Fragment2} objects}
 
 \item{bias}{Tn5 integration bias matrix}
 
-\item{motifs}{A \code{\link[=Motif]{Motif()}} object}
+\item{motifs}{A \linkS4class{Motif} object}
 
 \item{links}{Genomic links TODO}
 
-\item{region.aggregation}{A named list of \link{RegionAggregation}}
+\item{region.aggregation}{A named list of \linkS4class{RegionAggregation}}
 }
 \description{
-Convert objects to a \link{ChromatinAssay5} object
+Convert objects to a \linkS4class{ChromatinAssay5} object
 }
 \concept{assay}

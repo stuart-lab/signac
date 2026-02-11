@@ -31,8 +31,8 @@ on top of each other and the x-axis combined.
 }
 \examples{
 \donttest{
-p1 <- PeakPlot(atac_small, region = "chr1-29554-39554")
-p2 <- AnnotationPlot(atac_small, region = "chr1-29554-39554")
+p1 <- PeakPlot(atac_small, region = "chr1:29554-39554")
+p2 <- AnnotationPlot(atac_small, region = "chr1:29554-39554")
 CombineTracks(plotlist = list(p1, p2), heights = c(1, 1))
 }
 }

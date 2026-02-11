@@ -7,7 +7,7 @@
 ValidateFragments(object, verbose = TRUE, ...)
 }
 \arguments{
-\item{object}{A \code{\link[=Fragment2]{Fragment2()}} object}
+\item{object}{A \linkS4class{Fragment2} object}
 
 \item{verbose}{Display messages}
 

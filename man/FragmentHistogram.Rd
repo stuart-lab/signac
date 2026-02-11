@@ -7,7 +7,7 @@
 FragmentHistogram(
   object,
   assay = NULL,
-  region = "chr1-1-2000000",
+  region = "chr1:1-2000000",
   group.by = NULL,
   cells = NULL,
   log.scale = FALSE,
@@ -47,7 +47,7 @@ Fragments(atac_small) <- CreateFragmentObject(
   cells = colnames(atac_small),
   validate.fragments = FALSE
 )
-FragmentHistogram(object = atac_small, region = "chr1-10245-780007")
+FragmentHistogram(object = atac_small, region = "chr1:10245-780007")
 }
 }
 \concept{qc}

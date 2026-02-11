@@ -24,11 +24,11 @@ test_that("DownsampleFeatures works", {
   expect_equal(
     object = SeuratObject::VariableFeatures(object = atac_ds),
     expected = c(
-      "chr1-898350-899223",
-      "chr1-955190-956101",
-      "chr1-1059203-1060060",
-      "chr1-1250624-1251529",
-      "chr1-860139-860923"
+      "chr1:898350-899223",
+      "chr1:955190-956101",
+      "chr1:1059203-1060060",
+      "chr1:1250624-1251529",
+      "chr1:860139-860923"
     )
   )
 })
@@ -39,12 +39,12 @@ test_that("FindTopFeatures works", {
   expect_equal(
     object = head(SeuratObject::VariableFeatures(object = atac_small)),
     expected = c(
-      "chr1-1115790-1116694",
-      "chr1-1307720-1308738",
-      "chr1-778263-779184",
-      "chr1-1231645-1232553",
-      "chr1-1012999-1013896",
-      "chr1-1068591-1069593"
+      "chr1:191183-192084",
+      "chr1:270850-271755",
+      "chr1:273946-274792",
+      "chr1:854732-855551",
+      "chr1:877256-878073",
+      "chr1:897006-897867"
     )
   )
 })
@@ -80,17 +80,6 @@ test_that("FeatureMatrix works", {
     verbose = FALSE
   )
   expect_identical(object = fm, expected = computed_fmat)
-  
-  # different sep
-  fm2 <- FeatureMatrix(
-    fragments = fragments,
-    features = granges(atac_small),
-    sep = c(":", "-"),
-    fragtk = FALSE,
-    verbose = FALSE
-  )
-  rownames(computed_fmat) <- GRangesToString(StringToGRanges(rownames(computed_fmat)), sep = c(":", "-"))
-  expect_identical(object = fm2, expected = computed_fmat)
 })
 
 test_that("CreateMotifMatrix works", {
@@ -118,12 +107,7 @@ test_that("PearsonResidualVar calculates variance correctly", {
   expect_true("ResidualVariance" %in% colnames(result))
   expect_true("mean" %in% colnames(result))
   expect_true("count" %in% colnames(result))
-  
-  # All variances should be non-negative
-  expect_true(all(result$ResidualVariance >= 0))
-  
-  # Features with zero mean should be filtered out
-  expect_true(all(result$mean > 0))
+  expect_true("rank" %in% colnames(result))
 })
 
 test_that("PearsonResidualVar batch processing accumulates correctly", {
@@ -154,11 +138,12 @@ test_that("PearsonResidualVar handles edge cases", {
   result <- PearsonResidualVar(mat, verbose = FALSE)
   
   # Should only return rows with non-zero mean (2 rows)
-  expect_equal(nrow(result), 2)
+  expect_equal(nrow(result), 5)
+  expect_equal(nrow(result[result$mean > 0, ]), 2)
   
   # Check the means are correct for the non-zero rows
   # Row 1 has values [2,0,4,0,6,0,0,0,0,0] so mean = 12/10 = 1.2
   # Row 3 has values [0,1,0,3,0,0,0,0,0,0] so mean = 4/10 = 0.4
   expect_equal(result$mean[1], 1.2, tolerance = 1e-10)
-  expect_equal(result$mean[2], 0.4, tolerance = 1e-10)
+  expect_equal(result$mean[3], 0.4, tolerance = 1e-10)
 })

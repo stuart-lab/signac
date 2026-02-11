@@ -300,7 +300,7 @@ SplitFragments <- function(
 #' Will iterate through chunks of the fragment file until at least one fragment
 #' from each cell barcode requested is found.
 #'
-#' @param object A [Fragment2()] object
+#' @param object A [Fragment2-class] object
 #' @param cells A character vector containing cell barcodes to search for.
 #' If NULL, use the cells stored in the Fragment object.
 #' @param tolerance Fraction of input cells that can be unseen before returning
@@ -350,7 +350,7 @@ ValidateCells <- function(
 
 #' Validate hashes for Fragment object
 #'
-#' @param object A [Fragment2()] object
+#' @param object A [Fragment2-class] object
 #' @param verbose Display messages
 #' @export
 #' @concept fragments
@@ -380,7 +380,7 @@ ValidateHash <- function(object, verbose = TRUE) {
 #' and that the fragment file or index have not changed since creating the
 #' fragment object.
 #'
-#' @param object A [Fragment2()] object
+#' @param object A [Fragment2-class] object
 #' @param verbose Display messages
 #' @param ... Additional parameters passed to [ValidateCells()]
 #' @export
@@ -395,12 +395,12 @@ ValidateFragments <- function(
   return(valid.cells & valid.hash)
 }
 
-#' Set and get cell barcode information for a [Fragment2()] object
+#' Set and get cell barcode information for a [Fragment2-class] object
 #'
 #' This returns the names of cells in the object that are contained in the
 #' fragment file. These cell barcodes may not match the barcodes present in the
-#' fragment file. The [Fragment2()] object contains an internal mapping
-#' of the cell names in the [ChromatinAssay5()] object to the cell
+#' fragment file. The [Fragment2-class] object contains an internal mapping
+#' of the cell names in the [ChromatinAssay5-class] object to the cell
 #' names in the fragment file, so that cell names can be changed in the
 #' assay without needing to change the cell names on disk.
 #'
@@ -423,7 +423,7 @@ Cells.Fragment2 <- function(x, ...) {
 #' @export
 SeuratObject::Cells
 
-#' @param value A vector of cell names to store in the [Fragment2()]
+#' @param value A vector of cell names to store in the [Fragment2-class]
 #' object
 #' @rdname Cells
 #' @export
@@ -442,7 +442,7 @@ SeuratObject::Cells
 }
 
 #' @describeIn Fragment2-class Get sequence levels
-#' @param x A [Fragment2()] object
+#' @param x A [Fragment2-class] object
 #' @importFrom Seqinfo seqlevels
 #' @exportMethod seqlevels
 setMethod(
@@ -537,12 +537,12 @@ setMethod(
 
 #' Update the file path for a Fragment object
 #'
-#' Change the path to a fragment file store in a [Fragment2()]
+#' Change the path to a fragment file store in a [Fragment2-class]
 #' object. Path must be to the same file that was used to create the fragment
 #' object. An MD5 hash will be computed using the new path and compared to the
 #' hash stored in the Fragment object to verify that the files are the same.
 #'
-#' @param object A [Fragment2()] object.
+#' @param object A [Fragment2-class] object.
 #' @param new.path Path to the fragment file.
 #' @param new.index.path Path to the fragment file index. If NULL, the index is
 #' assumed to be in the same directory as the fragment file.

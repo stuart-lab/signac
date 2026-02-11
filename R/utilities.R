@@ -488,61 +488,6 @@ GetTSSPositions <- function(ranges, biotypes = "protein_coding") {
   return(tss)
 }
 
-#' String to GRanges
-#'
-#' Convert a genomic coordinate string to a GRanges object
-#'
-#' @param regions Vector of genomic region strings
-#' @param sep Vector of separators to use for genomic string. First element is
-#' used to separate chromosome and coordinates, second separator is used to
-#' separate start and end coordinates.
-#' @param ... Additional arguments passed to
-#' [GenomicRanges::makeGRangesFromDataFrame()]
-#' @return Returns a GRanges object
-#' @importFrom GenomicRanges makeGRangesFromDataFrame
-#' @importFrom tidyr separate
-#' @examples
-#' regions <- c("chr1-1-10", "chr2-12-3121")
-#' StringToGRanges(regions = regions)
-#' @export
-#' @concept utilities
-StringToGRanges <- function(regions, sep = c("-", "-"), ...) {
-  ranges.df <- data.frame(ranges = regions)
-  ranges.df <- separate(
-    data = ranges.df,
-    col = "ranges",
-    sep = paste0(sep[[1]], "|", sep[[2]]),
-    into = c("chr", "start", "end")
-  )
-  granges <- makeGRangesFromDataFrame(df = ranges.df, ...)
-  return(granges)
-}
-
-#' GRanges to String
-#'
-#' Convert GRanges object to a vector of strings
-#'
-#' @param grange A GRanges object
-#' @param sep Vector of separators to use for genomic string. First element is
-#' used to separate chromosome and coordinates, second separator is used to
-#' separate start and end coordinates.
-#' @importMethodsFrom GenomicRanges start end seqnames
-#' @examples
-#' GRangesToString(grange = granges(atac_small))
-#' @return Returns a character vector
-#' @export
-#' @concept utilities
-GRangesToString <- function(grange, sep = c("-", "-")) {
-  regions <- paste0(
-    as.character(x = seqnames(x = grange)),
-    sep[[1]],
-    start(x = grange),
-    sep[[2]],
-    end(x = grange)
-  )
-  return(regions)
-}
-
 #' Extend
 #'
 #' Resize GenomicRanges upstream and or downstream.
@@ -611,10 +556,10 @@ Extend <- function(
 #' @return Returns a list
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
-#' GetCellsInRegion(tabix = fpath, region = "chr1-10245-762629")
+#' GetCellsInRegion(tabix = fpath, region = "chr1:10245-762629")
 GetCellsInRegion <- function(tabix, region, cells = NULL) {
   if (!is(object = region, class2 = "GRanges")) {
-    region <- StringToGRanges(regions = region)
+    region <- GRanges(region)
   }
   reads <- scanTabix(file = tabix, param = region)
   s <- reads[[which(x = lengths(x = reads) > 0)[1]]]
@@ -647,7 +592,6 @@ GetCellsInRegion <- function(tabix, region, cells = NULL) {
 #' @param assay Name of assay to use
 #'
 #' @importFrom SeuratObject DefaultAssay
-#' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges start end
 #' @importFrom Seqinfo seqnames
 #' @export
@@ -793,8 +737,16 @@ MatchRegionStats <- function(
       message("Matching ", featmatch, " distribution")
     }
 
-    density.query <- density(x = trans_qf[, featmatch], kernel = "gaussian")
-    density.meta <- density(x = trans_mf[, featmatch], kernel = "gaussian")
+    if (nrow(x = trans_qf) < 3) {
+      density.query <- density(x = trans_qf[, featmatch], kernel = "gaussian", bw = 1)
+    } else {
+      density.query <- density(x = trans_qf[, featmatch], kernel = "gaussian")
+    }
+    if (nrow(x = trans_mf) < 3) {
+      density.meta <- density(x = trans_mf[, featmatch], kernel = "gaussian", bw = 1)
+    } else {
+      density.meta <- density(x = trans_mf[, featmatch], kernel = "gaussian")
+    }
 
     qvals <- approx(
       x = density.query$x,
@@ -944,7 +896,7 @@ globalVariables(
   package = "Signac"
 )
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
-#' @import data.table
+#' @importFrom data.table as.data.table
 CollapseToLongestTranscript <- function(ranges) {
   range.df <- as.data.table(x = ranges)
   range.df$strand <- as.character(x = range.df$strand)
@@ -954,7 +906,7 @@ CollapseToLongestTranscript <- function(ranges) {
     no = range.df$strand
   )
   collapsed <- range.df[
-    , .(
+    , list(
       unique(seqnames),
       min(start),
       max(end),
@@ -1074,7 +1026,6 @@ ExtractFragments <- function(fragments, n = NULL, verbose = TRUE) {
 FindRegion <- function(
   object,
   region,
-  sep = c("-", "-"),
   assay = NULL,
   extend.upstream = 0,
   extend.downstream = 0
@@ -1083,7 +1034,7 @@ FindRegion <- function(
     # first try to convert to coordinates, if not lookup gene
     region <- tryCatch(
       expr = suppressWarnings(
-        expr = StringToGRanges(regions = region, sep = sep)
+        expr = GRanges(region)
       ),
       error = function(x) {
         region <- LookupGeneCoords(
@@ -1124,7 +1075,6 @@ FindRegion <- function(
 # @param tabix.file A TabixFile object.
 # @param cells Cells to include. Default is all cells present in the object.
 # @param verbose Display messages
-# @param ... Additional arguments passed to \code{\link{StringToGRanges}}
 #
 #' @importFrom Rsamtools TabixFile scanTabix
 #' @importFrom SeuratObject Idents
@@ -1152,7 +1102,7 @@ GetReadsInRegion <- function(
     message("Extracting reads in requested region")
   }
   if (!is(object = region, class2 = "GRanges")) {
-    region <- StringToGRanges(regions = region, ...)
+    region <- GRanges(region)
   }
   # remove regions that aren't in the fragment file
   common.seqlevels <- intersect(
@@ -1731,7 +1681,7 @@ IsMatrixEmpty <- function(x) {
 
 #' @importFrom Matrix sparseMatrix
 #' @importFrom S4Vectors elementNROWS
-PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
+PartialMatrix <- function(tabix, regions, cells = NULL) {
   # construct sparse matrix for one set of regions
   # names of the cells vector can be ignored here, conversion is handled in
   # the parent functions
@@ -1752,7 +1702,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
       i = NULL,
       j = NULL
     )
-    rownames(x = featmat) <- GRangesToString(grange = regions)
+    rownames(x = featmat) <- as.character(regions)
     colnames(x = featmat) <- cells
     featmat <- as(object = featmat, Class = "CsparseMatrix")
     return(featmat)
@@ -1764,7 +1714,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
       i = NULL,
       j = NULL
     )
-    rownames(x = featmat) <- GRangesToString(grange = regions)
+    rownames(x = featmat) <- as.character(regions)
     featmat <- as(object = featmat, Class = "CsparseMatrix")
     return(featmat)
   } else {
@@ -1780,7 +1730,7 @@ PartialMatrix <- function(tabix, regions, sep = c("-", "-"), cells = NULL) {
     # convert cell name to integer
     cells.in.regions <- unlist(x = cells.in.regions)
     cells.in.regions <- unname(obj = cell.lookup[cells.in.regions])
-    all.features <- GRangesToString(grange = regions, sep = sep)
+    all.features <- as.character(regions)
     feature.vec <- rep(x = seq_along(along.with = all.features), nrep)
     featmat <- sparseMatrix(
       i = feature.vec,

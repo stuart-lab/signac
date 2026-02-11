@@ -11,7 +11,6 @@ FeatureMatrix(
   keep_all_features = FALSE,
   cells = NULL,
   process_n = 2000,
-  sep = c("-", "-"),
   verbose = TRUE
 )
 }
@@ -50,10 +49,6 @@ in the fragments file}
 
 \item{process_n}{Number of regions to load into memory at a time, per thread.
 Processing more regions at once can be faster but uses more memory.}
-
-\item{sep}{Vector of separators to use for genomic string. First element is
-used to separate chromosome and coordinates, second separator is used to
-separate start and end coordinates.}
 
 \item{verbose}{Display messages}
 }

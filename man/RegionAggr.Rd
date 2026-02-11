@@ -34,7 +34,7 @@ RegionAggr(object, ...) <- value
 Returns a list of \linkS4class{RegionAggregation} objects
 }
 \description{
-Get the region aggregation information from a \link{ChromatinAssay5} object
+Get the region aggregation information from a \linkS4class{ChromatinAssay5} object
 }
 \examples{
 RegionAggr(atac_small[["peaks"]])

@@ -26,12 +26,13 @@ Motifs(object, ...) <- value
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{A \link{Motif} object}
+\item{value}{A \linkS4class{Motif} object}
 
 \item{assay}{Name of assay to use}
 }
 \description{
-Get or set the \link{Motif} object for a Seurat object or \link{ChromatinAssay5}.
+Get or set the \linkS4class{Motif} object for a Seurat object or
+\linkS4class{ChromatinAssay5}.
 }
 \examples{
 Motifs(atac_small[["peaks"]])

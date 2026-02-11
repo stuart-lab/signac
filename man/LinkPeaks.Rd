@@ -11,6 +11,7 @@ LinkPeaks(
   peak.layer = "counts",
   expression.layer = "data",
   method = "pearson",
+  key = "linkpeaks",
   gene.coords = NULL,
   distance = 5e+05,
   min.distance = NULL,
@@ -37,6 +38,8 @@ LinkPeaks(
 \item{expression.layer}{Name of layer to pull expression data from}
 
 \item{method}{Correlation method to use. One of "pearson" or "spearman"}
+
+\item{key}{Key to use when storing link information in the assay}
 
 \item{gene.coords}{GRanges object containing coordinates of genes in the
 expression assay. If NULL, extract from gene annotations stored in the assay.}
@@ -70,17 +73,21 @@ using gene IDs rather than gene names.}
 \item{expression.slot}{Deprecated (used \code{expression.layer})}
 }
 \value{
-Returns a Seurat object with the \code{Links} information set. This is
-a \code{\link[GenomicRanges:genomic-range-squeezers]{GenomicRanges::granges()}} object accessible via the \code{\link[=Links]{Links()}}
-function, with the following information:
+Returns a Seurat object with results added to the \code{links} slot in the
+assay, stored under the key specified in the function. The results are stored
+as an \link[InteractionSet:GInteractions-class]{InteractionSet::GInteractions} object accessible via the \code{\link[=Links]{Links()}}
+function. This contains the \link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges} for the pair of linked
+regions (peak and gene), with \code{anchor1} corresponding to the peak region and
+\code{anchor2} corresponding to the gene region linked to the peak. The following
+metadata is also stored in the \code{GInteractions} object:
 \itemize{
-\item{score: the correlation coefficient between the accessibility of the
-peak and expression of the gene}
-\item{zscore: the z-score of the correlation coefficient, computed based on
-the distribution of correlation coefficients from a set of background peaks}
-\item{pvalue: the p-value associated with the z-score for the link}
-\item{gene: name of the linked gene}
-\item{peak: name of the linked peak}
+\item \code{anchor2.gene_id}: The gene ID for the linked gene
+\item \code{anchor2.gene_name}: The name of the linked gene
+\item \code{score}: the correlation coefficient between the accessibility of the
+peak and expression of the gene
+\item \code{zscore}: the z-score of the correlation coefficient, computed based on
+the distribution of correlation coefficients from a set of background peaks
+\item \code{pvalue}: the p-value associated with the z-score for the link
 }
 }
 \description{
@@ -94,6 +101,6 @@ coefficient values for the peak are then used to compute a z-score and p-value.
 \details{
 This function was inspired by the method originally described by SHARE-seq
 (Sai Ma et al. 2020, Cell). Please consider citing the original SHARE-seq
-work if using this function: \doi{10.1016/j.cell.2020.09.056}
+work if using this function: \href{https://pubmed.ncbi.nlm.nih.gov/33098772/}{doi: 10.1016/j.cell.2020.09.056}
 }
 \concept{links}

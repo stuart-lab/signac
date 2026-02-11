@@ -14,12 +14,12 @@ NULL
 #' Find the nearest range neighbors for GRangesAssay objects
 #'
 #' The `precede, follow, nearest, distance, distanceToNearest` methods
-#' are available for [GRangesAssay()] objects.
+#' are available for [GRangesAssay-class] objects.
 #'
 #' @name nearest-methods
-#' @param x A query [GRangesAssay()] object
+#' @param x A query [GRangesAssay-class] object
 #' @param subject The subject [GenomicRanges::GRanges()] or
-#' [GRangesAssay()] object. If missing, `x` is used as the
+#' [GRangesAssay-class] object. If missing, `x` is used as the
 #' subject.
 #' @param select Logic for handling ties.
 #' See [GenomicRanges::nearest-methods()] in the \pkg{GenomicRanges}
@@ -295,7 +295,7 @@ setMethod(
 )
 
 #' @param y For the `distance` method, a
-#' [GenomicRanges::GRanges()] object or a [GRangesAssay()]
+#' [GenomicRanges::GRanges()] object or a [GRangesAssay-class]
 #' object
 #'
 #' @aliases distance
@@ -475,14 +475,14 @@ setMethod(
 #' Find overlapping ranges for GRangesAssay objects
 #'
 #' The `findOverlaps, countOverlaps` methods are available for
-#' [GRangesAssay()] objects. This allows finding overlaps between
+#' [GRangesAssay-class] objects. This allows finding overlaps between
 #' genomic ranges and the ranges stored in the GRangesAssay
 #'
 #' If a GRangesAssay is set as the default assay in a
 #' [SeuratObject::Seurat()] object, you can also call `findOverlaps`
 #' directly on the Seurat object.
 #'
-#' @param query,subject A [GRangesAssay()] object
+#' @param query,subject A [GRangesAssay-class] object
 #' @param maxgap,minoverlap,type,select,ignore.strand See
 #' `?[findOverlaps][GenomicRanges::findOverlaps]` in the \pkg{GenomicRanges} and
 #' \pkg{IRanges} packages.
@@ -702,8 +702,8 @@ setMethod(
 
 #' Coverage of a GRangesAssay object
 #'
-#' This is the `coverage` method for [GRangesAssay()] objects.
-#' @param x A [GRangesAssay()] object
+#' This is the `coverage` method for [GRangesAssay-class] objects.
+#' @param x A [GRangesAssay-class] object
 #' @param shift How much each range should be shifted before coverage is
 #' computed. See [IRanges::coverage()] in the \pkg{IRanges} package.
 #' @param weight Assigns weight to each range in `x`.
@@ -756,10 +756,10 @@ setMethod(
 #' Inter-range transformations for GRangesAssay objects
 #'
 #' The `range, reduce, gaps, disjoin, isDisjoint, disjointBins` methods
-#' are available for [GRangesAssay()] objects.
+#' are available for [GRangesAssay-class] objects.
 #'
 #' @name inter-range-methods
-#' @param x A [GRangesAssay()] object
+#' @param x A [GRangesAssay-class] object
 #' @param ... Additional arguments
 #' @param with.revmap See [IRanges::inter-range-methods()] in the
 #' \pkg{IRanges} packages

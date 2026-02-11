@@ -6,13 +6,13 @@ NULL
 #' Access genomic ranges for GRangesAssay objects
 #'
 #' Methods for accessing [GenomicRanges::GRanges()] object
-#' information stored in a [GRangesAssay()] object.
+#' information stored in a [GRangesAssay-class] object.
 #'
 #' @name granges-methods
-#' @param x A [GRangesAssay()] object
+#' @param x A [GRangesAssay-class] object
 #' @param use.names Whether the names on the genomic ranges should be
 #' propagated to the returned object.
-#' @param use.mcols Not supported for [GRangesAssay()] objects
+#' @param use.mcols Not supported for [GRangesAssay-class] objects
 #' @param ... Additional arguments
 #'
 #' @return Returns a [GenomicRanges::GRanges()] object

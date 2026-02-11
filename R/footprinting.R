@@ -370,9 +370,7 @@ Footprint.Seurat <- function(
 #' supported object types.
 #' @param region Genomic region to use when assessing bias.
 #' @param verbose Display messages
-#' @param ... Additional arguments passed to [StringToGRanges()]
 #'
-#' @importFrom GenomicRanges GRanges
 #' @importFrom IRanges IRanges
 #' @export
 #' @concept footprinting
@@ -382,7 +380,7 @@ Footprint.Seurat <- function(
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg38)
 #'
-#' region.use <- GRanges(
+#' region.use <- GenomicRanges::GRanges(
 #'   seqnames = c("chr1", "chr2"),
 #'   IRanges(start = c(1, 1), end = c(195471971, 182113224))
 #' )
@@ -396,7 +394,7 @@ Footprint.Seurat <- function(
 InsertionBias.ChromatinAssay5 <- function(
   object,
   genome,
-  region = "chr1-1-249250621",
+  region = "chr1:1-249250621",
   verbose = TRUE,
   ...
 ) {
@@ -405,13 +403,9 @@ InsertionBias.ChromatinAssay5 <- function(
   }
   chr.use <- unlist(x = strsplit(x = region, split = "-", fixed = TRUE))[[1]]
   if (inherits(x = genome, what = "FaFile")) {
-    chr.use <- StringToGRanges(regions = region)
+    chr.use <- GRanges(region)
   }
-  reads <- MultiGetReadsInRegion(
-    object = object,
-    region = region,
-    ...
-  )
+  reads <- MultiGetReadsInRegion(object = object, region = region)
   insertions <- GRanges(
     seqnames = c(reads$chr, reads$chr),
     ranges = IRanges(
@@ -452,7 +446,7 @@ InsertionBias.Seurat <- function(
   object,
   genome,
   assay = NULL,
-  region = "chr1-1-249250621",
+  region = "chr1:1-249250621",
   verbose = TRUE,
   ...
 ) {
@@ -665,9 +659,8 @@ RunFootprint <- function(
     regions <- sort(x = regions)
     if (in.peaks) {
         regions <- subsetByOverlaps(x = regions, ranges = granges(x = object))
-    } 
+    }
     motif.regions <- regions
-
     # extend upstream and downstream
     regions <- Extend(
         x = regions,

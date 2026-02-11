@@ -3,9 +3,7 @@
 \docType{class}
 \name{ChromatinAssay5-class}
 \alias{ChromatinAssay5-class}
-\alias{ChromatinAssay5}
 \alias{GRangesAssay-class}
-\alias{GRangesAssay}
 \title{ChromatinAssay5 and GRangesAssay object classes}
 \description{
 The \code{GRangesAssay} and \code{ChromatinAssay5} classes are extended
@@ -35,9 +33,9 @@ numeric vector where the name of the element corresponds to the DNA sequence
 and the value represents the bias value. All DNA hexamers must be present in
 the vector.}
 
-\item{\code{region.aggregation}}{A list of \code{\link[=RegionAggregation]{RegionAggregation()}} objects}
+\item{\code{region.aggregation}}{A list of \linkS4class{RegionAggregation} objects}
 
-\item{\code{motifs}}{A \code{\link[=Motif]{Motif()}} object}
+\item{\code{motifs}}{A \linkS4class{Motif} object}
 
 \item{\code{links}}{A list of \code{\link[InteractionSet:GInteractions-class]{InteractionSet::GInteractions()}} objects
 describing linked genomic positions, such as co-accessible sites, eQTLs,
