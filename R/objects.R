@@ -1774,22 +1774,18 @@ MergeRegionAggregation <- function(
   return(condensed.list)
 }
 
-#' Check compatibility of two RegionAggregation objects
-#' 
-#' Determines whether two \code{RegionAggregation} objects can be merged. 
-#' Compatibility id  defined as having identical non-cell-specific slots,
-#' including:
-#' \itemize{
-#'    \item \code{upstream} and \code{downstream} extensions
-#'    \item \code{expected} insertion vector
-#'    \item \code{regions} (\code{Granges} object)
-#' }
-#' 
-#' @ returns \code{TRUE} if \code{x} and \code{y} are compatible for merging
-#' \code{FALSE} otherwise.
-#' 
-#' @concept RegionAggregation
-#' @export
+# Check compatibility of two RegionAggregation objects
+# 
+# Determines whether two [RegionAggregation-class] objects can be merged. 
+# Compatibility id  defined as having identical non-cell-specific slots,
+# including:
+# \itemize{
+#    \item \code{upstream} and \code{downstream} extensions
+#    \item \code{expected} insertion vector
+#    \item \code{regions} (\code{Granges} object)
+# }
+#
+# @returns `TRUE` if `x` and `y` are compatible for merging `FALSE` otherwise.
 IsCompatibleRegionAggregation <- function(
     x = NULL, 
     y = NULL
@@ -2285,6 +2281,7 @@ Links.Seurat <- function(object, assay = NULL, ...) {
   return(Links(object = object[[assay]]))
 }
 
+#' @param features Optional character vector of region aggregation names to return 
 #' @rdname RegionAggr
 #' @method RegionAggr ChromatinAssay5
 #' @export

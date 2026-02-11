@@ -435,7 +435,6 @@ PearsonResidualVar <- function(object, ...) {
 #' Get the region aggregation information from a [ChromatinAssay5-class] object
 #' 
 #' @param object A Seurat object 
-#' @param features Optional character vector of region aggregation names to return 
 #' @param ... Arguments passed to other methods
 #' @return Returns a list of [RegionAggregation-class] objects
 #' @rdname RegionAggr

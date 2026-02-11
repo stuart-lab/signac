@@ -19,6 +19,7 @@ Footprint(object, ...)
   downstream = 250,
   compute.expected = TRUE,
   in.peaks = FALSE,
+  overwrite = FALSE,
   verbose = TRUE,
   ...
 )
