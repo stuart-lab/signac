@@ -2292,7 +2292,7 @@ Links.Seurat <- function(object, assay = NULL, ...) {
 #' @concept assay
 #' @examples
 #' RegionAggr(atac_small[["peaks"]])
-RegionAggr.ChromatinAssay5 <- function(object, features = NULL, ...) {
+RegionAggr.ChromatinAssay5 <- function(object, features = NULL, ...) { 
   
   agg.list <- slot(object = object, name = "region.aggregation")
   
