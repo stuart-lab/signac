@@ -254,7 +254,7 @@ Footprint.ChromatinAssay5 <- function(
         genome = genome,
         region = paste0(
           names(x = region.end),
-          "-1-",
+          ":1-",
           as.character(x = region.end)
         )
       )
