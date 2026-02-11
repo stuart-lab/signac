@@ -174,10 +174,11 @@ GetFootprintData <- function(
 #' `getSeq`. Do `showMethods("getSeq")` to get the list of all
 #' supported object types.
 #' @param motif.name Name of a motif stored in the assay to footprint. If not
-#' supplied, must supply a set of regions.
+#' supplied, must sudevtools::pply a set of regions.
 #' @param key Key to store positional enrichment information under.
 #' @param upstream Number of bases to extend upstream
 #' @param downstream Number of bases to extend downstream
+#' @param overwrite Overwrite existing `RegionAggregation` objects with the same name
 #' @param verbose Display messages
 #' @param compute.expected Find the expected number of insertions at each
 #' position given the local DNA sequence context and the insertion bias of Tn5
