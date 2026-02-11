@@ -1572,10 +1572,14 @@ SingleCoveragePlot <- function(
         linkplot.list[[i]] <- linkplot.list[[i]] + ylab(links[[i]])
       }
     }
-    link.plot <- CombineTracks(
-      plotlist = linkplot.list,
-      heights = rep(1, length(x = links))
-    )
+    if (length(x = linkplot.list) > 0) {
+      link.plot <- CombineTracks(
+        plotlist = linkplot.list,
+        heights = rep(1, length(x = linkplot.list))
+      )
+    } else {
+      link.plot <- NULL
+    }
   } else {
     link.plot <- NULL
   }
