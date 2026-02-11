@@ -1,5 +1,4 @@
 library(GenomicRanges)
-library(Seurat)
 
 # data set up
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
