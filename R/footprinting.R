@@ -401,10 +401,10 @@ InsertionBias.ChromatinAssay5 <- function(
   if (!requireNamespace("Biostrings", quietly = TRUE)) {
     stop("Please install Biostrings: BiocManager::install('Biostrings')")
   }
-  chr.use <- unlist(x = strsplit(x = region, split = "-", fixed = TRUE))[[1]]
-  if (inherits(x = genome, what = "FaFile")) {
-    chr.use <- GRanges(region)
+  if (!is(object = region, class2 = "GRanges")) {
+    region <- GRanges(region)
   }
+  chr.use <- as.character(x = seqnames(x = region))
   reads <- MultiGetReadsInRegion(object = object, region = region)
   insertions <- GRanges(
     seqnames = c(reads$chr, reads$chr),
