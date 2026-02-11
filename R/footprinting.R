@@ -39,7 +39,7 @@ GetFootprintData <- function(
     stop("The requested assay is not a ChromatinAssay5")
   }
   
-  region.enrichment <- RegionAggr(object[[assay]], features = features)
+  region.enrichment <- RegionAggr(object[[assay]])
   # get existing features 
   region.enrichment.names <- vapply(region.enrichment, FUN = function(x) x@name, FUN.VALUE = character(1))
 
