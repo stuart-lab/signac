@@ -264,6 +264,7 @@ FindTopFeatures <- function(object, ...) {
 #' for each position surrounding a set of motif instances.
 #'
 #' @param object A [SeuratObject::Seurat] or [ChromatinAssay5-class] object
+#' @param overwrite Logical; overwrite existing [RegionAggregation-class] object with same name
 #' @param ... Arguments passed to other methods
 #' @return Returns a [SeuratObject::Seurat] object
 #' @rdname Footprint
