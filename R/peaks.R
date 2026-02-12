@@ -3,7 +3,7 @@
 NULL
 
 # find macs3 & check if macs3 is executable
-macs3_pathcheck <- function(macs3.path) {
+macs3_pathcheck <- function(macs3.path, mode) {
     macs3.path <- macs3.path %||% unname(obj = Sys.which(names = "macs3"))
     if (nchar(x = macs3.path) == 0) {
         stop(
@@ -18,6 +18,15 @@ macs3_pathcheck <- function(macs3.path) {
     } else if (file.access(names = macs3.path, mode = 1) == -1) {
         stop("MACS3 exists but is not executable")
     }
+
+    if (mode == 'hmmratac') {
+        version <- system2("macs3", args = "--version", stdout = TRUE)
+        version_n <- gsub(".*macs3 ", "", version)
+        if (package_version(version_n) < "3.0.4") {
+            stop("hmmratac mode requires macs3 >= 3.0.4. Please upgrade your macs3 installation or use `callpeak` mode.")
+        }
+    }
+    
     return(macs3.path)
 }
 
@@ -113,7 +122,7 @@ CallPeaks.Seurat <- function(
     if (!dir.exists(paths = outdir)) {
         stop("Requested output directory does not exist")
     }
-    macs3.path <- macs3_pathcheck(macs3.path = macs3.path)
+    macs3.path <- macs3_pathcheck(macs3.path = macs3.path, mode = mode)
 
     # check macs3 mode
     if (!mode %in% c("callpeak", "hmmratac")) {
@@ -223,7 +232,7 @@ CallPeaks.ChromatinAssay5 <- function(
   verbose = TRUE,
   ...
 ) {
-    macs3.path <- macs3_pathcheck(macs3.path = macs3.path)
+    macs3.path <- macs3_pathcheck(macs3.path = macs3.path, mode = mode)
     frags <- Fragments(object = object)
 
     if (is.null(x = cells)) {
@@ -300,7 +309,7 @@ CallPeaks.Fragment2 <- function(
   verbose = TRUE,
   ...
 ) {
-    macs3.path <- macs3_pathcheck(macs3.path = macs3.path)
+    macs3.path <- macs3_pathcheck(macs3.path = macs3.path, mode = mode)
     
     fpath <- GetFragmentData(object = object, slot = "file.path")
 
@@ -366,7 +375,7 @@ CallPeaks.default <- function(
     if (!dir.exists(paths = outdir)) {
         stop("Requested output directory does not exist")
     }
-    macs3.path <- macs3_pathcheck(macs3.path = macs3.path)
+    macs3.path <- macs3_pathcheck(macs3.path = macs3.path, mode = mode)
 
     if (nchar(x = object) == 0 || object == " ") {
         stop("Empty path given for fragment file")
