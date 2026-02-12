@@ -22,7 +22,7 @@ GetGRangesFromEnsDb(
 }
 \description{
 Pulls the transcript information for all chromosomes from an EnsDb object.
-This wraps \code{\link[biovizBase:crunch-method]{biovizBase::crunch()}} and applies the extractor
+This wraps \code{\link[biovizBase:crunch]{biovizBase::crunch()}} and applies the extractor
 function to all chromosomes present in the EnsDb object.
 }
 \concept{utilities}
