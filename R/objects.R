@@ -1695,12 +1695,14 @@ merge.GRangesAssay <- function(
 #' 
 #' @param object A [ChromatinAssay5-class]  object
 #' @rdname RegionAggNames
+#' @method RegionAggNames ChromatinAssay5
 #' @return Character vector of stored result names 
 #' @export
 RegionAggNames.ChromatinAssay5 <- function(object) {
   name.list <- vapply(RegionAggr(object), function(x) x@name, character(1))
   return(name.list)
 }
+
 #' @param object A Seurat or ChromatinAssay5 object
 #' @param assay Name of assay to use
 #' @rdname RegionAggNames
