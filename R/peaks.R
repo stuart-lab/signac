@@ -327,7 +327,7 @@ CallPeaks.Fragment2 <- function(
         barcodes <- paste0(
             outdir, .Platform$file.sep, paste0(name, "_barcodes.txt")
         )
-        barcodes <- gsub(" ", "", barcodes) # remove any space from barcode path
+        barcodes <- gsub(pattern = " ", replacement = "_", x = barcodes)
         writeLines(text = cell_barcodes, con = barcodes)
     } else {
       barcodes <- NULL
@@ -419,7 +419,7 @@ CallPeaks.default <- function(
 
     # add cell barcode
     barcode_string <- ifelse(test = !is.null(x = barcodes),
-        yes = paste0(" --barcodes ", barcodes),
+        yes = paste0(" --barcodes '", barcodes, "'"),
         no = ""
     )
 
@@ -453,7 +453,7 @@ CallPeaks.default <- function(
         " ",
         additional.args
     )
-
+    
     # call macs3
     system(
         command = cmd,
