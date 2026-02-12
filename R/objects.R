@@ -1689,6 +1689,33 @@ merge.GRangesAssay <- function(
     return(merged)
   }
 }
+#' List stored RegionAggregation objects
+#' 
+#' Returns the names of all stored  [RegionAggregation-class] objects
+#' 
+#' @param object A [ChromatinAssay5-class]  object
+#' @rdname RegionAggNames
+#' @return Character vector of stored result names 
+#' @export
+RegionAggNames.ChromatinAssay5 <- function(object) {
+  name.list <- vapply(RegionAggr(object), function(x) x@name, character(1))
+  return(name.list)
+}
+#' @param object A Seurat or ChromatinAssay5 object
+#' @param assay Name of assay to use
+#' @rdname RegionAggNames
+#' @method RegionAggNames Seurat
+#' @importFrom SeuratObject DefaultAssay
+#' @export
+#' @concept footprinting
+#' @concept assay
+#' @examples
+#' RegionAggr(atac_small)
+RegionAggNames.Seurat <- function(object, assay = NULL, ...) {
+  assay <- assay %||% DefaultAssay(object = object)
+  return(RegionAggNames(object = object[[assay]]))
+}
+
 #' Condense a list of RegionAggregation objects
 #' 
 #' Takes a list of \code{RegionAggregation} objects and merges compatible
