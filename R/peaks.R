@@ -327,6 +327,7 @@ CallPeaks.Fragment2 <- function(
         barcodes <- paste0(
             outdir, .Platform$file.sep, paste0(name, "_barcodes.txt")
         )
+        barcodes <- gsub(" ", "", barcodes) # remove any space from barcode path
         writeLines(text = cell_barcodes, con = barcodes)
     } else {
       barcodes <- NULL
