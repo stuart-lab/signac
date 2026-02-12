@@ -335,6 +335,7 @@ Footprint.ChromatinAssay5 <- function(
 
 #' @rdname Footprint
 #' @param assay Name of assay to use
+#' @param overwrite Overwrite existing `RegionAggregation` objects with the same name
 #' @method Footprint Seurat
 #' @export
 #' @concept footprinting
