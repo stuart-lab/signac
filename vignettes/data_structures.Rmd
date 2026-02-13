@@ -5,22 +5,22 @@ output: html_document
 ---
 
 The Signac package is an extension of [Seurat](https://satijalab.org/seurat/)
-designed for the analysis of genomic single-cell assays. This includes any assay
-that generates signal mapped to genomic coordinates, such as scATAC-seq,
-scCUT&Tag, scACT-seq, and other methods.
+designed for the analysis of single-cell chromatin assays. This includes assays
+that generate signal mapped to genomic coordinates, such as scATAC-seq,
+scCUT&Tag, scNTT-seq, and other methods.
 
 As the analysis of these single-cell chromatin datasets presents some unique 
 challenges in comparison to the analysis of scRNA-seq data, we have created an
-extended `Assay` class to store the additional information needed, including:
+extended `Assay5` class to store the additional information needed, including:
 
 * Genomic ranges associated with the features (eg, peaks or genomic bins)
 * Gene annotations
 * Genome information 
-* TF motifs
-* Genome-wide signal in a disk-based format (fragment files)
-* TF footprinting data
-* Tn5 insertion bias data
-* Linked genomic regions
+* TF motifs 
+* Genome-wide signal in a disk-based format (fragment files) 
+* TF footprinting data 
+* Tn5 insertion bias data 
+* Linked genomic regions 
 
 A major advantage of the Signac design is its interoperability with existing
 functions in the Seurat package, and other packages that are able to use the
@@ -30,120 +30,147 @@ data through the addition of different assays to the Seurat object.
 Here we outline the design of each class defined in the Signac package, and
 demonstrate methods that can be run on each class.
 
-## The `ChromatinAssay` Class
+## Differences between Signac v1 and v2
 
-The `ChromatinAssay` class extends the standard Seurat `Assay` class and adds
+We first introduced Signac with the [version 1 release](https://doi.org/10.1038/s41592-021-01282-5)
+in 2020. Recently we have released Signac v2, with some major updates to the
+package. The main changes include:
+
+* **Updating the `ChromatinAssay` to use the Seurat `Assay5` class:** this
+update enables storing data in the object using different matrix types, including
+as a [BPCells](https://github.com/bnprks/BPCells) matrix. BPCells provides
+efficient on-disk matrix storage and computation methods, and enables scaling
+analyses to millions of cells with a small memory requirement.  
+* **More flexible object classes**: we now provide options to use Signac assays
+without needing each feature to correspond to a single region of the genome.
+This is useful for storing different types of feature, including our recently-released
+universal feature set for the human genome, [REMO](https://github.com/stuart-lab/REMO.v1.GRCh38)  
+* **More flexible storage of genomic links**: you can now store multiple sets of
+genomic links within the same assay. We have also moved to storing this information
+using the well-established `GInteractions` format from the [InteractionSet](https://www.bioconductor.org/packages/InteractionSet/)
+package.  
+* **New peak calling methods**: Signac now uses `macs3` in the `CallPeaks()`. We
+have also enabled peak parallelization of peak calls across groups of cells, and
+include an option to use the `hmmratac` peak calling method in `macs3`.  
+* **New data visualization methods**: we added the ability to plot GWAS and QTL
+data alongside single-cell chromatin data in the `CoveragePlot()` function
+
+For a full changelog please see the package [release notes](news.html).
+
+To update old `ChromatinAssay` assays you can use the `as.GRangesAssay()` 
+function in Signac v2.
+
+## The `ChromatinAssay5` Class
+
+The `ChromatinAssay5` class extends the standard Seurat `Assay5` class and adds
 several additional slots for data useful for the analysis of single-cell
 chromatin datasets. The class includes all the slots present in a standard 
-Seurat [Assay](https://github.com/satijalab/seurat/wiki/Assay), 
-with the following additional slots:
-
-* `ranges`: A [`GRanges`](https://www.rdocumentation.org/packages/GenomicRanges/versions/1.24.1/topics/GRanges-class)
-object containing the genomic coordinates of each feature in the `data` matrix.
+Seurat object with the following additional information:
+    
 * `motifs`: A `Motif` object
 * `fragments`: A list of `Fragment` objects
-* `seqinfo`: A [`Seqinfo`](https://www.rdocumentation.org/packages/GenomeInfoDb/versions/1.8.3/topics/Seqinfo-class)
-object containing information about the genome that the data was mapped to
 * `annotation`: A [`GRanges`](https://www.rdocumentation.org/packages/GenomicRanges/versions/1.24.1/topics/GRanges-class)
 object containing gene annotations
 * `bias`: A vector containing Tn5 integration bias information (the frequency of
 Tn5 integration at different hexamers)
-* `positionEnrichment`: A named list of matrices containing positional
-enrichment scores for Tn5 integration (for example, enrichment at the TSS or at
-different TF motifs)
-* `links`: A [`GRanges`](https://www.rdocumentation.org/packages/GenomicRanges/versions/1.24.1/topics/GRanges-class)
-object describing linked genomic positions, such as co-accessible sites or
+* `region.aggregation`: A named list of `RegionAggregation` objects containing 
+signal per cell aggregated across a set of genomic regions (for example, motif
+sites)
+* `links`: A named list of [`GInteractions`](https://www.bioconductor.org/packages/release/bioc/html/InteractionSet.html)
+objects describing linked genomic regions, such as co-accessible sites or
 enhancer-gene regulatory relationships.
+
+## The `GRangesAssay` Class
+
+The `GRangesAssay` is an extended `ChromatinAssay5` object class that adds a
+requirement that the features stored in the assay correspond to genomic ranges.
+It stores the genomic ranges associated with features in the assay as a
+[`GRanges`](https://www.rdocumentation.org/packages/GenomicRanges/versions/1.24.1/topics/GRanges-class)
+object. The `GRangesAssay` enables some additional analyses that require that
+the assay features correspond to genomic regions, such as peak-gene linkage or
+motif enrichment.
+
+Here we will focus on demonstrating use of the `GRangesAssay`, but all functions
+that run on a `GRangesAssay` object can also be run on a `ChromatinAssay5` object.
+There are some cases where a `ChromatinAssay5` object would be the preferred way
+to store your data. For example, you may wish to create an assay that does not
+store genomic peak intervals (perhaps quantifying [REMO features](https://github.com/stuart-lab/REMO.v1.GRCh38)
+or transcription factor activities), but still want the ability to create
+genome coverage plots.
+
+### Constructing the `GRangesAssay`
 
 ```{r message=FALSE, warning=FALSE}
 library(Seurat)
 library(Signac)
 ```
 
-### Constructing the `ChromatinAssay`
-
-A `ChromatinAssay` object can be constructed using the
-`CreateChromatinAssay()` function.
+A `GRangesAssay` object can be constructed using the
+`CreateGRangesAssay()` function.
 
 ```{r}
 # get some data to use in the following examples
 counts <- LayerData(atac_small, layer = "counts")
+
+# create a standalone GRangesAssay object
+gr_assay <- CreateGRangesAssay(counts = counts)
 ```
 
-Note that older versions of Seurat (<5) use the `GetAssayData()` function
-instead of `LayerData()`.
+To create a Seurat object that contains a `GRangesAssay` rather than a
+standard `Assay`, we can initialize the object using the `GRangesAssay` rather
+than a count matrix.
 
 ```{r}
-# create a standalone ChromatinAssay object
-chromatinassay <- CreateChromatinAssay(counts = counts, genome = "hg19")
+# create a Seurat object containing a GRangesAssay
+object <- CreateSeuratObject(counts = gr_assay)
 ```
 
-Here the `genome` parameter can be used to set the `seqinfo` slot. We can pass
-the name of a genome present in UCSC (e.g., "hg19" or "mm10"), or we can pass
-a `Seqinfo`-class object.
+### Adding a `GRangesAssay` to a `Seurat` object
 
-To create a Seurat object that contains a `ChromatinAssay` rather than a
-standard `Assay`, we can initialize the object using the `ChromatinAssay` rather
-than a count matrix. Note that this feature was added in Seurat 3.2.
-
-```{r}
-# create a Seurat object containing a ChromatinAssay
-object <- CreateSeuratObject(counts = chromatinassay)
-```
-
-### Adding a `ChromatinAssay` to a `Seurat` object
-
-To add a new `ChromatinAssay` object to an existing Seurat object, we can use
+To add a new `GRangesAssay` object to an existing Seurat object, we can use
 the standard assignment operation used for adding standard `Assay` objects and 
 other data types to the Seurat object.
 
 ```{r}
-# create a chromatin assay and add it to an existing Seurat object
-object[["peaks"]] <- CreateChromatinAssay(counts = counts, genome = "hg19")
+object[["peaks"]] <- CreateGRangesAssay(counts = counts)
 ```
 
-### Getting and setting `ChromatinAssay` data
+### Getting and setting `GRangesAssay` data
 
-We can get/set data for the `ChromatinAssay` in much the same way we do for a
+We can get/set data for the `GRangesAssay` in much the same way we do for a
 standard `Assay` object: using the `LayerData` function
 defined in `Seurat`. For example:
 
 ```{r}
 ## Getting
 
-# access the data slot, found in standard Assays and ChromatinAssays
+# access the data slot, found in standard Assays and GRangesAssays
 data <- LayerData(atac_small, layer = "data")
 
-# access the bias slot, unique to the ChromatinAssay
+# access the bias slot, unique to the GRangesAssay
 bias <- LayerData(atac_small, layer = "bias")
 
 ## Setting
 
 # set the data slot
 LayerData(atac_small, layer = "data") <- data
-# atac_small <- SetAssayData(atac_small, slot = "data", new.data = data)
-
-# set the bias slot
-bias <- rep(1, 100)  # create a dummy bias vector
-LayerData(atac_small, layer = "bias") <- bias
-# atac_small <- SetAssayData(atac_small, slot = "bias", new.data = bias)
 ```
 
 We also have a variety of convenience functions defined for getting/setting 
 data in specific slots. This includes the `Fragments()`, `Motifs()`, `Links()`,
-and `Annotation()` functions. For example, to get or set gene annotation data we
-can use the `Annotation()` getter and `Annotation<-` setter functions:
+`Annotation()`, `RegionAggr()`, and `Bias()` functions. For example, to get or
+set gene annotation data we can use the `Annotation()` getter and `Annotation<-`
+setter functions:
 
 ```{r message=FALSE, warning=FALSE}
-# first get some gene annotations for hg19
-library(EnsDb.Hsapiens.v75)
+# first get some gene annotations
+library(AnnotationHub)
+ah <- AnnotationHub()
+
+ensdb_v98 <- ah[["AH75011"]]
 
 # convert EnsDb to GRanges
-gene.ranges <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
-
-# convert to UCSC style
-seqlevels(gene.ranges) <- paste0('chr', seqlevels(gene.ranges))
-genome(gene.ranges) <- "hg19"
+gene.ranges <- GetGRangesFromEnsDb(ensdb = ensdb_v98)
 
 # set gene annotations
 Annotation(atac_small) <- gene.ranges
@@ -155,15 +182,14 @@ Annotation(atac_small)
 The `Fragments()`, `Motifs()`, and `Links()` functions are demonstrated in other sections
 below.
 
-### Other `ChromatinAssay` methods
+### Other `GRangesAssay` methods
 
-As the `ChromatinAssay` object uses Bioconductor objects like [`GRanges`](https://www.rdocumentation.org/packages/GenomicRanges/versions/1.24.1/topics/GRanges-class)
-and [`Seqinfo`](https://www.rdocumentation.org/packages/GenomeInfoDb/versions/1.8.3/topics/Seqinfo-class)
-, we can also call standard Bioconductor functions defined in the 
-`IRanges`, `GenomicRanges`, and `GenomeInfoDb` packages on the `ChromatinAssay`
-object (or a Seurat object with a `ChromatinAssay` as the default assay).
+As the `GRangesAssay` object uses the Bioconductor  [`GRanges`](https://www.rdocumentation.org/packages/GenomicRanges/versions/1.24.1/topics/GRanges-class)
+class to store information, we can also call standard Bioconductor functions defined in the 
+`IRanges`, `GenomicRanges`, and `Seqinfo` packages on the `GRangesAssay`
+object (or a Seurat object with a `GRangesAssay` as the default assay).
 
-The following methods use the genomic ranges stored in a `ChromatinAssay` object.
+The following methods use the genomic ranges stored in a `GRangesAssay` object.
 
 ```{r message=FALSE, warning=FALSE}
 # extract the genomic ranges associated with each feature in the data matrix
@@ -183,91 +209,84 @@ Many other methods are defined, see the documentation for `nearest-methods`,
 `findOverlaps-methods`, `inter-range-methods`, and `coverage` in Signac for a
 full list.
 
-The following methods use the `seqinfo` data stored in a `ChromatinAssay` object.
+For a full list of methods for the `GRangesAssay` class run:
 
 ```{r}
-# get the full seqinfo information
-seqinfo(atac_small)
-
-# get the genome information
-genome(atac_small)
-
-# find length of each chromosome
-seqlengths(atac_small)
-
-# find name of each chromosome
-seqnames(atac_small)
-
-# assign a new genome
-genome(atac_small) <- "hg19"
+methods(class = 'GRangesAssay')
 ```
 
-Again, several other methods are available that are not listed here. See the 
-documentation for `seqinfo-methods` in Signac for a full list.
-
-For a full list of methods for the `ChromatinAssay` class run:
-
-```{r}
-methods(class = 'ChromatinAssay')
-```
-
-### Subsetting a `ChromatinAssay`
+### Subsetting a `GRangesAssay`
 
 We can use the standard `subset()` function or the `[` operator to subset Seurat
-object containing `ChromatinAssay`s. This works the same way as for standard
+object containing `GRangesAssay`s. This works the same way as for standard
 `Assay` objects.
 
 ```{r}
 # subset using the subset() function
 # this is meant for interactive use
-subset.obj <- subset(atac_small, subset = nCount_peaks > 100)
+subset.obj <- subset(atac_small, subset = nCount_peaks > 10)
 
 # subset using the [ extract operator
 # this can be used programmatically
-subset.obj <- atac_small[, atac_small$nCount_peaks > 100]
+subset.obj <- atac_small[, atac_small$nCount_peaks > 10]
 ```
 
-### Converting between `Assay` and `ChromatinAssay`
+### Converting between `Assay` and `GRangesAssay` or `ChromatinAssay5`
 
-To convert from a `ChromatinAssay` to a standard `Assay` use the `as()` function
+To convert from a `GRangesAssay` to a standard `Assay` use the `as()` function
 
 ```{r}
 # convert a ChromatinAssay to an Assay
-assay <- as(object = atac_small[["peaks"]], Class = "Assay")
+assay <- as(object = atac_small[["peaks"]], Class = "Assay5")
 assay
 ```
 
-To convert from a standard `Assay` to a `ChromatinAssay` we use the 
-`as.ChromatinAssay()` function. This takes a standard assay object, as well as
-information to fill the additional slots in the `ChromatinAssay` class.
+To convert from a standard `Assay` to a `GRangesAssay` we use the 
+`as.GRangesAssay()` function. This takes a standard assay object, as well as
+information to fill the additional slots in the `GRangesAssay` class.
 
 ```{r}
 # convert an Assay to a ChromatinAssay
-chromatinassay <- as.ChromatinAssay(assay, seqinfo = "hg19")
-chromatinassay
+gr_assay <- as.GRangesAssay(assay)
+gr_assay
 ```
 
-## The `Fragment` Class
+Similarly, we can use `as.ChromatinAssay5()` to convert to a `ChromatinAssay5`
+object:
 
-The `Fragment` class is designed for storing and interacting with a
+```{r}
+chr_assay <- as.ChromatinAssay5(assay)
+chr_assay
+```
+
+## The `Fragment2` Class
+
+The `Fragment2` class is designed for storing and interacting with a
 [fragment file](https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments)
-commonly used for single-cell chromatin data. It contains the path to an indexed 
-fragment file on disk, a MD5 hash for the fragment file and the fragment file
-index, and a vector of cell names contained in the fragment file. Importantly,
+commonly used for single-cell chromatin data. It contains:
+* The path to an indexed fragment file on disk  
+* The path to the fragment file index 
+* An MD5 hash for the fragment file and the fragment file index
+* A vector of cell names contained in the fragment file. Importantly,
 this is a named vector where the elements of the vector are the cell names as 
 they appear in the fragment file, and the name of each element is the cell
-name as it appears in the `ChromatinAssay` object storing the `Fragment`
+name as it appears in the assay object storing the `Fragment2`
 object. This allows a mapping of cell names on disk to cell names in R, and 
 avoids the need to alter fragment files on disk. This path can also be a remote
 file accessible by `http` or `ftp`.
+* A vector of sequence names contained in the fragment file. This is a named 
+vector of sequence levels (eg, chromosome name) where each element is the
+sequence name as it appears in the fragment file, and then name of each element
+is the corresponding sequence name as stored in the assay. This enables renaming
+sequence names in your assay object without needing to change your fragment file.
 
-### Constructing the `Fragment` class
+### Constructing the `Fragment2` class
 
 A `Fragment` object can be constructed using the `CreateFragmentObject()`
 function. 
 
 ```{r}
-frag.path <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+frag.path <- system.file("extdata", "fragments_header.tsv.gz", package="Signac")
 fragments <- CreateFragmentObject(
   path = frag.path,
   cells = colnames(atac_small), 
@@ -279,8 +298,8 @@ The `validate.fragments` parameter controls whether the file is inspected to
 check whether the expected cell names are present. This can help avoid assigning
 the wrong fragment file to the object. If you're sure that the file is correct,
 you can set this value to `FALSE` to skip this step and save some time. This
-check is typically only run once when the `Fragment` object is created, and is 
-not normally run on existing `Fragment` files.
+check is typically only run once when the `Fragment2` object is created, and is 
+not normally run on existing `Fragment2` files.
 
 ### Inspecting the fragment file
 
@@ -293,23 +312,30 @@ cell barcodes are named:
 head(fragments)
 ```
 
-### Adding a `Fragment` object to the `ChromatinAssay`
+Some fragment files also contain header lines with additional information. This
+can be viewed using the `header()` function:
 
-A `ChromatinAssay` object can contain a list of `Fragment` objects. This avoids
+```{r}
+header(fragments)
+```
+### Adding a `Fragment2` object to the `GRangesAssay`
+
+A `GRangesAssay` object can contain a list of `Fragment2` objects. This avoids
 the need to merge fragment files on disk and simplifies processes of merging
-or integrating different Seurat objects containing `ChromatinAssay`s. To add 
-a new `Fragment` object to a `ChromatinAssay`, or a Seurat object containing a 
-`ChromatinAssay`, we can use the `Fragments<-` assignment function. This will
+or integrating different Seurat objects containing `GRangesAssay`s. To add 
+a new `Fragment2` object to a `GRangesAssay`, or a Seurat object containing a 
+`GRangesAssay`, we can use the `Fragments<-` assignment function. This will
 do a few things:
 
 1. Re-compute the MD5 hash for the fragment file and index and verify that it
 matches the hash computed when the `Fragment` object was created.
 2. Check that none of the cells contained in the `Fragment` object being added
 are already contained in another `Fragment` object stored in the
-`ChromatinAssay`. All fragments from a cell must be present in only one fragment
+`GRangesAssay`. All fragments from a cell must be present in only one fragment
 file.
-3. Append the `Fragment` object to the list of `Fragment` objects stored in the
-`ChromatinAssay`.
+3. Check that the same fragment file is not already stored in the assay.  
+4. Append the `Fragment` object to the list of `Fragment` objects stored in the
+`GRangesAssay`.
 
 ```{r}
 Fragments(atac_small) <- fragments
@@ -322,18 +348,17 @@ the `Fragment` object contains data for.
 fragments
 ```
 
-Alternatively, we can initialize the `ChromatinAssay` with a `Fragment` object
+Alternatively, we can initialize the `GRangesAssay` with a `Fragment` object
 in a couple of ways. We can either pass a vector of `Fragment` objects to the
-`fragments` parameter in `CreateChromatinAssay()`, or pass the path to a
+`fragments` parameter in `CreateGRangesAssay()`, or pass the path to a
 single fragment file. If we pass the path to a fragment file we assume that the
-file contains fragments for all cells in the `ChromatinAssay` and that the cell
-names are the same in the fragment file on disk and in the `ChromatinAssay`.
+file contains fragments for all cells in the `GRangesAssay` and that the cell
+names are the same in the fragment file on disk and in the `GRangesAssay`.
 For example:
 
 ```{r}
-chrom_assay <- CreateChromatinAssay(
+chrom_assay <- CreateGRangesAssay(
   counts = counts,
-  genome = "hg19",
   fragments = frag.path
 )
 object <- CreateSeuratObject(
@@ -342,12 +367,12 @@ object <- CreateSeuratObject(
 )
 ```
 
-This will create a Seurat object containing a `ChromatinAssay`, with a single
-`Fragment` object.
+This will create a Seurat object containing a `GRangesAssay`, with a single
+`Fragment2` object.
 
-### Removing a `Fragment` object from the `ChromatinAssay`
+### Removing a `Fragment2` object from the `GRangesAssay`
 
-All the `Fragment` objects associated with a `ChromatinAssay` can be removed
+All the `Fragment2` objects associated with a `GRangesAssay` can be removed
 by assigning `NULL` using the `Fragment<-` assignment function. For example:
 
 ```{r}
@@ -355,23 +380,11 @@ Fragments(chrom_assay) <- NULL
 Fragments(chrom_assay)
 ```
 
-To remove a subset of `Fragment` object from the list of `Fragment` objects
-stored in the `ChromatinAssay`, you will need to extract the list of `Fragment`
-objects using the `Fragments()` function, subset the list of objects, then
-assign the subsetted list to the assay using the `LayerData()`
-function. For example:
-
-```{r}
-LayerData(chrom_assay, layer = "fragments") <- fragments
-# chrom_assay <- SetAssayData(chrom_assay, slot = "fragments", new.data = fragments)
-Fragments(chrom_assay)
-```
-
-### Changing the fragment file path in an existing `Fragment` object
+### Changing the fragment file path in an existing `Fragment2` object
 
 The path to the fragment file can be updated using the `UpdatePath()` function.
 This can be useful if you move the fragment file to a new directory, or if you
-copy a stored Seurat object containing a `ChromatinAssay` to a different server.
+copy a stored Seurat object containing a `GRangesAssay` to a different server.
 
 ```{r message=FALSE}
 fragments <- UpdatePath(fragments, new.path = frag.path)
@@ -399,7 +412,7 @@ Fragments(object)
 ### Using remote fragment files
 
 Fragment files hosted on remote servers accessible via http or ftp can also be
-added to the `ChromatinAssay` in the same way as for locally-hosted fragment 
+added to the `GRangesAssay` in the same way as for locally-hosted fragment 
 files. This can enable the exploration of large single-cell datasets without
 the need for downloading large files. For example, we can create a Fragment
 object using a file hosted on the 10x Genomics website:
@@ -414,11 +427,11 @@ fragments
 When files are hosted remotely, the checks described in the section above (MD5
 hash and expected cells) are not performed.
 
-### Getting and setting `Fragment` data
+### Getting and setting `Fragment2` data
 
-To access the cell names stored in a `Fragment` object, we can use the `Cells()`
+To access the cell names stored in a `Fragment2` object, we can use the `Cells()`
 function. **Importantly**, this returns the cell names as they appear in the 
-`ChromatinAssay`, rather than as they appear in the fragment file itself.
+`GRangesAssay`, rather than as they appear in the fragment file itself.
 
 ```{r}
 fragments <- CreateFragmentObject(
@@ -431,9 +444,9 @@ cells <- Cells(fragments)
 head(cells)
 ```
 
-Similarly, we can set the cell name information in a `Fragment` object using the
+Similarly, we can set the cell name information in a `Fragment2` object using the
 `Cells<-` assignment function. This will set the named vector of cells stored in
-the `Fragment` object. Here we must supply a named vector.
+the `Fragment2` object. Here we must supply a named vector.
 
 ```{r}
 names(cells) <- cells
@@ -445,13 +458,13 @@ To extract any of the data stored in a `Fragment` object we can also use the
 file on disk:
 
 ```{r}
-GetFragmentData(object = fragments, slot = "path")
+GetFragmentData(object = fragments, slot = "file.path")
 ```
 
-For a full list of methods for the `Fragment` class run:
+For a full list of methods for the `Fragment2` class run:
 
 ```{r}
-methods(class = 'Fragment')
+methods(class = 'Fragment2')
 ```
 
 ## The `Motif` Class
@@ -490,8 +503,8 @@ if (!requireNamespace("TFBSTools", quietly = TRUE))
     BiocManager::install("TFBSTools")
 if (!requireNamespace("motifmatchr", quietly = TRUE))
     BiocManager::install("motifmatchr")
-if (!requireNamespace("BSgenome.Hsapiens.UCSC.hg19", quietly = TRUE))
-    BiocManager::install("BSgenome.Hsapiens.UCSC.hg19")
+if (!requireNamespace("BSgenome.Hsapiens.UCSC.hg38", quietly = TRUE))
+    BiocManager::install("BSgenome.Hsapiens.UCSC.hg38")
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -509,7 +522,7 @@ pfm <- getMatrixSet(
 motif.matrix <- CreateMotifMatrix(
   features = granges(atac_small),
   pwm = pfm,
-  genome = 'hg19'
+  genome = 'hg38'
 )
 
 # Create a new Mofif object to store the results
@@ -526,12 +539,12 @@ regions included in the object:
 motif
 ```
 
-### Adding a `Motif` object to the `ChromatinAssay`
+### Adding a `Motif` object to the `GRangesAssay`
 
-We can add a `Motif` object to the `ChromatinAssay`, or a Seurat object
-containing a `ChromatinAssay` using the `Motifs<-` assignment operator.
+We can add a `Motif` object to the `GRangesAssay`, or a Seurat object
+containing a `GRangesAssay` using the `Motifs<-` assignment operator.
 
-```{r}
+```{r warning=FALSE}
 Motifs(atac_small) <- motif
 ```
 
@@ -566,7 +579,7 @@ To quickly convert between motif IDs (like `MA0497.1`) and motif common names
 
 ```{r}
 # convert ID to common name
-ids <- c("MA0025.1","MA0030.1","MA0031.1","MA0051.1","MA0056.1","MA0057.1")
+ids <- c("MA0030.1","MA0031.1","MA0051.1","MA0057.1")
 names <- ConvertMotifID(object = motif, id = ids)
 names
 ```

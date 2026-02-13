@@ -167,12 +167,13 @@ BinarizeCounts <- function(object, ...) {
 #'
 #' Call peaks using `MACS`. Fragment files linked to the specified assay will be
 #' used to call peaks. If multiple fragment files are present, all will be used
-#' in a single MACS invocation. Returns the `.narrowPeak` MACS output as a
-#' `GRanges` object.
+#' in a single MACS invocation unless the `cells` or `group.by` parameters are
+#' used. Returns the `.narrowPeak` MACS output as a [GenomicRanges::GRanges]
+#' object.
 #'
 #' See <https://macs3-project.github.io/MACS/> for MACS documentation.
 #'
-#' If you call peaks using MACS2 please cite:
+#' If you call peaks using MACS3 please cite:
 #' \doi{10.1186/gb-2008-9-9-r137}
 #'
 #' @param object A Seurat object
