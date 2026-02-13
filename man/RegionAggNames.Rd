@@ -8,7 +8,7 @@
 \usage{
 RegionAggNames(object, ...)
 
-\method{RegionAggNames}{ChromatinAssay5}(object)
+\method{RegionAggNames}{ChromatinAssay5}(object, ...)
 
 \method{RegionAggNames}{Seurat}(object, assay = NULL, ...)
 }

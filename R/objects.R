@@ -1698,7 +1698,7 @@ merge.GRangesAssay <- function(
 #' @method RegionAggNames ChromatinAssay5
 #' @return Character vector of stored result names 
 #' @export
-RegionAggNames.ChromatinAssay5 <- function(object) {
+RegionAggNames.ChromatinAssay5 <- function(object, ...) {
   name.list <- vapply(RegionAggr(object), function(x) x@name, character(1))
   return(name.list)
 }
@@ -2068,14 +2068,18 @@ setMethod(
       "Links present:", length(x = Links(object = object)),
       "\n"
     )
-    cat(
-      "Region aggregation matrices:",
-      length(x = GetAssayData(
-        object = object,
-        layer = "region.aggregation"
-      )),
-      "\n"
-    )
+    ragg <- RegionAggr(object = object)
+    if (length(x = ragg) == 0) {
+      cat("Region aggregation matrices: 0\n")
+    } else {
+      ragstr <- ifelse(length(x = ragg) > 6, "...", "")
+      cat(
+        length(x = ragg),
+        "region aggregation matrices: ",
+        head(x = names(x = ragg)),
+        ragstr, "\n"
+      )
+    }
   }
 )
 
