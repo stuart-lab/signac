@@ -2059,7 +2059,8 @@ setMethod(
       ragstr <- ifelse(length(x = ragg) > 6, "...", "")
       cat(
         length(x = ragg),
-        "region aggregation matrices:",
+        "region aggregation",
+        ifelse(length(x = ragg) == 1, "matrix:", "matrices:"),
         RegionAggNames(object = object),
         ragstr, "\n"
       )
@@ -2115,8 +2116,8 @@ setMethod(
       ragstr <- ifelse(length(x = ragg) > 6, "...", "")
       cat(
         length(x = ragg),
-        "region aggregation matrices:",
-        RegionAggNames(object = object),
+        "region aggregation",
+        ifelse(length(x = ragg) == 1, "matrix:", "matrices:"),
         ragstr, "\n"
       )
     }
