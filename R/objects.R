@@ -2047,8 +2047,8 @@ setMethod(
       ragstr <- ifelse(length(x = ragg) > 6, "...", "")
       cat(
         length(x = ragg),
-        "region aggregation matrices: ",
-        head(x = names(x = ragg)),
+        "region aggregation matrices:",
+        RegionAggNames(object = object),
         ragstr, "\n"
       )
     }
@@ -2096,14 +2096,18 @@ setMethod(
       "Links present:", length(x = Links(object = object)),
       "\n"
     )
-    cat(
-      "Region aggregation matrices:",
-      length(x = GetAssayData(
-        object = object,
-        layer = "region.aggregation"
-      )),
-      "\n"
-    )
+    ragg <- RegionAggr(object = object)
+    if (length(x = ragg) == 0) {
+      cat("Region aggregation matrices: 0\n")
+    } else {
+      ragstr <- ifelse(length(x = ragg) > 6, "...", "")
+      cat(
+        length(x = ragg),
+        "region aggregation matrices:",
+        RegionAggNames(object = object),
+        ragstr, "\n"
+      )
+    }
   }
 )
 
