@@ -701,7 +701,7 @@ RunFootprint <- function(
     # get expected insertions 
     expected.insertions <- as.numeric(x = expected.insertions)
     agg.obj <- CreateRegionAggregationObject(
-        mat = insertion.matrix, 
+        mat = as.matrix(x = insertion.matrix), 
         regions = motif.regions, 
         upstream = upstream, 
         downstream = downstream, 
