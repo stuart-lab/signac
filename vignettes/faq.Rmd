@@ -23,6 +23,19 @@ Interaction [vignette](data_structures.html) for an explanation of the classes d
 and how to use them. See the Seurat documentation for more information about the
 Seurat object: https://satijalab.org/seurat/
 
+## How can I update my object from v1 to v2?
+
+To update a `ChromatinAssay`-class assay from Signac v1 to a `GRangesAssay` for
+use with Signac v2, you can use the `as.GRangesAssay()` function. For example:
+
+```{r eval=FALSE, include=TRUE}
+# example Seurat object containing a ChromatinAssay assay called "peaks"
+obj <- readRDS("object.rds")
+
+# update the peaks assay
+obj[['peaks']] <- as.GRangesAssay(obj[['peaks']])
+```
+
 ## How do I merge objects with Signac?
 
 See the [merge](merging.html) and [integration](integration.html) vignettes for
