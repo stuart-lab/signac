@@ -87,7 +87,6 @@ metadata <- read.csv(
 
 gr_assay <- CreateGRangesAssay(
   counts = counts,
-  sep = c(":", "-"),
   fragments = "10k_pbmc_ATACv2_nextgem_Chromium_Controller_fragments.tsv.gz",
   min.cells = 10,
   min.features = 200
@@ -610,7 +609,7 @@ gene to each of these peaks using functions from the `GenomicRanges` package:
 ```{r warning=FALSE, message=FALSE}
 open_cd4naive <- rownames(da_peaks[da_peaks$avg_log2FC > 3, ])
 
-gene_distance_cd4naive <- distanceToNearest(StringToGRanges(open_cd4naive), Annotation(pbmc))
+gene_distance_cd4naive <- distanceToNearest(GRanges(open_cd4naive), Annotation(pbmc))
 
 closest_genes <- data.frame(
   peak = open_cd4naive,
@@ -693,7 +692,7 @@ Here we'll highlight the DA peaks regions in grey.
 
 ```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=6}
 # find DA peaks overlapping gene of interest
-regions_highlight <- subsetByOverlaps(StringToGRanges(open_cd4naive), LookupGeneCoords(pbmc, "CD4"))
+regions_highlight <- subsetByOverlaps(GRanges(open_cd4naive), LookupGeneCoords(pbmc, "CD4"))
 
 CoveragePlot(
   object = pbmc,
