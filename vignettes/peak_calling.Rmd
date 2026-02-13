@@ -6,40 +6,61 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(future.globals.maxSize = 16 * 1024^3)
+options(bitmapType = 'cairo')
 knitr::opts_knit$set(root.dir = "../vignette_data/pbmc_vignette")
 ```
 
 In this tutorial, we demonstrate how to call peaks on a single-cell ATAC-seq
-dataset using [MACS2](https://github.com/macs3-project/MACS).
+dataset using [MACS3](https://github.com/macs3-project/MACS).
 
 To use the peak calling functionality in Signac you will first need to install
-MACS2. This can be done using [pip](https://pypi.org/project/MACS2/) or
-[conda](https://anaconda.org/bioconda/macs2), or by building the package
-from [source](https://github.com/macs3-project/MACS).
+MACS3. This can be done using [pip](https://pypi.org/project/MACS3/) or
+[conda](https://anaconda.org/channels/bioconda/packages/macs3/overview), or by building 
+the package from [source](https://github.com/macs3-project/MACS). 
+
+MACS3 uses a dedicated parser for single-cell ATAC-seq fragment files, which contains 
+the barcode information and the counts of the fragments aligned to the same location 
+with the same barcode. Due to this extra information in the input file, the runtime 
+for MACS3 may be longer than MACS2 (old CallPeaks version) that reads in the input
+as a standard BED file. Further, it is recommended to enable parallelization in R
+using the future package (see the parallel computing [vignette](https://stuartlab.org/signac/articles/future) 
+for more details), especially if calling peaks for multiple groups. 
+
+```{r message=FALSE, warning=FALSE}
+library(future)
+
+# set up workers
+plan(multisession, workers = 6)
+nbrOfWorkers()
+```
 
 In this demonstration we use scATAC-seq data for human PBMCs. See our
 [vignette](pbmc_vignette.html) for the code used to generate this object,
 and links to the raw data. First, load the required packages and the
 pre-computed Seurat object:
 
+
 ```{r message=FALSE, warning=FALSE}
 library(Signac)
 library(Seurat)
+
+getwd()
 
 pbmc <- qs2::qs_read("pbmc.qs2")
 DimPlot(pbmc)
 ```
 
-Peak calling can be performed using the `CallPeaks()` function, and can either
-be done separately for different groups of cells, or performed using data from
-all the cells. To call peaks on each annotated cell type, we can use the 
-`group.by` argument:
+Peak calling can be performed using the `CallPeaks()` function on a `Seurat` 
+object, `ChromatinAssay5` object, `Fragment2` object, or a path to fragment file. 
+For Seurat objects, peak calling can either be done separately for different 
+groups of cells, or performed using data from all the cells. To call peaks 
+on each annotated cell type, we can use the `group.by` argument:
 
 ```{r message=FALSE, warning=FALSE, cache=TRUE}
 peaks <- CallPeaks(
-  object = pbmc,
-  group.by = "predicted.id",
-  macs2.path = "/Users/tim/mambaforge/bin/macs3"
+    object = pbmc,
+    group.by = "predicted.id"
 )
 ```
 
@@ -50,9 +71,53 @@ listing the cell types that each peak was identified in:
 knitr::kable(head(as.data.frame(peaks)))
 ```
 
+If not specified, using the `group.by` argument will call peaks for all unique groups.
+To call peaks for specific group(s), use the `idents` arguments.
+
+```{r message=FALSE, warning=FALSE, cache=TRUE}
+peaks <- CallPeaks(
+    object = pbmc,
+    group.by = "predicted.id",
+    idents = "CD16+ Monocytes"
+)
+```
+
+By default, `CallPeaks()` will combine all peak calls into 1 `GRanges` object, use the
+`combine.peaks = FALSE` argument to return a list with 1 `GRanges` object for each 
+group.
+
+```{r message=FALSE, warning=FALSE, cache=TRUE}
+peaks_separate <- CallPeaks(
+    object = pbmc,
+    group.by = "predicted.id",
+    idents = c("CD4 Naive", "CD4 Memory"), 
+    combine.peaks = FALSE
+)
+```
+
+```{r echo=FALSE}
+knitr::kable(head(as.data.frame(peaks_separate)))
+```
+
+For MACS version 3.0.4 or above, it is possible to call peaks using the hidden
+markov model ([HMMRATAC](https://academic.oup.com/nar/article/47/16/e91/5519166)) mode. 
+
+Do note that this mode requires more computing time and may need additional arguments, see
+the MACS3 hmmratac mode (documentation)[https://deepwiki.com/macs3-project/MACS/3.2-atac-seq-analysis-with-hmmratac] 
+for more details. Parallelization is recommended if using this mode to call peaks for multiple cell groups.
+
+```{r message=FALSE, warning=FALSE, cache=TRUE}
+peaks_hmmratac <- CallPeaks(
+    object = pbmc,
+    mode = 'hmmratac',
+    group.by = 'predicted.id',
+    idents = 'CD16+ Monocytes'
+)
+```
+
 To quantify counts in each peak, you can use the `FeatureMatrix()` function.
 
-We can visualize the cell-type-specific MACS2 peak calls alongside the 10x Cellranger
+We can visualize the cell-type-specific MACS3 peak calls alongside the 10x Cellranger
 peak calls (currently being used in the `pbmc` object) with the `CoveragePlot()`
 function. Here the Cellranger peaks are shown in grey and the MACS2 peaks in red:
 
@@ -60,8 +125,8 @@ function. Here the Cellranger peaks are shown in grey and the MACS2 peaks in red
 CoveragePlot(
   object = pbmc,
   region = "CD8A",
-  ranges = peaks,
-  ranges.title = "MACS2"
+  ranges = c(peaks, peaks_hmmratac),
+  ranges.title = c("MACS3 callpeak", "MACS3 hmmratac")
 )
 ```
 <details>
