@@ -454,6 +454,18 @@ RegionAggr <- function(object, ...) {
   UseMethod(generic = 'RegionAggr<-', object = object)
 }
 
+#' List stored RegionAggregation objects
+#'
+#' Generic function for listing stored RegionAggregation objects
+#'
+#' @param object A Seurat or ChromatinAssay5 object
+#' @param ... Additional arguments passed to methods
+#' @return Character vector of stored result names
+#' @export
+RegionAggNames <- function(object, ...) {
+  UseMethod("RegionAggNames")
+}
+
 #' Region enrichment analysis
 #'
 #' Count fragments within a set of regions for different groups of
@@ -551,16 +563,4 @@ RunTFIDF <- function(object, ...) {
 #' @export SetMotifData
 SetMotifData <- function(object, ...) {
   UseMethod(generic = "SetMotifData", object = object)
-}
-
-#' List stored RegionAggregation objects
-#'
-#' Generic function for listing stored RegionAggregation objects
-#'
-#' @param object A Seurat or ChromatinAssay5 object
-#' @param ... Additional arguments passed to methods
-#' @return Character vector of stored result names
-#' @export
-RegionAggNames <- function(object, ...) {
-  UseMethod("RegionAggNames")
 }
