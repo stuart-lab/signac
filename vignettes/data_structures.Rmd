@@ -55,7 +55,7 @@ include an option to use the `hmmratac` peak calling method in `macs3`.
 * **New data visualization methods**: we added the ability to plot GWAS and QTL
 data alongside single-cell chromatin data in the `CoveragePlot()` function
 
-For a full changelog please see the package [release notes](https://stuartlab.org/signac/news/).
+For a full changelog please see the package [release notes](news.html).
 
 To update old `ChromatinAssay` assays you can use the `as.GRangesAssay()` 
 function in Signac v2.
