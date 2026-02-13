@@ -8,7 +8,7 @@ NULL
 #' This function will pull accessibility data for a given feature (eg, a TF),
 #' and perform background normalization for each identity class. This is the
 #' data that's used to create TF footprinting plots with the
-#' `PlotFootprint` function.
+#' [PlotFootprint()] function.
 #'
 #' @param object A Seurat object
 #' @param features A vector of features to extract data for
@@ -17,14 +17,12 @@ NULL
 #' @param idents Set of identities to group cells by
 #' @export
 #' @return Returns a data.frame with the following columns:
-#' \itemize{
-#'   \item{group: Cell group (determined by group.by parameter}
-#'   \item{position: Position relative to motif center}
-#'   \item{count: Normalized Tn5 insertion counts at each position}
-#'   \item{norm.value: Normalized Tn5 insertion counts at each position (same as count)}
-#'   \item{feature: Name of the footprinted motif}
-#'   \item{class: observed or expected}
-#'  }
+#'   - group: Cell group (determined by group.by parameter
+#'   - position: Position relative to motif center
+#'   - count: Normalized Tn5 insertion counts at each position
+#'   - norm.value: Normalized Tn5 insertion counts at each position (same as count)
+#'   - feature: Name of the footprinted motif
+#'   - class: observed or expected
 #' @concept footprinting
 #' @importFrom SeuratObject DefaultAssay
 GetFootprintData <- function(
@@ -170,15 +168,15 @@ GetFootprintData <- function(
 
 #' @param regions A set of genomic ranges containing the motif instances. These
 #' should all be the same width.
-#' @param genome A `BSgenome` object or any other object supported by
-#' `getSeq`. Do `showMethods("getSeq")` to get the list of all
+#' @param genome A [BSgenome::BSgenome-class] object or any other object supported by
+#' [BSgenome::getSeq()]. Do `showMethods("getSeq")` to get the list of all
 #' supported object types.
 #' @param motif.name Name of a motif stored in the assay to footprint. If not
-#' supplied, must sudevtools::pply a set of regions.
+#' supplied, must supply a set of regions.
 #' @param key Key to store positional enrichment information under.
 #' @param upstream Number of bases to extend upstream
 #' @param downstream Number of bases to extend downstream
-#' @param overwrite Overwrite existing `RegionAggregation` objects with the same name
+#' @param overwrite Overwrite existing [RegionAggregation-class] objects with the same name
 #' @param verbose Display messages
 #' @param compute.expected Find the expected number of insertions at each
 #' position given the local DNA sequence context and the insertion bias of Tn5
@@ -335,7 +333,7 @@ Footprint.ChromatinAssay5 <- function(
 
 #' @rdname Footprint
 #' @param assay Name of assay to use
-#' @param overwrite Overwrite existing `RegionAggregation` objects with the same name
+#' @param overwrite Overwrite existing [RegionAggregation-class] objects with the same name
 #' @method Footprint Seurat
 #' @export
 #' @concept footprinting
@@ -368,8 +366,8 @@ Footprint.Seurat <- function(
   return(object)
 }
 
-#' @param genome A `BSgenome` object or any other object supported by
-#' `getSeq`. Do `showMethods("getSeq")` to get the list of all
+#' @param genome A [BSgenome::BSgenome-class] object or any other object supported by
+#' [BSgenome::getSeq]. Do `showMethods("getSeq")` to get the list of all
 #' supported object types.
 #' @param region Genomic region to use when assessing bias.
 #' @param verbose Display messages

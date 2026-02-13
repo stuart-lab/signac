@@ -43,12 +43,12 @@ Footprint(object, ...)
 
 \item{...}{Arguments passed to other methods}
 
-\item{genome}{A \code{BSgenome} object or any other object supported by
-\code{getSeq}. Do \code{showMethods("getSeq")} to get the list of all
+\item{genome}{A \link[BSgenome:BSgenome-class]{BSgenome::BSgenome} object or any other object supported by
+\code{\link[BSgenome:getSeq-methods]{BSgenome::getSeq()}}. Do \code{showMethods("getSeq")} to get the list of all
 supported object types.}
 
 \item{motif.name}{Name of a motif stored in the assay to footprint. If not
-supplied, must sudevtools::pply a set of regions.}
+supplied, must supply a set of regions.}
 
 \item{key}{Key to store positional enrichment information under.}
 
@@ -66,7 +66,7 @@ position given the local DNA sequence context and the insertion bias of Tn5}
 
 \item{in.peaks}{Restrict motifs to those that fall in peaks}
 
-\item{overwrite}{Overwrite existing \code{RegionAggregation} objects with the same name}
+\item{overwrite}{Overwrite existing \linkS4class{RegionAggregation} objects with the same name}
 
 \item{verbose}{Display messages}
 }

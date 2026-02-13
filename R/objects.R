@@ -1210,7 +1210,7 @@ SetAssayData.ChromatinAssay5 <- function(
     # pull overwrite from ... , only interpret inside layer==region.aggregation
     dots <- list(...) 
     overwrite <- dots$overwrite %||% FALSE #default FALSE if not provided
-    if (is.null(x = new.data)) {
+    if (is.null(x = new.data) || length(x = new.data) == 0) {
       # overwrite with empty list
       methods::slot(object = object, name = layer) <- list()
       return(object)

@@ -50,7 +50,7 @@ feature weights. A set of features with characteristics matching the query
 regions is then selected using the \code{\link[base:sample]{base::sample()}} function, with
 the probability of randomly selecting each feature equal to the joint density
 distribution weight. If the \code{wrswoR} package is
-available, the \code{\link[wrswoR:sample_int_crank]{wrswoR::sample_int_crank()}} function is used for
+available, the \code{\link[wrswoR:sample_int]{wrswoR::sample_int_crank()}} function is used for
 faster sampling.
 }
 \examples{
