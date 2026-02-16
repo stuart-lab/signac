@@ -249,7 +249,7 @@ Footprint.ChromatinAssay5 <- function(
   }
   if (compute.expected) {
     # check that bias is computed
-    bias <- Bias(object = pbmc)
+    bias <- Bias(object = object)
     if (is.null(x = bias)) {
       if (verbose) {
         message("Computing Tn5 insertion bias")
