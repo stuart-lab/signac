@@ -364,6 +364,7 @@ Footprint.Seurat <- function(
     upstream = upstream,
     downstream = downstream,
     in.peaks = in.peaks,
+    overwrite = overwrite,
     verbose = verbose,
     ...
   )
