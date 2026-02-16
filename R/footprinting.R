@@ -259,6 +259,7 @@ Footprint.ChromatinAssay5 <- function(
       )
     }
   }
+
   # if overwrite is FALSE, skip motifs that already exist for Cells(object)
   if (!overwrite){
     existing <- RegionAggr(object)
@@ -277,12 +278,12 @@ Footprint.ChromatinAssay5 <- function(
           lapply(existing[same.name.idx], function(x) x@cells),
           use.names = FALSE
         ))
-        if (all(Cells(object) %in% existing.cells)){
+        if (all(Cells(x = object) %in% existing.cells)){
           warning(sprintf(paste0(
             "Footprint for '%s' already exists and will not be recomputed. \n", 
             "Set overwrite=TRUE to replace the existing Footprint, ", 
             "or supply a different name to store it separately"
-          ), key[[i]]), call. = FALSE)
+          ), key[[i]]), call. = FALSE, immediate. = TRUE)
           
           # subset key and regionlist
           keep.idx[i] <- FALSE
@@ -293,8 +294,11 @@ Footprint.ChromatinAssay5 <- function(
       key <- key[keep.idx]
       regionlist <- regionlist[keep.idx]
     }
+    if (length(x = regionlist) == 0) {
+      # all exist already and overwrite=FALSE
+      return(object)
+    }
   }
-  
   
   # run in parallel
   if (nbrOfWorkers() > 1) {
