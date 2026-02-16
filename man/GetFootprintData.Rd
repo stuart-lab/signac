@@ -29,7 +29,7 @@ Returns a data.frame with the following columns:
 \item group: Cell group (determined by group.by parameter
 \item position: Position relative to motif center
 \item count: Normalized Tn5 insertion counts at each position
-\item norm.value: Normalized Tn5 insertion counts at each position (same as count)
+\item norm.value: Normalized Tn5 insertion counts at each position
 \item feature: Name of the footprinted motif
 \item class: observed or expected
 }

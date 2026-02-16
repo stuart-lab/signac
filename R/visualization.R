@@ -28,13 +28,12 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' maximum value for that bigwig file within the plotted region}
 #' }
 #' @param ymax Maximum value for Y axis. Can be one of:
-#' \itemize{
-#' \item{NULL: set to the highest value among all the tracks (default)}
-#' \item{qXX: clip the maximum value to the XX quantile (for example, q95 will
-#' set the maximum value to 95\% of the maximum value in the data). This can help
-#' remove the effect of extreme values that may otherwise distort the scale.}
-#' \item{numeric: manually define a Y-axis limit}
-#' }
+#'  - `NULL`: set to the highest value among all the tracks (default)
+#'  - `qXX`: clip the maximum value to the XX quantile (for example, q95 will
+#'  set the maximum value to 95% of the maximum value in the data). This can
+#'  help remove the effect of extreme values that may otherwise distort the
+#'  scale.
+#'  - numeric: manually define a Y-axis limit
 #' @param max.downsample Minimum number of positions kept when downsampling.
 #' Downsampling rate is adaptive to the window size, but this parameter will set
 #' the minimum possible number of positions to include so that plots do not
@@ -81,7 +80,10 @@ BigwigTrack <- function(
     return(NULL)
   }
   if (!requireNamespace("rtracklayer", quietly = TRUE)) {
-    message("Please install rtracklayer. http://www.bioconductor.org/packages/rtracklayer/")
+    message(
+      "Please install rtracklayer. ",
+      "http://www.bioconductor.org/packages/rtracklayer/"
+    )
     return(NULL)
   }
   region <- FindRegion(
@@ -276,7 +278,8 @@ get_density <- function(x, y, n_sub = 50000, ...) {
 #' variants in the credible set will be denoted by shape. If LD information is
 #' not provided, credible variants will also be denoted by color.
 #'
-#' @param region Genomic region (GRanges or string like "chr10-112900000-113100000")
+#' @param region Genomic region ([GenomicRanges::GRanges] or a string that can
+#' be converted to `GRanges` like "chr10:112900000-113100000")
 #' @param gwas Path to GWAS summary statistics file, or a dataframe
 #' containing the gwas data in the GWAS-SSF format
 #' @param ld.file Path to LD file. Optional.
@@ -290,9 +293,9 @@ get_density <- function(x, y, n_sub = 50000, ...) {
 #' @param show.axis Show x-axis (default: TRUE)
 #' @return ggplot2 object
 #'
-#' @importFrom ggplot2 ggplot geom_point aes_string geom_hline scale_y_continuous
+#' @importFrom ggplot2 ggplot geom_point aes_string geom_hline
 #' theme_classic labs theme element_blank element_line element_text
-#' scale_shape_manual scale_size_manual scale_color_manual
+#' scale_shape_manual scale_size_manual scale_color_manual scale_y_continuous
 #' @importFrom Seqinfo seqnames
 #' @importFrom GenomicRanges start end
 #' @export
@@ -363,7 +366,10 @@ GWASTrack <- function(
     gwas[["ld_category"]] <- cut(
       gwas[["r2"]],
       breaks = c(-Inf, 0.2, 0.4, 0.6, 0.8, Inf),
-      labels = c("r2_0-0.2", "r2_0.2-0.4", "r2_0.4-0.6", "r2_0.6-0.8", "r2_0.8-1.0"),
+      labels = c(
+        "r2_0-0.2", "r2_0.2-0.4",
+        "r2_0.4-0.6", "r2_0.6-0.8", "r2_0.8-1.0"
+      ),
       include.lowest = TRUE
     )
   }
@@ -668,8 +674,8 @@ globalVariables(
 #' @concept visualization
 #' @concept footprinting
 #' @importFrom SeuratObject DefaultAssay
-#' @importFrom ggplot2 ggplot aes_string geom_line facet_wrap xlab ylab theme_classic
-#' theme element_blank geom_label guides guide_legend
+#' @importFrom ggplot2 ggplot aes_string geom_line facet_wrap xlab ylab
+#' theme element_blank geom_label guides guide_legend theme_classic
 #' @importFrom dplyr group_by summarize top_n
 #' @import patchwork
 PlotFootprint <- function(
@@ -1663,13 +1669,22 @@ SingleCoveragePlot <- function(
     }
 
     # Handle associated parameters - convert to lists
-    if (length(x = gwas.ld.file) == 1 || !inherits(x = gwas.ld.file, what = "list")) {
+    if (
+      length(x = gwas.ld.file) == 1 ||
+        !inherits(x = gwas.ld.file, what = "list")
+    ) {
       gwas.ld.file <- rep(list(gwas.ld.file), length(x = gwas))
     }
-    if (length(x = gwas.ld.lead.snp) == 1 || !inherits(x = gwas.ld.lead.snp, what = "list")) {
+    if (
+      length(x = gwas.ld.lead.snp) == 1 ||
+        !inherits(x = gwas.ld.lead.snp, what = "list")
+    ) {
       gwas.ld.lead.snp <- rep(list(gwas.ld.lead.snp), length(x = gwas))
     }
-    if (length(x = gwas.credset.file) == 1 || !inherits(x = gwas.credset.file, what = "list")) {
+    if (
+      length(x = gwas.credset.file) == 1 ||
+        !inherits(x = gwas.credset.file, what = "list")
+    ) {
       gwas.credset.file <- rep(list(gwas.credset.file), length(x = gwas))
     }
 
@@ -2018,13 +2033,12 @@ CoverageTrack <- function(
 #' @param extend.upstream Number of bases to extend the region upstream.
 #' @param extend.downstream Number of bases to extend the region downstream.
 #' @param ymax Maximum value for Y axis. Can be one of:
-#' \itemize{
-#' \item{NULL: set to the highest value among all the tracks (default)}
-#' \item{qXX: clip the maximum value to the XX quantile (for example, q95 will
-#' set the maximum value to 95\% of the maximum value in the data). This can help
-#' remove the effect of extreme values that may otherwise distort the scale.}
-#' \item{numeric: manually define a Y-axis limit}
-#' }
+#'  - `NULL`: set to the highest value among all the tracks (default)
+#'  - qXX: clip the maximum value to the XX quantile (for example, q95 will
+#' set the maximum value to 95% of the maximum value in the data). This can
+#' help remove the effect of extreme values that may otherwise distort the
+#' scale.
+#'  - numeric: manually define a Y-axis limit
 #' @param scale.factor Scaling factor for track height. If NULL (default),
 #' use the median group scaling factor determined by total number of fragments
 #' sequences in each group.
@@ -2045,11 +2059,15 @@ CoverageTrack <- function(
 #' and a longer period of time needed to draw the plot.
 #' @param gwas GWAS summary statistics to display on the plot. Can be the path
 #' to a GWAS-SSF file on-disk or a dataframe in the GWAS-SSF format.
-#' @param gwas.ld.file Path to LD data file for coloring GWAS points by r². Optional.
-#' @param gwas.ld.lead.snp Lead SNP for LD calculations. Required if gwas.ld.file provided.
+#' @param gwas.ld.file Path to LD data file for coloring GWAS points by r².
+#' Optional.
+#' @param gwas.ld.lead.snp Lead SNP for LD calculations.
+#' Required if gwas.ld.file provided.
 #' @param gwas.credset.file Path to fine-mapping credible sets file. Optional.
-#' @param gwas.credset.threshold Posterior probability threshold for credible sets (default: 0.01)
-#' @param variants Dataframe containing variants to display (see [VariantTrack()])
+#' @param gwas.credset.threshold Posterior probability threshold for credible
+#' sets (default: 0.01)
+#' @param variants Dataframe containing variants to display
+#' (see [VariantTrack()])
 #' @param ... Additional arguments passed to [patchwork::wrap_plots()]
 #'
 #' @importFrom patchwork wrap_plots
@@ -2071,17 +2089,33 @@ CoverageTrack <- function(
 #'
 #' # Show additional ranges
 #' ranges.show <- GenomicRanges::GRanges("chr1:713750-714000")
-#' CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), ranges = ranges.show)
+#' CoveragePlot(
+#'   object = atac_small,
+#'   region = c("chr1:713500-714500"),
+#'   ranges = ranges.show
+#' )
 #'
 #' # Highlight region
-#' CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), region.highlight = ranges.show)
+#' CoveragePlot(
+#'   object = atac_small,
+#'   region = c("chr1:713500-714500"),
+#'   region.highlight = ranges.show
+#' )
 #'
 #' # Change highlight color
 #' ranges.show$color <- "orange"
-#' CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), region.highlight = ranges.show)
+#' CoveragePlot(
+#'   object = atac_small,
+#'   region = c("chr1:713500-714500"),
+#'   region.highlight = ranges.show
+#' )
 #'
 #' # Show expression data
-#' CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), features = "GYG2")
+#' CoveragePlot(
+#'   object = atac_small,
+#'   region = c("chr1:713500-714500"),
+#'   features = "GYG2"
+#' )
 #' }
 CoveragePlot <- function(
   object,
@@ -2257,8 +2291,8 @@ globalVariables(names = "group", package = "Signac")
 #' @param log.scale Display Y-axis on log scale. Default is FALSE.
 #' @param ... Arguments passed to other functions
 #'
-#' @importFrom ggplot2 ggplot geom_histogram theme_classic aes_string facet_wrap xlim
-#' scale_y_log10 theme element_blank
+#' @importFrom ggplot2 ggplot geom_histogram theme_classic aes_string facet_wrap
+#' scale_y_log10 theme element_blank xlim
 #' @importFrom SeuratObject DefaultAssay
 #'
 #' @export
@@ -2311,7 +2345,10 @@ FragmentHistogram <- function(
     p <- ggplot(data = reads, mapping = aes_string("length")) +
       geom_histogram(bins = 200)
   } else {
-    p <- ggplot(data = reads, mapping = aes_string(x = "length", fill = "group")) +
+    p <- ggplot(
+      data = reads,
+      mapping = aes_string(x = "length", fill = "group")
+    ) +
       geom_histogram(bins = 200) +
       facet_wrap(~group, scales = "free_y")
   }
@@ -2436,8 +2473,8 @@ CombineTracks <- function(
 #' @importFrom GenomicRanges start end
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom Seqinfo seqnames
-#' @importFrom ggplot2 ggplot aes_string geom_segment theme_classic element_blank
-#' theme xlab ylab scale_color_manual
+#' @importFrom ggplot2 ggplot aes_string geom_segment theme_classic
+#' theme xlab ylab scale_color_manual element_blank
 #' @examples
 #' \donttest{
 #' # plot peaks in assay
@@ -2574,7 +2611,7 @@ LinkPlot <- function(
   # extract link information
   links <- Links(object = object)
   links <- links[[key]]
-  
+
   # if links not set, return NULL
   if (length(x = links) == 0) {
     return(NULL)
@@ -2586,7 +2623,7 @@ LinkPlot <- function(
   # filter out links below threshold
   link.df <- as.data.frame(x = links.keep)
   link.df <- link.df[abs(x = link.df$score) > min.cutoff, ]
-  
+
   # convert to single start and end position
   # take start of gene and midpoint of peak
   link.df$peak_midpoint <- (link.df$start1 + link.df$end1) / 2
@@ -2607,7 +2644,9 @@ LinkPlot <- function(
   )
 
   # remove links outside region
-  link.df <- link.df[link.df$start >= start(x = region) & link.df$end <= end(x = region), ]
+  link.df <- link.df[
+    link.df$start >= start(x = region) & link.df$end <= end(x = region),
+  ]
 
   # plot
   if (nrow(x = link.df) > 0) {
@@ -2638,12 +2677,23 @@ LinkPlot <- function(
       if (scale.linewidth) {
         p <- ggplot(data = df) +
           ggforce::geom_bezier(
-            mapping = aes_string(x = "x", y = "y", group = "group", color = "score", linewidth = "score")
+            mapping = aes_string(
+              x = "x",
+              y = "y",
+              group = "group",
+              color = "score",
+              linewidth = "score"
+            )
           )
       } else {
         p <- ggplot(data = df) +
           ggforce::geom_bezier(
-            mapping = aes_string(x = "x", y = "y", group = "group", color = "score")
+            mapping = aes_string(
+              x = "x",
+              y = "y",
+              group = "group",
+              color = "score"
+            )
           )
       }
       p <- p +
@@ -2867,8 +2917,8 @@ AnnotationPlot <- function(
 #' @param slot Which slot to pull expression data from
 #'
 #' @importFrom SeuratObject GetAssayData DefaultAssay
-#' @importFrom ggplot2 ggplot geom_violin facet_wrap aes_string theme_classic theme
-#' element_blank scale_y_discrete scale_x_continuous scale_fill_manual
+#' @importFrom ggplot2 ggplot geom_violin facet_wrap aes_string theme_classic
+#' element_blank scale_y_discrete scale_x_continuous scale_fill_manual theme
 #' @importFrom scales hue_pal
 #' @importFrom Seqinfo seqnames
 #' @importFrom IRanges start end
@@ -2972,7 +3022,9 @@ ExpressionPlot <- function(
   lower.limit <- ifelse(test = slot == "scale.data", yes = NA, no = 0)
   for (i in seq_along(along.with = features)) {
     df.use <- df[df$gene == features[[i]], ]
-    p <- ggplot(data = df.use, aes_string(x = "expression", y = "gene", fill = "group")) +
+    p <- ggplot(data = df.use, aes_string(
+      x = "expression", y = "gene", fill = "group"
+    )) +
       geom_violin(linewidth = 1 / 4) +
       facet_wrap(~group, ncol = 1, strip.position = "right") +
       theme_classic() +
@@ -3045,9 +3097,10 @@ VariantPlot <- function(
 #'
 #' Plot variant positions within a genomic region.
 #'
-#' @param variants Data frame with columns: position (numeric), rsid (character),
-#' color (character). Each row defines one SNP marker to display.
-#' @param region Genomic region (GRanges or string like "chr10-112900000-113100000")
+#' @param variants Data frame with columns: position (numeric), rsid
+#' (character), color (character). Each row defines one SNP marker to display.
+#' @param region Genomic region ([GenomicRanges::GRanges] or a string like
+#' "chr10:112900000-113100000" that can be converted to `GRanges`)
 #'
 #' @return Returns a ggplot2 object
 #' @export
@@ -3420,7 +3473,6 @@ reformat_annotations <- function(
     min.gapwidth = 1000,
     collapse_transcript = collapse_transcript
   )
-  # overlap_idx <- overlap_idx
   if (collapse_transcript) {
     gene_bodies$dodge <- overlap_idx[gene_bodies$gene_name]
     exons$dodge <- overlap_idx[exons$gene_name]

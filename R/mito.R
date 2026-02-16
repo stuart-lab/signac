@@ -12,7 +12,7 @@ AlleleFreq.default <- function(object, variants, ...) {
       simplify = TRUE
     ), stringsAsFactors = TRUE
   )
-  colnames(meta_row_mat) = c("letter", "position", "strand")
+  colnames(meta_row_mat) <- c("letter", "position", "strand")
 
   # Access meta data for the variants
   variant_df <- data.frame(
@@ -21,21 +21,24 @@ AlleleFreq.default <- function(object, variants, ...) {
       x = substr(
         x = variants,
         start = 1,
-        stop = nchar(x = variants) - 3),
+        stop = nchar(x = variants) - 3
+      ),
       levels = levels(x = meta_row_mat$position)
     ),
     ref = factor(
       x = substr(
         x = variants,
         start = nchar(x = variants) - 2,
-        stop = nchar(x = variants) - 2),
+        stop = nchar(x = variants) - 2
+      ),
       levels = levels(x = meta_row_mat$letter)
     ),
     alt = factor(
       x = substr(
         x = variants,
         start = nchar(x = variants),
-        stop = nchar(x = variants)),
+        stop = nchar(x = variants)
+      ),
       levels = levels(x = meta_row_mat$letter)
     )
   )
@@ -43,13 +46,13 @@ AlleleFreq.default <- function(object, variants, ...) {
   # Numerator counts
   # Get the forward and reverse strands for the matching the position / letter
   # for the alternate allele
-  ref_letter <-  paste0(meta_row_mat$position, meta_row_mat$letter)
+  ref_letter <- paste0(meta_row_mat$position, meta_row_mat$letter)
   alt_letter <- paste0(variant_df$position, variant_df$alt)
   idx_numerator <- lapply(
     X = alt_letter, FUN = function(x) {
       which(ref_letter == x)
-      }
-    )
+    }
+  )
   fwd_half_idx <- sapply(X = idx_numerator, FUN = `[[`, 1)
   rev_half_idx <- sapply(X = idx_numerator, FUN = `[[`, 2)
 
@@ -167,7 +170,8 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
     FUN = function(x) {
       cells <- rownames(x = md[md$allele_ident_stash_clon == x, ])
       return(rowMeans(x = sqrt(x = mat[, cells])))
-  })
+    }
+  )
   object$allele_ident_stash_clon <- NULL
   # cluster
 
@@ -222,7 +226,9 @@ FindClonotypes <- function(
   # get allele matrix
   assay <- assay %||% DefaultAssay(object = object)
   features <- features %||% rownames(x = object[[assay]])
-  mat <- GetAssayData(object = object, assay = assay, layer = "data")[features, ]
+  mat <- GetAssayData(
+    object = object, assay = assay, layer = "data"
+  )[features, ]
   mat <- sqrt(x = t(x = mat))
 
   # construct neighbor graph
@@ -272,7 +278,7 @@ FindClonotypes <- function(
 #' @importFrom utils read.table
 #' @examples
 #' \dontrun{
-#' data.dir <- system.file("extdata", "test_mgatk", package="Signac")
+#' data.dir <- system.file("extdata", "test_mgatk", package = "Signac")
 #' mgatk <- ReadMGATK(dir = data.dir)
 #' }
 ReadMGATK <- function(dir, verbose = TRUE) {
@@ -369,8 +375,10 @@ ReadMGATK <- function(dir, verbose = TRUE) {
     basecounts = g.counts, cells = cb.lookup, dna.base = "G", maxpos = maxpos
   )
 
-  counts <- rbind(a.mat[[1]], c.mat[[1]], t.mat[[1]], g.mat[[1]],
-                  a.mat[[2]], c.mat[[2]], t.mat[[2]], g.mat[[2]])
+  counts <- rbind(
+    a.mat[[1]], c.mat[[1]], t.mat[[1]], g.mat[[1]],
+    a.mat[[2]], c.mat[[2]], t.mat[[2]], g.mat[[2]]
+  )
 
   return(list("counts" = counts, "depth" = depth, "refallele" = refallele))
 }
@@ -452,7 +460,7 @@ IdentifyVariants.Assay <- function(
   refallele,
   ...
 ) {
-  counts <- GetAssayData(object = object, layer = 'counts')
+  counts <- GetAssayData(object = object, layer = "counts")
   df <- IdentifyVariants(object = counts, refallele = refallele, ...)
   return(df)
 }
@@ -463,11 +471,11 @@ IdentifyVariants.Assay <- function(
 #' @concept mito
 #' @export
 IdentifyVariants.StdAssay <- function(
-    object,
-    refallele,
-    ...
+  object,
+  refallele,
+  ...
 ) {
-  counts <- GetAssayData(object = object, layer = 'counts')
+  counts <- GetAssayData(object = object, layer = "counts")
   df <- IdentifyVariants(object = counts, refallele = refallele, ...)
   return(df)
 }
@@ -502,17 +510,17 @@ IdentifyVariants.Seurat <- function(
 # cell
 # @param cells A lookup table giving the cell barcode numeric ID
 # @param dna.base Used to specify the alternate allele
-# @param maxpos specifies the end of the mtDNA genome (otherwise, the mat will be of wrong dim)
+# @param maxpos specifies the end of the mtDNA genome (otherwise, the mat will
+# be of wrong dim)
 #' @importFrom Matrix sparseMatrix
 #
 # @return Returns a list of two sparse matrices
 SparseMatrixFromBaseCounts <- function(basecounts, cells, dna.base, maxpos) {
-
   # Vector addition guarantee correct dimension
   fwd.mat <- sparseMatrix(
-    i = c(basecounts$pos,maxpos),
-    j = c(cells[basecounts$cellbarcode],1),
-    x = c(basecounts$plus,0)
+    i = c(basecounts$pos, maxpos),
+    j = c(cells[basecounts$cellbarcode], 1),
+    x = c(basecounts$plus, 0)
   )
   colnames(x = fwd.mat) <- names(x = cells)
   rownames(x = fwd.mat) <- paste(
@@ -522,9 +530,9 @@ SparseMatrixFromBaseCounts <- function(basecounts, cells, dna.base, maxpos) {
     sep = "-"
   )
   rev.mat <- sparseMatrix(
-    i = c(basecounts$pos,maxpos),
-    j = c(cells[basecounts$cellbarcode],1),
-    x = c(basecounts$minus,0)
+    i = c(basecounts$pos, maxpos),
+    j = c(cells[basecounts$cellbarcode], 1),
+    x = c(basecounts$minus, 0)
   )
   colnames(x = rev.mat) <- names(x = cells)
   rownames(x = rev.mat) <- paste(
@@ -641,8 +649,8 @@ ProcessLetter <- function(
   colnames(both.strand) <- c("variant", "cell_idx", "forward", "reverse")
 
   cor_dt <- suppressWarnings(expr = both.strand[, list(cor = cor(
-    x = forward, y = reverse, method = "pearson", use = "pairwise.complete")
-  ), by = list(variant)])
+    x = forward, y = reverse, method = "pearson", use = "pairwise.complete"
+  )), by = list(variant)])
 
   # Put in vector for convenience
   cor_vec_val <- cor_dt$cor

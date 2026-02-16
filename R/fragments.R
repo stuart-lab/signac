@@ -25,7 +25,10 @@ head.Fragment2 <- function(x, n = 6L, ...) {
   if (ncol(x = df) == 5) {
     colnames(x = df) <- c("chrom", "start", "end", "barcode", "readCount")
   } else if (ncol(x = df) == 6) {
-    colnames(x = df) <- c("chrom", "start", "end", "barcode", "readCount", "strand")
+    colnames(x = df) <- c(
+      "chrom", "start", "end",
+      "barcode", "readCount", "strand"
+    )
   }
   return(df)
 }
@@ -68,12 +71,12 @@ header <- function(x) {
 #' @export
 #' @concept fragments
 #' @return Returns a data.frame with the following columns:
-#' \itemize{
-#'   \item{CB: the cell barcode}
-#'   \item{frequency_count: total number of fragments sequenced for the cell}
-#'   \item{mononucleosome: total number of fragments with length between 147 bp and 294 bp}
-#'   \item{nucleosome_free: total number of fragments with length <147 bp}
-#'   \item{reads_count: total number of reads sequenced for the cell}
+#'   - CB: the cell barcode
+#'   - frequency_count: total number of fragments sequenced for the cell
+#'   - mononucleosome: total number of fragments with length between 147 bp and
+#'   294 bp
+#'   - nucleosome_free: total number of fragments with length <147 bp
+#'   - reads_count: total number of reads sequenced for the cell
 #' }
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
@@ -519,7 +522,9 @@ setMethod(
       # unnamed vector
       # needs to be the same length as the current seqlevels
       if (length(x = value) != length(x = current.vec)) {
-        stop("Must provide the same number of new seqlevels as existing seqlevels")
+        stop(
+          "Must provide the same number of new seqlevels as existing seqlevels"
+        )
       } else {
         names(x = current.vec) <- value
       }
@@ -550,11 +555,18 @@ setMethod(
 #'
 #' @concept fragments
 #' @export
-UpdatePath <- function(object, new.path, new.index.path = NULL, verbose = TRUE) {
+UpdatePath <- function(
+  object,
+  new.path,
+  new.index.path = NULL,
+  verbose = TRUE
+) {
   new.is.remote <- isRemote(x = new.path)
   if (!new.is.remote) {
     new.path <- normalizePath(path = new.path, mustWork = TRUE)
-    index.file <- new.index.path %||% GetIndexFile(fragment = new.path, verbose = verbose)
+    index.file <- new.index.path %||% GetIndexFile(
+      fragment = new.path, verbose = verbose
+    )
     if (!file.exists(new.path)) {
       stop("Fragment file not found")
     } else if (!file.exists(index.file)) {

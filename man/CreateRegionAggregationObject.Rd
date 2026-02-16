@@ -44,6 +44,7 @@ position.}
 Returns a \linkS4class{RegionAggregation} object
 }
 \description{
-Create a \code{\link[=RegionAggregation-class]{RegionAggregation-class()}} object to store the insertions over group of regions
+Create a \code{\link[=RegionAggregation-class]{RegionAggregation-class()}} object to store the insertions over
+group of regions
 }
 \concept{regionaggregation}

@@ -1,7 +1,8 @@
 #' Load GWAS-SSF file
 #'
 #' @param gwas.file Path to GWAS/QTL summary statistics file (TSV)
-#' @return data.frame with following columns present: chromosome, base_pair_location, p_value
+#' @return data.frame with following columns present: chromosome,
+#' base_pair_location, p_value
 #'
 #' @details
 #' Input format based on GWAS-SSF (NHGRI-EBI GWAS Catalog standard).
@@ -10,7 +11,8 @@
 #'
 #' Optional columns: `variant_id`, `beta`, `standard_error`
 #'
-#' Column matching is case-insensitive. Also accepts QTL data in the same format.
+#' Column matching is case-insensitive. Also accepts QTL data in the same
+#' format.
 #'
 #' @importFrom data.table fread
 #'
@@ -57,7 +59,8 @@ LoadGWAS <- function(gwas.file) {
 #' @details
 #' Required columns: `chromosome`, `position`, `r2`
 #'
-#' Column matching is case-insensitive. Values should be pairwise r-squared to a lead SNP.
+#' Column matching is case-insensitive. Values should be pairwise r-squared to
+#' a lead SNP.
 #'
 #' @importFrom data.table fread
 #' @export
@@ -89,13 +92,16 @@ LoadLDData <- function(ld.file) {
 #' Load fine-mapping credible sets
 #'
 #' @param credset.file Path to credible set file
-#' @param credset.threshold Posterior inclusion probability threshold (default: 0.01)
-#' @return data.frame with columns: chromosome, base_pair_location, pip, credset_id
+#' @param credset.threshold Posterior inclusion probability threshold
+#' (default: 0.01)
+#' @return data.frame with columns: chromosome, base_pair_location, pip,
+#' credset_id
 #'
 #' @details
 #' Required columns: `chromosome`, `position`, `pip`, `credset_id`
 #'
-#' Column matching is case-insensitive. Variants with cs = -1 are not in a credible set.
+#' Column matching is case-insensitive. Variants with cs = -1 are not in a
+#' credible set.
 #'
 #' @importFrom data.table fread
 #'
@@ -130,10 +136,15 @@ LoadCredibleSets <- function(credset.file, credset.threshold = 0.01) {
 
   # Filter: PIP >= threshold AND in a credible set (cs != -1)
   result <- result[result[["pip"]] >=
-    credset.threshold & result[["credset_id"]] != -1, ]
+                     credset.threshold &
+                     result[["credset_id"]] != -1, ]
 
   if (nrow(x = result) == 0) {
-    warning("No variants passed filters (pip >= ", credset.threshold, " and cs != -1)")
+    warning(
+      "No variants passed filters (pip >= ",
+      credset.threshold,
+      " and cs != -1)"
+    )
   }
 
   return(result)

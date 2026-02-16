@@ -66,7 +66,10 @@ See the chromVAR paper: \url{https://www.nature.com/articles/nmeth.4401}
 \examples{
 \dontrun{
 library(BSgenome.Hsapiens.UCSC.hg19)
-RunChromVAR(object = atac_small[["peaks"]], genome = BSgenome.Hsapiens.UCSC.hg19)
+RunChromVAR(
+  object = atac_small[["peaks"]],
+  genome = BSgenome.Hsapiens.UCSC.hg19
+)
 }
 \dontrun{
 library(BSgenome.Hsapiens.UCSC.hg19)

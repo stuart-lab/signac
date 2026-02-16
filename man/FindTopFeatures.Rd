@@ -55,14 +55,15 @@ minimum percentile, for example 'q5' to set the top 95\% most common features
 as the VariableFeatures for the object. Alternatively, this can be an integer
 specifying the minimum number of counts for the feature
 to be included in the set of VariableFeatures. For example, setting to 10
-will include features with >10 total counts in the set of VariableFeatures. If NULL,
-include all features in VariableFeatures.}
+will include features with >10 total counts in the set of VariableFeatures.
+If \code{NULL}, include all features in VariableFeatures.}
 
 \item{verbose}{Display messages}
 
 \item{layer}{Name of layer to use}
 
-\item{key}{Key to use when storing the highly variable feature information in the assay.}
+\item{key}{Key to use when storing the highly variable feature information in
+the assay.}
 }
 \value{
 Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object

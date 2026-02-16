@@ -51,7 +51,11 @@ library(BSgenome.Hsapiens.UCSC.hg38)
 
 pwm <- getMatrixSet(
   x = JASPAR2018,
-  opts = list(collection = "CORE", tax_group = "vertebrates", all_versions = FALSE)
+  opts = list(
+    collection = "CORE",
+    tax_group = "vertebrates",
+    all_versions = FALSE
+  )
 )
 motif.matrix <- CreateMotifMatrix(
   features = granges(atac_small),

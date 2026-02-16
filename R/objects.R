@@ -105,15 +105,28 @@ CreateChromatinAssay5 <- function(
     stop("Annotation must be a GRanges object.")
   }
   if (!is.null(x = annotation)) {
-    if (!any(c("tx_id", "transcript_id") %in% colnames(x = mcols(x = annotation)))) {
-      stop("Annotation must have transcript id stored in `tx_id` or `transcript_id`.")
+    if (!any(
+      c("tx_id", "transcript_id") %in% colnames(x = mcols(x = annotation))
+    )
+    ) {
+      stop(
+        "Annotation must have transcript id ",
+        "stored in `tx_id` or `transcript_id`."
+      )
     }
-    if (any(!c("gene_name", "gene_id", "gene_biotype", "type") %in% colnames(x = mcols(x = annotation)))) {
-      stop("Annotation must have `gene_name`, `gene_id`, `gene_biotype` and `type`.")
+    if (any(
+      !c("gene_name", "gene_id", "gene_biotype", "type") %in%
+        colnames(x = mcols(x = annotation))
+    )) {
+      stop(
+        "Annotation must have `gene_name`, `gene_id`, ",
+        "`gene_biotype` and `type`."
+      )
     }
   }
 
-  # CreateAssay5Object throws error if counts or data is missing rather than NULL
+  # CreateAssay5Object throws error if counts or data is missing
+  # rather than NULL
   if (missing(x = counts)) {
     counts <- NULL
   }
@@ -128,7 +141,7 @@ CreateChromatinAssay5 <- function(
   }
 
   seurat.assay <- CreateAssay5Object(counts = counts, data = data, ...)
-  
+
   # Fragments
   if (inherits(x = fragments, what = "list")) {
     # check each object in the list is a fragment object
@@ -205,11 +218,10 @@ CreateChromatinAssay5 <- function(
 #' @export
 #' @concept assay
 as.GRangesAssay.ChromatinAssay <- function(x, ...) {
-  
   # extract information
   frags <- x@fragments
   links <- x@links
-  
+
   # update fragment objects
   if (length(x = frags) > 0) {
     for (i in seq_along(along.with = frags)) {
@@ -218,10 +230,12 @@ as.GRangesAssay.ChromatinAssay <- function(x, ...) {
   }
 
   if (length(x = x@positionEnrichment) > 0) {
-    warning("Cannot convert old positionEnrichment information, dropping ", 
-            length(x = x@positionEnrichment), " positionEnrichment matrices")
+    warning(
+      "Cannot convert old positionEnrichment information, dropping ",
+      length(x = x@positionEnrichment), " positionEnrichment matrices"
+    )
   }
-  
+
   # update links to list of GInteractions objects
   if (length(x = links) > 0) {
     start.gr <- GRanges(
@@ -238,13 +252,13 @@ as.GRangesAssay.ChromatinAssay <- function(x, ...) {
   } else {
     gi <- NULL
   }
-  
+
   # construct new assay object
   newobj <- as(object = x, Class = "Assay5")
-  
+
   # update rownames
   rownames(x = newobj) <- as.character(x = x@ranges)
-  
+
   newobj <- as.GRangesAssay(
     x = newobj,
     Class = "GRangesAssay",
@@ -256,13 +270,13 @@ as.GRangesAssay.ChromatinAssay <- function(x, ...) {
     links = gi,
     region.aggregation = NULL,
   )
-  
+
   return(newobj)
 }
 
 #' @rdname as.Fragment2
 #' @method as.Fragment2 Fragment
-#' @export 
+#' @export
 #' @concept fragments
 as.Fragment2.Fragment <- function(x, ...) {
   # convert from old Fragment class to new Fragment2 class
@@ -272,7 +286,7 @@ as.Fragment2.Fragment <- function(x, ...) {
   file.index <- paste0(file.path, ".tbi")
   hash <- x@hash
   cells <- x@cells
-  
+
   # construct new object
   x <- new(
     Class = "Fragment2",
@@ -438,103 +452,110 @@ as.ChromatinAssay5.Assay5 <- function(
   return(new.assay)
 }
 
-
-## Functions
-#' Create a RegionAggregation object 
+#' Create a RegionAggregation object
 #'
-#' Create a [RegionAggregation-class()] object to store the insertions over group of regions 
-#' 
-#' @param mat A cell-by-position matrix 
+#' Create a [RegionAggregation-class()] object to store the insertions over
+#' group of regions
+#'
+#' @param mat A cell-by-position matrix
 #' @param regions A [GenomicRanges::granges()] object containing the
-#' regions aggregated across. 
-#' @param upstream Integer denoting number of bases upstream of the 
-#' centered position that are stored in the matrix 
-#' @param downstream Integer denoting number of bases downstream of the 
+#' regions aggregated across.
+#' @param upstream Integer denoting number of bases upstream of the
+#' centered position that are stored in the matrix
+#' @param downstream Integer denoting number of bases downstream of the
 #' centered position that are stored in the matrix
 #' @param name A name for the set of regions aggregated
 #' @param cells A vector of cells where each element is the cell barcode
-#' included in the region aggregation matrix. The order of cells in this 
+#' included in the region aggregation matrix. The order of cells in this
 #' vector should correspond to the order of cells in the matrix. If `NULL`, cell
 #' names will be extracted from the rownames of the matrix.
 #' @param expected A vector containing expected number of Tn5 insertions per
-#' position. If `NULL`, the expected value will be set uniformly to 1 for each 
+#' position. If `NULL`, the expected value will be set uniformly to 1 for each
 #' position.
 #' @param verbose Display messages.
-#' 
+#'
 #' @importFrom rlang is_integerish
-#' @export 
-#' @return Returns a [RegionAggregation-class] object 
-#' @concept regionaggregation 
+#' @export
+#' @return Returns a [RegionAggregation-class] object
+#' @concept regionaggregation
 CreateRegionAggregationObject <- function(
-    mat,
-    regions,
-    upstream, 
-    downstream, 
-    name, 
-    cells = NULL,
-    expected = NULL,
-    verbose = TRUE
+  mat,
+  regions,
+  upstream,
+  downstream,
+  name,
+  cells = NULL,
+  expected = NULL,
+  verbose = TRUE
 ) {
-    if (!inherits(x = mat, what = c("matrix", "CsparseMatrix"))) {
-        stop("data must be a matrix or sparse matrix. Supplied ",
-             class(x = mat))
-    }
-    if (any(dim(x = mat) == 0)) {
-      stop("Provided matrix has zero dimensions")
-    }
-    if (!inherits(x = regions, what = "GRanges")){
-        stop("regions must be a GRanges object. Supplied ", class(x = regions))
-    }
-    # make upstream and downstream integer
-    if (!is_integerish(x = upstream)) {
-      stop("upstream value must be an integer")
-    } else {
-      upstream <- as.integer(x = upstream)
-    }
-    if (!is_integerish(x = downstream)) {
-      stop("downstream value must be an integer")
-    } else {
-      downstream <- as.integer(x = downstream)
-    }
-    if (!is.null(x = expected)){
-      if (!is.numeric(x = expected)) {
-        stop("expected insertions must be a numeric vector")
-      }
-      if (length(x = expected) != dim(x = mat)[2]) {
-        stop("expected insertion must match the number of positions in the matrix")
-      }
-    } else {
-      expected <- rep(x = 1, dim(x = mat)[2])
-    }
-    # if cells not given, create the cells from rownames of the matrix
-    if (is.null(x = cells)){
-        cells <- rownames(x = mat)
-        if (is.null(x = cells)) {
-          stop("cells information not provided, and the provided matrix has no",
-               " row names")
-        }
-    } else {
-        cells <- as.character(x = cells)
-        if (length(x = cells) != dim(x = mat)[1]) {
-            stop("Number of cells: (", length(x = cells), 
-                 ") does not match number of matrix rows (", dim(x = matrix)[1], ")")
-        }
-    }
-    
-    # strip matrix dimnames
-    dimnames(x = mat) <- NULL
-
-    agg.obj <- new(
-        Class = "RegionAggregation", 
-        matrix = mat, 
-        regions = regions, 
-        upstream = upstream, 
-        downstream = downstream, 
-        name = name, 
-        expected = expected, 
-        cells = cells
+  if (!inherits(x = mat, what = c("matrix", "CsparseMatrix"))) {
+    stop(
+      "data must be a matrix or sparse matrix. Supplied ",
+      class(x = mat)
     )
-    return(agg.obj)
+  }
+  if (any(dim(x = mat) == 0)) {
+    stop("Provided matrix has zero dimensions")
+  }
+  if (!inherits(x = regions, what = "GRanges")) {
+    stop("regions must be a GRanges object. Supplied ", class(x = regions))
+  }
+  # make upstream and downstream integer
+  if (!is_integerish(x = upstream)) {
+    stop("upstream value must be an integer")
+  } else {
+    upstream <- as.integer(x = upstream)
+  }
+  if (!is_integerish(x = downstream)) {
+    stop("downstream value must be an integer")
+  } else {
+    downstream <- as.integer(x = downstream)
+  }
+  if (!is.null(x = expected)) {
+    if (!is.numeric(x = expected)) {
+      stop("expected insertions must be a numeric vector")
+    }
+    if (length(x = expected) != dim(x = mat)[2]) {
+      stop(
+        "expected insertion must match the number of positions in the matrix"
+      )
+    }
+  } else {
+    expected <- rep(x = 1, dim(x = mat)[2])
+  }
+  # if cells not given, create the cells from rownames of the matrix
+  if (is.null(x = cells)) {
+    cells <- rownames(x = mat)
+    if (is.null(x = cells)) {
+      stop(
+        "cells information not provided, and the provided matrix has no",
+        " row names"
+      )
+    }
+  } else {
+    cells <- as.character(x = cells)
+    if (length(x = cells) != dim(x = mat)[1]) {
+      stop(
+        "Number of cells: (", length(x = cells),
+        ") does not match number of matrix rows (", dim(x = matrix)[1], ")"
+      )
+    }
+  }
+
+  # strip matrix dimnames
+  dimnames(x = mat) <- NULL
+
+  agg.obj <- new(
+    Class = "RegionAggregation",
+    matrix = mat,
+    regions = regions,
+    upstream = upstream,
+    downstream = downstream,
+    name = name,
+    expected = expected,
+    cells = cells
+  )
+  return(agg.obj)
 }
 
 #' Create a Fragment object
@@ -557,10 +578,10 @@ CreateRegionAggregationObject <- function(
 #' Each element of the vector should be a cell barcode that appears in the
 #' fragment file, and the name of each element should be the corresponding cell
 #' name in the object.
-#' @param seqlevels A named vector of sequence levels (eg, chromosome name) where
-#' each element is the sequence name as it appears in the fragment file, and the
-#' name of each element is the corresponding sequence name as stored in the
-#' object. If NULL, the sequence names are assumed to be the same in the
+#' @param seqlevels A named vector of sequence levels (eg, chromosome name)
+#' where each element is the sequence name as it appears in the fragment file,
+#' and the name of each element is the corresponding sequence name as stored in
+#' the object. If NULL, the sequence names are assumed to be the same in the
 #' fragment file and object.
 #'
 #' @param validate.fragments Check that expected cells are present in the
@@ -576,7 +597,9 @@ CreateRegionAggregationObject <- function(
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' cells <- colnames(x = atac_small)
 #' names(x = cells) <- paste0("test_", cells)
-#' frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)
+#' frags <- CreateFragmentObject(
+#'   path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5
+#' )
 CreateFragmentObject <- function(
   path,
   index = NULL,
@@ -701,7 +724,7 @@ CreateMotifObject <- function(
   meta.data <- meta.data %||% data.frame()
   if (
     !(inherits(x = data, what = "matrix") ||
-      inherits(x = data, what = "CsparseMatrix"))
+        inherits(x = data, what = "CsparseMatrix"))
   ) {
     stop(
       "Data must be matrix or sparse matrix class. Supplied ",
@@ -819,7 +842,10 @@ UpdateChromatinObject <- function(
         if (!(expression.assay %in% Assays(object))) {
           stop("The requested assay is not in the object.")
         }
-        if (!all(colnames(new.object) %in% colnames(object[[expression.assay]]))) {
+        if (!all(
+          colnames(new.object) %in% colnames(object[[expression.assay]])
+        )
+        ) {
           stop("Chromatin and expression assays have different cells.")
         }
         # Convert BP Cells to sparse matrix
@@ -844,8 +870,13 @@ UpdateChromatinObject <- function(
           }
         }
         # Subset expression data if necessary
-        if (!suppressWarnings(all(colnames(object[[expression.assay]]) == colnames(new.object)))) {
-          warning("Subsetting expression assay to have same cells as chromatin assay.",
+        if (!suppressWarnings(
+          all(colnames(object[[expression.assay]]) == colnames(new.object))
+        )
+        ) {
+          warning(
+            "Subsetting expression assay to have ",
+            "same cells as chromatin assay.",
             call. = FALSE
           )
           new.object[[expression.assay]] <- subset(
@@ -856,8 +887,10 @@ UpdateChromatinObject <- function(
           new.object[[expression.assay]] <- object[[expression.assay]]
         }
       } else {
-        warning("Cannot access layers if SeuratObject version is not 5.0.0 or greater.",
-          "Please update SeuratObject to also visualize expression data when your",
+        warning(
+          "Cannot access layers if SeuratObject version is not ",
+          "5.0.0 or greater. Please update SeuratObject to also ",
+          "visualize expression data when your",
           "object has layers with different numbers of cells.",
           call. = FALSE,
           immediate. = TRUE
@@ -883,7 +916,9 @@ GetAssayData.GRangesAssay <- function(
   if (is_present(arg = slot)) {
     layer <- slot
   }
-  if (layer %in% c("counts", "data", "scale.data", "meta.data", "misc", "key")) {
+  if (
+    layer %in% c("counts", "data", "scale.data", "meta.data", "misc", "key")
+  ) {
     return(NextMethod())
   }
   if (!(layer %in% slotNames(x = object))) {
@@ -912,7 +947,9 @@ GetAssayData.ChromatinAssay5 <- function(
   if (is_present(arg = slot)) {
     layer <- slot
   }
-  if (layer %in% c("counts", "data", "scale.data", "meta.data", "misc", "key")) {
+  if (
+    layer %in% c("counts", "data", "scale.data", "meta.data", "misc", "key")
+  ) {
     return(NextMethod())
   }
   if (!(layer %in% slotNames(x = object))) {
@@ -988,7 +1025,6 @@ GetMotifData.Seurat <- function(object, assay = NULL, slot = "data", ...) {
 #' @method RenameCells ChromatinAssay5
 #' @export
 RenameCells.ChromatinAssay5 <- function(object, new.names = NULL, ...) {
-  
   # name of each element is the existing cell name
   # element itself is the corresponding new name
   # new.names vector names will be set in the Seurat method. Need to set here
@@ -999,7 +1035,7 @@ RenameCells.ChromatinAssay5 <- function(object, new.names = NULL, ...) {
     }
     names(x = new.names) <- colnames(x = object)
   }
-  
+
   # there's nothing that needs to be renamed in the GRangesAssay class
   # rename cells in the parental class
   object <- NextMethod()
@@ -1058,7 +1094,7 @@ RenameCells.Fragment2 <- function(object, new.names, ...) {
 RenameCells.RegionAggregation <- function(object, new.names, ...) {
   # name of each element is the existing cell name
   # element itself is the corresponding new name
-  
+
   cells <- slot(object = object, name = "cells")
   if (is.null(x = cells)) {
     # invalid object
@@ -1136,7 +1172,9 @@ SetAssayData.ChromatinAssay5 <- function(
   slot = deprecated(),
   ...
 ) {
-  if (layer %in% c("counts", "data", "scale.data", "meta.data", "misc", "key")) {
+  if (
+    layer %in% c("counts", "data", "scale.data", "meta.data", "misc", "key")
+  ) {
     return(NextMethod())
   }
   if (is_present(arg = slot)) {
@@ -1149,7 +1187,7 @@ SetAssayData.ChromatinAssay5 <- function(
       call. = FALSE
     )
   }
-  
+
   if (layer == "fragments") {
     # this will overwrite the slot with new data
     # Fragments<- will append new fragment objects to the list
@@ -1191,11 +1229,23 @@ SetAssayData.ChromatinAssay5 <- function(
     if (!is(object = new.data, class2 = "GRanges")) {
       stop("Must provide a GRanges object")
     }
-    if (!any(c("tx_id", "transcript_id") %in% colnames(x = mcols(x = new.data)))) {
-      stop("Annotation must have transcript id stored in `tx_id` or `transcript_id`.")
+    if (!any(
+      c("tx_id", "transcript_id") %in% colnames(x = mcols(x = new.data))
+    )
+    ) {
+      stop(
+        "Annotation must have transcript id stored ",
+        "in `tx_id` or `transcript_id`."
+      )
     }
-    if (any(!c("gene_name", "gene_id", "gene_biotype", "type") %in% colnames(x = mcols(x = new.data)))) {
-      stop("Annotation must have `gene_name`, `gene_id`, `gene_biotype` and `type`.")
+    if (any(
+      !c("gene_name", "gene_id", "gene_biotype", "type") %in%
+        colnames(x = mcols(x = new.data))
+    )) {
+      stop(
+        "Annotation must have `gene_name`, `gene_id`, ",
+        "`gene_biotype` and `type`."
+      )
     }
     if (!"tx_id" %in% colnames(x = mcols(x = new.data))) {
       new.data$tx_id <- new.data$transcript_id
@@ -1208,83 +1258,88 @@ SetAssayData.ChromatinAssay5 <- function(
     methods::slot(object = object, name = layer) <- new.data
   } else if (layer == "region.aggregation") {
     # pull overwrite from ... , only interpret inside layer==region.aggregation
-    dots <- list(...) 
-    overwrite <- dots$overwrite %||% FALSE #default FALSE if not provided
+    dots <- list(...)
+    overwrite <- dots$overwrite %||% FALSE # default FALSE if not provided
     if (is.null(x = new.data) || length(x = new.data) == 0) {
       # overwrite with empty list
       methods::slot(object = object, name = layer) <- list()
       return(object)
     }
-    if (inherits(x = new.data, what = "list")){
+    if (inherits(x = new.data, what = "list")) {
       # check if its a list containing RegionAggregation class objects
-      for (i in seq_along(new.data)){
-        if (!inherits(x = new.data[[i]], what = "RegionAggregation")){
+      for (i in seq_along(new.data)) {
+        if (!inherits(x = new.data[[i]], what = "RegionAggregation")) {
           stop("New data is not a RegionAggregation object")
         }
       }
-    } else if (inherits(x = new.data, what = "RegionAggregation")){
+    } else if (inherits(x = new.data, what = "RegionAggregation")) {
       # single RegionAggregation object
       new.data <- list(new.data)
     }
-    # get existing RegionAggregation object 
+    # get existing RegionAggregation object
     agg.list <- GetAssayData(object = object, layer = layer)
     if (length(x = agg.list) == 0) {
-      # nothing exists yet -> assign directly 
+      # nothing exists yet -> assign directly
       new.data <- MergeRegionAggregation(new.data)
       methods::slot(object, "region.aggregation") <- new.data
       return(object)
-    } 
-    
-    for (i in seq_along(new.data)){
+    }
+
+    for (i in seq_along(new.data)) {
       new.agg <- new.data[[i]]
       new.cells <- new.agg@cells
       merged <- FALSE
-      # compare against same-name objects    
+      # compare against same-name objects
       same.name.idx <- which(vapply(
-        agg.list, function(x) identical(x@name, new.agg@name), logical(1)))
-      
+        agg.list, function(x) identical(x@name, new.agg@name), logical(1)
+      ))
+
       if (length(same.name.idx) > 0) {
-        
         if (overwrite) {
           # remove every exisiting RegAggr object with the same feature name
-          warning(sprintf("Overwriting RegionAggregation for '%s' ",
-                          new.agg@name), call. = FALSE)
+          warning(sprintf(
+            "Overwriting RegionAggregation for '%s' ",
+            new.agg@name
+          ), call. = FALSE)
           agg.list <- agg.list[-same.name.idx]
           agg.list <- append(agg.list, new.agg)
           merged <- TRUE
-        } else { # skip the new cells that already exists in the old object 
-          for (j in same.name.idx){
+        } else { # skip the new cells that already exists in the old object
+          for (j in same.name.idx) {
             old.agg <- agg.list[[j]]
-            overlap.cells <- intersect(old.agg@cells, new.agg@cells) 
+            overlap.cells <- intersect(old.agg@cells, new.agg@cells)
             new.cells <- setdiff(new.agg@cells, old.agg@cells)
-            if (length(overlap.cells)>0) {
-              warning(sprintf(paste0(
-                "RegionAggregation '%s' already exists for %d cells and will not be recomputed. \n", 
-                "Set overwrite=TRUE to replace the existing RegionAggregation, ", 
-                "or supply a different name to store it separately"
+            if (length(overlap.cells) > 0) {
+              warning(sprintf(
+                paste0(
+                  "RegionAggregation '%s' already exists for %d cells and will",
+                  " not be recomputed. \n",
+                  "Set overwrite=TRUE to replace the existing ",
+                  "RegionAggregation, or supply a different name to store it ",
+                  "separately"
                 ),
                 new.agg@name,
                 length(overlap.cells)
               ), call. = FALSE)
             }
-            if (length(new.cells)>0) {
+            if (length(new.cells) > 0) {
               compatible <- IsCompatibleRegionAggregation(old.agg, new.agg)
-              
+
               if (compatible) {
                 # concatenate the matrix and the cells vector
                 old.agg@matrix <- rbind(old.agg@matrix, new.agg@matrix)
                 old.agg@cells <- c(old.agg@cells, new.agg@cells)
                 agg.list[[j]] <- old.agg
-                merged <- TRUE 
+                merged <- TRUE
                 break
               }
             }
           }
         }
       }
-      if (!merged) { 
+      if (!merged) {
         new.sub <- subset(new.agg, cells = new.cells)
-        if (!is.null(new.sub)){
+        if (!is.null(new.sub)) {
           agg.list <- append(agg.list, list(new.sub))
         }
       }
@@ -1389,7 +1444,7 @@ SetMotifData.ChromatinAssay5 <- function(object, slot, new.data, ...) {
   if (slot == "data") {
     if (
       !(inherits(x = new.data, what = "matrix") ||
-        inherits(x = new.data, what = "CsparseMatrix"))
+          inherits(x = new.data, what = "CsparseMatrix"))
     ) {
       stop(
         "Data must be matrix or sparse matrix class. Supplied ",
@@ -1423,7 +1478,10 @@ SetMotifData.ChromatinAssay5 <- function(object, slot, new.data, ...) {
 #' @examples
 #' motif.matrix <- GetMotifData(object = atac_small)
 #' SetMotifData(
-#'   object = atac_small, assay = "peaks", slot = "data", new.data = motif.matrix
+#'   object = atac_small,
+#'   assay = "peaks",
+#'   slot = "data",
+#'   new.data = motif.matrix
 #' )
 SetMotifData.Seurat <- function(object, assay = NULL, ...) {
   assay <- assay %||% DefaultAssay(object = object)
@@ -1454,10 +1512,14 @@ SetMotifData.Seurat <- function(object, assay = NULL, ...) {
 subset.Motif <- function(x, features = NULL, motifs = NULL, ...) {
   features <- features %||% rownames(x = x)
   motifs <- motifs %||% colnames(x = x)
-  new.data <- GetMotifData(object = x, slot = "data")[features, motifs, drop = FALSE]
+  new.data <- GetMotifData(
+    object = x, slot = "data"
+  )[features, motifs, drop = FALSE]
   new.pwm <- GetMotifData(object = x, slot = "pwm")[motifs]
   new.names <- GetMotifData(object = x, slot = "motif.names")[motifs]
-  new.meta <- GetMotifData(object = x, slot = "meta.data")[motifs, , drop = FALSE]
+  new.meta <- GetMotifData(
+    object = x, slot = "meta.data"
+  )[motifs, , drop = FALSE]
   new.positions <- GetMotifData(object = x, slot = "positions")
   if (!is.null(x = new.positions)) {
     new.positions <- new.positions[motifs]
@@ -1542,7 +1604,7 @@ subset.ChromatinAssay5 <- function(
       cells <- Cells(x = x)[cells]
     }
   }
-  
+
 
   # subset elements in the standard assay
   x <- NextMethod()
@@ -1563,7 +1625,7 @@ subset.ChromatinAssay5 <- function(
     frags[[i]] <- subset(x = frags[[i]], cells = cells)
   }
   Fragments(object = x) <- frags
-  
+
   # subset motifs
   motifs <- Motifs(object = x)
   if (!is.null(x = motifs)) {
@@ -1575,11 +1637,11 @@ subset.ChromatinAssay5 <- function(
 }
 
 #' Subset a RegionAggregation object
-#' 
+#'
 #' @param x A [RegionAggregation-class] object
 #' @param cells Vector of cells to retain
 #' @param ... Arguments passed to other methods
-#' 
+#'
 #' @method subset RegionAggregation
 #' @importFrom fastmatch fmatch
 #' @importFrom methods slot "slot<-"
@@ -1587,24 +1649,24 @@ subset.ChromatinAssay5 <- function(
 #' @export
 #' @concept RegionAggregation
 subset.RegionAggregation <- function(
-    x,
-    cells = NULL,
-    ...
-){
+  x,
+  cells = NULL,
+  ...
+) {
   if (is.null(x = cells)) {
     return(x)
   }
   mat <- slot(object = x, name = "matrix")
   agg.cells <- slot(object = x, name = "cells")
-  
+
   keep <- fmatch(x = agg.cells, table = cells, nomatch = 0L) > 0
-  if (!any(keep)){
+  if (!any(keep)) {
     return(NULL)
   }
-  
+
   slot(object = x, name = "matrix") <- mat[keep, , drop = FALSE]
   slot(object = x, name = "cells") <- agg.cells[keep]
-  
+
   return(x)
 }
 
@@ -1627,7 +1689,9 @@ subset.RegionAggregation <- function(
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' cells <- colnames(x = atac_small)
 #' names(x = cells) <- paste0("test_", cells)
-#' frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)
+#' frags <- CreateFragmentObject(
+#'   path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5
+#' )
 #' subset(frags, head(names(cells)))
 subset.Fragment2 <- function(
   x,
@@ -1636,7 +1700,7 @@ subset.Fragment2 <- function(
 ) {
   frag.cells <- GetFragmentData(object = x, slot = "cells")
   keep <- fmatch(x = names(x = frag.cells), table = cells, nomatch = 0L) > 0
-  if (!any(keep)){
+  if (!any(keep)) {
     return(NULL)
   }
   slot(object = x, name = "cells") <- frag.cells[keep]
@@ -1691,86 +1755,103 @@ merge.GRangesAssay <- function(
 }
 
 # Condense a list of RegionAggregation objects
-# 
+#
 # Takes a list of RegionAggregation objects and merges compatible
-# objects that share the same feature name. Compatibility is defined by 
-# identical upstream/downstream extension, regions, and expected insertion 
-# values. Objects with different feature names are never merged. 
-# 
+# objects that share the same feature name. Compatibility is defined by
+# identical upstream/downstream extension, regions, and expected insertion
+# values. Objects with different feature names are never merged.
+#
 # The function performs strict invariant checks and will error if:
 # \itemize{
-#  \item RegionAggregation objects with the same feature name have different 
+#  \item RegionAggregation objects with the same feature name have different
 #        region widths.
-#  \item RegionAggregation objects with the same feature name contain 
-#        overlapping cell barcodes. 
+#  \item RegionAggregation objects with the same feature name contain
+#        overlapping cell barcodes.
 # }
-# 
+#
 # @param x A list of RegionAggregation objects
-# 
+#
 # @return A list of RegionAggregation objects, where compatible objects
-#  have been merged. 
-#  
+#  have been merged.
+#
 # @details
 # Compatibility between two RegionAggregation objects is determined by
 # \code{IsCompatibleRegionAggregation()}
 #
-# @concept RegionAggregation 
+# @concept RegionAggregation
 MergeRegionAggregation <- function(
-    x = NULL
-){
+  x = NULL
+) {
   stopifnot(is.list(x))
   stopifnot(all(vapply(x, inherits, logical(1), "RegionAggregation")))
-  
+
   # extract feature names
-  feature.names <-vapply(x, FUN = function(x) x@name, FUN.VALUE=character(1))
-  
+  feature.names <- vapply(x, FUN = function(x) x@name, FUN.VALUE = character(1))
+
   # group by feature names
   grouped.agg <- split(x = x, f = feature.names)
-  
+
   condensed.list <- lapply(X = grouped.agg, FUN = function(aggs) {
     if (length(x = aggs) == 1) {
-      # only one agg obj with this feature name 
+      # only one agg obj with this feature name
       # nothing to do
       out <- aggs[[1]]
     } else {
-      ## single motif width per feature 
+      ## single motif width per feature
       w <- unique(
         x = unlist(
           x = lapply(
             X = aggs,
             FUN = function(x) width(x = x@regions)
-            )
           )
         )
+      )
       if (length(x = w) != 1) {
-        stop("RegionAggregation for ", aggs[[1]]@name, " have different widths ", w)
+        stop(
+          "RegionAggregation for ",
+          aggs[[1]]@name,
+          " have different widths ",
+          w
+        )
       }
-      ## feature should not have duplicated cell barcodes 
+      ## feature should not have duplicated cell barcodes
       cells.all <- unlist(
         x = lapply(
           X = aggs,
-          FUN = function(x) x@cells),
+          FUN = function(x) x@cells
+        ),
         use.names = FALSE
       )
       dup.cells <- cells.all[duplicated(x = cells.all)]
       if (length(x = dup.cells) > 0) {
-        stop("Duplicated cell barcodes across RegionAggregation objects for ", aggs[[1]]@name)
+        stop(
+          "Duplicated cell barcodes across RegionAggregation objects for ",
+          aggs[[1]]@name
+        )
       }
-      
+
       ## opportunistic merging
       merged.obj.list <- list()
       for (i in seq_along(along.with = aggs)) {
         if (length(x = merged.obj.list) == 0) {
           merged.obj.list <- list(aggs[[i]])
         } else {
-          merged <- FALSE 
-          for (w in seq_along(along.with = merged.obj.list)){
-            if (IsCompatibleRegionAggregation(x = aggs[[i]], y = merged.obj.list[[w]])) {
-              # replace merged.obj.list[w] with the merged 
-              merged.obj.list[[w]]@matrix <- rbind(merged.obj.list[[w]]@matrix, aggs[[i]]@matrix)
-              merged.obj.list[[w]]@cells <- c(merged.obj.list[[w]]@cells, aggs[[i]]@cells)
-              merged <- TRUE 
-              break # stop looping through merged.obj.list 
+          merged <- FALSE
+          for (w in seq_along(along.with = merged.obj.list)) {
+            if (IsCompatibleRegionAggregation(
+              x = aggs[[i]], y = merged.obj.list[[w]]
+            )
+            ) {
+              # replace merged.obj.list[w] with the merged
+              merged.obj.list[[w]]@matrix <- rbind(
+                merged.obj.list[[w]]@matrix, aggs[[i]]@matrix
+              )
+              merged.obj.list[[w]]@cells <- c(
+                merged.obj.list[[w]]@cells,
+                aggs[[i]]@cells
+              )
+              merged <- TRUE
+              break # stop looping through merged.obj.list
             }
           }
           if (!merged) {
@@ -1778,18 +1859,18 @@ MergeRegionAggregation <- function(
           }
         }
       }
-      out <- merged.obj.list 
+      out <- merged.obj.list
     }
     out
   })
-  # return as a flatten list 
+  # return as a flatten list
   condensed.list <- unname(obj = do.call(what = c, args = condensed.list))
   return(condensed.list)
 }
 
 # Check compatibility of two RegionAggregation objects
-# 
-# Determines whether two [RegionAggregation-class] objects can be merged. 
+#
+# Determines whether two [RegionAggregation-class] objects can be merged.
 # Compatibility id  defined as having identical non-cell-specific slots,
 # including:
 # \itemize{
@@ -1800,16 +1881,16 @@ MergeRegionAggregation <- function(
 #
 # @returns `TRUE` if `x` and `y` are compatible for merging `FALSE` otherwise.
 IsCompatibleRegionAggregation <- function(
-    x = NULL, 
-    y = NULL
-){
+  x = NULL,
+  y = NULL
+) {
   stopifnot(inherits(x, "RegionAggregation"))
   stopifnot(inherits(y, "RegionAggregation"))
-  
-  identical(x@upstream,   y@upstream) && 
-  identical(x@downstream, y@downstream) && 
-  identical(x@expected,   y@expected) && 
-  identical(x@regions,    y@regions)
+
+  identical(x@upstream, y@upstream) &&
+    identical(x@downstream, y@downstream) &&
+    identical(x@expected, y@expected) &&
+    identical(x@regions, y@regions)
 }
 
 #' @export
@@ -1865,7 +1946,10 @@ merge.ChromatinAssay5 <- function(
       for (i in seq_along(along.with = assays)) {
         assays[[i]] <- RenameCells(
           object = assays[[i]],
-          new.names = paste(add.cell.ids[i], colnames(x = assays[[i]]), sep = "_")
+          new.names = paste(
+            add.cell.ids[i], colnames(x = assays[[i]]),
+            sep = "_"
+          )
         )
       }
     }
@@ -1897,13 +1981,13 @@ merge.ChromatinAssay5 <- function(
             Removing invalid files from merged ChromatinAssay5")
       all.frag <- all.frag[valid.frags]
     }
-    
+
     # merge region.aggregations
     all.agg <- lapply(X = assays, FUN = function(x) {
       RegionAggr(object = x)
     })
-    # flatten list-of-lists 
-    all.agg <- Reduce(f=c, x= all.agg)
+    # flatten list-of-lists
+    all.agg <- Reduce(f = c, x = all.agg)
 
     # create new ChromatinAssay5 object
     # bias, motifs, links, metafeatures not kept
@@ -2303,7 +2387,8 @@ Links.Seurat <- function(object, assay = NULL, ...) {
   return(Links(object = object[[assay]]))
 }
 
-#' @param features Optional character vector of region aggregation names to return 
+#' @param features Optional character vector of region aggregation names to
+#' return
 #' @rdname RegionAggr
 #' @method RegionAggr ChromatinAssay5
 #' @export
@@ -2311,11 +2396,10 @@ Links.Seurat <- function(object, assay = NULL, ...) {
 #' @concept assay
 #' @examples
 #' RegionAggr(atac_small[["peaks"]])
-RegionAggr.ChromatinAssay5 <- function(object, features = NULL, ...) { 
-  
+RegionAggr.ChromatinAssay5 <- function(object, features = NULL, ...) {
   agg.list <- slot(object = object, name = "region.aggregation")
-  
-  if (!is.null(features)){
+
+  if (!is.null(features)) {
     agg.list.names <- vapply(agg.list, function(x) x@name, character(1))
     agg.list <- agg.list[agg.list.names %in% features]
   }
@@ -2339,13 +2423,13 @@ RegionAggr.Seurat <- function(object, assay = NULL, ...) {
 }
 
 #' List stored RegionAggregation objects
-#' 
+#'
 #' Returns the names of all stored  [RegionAggregation-class] objects
-#' 
+#'
 #' @param object A [ChromatinAssay5-class]  object
 #' @rdname RegionAggNames
 #' @method RegionAggNames ChromatinAssay5
-#' @return Character vector of stored result names 
+#' @return Character vector of stored result names
 #' @export
 RegionAggNames.ChromatinAssay5 <- function(object, ...) {
   name.list <- vapply(RegionAggr(object), function(x) x@name, character(1))
@@ -2418,7 +2502,9 @@ dim.Motif <- function(x) {
 #' links <- Links(atac_small)
 #' Links(atac_small[["peaks"]]) <- links
 "Links<-.ChromatinAssay5" <- function(object, key = NULL, ..., value) {
-  object <- SetAssayData(object = object, layer = "links", new.data = value, key = key)
+  object <- SetAssayData(
+    object = object, layer = "links", new.data = value, key = key
+  )
   return(object)
 }
 
@@ -2447,7 +2533,9 @@ dim.Motif <- function(x) {
 #' ra <- RegionAggr(atac_small)
 #' RegionAggr(atac_small[["peaks"]]) <- ra
 "RegionAggr<-.ChromatinAssay5" <- function(object, ..., value) {
-  object <- SetAssayData(object = object, layer = "region.aggregation", new.data = value, ...)
+  object <- SetAssayData(
+    object = object, layer = "region.aggregation", new.data = value, ...
+  )
   return(object)
 }
 
@@ -2473,7 +2561,9 @@ dim.Motif <- function(x) {
 #' genes <- Annotation(atac_small)
 #' Annotation(atac_small[["peaks"]]) <- genes
 "Annotation<-.ChromatinAssay5" <- function(object, ..., value) {
-  object <- SetAssayData(object = object, layer = "annotation", new.data = value)
+  object <- SetAssayData(
+    object = object, layer = "annotation", new.data = value
+  )
   return(object)
 }
 
@@ -2506,14 +2596,14 @@ dim.Motif <- function(x) {
 #' @concept assay
 #' @rdname Bias
 #' @examples
-#' bases <- c("A","C","G","T")
+#' bases <- c("A", "C", "G", "T")
 #' hexamers <- apply(expand.grid(rep(list(bases), 6)), 1, paste0, collapse = "")
 #' b <- 1:length(hexamers)
 #' names(b) <- hexamers
-#' 
+#'
 #' # assign bias in a Seurat object
 #' Bias(atac_small) <- b
-#' 
+#'
 #' # assign bias in a ChromatinAssay5 or GRangesAssay
 #' Bias(atac_small[["peaks"]]) <- b
 "Bias<-.Seurat" <- function(object, assay = NULL, ..., value) {

@@ -207,8 +207,8 @@ CellsPerGroup <- function(
 #' @return The Seurat object with metadata variable reordered by similarity.
 #' If the metadata variable was a character vector, it will be converted to a
 #' factor and the factor levels set according to the similarity ordering. If
-#' active identities were used (label=NULL), the levels will be updated according
-#' to similarity ordering.
+#' active identities were used (`label=NULL`), the levels will be updated
+#' according to similarity ordering.
 #'
 #' @examples
 #' atac_small$test <- sample(1:10, ncol(atac_small), replace = TRUE)
@@ -379,7 +379,8 @@ BinaryIdentMatrix <- function(object, group.by = NULL, idents = NULL) {
 # the sd in the case Y!=NULL uses E[X-mu]^2 = E[X^2]-mu^2
 # with sample correction n/(n-1) this leads to sd^2 = ( X^2 - n*mu^2 ) / (n-1)
 #
-# Note that results larger than 1e4 x 1e4 will become very slow, because the resulting matrix is not sparse anymore.
+# Note that results larger than 1e4 x 1e4 will become very slow, because the
+# resulting matrix is not sparse anymore.
 corSparse <- function(X, Y = NULL, cov = FALSE) {
   X <- as(object = X, Class = "CsparseMatrix")
   n <- nrow(x = X)
@@ -391,7 +392,9 @@ corSparse <- function(X, Y = NULL, cov = FALSE) {
     }
     Y <- as(object = Y, Class = "CsparseMatrix")
     muY <- colMeans(x = Y)
-    covmat <- (as.matrix(x = crossprod(x = X, y = Y)) - n * tcrossprod(x = muX, y = muY)) / (n - 1)
+    covmat <- (
+      as.matrix(x = crossprod(x = X, y = Y)) - n * tcrossprod(x = muX, y = muY)
+    ) / (n - 1)
     sdvecX <- sqrt((colSums(x = X^2) - n * muX^2) / (n - 1))
     sdvecY <- sqrt((colSums(x = Y^2) - n * muY^2) / (n - 1))
     cormat <- covmat / tcrossprod(x = sdvecX, y = sdvecY)
@@ -440,7 +443,9 @@ GetGRangesFromEnsDb <- function(
   # convert seqinfo to granges
   whole.genome <- as(object = seqinfo(x = ensdb), Class = "GRanges")
   if (standard.chromosomes) {
-    whole.genome <- keepStandardChromosomes(whole.genome, pruning.mode = "coarse")
+    whole.genome <- keepStandardChromosomes(
+      x = whole.genome, pruning.mode = "coarse"
+    )
   }
 
   # extract genes from each chromosome
@@ -689,8 +694,12 @@ MatchRegionStats <- function(
     stop("Must supply at least one sequence characteristic to match")
   }
 
-  missing.q <- features.match[!(features.match %in% colnames(x = query.feature))]
-  missing.bg <- features.match[!(features.match %in% colnames(x = meta.feature))]
+  missing.q <- features.match[
+    !(features.match %in% colnames(x = query.feature))
+  ]
+  missing.bg <- features.match[
+    !(features.match %in% colnames(x = meta.feature))
+  ]
   missing.feat <- unique(c(missing.bg, missing.q))
 
   if (length(x = missing.feat) > 0) {
@@ -700,7 +709,9 @@ MatchRegionStats <- function(
         " Run RegionStats to compute GC.percent for each feature."
       )
     } else {
-      stop(paste(missing.feat, collapse = ", "), " not present in meta.features")
+      stop(
+        paste(missing.feat, collapse = ", "), " not present in meta.features"
+      )
     }
   }
 
@@ -738,12 +749,16 @@ MatchRegionStats <- function(
     }
 
     if (nrow(x = trans_qf) < 3) {
-      density.query <- density(x = trans_qf[, featmatch], kernel = "gaussian", bw = 1)
+      density.query <- density(
+        x = trans_qf[, featmatch], kernel = "gaussian", bw = 1
+      )
     } else {
       density.query <- density(x = trans_qf[, featmatch], kernel = "gaussian")
     }
     if (nrow(x = trans_mf) < 3) {
-      density.meta <- density(x = trans_mf[, featmatch], kernel = "gaussian", bw = 1)
+      density.meta <- density(
+        x = trans_mf[, featmatch], kernel = "gaussian", bw = 1
+      )
     } else {
       density.meta <- density(x = trans_mf[, featmatch], kernel = "gaussian")
     }
@@ -1209,10 +1224,18 @@ MultiGetReadsInRegion <- function(
   }
   res <- data.frame()
   for (i in seq_along(along.with = fragment.list)) {
-    tbx.path <- GetFragmentData(object = fragment.list[[i]], slot = "file.path")
-    tbx.index <- GetFragmentData(object = fragment.list[[i]], slot = "file.index")
-    cellmap <- GetFragmentData(object = fragment.list[[i]], slot = "cells")
-    seqmap <- GetFragmentData(object = fragment.list[[i]], slot = "seqlevels")
+    tbx.path <- GetFragmentData(
+      object = fragment.list[[i]], slot = "file.path"
+    )
+    tbx.index <- GetFragmentData(
+      object = fragment.list[[i]], slot = "file.index"
+    )
+    cellmap <- GetFragmentData(
+      object = fragment.list[[i]], slot = "cells"
+    )
+    seqmap <- GetFragmentData(
+      object = fragment.list[[i]], slot = "seqlevels"
+    )
     tabix.file <- TabixFile(file = tbx.path, index = tbx.index)
     open(con = tabix.file)
     reads <- GetReadsInRegion(
@@ -1341,10 +1364,18 @@ CutMatrix <- function(
   }
   res <- list()
   for (i in seq_along(along.with = fragments)) {
-    fragment.path <- GetFragmentData(object = fragments[[i]], slot = "file.path")
-    index.path <- GetFragmentData(object = fragments[[i]], slot = "file.index")
-    cellmap <- GetFragmentData(object = fragments[[i]], slot = "cells")
-    seqmap <- GetFragmentData(object = fragments[[i]], slot = "seqlevels")
+    fragment.path <- GetFragmentData(
+      object = fragments[[i]], slot = "file.path"
+    )
+    index.path <- GetFragmentData(
+      object = fragments[[i]], slot = "file.index"
+    )
+    cellmap <- GetFragmentData(
+      object = fragments[[i]], slot = "cells"
+    )
+    seqmap <- GetFragmentData(
+      object = fragments[[i]], slot = "seqlevels"
+    )
     tabix.file <- TabixFile(file = fragment.path, index = index.path)
     open(con = tabix.file)
     # remove regions that aren't in the fragment file
@@ -1784,10 +1815,11 @@ SparseColVar <- function(x) {
 
 # Replace non-zero entries in a sparse entries with non-zero ranks
 #
-# This method creates a rank matrix for a sparse matrix X using the following approach:
+# This method creates a rank matrix for a sparse matrix X using the following
+# approach:
 # 1. Use non-zero entries in a column to calculate the ranks
-# 2. Add (z-1)/2 to the ranks (only non-zero entries are changed). z is the number of zeros
-# in the column
+# 2. Add (z-1)/2 to the ranks (only non-zero entries are changed). z is the
+# number of zeros in the column
 # Since all the entries are shifted by the same constant (the zeros
 # are already shifted), the covariance matrix of this shifted matrix is
 # the same as the rank matrix of the entire matrix (where the zeros would

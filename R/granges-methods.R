@@ -19,9 +19,8 @@ NULL
 #'
 #' @aliases granges granges,GRangesAssay-method
 #' @seealso
-#' \itemize{
-#'   \item{[granges][GenomicRanges::granges] in the \pkg{GenomicRanges} package.}
-#'   \item{[GRangesAssay-class]}
+#'   - [GenomicRanges::granges()]
+#'   - [GenomicRanges::GRanges()]
 #'  }
 #' @exportMethod granges
 #' @concept granges
@@ -32,8 +31,10 @@ setMethod(
   signature = "GRangesAssay",
   definition = function(x, use.names = TRUE, use.mcols = FALSE, ...) {
     if (!identical(x = use.mcols, y = FALSE)) {
-      stop("\"granges\" method for GRangesAssay objects ",
-           "does not support the 'use.mcols' argument")
+      stop(
+        "\"granges\" method for GRangesAssay objects ",
+        "does not support the 'use.mcols' argument"
+      )
     }
     slot(object = x, name = "ranges")
   }
@@ -46,8 +47,10 @@ setMethod(
   signature = "Seurat",
   definition = function(x, use.names = TRUE, use.mcols = FALSE, ...) {
     if (!identical(x = use.mcols, y = FALSE)) {
-      stop("\"granges\" method for Seurat objects ",
-           "does not support the 'use.mcols' argument")
+      stop(
+        "\"granges\" method for Seurat objects ",
+        "does not support the 'use.mcols' argument"
+      )
     }
     assay <- DefaultAssay(object = x)
     granges(x = x[[assay]])

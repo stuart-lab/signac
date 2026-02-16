@@ -21,21 +21,16 @@ NULL
 #' @param subject The subject [GenomicRanges::GRanges()] or
 #' [GRangesAssay-class] object. If missing, `x` is used as the
 #' subject.
-#' @param select Logic for handling ties.
-#' See [GenomicRanges::nearest-methods()] in the \pkg{GenomicRanges}
-#' package.
+#' @param select Logic for handling ties. See [GenomicRanges::nearest-methods()]
 #' @param ignore.strand Logical argument controlling whether strand information
 #' should be ignored.
 #' @param ... Additional arguments for methods
 #'
 #' @aliases precede precede,ANY,GRangesAssay-method
 #' @seealso
-#' \itemize{
-#'   \item{[nearest-methods][IRanges::nearest-methods] in the \pkg{IRanges} package.}
-#'   \item{[nearest-methods][GenomicRanges::nearest-methods] in the \pkg{GenomicRanges}
-#'   package}
-#'   \item{[GRangesAssay-class]}
-#'  }
+#'   - [IRanges::nearest()]
+#'   - [GenomicRanges::nearest()]
+#'   - [GRangesAssay-class]
 #' @exportMethod precede
 #' @concept nearest
 setMethod(
@@ -289,7 +284,7 @@ setMethod(
     assay.s <- DefaultAssay(object = subject)
     subject <- granges(x = subject[[assay.s]])
     assay.x <- DefaultAssay(object = x)
-    x <- granges(x = x)
+    x <- granges(x = x[[assay.x]])
     callGeneric()
   }
 )
@@ -476,26 +471,24 @@ setMethod(
 #'
 #' The `findOverlaps, countOverlaps` methods are available for
 #' [GRangesAssay-class] objects. This allows finding overlaps between
-#' genomic ranges and the ranges stored in the GRangesAssay
+#' genomic ranges and the ranges stored in the [GRangesAssay-class]
 #'
-#' If a GRangesAssay is set as the default assay in a
+#' If a [GRangesAssay-class] assay is set as the default assay in a
 #' [SeuratObject::Seurat()] object, you can also call `findOverlaps`
 #' directly on the Seurat object.
 #'
 #' @param query,subject A [GRangesAssay-class] object
 #' @param maxgap,minoverlap,type,select,ignore.strand See
-#' `?[findOverlaps][GenomicRanges::findOverlaps]` in the \pkg{GenomicRanges} and
-#' \pkg{IRanges} packages.
+#' `?[findOverlaps][GenomicRanges::findOverlaps]` in the [GenomicRanges] and
+#' [IRanges] packages.
 #' @return See [GenomicRanges::findOverlaps()]
 #'
 #' @name findOverlaps-methods
 #' @aliases findOverlaps findOverlaps,Vector,GRangesAssay-method
 #' @seealso
-#' \itemize{
-#'   \item{[findOverlaps-methods][IRanges::findOverlaps-methods] in the \pkg{IRanges} package.}
-#'   \item{[findOverlaps-methods][GenomicRanges::findOverlaps-methods] in the \pkg{GenomicRanges}
-#'   package}
-#'   \item{[GRangesAssay-class]}
+#'   - [IRanges::findOverlaps-methods]
+#'   - [GenomicRanges::findOverlaps-methods]
+#'   - [GRangesAssay-class]
 #'  }
 #'
 #' @exportMethod findOverlaps
@@ -689,7 +682,6 @@ setMethod(
     type = c("any", "start", "end", "within", "equal"),
     ignore.strand = FALSE
   ) {
-
     assay.s <- DefaultAssay(object = subject)
     assay.q <- DefaultAssay(object = query)
     subject <- granges(x = subject[[assay.s]])
@@ -700,27 +692,24 @@ setMethod(
 
 ## Coverage methods
 
-#' Coverage of a GRangesAssay object
+#' Coverage of a [GRangesAssay-class] object
 #'
 #' This is the `coverage` method for [GRangesAssay-class] objects.
 #' @param x A [GRangesAssay-class] object
 #' @param shift How much each range should be shifted before coverage is
-#' computed. See [IRanges::coverage()] in the \pkg{IRanges} package.
+#' computed. See [IRanges::coverage()] in the [IRanges] package.
 #' @param weight Assigns weight to each range in `x`.
-#' See [IRanges::coverage()] in the \pkg{IRanges} package.
+#' See [IRanges::coverage()] in the [IRanges] package.
 #' @param width Specifies the length of the returned coverage vectors.
-#' See [IRanges::coverage()] in the \pkg{IRanges} package.
-#' @param method See [IRanges::coverage()] in the \pkg{IRanges}
+#' See [IRanges::coverage()] in the [IRanges] package.
+#' @param method See [IRanges::coverage()] in the [IRanges]
 #' package
 #'
 #' @aliases coverage
 #' @seealso
-#' \itemize{
-#'   \item{[coverage-methods][IRanges::coverage-methods] in the \pkg{IRanges} package.}
-#'   \item{[coverage-methods][GenomicRanges::coverage-methods] in the \pkg{GenomicRanges}
-#'   package}
-#'   \item{[GRangesAssay-class]}
-#'  }
+#'   - [IRanges::coverage()]
+#'   - [GenomicRanges::coverage()]
+#'   - [GRangesAssay-class]
 #' @exportMethod coverage
 #' @describeIn coverage-GRangesAssay-method method for GRangesAssay objects
 #' @concept coverage
@@ -753,7 +742,7 @@ setMethod(
 
 ## inter-range methods
 
-#' Inter-range transformations for GRangesAssay objects
+#' Inter-range transformations for [GRangesAssay-class] objects
 #'
 #' The `range, reduce, gaps, disjoin, isDisjoint, disjointBins` methods
 #' are available for [GRangesAssay-class] objects.
@@ -767,12 +756,9 @@ setMethod(
 #'
 #' @aliases range range,GRangesAssay-method
 #' @seealso
-#' \itemize{
-#'   \item{[inter-range-methods][IRanges::inter-range-methods] in the \pkg{IRanges} package.}
-#'   \item{[inter-range-methods][GenomicRanges::inter-range-methods] in the \pkg{GenomicRanges}
-#'   package}
-#'   \item{[GRangesAssay-class]}
-#'  }
+#'   - [IRanges::inter-range-methods]
+#'   - [GenomicRanges::inter-range-methods]
+#'   - [GRangesAssay-class]
 #' @exportMethod range
 #' @concept inter_range
 setMethod(
@@ -786,7 +772,8 @@ setMethod(
   }
 )
 
-#' @describeIn inter-range-methods method for Seurat objects
+#' @describeIn inter-range-methods method for [SeuratObject::Seurat-class]
+#' objects
 #' @concept inter_range
 setMethod(
   f = "range",
@@ -800,9 +787,10 @@ setMethod(
   }
 )
 
-#' @param drop.empty.ranges See `?[inter-range-methods][IRanges::inter-range-methods]`
+#' @param drop.empty.ranges See
+#' `?[inter-range-methods][IRanges::inter-range-methods]`
 #' @aliases reduce
-#' @describeIn inter-range-methods method for GRangesAssay objects
+#' @describeIn inter-range-methods method for [GRangesAssay-class] objects
 #' @exportMethod reduce
 #' @concept inter_range
 setMethod(
@@ -816,7 +804,8 @@ setMethod(
   }
 )
 
-#' @describeIn inter-range-methods method for Seurat objects
+#' @describeIn inter-range-methods method for [SeuratObject::Seurat-class]
+#' objects
 #' @concept inter_range
 setMethod(
   f = "reduce",
@@ -832,7 +821,7 @@ setMethod(
 
 #' @param start,end See `?[inter-range-methods][IRanges::inter-range-methods]`
 #' @aliases gaps
-#' @describeIn inter-range-methods method for GRangesAssay objects
+#' @describeIn inter-range-methods method for [GRangesAssay-class] objects
 #' @exportMethod gaps
 #' @concept inter_range
 setMethod(
@@ -846,7 +835,8 @@ setMethod(
   }
 )
 
-#' @describeIn inter-range-methods method for Seurat objects
+#' @describeIn inter-range-methods method for [SeuratObject::Seurat-class]
+#' objects
 #' @concept inter_range
 setMethod(
   f = "gaps",
@@ -861,7 +851,7 @@ setMethod(
 )
 
 #' @aliases disjoin
-#' @describeIn inter-range-methods method for GRangesAssay objects
+#' @describeIn inter-range-methods method for [GRangesAssay-class] objects
 #' @exportMethod disjoin
 #' @concept inter_range
 setMethod(
@@ -886,7 +876,7 @@ setMethod(
 )
 
 #' @aliases isDisjoint
-#' @describeIn inter-range-methods method for GRangesAssay objects
+#' @describeIn inter-range-methods method for [GRangesAssay-class] objects
 #' @exportMethod isDisjoint
 #' @concept inter_range
 setMethod(
@@ -898,7 +888,8 @@ setMethod(
   }
 )
 
-#' @describeIn inter-range-methods method for Seurat objects
+#' @describeIn inter-range-methods method for [SeuratObject::Seurat-class]
+#' objects
 #' @concept inter_range
 setMethod(
   f = "isDisjoint",
@@ -911,7 +902,7 @@ setMethod(
 )
 
 #' @aliases disjointBins
-#' @describeIn inter-range-methods method for GRangesAssay objects
+#' @describeIn inter-range-methods method for [GRangesAssay-class] objects
 #' @exportMethod disjointBins
 #' @concept inter_range
 setMethod(
@@ -923,7 +914,8 @@ setMethod(
   }
 )
 
-#' @describeIn inter-range-methods method for Seurat objects
+#' @describeIn inter-range-methods method for [SeuratObject::Seurat-class]
+#' objects
 #' @concept inter_range
 setMethod(
   f = "disjointBins",

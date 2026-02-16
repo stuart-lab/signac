@@ -68,7 +68,8 @@ PearsonResidualVar(object, ...)
 
 \item{nfeatures}{Number of top features to set as the variable features}
 
-\item{min.counts}{Minimum number of counts for feature to be eligible for variable features}
+\item{min.counts}{Minimum number of counts for feature to be eligible for
+variable features}
 
 \item{ncell.batch}{Number of cells to process in each batch. Higher number
 increases speed but uses more memory.}
@@ -81,7 +82,8 @@ rank features based on the Pearson residual variance only.}
 
 \item{verbose}{Display messages}
 
-\item{key}{Key to use when storing the highly variable feature information in the assay.}
+\item{key}{Key to use when storing the highly variable feature information in
+the assay.}
 }
 \value{
 Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object

@@ -23,10 +23,10 @@ EnrichedTerms(
 be an ontology term, and the list elements a vector of feature names present
 in the assay.}
 
-\item{group.by}{Name of grouping variable to use. If NULL, use the active cell
-identities.}
+\item{group.by}{Name of grouping variable to use. If \code{NULL}, use the active
+cell identities.}
 
-\item{assay}{Name of assay to use. If NULL, use the default assay.}
+\item{assay}{Name of assay to use. If \code{NULL}, use the default assay.}
 
 \item{var.features}{Subset to only variable features for ontology term
 enrichment.}

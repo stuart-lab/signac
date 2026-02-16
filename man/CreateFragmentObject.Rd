@@ -30,10 +30,10 @@ Each element of the vector should be a cell barcode that appears in the
 fragment file, and the name of each element should be the corresponding cell
 name in the object.}
 
-\item{seqlevels}{A named vector of sequence levels (eg, chromosome name) where
-each element is the sequence name as it appears in the fragment file, and the
-name of each element is the corresponding sequence name as stored in the
-object. If NULL, the sequence names are assumed to be the same in the
+\item{seqlevels}{A named vector of sequence levels (eg, chromosome name)
+where each element is the sequence name as it appears in the fragment file,
+and the name of each element is the corresponding sequence name as stored in
+the object. If NULL, the sequence names are assumed to be the same in the
 fragment file and object.}
 
 \item{validate.fragments}{Check that expected cells are present in the
@@ -54,6 +54,8 @@ fragment file.
 fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 cells <- colnames(x = atac_small)
 names(x = cells) <- paste0("test_", cells)
-frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)
+frags <- CreateFragmentObject(
+  path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5
+)
 }
 \concept{fragments}

@@ -7,10 +7,11 @@
 VariantTrack(variants, region)
 }
 \arguments{
-\item{variants}{Data frame with columns: position (numeric), rsid (character),
-color (character). Each row defines one SNP marker to display.}
+\item{variants}{Data frame with columns: position (numeric), rsid
+(character), color (character). Each row defines one SNP marker to display.}
 
-\item{region}{Genomic region (GRanges or string like "chr10-112900000-113100000")}
+\item{region}{Genomic region (\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges} or a string like
+"chr10:112900000-113100000" that can be converted to \code{GRanges})}
 }
 \value{
 Returns a ggplot2 object

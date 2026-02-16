@@ -23,7 +23,9 @@ Returns a subset of a \code{\link[=Fragment]{Fragment()}} object.
 fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 cells <- colnames(x = atac_small)
 names(x = cells) <- paste0("test_", cells)
-frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5)
+frags <- CreateFragmentObject(
+  path = fpath, cells = cells, verbose = FALSE, tolerance = 0.5
+)
 subset(frags, head(names(cells)))
 }
 \seealso{

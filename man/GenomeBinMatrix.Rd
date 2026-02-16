@@ -48,8 +48,8 @@ construct a bin x cell matrix.
 \examples{
 \donttest{
 genome <- 780007
-names(genome) <- 'chr1'
-fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+names(genome) <- "chr1"
+fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 fragments <- CreateFragmentObject(fpath, cells = colnames(atac_small))
 GenomeBinMatrix(
   fragments = fragments,

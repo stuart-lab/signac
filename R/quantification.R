@@ -150,26 +150,26 @@ AggregateTiles.default <- function(
 #' @export
 #' @importFrom SeuratObject DefaultAssay
 #' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' fragments <- CreateFragmentObject(
 #'   path = fpath,
 #'   cells = colnames(atac_small),
 #'   validate.fragments = FALSE
 #' )
 #' Fragments(atac_small) <- fragments
-#' GeneActivity(atac_small, fragtk=FALSE)
+#' GeneActivity(atac_small, fragtk = FALSE)
 GeneActivity <- function(
-    object,
-    assay = NULL,
-    features = NULL,
-    extend.upstream = 2000,
-    extend.downstream = 0,
-    biotypes = "protein_coding",
-    max.width = 500000,
-    process_n = 2000,
-    fragtk = TRUE,
-    gene.id = FALSE,
-    verbose = TRUE
+  object,
+  assay = NULL,
+  features = NULL,
+  extend.upstream = 2000,
+  extend.downstream = 0,
+  biotypes = "protein_coding",
+  max.width = 500000,
+  process_n = 2000,
+  fragtk = TRUE,
+  gene.id = FALSE,
+  verbose = TRUE
 ) {
   if (!is.null(x = features)) {
     if (length(x = features) == 0) {
@@ -204,7 +204,7 @@ GeneActivity <- function(
       stop("No genes remaining after filtering for requested biotypes")
     }
   }
-  
+
   # filter genes if provided
   if (!is.null(x = features)) {
     transcripts <- transcripts[transcripts$gene_name %in% features]
@@ -219,14 +219,14 @@ GeneActivity <- function(
       stop("No genes remaining after filtering for max.width")
     }
   }
-  
+
   # extend to include promoters
   transcripts <- Extend(
     x = transcripts,
     upstream = extend.upstream,
     downstream = extend.downstream
   )
-  
+
   # quantify
   frags <- Fragments(object = object[[assay]])
   if (length(x = frags) == 0) {
@@ -246,7 +246,7 @@ GeneActivity <- function(
   names(x = gene.key) <- as.character(x = transcripts)
   rownames(x = counts) <- as.vector(x = gene.key[rownames(x = counts)])
   counts <- counts[rownames(x = counts) != "", ]
-  
+
   return(counts)
 }
 
@@ -278,8 +278,8 @@ GeneActivity <- function(
 #' @examples
 #' \donttest{
 #' genome <- 780007
-#' names(genome) <- 'chr1'
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' names(genome) <- "chr1"
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' fragments <- CreateFragmentObject(fpath, cells = colnames(atac_small))
 #' GenomeBinMatrix(
 #'   fragments = fragments,
@@ -339,7 +339,7 @@ GenomeBinMatrix <- function(
 #' chromosome that is not present in the fragment file,
 #' it will not be included in the returned matrix. Set `keep_all_features` to
 #' TRUE to force output to include all features in the input ranges. Note that
-#' features on chromosomes that are not present in the fragment file will be 
+#' features on chromosomes that are not present in the fragment file will be
 #' filled with zero counts.
 #' @param cells Vector of cells to include. If NULL, include all cells found
 #' in the fragments file
@@ -353,7 +353,7 @@ GenomeBinMatrix <- function(
 #' @concept quantification
 #' @return Returns a sparse matrix
 #' @examples
-#' fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' fragments <- CreateFragmentObject(fpath)
 #' FeatureMatrix(
 #'   fragments = fragments,
@@ -419,7 +419,7 @@ FeatureMatrix <- function(
           object = fragments[[x]],
           slot = "seqlevels"
         )
-        
+
         if (!is.null(x = seqlevel.conversion)) {
           # replace seqnames
           feat.use <- suppressWarnings(
@@ -428,7 +428,7 @@ FeatureMatrix <- function(
         } else {
           feat.use <- features
         }
-        
+
         mat <- RunFragtk(
           fragments = GetFragmentData(
             object = fragments[[x]],
@@ -457,7 +457,8 @@ FeatureMatrix <- function(
           verbose = verbose,
           process_n = process_n
         )
-      })
+      }
+    )
   }
 
   # merge all the matrices
@@ -480,12 +481,12 @@ FeatureMatrix <- function(
 }
 
 #' Run fragtk matrix
-#' 
+#'
 #' Wrapper function to run `fragtk matrix` and return the output as a sparse
 #' matrix in R.
-#' 
+#'
 #' See <https://crates.io/crates/fragtk> for fragtk documentation.
-#' 
+#'
 #' @param fragments A list of Fragment objects or fragment file paths
 #' @param features A GRanges object containing a set of genomic intervals to
 #' quantify. These genomic ranges will be passed to the `--bed` argument in
@@ -501,43 +502,45 @@ FeatureMatrix <- function(
 #' @param outdir Path for output directory
 #' @param cleanup Remove output files created by fragtk
 #' @param verbose Display messages
-#' 
+#'
 #' @importFrom S4Vectors mcols
 #' @importFrom Matrix readMM
-#' 
+#'
 #' @concept quantification
-#' 
+#'
 #' @return Returns a CsparseMatrix
 #' @export
 RunFragtk <- function(
-    fragments,
-    features,
-    cells,
-    group = FALSE,
-    pic = TRUE,
-    fragtk.path = NULL,
-    outdir = tempdir(),
-    cleanup = TRUE,
-    verbose = TRUE
+  fragments,
+  features,
+  cells,
+  group = FALSE,
+  pic = TRUE,
+  fragtk.path = NULL,
+  outdir = tempdir(),
+  cleanup = TRUE,
+  verbose = TRUE
 ) {
   # find fragtk
   fragtk.path <- fragtk.path %||% unname(obj = Sys.which(names = "fragtk"))
   if (nchar(x = fragtk.path) == 0) {
-    stop("fragtk not found. Please install fragtk:",
-         "https://crates.io/crates/fragtk")
+    stop(
+      "fragtk not found. Please install fragtk:",
+      "https://crates.io/crates/fragtk"
+    )
   }
-  
+
   if (!dir.exists(paths = outdir)) {
     stop("Requested output directory does not exist")
   }
-  
+
   # temp files
   bed.path <- tempfile(pattern = "signac_fragtk_bed", tmpdir = outdir)
   cells.path <- tempfile(pattern = "signac_fragtk_cells", tmpdir = outdir)
   out.path <- tempfile(pattern = "signac_fragtk_matrix", tmpdir = outdir)
-  
+
   additional.args <- ""
-  
+
   # write cells and regions files
   feat <- as.data.frame(features)[, 1:3]
   if (is.logical(x = group)) {
@@ -563,7 +566,7 @@ RunFragtk <- function(
       }
     }
   }
-  
+
   if (pic) {
     additional.args <- paste0(additional.args, " --pic")
   }
@@ -576,7 +579,7 @@ RunFragtk <- function(
     quote = FALSE
   )
   writeLines(text = cells, con = cells.path)
-  
+
   # call fragtk
   cmd <- paste0(
     fragtk.path,
@@ -591,14 +594,14 @@ RunFragtk <- function(
     " ",
     additional.args
   )
-  
+
   system(
     command = cmd,
     wait = TRUE,
     ignore.stderr = !verbose,
     ignore.stdout = !verbose
   )
-  
+
   # read results
   if (verbose) {
     message("Loading count matrix")
@@ -606,12 +609,12 @@ RunFragtk <- function(
   matrix.file <- paste0(out.path, .Platform$file.sep, "matrix.mtx.gz")
   rownames.file <- paste0(out.path, .Platform$file.sep, "features.tsv.gz")
   colnames.file <- paste0(out.path, .Platform$file.sep, "barcodes.tsv.gz")
-  
+
   counts <- readMM(file = matrix.file)
   rownames(counts) <- readLines(rownames.file)
   colnames(counts) <- readLines(colnames.file)
   counts <- as(object = counts, Class = "CsparseMatrix")
-  
+
   # remove temp files
   if (cleanup) {
     files.to.remove <- c(
@@ -680,7 +683,7 @@ SingleFeatureMatrix <- function(
   fragment.index <- GetFragmentData(object = fragment, slot = "file.index")
   frag.cells <- GetFragmentData(object = fragment, slot = "cells")
   seqlevel.conversion <- GetFragmentData(object = fragment, slot = "seqlevels")
-  
+
   # rename seqlevels of features to match seqlevels in the fragment file
   # afterwards, map back to the seqlevels in the input features
   if (!is.null(x = seqlevel.conversion)) {
@@ -691,7 +694,7 @@ SingleFeatureMatrix <- function(
   } else {
     feat.use <- features
   }
-  
+
   if (!is.null(cells)) {
     # only look for cells that are in the fragment file
     if (is.null(x = frag.cells)) {
@@ -707,7 +710,7 @@ SingleFeatureMatrix <- function(
       cells <- frag.cells[cell.idx]
     }
   } else {
-    # cells not set, but still need to only return cells that 
+    # cells not set, but still need to only return cells that
     # are in the fragment objects, with cell names converted
     if (!is.null(x = frag.cells)) {
       cells <- frag.cells
@@ -732,13 +735,17 @@ SingleFeatureMatrix <- function(
     stop("No matching chromosomes found in fragment file.")
   }
   n_removed <- n_feat_start - length(x = feat.use)
-  if (n_removed > 0 && ! keep_all_features) {
+  if (n_removed > 0 && !keep_all_features) {
     if (n_removed == 1) {
-      warning(n_removed, " feature is on a seqname not present in ",
-              "the fragment file. This will be removed.")
+      warning(
+        n_removed, " feature is on a seqname not present in ",
+        "the fragment file. This will be removed."
+      )
     } else {
-      warning(n_removed, " features are on seqnames not present in ",
-              "the fragment file. These will be removed.")
+      warning(
+        n_removed, " features are on seqnames not present in ",
+        "the fragment file. These will be removed."
+      )
     }
   }
   feature.list <- ChunkGRanges(
@@ -800,7 +807,7 @@ SingleFeatureMatrix <- function(
   } else {
     feat.str <- as.character(x = feat.use)
   }
-  featmat <- featmat[feat.str, , drop=FALSE]
+  featmat <- featmat[feat.str, , drop = FALSE]
   if (!is.null(x = seqlevel.conversion)) {
     # map back to original seqnames
     sl <- names(x = seqlevel.conversion)

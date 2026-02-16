@@ -47,7 +47,10 @@ SetMotifData(
 )
 motif.matrix <- GetMotifData(object = atac_small)
 SetMotifData(
-  object = atac_small, assay = "peaks", slot = "data", new.data = motif.matrix
+  object = atac_small,
+  assay = "peaks",
+  slot = "data",
+  new.data = motif.matrix
 )
 }
 \concept{motifs}

@@ -107,8 +107,9 @@ automatically.}
 
 \item{mode}{MACS function to call, choose between \code{callpeak} or \code{hmmratac}.
 Default is \code{callpeak}. If using \code{hmmratac} mode, runtime may be longer than
-\code{callpeak} and additional arguments may be needed. See MACS HMMRATAC documentation
-for more details: https://deepwiki.com/macs3-project/MACS/3.2-atac-seq-analysis-with-hmmratac}
+\code{callpeak} and additional arguments may be needed. See MACS HMMRATAC
+documentation for more details:
+https://deepwiki.com/macs3-project/MACS/3.2-atac-seq-analysis-with-hmmratac}
 
 \item{broad}{Call broad peaks (\code{--broad} parameter for MACS).}
 

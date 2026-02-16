@@ -46,11 +46,12 @@ maximum value for that bigwig file within the plotted region}
 
 \item{ymax}{Maximum value for Y axis. Can be one of:
 \itemize{
-\item{NULL: set to the highest value among all the tracks (default)}
-\item{qXX: clip the maximum value to the XX quantile (for example, q95 will
-set the maximum value to 95\\% of the maximum value in the data). This can help
-remove the effect of extreme values that may otherwise distort the scale.}
-\item{numeric: manually define a Y-axis limit}
+\item \code{NULL}: set to the highest value among all the tracks (default)
+\item \code{qXX}: clip the maximum value to the XX quantile (for example, q95 will
+set the maximum value to 95\% of the maximum value in the data). This can
+help remove the effect of extreme values that may otherwise distort the
+scale.
+\item numeric: manually define a Y-axis limit
 }}
 
 \item{max.downsample}{Minimum number of positions kept when downsampling.

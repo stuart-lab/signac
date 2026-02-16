@@ -24,9 +24,9 @@ InsertionBias(object, ...)
 
 \item{...}{Arguments passed to other methods}
 
-\item{genome}{A \link[BSgenome:BSgenome-class]{BSgenome::BSgenome} object or any other object supported by
-\link[BSgenome:getSeq-methods]{BSgenome::getSeq}. Do \code{showMethods("getSeq")} to get the list of all
-supported object types.}
+\item{genome}{A \link[BSgenome:BSgenome-class]{BSgenome::BSgenome} object or any other object
+supported by \link[BSgenome:getSeq-methods]{BSgenome::getSeq}. Do \code{showMethods("getSeq")} to get the list
+of all supported object types.}
 
 \item{region}{Genomic region to use when assessing bias.}
 

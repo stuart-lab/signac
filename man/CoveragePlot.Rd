@@ -158,11 +158,12 @@ sequences in each group.}
 
 \item{ymax}{Maximum value for Y axis. Can be one of:
 \itemize{
-\item{NULL: set to the highest value among all the tracks (default)}
-\item{qXX: clip the maximum value to the XX quantile (for example, q95 will
-set the maximum value to 95\\% of the maximum value in the data). This can help
-remove the effect of extreme values that may otherwise distort the scale.}
-\item{numeric: manually define a Y-axis limit}
+\item \code{NULL}: set to the highest value among all the tracks (default)
+\item qXX: clip the maximum value to the XX quantile (for example, q95 will
+set the maximum value to 95\% of the maximum value in the data). This can
+help remove the effect of extreme values that may otherwise distort the
+scale.
+\item numeric: manually define a Y-axis limit
 }}
 
 \item{cells}{Which cells to plot. Default all cells}
@@ -183,15 +184,19 @@ and a longer period of time needed to draw the plot.}
 \item{gwas}{GWAS summary statistics to display on the plot. Can be the path
 to a GWAS-SSF file on-disk or a dataframe in the GWAS-SSF format.}
 
-\item{gwas.ld.file}{Path to LD data file for coloring GWAS points by r². Optional.}
+\item{gwas.ld.file}{Path to LD data file for coloring GWAS points by r².
+Optional.}
 
-\item{gwas.ld.lead.snp}{Lead SNP for LD calculations. Required if gwas.ld.file provided.}
+\item{gwas.ld.lead.snp}{Lead SNP for LD calculations.
+Required if gwas.ld.file provided.}
 
 \item{gwas.credset.file}{Path to fine-mapping credible sets file. Optional.}
 
-\item{gwas.credset.threshold}{Posterior probability threshold for credible sets (default: 0.01)}
+\item{gwas.credset.threshold}{Posterior probability threshold for credible
+sets (default: 0.01)}
 
-\item{variants}{Dataframe containing variants to display (see \code{\link[=VariantTrack]{VariantTrack()}})}
+\item{variants}{Dataframe containing variants to display
+(see \code{\link[=VariantTrack]{VariantTrack()}})}
 
 \item{...}{Additional arguments passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}}
 }
@@ -235,17 +240,33 @@ CoveragePlot(object = atac_small, region = c("chr1:713500-714500"))
 
 # Show additional ranges
 ranges.show <- GenomicRanges::GRanges("chr1:713750-714000")
-CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), ranges = ranges.show)
+CoveragePlot(
+  object = atac_small,
+  region = c("chr1:713500-714500"),
+  ranges = ranges.show
+)
 
 # Highlight region
-CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), region.highlight = ranges.show)
+CoveragePlot(
+  object = atac_small,
+  region = c("chr1:713500-714500"),
+  region.highlight = ranges.show
+)
 
 # Change highlight color
 ranges.show$color <- "orange"
-CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), region.highlight = ranges.show)
+CoveragePlot(
+  object = atac_small,
+  region = c("chr1:713500-714500"),
+  region.highlight = ranges.show
+)
 
 # Show expression data
-CoveragePlot(object = atac_small, region = c("chr1:713500-714500"), features = "GYG2")
+CoveragePlot(
+  object = atac_small,
+  region = c("chr1:713500-714500"),
+  features = "GYG2"
+)
 }
 }
 \concept{visualization}

@@ -95,12 +95,14 @@ Find peaks that are correlated with the expression of nearby genes.
 For each gene, this function computes the correlation coefficient between
 the gene expression and accessibility of each peak within a given distance
 from the gene TSS, and computes an expected correlation coefficient for each
-peak given the GC content, accessibility, and length of the peak. The expected
-coefficient values for the peak are then used to compute a z-score and p-value.
+peak given the GC content, accessibility, and length of the peak. The
+expected coefficient values for the peak are then used to compute a z-score
+and p-value.
 }
 \details{
 This function was inspired by the method originally described by SHARE-seq
 (Sai Ma et al. 2020, Cell). Please consider citing the original SHARE-seq
-work if using this function: \href{https://pubmed.ncbi.nlm.nih.gov/33098772/}{doi: 10.1016/j.cell.2020.09.056}
+work if using this function:
+\href{https://pubmed.ncbi.nlm.nih.gov/33098772/}{doi: 10.1016/j.cell.2020.09.056}
 }
 \concept{links}

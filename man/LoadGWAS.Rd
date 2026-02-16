@@ -10,7 +10,8 @@ LoadGWAS(gwas.file)
 \item{gwas.file}{Path to GWAS/QTL summary statistics file (TSV)}
 }
 \value{
-data.frame with following columns present: chromosome, base_pair_location, p_value
+data.frame with following columns present: chromosome,
+base_pair_location, p_value
 }
 \description{
 Load GWAS-SSF file
@@ -22,7 +23,8 @@ Required columns: \code{chromosome}, \code{base_pair_location}, \code{p_value}
 
 Optional columns: \code{variant_id}, \code{beta}, \code{standard_error}
 
-Column matching is case-insensitive. Also accepts QTL data in the same format.
+Column matching is case-insensitive. Also accepts QTL data in the same
+format.
 }
 \references{
 \doi{10.1101/2022.07.15.500230}

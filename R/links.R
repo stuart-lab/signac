@@ -9,11 +9,11 @@ NULL
 #' @rdname GetLinkedPeaks
 #' @export
 GetLinkedPeaks.Seurat <- function(
-    object,
-    features,
-    assay = NULL,
-    min.abs.score = 0,
-    ...
+  object,
+  features,
+  assay = NULL,
+  min.abs.score = 0,
+  ...
 ) {
   assay <- assay %||% DefaultAssay(object = object)
   links <- GetLinkedPeaks(
@@ -30,8 +30,8 @@ GetLinkedPeaks.Seurat <- function(
 #' @concept links
 #' @rdname GetLinkedPeaks
 GetLinkedPeaks.Assay5 <- function(
-    object,
-    ...
+  object,
+  ...
 ) {
   stop("GetLinkedPeaks requires a GRangesAssay object")
 }
@@ -64,11 +64,11 @@ GetLinkedPeaks.GRangesAssay <- function(
 #' @rdname GetLinkedGenes
 #' @export
 GetLinkedGenes.Seurat <- function(
-    object,
-    features,
-    assay = NULL,
-    min.abs.score = 0,
-    ...
+  object,
+  features,
+  assay = NULL,
+  min.abs.score = 0,
+  ...
 ) {
   assay <- assay %||% DefaultAssay(object = object)
   links <- GetLinkedGenes(
@@ -85,8 +85,8 @@ GetLinkedGenes.Seurat <- function(
 #' @concept links
 #' @rdname GetLinkedGenes
 GetLinkedGenes.Assay5 <- function(
-    object,
-    ...
+  object,
+  ...
 ) {
   stop("GetLinkedGenes requires a GRangesAssay object")
 }
@@ -99,10 +99,10 @@ GetLinkedGenes.Assay5 <- function(
 #' @concept links
 #' @rdname GetLinkedGenes
 GetLinkedGenes.GRangesAssay <- function(
-    object,
-    features,
-    min.abs.score = 0,
-    ...
+  object,
+  features,
+  min.abs.score = 0,
+  ...
 ) {
   lnk <- Links(object = object)
   if (length(x = lnk) == 0) {
@@ -146,7 +146,6 @@ ConnectionsToLinks <- function(
   ccans = NULL,
   threshold = 0
 ) {
-  
   # add group information
   if (!is.null(x = ccans)) {
     ccan.lookup <- ccans$CCAN
@@ -155,17 +154,16 @@ ConnectionsToLinks <- function(
       test = is.na(x = ccan.lookup[conns$Peak1]),
       yes = ccan.lookup[conns$Peak2],
       no = ccan.lookup[conns$Peak1]
-    )
-    )
+    ))
     conns$group <- groups
   } else {
     conns$group <- NA
   }
-  
+
   # filter based on threshold
   conns <- conns[!is.na(conns$coaccess), ]
   conns <- conns[conns$coaccess > threshold, ]
-  
+
   # create ginteractions
   gi <- GInteractions(GRanges(conns$Peak1), GRanges(conns$Peak2))
   gi$score <- conns$coaccess
@@ -180,12 +178,14 @@ ConnectionsToLinks <- function(
 #' For each gene, this function computes the correlation coefficient between
 #' the gene expression and accessibility of each peak within a given distance
 #' from the gene TSS, and computes an expected correlation coefficient for each
-#' peak given the GC content, accessibility, and length of the peak. The expected
-#' coefficient values for the peak are then used to compute a z-score and p-value.
+#' peak given the GC content, accessibility, and length of the peak. The
+#' expected coefficient values for the peak are then used to compute a z-score
+#' and p-value.
 #'
 #' This function was inspired by the method originally described by SHARE-seq
 #' (Sai Ma et al. 2020, Cell). Please consider citing the original SHARE-seq
-#' work if using this function: [doi: 10.1016/j.cell.2020.09.056](https://pubmed.ncbi.nlm.nih.gov/33098772/)
+#' work if using this function:
+#' [doi: 10.1016/j.cell.2020.09.056](https://pubmed.ncbi.nlm.nih.gov/33098772/)
 #'
 #' @param object A Seurat object
 #' @param peak.assay Name of assay containing peak information
@@ -269,7 +269,9 @@ LinkPeaks <- function(
       stop("min.distance should be a numeric value")
     }
     if (min.distance < 0) {
-      warning("Requested a negative min.distance value, setting min.distance to zero")
+      warning(
+        "Requested a negative min.distance value, setting min.distance to zero"
+      )
       min.distance <- NULL
     } else if (min.distance == 0) {
       min.distance <- NULL
@@ -312,9 +314,11 @@ LinkPeaks <- function(
   meta.features <- object[[peak.assay]][[]]
   if (!(all(
     c("GC.percent", "sequence.length") %in% colnames(x = meta.features)
-    ))) {
-    stop("DNA sequence information for each peak has not been computed.\n",
-         "Run RegionStats before calling this function.")
+  ))) {
+    stop(
+      "DNA sequence information for each peak has not been computed.\n",
+      "Run RegionStats before calling this function."
+    )
   }
   if (!("count" %in% colnames(x = meta.features))) {
     data.use <- GetAssayData(object = object[[peak.assay]], layer = peak.layer)
@@ -345,18 +349,20 @@ LinkPeaks <- function(
   expression.data <- expression.data[genes.keep, , drop = FALSE]
   genes <- rownames(x = expression.data)
   if (gene.id) {
-    gene.coords.use <- gene.coords[gene.coords$gene_id %in% genes,]
+    gene.coords.use <- gene.coords[gene.coords$gene_id %in% genes, ]
     gene.coords.use$gene_name <- gene.coords.use$gene_id
   } else {
-    gene.coords.use <- gene.coords[gene.coords$gene_name %in% genes,]
+    gene.coords.use <- gene.coords[gene.coords$gene_name %in% genes, ]
   }
   if (length(x = gene.coords.use) == 0) {
     stop("Could not find gene coordinates for requested genes")
   }
   if (length(x = gene.coords.use) < nrow(x = expression.data)) {
-    message("Found gene coordinates for ",
-            length(x = gene.coords.use),
-            " genes")
+    message(
+      "Found gene coordinates for ",
+      length(x = gene.coords.use),
+      " genes"
+    )
   }
   peaks <- granges(x = object[[peak.assay]])
   peaks <- peaks[peaks.keep]
@@ -374,10 +380,12 @@ LinkPeaks <- function(
     peak_distance_matrix <- peak_distance_matrix - peak_distance_matrix_min
   }
   if (sum(peak_distance_matrix) == 0) {
-    stop("No peaks fall within distance threshold\n",
-         "Have you set the proper genome and seqlevelsStyle for ",
-         peak.assay,
-         " assay?")
+    stop(
+      "No peaks fall within distance threshold\n",
+      "Have you set the proper genome and seqlevelsStyle for ",
+      peak.assay,
+      " assay?"
+    )
   }
   if (verbose) {
     message(
@@ -420,12 +428,14 @@ LinkPeaks <- function(
           Y = gene.expression
         )
         rownames(x = coef.result) <- colnames(x = peak.access)
-        coef.result <- coef.result[abs(x = coef.result) > score_cutoff, , drop = FALSE]
+        coef.result <- coef.result[
+          abs(x = coef.result) > score_cutoff, ,
+          drop = FALSE
+        ]
 
         if (nrow(x = coef.result) == 0) {
           return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
         } else {
-
           # select peaks at random with matching GC content and accessibility
           # sample from peaks on a different chromosome to the gene
           peaks.test <- rownames(x = coef.result)
@@ -474,7 +484,11 @@ LinkPeaks <- function(
           gene.vec <- gene.vec[links.keep]
           coef.vec <- coef.vec[links.keep]
           zscore.vec <- zscore.vec[links.keep]
-          return(list("gene" = gene.vec, "coef" = coef.vec, "zscore" = zscore.vec))
+          return(list(
+            "gene" = gene.vec,
+            "coef" = coef.vec,
+            "zscore" = zscore.vec
+          ))
         }
       }
     }
@@ -502,7 +516,6 @@ LinkPeaks <- function(
   )
   rownames(x = coef.matrix) <- genes.use
   colnames(x = coef.matrix) <- names(x = peak.key)
-  # links <- LinksToGRanges(linkmat = coef.matrix, gene.coords = gene.coords.use)
   links <- LinksToGInteractions(
     linkmat = coef.matrix,
     gene.coords = gene.coords.use
@@ -516,7 +529,6 @@ LinkPeaks <- function(
   )
   rownames(x = z.matrix) <- genes.use
   colnames(x = z.matrix) <- names(x = peak.key)
-  # z.lnk <- LinksToGRanges(linkmat = z.matrix, gene.coords = gene.coords.use)
   z.lnk <- LinksToGInteractions(
     linkmat = z.matrix,
     gene.coords = gene.coords.use
@@ -543,7 +555,7 @@ LinkPeaks <- function(
 #' @importFrom BiocGenerics sort
 LinksToGRanges <- function(linkmat, gene.coords) {
   # get TSS for each gene
-  tss <- resize(gene.coords, width = 1, fix = 'start')
+  tss <- resize(gene.coords, width = 1, fix = "start")
   gene.idx <- sapply(
     X = rownames(x = linkmat),
     FUN = function(x) {
@@ -583,10 +595,10 @@ LinksToGRanges <- function(linkmat, gene.coords) {
 #' @importFrom GenomicRanges GRanges
 #' @importFrom InteractionSet GInteractions
 LinksToGInteractions <- function(linkmat, gene.coords) {
-  x <- as(object = linkmat, Class = 'TsparseMatrix')
+  x <- as(object = linkmat, Class = "TsparseMatrix")
   peak.coords <- GRanges(colnames(x = linkmat))
-  region1 <- peak.coords[x@j+1]
-  region2 <- gene.coords[x@i+1]
+  region1 <- peak.coords[x@j + 1]
+  region2 <- gene.coords[x@i + 1]
   gi <- GInteractions(region1, region2)
   gi$score <- x@x
   return(gi)
@@ -611,8 +623,8 @@ DistanceToTSS <- function(
   peaks,
   genes,
   distance = 200000
-  ) {
-  tss <- resize(x = genes, width = 1, fix = 'start')
+) {
+  tss <- resize(x = genes, width = 1, fix = "start")
   genes.extended <- suppressWarnings(
     expr = Extend(
       x = tss, upstream = distance, downstream = distance
@@ -621,8 +633,8 @@ DistanceToTSS <- function(
   overlaps <- findOverlaps(
     query = peaks,
     subject = genes.extended,
-    type = 'any',
-    select = 'all'
+    type = "any",
+    select = "all"
   )
   hit_matrix <- sparseMatrix(
     i = queryHits(x = overlaps),

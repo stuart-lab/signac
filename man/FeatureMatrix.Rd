@@ -59,7 +59,7 @@ Returns a sparse matrix
 Construct a feature x cell matrix from a genomic fragments file
 }
 \examples{
-fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 fragments <- CreateFragmentObject(fpath)
 FeatureMatrix(
   fragments = fragments,

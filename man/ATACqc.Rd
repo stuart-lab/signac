@@ -47,8 +47,8 @@ ATACqc(object, ...)
 \item{...}{Arguments passed to other methods}
 
 \item{annotations}{\code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object containing
-gene annotations. If \code{NULL}, attempt to extract this from the \code{ChromatinAssay5}
-object if provided.}
+gene annotations. If \code{NULL}, attempt to extract this from the
+\linkS4class{ChromatinAssay5} object if provided.}
 
 \item{fragtk.path}{Path to \code{fragtk} executable. If NULL, try to find \code{fragtk}
 automatically.}

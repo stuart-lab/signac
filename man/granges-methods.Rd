@@ -38,8 +38,9 @@ granges(atac_small)
 }
 \seealso{
 \itemize{
-\item{\link[GenomicRanges:genomic-range-squeezers]{granges} in the \pkg{GenomicRanges} package.}
-\item{\linkS4class{GRangesAssay}}
+\item \code{\link[GenomicRanges:genomic-range-squeezers]{GenomicRanges::granges()}}
+\item \link[GenomicRanges:genomic-range-squeezers]{GenomicRanges::GRanges()}
+}
 }
 }
 \concept{granges}

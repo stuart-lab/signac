@@ -106,9 +106,7 @@
 \linkS4class{GRangesAssay} object. If missing, \code{x} is used as the
 subject.}
 
-\item{select}{Logic for handling ties.
-See \code{\link[GenomicRanges:nearest-methods]{GenomicRanges::nearest-methods()}} in the \pkg{GenomicRanges}
-package.}
+\item{select}{Logic for handling ties. See \code{\link[GenomicRanges:nearest-methods]{GenomicRanges::nearest-methods()}}}
 
 \item{ignore.strand}{Logical argument controlling whether strand information
 should be ignored.}
@@ -186,10 +184,9 @@ are available for \linkS4class{GRangesAssay} objects.
 }}
 \seealso{
 \itemize{
-\item{\link[IRanges:nearest-methods]{nearest-methods} in the \pkg{IRanges} package.}
-\item{\link[GenomicRanges:nearest-methods]{nearest-methods} in the \pkg{GenomicRanges}
-package}
-\item{\linkS4class{GRangesAssay}}
+\item \code{\link[IRanges:nearest-methods]{IRanges::nearest()}}
+\item \code{\link[GenomicRanges:nearest-methods]{GenomicRanges::nearest()}}
+\item \linkS4class{GRangesAssay}
 }
 }
 \concept{nearest}

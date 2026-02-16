@@ -18,5 +18,6 @@ Load LD data for a lead SNP
 \details{
 Required columns: \code{chromosome}, \code{position}, \code{r2}
 
-Column matching is case-insensitive. Values should be pairwise r-squared to a lead SNP.
+Column matching is case-insensitive. Values should be pairwise r-squared to
+a lead SNP.
 }

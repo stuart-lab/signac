@@ -93,12 +93,12 @@ RegionMatrix.ChromatinAssay <- function(
     verbose = verbose,
     ...
   )
-  
+
   # get normalization factors
   cells.per.group <- table(group.by, useNA = "always")
   lut <- as.vector(x = cells.per.group)
   names(x = lut) <- names(x = cells.per.group)
-  
+
   # store upstream and downstream parameters
   params <- list(
     "upstream" = upstream,
@@ -106,7 +106,7 @@ RegionMatrix.ChromatinAssay <- function(
     "cells" = lut
   )
   matlist$function.parameters <- params
-  
+
   # assigning a list using SetAssayData will overwrite the whole slot
   # temporary solution
   if (key %in% names(GetAssayData(object, layer = "positionEnrichment"))) {
@@ -143,7 +143,7 @@ RegionMatrix.default <- function(
   if (!all(all.valid)) {
     stop("Must supply a list of Fragment objects")
   }
-  
+
   # get center of region and extend
   regions <- resize(x = regions, width = 1, fix = "center")
   regions <- suppressWarnings(expr = Extend(
@@ -152,29 +152,28 @@ RegionMatrix.default <- function(
     downstream = downstream,
     from.midpoint = TRUE
   ))
-  
+
   total_bases <- upstream + downstream
-  
+
   # separate matrix for each group of cells
   matlist <- list()
   unique.groups <- unique(x = group.by)
-  
+
   on_plus <- strand(x = regions) == "+" | strand(x = regions) == "*"
-  plus.strand <- regions[on_plus, ]
-  minus.strand <- regions[!on_plus, ]
   for (i in seq_along(along.with = object)) {
     tmplist <- list()
-    
+
     # open tabix connection
     fragfile <- GetFragmentData(object = object[[i]], slot = "file.path")
     fragindex <- GetFragmentData(object = object[[i]], slot = "file.index")
     cellnames <- GetFragmentData(object = object[[i]], slot = "cells")
     tabix.file <- TabixFile(file = fragfile, index = fragindex)
     open(con = tabix.file)
-    
+
     # initialize empty matrix for each group of cells
     # each row is region
-    # each column is a base in region (TODO: implement window sum to reduce size of matrix)
+    # each column is a base in region
+    # (TODO: implement window sum to reduce size of matrix)
     ncol.mat <- upstream + downstream + 1
     for (j in unique.groups) {
       # TODO make this dgCMatrix instead
@@ -184,13 +183,13 @@ RegionMatrix.default <- function(
         ncol = ncol.mat
       )
     }
-    
+
     if (length(x = regions) > 0) {
       frags <- scanTabix(file = tabix.file, param = regions)
       res <- TabixOutputToDataFrame(
         reads = frags, record.ident = TRUE
       )
-      
+
       # assign counts to cell groups
       for (j in unique(x = res$ident)) { # for each region
         res_region <- res[res$ident == j, ]
@@ -199,13 +198,15 @@ RegionMatrix.default <- function(
                                 strand(x = regions[j]) == "*")
         res_region$start <- res_region$start - start(x = regions[j])
         res_region$end <- res_region$end - start(x = regions[j])
-        
+
         # remove out of bounds positions
         res_region <- res_region[
-          res_region$start > 0 & res_region$start < ncol.mat, , drop = FALSE
+          res_region$start > 0 & res_region$start < ncol.mat, ,
+          drop = FALSE
         ]
         res_region <- res_region[
-          res_region$end > 0 & res_region$end < ncol.mat, , drop = FALSE
+          res_region$end > 0 & res_region$end < ncol.mat, ,
+          drop = FALSE
         ]
         for (cell in unique.groups) {
           cells.keep <- names(x = group.by[group.by == cell])
@@ -215,7 +216,8 @@ RegionMatrix.default <- function(
               table = cellnames[cells.keep],
               nomatch = 0L
             ) > 0, ,
-            drop = FALSE]
+            drop = FALSE
+          ]
           if (nrow(x = subfrag) > 0) {
             if (on_plus) {
               startpos <- subfrag$start
@@ -231,7 +233,7 @@ RegionMatrix.default <- function(
         }
       }
     }
-    
+
     if (i == 1) {
       # one fragment file
       matlist <- tmplist

@@ -199,7 +199,11 @@ AddMotifs.Seurat <- function(
 #'
 #' pwm <- getMatrixSet(
 #'   x = JASPAR2018,
-#'   opts = list(collection = "CORE", tax_group = "vertebrates", all_versions = FALSE)
+#'   opts = list(
+#'     collection = "CORE",
+#'     tax_group = "vertebrates",
+#'     all_versions = FALSE
+#'   )
 #' )
 #' motif.matrix <- CreateMotifMatrix(
 #'   features = granges(atac_small),
@@ -291,7 +295,10 @@ CreateMotifMatrix <- function(
 #' @examples
 #' \dontrun{
 #' library(BSgenome.Hsapiens.UCSC.hg19)
-#' RunChromVAR(object = atac_small[["peaks"]], genome = BSgenome.Hsapiens.UCSC.hg19)
+#' RunChromVAR(
+#'   object = atac_small[["peaks"]],
+#'   genome = BSgenome.Hsapiens.UCSC.hg19
+#' )
 #' }
 RunChromVAR.GRangesAssay <- function(
   object,
@@ -477,10 +484,10 @@ FindMotifs <- function(
       features <- intersect(x = features, y = rownames(x = meta.feature))
     }
     mf.query <- meta.feature[features, , drop = FALSE]
-    
-    # we can run FindMotifs on some object that does not have genomic ranges as the features
-    # but the user will have to supply the meta.features containing GC.percent
-    # to identify the matched background set of features
+
+    # we can run FindMotifs on some object that does not have genomic ranges as
+    # the features but the user will have to supply the meta.features containing
+    # GC.percent to identify the matched background set of features
     background <- MatchRegionStats(
       meta.feature = mf.choose,
       query.feature = mf.query,
@@ -510,11 +517,11 @@ FindMotifs <- function(
   motif.names <- GetMotifData(
     object = object, assay = assay, slot = "motif.names"
   )
-  
+
   # TODO update this for new ChromatinAssay5 class definition
-  # no longer require that features in motif matrix match features in the data layer
-  # will need to check that all features are in the motif object
-  
+  # no longer require that features in motif matrix match features in the data
+  # layer will need to check that all features are in the motif object
+
   query.motifs <- motif.all[features, , drop = FALSE]
   background.motifs <- motif.all[background, , drop = FALSE]
   query.counts <- colSums(x = query.motifs)
@@ -563,7 +570,7 @@ FindMotifs <- function(
 ConvertMotifID.default <- function(object, name, id, ...) {
   if (hasArg(name = name) && hasArg(name = id)) {
     stop("Supply either name or ID, not both")
-  } else if (!hasArg(name = name) & !(hasArg(name = id))) {
+  } else if (!hasArg(name = name) && !(hasArg(name = id))) {
     stop("Supply vector of names or IDs to convert")
   } else {
     if (hasArg(name = name)) {

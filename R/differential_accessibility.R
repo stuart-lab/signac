@@ -17,8 +17,8 @@ FoldChange.ChromatinAssay5 <- function(
     stop("Please install Seurat: install.packages('Seurat')")
   }
   if (is.null(x = mean.fxn)) {
-    mean.fxn <-  function(x) {
-      return(log(x = rowMeans(x = x) + 1/10000, base = base))
+    mean.fxn <- function(x) {
+      return(log(x = rowMeans(x = x) + 1 / 10000, base = base))
     }
   }
   # Omit the decimal value of e from the column name if base == exp(1)

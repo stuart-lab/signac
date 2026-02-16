@@ -22,7 +22,8 @@ GWASTrack(
 \item{gwas}{Path to GWAS summary statistics file, or a dataframe
 containing the gwas data in the GWAS-SSF format}
 
-\item{region}{Genomic region (GRanges or string like "chr10-112900000-113100000")}
+\item{region}{Genomic region (\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges} or a string that can
+be converted to \code{GRanges} like "chr10:112900000-113100000")}
 
 \item{ld.file}{Path to LD file. Optional.}
 

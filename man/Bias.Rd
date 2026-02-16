@@ -44,7 +44,7 @@ Bias(atac_small[["peaks"]])
 \donttest{
 Bias(atac_small)
 }
-bases <- c("A","C","G","T")
+bases <- c("A", "C", "G", "T")
 hexamers <- apply(expand.grid(rep(list(bases), 6)), 1, paste0, collapse = "")
 b <- 1:length(hexamers)
 names(b) <- hexamers

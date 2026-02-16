@@ -152,23 +152,39 @@ RunSVD.default <- function(
 
 # from SeuratObject (not exported)
 #' @importFrom stats var
-PrepDR5 <- function(object, features = NULL, layer = "scale.data", verbose = TRUE) {
+PrepDR5 <- function(
+  object,
+  features = NULL,
+  layer = "scale.data",
+  verbose = TRUE
+) {
   layer <- layer[1L]
   olayer <- layer
   layer <- Layers(object = object, search = layer)
   if (is.null(layer)) {
-    stop(paste0("No layer matching pattern '", olayer, "' not found. Please run ScaleData and retry"))
+    stop(
+      paste0(
+        "No layer matching pattern '",
+        olayer,
+        "' not found. Please run ScaleData and retry"
+      )
+    )
   }
   data.use <- LayerData(object = object, layer = layer)
   features <- features %||% VariableFeatures(object = object)
   if (!length(x = features)) {
-    stop("No variable features, run FindVariableFeatures() or provide a vector of features", call. = FALSE)
+    stop(
+      "No variable features, run FindVariableFeatures()",
+      " or provide a vector of features",
+      call. = FALSE
+    )
   }
   if (is(data.use, "IterableMatrix")) {
-    features.var <- BPCells::matrix_stats(matrix = data.use, row_stats = "variance")$row_stats["variance", ]
+    features.var <- BPCells::matrix_stats(
+      matrix = data.use, row_stats = "variance"
+    )$row_stats["variance", ]
   } else {
     features.var <- sparseMatrixStats::rowVars(x = data.use)
-    # features.var <- apply(X = data.use, MARGIN = 1L, FUN = var)
   }
   features.keep <- features[features.var > 0]
   if (!length(x = features.keep)) {
@@ -179,7 +195,8 @@ PrepDR5 <- function(object, features = NULL, layer = "scale.data", verbose = TRU
       warning(
         "The following ",
         length(x = exclude),
-        " features requested have zero variance; running reduction without them: ",
+        " features requested have zero variance;",
+        " running reduction without them: ",
         paste(exclude, collapse = ", "),
         call. = FALSE,
         immediate. = TRUE
@@ -250,16 +267,16 @@ RunSVD.Assay5 <- function(
 #' @concept dimension_reduction
 #' @method RunSVD Assay
 RunSVD.Assay <- function(
-    object,
-    assay = NULL,
-    layer = "data",
-    features = NULL,
-    pca = FALSE,
-    n = 50,
-    reduction.key = ifelse(pca, "PCA_", "LSI_"),
-    scale.max = NULL,
-    verbose = TRUE,
-    ...
+  object,
+  assay = NULL,
+  layer = "data",
+  features = NULL,
+  pca = FALSE,
+  n = 50,
+  reduction.key = ifelse(pca, "PCA_", "LSI_"),
+  scale.max = NULL,
+  verbose = TRUE,
+  ...
 ) {
   RunSVD.Assay5(
     object = object,

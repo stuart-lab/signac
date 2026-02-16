@@ -36,8 +36,8 @@ uses the active identities.}
 The Seurat object with metadata variable reordered by similarity.
 If the metadata variable was a character vector, it will be converted to a
 factor and the factor levels set according to the similarity ordering. If
-active identities were used (label=NULL), the levels will be updated according
-to similarity ordering.
+active identities were used (\code{label=NULL}), the levels will be updated
+according to similarity ordering.
 }
 \description{
 Compute distance matrix from a feature/variable matrix and

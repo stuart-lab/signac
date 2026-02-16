@@ -12,7 +12,7 @@ set.seed(1234)
 ah <- AnnotationHub()
 ensdb_v98 <- ah[["AH75011"]]
 annotations <- GetGRangesFromEnsDb(ensdb = ensdb_v98)
-seqlevels(annotations) <- paste0('chr', seqlevels(annotations))
+seqlevels(annotations) <- paste0("chr", seqlevels(annotations))
 genome(annotations) <- "hg38"
 
 counts <- Read10X_h5(filename = "10k_pbmc_ATACv2_nextgem_Chromium_Controller_filtered_peak_bc_matrix.h5")
@@ -26,7 +26,9 @@ pbmc <- CreateSeuratObject(counts = gr_assay, assay = "peaks")
 
 pfm <- getMatrixSet(
   x = JASPAR2020,
-  opts = list(collection = "CORE", tax_group = 'vertebrates', all_versions = FALSE)
+  opts = list(
+    collection = "CORE", tax_group = "vertebrates", all_versions = FALSE
+  )
 )
 
 pbmc <- AddMotifs(pbmc, genome = BSgenome.Hsapiens.UCSC.hg38, pfm = pfm[1:10])
@@ -36,14 +38,14 @@ ga <- GeneActivity(pbmc)
 
 ga_subset <- ga[1:50, ]
 
-pbmc[['RNA']] <- CreateAssayObject(counts = ga_subset)
+pbmc[["RNA"]] <- CreateAssayObject(counts = ga_subset)
 
-annotation_subset <- annotations[seqnames(annotations) == 'chr1', ]
+annotation_subset <- annotations[seqnames(annotations) == "chr1", ]
 Annotation(pbmc) <- head(annotation_subset, 200)
 
 pbmc <- RunTFIDF(pbmc)
 pbmc <- RunSVD(pbmc, features = rownames(pbmc))
-pbmc <- RunUMAP(pbmc, reduction = 'lsi', dims = 1:10)
+pbmc <- RunUMAP(pbmc, reduction = "lsi", dims = 1:10)
 pbmc$cluster <- sample(c(1, 2), size = ncol(pbmc), replace = TRUE)
 
 Fragments(pbmc) <- NULL

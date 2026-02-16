@@ -36,22 +36,22 @@ AggregateTiles <- function(object, ...) {
 }
 
 #' Compute scATAC-seq QC metrics
-#' 
+#'
 #' Wrapper function to run `fragtk qc` and add the metadata to the Seurat
 #' object.
-#' 
+#'
 #' @param object A [SeuratObject::Seurat] object, [ChromatinAssay5-class] object
 #' , or path to a fragment file.
 #' @param fragtk.path Path to `fragtk` executable. If NULL, try to find `fragtk`
 #' automatically.
 #' @param annotations [GenomicRanges::GRanges()] object containing
-#' gene annotations. If `NULL`, attempt to extract this from the `ChromatinAssay5`
-#' object if provided.
+#' gene annotations. If `NULL`, attempt to extract this from the
+#' [ChromatinAssay5-class] object if provided.
 #' @param outdir Path for output directory
 #' @param cleanup Remove output files created by fragtk
 #' @param verbose Display messages
 #' @param ... Arguments passed to other methods
-#' 
+#'
 #' @export ATACqc
 #' @rdname ATACqc
 ATACqc <- function(object, ...) {
@@ -59,7 +59,7 @@ ATACqc <- function(object, ...) {
 }
 
 #' Convert objects to a [ChromatinAssay5-class] object
-#' 
+#'
 #' @param x An object to convert to class [ChromatinAssay5-class]
 #' @param ... Arguments passed to other methods
 #' @rdname as.ChromatinAssay5
@@ -69,7 +69,7 @@ as.ChromatinAssay5 <- function(x, ...) {
 }
 
 #' Convert objects to a [GRangesAssay-class] object
-#' 
+#'
 #' @param x An object to convert to class [GRangesAssay-class]
 #' @param ... Arguments passed to other methods
 #' @rdname as.GRangesAssay
@@ -79,7 +79,7 @@ as.GRangesAssay <- function(x, ...) {
 }
 
 #' Convert objects to a [Fragment2-class] object
-#' 
+#'
 #' @param x An object to convert to class [Fragment2-class]
 #' @param ... Arguments passed to other methods
 #' @rdname as.Fragment2
@@ -125,7 +125,7 @@ Annotation <- function(object, ...) {
 #' @export Annotation<-
 #'
 "Annotation<-" <- function(object, ..., value) {
-  UseMethod(generic = 'Annotation<-', object = object)
+  UseMethod(generic = "Annotation<-", object = object)
 }
 
 #' Bias
@@ -147,7 +147,7 @@ Bias <- function(object, ...) {
 #' @export Bias<-
 #'
 "Bias<-" <- function(object, ..., value) {
-  UseMethod(generic = 'Bias<-', object = object)
+  UseMethod(generic = "Bias<-", object = object)
 }
 
 #' Binarize counts
@@ -221,12 +221,12 @@ ConvertMotifID <- function(object, ...) {
 #'
 #' Find highly variable features by fitting a locally polynomial regression
 #' model to the log(mean) and log(variance) of downsampled features.
-#' 
+#'
 #' This function is similar to the [Seurat::FindVariableFeatures()]
 #' function (with `selection.method="vst"`), but downsamples the features
-#' evenly across the range of mean values. This speeds up fitting of the loess 
+#' evenly across the range of mean values. This speeds up fitting of the loess
 #' curve when the number of features is large.
-#' 
+#'
 #' The function also provides the ability to combine ranking of features
 #' according to their mean count and their residual variance, using a weighted
 #' rank sum with weights set by the `weight.mean` parameter. This can help
@@ -265,7 +265,8 @@ FindTopFeatures <- function(object, ...) {
 #' for each position surrounding a set of motif instances.
 #'
 #' @param object A [SeuratObject::Seurat] or [ChromatinAssay5-class] object
-#' @param overwrite Logical; overwrite existing [RegionAggregation-class] object with same name
+#' @param overwrite Logical; overwrite existing [RegionAggregation-class] object
+#' with same name
 #' @param ... Arguments passed to other methods
 #' @return Returns a [SeuratObject::Seurat] object
 #' @rdname Footprint
@@ -291,7 +292,7 @@ Fragments <- function(object, ...) {
 #' @export Fragments<-
 #'
 "Fragments<-" <- function(object, ..., value) {
-  UseMethod(generic = 'Fragments<-', object = object)
+  UseMethod(generic = "Fragments<-", object = object)
 }
 
 #' Compute Tn5 insertion bias
@@ -308,10 +309,10 @@ InsertionBias <- function(object, ...) {
 
 
 #' Get genes linked to peaks
-#' 
+#'
 #' Retrieve peak-gene links for a given set of genes. Links must be first
 #' obtained by running the [LinkPeaks()] function.
-#' 
+#'
 #' This function is designed to obtain the stored results from running the
 #' [LinkPeaks()] function. Alternatively, custom peak-gene linkage methods
 #' can be used as long as they store the gene name, peak name, and a peak-gene
@@ -329,10 +330,10 @@ GetLinkedGenes <- function(object, ...) {
 }
 
 #' Get peaks linked to genes
-#' 
+#'
 #' Retrieve peak-gene links for a given set of genes. Links must be first
 #' obtained by running the [LinkPeaks()] function.
-#' 
+#'
 #' This function is designed to obtain the stored results from running the
 #' [LinkPeaks()] function. Alternatively, custom peak-gene linkage methods
 #' can be used as long as they store the gene name, peak name, and a peak-gene
@@ -342,7 +343,7 @@ GetLinkedGenes <- function(object, ...) {
 #' @param object A [SeuratObject::Seurat] object
 #' @param ... Arguments passed to other methods
 #' @return Returns a character vector of genes
-#' 
+#'
 #' @export GetLinkedPeaks
 #' @rdname GetLinkedPeaks
 #' @seealso GetLinkedGenes
@@ -379,7 +380,7 @@ Motifs <- function(object, ...) {
 #' @rdname Motifs
 #' @export Motifs<-
 "Motifs<-" <- function(object, ..., value) {
-  UseMethod(generic = 'Motifs<-', object = object)
+  UseMethod(generic = "Motifs<-", object = object)
 }
 
 #' Get or set links information
@@ -413,7 +414,7 @@ IdentifyVariants <- function(object, ...) {
 }
 
 #' Compute analytic Pearson residual variance
-#' 
+#'
 #' Find the top features for a given assay based on analytic Pearson residual
 #' variance. This function computes the Pearson residual variance for each
 #' feature without constructing the entire dense matrix of Pearson residuals to
@@ -435,8 +436,8 @@ PearsonResidualVar <- function(object, ...) {
 #' Region Aggregation
 #'
 #' Get the region aggregation information from a [ChromatinAssay5-class] object
-#' 
-#' @param object A Seurat object 
+#'
+#' @param object A Seurat object
 #' @param ... Arguments passed to other methods
 #' @return Returns a list of [RegionAggregation-class] objects
 #' @rdname RegionAggr
@@ -445,13 +446,14 @@ RegionAggr <- function(object, ...) {
   UseMethod(generic = "RegionAggr", object = object)
 }
 
-#' @param value A [RegionAggregation-class] object or list of [RegionAggregation-class] objects
+#' @param value A [RegionAggregation-class] object or list of
+#' [RegionAggregation-class] objects
 #'
 #' @rdname RegionAggr
 #' @export RegionAggr<-
 #'
 "RegionAggr<-" <- function(object, ..., value) {
-  UseMethod(generic = 'RegionAggr<-', object = object)
+  UseMethod(generic = "RegionAggr<-", object = object)
 }
 
 #' List stored RegionAggregation objects

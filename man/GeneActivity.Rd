@@ -62,13 +62,13 @@ Returns a sparse matrix
 Compute counts per cell in gene body and promoter region.
 }
 \examples{
-fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 fragments <- CreateFragmentObject(
   path = fpath,
   cells = colnames(atac_small),
   validate.fragments = FALSE
 )
 Fragments(atac_small) <- fragments
-GeneActivity(atac_small, fragtk=FALSE)
+GeneActivity(atac_small, fragtk = FALSE)
 }
 \concept{utilities}

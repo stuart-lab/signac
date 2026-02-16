@@ -76,16 +76,21 @@ FitMeanVar(object, ...)
 
 \item{loess.span}{\code{span} parameter passed to the \code{\link[stats:loess]{stats::loess()}} function}
 
-\item{min.cutoff}{Minimum number of counts for a feature to be eligible for variable feature selection.}
+\item{min.cutoff}{Minimum number of counts for a feature to be eligible for
+variable feature selection.}
 
-\item{weight.mean}{How much to weight the ranking of features according to their mean.
-Setting \code{weight.mean=0} will rank features according to their residual variance only.}
+\item{weight.mean}{How much to weight the ranking of features according to
+their mean. Setting \code{weight.mean=0} will rank features according to their
+residual variance only.}
 
-\item{bins}{Number of bins to use when downsampling features across the range of mean count values.}
+\item{bins}{Number of bins to use when downsampling features across the range
+of mean count values.}
 
-\item{sample_per_bin}{Number of features to select per mean count bin in feature downsampling step.}
+\item{sample_per_bin}{Number of features to select per mean count bin in
+feature downsampling step.}
 
-\item{key}{Key to use when storing the highly variable feature information in the assay.}
+\item{key}{Key to use when storing the highly variable feature information in
+the assay.}
 
 \item{verbose}{Display messages.}
 

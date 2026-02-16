@@ -16,7 +16,7 @@ test_that("CellsPerGroup works", {
   )
 })
 
-test_that("SortIdents works",{
+test_that("SortIdents works", {
   set.seed(1)
   atac_small$test <- sample(1:10, ncol(atac_small), replace = TRUE)
   atac_small <- SortIdents(object = atac_small, label = "test")
