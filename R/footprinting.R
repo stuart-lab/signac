@@ -37,9 +37,12 @@ GetFootprintData <- function(
     stop("The requested assay is not a ChromatinAssay5")
   }
   
-  region.enrichment <- RegionAggr(object[[assay]])
-  # get existing features 
-  region.enrichment.names <- vapply(region.enrichment, FUN = function(x) x@name, FUN.VALUE = character(1))
+  region.enrichment <- RegionAggr(object = object[[assay]])
+  
+  # get existing features
+  region.enrichment.names <- vapply(
+    X = region.enrichment, FUN = function(x) x@name, FUN.VALUE = character(1)
+  )
 
   obj.groups <- GetGroups(
     object = object,
@@ -54,53 +57,62 @@ GetFootprintData <- function(
     if (!(feature %in% region.enrichment.names)) {
       warning("Footprint information for ", feature, " not found in assay")
       return()
-    } 
-    # V2 edit: 
-    agg.idx <- which(region.enrichment.names == feature) # could be a list of more than one 
+    }
+    agg.idx <- which(x = region.enrichment.names == feature) # could be a list of more than one 
     region.agg.list <- region.enrichment[agg.idx] # get a list of agg.obj
     
-    if (length(region.agg.list)>1){
+    if (length(x = region.agg.list) > 1) {
       # assert same motif size 
-      w <- unique(unlist(lapply(region.agg.list, function(x) width(x@regions))))
-      if (length(w) != 1) {
-        warning("Feature ",feature, " have different motif width! Skipping")
+      w <- unique(
+        x = unlist(
+          x = lapply(X = region.agg.list, FUN = function(x) width(x@regions))
+          )
+        )
+      if (length(x = w) != 1) {
+        warning("Feature ", feature, " have different motif width! Skipping")
         return(NULL)
       }
       motif.width <- w[[1]]
       # ensure upstream & downstream matches
-      matrix.upstream <- vapply(region.agg.list, function(x) x@upstream, integer(1))
+      matrix.upstream <- vapply(
+        X = region.agg.list, FUN = function(x) x@upstream, integer(1)
+      )
       target.upstream <- min(matrix.upstream)
-      
-      matrix.downstream <- vapply(region.agg.list, function(x) x@downstream, integer(1))
+      matrix.downstream <- vapply(
+        X = region.agg.list, FUN = function(x) x@downstream, integer(1)
+      )
       target.downstream <- min(matrix.downstream)
       
-      if (any(matrix.downstream != target.downstream ) || any(matrix.upstream != target.upstream)){
-         warning("Truncating matrices to the smallest width to align Footprint for ",feature)
+      if (any(matrix.downstream != target.downstream ) ||
+          any(matrix.upstream != target.upstream)) {
+         warning(
+           "Truncating matrices to the smallest width to align Footprint for ",
+           feature
+          )
       }
       
-      all.mat <- lapply(region.agg.list, function(x){
+      all.mat <- lapply(X = region.agg.list, FUN = function(x) {
         mat <- x@matrix
         start_col <- x@upstream - target.upstream + 1
         end_col <- ncol(mat) - x@downstream + target.downstream
-        if (start_col <1 || end_col > ncol(mat) || start_col > end_col){
+        if (start_col < 1 || end_col > ncol(x = mat) || start_col > end_col) {
           warning("Skipping incompatible RegionAggregation for ", feature)
           return(NULL)
         }
-        mat <- mat[,start_col:end_col]
-        rownames(mat) <- x@cells 
+        mat <- mat[, start_col:end_col, drop = FALSE]
+        rownames(mat) <- x@cells
         expected <- x@expected[start_col: end_col]
         list(
           matrix = mat,
           expected = expected, 
-          weight = nrow(mat) # number of cells
+          weight = nrow(x = mat) # number of cells
           )
       })
       
       fp <- do.call(rbind, lapply(all.mat, '[[', "matrix"))
       expected.mat <- do.call(rbind, lapply(all.mat, function(x) x$expected * x$weight))
-      weights <- vapply(all.mat, '[[', numeric(1), "weight")
-      # expected.weighted.mean
-      expected <- colSums(expected.mat)/sum(weights) 
+      weights <- vapply(X = all.mat, FUN = '[[', numeric(1), "weight")
+      expected <- colSums(x = expected.mat) / sum(weights)
       
     } else { # if only one agg.obj
       agg <- region.agg.list[[1]]
@@ -118,26 +130,26 @@ GetFootprintData <- function(
     # background normalization by group 
     bg.norm <- lapply(X = all.groups, FUN = function(x) {
       cells.use <- names(x = obj.groups)[obj.groups == x]
-      cells.present <- intersect(cells.use, rownames(fp))
-      if (length(cells.present) == 0) {
+      cells.present <- intersect(x = cells.use, y = rownames(x = fp))
+      if (length(x = cells.present) == 0) {
         return(NULL)
       }
       mat.use <- fp[cells.use, , drop = FALSE]
       return(BackgroundMeanNorm(x = mat.use, background = 50))
     })
-    bg.norm <- Filter(Negate(is.null), bg.norm)
+    bg.norm <- Filter(f = Negate(f = is.null), x = bg.norm)
     bg.norm <- do.call(what = rbind, args = bg.norm)
     # add position
-    center.offset <- floor(motif.width/2)
+    center.offset <- floor(x = motif.width / 2)
     positions <-seq(
       from = -target.upstream - center.offset,
       to = target.downstream + motif.width - center.offset - 1
     )
     
-    colnames(bg.norm) <- positions
+    colnames(x = bg.norm) <- positions
     groupmeans <- ApplyMatrixByGroup(
       mat = bg.norm,
-      groups = obj.groups[rownames(bg.norm)],
+      groups = obj.groups[rownames(x = bg.norm)],
       fun = colMeans,
       normalize = FALSE
     )
@@ -158,7 +170,7 @@ GetFootprintData <- function(
     return(groupmeans)
   })
   
-  plot.data <- Filter(Negate(is.null), plot.data)
+  plot.data <- Filter(f = Negate(f = is.null), x = plot.data)
   plot.data <- do.call(what = rbind, args = plot.data)
   if (!is.null(x = levels.stash)) {
       plot.data$group <- factor(x = plot.data$group, levels = levels.stash)
@@ -211,12 +223,7 @@ Footprint.ChromatinAssay5 <- function(
   } else if (!is.null(x = motif.name) && !is.null(x = regions)) {
     stop("Supplied both a motif name and set of regions. Choose one only.")
   } else if (!is.null(x = motif.name)) {
-    if (!inherits(x = object, what = "GRangesAssay")) {
-      stop("Must supply motif positions")
-    } else {
-      # pull motif positions from object
-      motif.obj <- Motifs(object = object)
-    }
+    motif.obj <- Motifs(object = object)
     if (length(x = motif.name) != length(x = key)) {
       stop("A Key needs to be supplied for each motif")
     }
@@ -242,7 +249,7 @@ Footprint.ChromatinAssay5 <- function(
   }
   if (compute.expected) {
     # check that bias is computed
-    bias <- GetAssayData(object = object, layer = "bias")
+    bias <- Bias(object = pbmc)
     if (is.null(x = bias)) {
       if (verbose) {
         message("Computing Tn5 insertion bias")
@@ -261,21 +268,24 @@ Footprint.ChromatinAssay5 <- function(
   }
 
   # if overwrite is FALSE, skip motifs that already exist for Cells(object)
-  if (!overwrite){
-    existing <- RegionAggr(object)
-    if (length(existing) > 0) {
-      existing.names <- vapply(existing, function(x) x@name, character(1))
+  if (!overwrite) {
+    existing <- RegionAggr(object = object)
+    if (length(x = existing) > 0) {
+      existing.names <- vapply(
+        X = existing, FUN = function(x) x@name, character(1)
+      )
       
-      keep.idx <- logical(length(key)) # which motifs to recompute
-      for (i in seq_along(key)){
+      keep.idx <- logical(length = length(x = key)) # which motifs to recompute
+      for (i in seq_along(along.with = key)) {
         same.name.idx <- which(existing.names ==  key[[i]])
-        if (length(same.name.idx) == 0){
+        if (length(x = same.name.idx) == 0) {
           keep.idx[i] <- TRUE 
           next
         }
         # union cells 
-        existing.cells <- unique(unlist(
-          lapply(existing[same.name.idx], function(x) x@cells),
+        existing.cells <- unique(x = unlist(
+          x = lapply(X = existing[same.name.idx],
+                     FUN = function(x) x@cells),
           use.names = FALSE
         ))
         if (all(Cells(x = object) %in% existing.cells)){
@@ -307,7 +317,6 @@ Footprint.ChromatinAssay5 <- function(
     mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
   }
   
-  # v2 edit 
   reg.agg.list <- mylapply(
     X = seq_along(along.with = regionlist),
     FUN = function(x) {
@@ -325,12 +334,7 @@ Footprint.ChromatinAssay5 <- function(
     }
   )
   # store in object
-  object <- SetAssayData(
-    object = object, 
-    layer = "region.aggregation", 
-    new.data = reg.agg.list,
-    overwrite = overwrite
-  )
+  RegionAggr(object = object, overwrite = overwrite) <- reg.agg.list
 
   return(object)
 }
@@ -438,7 +442,7 @@ InsertionBias.ChromatinAssay5 <- function(
   }
   insertion_hex_freq <- insertion_hex_freq[names(x = genome_freq), ]
   bias <- insertion_hex_freq / genome_freq
-  object <- SetAssayData(object = object, layer = "bias", new.data = bias)
+  Bias(object = object) <- bias
   return(object)
 }
 
@@ -682,7 +686,7 @@ RunFootprint <- function(
         downstream = 3
     ))
     if (compute.expected) {
-        bias <- GetAssayData(object = object, layer = "bias")
+        bias <- Bias(object = object)
         if (is.null(x = bias)) {
             stop("Insertion bias not computed")
         } else {
@@ -712,7 +716,7 @@ RunFootprint <- function(
         downstream = downstream, 
         name = name, 
         expected = expected.insertions, 
-        cells = Cells(object)
+        cells = Cells(x = object)
     )
 
     return(agg.obj)
