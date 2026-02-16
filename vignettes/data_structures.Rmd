@@ -212,7 +212,7 @@ full list.
 For a full list of methods for the `GRangesAssay` class run:
 
 ```{r}
-methods(class = 'GRangesAssay')
+methods(class = "GRangesAssay")
 ```
 
 ### Subsetting a `GRangesAssay`
@@ -286,10 +286,12 @@ A `Fragment` object can be constructed using the `CreateFragmentObject()`
 function. 
 
 ```{r}
-frag.path <- system.file("extdata", "fragments_header.tsv.gz", package="Signac")
+frag.path <- system.file(
+  "extdata", "fragments_header.tsv.gz", package = "Signac"
+)
 fragments <- CreateFragmentObject(
   path = frag.path,
-  cells = colnames(atac_small), 
+  cells = colnames(atac_small),
   validate.fragments = TRUE
 )
 ```
@@ -395,10 +397,11 @@ the fragment objects, update the paths, and then add the fragment objects
 back to the object. For example:
 
 ```{r}
-frags <- Fragments(object)  # get list of fragment objects
-Fragments(object) <- NULL  # remove fragment information from assay
+frags <- Fragments(object) # get list of fragment objects
+Fragments(object) <- NULL # remove fragment information from assay
 
-# create a vector with all the new paths, in the correct order for your list of fragment objects
+# create a vector with all the new paths, in the correct order for your
+# list of fragment objects
 # In this case we only have 1
 new.paths <- list(frag.path)
 for (i in seq_along(frags)) {
@@ -436,7 +439,7 @@ function. **Importantly**, this returns the cell names as they appear in the
 ```{r}
 fragments <- CreateFragmentObject(
   path = frag.path,
-  cells = colnames(atac_small), 
+  cells = colnames(atac_small),
   validate.fragments = TRUE
 )
 
@@ -464,7 +467,7 @@ GetFragmentData(object = fragments, slot = "file.path")
 For a full list of methods for the `Fragment2` class run:
 
 ```{r}
-methods(class = 'Fragment2')
+methods(class = "Fragment2")
 ```
 
 ## The `Motif` Class
@@ -497,14 +500,18 @@ or the [chromVARmotifs](https://github.com/GreenleafLab/chromVARmotifs) package.
 For example:
 
 ```{r include=FALSE}
-if (!requireNamespace("JASPAR2020", quietly = TRUE))
-    BiocManager::install("JASPAR2020")
-if (!requireNamespace("TFBSTools", quietly = TRUE))
-    BiocManager::install("TFBSTools")
-if (!requireNamespace("motifmatchr", quietly = TRUE))
-    BiocManager::install("motifmatchr")
-if (!requireNamespace("BSgenome.Hsapiens.UCSC.hg38", quietly = TRUE))
-    BiocManager::install("BSgenome.Hsapiens.UCSC.hg38")
+if (!requireNamespace("JASPAR2020", quietly = TRUE)) {
+  BiocManager::install("JASPAR2020")
+}
+if (!requireNamespace("TFBSTools", quietly = TRUE)) {
+  BiocManager::install("TFBSTools")
+}
+if (!requireNamespace("motifmatchr", quietly = TRUE)) {
+  BiocManager::install("motifmatchr")
+}
+if (!requireNamespace("BSgenome.Hsapiens.UCSC.hg38", quietly = TRUE)) {
+  BiocManager::install("BSgenome.Hsapiens.UCSC.hg38")
+}
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -522,7 +529,7 @@ pfm <- getMatrixSet(
 motif.matrix <- CreateMotifMatrix(
   features = granges(atac_small),
   pwm = pfm,
-  genome = 'hg38'
+  genome = "hg38"
 )
 
 # Create a new Mofif object to store the results
@@ -579,7 +586,7 @@ To quickly convert between motif IDs (like `MA0497.1`) and motif common names
 
 ```{r}
 # convert ID to common name
-ids <- c("MA0030.1","MA0031.1","MA0051.1","MA0057.1")
+ids <- c("MA0030.1", "MA0031.1", "MA0051.1", "MA0057.1")
 names <- ConvertMotifID(object = motif, id = ids)
 names
 ```
@@ -592,7 +599,7 @@ ConvertMotifID(object = motif, name = names)
 For a full list of methods for the `Motif` class run:
 
 ```{r warning=FALSE, message=FALSE}
-methods(class = 'Motif')
+methods(class = "Motif")
 ```
 
 <details>

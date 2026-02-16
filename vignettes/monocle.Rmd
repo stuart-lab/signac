@@ -37,23 +37,28 @@ knitr::opts_knit$set(root.dir = "../vignette_data/GSE129785")
 ```
 
 ```{r include=FALSE}
-setRepositories(ind=1:3)
+setRepositories(ind = 1:3)
 
-if (!requireNamespace("remotes", quietly = TRUE))
-    install.packages("remotes")
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
 
-if (!requireNamespace("SeuratWrappers", quietly = TRUE))
-    remotes::install_github('satijalab/seurat-wrappers')
+if (!requireNamespace("SeuratWrappers", quietly = TRUE)) {
+  remotes::install_github("satijalab/seurat-wrappers")
+}
 
-if (!requireNamespace("leidenbase", quietly = TRUE))
-    remotes::install_github("cole-trapnell-lab/leidenbase")
+if (!requireNamespace("leidenbase", quietly = TRUE)) {
+  remotes::install_github("cole-trapnell-lab/leidenbase")
+}
 
-if (!requireNamespace("monocle3", quietly = TRUE))
-    install.packages("BPCells", repos = c("https://bnprks.r-universe.dev", "https://cloud.r-project.org"))
-    remotes::install_github("cole-trapnell-lab/monocle3")
+if (!requireNamespace("monocle3", quietly = TRUE)) {
+  install.packages("BPCells", repos = c("https://bnprks.r-universe.dev", "https://cloud.r-project.org"))
+}
+remotes::install_github("cole-trapnell-lab/monocle3")
 
-if (!requireNamespace("EnsDb.Hsapiens.v75", quietly = TRUE))
-    BiocManager::install("EnsDb.Hsapiens.v75")
+if (!requireNamespace("EnsDb.Hsapiens.v75", quietly = TRUE)) {
+  BiocManager::install("EnsDb.Hsapiens.v75")
+}
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -98,13 +103,15 @@ bone <- CreateSeuratObject(
 bone <- bone[, bone$Group_Barcode == "CD34_Progenitors_Rep1"]
 
 # add cell type annotations from the original paper
-cluster_names <- c("HSC",	"MEP",	"CMP-BMP",	"LMPP",	"CLP",	"Pro-B",	"Pre-B",	"GMP",
-                  "MDP",	"pDC",	"cDC",	"Monocyte-1",	"Monocyte-2",	"Naive-B",	"Memory-B",
-                  "Plasma-cell",	"Basophil",	"Immature-NK",	"Mature-NK1",	"Mature-NK2",	"Naive-CD4-T1",
-                  "Naive-CD4-T2",	"Naive-Treg",	"Memory-CD4-T",	"Treg",	"Naive-CD8-T1",	"Naive-CD8-T2",
-                  "Naive-CD8-T3",	"Central-memory-CD8-T",	"Effector-memory-CD8-T",	"Gamma delta T")
+cluster_names <- c(
+  "HSC", "MEP", "CMP-BMP", "LMPP", "CLP", "Pro-B", "Pre-B", "GMP",
+  "MDP", "pDC", "cDC", "Monocyte-1", "Monocyte-2", "Naive-B", "Memory-B",
+  "Plasma-cell", "Basophil", "Immature-NK", "Mature-NK1", "Mature-NK2", "Naive-CD4-T1",
+  "Naive-CD4-T2", "Naive-Treg", "Memory-CD4-T", "Treg", "Naive-CD8-T1", "Naive-CD8-T2",
+  "Naive-CD8-T3", "Central-memory-CD8-T", "Effector-memory-CD8-T", "Gamma delta T"
+)
 num.labels <- length(cluster_names)
-names(cluster_names) <- paste0( rep("Cluster", num.labels), seq(num.labels) )
+names(cluster_names) <- paste0(rep("Cluster", num.labels), seq(num.labels))
 new.md <- cluster_names[as.character(bone$Clusters)]
 names(new.md) <- Cells(bone)
 bone$celltype <- new.md
@@ -123,7 +130,7 @@ library(EnsDb.Hsapiens.v75)
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
 
 # change to UCSC style since the data was mapped to hg19
-seqlevels(annotations) <- paste0('chr', seqlevels(annotations))
+seqlevels(annotations) <- paste0("chr", seqlevels(annotations))
 genome(annotations) <- "hg19"
 
 # add the gene information to the object
@@ -143,7 +150,7 @@ bone <- NucleosomeSignal(bone)
 # blacklist regions for hg19
 library(AnnotationHub)
 ah <- AnnotationHub()
-blacklist_hg19 <- ah[['AH107314']]
+blacklist_hg19 <- ah[["AH107314"]]
 
 bone$blacklist_fraction <- FractionCountsInRegion(bone, regions = blacklist_hg19)
 ```
@@ -159,8 +166,8 @@ VlnPlot(
 
 ```{r}
 bone <- bone[, (bone$nCount_ATAC < 50000) &
-               (bone$TSS.enrichment > 2) & 
-               (bone$nucleosome_signal < 5)]
+  (bone$TSS.enrichment > 2) &
+  (bone$nucleosome_signal < 5)]
 ```
 
 ## Dataset preprocessing
@@ -197,9 +204,9 @@ Assign each cluster to the most common cell type based on the original
 annotations from the paper.
 
 ```{r}
-for(i in levels(bone)) {
+for (i in levels(bone)) {
   cells_to_reid <- WhichCells(bone, idents = i)
-  newid <- names(sort(table(bone$celltype[cells_to_reid]),decreasing=TRUE))[1]
+  newid <- names(sort(table(bone$celltype[cells_to_reid]), decreasing = TRUE))[1]
   Idents(bone, cells = cells_to_reid) <- newid
 }
 bone$assigned_celltype <- Idents(bone)
@@ -217,7 +224,7 @@ by Monocle 3.
 ```{r}
 DefaultAssay(bone) <- "ATAC"
 
-erythroid <- bone[,  bone$assigned_celltype %in% c("HSC", "MEP", "CMP-BMP")]
+erythroid <- bone[, bone$assigned_celltype %in% c("HSC", "MEP", "CMP-BMP")]
 lymphoid <- bone[, bone$assigned_celltype %in% c("HSC", "LMPP", "GMP", "CLP", "Pro-B", "pDC", "MDP", "GMP")]
 ```
 

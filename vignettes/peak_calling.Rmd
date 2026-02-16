@@ -7,7 +7,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 options(future.globals.maxSize = 16 * 1024^3)
-options(bitmapType = 'cairo')
+options(bitmapType = "cairo")
 knitr::opts_knit$set(root.dir = "../vignette_data/pbmc_vignette")
 ```
 
@@ -90,10 +90,10 @@ group:
 
 ```{r message=FALSE, warning=FALSE, cache=TRUE}
 peaks_separate <- CallPeaks(
-    object = pbmc,
-    group.by = "predicted.id",
-    idents = c("CD4 Naive", "CD4 Memory"), 
-    combine.peaks = FALSE
+  object = pbmc,
+  group.by = "predicted.id",
+  idents = c("CD4 Naive", "CD4 Memory"),
+  combine.peaks = FALSE
 )
 ```
 
@@ -112,10 +112,10 @@ for more details. Parallelization is recommended if using this mode to call peak
 
 ```{r message=FALSE, warning=FALSE, cache=TRUE}
 peaks_hmmratac <- CallPeaks(
-    object = pbmc,
-    mode = 'hmmratac',
-    group.by = 'predicted.id',
-    idents = 'CD16+ Monocytes'
+  object = pbmc,
+  mode = "hmmratac",
+  group.by = "predicted.id",
+  idents = "CD16+ Monocytes"
 )
 ```
 

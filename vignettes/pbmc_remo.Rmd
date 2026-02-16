@@ -12,12 +12,14 @@ knitr::opts_knit$set(root.dir = "../vignette_data/pbmc_vignette")
 ```{r, include=FALSE}
 options(width = 600)
 local({
-  hook_output <- knitr::knit_hooks$get('output')
+  hook_output <- knitr::knit_hooks$get("output")
   knitr::knit_hooks$set(output = function(x, options) {
-    if (!is.null(options$max.height))options$attr.output <- c(
-      options$attr.output,
-      sprintf('style="max-height: %s;"', options$max.height)
-    )
+    if (!is.null(options$max.height)) {
+      options$attr.output <- c(
+        options$attr.output,
+        sprintf('style="max-height: %s;"', options$max.height)
+      )
+    }
     hook_output(x, options)
   })
 })
@@ -95,8 +97,9 @@ cells <- rownames(metadata[metadata$TSS_enrichment > 5 & metadata$total_fragment
 Create REMO matrix using [fragtk](https://crates.io/crates/fragtk):
 
 ```{r include=FALSE}
-if (!requireNamespace("REMO.v1.GRCh38", quietly = TRUE))
-    remotes::install_github(repo = "stuart-lab/REMO.v1.GRCh38")
+if (!requireNamespace("REMO.v1.GRCh38", quietly = TRUE)) {
+  remotes::install_github(repo = "stuart-lab/REMO.v1.GRCh38")
+}
 ```
 
 ```{r}
@@ -165,7 +168,7 @@ to quickly find suitable cutoff values for different QC metrics by setting
 `quantiles=TRUE`:
 
 ```{r}
-DensityScatter(pbmc, x = 'total_fragments', y = 'TSS_enrichment', log_x = TRUE, quantiles = TRUE)
+DensityScatter(pbmc, x = "total_fragments", y = "TSS_enrichment", log_x = TRUE, quantiles = TRUE)
 ```
 
 
@@ -175,8 +178,9 @@ DensityScatter(pbmc, x = 'total_fragments', y = 'TSS_enrichment', log_x = TRUE, 
 We can predict doublets using the `scDblFinder` package:
 
 ```{r include=FALSE}
-if (!requireNamespace("scDblFinder", quietly = TRUE))
-    BiocManager::install("scDblFinder")
+if (!requireNamespace("scDblFinder", quietly = TRUE)) {
+  BiocManager::install("scDblFinder")
+}
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -194,9 +198,9 @@ pbmc$dbl.score <- scDbl$scDblFinder.score
 
 ```{r}
 pbmc <- subset(pbmc, total_fragments > 10000 &
-                 total_fragments < 60000 &
-                 TSS_enrichment > 9 &
-                 dbl.class == 'singlet')
+  total_fragments < 60000 &
+  TSS_enrichment > 9 &
+  dbl.class == "singlet")
 ```
 
 ```{r}
@@ -270,7 +274,7 @@ gene.activities <- GeneActivity(pbmc)
 
 ```{r message=FALSE, warning=FALSE}
 # add the gene activity matrix to the Seurat object as a new assay and normalize it
-pbmc[['RNA']] <- CreateAssay5Object(counts = gene.activities)
+pbmc[["RNA"]] <- CreateAssay5Object(counts = gene.activities)
 pbmc <- NormalizeData(pbmc, assay = "RNA")
 ```
 
@@ -284,13 +288,13 @@ NK cells based on these gene activity profiles. However, further subdivision of
 these cell types is challenging based on supervised analysis alone.
 
 ```{r fig.width=12, fig.height=10}
-DefaultAssay(pbmc) <- 'RNA'
+DefaultAssay(pbmc) <- "RNA"
 
 FeaturePlot(
   object = pbmc,
-  features = c('MS4A1', 'CD3D', 'LEF1', 'NKG7', 'TREM1', 'LYZ'),
+  features = c("MS4A1", "CD3D", "LEF1", "NKG7", "TREM1", "LYZ"),
   pt.size = 0.1,
-  max.cutoff = 'q95',
+  max.cutoff = "q95",
   ncol = 3
 )
 ```
@@ -325,13 +329,13 @@ pbmc_rna <- UpdateSeuratObject(pbmc_rna)
 transfer.anchors <- FindTransferAnchors(
   reference = pbmc_rna,
   query = pbmc,
-  reduction = 'cca'
+  reduction = "cca"
 )
 
 predicted.labels <- TransferData(
   anchorset = transfer.anchors,
   refdata = pbmc_rna$celltype,
-  weight.reduction = pbmc[['pca']],
+  weight.reduction = pbmc[["pca"]],
   dims = 1:30
 )
 
@@ -341,15 +345,17 @@ pbmc <- AddMetaData(object = pbmc, metadata = predicted.labels)
 ```{r fig.width=12}
 plot1 <- DimPlot(
   object = pbmc_rna,
-  group.by = 'celltype',
+  group.by = "celltype",
   label = TRUE,
-  repel = TRUE) + NoLegend() + ggtitle('scRNA-seq')
+  repel = TRUE
+) + NoLegend() + ggtitle("scRNA-seq")
 
 plot2 <- DimPlot(
   object = pbmc,
-  group.by = 'predicted.id',
+  group.by = "predicted.id",
   label = TRUE,
-  repel = TRUE) + NoLegend() + ggtitle('scATAC-seq')
+  repel = TRUE
+) + NoLegend() + ggtitle("scATAC-seq")
 
 plot1 + plot2
 ```
@@ -374,7 +380,7 @@ in the assigned cell identity. In most cases, the next most likely cell identity
 predicted for these cells was “CD4 naive”.
 
 ```{r fig.width=12}
-VlnPlot(pbmc, 'prediction.score.max', group.by = 'predicted.id')
+VlnPlot(pbmc, "prediction.score.max", group.by = "predicted.id")
 ```
 
 ```{r max.height='300px'}
@@ -419,7 +425,7 @@ each UMAP cluster to the most common predicted label for that cluster.
 
 ```{r eval=FALSE}
 # replace each cluster label with its most likely predicted label
-for(i in levels(pbmc)) {
+for (i in levels(pbmc)) {
   cells_to_reid <- WhichCells(pbmc, idents = i)
   newid <- names(which.max(table(pbmc$predicted.id[cells_to_reid])))
   Idents(pbmc, cells = cells_to_reid) <- newid
@@ -441,9 +447,10 @@ Seurat object.
 <summary>**Install presto**</summary>
 
 ```{r eval=FALSE}
-if (!requireNamespace("remotes", quietly = TRUE))
-  install.packages('remotes')
-remotes::install_github('immunogenomics/presto')
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
+remotes::install_github("immunogenomics/presto")
 ```
 
 </details>
@@ -454,14 +461,14 @@ on a violin plot, feature plot, dot plot, heat map, or any
 [visualization tool in Seurat](https://satijalab.org/seurat/articles/visualization_vignette.html).
 
 ```{r message=TRUE, warning=FALSE}
-DefaultAssay(pbmc) <- 'REMO'
+DefaultAssay(pbmc) <- "REMO"
 
 # wilcox is the default option for test.use
 da_remo <- FindMarkers(
   object = pbmc,
   ident.1 = "CD4 Naive",
   ident.2 = "CD14+ Monocytes",
-  test.use = 'wilcox',
+  test.use = "wilcox",
   min.pct = 0.1
 )
 
@@ -474,7 +481,7 @@ plot3 <- VlnPlot(
   object = pbmc,
   features = rownames(da_remo)[1],
   pt.size = 0.1,
-  idents = c("CD4 Naive","CD14+ Monocytes")
+  idents = c("CD4 Naive", "CD14+ Monocytes")
 )
 plot4 <- FeaturePlot(
   object = pbmc,
@@ -496,8 +503,9 @@ Here we demonstrate how to perform CL term enrichment analysis for each cell
 cluster using REMO and the fgsea package.
 
 ```{r}
-if (!requireNamespace("fgsea", quietly = TRUE))
+if (!requireNamespace("fgsea", quietly = TRUE)) {
   BiocManager::install("fgsea")
+}
 ```
 
 We can use the `EnrichedTerms()` function in Signac to run ontology enrichment
@@ -555,7 +563,7 @@ can automatically sort the plotting order according to similarities across the
 annotated cell types by running the `SortIdents()` function:    
 
 ```{r message=FALSE, warning=FALSE}
-Idents(pbmc) <- 'predicted.id'
+Idents(pbmc) <- "predicted.id"
 pbmc <- SortIdents(pbmc)
 ```
 

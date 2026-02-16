@@ -38,7 +38,7 @@ plan()
 You might also need to increase the maximum memory usage:
 
 ```{r}
-options(future.globals.maxSize = 50 * 1024 ^ 3) # for 50 Gb RAM
+options(future.globals.maxSize = 50 * 1024^3) # for 50 Gb RAM
 ```
 
 Note that as of `future` version [1.14.0](https://cran.r-project.org/web/packages/future/NEWS), forked processing is disabled when running in RStudio. To enable parallel computing in RStudio, you will need to select the "multisession" option.
@@ -72,7 +72,7 @@ peaks.10k <- read.table(
 )
 peaks <- GenomicRanges::makeGRangesFromDataFrame(peaks.10k)
 md <- read.csv("../vignette_data/atac_pbmc_10k_nextgem_singlecell.csv", row.names = 1, header = TRUE)[-1, ]
-cells <- rownames(md[md[['is__cell_barcode']] == 1, ])
+cells <- rownames(md[md[["is__cell_barcode"]] == 1, ])
 
 fragments <- CreateFragmentObject(path = fragments, cells = cells, validate.fragments = FALSE)
 
@@ -148,8 +148,8 @@ library(ggplot2)
 results <- read.table("../vignette_data/pbmc10k/timings_2023-03-21.tsv", header = TRUE)
 results$cores <- factor(results$cores, levels = c("1", "4", "10"))
 
-p <- ggplot(results, aes(x = cores, y = time/60, color = cores)) +
-  geom_jitter(width = 1/10) +
+p <- ggplot(results, aes(x = cores, y = time / 60, color = cores)) +
+  geom_jitter(width = 1 / 10) +
   ylim(c(0, 8)) +
   ylab("Time (min)") +
   xlab("Number of cores") +

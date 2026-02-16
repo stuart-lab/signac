@@ -20,17 +20,21 @@ and links to the raw data. First, load the required packages and the
 pre-computed Seurat object:
 
 ```{r include=FALSE}
-if (!requireNamespace("TFBSTools", quietly = TRUE))
-    BiocManager::install("TFBSTools")
+if (!requireNamespace("TFBSTools", quietly = TRUE)) {
+  BiocManager::install("TFBSTools")
+}
 
-if (!requireNamespace("AnnotationHub", quietly = TRUE))
-    BiocManager::install("AnnotationHub")
+if (!requireNamespace("AnnotationHub", quietly = TRUE)) {
+  BiocManager::install("AnnotationHub")
+}
 
-if (!requireNamespace("BSgenome.Mmusculus.UCSC.mm10", quietly = TRUE))
-    BiocManager::install("BSgenome.Mmusculus.UCSC.mm10")
+if (!requireNamespace("BSgenome.Mmusculus.UCSC.mm10", quietly = TRUE)) {
+  BiocManager::install("BSgenome.Mmusculus.UCSC.mm10")
+}
 
-if (!requireNamespace("chromVAR", quietly = TRUE))
-    BiocManager::install("chromVAR")
+if (!requireNamespace("chromVAR", quietly = TRUE)) {
+  BiocManager::install("chromVAR")
+}
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -59,7 +63,7 @@ run the `AddMotifs()` function:
 ```{r message=FALSE, warning=FALSE}
 # load the latest JASPAR motifs from AnnotationHub
 ah <- AnnotationHub()
-jaspar_path <- ah[['AH121720']]
+jaspar_path <- ah[["AH121720"]]
 sq24 <- RSQLite::dbConnect(RSQLite::SQLite(), jaspar_path)
 motifs24 <- TFBSTools::getMatrixSet(sq24, list(species = "Homo sapiens", collection = "CORE"))
 
@@ -94,10 +98,10 @@ background set of peaks matched for GC content.
 ```{r message=FALSE, warning=FALSE}
 da_peaks <- FindMarkers(
   object = mouse_brain,
-  ident.1 = 'Pvalb',
-  ident.2 = 'Sst',
+  ident.1 = "Pvalb",
+  ident.2 = "Sst",
   only.pos = TRUE,
-  test.use = 'wilcox'
+  test.use = "wilcox"
 )
 
 # get top differentially accessible peaks
@@ -181,14 +185,14 @@ mouse_brain <- RunChromVAR(
   genome = BSgenome.Mmusculus.UCSC.mm10
 )
 
-DefaultAssay(mouse_brain) <- 'chromvar'
+DefaultAssay(mouse_brain) <- "chromvar"
 
 # look at the activity of Mef2c
 p2 <- FeaturePlot(
   object = mouse_brain,
   features = "MA0497.1",
-  min.cutoff = 'q10',
-  max.cutoff = 'q90',
+  min.cutoff = "q10",
+  max.cutoff = "q90",
   pt.size = 0.1
 )
 p1 + p2
@@ -206,8 +210,8 @@ between the groups.
 ```{r message=FALSE, warning=FALSE}
 differential.activity <- FindMarkers(
   object = mouse_brain,
-  ident.1 = 'Pvalb',
-  ident.2 = 'Sst',
+  ident.1 = "Pvalb",
+  ident.2 = "Sst",
   only.pos = TRUE,
   mean.fxn = rowMeans,
   fc.name = "avg_diff"
@@ -216,7 +220,7 @@ differential.activity <- FindMarkers(
 MotifPlot(
   object = mouse_brain,
   motifs = head(rownames(differential.activity)),
-  assay = 'peaks'
+  assay = "peaks"
 )
 ```
 

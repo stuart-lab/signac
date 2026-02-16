@@ -42,8 +42,9 @@ knitr::opts_knit$set(root.dir = "../vignette_data/snare-seq")
 ```
 
 ```{r include=FALSE}
-if (!requireNamespace("EnsDb.Mmusculus.v79", quietly = TRUE))
-    BiocManager::install("EnsDb.Mmusculus.v79")
+if (!requireNamespace("EnsDb.Mmusculus.v79", quietly = TRUE)) {
+  BiocManager::install("EnsDb.Mmusculus.v79")
+}
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -59,7 +60,7 @@ fragments <- "fragments.sort.bed.gz"
 
 # create a Seurat object and add the assays
 snare <- CreateSeuratObject(counts = rna)
-snare[['ATAC']] <- CreateChromatinAssay(
+snare[["ATAC"]] <- CreateChromatinAssay(
   counts = atac,
   sep = c(":", "-"),
   genome = "mm10",
@@ -70,7 +71,7 @@ snare[['ATAC']] <- CreateChromatinAssay(
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Mmusculus.v79)
 
 # change to UCSC style since the data was mapped to mm10
-seqlevels(annotations) <- paste0('chr', seqlevels(annotations))
+seqlevels(annotations) <- paste0("chr", seqlevels(annotations))
 genome(annotations) <- "mm10"
 
 # add the gene information to the object
@@ -87,21 +88,23 @@ snare <- NucleosomeSignal(snare)
 # blacklist regions for mm10
 library(AnnotationHub)
 ah <- AnnotationHub()
-blacklist_mm10 <- ah[['AH107322']]
+blacklist_mm10 <- ah[["AH107322"]]
 
 snare$blacklist_fraction <- FractionCountsInRegion(
   object = snare,
-  assay = 'ATAC',
+  assay = "ATAC",
   regions = blacklist_mm10
 )
 ```
 
 ```{r fig.width=18, message=FALSE, warning=FALSE}
-Idents(snare) <- "all"  # group all cells together, rather than by replicate
+Idents(snare) <- "all" # group all cells together, rather than by replicate
 VlnPlot(
   snare,
-  features = c("nCount_RNA", "nCount_ATAC", "TSS.enrichment",
-               "nucleosome_signal", "blacklist_fraction"),
+  features = c(
+    "nCount_RNA", "nCount_ATAC", "TSS.enrichment",
+    "nucleosome_signal", "blacklist_fraction"
+  ),
   pt.size = 0.1,
   ncol = 5
 )
@@ -140,13 +143,13 @@ p1 <- DimPlot(snare, label = TRUE) + NoLegend() + ggtitle("RNA UMAP")
 Process the DNA accessibility data using Signac
 
 ```{r message=FALSE, warning=FALSE}
-DefaultAssay(snare) <- 'ATAC'
+DefaultAssay(snare) <- "ATAC"
 
 snare <- FindTopFeatures(snare, min.cutoff = 10)
 snare <- RunTFIDF(snare)
 snare <- RunSVD(snare)
-snare <- RunUMAP(snare, reduction = 'lsi', dims = 2:30, reduction.name = 'umap.atac')
-p2 <- DimPlot(snare, reduction = 'umap.atac', label = TRUE) + NoLegend() + ggtitle("ATAC UMAP")
+snare <- RunUMAP(snare, reduction = "lsi", dims = 2:30, reduction.name = "umap.atac")
+p2 <- DimPlot(snare, reduction = "umap.atac", label = TRUE) + NoLegend() + ggtitle("ATAC UMAP")
 ```
 
 ```{r fig.width=12, message=FALSE, warning=FALSE}
@@ -172,19 +175,19 @@ allen <- readRDS("allen_brain.rds")
 allen <- UpdateSeuratObject(allen)
 
 # use the RNA assay in the SNARE-seq data for integration with scRNA-seq
-DefaultAssay(snare) <- 'RNA'
+DefaultAssay(snare) <- "RNA"
 
 transfer.anchors <- FindTransferAnchors(
   reference = allen,
   query = snare,
   dims = 1:30,
-  reduction = 'cca'
+  reduction = "cca"
 )
 
 predicted.labels <- TransferData(
   anchorset = transfer.anchors,
   refdata = allen$subclass,
-  weight.reduction = snare[['pca']],
+  weight.reduction = snare[["pca"]],
   dims = 1:30
 )
 
@@ -212,7 +215,7 @@ new.cluster.ids <- c(
 names(x = new.cluster.ids) <- levels(x = snare)
 snare <- RenameIdents(object = snare, new.cluster.ids)
 snare$celltype <- Idents(snare)
-DimPlot(snare, group.by = 'celltype', label = TRUE, reduction = 'umap.rna')
+DimPlot(snare, group.by = "celltype", label = TRUE, reduction = "umap.rna")
 ```
 
 ## Jointly visualizing gene expression and DNA accessibility

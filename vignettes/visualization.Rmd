@@ -34,7 +34,7 @@ averaged frequency of sequenced DNA fragments for different groups of cells
 within a given genomic region. 
 
 ```{r}
-roi = "chr2-86784605-86808396"
+roi <- "chr2-86784605-86808396"
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -126,7 +126,7 @@ cd8.coords <- LookupGeneCoords(object = pbmc, gene = "CD8A")
 links <- GRanges(
   seqnames = "chr2",
   ranges = IRanges(start = start(cd8.coords)[1] + 100, end = end(cd8.coords)[1] - 5000),
-  score = 1, 
+  score = 1,
   group = 1
 )
 

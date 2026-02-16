@@ -88,7 +88,7 @@ metadata <- read.csv(
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
 
 # change to UCSC style since the data was mapped to hg19
-seqlevels(annotations) <- paste0('chr', seqlevels(annotations))
+seqlevels(annotations) <- paste0("chr", seqlevels(annotations))
 genome(annotations) <- "hg19"
 
 # create object
@@ -97,11 +97,11 @@ crc_assay <- CreateChromatinAssay(
   sep = c(":", "-"),
   annotation = annotations,
   min.cells = 10,
-  fragments = 'CRC_v12-mtMask_mgatk.fragments.tsv.gz'
+  fragments = "CRC_v12-mtMask_mgatk.fragments.tsv.gz"
 )
 crc <- CreateSeuratObject(
   counts = crc_assay,
-  assay = 'peaks',
+  assay = "peaks",
   meta.data = metadata
 )
 
@@ -137,7 +137,7 @@ crc <- subset(
     nCount_peaks < 50000 &
     pct_reads_in_DNase > 40 &
     blacklist_ratio < 0.05 &
-    TSS.enrichment > 3 & 
+    TSS.enrichment > 3 &
     nucleosome_signal < 4
 )
 crc
@@ -208,12 +208,12 @@ promoter region.
 gene.activities <- GeneActivity(crc)
 
 # add to the Seurat object as a new assay
-crc[['RNA']] <- CreateAssayObject(counts = gene.activities)
+crc[["RNA"]] <- CreateAssayObject(counts = gene.activities)
 
 crc <- NormalizeData(
   object = crc,
-  assay = 'RNA',
-  normalization.method = 'LogNormalize',
+  assay = "RNA",
+  normalization.method = "LogNormalize",
   scale.factor = median(crc$nCount_RNA)
 )
 ```
@@ -229,13 +229,13 @@ We note the following markers for different cell types in the CRC dataset:
 - GATA3 is a Tcell maker
 
 ```{r viz_gene_activitites, message=FALSE, warning=FALSE, fig.width=8, fig.height=8}
-DefaultAssay(crc) <- 'RNA'
+DefaultAssay(crc) <- "RNA"
 
 FeaturePlot(
   object = crc,
-  features = c('TREM1', 'EPCAM', "PTPRC", "IL1RL1","GATA3", "KIT"),
+  features = c("TREM1", "EPCAM", "PTPRC", "IL1RL1", "GATA3", "KIT"),
   pt.size = 0.1,
-  max.cutoff = 'q95',
+  max.cutoff = "q95",
   ncol = 2
 )
 ```
@@ -245,12 +245,12 @@ Using these gene score values, we can assign cluster identities:
 ```{r}
 crc <- RenameIdents(
   object = crc,
-  '0' = 'Epithelial',
-  '1' = 'Epithelial',
-  '2' = 'Basophil',
-  '3' = 'Myeloid_1',
-  '4' = 'Myeloid_2',
-  '5' = 'Tcell'
+  "0" = "Epithelial",
+  "1" = "Epithelial",
+  "2" = "Basophil",
+  "3" = "Myeloid_1",
+  "4" = "Myeloid_2",
+  "5" = "Tcell"
 )
 ```
 
@@ -262,7 +262,7 @@ nucleosome banding pattern.
 p1 <- FeatureScatter(crc, "mtDNA_depth", "pct_reads_in_peaks") + ggtitle("") + scale_x_log10()
 p2 <- FeatureScatter(crc, "mtDNA_depth", "nucleosome_signal") + ggtitle("") + scale_x_log10()
 
-p1 + p2 + plot_layout(guides = 'collect')
+p1 + p2 + plot_layout(guides = "collect")
 ```
 
 We can see that most of the low FRIP cells were the `myeloid 1` cluster. This is
@@ -303,12 +303,13 @@ mitochondrial variants that differ across the cells.
 ```{r look_at_variants, message=FALSE, warning=FALSE}
 # Establish a filtered data frame of variants based on this processing
 high.conf <- subset(
-  variable.sites, subset = n_cells_conf_detected >= 5 &
+  variable.sites,
+  subset = n_cells_conf_detected >= 5 &
     strand_correlation >= 0.65 &
     vmr > 0.01
 )
 
-high.conf[,c(1,2,5)]
+high.conf[, c(1, 2, 5)]
 ```
 
 A few things stand out. First, 10 out of the 12 variants occur at less than 1% 
@@ -483,7 +484,8 @@ VariantPlot(variants)
 
 ```{r}
 high.conf <- subset(
-  variants, subset = n_cells_conf_detected >= 5 &
+  variants,
+  subset = n_cells_conf_detected >= 5 &
     strand_correlation >= 0.65 &
     vmr > 0.01
 )

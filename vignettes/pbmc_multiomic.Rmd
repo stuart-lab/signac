@@ -7,7 +7,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir = "../vignette_data/multiomic")
-options(future.globals.maxSize = 20 * 1024 ^ 3)
+options(future.globals.maxSize = 20 * 1024^3)
 ```
 
 In this vignette, we'll demonstrate how to jointly analyze a single-cell dataset
@@ -29,23 +29,29 @@ wget https://cf.10xgenomics.com/samples/cell-arc/1.0.0/pbmc_granulocyte_sorted_1
 </details>
 
 ```{r include=FALSE}
-if (!requireNamespace("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
 
-if (!requireNamespace("EnsDb.Hsapiens.v86", quietly = TRUE))
-    BiocManager::install("EnsDb.Hsapiens.v86")
+if (!requireNamespace("EnsDb.Hsapiens.v86", quietly = TRUE)) {
+  BiocManager::install("EnsDb.Hsapiens.v86")
+}
 
-if (!requireNamespace("BSgenome.Hsapiens.UCSC.hg38", quietly = TRUE))
-    BiocManager::install("BSgenome.Hsapiens.UCSC.hg38")
+if (!requireNamespace("BSgenome.Hsapiens.UCSC.hg38", quietly = TRUE)) {
+  BiocManager::install("BSgenome.Hsapiens.UCSC.hg38")
+}
 
-if (!requireNamespace("remotes", quietly = TRUE))
-    install.packages("remotes")
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
 
-if (!requireNamespace("SeuratDisk", quietly = TRUE))
-    remotes::install_github("mojaveazure/seurat-disk")
+if (!requireNamespace("SeuratDisk", quietly = TRUE)) {
+  remotes::install_github("mojaveazure/seurat-disk")
+}
 
-if (!requireNamespace("glmGamPoi", quietly = TRUE))
-    BiocManager::install("glmGamPoi")
+if (!requireNamespace("glmGamPoi", quietly = TRUE)) {
+  BiocManager::install("glmGamPoi")
+}
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -64,7 +70,7 @@ fragpath <- "pbmc_granulocyte_sorted_10k_atac_fragments.tsv.gz"
 ```{r message=FALSE, warning=FALSE}
 # get gene annotations for hg38
 annotation <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
-seqlevels(annotation) <- paste0('chr', seqlevels(annotation))
+seqlevels(annotation) <- paste0("chr", seqlevels(annotation))
 
 # create a Seurat object containing the RNA adata
 pbmc <- CreateSeuratObject(
@@ -104,7 +110,7 @@ to quickly find suitable cutoff values for different QC metrics by setting
 `quantiles=TRUE`:
 
 ```{r}
-DensityScatter(pbmc, x = 'nCount_ATAC', y = 'TSS.enrichment', log_x = TRUE, quantiles = TRUE)
+DensityScatter(pbmc, x = "nCount_ATAC", y = "TSS.enrichment", log_x = TRUE, quantiles = TRUE)
 ```
 
 ```{r}
@@ -219,7 +225,7 @@ Installation instructions for SeuratDisk can be found [here](https://github.com/
 library(SeuratDisk)
 
 # load PBMC reference
-reference <- LoadH5Seurat("pbmc_multimodal.h5seurat", assays = list("SCT" = "counts"), reductions = 'spca')
+reference <- LoadH5Seurat("pbmc_multimodal.h5seurat", assays = list("SCT" = "counts"), reductions = "spca")
 reference <- UpdateSeuratObject(reference)
 
 DefaultAssay(pbmc) <- "SCT"
@@ -237,7 +243,7 @@ transfer_anchors <- FindTransferAnchors(
 predictions <- TransferData(
   anchorset = transfer_anchors,
   refdata = reference$celltype.l2,
-  weight.reduction = pbmc[['pca']],
+  weight.reduction = pbmc[["pca"]],
   dims = 1:50
 )
 
@@ -263,7 +269,7 @@ DNA accessibility measurements.
 # build a joint neighbor graph using both assays
 pbmc <- FindMultiModalNeighbors(
   object = pbmc,
-  reduction.list = list("pca", "lsi"), 
+  reduction.list = list("pca", "lsi"),
   dims.list = list(1:50, 2:40),
   modality.weight.name = "RNA.weight",
   verbose = TRUE
@@ -311,8 +317,10 @@ We can visualize these links using the `CoveragePlot()` function, or alternative
 we could use the `CoverageBrowser()` function in an interactive analysis:
 
 ```{r fig.height=10, message=FALSE, warning=FALSE}
-idents.plot <- c("B naive", "B intermediate", "B memory",
-                 "CD14 Mono", "CD16 Mono", "CD8 TEM", "CD8 Naive")
+idents.plot <- c(
+  "B naive", "B intermediate", "B memory",
+  "CD14 Mono", "CD16 Mono", "CD8 TEM", "CD8 Naive"
+)
 
 pbmc <- SortIdents(pbmc)
 

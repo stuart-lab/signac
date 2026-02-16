@@ -33,7 +33,7 @@ use with Signac v2, you can use the `as.GRangesAssay()` function. For example:
 obj <- readRDS("object.rds")
 
 # update the peaks assay
-obj[['peaks']] <- as.GRangesAssay(obj[['peaks']])
+obj[["peaks"]] <- as.GRangesAssay(obj[["peaks"]])
 ```
 
 ## How do I merge objects with Signac?
@@ -83,7 +83,7 @@ own GTF file or FASTA files with Signac.
 To use a GTF file, you can import it using `rtracklayer`, for example:
 
 ```{r, eval=FALSE}
-gtf <- rtracklayer::import('genes.gtf')
+gtf <- rtracklayer::import("genes.gtf")
 ```
 
 Alternatively, gene annotations for your species may be available on
@@ -106,7 +106,7 @@ Alternatively, you can create your own `BSgenome` data package, see this
 
 If you use Signac, please cite [Stuart et al., 2021](https://doi.org/10.1038/s41592-021-01282-5):
 
-```{r, eval=FALSE}
+```
 @ARTICLE{signac,
   title     = "Single-cell chromatin state analysis with Signac",
   author    = "Stuart, Tim and Srivastava, Avi and Madad, Shaista and Lareau,

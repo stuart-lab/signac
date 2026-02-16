@@ -37,8 +37,9 @@ First load in Signac, Seurat, and some other packages we will be using for
 analyzing mouse data.
 
 ```{r include=FALSE}
-if (!requireNamespace("EnsDb.Mmusculus.v79", quietly = TRUE))
-    BiocManager::install("EnsDb.Mmusculus.v79")
+if (!requireNamespace("EnsDb.Mmusculus.v79", quietly = TRUE)) {
+  BiocManager::install("EnsDb.Mmusculus.v79")
+}
 ```
 
 ```{r setup, message=FALSE}
@@ -62,13 +63,13 @@ metadata <- read.csv(
 brain_assay <- CreateGRangesAssay(
   counts = counts,
   sep = c(":", "-"),
-  fragments = 'atac_v1_adult_brain_fresh_5k_fragments.tsv.gz',
+  fragments = "atac_v1_adult_brain_fresh_5k_fragments.tsv.gz",
   min.cells = 1
 )
 brain <- CreateSeuratObject(
   counts = brain_assay,
-  assay = 'peaks',
-  project = 'ATAC',
+  assay = "peaks",
+  project = "ATAC",
   meta.data = metadata
 )
 ```
@@ -82,7 +83,7 @@ directly from the object.
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Mmusculus.v79)
 
 # change to UCSC style since the data was mapped to mm10
-seqlevels(annotations) <- paste0('chr', seqlevels(annotations))
+seqlevels(annotations) <- paste0("chr", seqlevels(annotations))
 genome(annotations) <- "mm10"
 
 # add the gene information to the object
@@ -101,7 +102,7 @@ brain <- ATACqc(brain)
 ```{r message=FALSE, warning=FALSE, fig.width=18, fig.height=6}
 VlnPlot(
   object = brain,
-  features = c('total_fragments', 'TSS_enrichment', 'Nucleosome_signal', 'FRiP'),
+  features = c("total_fragments", "TSS_enrichment", "Nucleosome_signal", "FRiP"),
   pt.size = 0.1,
   ncol = 5
 )
@@ -124,7 +125,7 @@ brain
 
 ```{r message=FALSE, warning=FALSE}
 brain <- RunTFIDF(brain)
-brain <- FindTopFeatures(brain, min.cutoff = 'q0')
+brain <- FindTopFeatures(brain, min.cutoff = "q0")
 brain <- RunSVD(object = brain)
 ```
 
@@ -152,12 +153,12 @@ package.
 ```{r message=FALSE, warning=FALSE}
 brain <- RunUMAP(
   object = brain,
-  reduction = 'lsi',
+  reduction = "lsi",
   dims = 2:30
 )
 brain <- FindNeighbors(
   object = brain,
-  reduction = 'lsi',
+  reduction = "lsi",
   dims = 2:30
 )
 brain <- FindClusters(
@@ -177,17 +178,17 @@ DimPlot(object = brain, label = TRUE) + NoLegend()
 gene.activities <- GeneActivity(brain)
 
 # add the gene activity matrix to the Seurat object as a new assay
-brain[['RNA']] <- CreateAssayObject(counts = gene.activities)
-brain <- NormalizeData(brain, assay = 'RNA')
+brain[["RNA"]] <- CreateAssayObject(counts = gene.activities)
+brain <- NormalizeData(brain, assay = "RNA")
 ```
 
 ```{r fig.width=12, fig.height=10}
-DefaultAssay(brain) <- 'RNA'
+DefaultAssay(brain) <- "RNA"
 FeaturePlot(
   object = brain,
-  features = c('Sst','Pvalb',"Gad2","Neurod6","Rorb","Syt6"),
+  features = c("Sst", "Pvalb", "Gad2", "Neurod6", "Rorb", "Syt6"),
   pt.size = 0.1,
-  max.cutoff = 'q95',
+  max.cutoff = "q95",
   ncol = 3
 )
 ```
@@ -219,14 +220,14 @@ allen_rna <- FindVariableFeatures(
 transfer.anchors <- FindTransferAnchors(
   reference = allen_rna,
   query = brain,
-  reduction = 'cca',
+  reduction = "cca",
   dims = 1:30
 )
 
 predicted.labels <- TransferData(
   anchorset = transfer.anchors,
   refdata = allen_rna$subclass,
-  weight.reduction = brain[['lsi']],
+  weight.reduction = brain[["lsi"]],
   dims = 2:30
 )
 
@@ -235,8 +236,8 @@ brain <- AddMetaData(object = brain, metadata = predicted.labels)
 
 
 ```{r fig.width=12}
-plot1 <- DimPlot(allen_rna, group.by = 'subclass', label = TRUE, repel = TRUE) + NoLegend() + ggtitle('scRNA-seq')
-plot2 <- DimPlot(brain, group.by = 'predicted.id', label = TRUE, repel = TRUE) + NoLegend() + ggtitle('scATAC-seq')
+plot1 <- DimPlot(allen_rna, group.by = "subclass", label = TRUE, repel = TRUE) + NoLegend() + ggtitle("scRNA-seq")
+plot2 <- DimPlot(brain, group.by = "predicted.id", label = TRUE, repel = TRUE) + NoLegend() + ggtitle("scATAC-seq")
 plot1 + plot2
 ```
 
@@ -249,15 +250,15 @@ Here, we find differentially accessible regions between excitatory neurons in
 different layers of the cortex.
 
 ```{r message=TRUE, warning=FALSE}
-#switch back to working with peaks instead of gene activities
-DefaultAssay(brain) <- 'peaks'
+# switch back to working with peaks instead of gene activities
+DefaultAssay(brain) <- "peaks"
 Idents(brain) <- "predicted.id"
 
 da_peaks <- FindMarkers(
   object = brain,
-  ident.1 = c("L2/3 IT"), 
+  ident.1 = c("L2/3 IT"),
   ident.2 = c("L4", "L5 IT", "L6 IT"),
-  test.use = 'wilcox',
+  test.use = "wilcox",
   min.pct = 0.1
 )
 
@@ -269,13 +270,13 @@ plot1 <- VlnPlot(
   object = brain,
   features = rownames(da_peaks)[1],
   pt.size = 0.1,
-  idents = c("L4","L5 IT","L2/3 IT")
+  idents = c("L4", "L5 IT", "L2/3 IT")
 )
 plot2 <- FeaturePlot(
   object = brain,
   features = rownames(da_peaks)[1],
   pt.size = 0.1,
-  max.cutoff = 'q95'
+  max.cutoff = "q95"
 )
 plot1 | plot2
 ```

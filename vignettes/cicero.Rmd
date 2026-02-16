@@ -35,21 +35,26 @@ knitr::opts_knit$set(root.dir = "../vignette_data/GSE129785")
 ```
 
 ```{r include=FALSE}
-setRepositories(ind=1:3)
-if (!requireNamespace("remotes", quietly = TRUE))
-    install.packages("remotes")
+setRepositories(ind = 1:3)
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
 
-if (!requireNamespace("SeuratWrappers", quietly = TRUE))
-    remotes::install_github('satijalab/seurat-wrappers')
+if (!requireNamespace("SeuratWrappers", quietly = TRUE)) {
+  remotes::install_github("satijalab/seurat-wrappers")
+}
 
-if (!requireNamespace("leidenbase", quietly = TRUE))
-    remotes::install_github("cole-trapnell-lab/leidenbase")
+if (!requireNamespace("leidenbase", quietly = TRUE)) {
+  remotes::install_github("cole-trapnell-lab/leidenbase")
+}
 
-if (!requireNamespace("monocle3", quietly = TRUE))
-    remotes::install_github("cole-trapnell-lab/monocle3")
+if (!requireNamespace("monocle3", quietly = TRUE)) {
+  remotes::install_github("cole-trapnell-lab/monocle3")
+}
 
-if (!requireNamespace("cicero", quietly = TRUE))
-    remotes::install_github("cole-trapnell-lab/cicero-release", ref = "monocle3")
+if (!requireNamespace("cicero", quietly = TRUE)) {
+  remotes::install_github("cole-trapnell-lab/cicero-release", ref = "monocle3")
+}
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -76,8 +81,9 @@ installed, then convert our `Seurat` object for the whole bone marrow dataset to
 
 ```{r message=FALSE, warning=FALSE}
 # Install Cicero
-if (!requireNamespace("remotes", quietly = TRUE))
-    install.packages("remotes")
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
 remotes::install_github("cole-trapnell-lab/cicero-release", ref = "monocle3")
 ```
 
@@ -88,7 +94,9 @@ library(cicero)
 ```{r message=FALSE, warning=FALSE}
 # convert to CellDataSet format and make the cicero object
 bone.cds <- as.cell_data_set(x = bone)
-bone.cicero <- make_cicero_cds(bone.cds, reduced_coordinates = reducedDims(bone.cds)$UMAP)
+bone.cicero <- make_cicero_cds(
+  cds = bone.cds, reduced_coordinates = reducedDims(bone.cds)$UMAP
+)
 ```
 
 ## Find Cicero connections

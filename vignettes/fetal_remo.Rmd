@@ -12,12 +12,14 @@ knitr::opts_knit$set(root.dir = "../vignette_data/zhang")
 ```{r, include=FALSE}
 options(width = 600)
 local({
-  hook_output <- knitr::knit_hooks$get('output')
+  hook_output <- knitr::knit_hooks$get("output")
   knitr::knit_hooks$set(output = function(x, options) {
-    if (!is.null(options$max.height))options$attr.output <- c(
-      options$attr.output,
-      sprintf('style="max-height: %s;"', options$max.height)
-    )
+    if (!is.null(options$max.height)) {
+      options$attr.output <- c(
+        options$attr.output,
+        sprintf('style="max-height: %s;"', options$max.height)
+      )
+    }
     hook_output(x, options)
   })
 })
@@ -74,11 +76,13 @@ fragtk matrix -f fragments.tsv.gz -b REMOv1_GRCh38.bed.gz -c cells.txt.gz -o rem
 </details>  
 
 ```{r include=FALSE}
-if (!requireNamespace("REMO.v1.GRCh38", quietly = TRUE))
-    remotes::install_github(repo = "stuart-lab/REMO.v1.GRCh38")
+if (!requireNamespace("REMO.v1.GRCh38", quietly = TRUE)) {
+  remotes::install_github(repo = "stuart-lab/REMO.v1.GRCh38")
+}
 
-if (!requireNamespace("BPCells", quietly = TRUE))
-    remotes::install_github("bnprks/BPCells/r")
+if (!requireNamespace("BPCells", quietly = TRUE)) {
+  remotes::install_github("bnprks/BPCells/r")
+}
 ```
 
 ```{r}
@@ -127,7 +131,12 @@ chrom_assay <- CreateChromatinAssay5(
   min.cells = 20
 )
 
-fetal <- CreateSeuratObject(counts = chrom_assay, assay = "REMO", names.field = 2, names.delim = "__")
+fetal <- CreateSeuratObject(
+  counts = chrom_assay,
+  assay = "REMO",
+  names.field = 2,
+  names.delim = "__"
+)
 ```
 
 ```{r}
@@ -138,7 +147,7 @@ Despite containing a large number of cells, we can see that the object requires
 less that 1 Gb of RAM due to storing the count matrix on disk:
 
 ```{r}
-format(object.size(fetal), 'Gb')
+format(object.size(fetal), "Gb")
 ```
 
 
@@ -159,7 +168,14 @@ fetal <- ATACqc(fetal)
 ```
 
 ```{r}
-DensityScatter(fetal, x = 'total_fragments', y = 'TSS_enrichment', log_x = TRUE, log_y = TRUE, quantiles = TRUE)
+DensityScatter(
+  object = fetal,
+  x = "total_fragments",
+  y = "TSS_enrichment",
+  log_x = TRUE,
+  log_y = TRUE,
+  quantiles = TRUE
+)
 ```
 
 ```{r}
@@ -195,7 +211,7 @@ package.
 fetal <- RunUMAP(object = fetal, dims = 1:30)
 fetal <- FindNeighbors(object = fetal, dims = 1:30)
 fetal <- FindClusters(object = fetal, verbose = FALSE, algorithm = 3)
-DimPlot(object = fetal, label = TRUE, raster = FALSE, pt.size = 0.1) + NoLegend()
+DimPlot(fetal, label = TRUE, raster = FALSE, pt.size = 0.1) + NoLegend()
 ```
 
 ## Plotting genomic regions

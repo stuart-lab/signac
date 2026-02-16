@@ -12,20 +12,23 @@ knitr::opts_knit$set(root.dir = "../vignette_data/pbmc_vignette")
 ```{r, include=FALSE}
 options(width = 600)
 local({
-  hook_output <- knitr::knit_hooks$get('output')
+  hook_output <- knitr::knit_hooks$get("output")
   knitr::knit_hooks$set(output = function(x, options) {
-    if (!is.null(options$max.height))options$attr.output <- c(
-      options$attr.output,
-      sprintf('style="max-height: %s;"', options$max.height)
-    )
+    if (!is.null(options$max.height)) {
+      options$attr.output <- c(
+        options$attr.output,
+        sprintf('style="max-height: %s;"', options$max.height)
+      )
+    }
     hook_output(x, options)
   })
 })
 ```
 
 ```{r include=FALSE}
-if (!requireNamespace(package = 'qs2', quietly = TRUE))
-  install.packages('qs2')
+if (!requireNamespace(package = "qs2", quietly = TRUE)) {
+  install.packages("qs2")
+}
 ```
 
 For this tutorial, we will be analyzing a single-cell ATAC-seq dataset of human
@@ -114,8 +117,8 @@ file, and a peaks file. If this is the case you can load the data using the
 ```{r eval=FALSE}
 counts <- Matrix::readMM("filtered_peak_bc_matrix/matrix.mtx")
 barcodes <- readLines("filtered_peak_bc_matrix/barcodes.tsv")
-peaks <- read.table("filtered_peak_bc_matrix/peaks.bed", sep="\t")
-peaknames <- paste(peaks$V1, peaks$V2, peaks$V3, sep="-")
+peaks <- read.table("filtered_peak_bc_matrix/peaks.bed", sep = "\t")
+peaknames <- paste(peaks$V1, peaks$V2, peaks$V3, sep = "-")
 
 colnames(counts) <- barcodes
 rownames(counts) <- peaknames
@@ -125,7 +128,7 @@ Alternatively, you might only have a fragment file. In this case you can create
 a count matrix using the `FeatureMatrix()` function:
 
 ```{r eval=FALSE}
-fragpath <- '10k_pbmc_ATACv2_nextgem_Chromium_Controller_fragments.tsv.gz'
+fragpath <- "10k_pbmc_ATACv2_nextgem_Chromium_Controller_fragments.tsv.gz"
 
 # Define cells
 # If you already have a list of cell barcodes to use you can skip this step
@@ -153,7 +156,7 @@ information that can be contained in the `GRangesAssay`, including motif
 information, gene annotations, and genome information.
 
 ```{r}
-pbmc[['peaks']]
+pbmc[["peaks"]]
 ```
 
 For example, we can call `granges` on a Seurat object with a `GRangesAssay`
@@ -203,7 +206,7 @@ ensdb_v98 <- ah[["AH75011"]]
 annotations <- GetGRangesFromEnsDb(ensdb = ensdb_v98)
 
 # change to UCSC style since the data was mapped to hg38
-seqlevels(annotations) <- paste0('chr', seqlevels(annotations))
+seqlevels(annotations) <- paste0("chr", seqlevels(annotations))
 genome(annotations) <- "hg38"
 ```
 
@@ -241,7 +244,7 @@ to quickly find suitable cutoff values for different QC metrics by setting
 `quantiles=TRUE`:
 
 ```{r}
-DensityScatter(pbmc, x = 'total_fragments', y = 'TSS_enrichment', log_x = TRUE, quantiles = TRUE)
+DensityScatter(pbmc, x = "total_fragments", y = "TSS_enrichment", log_x = TRUE, quantiles = TRUE)
 ```
 
 We can plot the distribution of each QC metric separately using a violin plot:
@@ -249,7 +252,7 @@ We can plot the distribution of each QC metric separately using a violin plot:
 ```{r message=FALSE, warning=FALSE, fig.width=18, fig.height=6}
 VlnPlot(
   object = pbmc,
-  features = c('nCount_peaks', 'total_fragments', 'TSS_enrichment', 'FRiP'),
+  features = c("nCount_peaks", "total_fragments", "TSS_enrichment", "FRiP"),
   pt.size = 0.1,
   ncol = 4
 )
@@ -283,7 +286,7 @@ indexing (LSI), and were first introduced for the analysis of scATAC-seq data by
 
 ```{r message=FALSE, warning=FALSE}
 pbmc <- RunTFIDF(pbmc)
-pbmc <- FindTopFeatures(pbmc, min.cutoff = 'q0')
+pbmc <- FindTopFeatures(pbmc, min.cutoff = "q0")
 pbmc <- RunSVD(pbmc)
 ```
 
@@ -311,8 +314,8 @@ clustering and non-linear dimension reduction for visualization. The functions
 package.
 
 ```{r message=FALSE, warning=FALSE}
-pbmc <- RunUMAP(object = pbmc, reduction = 'lsi', dims = 2:30)
-pbmc <- FindNeighbors(object = pbmc, reduction = 'lsi', dims = 2:30)
+pbmc <- RunUMAP(object = pbmc, reduction = "lsi", dims = 2:30)
+pbmc <- FindNeighbors(object = pbmc, reduction = "lsi", dims = 2:30)
 pbmc <- FindClusters(object = pbmc, verbose = FALSE, algorithm = 3)
 DimPlot(object = pbmc, label = TRUE) + NoLegend()
 ```
@@ -349,8 +352,8 @@ gene.activities <- GeneActivity(pbmc)
 
 ```{r message=FALSE, warning=FALSE}
 # add the gene activity matrix to the Seurat object as a new assay and normalize it
-pbmc[['RNA']] <- CreateAssayObject(counts = gene.activities)
-pbmc <- NormalizeData(pbmc, assay = 'RNA')
+pbmc[["RNA"]] <- CreateAssayObject(counts = gene.activities)
+pbmc <- NormalizeData(pbmc, assay = "RNA")
 ```
 
 Now we can visualize the activities of canonical marker genes to help interpret
@@ -363,16 +366,15 @@ NK cells based on these gene activity profiles. However, further subdivision of
 these cell types is challenging based on supervised analysis alone.
 
 ```{r fig.width=12, fig.height=10}
-DefaultAssay(pbmc) <- 'RNA'
+DefaultAssay(pbmc) <- "RNA"
 
 FeaturePlot(
   object = pbmc,
-  features = c('MS4A1', 'CD3D', 'LEF1', 'NKG7', 'TREM1', 'LYZ'),
+  features = c("MS4A1", "CD3D", "LEF1", "NKG7", "TREM1", "LYZ"),
   pt.size = 0.1,
-  max.cutoff = 'q95',
+  max.cutoff = "q95",
   ncol = 3
 )
-
 ```
 
 ## Integrating with scRNA-seq data
@@ -405,13 +407,13 @@ pbmc_rna <- UpdateSeuratObject(pbmc_rna)
 transfer.anchors <- FindTransferAnchors(
   reference = pbmc_rna,
   query = pbmc,
-  reduction = 'cca'
+  reduction = "cca"
 )
 
 predicted.labels <- TransferData(
   anchorset = transfer.anchors,
   refdata = pbmc_rna$celltype,
-  weight.reduction = pbmc[['lsi']],
+  weight.reduction = pbmc[["lsi"]],
   dims = 2:30
 )
 
@@ -421,15 +423,17 @@ pbmc <- AddMetaData(object = pbmc, metadata = predicted.labels)
 ```{r fig.width=12}
 plot1 <- DimPlot(
   object = pbmc_rna,
-  group.by = 'celltype',
+  group.by = "celltype",
   label = TRUE,
-  repel = TRUE) + NoLegend() + ggtitle('scRNA-seq')
+  repel = TRUE
+) + NoLegend() + ggtitle("scRNA-seq")
 
 plot2 <- DimPlot(
   object = pbmc,
-  group.by = 'predicted.id',
+  group.by = "predicted.id",
   label = TRUE,
-  repel = TRUE) + NoLegend() + ggtitle('scATAC-seq')
+  repel = TRUE
+) + NoLegend() + ggtitle("scATAC-seq")
 
 plot1 + plot2
 ```
@@ -454,7 +458,7 @@ in the assigned cell identity. In most cases, the next most likely cell identity
 predicted for these cells was “CD4 naive”.
 
 ```{r fig.width=12}
-VlnPlot(pbmc, 'prediction.score.max', group.by = 'predicted.id')
+VlnPlot(pbmc, "prediction.score.max", group.by = "predicted.id")
 ```
 
 ```{r max.height='300px'}
@@ -509,7 +513,7 @@ each UMAP cluster to the most common predicted label for that cluster.
 
 ```{r eval=FALSE}
 # replace each cluster label with its most likely predicted label
-for(i in levels(pbmc)) {
+for (i in levels(pbmc)) {
   cells_to_reid <- WhichCells(pbmc, idents = i)
   newid <- names(which.max(table(pbmc$predicted.id[cells_to_reid])))
   Idents(pbmc, cells = cells_to_reid) <- newid
@@ -531,9 +535,10 @@ Seurat object.
 <summary>**Install presto**</summary>
 
 ```{r eval=FALSE}
-if (!requireNamespace("remotes", quietly = TRUE))
-  install.packages('remotes')
-remotes::install_github('immunogenomics/presto')
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
+remotes::install_github("immunogenomics/presto")
 ```
 
 </details>
@@ -545,14 +550,14 @@ peaks on a violin plot, feature plot, dot plot, heat map, or any
 
 ```{r message=TRUE, warning=FALSE}
 # change back to working with peaks instead of gene activities
-DefaultAssay(pbmc) <- 'peaks'
+DefaultAssay(pbmc) <- "peaks"
 
 # wilcox is the default option for test.use
 da_peaks <- FindMarkers(
   object = pbmc,
   ident.1 = "CD4 Naive",
   ident.2 = "CD14+ Monocytes",
-  test.use = 'wilcox',
+  test.use = "wilcox",
   min.pct = 0.1
 )
 
@@ -571,15 +576,15 @@ to mitigate the effect of differential sequencing depth on the result.
 
 ```{r eval=FALSE}
 # change back to working with peaks instead of gene activities
-DefaultAssay(pbmc) <- 'peaks'
+DefaultAssay(pbmc) <- "peaks"
 
 # Use logistic regression, set total fragment no. as latent var
 lr_da_peaks <- FindMarkers(
   object = pbmc,
   ident.1 = "CD4 Naive",
   ident.2 = "CD14+ Monocytes",
-  test.use = 'LR',
-  latent.vars = 'nCount_peaks',
+  test.use = "LR",
+  latent.vars = "nCount_peaks",
   min.pct = 0.1
 )
 head(lr_da_peaks)
@@ -592,7 +597,7 @@ plot1 <- VlnPlot(
   object = pbmc,
   features = rownames(da_peaks)[1],
   pt.size = 0.1,
-  idents = c("CD4 Naive","CD14+ Monocytes")
+  idents = c("CD4 Naive", "CD14+ Monocytes")
 )
 plot2 <- FeaturePlot(
   object = pbmc,
@@ -615,7 +620,8 @@ closest_genes <- data.frame(
   peak = open_cd4naive,
   gene_name = Annotation(pbmc)[subjectHits(gene_distance_cd4naive)]$gene_name,
   gene_id = Annotation(pbmc)[subjectHits(gene_distance_cd4naive)]$gene_id,
-  distance = mcols(gene_distance_cd4naive)$distance)
+  distance = mcols(gene_distance_cd4naive)$distance
+)
 ```
 
 ```{r}
@@ -634,14 +640,17 @@ R packages that can do this (see the
 
 
 ```{r include=FALSE}
-if (!requireNamespace("clusterProfiler", quietly = TRUE))
+if (!requireNamespace("clusterProfiler", quietly = TRUE)) {
   BiocManager::install("clusterProfiler")
+}
 
-if (!requireNamespace("org.Hs.eg.db", quietly = TRUE))
+if (!requireNamespace("org.Hs.eg.db", quietly = TRUE)) {
   BiocManager::install("org.Hs.eg.db")
+}
 
-if (!requireNamespace("enrichplot", quietly = TRUE))
+if (!requireNamespace("enrichplot", quietly = TRUE)) {
   BiocManager::install("enrichplot")
+}
 ```
 
 ```{r message=FALSE}
@@ -651,16 +660,18 @@ library(enrichplot)
 ```
 
 ```{r fig.width=12, fig.height=10, message=FALSE, warning=FALSE}
-cd4naive_ego <- enrichGO(gene = closest_genes$gene_id,
-                keyType = "ENSEMBL",
-                OrgDb = org.Hs.eg.db,
-                ont = "BP",
-                pAdjustMethod = "BH",
-                pvalueCutoff = 0.05,
-                qvalueCutoff = 0.05,
-                readable = TRUE)
+cd4naive_ego <- enrichGO(
+  gene = closest_genes$gene_id,
+  keyType = "ENSEMBL",
+  OrgDb = org.Hs.eg.db,
+  ont = "BP",
+  pAdjustMethod = "BH",
+  pvalueCutoff = 0.05,
+  qvalueCutoff = 0.05,
+  readable = TRUE
+)
 
-barplot(cd4naive_ego,showCategory = 20)
+barplot(cd4naive_ego, showCategory = 20)
 ```
 
 </details>
