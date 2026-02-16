@@ -68,8 +68,9 @@ create distinct non-overlapping sets of peaks. Here is a visual example to
 illustrate the difference between `reduce` and `disjoin`:
 
 ```{r include=FALSE, echo=FALSE}
-if (!requireNamespace("ggbio", quietly = TRUE))
-    BiocManager::install("ggbio")
+if (!requireNamespace("ggbio", quietly = TRUE)) {
+  BiocManager::install("ggbio")
+}
 ```
 
 ```{r include=FALSE, echo=FALSE}
@@ -80,14 +81,29 @@ library(patchwork)
 ```
 
 ```{r}
-gr <- GRanges(seqnames = "chr1", ranges = IRanges(start = c(20, 70, 300), end = c(120, 200, 400)))
+gr <- GRanges(
+  seqnames = "chr1",
+  ranges = IRanges(start = c(20, 70, 300), end = c(120, 200, 400))
+)
 gr
 ```
 
 ```{r echo=FALSE, fig.height=1, fig.width=6}
-ggplot(gr) + geom_segment(size = 5) + theme_classic() + ggtitle("Ranges") + ylab("")
-ggplot(reduce(gr)) + geom_segment(size = 5) + theme_classic() + ggtitle("Reduce") + ylab("")
-ggplot(disjoin(gr)) + geom_segment(size = 5) + theme_classic() + ggtitle("Disjoin") + ylab("")
+ggplot(gr) +
+  geom_segment(size = 5) +
+  theme_classic() +
+  ggtitle("Ranges") +
+  ylab("")
+ggplot(reduce(gr)) +
+  geom_segment(size = 5) +
+  theme_classic() +
+  ggtitle("Reduce") +
+  ylab("")
+ggplot(disjoin(gr)) +
+  geom_segment(size = 5) +
+  theme_classic() +
+  ggtitle("Disjoin") +
+  ylab("")
 ```
 
 ## Creating a common peak set
@@ -95,7 +111,8 @@ ggplot(disjoin(gr)) + geom_segment(size = 5) + theme_classic() + ggtitle("Disjoi
 If the peaks were identified independently in each experiment then they will 
 likely not overlap perfectly. We can merge peaks from all the datasets to create
 a common peak set, and quantify this peak set in each experiment prior to merging
-the objects.
+the objects. Alternatively, for human data, we could use the set of universal
+scATAC-seq features recently released by our lab: [REMO](https://github.com/stuart-lab/REMO.v1.GRCh38).
 
 First we'll load the peak coordinates for each experiment and convert them to
 genomic ranges, the use the `GenomicRanges::reduce` function to create a common
@@ -105,10 +122,6 @@ set of peaks to quantify in each dataset.
 library(Signac)
 library(Seurat)
 library(GenomicRanges)
-library(future)
-
-plan("multicore", workers = 4)
-options(future.globals.maxSize = 50000 * 1024^2) # for 50 Gb RAM
 ```
 
 ```{r}
@@ -141,7 +154,7 @@ combined.peaks <- reduce(x = c(gr.500, gr.1k, gr.5k, gr.10k))
 
 # Filter out bad peaks based on length
 peakwidths <- width(combined.peaks)
-combined.peaks <- combined.peaks[peakwidths  < 10000 & peakwidths > 20]
+combined.peaks <- combined.peaks[peakwidths < 10000 & peakwidths > 20]
 combined.peaks
 ```
 
@@ -197,7 +210,7 @@ md.10k <- read.table(
 md.500 <- md.500[md.500$passed_filters > 500, ]
 md.1k <- md.1k[md.1k$passed_filters > 500, ]
 md.5k <- md.5k[md.5k$passed_filters > 500, ]
-md.10k <- md.10k[md.10k$passed_filters > 1000, ] # sequenced deeper so set higher cutoff
+md.10k <- md.10k[md.10k$passed_filters > 1000, ]
 
 # create fragment objects
 frags.500 <- CreateFragmentObject(
@@ -224,10 +237,7 @@ frags.10k <- CreateFragmentObject(
 ## Quantify peaks in each dataset
 
 We can now create a matrix of peaks x cell for each sample using the
-`FeatureMatrix` function. This function is parallelized using the
-[`future`](https://cran.r-project.org/package=future) package. See the 
-[parallelization](https://satijalab.org/signac/articles/future.html) vignette
-for more information about using `future`.
+`FeatureMatrix` function.
 
 ```{r message=FALSE, warning=FALSE, cache=TRUE}
 pbmc500.counts <- FeatureMatrix(
@@ -261,17 +271,17 @@ We will now use the quantified matrices to create a Seurat object for each
 dataset, storing the Fragment object for each dataset in the assay.
 
 ```{r message=FALSE, warning=FALSE}
-pbmc500_assay <- CreateChromatinAssay(pbmc500.counts, fragments = frags.500)
-pbmc500 <- CreateSeuratObject(pbmc500_assay, assay = "ATAC", meta.data=md.500)
+pbmc500_assay <- CreateGRangesAssay(pbmc500.counts, fragments = frags.500)
+pbmc500 <- CreateSeuratObject(pbmc500_assay, assay = "ATAC", meta.data = md.500)
 
-pbmc1k_assay <- CreateChromatinAssay(pbmc1k.counts, fragments = frags.1k)
-pbmc1k <- CreateSeuratObject(pbmc1k_assay, assay = "ATAC", meta.data=md.1k)
+pbmc1k_assay <- CreateGRangesAssay(pbmc1k.counts, fragments = frags.1k)
+pbmc1k <- CreateSeuratObject(pbmc1k_assay, assay = "ATAC", meta.data = md.1k)
 
-pbmc5k_assay <- CreateChromatinAssay(pbmc5k.counts, fragments = frags.5k)
-pbmc5k <- CreateSeuratObject(pbmc5k_assay, assay = "ATAC", meta.data=md.5k)
+pbmc5k_assay <- CreateGRangesAssay(pbmc5k.counts, fragments = frags.5k)
+pbmc5k <- CreateSeuratObject(pbmc5k_assay, assay = "ATAC", meta.data = md.5k)
 
-pbmc10k_assay <- CreateChromatinAssay(pbmc10k.counts, fragments = frags.10k)
-pbmc10k <- CreateSeuratObject(pbmc10k_assay, assay = "ATAC", meta.data=md.10k)
+pbmc10k_assay <- CreateGRangesAssay(pbmc10k.counts, fragments = frags.10k)
+pbmc10k <- CreateSeuratObject(pbmc10k_assay, assay = "ATAC", meta.data = md.10k)
 ```
 
 ## Merge objects
@@ -283,10 +293,10 @@ the final merged object.
 
 ```{r}
 # add information to identify dataset of origin
-pbmc500$dataset <- 'pbmc500'
-pbmc1k$dataset <- 'pbmc1k'
-pbmc5k$dataset <- 'pbmc5k'
-pbmc10k$dataset <- 'pbmc10k'
+pbmc500$dataset <- "pbmc500"
+pbmc1k$dataset <- "pbmc1k"
+pbmc5k$dataset <- "pbmc5k"
+pbmc10k$dataset <- "pbmc10k"
 
 # merge all datasets, adding a cell ID to make sure cell names are unique
 combined <- merge(
@@ -297,15 +307,23 @@ combined <- merge(
 combined[["ATAC"]]
 ```
 
+The object data is still stored as separate layers. To run downstream steps such
+as dimension reduction with SVD, we need to first join the layers:
+
+```{r}
+combined <- JoinLayers(combined)
+combined
+```
+
 ```{r message=FALSE, warning=FALSE}
 combined <- RunTFIDF(combined)
 combined <- FindTopFeatures(combined, min.cutoff = 20)
 combined <- RunSVD(combined)
-combined <- RunUMAP(combined, dims = 2:50, reduction = 'lsi')
+combined <- RunUMAP(combined, dims = 2:50, reduction = "lsi")
 ```
 
 ```{r}
-DimPlot(combined, group.by = 'dataset', pt.size = 0.1)
+DimPlot(combined, group.by = "dataset", pt.size = 0.1)
 ```
 
 The merged object contains all four fragment objects, and contains an internal 
@@ -318,8 +336,8 @@ region of the genome:
 ```{r coverageplot, message=FALSE, warning=FALSE, cache=FALSE, out.width="90%", fig.height=4}
 CoveragePlot(
   object = combined,
-  group.by = 'dataset',
-  region = "chr14-99700000-99760000"
+  group.by = "dataset",
+  region = "chr14:99700000-99760000"
 )
 ```
 
@@ -334,41 +352,46 @@ dataset. In some cases we may not have this data (although we can create a
 fragment file from the BAM file using 
 [sinto](https://timoast.github.io/sinto/basic_usage.html#create-scatac-seq-fragments-file)).
 In these cases, we can still create a merged object, with the caveat that the
-resulting merged count matrix may not be as accurate.
+resulting merged count matrix **will not be accurate**.
 
-The `merge` function defined in Signac for `ChromatinAssay` objects will 
-consider overlapping peaks as equivalent, and adjust the genomic ranges spanned
-by the peak so that the features in each object being merged become equivalent.
-**Note that this can result in inaccuracies in the count matrix, as some peaks 
-will be extended to cover regions that were not originally quantified**. This is
-the best that can be done without re-quantification, and we recommend always 
-following the procedure outlined above for object merging whenever possible.
+The `merge` function will consider peaks that are not identical to be different
+features entirely, even if they contain overlapping genomic ranges. This is why
+we recommend to always create a consensus peak set and quantify those peaks
+consistently across all the datasets to be merged.
 
 Here we demonstrate merging the same four PBMC datasets without creating a 
 common feature set:
 
 ```{r message=FALSE, warning=FALSE}
 # load the count matrix for each object that was generated by cellranger
-counts.500 <- Read10X_h5("pbmc500/atac_pbmc_500_nextgem_filtered_peak_bc_matrix.h5")
-counts.1k <- Read10X_h5("pbmc1k/atac_pbmc_1k_nextgem_filtered_peak_bc_matrix.h5")
-counts.5k <- Read10X_h5("pbmc5k/atac_pbmc_5k_nextgem_filtered_peak_bc_matrix.h5")
-counts.10k <- Read10X_h5("pbmc10k/atac_pbmc_10k_nextgem_filtered_peak_bc_matrix.h5")
+counts.500 <- Read10X_h5(
+  filename = "pbmc500/atac_pbmc_500_nextgem_filtered_peak_bc_matrix.h5"
+)
+counts.1k <- Read10X_h5(
+  filename = "pbmc1k/atac_pbmc_1k_nextgem_filtered_peak_bc_matrix.h5"
+)
+counts.5k <- Read10X_h5(
+  filename = "pbmc5k/atac_pbmc_5k_nextgem_filtered_peak_bc_matrix.h5"
+)
+counts.10k <- Read10X_h5(
+  filename = "pbmc10k/atac_pbmc_10k_nextgem_filtered_peak_bc_matrix.h5"
+)
 
 # create objects
-pbmc500_assay <- CreateChromatinAssay(counts = counts.500, sep = c(":", "-"), min.features = 500)
+pbmc500_assay <- CreateGRangesAssay(counts = counts.500, min.features = 500)
 pbmc500 <- CreateSeuratObject(pbmc500_assay, assay = "peaks")
-pbmc1k_assay <- CreateChromatinAssay(counts = counts.1k, sep = c(":", "-"), min.features = 500)
+pbmc1k_assay <- CreateGRangesAssay(counts = counts.1k, min.features = 500)
 pbmc1k <- CreateSeuratObject(pbmc1k_assay, assay = "peaks")
-pbmc5k_assay <- CreateChromatinAssay(counts = counts.5k, sep = c(":", "-"), min.features = 500)
+pbmc5k_assay <- CreateGRangesAssay(counts = counts.5k, min.features = 500)
 pbmc5k <- CreateSeuratObject(pbmc5k_assay, assay = "peaks")
-pbmc10k_assay <- CreateChromatinAssay(counts = counts.10k, sep = c(":", "-"), min.features = 1000)
+pbmc10k_assay <- CreateGRangesAssay(counts = counts.10k, min.features = 1000)
 pbmc10k <- CreateSeuratObject(pbmc10k_assay, assay = "peaks")
 
 # add information to identify dataset of origin
-pbmc500$dataset <- 'pbmc500'
-pbmc1k$dataset <- 'pbmc1k'
-pbmc5k$dataset <- 'pbmc5k'
-pbmc10k$dataset <- 'pbmc10k'
+pbmc500$dataset <- "pbmc500"
+pbmc1k$dataset <- "pbmc1k"
+pbmc5k$dataset <- "pbmc5k"
+pbmc10k$dataset <- "pbmc10k"
 
 # merge
 combined <- merge(
@@ -376,16 +399,17 @@ combined <- merge(
   y = list(pbmc1k, pbmc5k, pbmc10k),
   add.cell.ids = c("500", "1k", "5k", "10k")
 )
+combined <- JoinLayers(combined)
 
-# process 
+# process
 combined <- RunTFIDF(combined)
 combined <- FindTopFeatures(combined, min.cutoff = 20)
 combined <- RunSVD(combined)
-combined <- RunUMAP(combined, dims = 2:50, reduction = 'lsi')
+combined <- RunUMAP(combined, dims = 2:50, reduction = "lsi")
 ```
 
 ```{r}
-DimPlot(combined, group.by = 'dataset', pt.size = 0.1)
+DimPlot(combined, group.by = "dataset", pt.size = 0.1)
 ```
 
 <details>
