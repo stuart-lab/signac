@@ -13,7 +13,7 @@ RegionAggr(object, ...)
 
 RegionAggr(object, ...) <- value
 
-\method{RegionAggr}{ChromatinAssay5}(object, ...)
+\method{RegionAggr}{ChromatinAssay5}(object, features = NULL, ...)
 
 \method{RegionAggr}{Seurat}(object, assay = NULL, ...)
 
@@ -27,6 +27,8 @@ RegionAggr(object, ...) <- value
 \item{...}{Arguments passed to other methods}
 
 \item{value}{A \linkS4class{RegionAggregation} object or list of \linkS4class{RegionAggregation} objects}
+
+\item{features}{Optional character vector of region aggregation names to return}
 
 \item{assay}{Name of assay to use}
 }

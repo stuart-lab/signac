@@ -127,24 +127,24 @@ setClass(
 )
 setValidity(Class = "RegionAggregation", function(object) {
   # make sure cell names do not contain NA
-  if (any(is.na(x = objects@cells))){
+  if (any(is.na(x = object@cells))){
     return("Cells slot must not contain NA values")
   }
   # matrix rows must match cells number 
-  if (nrow(x = object@matrix) != length(x = object@cells)){
+  if (dim(x = object@matrix)[1] != length(x = object@cells)){
     return("Number of rows in matrix must match length of cells")
   }
   # region width must be identical
   w <- unique(x = width(object@regions))
   if (length(x = w) != 1) {
-    return("All regions must have identical width")
+    return("All regions must have identical width")  
   }
   # region width must match matrix columns 
-  if (ncol(x = object@matrix) != (object@upstream + object@downstream + w)){
+  if (dim(x = object@matrix)[2] != (object@upstream + object@downstream + w)){
     return("Matrix columns do not match upstream + downstream + region width")
   }
   # expected vector length must match matrix columns 
-  if (length(x = object@expected) != ncol(x = object@matrix)){
+  if (length(x = object@expected) != dim(x = object@matrix)[2]){
     return("Expected vector length must match number of matrix columns")
   }
   TRUE

@@ -500,24 +500,24 @@ CreateRegionAggregationObject <- function(
       if (!is.numeric(x = expected)) {
         stop("expected insertions must be a numeric vector")
       }
-      if (length(x = expected) != ncol(x = mat)) {
+      if (length(x = expected) != dim(x = mat)[2]) {
         stop("expected insertion must match the number of positions in the matrix")
       }
     } else {
-      expected <- rep(x = 1, ncol(x = mat))
+      expected <- rep(x = 1, dim(x = mat)[2])
     }
     # if cells not given, create the cells from rownames of the matrix
     if (is.null(x = cells)){
-        cells <- rownames(x = matrix)
+        cells <- rownames(x = mat)
         if (is.null(x = cells)) {
           stop("cells information not provided, and the provided matrix has no",
                " row names")
         }
     } else {
         cells <- as.character(x = cells)
-        if (length(x = cells) != nrow(x = matrix)) {
+        if (length(x = cells) != dim(x = mat)[1]) {
             stop("Number of cells: (", length(x = cells), 
-                 ") does not match number of matrix rows (", nrow(x = matrix), ")")
+                 ") does not match number of matrix rows (", dim(x = matrix)[1], ")")
         }
     }
     
@@ -1056,6 +1056,9 @@ RenameCells.Fragment2 <- function(object, new.names, ...) {
 #' @method RenameCells RegionAggregation
 #' @export
 RenameCells.RegionAggregation <- function(object, new.names, ...) {
+  # name of each element is the existing cell name
+  # element itself is the corresponding new name
+  
   cells <- slot(object = object, name = "cells")
   if (is.null(x = cells)) {
     # invalid object
@@ -1070,10 +1073,8 @@ RenameCells.RegionAggregation <- function(object, new.names, ...) {
     }
     names(x = new.names) <- cells
   }
-  # subset and rename 
-  cells <- cells[names(x = new.names)]
-  names(x = cells) <- new.names[names(x = cells)]
-  slot(object = object, name = "cells") <- cells
+  new_cells <- unname(new.names[cells])
+  slot(object = object, name = "cells") <- new_cells
   return(object)
 }
 
@@ -1206,7 +1207,10 @@ SetAssayData.ChromatinAssay5 <- function(
     }
     methods::slot(object = object, name = layer) <- new.data
   } else if (layer == "region.aggregation") {
-    if (is.null(x = new.data)) {
+    # pull overwrite from ... , only interpret inside layer==region.aggregation
+    dots <- list(...) 
+    overwrite <- dots$overwrite %||% FALSE #default FALSE if not provided
+    if (is.null(x = new.data) || length(x = new.data) == 0) {
       # overwrite with empty list
       methods::slot(object = object, name = layer) <- list()
       return(object)
@@ -1226,36 +1230,63 @@ SetAssayData.ChromatinAssay5 <- function(
     agg.list <- GetAssayData(object = object, layer = layer)
     if (length(x = agg.list) == 0) {
       # nothing exists yet -> assign directly 
+      new.data <- MergeRegionAggregation(new.data)
       methods::slot(object, "region.aggregation") <- new.data
       return(object)
     } 
-    # try to merge compatible RegionAggregation objects 
+    
     for (i in seq_along(new.data)){
       new.agg <- new.data[[i]]
+      new.cells <- new.agg@cells
       merged <- FALSE
-      # compare against same-name objects 
+      # compare against same-name objects    
       same.name.idx <- which(vapply(
         agg.list, function(x) identical(x@name, new.agg@name), logical(1)))
+      
       if (length(same.name.idx) > 0) {
-        for (j in same.name.idx){
-          old.agg <- agg.list[[j]]
-          compatible <- 
-            identical(old.agg@upstream, new.agg@upstream) && 
-            identical(old.agg@downstream, new.agg@downstream) && 
-            identical(old.agg@expected, new.agg@expected) && 
-            identical(old.agg@regions, new.agg@regions)
-          if (compatible) {
-            # concatenate the matrix and the cells vector
-            old.agg@matrix <- rbind(old.agg@matrix, new.agg@matrix)
-            old.agg@cells <- c(old.agg@cells, new.agg@cells)
-            agg.list[[j]] <- old.agg
-            merged <- TRUE 
-            break
+        
+        if (overwrite) {
+          # remove every exisiting RegAggr object with the same feature name
+          warning(sprintf("Overwriting RegionAggregation for '%s' ",
+                          new.agg@name), call. = FALSE)
+          agg.list <- agg.list[-same.name.idx]
+          agg.list <- append(agg.list, new.agg)
+          merged <- TRUE
+        } else { # skip the new cells that already exists in the old object 
+          for (j in same.name.idx){
+            old.agg <- agg.list[[j]]
+            overlap.cells <- intersect(old.agg@cells, new.agg@cells) 
+            new.cells <- setdiff(new.agg@cells, old.agg@cells)
+            if (length(overlap.cells)>0) {
+              warning(sprintf(paste0(
+                "RegionAggregation '%s' already exists for %d cells and will not be recomputed. \n", 
+                "Set overwrite=TRUE to replace the existing RegionAggregation, ", 
+                "or supply a different name to store it separately"
+                ),
+                new.agg@name,
+                length(overlap.cells)
+              ), call. = FALSE)
+            }
+            if (length(new.cells)>0) {
+              compatible <- IsCompatibleRegionAggregation(old.agg, new.agg)
+              
+              if (compatible) {
+                # concatenate the matrix and the cells vector
+                old.agg@matrix <- rbind(old.agg@matrix, new.agg@matrix)
+                old.agg@cells <- c(old.agg@cells, new.agg@cells)
+                agg.list[[j]] <- old.agg
+                merged <- TRUE 
+                break
+              }
+            }
           }
         }
       }
-      if (!merged) {
-        agg.list <- c(agg.list, list(new.agg))
+      if (!merged) { 
+        new.sub <- subset(new.agg, cells = new.cells)
+        if (!is.null(new.sub)){
+          agg.list <- append(agg.list, list(new.sub))
+        }
       }
     }
     methods::slot(object = object, layer) <- agg.list
@@ -1511,17 +1542,19 @@ subset.ChromatinAssay5 <- function(
       cells <- Cells(x = x)[cells]
     }
   }
+  
 
   # subset elements in the standard assay
   x <- NextMethod()
 
-  # subset cells in Fragments objects
+  # subset cells in RegionAggregation objects
   ragg <- RegionAggr(object = x)
   if (length(x = ragg) > 0) {
     # list of region aggregation objects
     ragg <- lapply(X = ragg, FUN = subset, cells = cells)
+    ragg <- Filter(f = Negate(f = is.null), x = ragg)
   }
-  RegionAggr(object = x) <- ragg
+  RegionAggr(object = x, overwrite = TRUE) <- ragg
 
   # subset cells in Fragments objects
   frags <- Fragments(object = x)
@@ -1655,6 +1688,128 @@ merge.GRangesAssay <- function(
     merged <- as.GRangesAssay(x = merged, ranges = granges.all)
     return(merged)
   }
+}
+
+# Condense a list of RegionAggregation objects
+# 
+# Takes a list of RegionAggregation objects and merges compatible
+# objects that share the same feature name. Compatibility is defined by 
+# identical upstream/downstream extension, regions, and expected insertion 
+# values. Objects with different feature names are never merged. 
+# 
+# The function performs strict invariant checks and will error if:
+# \itemize{
+#  \item RegionAggregation objects with the same feature name have different 
+#        region widths.
+#  \item RegionAggregation objects with the same feature name contain 
+#        overlapping cell barcodes. 
+# }
+# 
+# @param x A list of RegionAggregation objects
+# 
+# @return A list of RegionAggregation objects, where compatible objects
+#  have been merged. 
+#  
+# @details
+# Compatibility between two RegionAggregation objects is determined by
+# \code{IsCompatibleRegionAggregation()}
+#
+# @concept RegionAggregation 
+MergeRegionAggregation <- function(
+    x = NULL
+){
+  stopifnot(is.list(x))
+  stopifnot(all(vapply(x, inherits, logical(1), "RegionAggregation")))
+  
+  # extract feature names
+  feature.names <-vapply(x, FUN = function(x) x@name, FUN.VALUE=character(1))
+  
+  # group by feature names
+  grouped.agg <- split(x = x, f = feature.names)
+  
+  condensed.list <- lapply(X = grouped.agg, FUN = function(aggs) {
+    if (length(x = aggs) == 1) {
+      # only one agg obj with this feature name 
+      # nothing to do
+      out <- aggs[[1]]
+    } else {
+      ## single motif width per feature 
+      w <- unique(
+        x = unlist(
+          x = lapply(
+            X = aggs,
+            FUN = function(x) width(x = x@regions)
+            )
+          )
+        )
+      if (length(x = w) != 1) {
+        stop("RegionAggregation for ", aggs[[1]]@name, " have different widths ", w)
+      }
+      ## feature should not have duplicated cell barcodes 
+      cells.all <- unlist(
+        x = lapply(
+          X = aggs,
+          FUN = function(x) x@cells),
+        use.names = FALSE
+      )
+      dup.cells <- cells.all[duplicated(x = cells.all)]
+      if (length(x = dup.cells) > 0) {
+        stop("Duplicated cell barcodes across RegionAggregation objects for ", aggs[[1]]@name)
+      }
+      
+      ## opportunistic merging
+      merged.obj.list <- list()
+      for (i in seq_along(along.with = aggs)) {
+        if (length(x = merged.obj.list) == 0) {
+          merged.obj.list <- list(aggs[[i]])
+        } else {
+          merged <- FALSE 
+          for (w in seq_along(along.with = merged.obj.list)){
+            if (IsCompatibleRegionAggregation(x = aggs[[i]], y = merged.obj.list[[w]])) {
+              # replace merged.obj.list[w] with the merged 
+              merged.obj.list[[w]]@matrix <- rbind(merged.obj.list[[w]]@matrix, aggs[[i]]@matrix)
+              merged.obj.list[[w]]@cells <- c(merged.obj.list[[w]]@cells, aggs[[i]]@cells)
+              merged <- TRUE 
+              break # stop looping through merged.obj.list 
+            }
+          }
+          if (!merged) {
+            merged.obj.list <- append(x = merged.obj.list, values = aggs[[i]])
+          }
+        }
+      }
+      out <- merged.obj.list 
+    }
+    out
+  })
+  # return as a flatten list 
+  condensed.list <- unname(obj = do.call(what = c, args = condensed.list))
+  return(condensed.list)
+}
+
+# Check compatibility of two RegionAggregation objects
+# 
+# Determines whether two [RegionAggregation-class] objects can be merged. 
+# Compatibility id  defined as having identical non-cell-specific slots,
+# including:
+# \itemize{
+#    \item \code{upstream} and \code{downstream} extensions
+#    \item \code{expected} insertion vector
+#    \item \code{regions} (\code{Granges} object)
+# }
+#
+# @returns `TRUE` if `x` and `y` are compatible for merging `FALSE` otherwise.
+IsCompatibleRegionAggregation <- function(
+    x = NULL, 
+    y = NULL
+){
+  stopifnot(inherits(x, "RegionAggregation"))
+  stopifnot(inherits(y, "RegionAggregation"))
+  
+  identical(x@upstream,   y@upstream) && 
+  identical(x@downstream, y@downstream) && 
+  identical(x@expected,   y@expected) && 
+  identical(x@regions,    y@regions)
 }
 
 #' @export
@@ -1897,14 +2052,19 @@ setMethod(
       "Links present:", length(x = Links(object = object)),
       "\n"
     )
-    cat(
-      "Region aggregation matrices:",
-      length(x = GetAssayData(
-        object = object,
-        layer = "region.aggregation"
-      )),
-      "\n"
-    )
+    ragg <- RegionAggr(object = object)
+    if (length(x = ragg) == 0) {
+      cat("Region aggregation matrices: 0\n")
+    } else {
+      ragstr <- ifelse(length(x = ragg) > 6, "...", "")
+      cat(
+        length(x = ragg),
+        "region aggregation",
+        ifelse(length(x = ragg) == 1, "matrix:", "matrices:"),
+        RegionAggNames(object = object),
+        ragstr, "\n"
+      )
+    }
   }
 )
 
@@ -1949,14 +2109,18 @@ setMethod(
       "Links present:", length(x = Links(object = object)),
       "\n"
     )
-    cat(
-      "Region aggregation matrices:",
-      length(x = GetAssayData(
-        object = object,
-        layer = "region.aggregation"
-      )),
-      "\n"
-    )
+    ragg <- RegionAggr(object = object)
+    if (length(x = ragg) == 0) {
+      cat("Region aggregation matrices: 0\n")
+    } else {
+      ragstr <- ifelse(length(x = ragg) > 6, "...", "")
+      cat(
+        length(x = ragg),
+        "region aggregation",
+        ifelse(length(x = ragg) == 1, "matrix:", "matrices:"),
+        ragstr, "\n"
+      )
+    }
   }
 )
 
@@ -2139,6 +2303,7 @@ Links.Seurat <- function(object, assay = NULL, ...) {
   return(Links(object = object[[assay]]))
 }
 
+#' @param features Optional character vector of region aggregation names to return 
 #' @rdname RegionAggr
 #' @method RegionAggr ChromatinAssay5
 #' @export
@@ -2146,9 +2311,17 @@ Links.Seurat <- function(object, assay = NULL, ...) {
 #' @concept assay
 #' @examples
 #' RegionAggr(atac_small[["peaks"]])
-RegionAggr.ChromatinAssay5 <- function(object, ...) {
-  return(slot(object = object, name = "region.aggregation"))
+RegionAggr.ChromatinAssay5 <- function(object, features = NULL, ...) { 
+  
+  agg.list <- slot(object = object, name = "region.aggregation")
+  
+  if (!is.null(features)){
+    agg.list.names <- vapply(agg.list, function(x) x@name, character(1))
+    agg.list <- agg.list[agg.list.names %in% features]
+  }
+  return(agg.list)
 }
+
 
 #' @param object A Seurat or ChromatinAssay5 object
 #' @param assay Name of assay to use
@@ -2162,7 +2335,36 @@ RegionAggr.ChromatinAssay5 <- function(object, ...) {
 #' RegionAggr(atac_small)
 RegionAggr.Seurat <- function(object, assay = NULL, ...) {
   assay <- assay %||% DefaultAssay(object = object)
-  return(RegionAggr(object = object[[assay]]))
+  return(RegionAggr(object = object[[assay]], ...))
+}
+
+#' List stored RegionAggregation objects
+#' 
+#' Returns the names of all stored  [RegionAggregation-class] objects
+#' 
+#' @param object A [ChromatinAssay5-class]  object
+#' @rdname RegionAggNames
+#' @method RegionAggNames ChromatinAssay5
+#' @return Character vector of stored result names 
+#' @export
+RegionAggNames.ChromatinAssay5 <- function(object, ...) {
+  name.list <- vapply(RegionAggr(object), function(x) x@name, character(1))
+  return(name.list)
+}
+
+#' @param object A Seurat or ChromatinAssay5 object
+#' @param assay Name of assay to use
+#' @rdname RegionAggNames
+#' @method RegionAggNames Seurat
+#' @importFrom SeuratObject DefaultAssay
+#' @export
+#' @concept footprinting
+#' @concept assay
+#' @examples
+#' RegionAggr(atac_small)
+RegionAggNames.Seurat <- function(object, assay = NULL, ...) {
+  assay <- assay %||% DefaultAssay(object = object)
+  return(RegionAggNames(object = object[[assay]]))
 }
 
 #' @method dimnames Motif
@@ -2245,7 +2447,7 @@ dim.Motif <- function(x) {
 #' ra <- RegionAggr(atac_small)
 #' RegionAggr(atac_small[["peaks"]]) <- ra
 "RegionAggr<-.ChromatinAssay5" <- function(object, ..., value) {
-  object <- SetAssayData(object = object, layer = "region.aggregation", new.data = value)
+  object <- SetAssayData(object = object, layer = "region.aggregation", new.data = value, ...)
   return(object)
 }
 
@@ -2259,7 +2461,7 @@ dim.Motif <- function(x) {
 #' RegionAggr(atac_small) <- ra
 "RegionAggr<-.Seurat" <- function(object, assay = NULL, ..., value) {
   assay <- assay %||% DefaultAssay(object = object)
-  RegionAggr(object[[assay]]) <- value
+  RegionAggr(object[[assay]], ...) <- value
   return(object)
 }
 

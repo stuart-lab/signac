@@ -265,6 +265,7 @@ FindTopFeatures <- function(object, ...) {
 #' for each position surrounding a set of motif instances.
 #'
 #' @param object A [SeuratObject::Seurat] or [ChromatinAssay5-class] object
+#' @param overwrite Logical; overwrite existing [RegionAggregation-class] object with same name
 #' @param ... Arguments passed to other methods
 #' @return Returns a [SeuratObject::Seurat] object
 #' @rdname Footprint
@@ -434,7 +435,8 @@ PearsonResidualVar <- function(object, ...) {
 #' Region Aggregation
 #'
 #' Get the region aggregation information from a [ChromatinAssay5-class] object
-#'
+#' 
+#' @param object A Seurat object 
 #' @param ... Arguments passed to other methods
 #' @return Returns a list of [RegionAggregation-class] objects
 #' @rdname RegionAggr
@@ -450,6 +452,18 @@ RegionAggr <- function(object, ...) {
 #'
 "RegionAggr<-" <- function(object, ..., value) {
   UseMethod(generic = 'RegionAggr<-', object = object)
+}
+
+#' List stored RegionAggregation objects
+#'
+#' Generic function for listing stored RegionAggregation objects
+#'
+#' @param object A Seurat or ChromatinAssay5 object
+#' @param ... Additional arguments passed to methods
+#' @return Character vector of stored result names
+#' @export
+RegionAggNames <- function(object, ...) {
+  UseMethod("RegionAggNames")
 }
 
 #' Region enrichment analysis
