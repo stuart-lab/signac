@@ -4,7 +4,7 @@ fpath_headered <- system.file("extdata", "fragments_header.tsv.gz", package="Sig
 cells <- colnames(x = atac_small)
 frags <- CreateFragmentObject(path = fpath_headered, cells = cells, verbose = FALSE, tolerance = 0.5)
 Fragments(atac_small) <- NULL
-Fragments(atac_small, layer="fragments") <- frags
+Fragments(atac_small) <- frags
 pwm <- readRDS("../testdata/pwm_2motifs.rds")
 genome.fasta <- system.file("extdata", "chr1_start.fa", package = "Signac")
 genome <- Rsamtools::FaFile(genome.fasta)
@@ -21,4 +21,5 @@ test_that("Footprint works", {
   
   test_width <- length(pwm[[1]]) + RegionAggr(test_atac)[[1]]@upstream + RegionAggr(test_atac)[[1]]@downstream
   expect_equal(dim(RegionAggr(test_atac) [[1]]@matrix), c(100, test_width))
+  expect_equal(RegionAggNames(test_atac), c("MA0030.1", "MA0031.1"))
 })

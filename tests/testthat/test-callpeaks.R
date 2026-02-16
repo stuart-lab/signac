@@ -1,7 +1,5 @@
 library(GenomicRanges)
 library(SeuratObject)
-library(Signac)
-library(testthat)
 
 # data set up
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
@@ -64,25 +62,25 @@ test_that("CallPeaks with default parameters works", {
     
     # Fragment path
     expect_equal(
-        object = CallPeaks(object = fpath),
+        object = CallPeaks(object = fpath, verbose = FALSE),
         expected = output_default_params,
         tolerance = 0.5
     )
     # Fragment2 class
     expect_equal(
-        object = CallPeaks(object = frags),
+        object = CallPeaks(object = frags, verbose = FALSE),
         expected = output_default_params,
         tolerance = 0.5
     )
     # ChromatinAssay5 class
     expect_equal(
-        object = CallPeaks(object = atac_small[['peaks']]),
+        object = CallPeaks(object = atac_small[['peaks']], verbose = FALSE),
         expected = output_default_params,
         tolerance = 0.5
     )
     # Seurat class
     expect_equal(
-        object = CallPeaks(object = atac_small, name="macs3"),
+        object = CallPeaks(object = atac_small, name="macs3", verbose = FALSE),
         expected = output_default_params,
         tolerance = 0.5
     )
@@ -109,25 +107,48 @@ test_that("CallPeaks with cell barcodes works", {
     
     # CallPeaks.Default with barcode path
     expect_equal(
-        object = CallPeaks(object = fpath, barcodes = cells_path, cleanup=FALSE, name="macs31"),
+        object = CallPeaks(
+          object = fpath,
+          barcodes = cells_path,
+          cleanup = TRUE,
+          name="macs31",
+          verbose = FALSE
+        ),
         expected = output_cells,
         tolerance = 0.5
     )
     # CallPeaks.Fragment2 with cells vector
     expect_equal(
-        object = CallPeaks(object = frags, cells = names(frags@cells)[1:50], cleanup=FALSE, name="macs31"),
+        object = CallPeaks(
+          object = frags,
+          cells = names(x = frags@cells)[1:50],
+          cleanup = TRUE,
+          name = "macs31",
+          verbose = FALSE
+        ),
         expected = output_cells,
         tolerance = 0.5
     )
     # CallPeaks.ChromatinAssay5 with cells vector
     expect_equal(
-        object = CallPeaks(object = atac_small[['peaks']], cells = Cells(atac_small[['peaks']])[1:50], cleanup=FALSE),
+        object = CallPeaks(
+          object = atac_small[['peaks']],
+          cells = Cells(x = atac_small[['peaks']])[1:50],
+          cleanup = TRUE,
+          verbose = FALSE
+        ),
         expected = output_cells,
         tolerance = 0.5
     )
     # CallPeaks.Seurat with cells vector
     expect_equal(
-        object = CallPeaks(object = atac_small, cells = Cells(atac_small)[1:50], cleanup=FALSE, name="macs3"),
+        object = CallPeaks(
+          object = atac_small,
+          cells = Cells(x = atac_small)[1:50],
+          cleanup = TRUE,
+          name = "macs3",
+          verbose = FALSE
+        ),
         expected = output_cells,
         tolerance = 0.5
     )
@@ -247,7 +268,7 @@ test_that("CallPeaks multiple fragments works", {
     
     # CallPeaks.Seurat with multiple fragments
     expect_equal(
-        object = CallPeaks(object = combined, name = "macs3"),
+        object = CallPeaks(object = combined, name = "macs3", verbose = FALSE),
         expected = GRanges(
             seqnames = "chr1",
             ranges = IRanges(
