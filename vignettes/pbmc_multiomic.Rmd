@@ -90,7 +90,7 @@ pbmc <- CreateSeuratObject(
 pbmc[["ATAC"]] <- CreateGRangesAssay(
   counts = counts$Peaks,
   fragments = fragpath,
-  annotation = annotation
+  annotation = annotations
 )
 ```
 
