@@ -40,8 +40,26 @@ CreateGRangesAssay <- function(
 ) {
   chrom.assay <- CreateChromatinAssay5(counts = counts, data = data, ...)
   if (!missing(x = counts)) {
+    if (any(grepl("_", rownames(x = counts)))) {
+      warning("Input matrix contains underscores in feature names. These are not
+            allowed by Seurat; replacing underscores with '.'")
+      rownames(x = counts) <- gsub(
+        pattern = "_",
+        replacement = ".",
+        x = rownames(x = counts)
+      )
+    }
     features.keep <- rownames(x = counts) %in% rownames(x = chrom.assay)
   } else {
+    if (any(grepl("_", rownames(x = data)))) {
+      warning("Input matrix contains underscores in feature names. These are not
+            allowed by Seurat; replacing underscores with '.'")
+      rownames(x = data) <- gsub(
+        pattern = "_",
+        replacement = ".",
+        x = rownames(x = data)
+      )
+    }
     features.keep <- rownames(x = data) %in% rownames(x = chrom.assay)
   }
   # subset ranges if there are features removed
