@@ -69,9 +69,17 @@ fragpath <- "pbmc_granulocyte_sorted_10k_atac_fragments.tsv.gz"
 
 ```{r message=FALSE, warning=FALSE}
 # get gene annotations for hg38
-annotation <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
-seqlevels(annotation) <- paste0("chr", seqlevels(annotation))
+library(AnnotationHub)
+ah <- AnnotationHub()
 
+ensdb_v98 <- ah[["AH75011"]]
+annotations <- GetGRangesFromEnsDb(ensdb = ensdb_v98)
+
+# change to UCSC style since the data was mapped to hg38
+seqlevelsStyle(annotations) <- "UCSC"
+```
+
+```{r}
 # create a Seurat object containing the RNA adata
 pbmc <- CreateSeuratObject(
   counts = counts$`Gene Expression`,
@@ -79,9 +87,8 @@ pbmc <- CreateSeuratObject(
 )
 
 # create ATAC assay and add it to the object
-pbmc[["ATAC"]] <- CreateChromatinAssay(
+pbmc[["ATAC"]] <- CreateGRangesAssay(
   counts = counts$Peaks,
-  sep = c(":", "-"),
   fragments = fragpath,
   annotation = annotation
 )
@@ -100,8 +107,7 @@ low or unusually high counts for either the RNA or ATAC assay.
 ```{r fig.width=18, message=FALSE, warning=FALSE}
 DefaultAssay(pbmc) <- "ATAC"
 
-pbmc <- NucleosomeSignal(pbmc)
-pbmc <- TSSEnrichment(pbmc)
+pbmc <- ATACqc(pbmc)
 ```
 
 The relationship between variables stored in the object metadata can
@@ -110,13 +116,13 @@ to quickly find suitable cutoff values for different QC metrics by setting
 `quantiles=TRUE`:
 
 ```{r}
-DensityScatter(pbmc, x = "nCount_ATAC", y = "TSS.enrichment", log_x = TRUE, quantiles = TRUE)
+DensityScatter(pbmc, x = "nCount_ATAC", y = "TSS_enrichment", log_x = TRUE, quantiles = TRUE)
 ```
 
 ```{r}
 VlnPlot(
   object = pbmc,
-  features = c("nCount_RNA", "nCount_ATAC", "TSS.enrichment", "nucleosome_signal"),
+  features = c("nCount_RNA", "nCount_ATAC", "TSS_enrichment", "Nucleosome_signal"),
   ncol = 4,
   pt.size = 0
 )
@@ -130,60 +136,10 @@ pbmc <- subset(
     nCount_RNA < 25000 &
     nCount_ATAC > 1800 &
     nCount_RNA > 1000 &
-    nucleosome_signal < 2 &
-    TSS.enrichment > 1
+    TSS_enrichment > 8
 )
 pbmc
 ```
-<!-- ## Peak calling -->
-
-<!-- The set of peaks identified using Cellranger often merges distinct peaks that are -->
-<!-- close together. This can create a problem for certain analyses, particularly motif  -->
-<!-- enrichment analysis and peak-to-gene linkage. To identify a more accurate set of peaks, -->
-<!-- we can call peaks using MACS2 with the `CallPeaks()` function. Here we call peaks -->
-<!-- on all cells together, but we could identify peaks for each group of cells separately -->
-<!-- by setting the `group.by` parameter, and this can help identify peaks specific to -->
-<!-- rare cell populations.  -->
-
-<!-- ```{r include=FALSE} -->
-<!-- old_path <- Sys.getenv("PATH") -->
-<!-- Sys.setenv(PATH = paste(old_path, "/Users/stuartt/mambaforge/bin", sep = ":")) -->
-<!-- ``` -->
-
-<!-- ```{r message=FALSE, warning=FALSE} -->
-<!-- # call peaks using MACS2 -->
-<!-- peaks <- CallPeaks(pbmc) -->
-
-<!-- # remove peaks on nonstandard chromosomes and in genomic blacklist regions -->
-<!-- peaks <- keepStandardChromosomes(peaks, pruning.mode = "coarse") -->
-<!-- peaks <- subsetByOverlaps(x = peaks, ranges = blacklist_hg38_unified, invert = TRUE) -->
-<!-- ``` -->
-
-<!-- ```{r include=FALSE} -->
-<!-- gc() -->
-<!-- ``` -->
-
-<!-- ```{r message=FALSE, warning=FALSE} -->
-<!-- # quantify counts in each peak -->
-<!-- macs2_counts <- FeatureMatrix( -->
-<!--   fragments = Fragments(pbmc), -->
-<!--   features = peaks, -->
-<!--   cells = colnames(pbmc) -->
-<!-- ) -->
-<!-- ``` -->
-
-<!-- ```{r include=FALSE} -->
-<!-- gc() -->
-<!-- ``` -->
-
-<!-- ```{r} -->
-<!-- # create a new assay using the MACS2 peak set and add it to the Seurat object -->
-<!-- pbmc[["peaks"]] <- CreateChromatinAssay( -->
-<!--   counts = macs2_counts, -->
-<!--   fragments = fragpath, -->
-<!--   annotation = annotation -->
-<!-- ) -->
-<!-- ``` -->
 
 ## Gene expression data processing
 
@@ -215,17 +171,12 @@ PBMC reference dataset using tools in the Seurat package. See the
 Seurat reference mapping [vignette](https://satijalab.org/seurat/v4.0/reference_mapping.html)
 for more information.
 
-We'll use an annotated PBMC reference dataset from [Hao et al. (2020)](https://www.biorxiv.org/content/10.1101/2020.10.12.335331v1),
-available for download here: https://atlas.fredhutch.org/data/nygc/multimodal/pbmc_multimodal.h5seurat
-
-Note that the SeuratDisk package is required to load the reference dataset.
-Installation instructions for SeuratDisk can be found [here](https://github.com/mojaveazure/seurat-disk).
+We'll use an annotated PBMC reference dataset from [Hao et al. (2021)](https://doi.org/10.1016/j.cell.2021.04.048),
+available for download here: https://zenodo.org/records/7779017/files/pbmc_multimodal_2023.rds
 
 ```{r message=FALSE, warning=FALSE}
-library(SeuratDisk)
-
 # load PBMC reference
-reference <- LoadH5Seurat("pbmc_multimodal.h5seurat", assays = list("SCT" = "counts"), reductions = "spca")
+reference <- readRDS("pbmc_multimodal_2023.rds")
 reference <- UpdateSeuratObject(reference)
 
 DefaultAssay(pbmc) <- "SCT"
@@ -261,7 +212,7 @@ pbmc <- pbmc[, pbmc$prediction.score.max > 0.5]
 
 ## Joint UMAP visualization
 
-Using the weighted nearest neighbor methods in [Seurat v4](https://www.biorxiv.org/content/10.1101/2020.10.12.335331v1),
+Using the weighted nearest neighbor methods in [Seurat v4](https://doi.org/10.1016/j.cell.2021.04.048),
 we can compute a joint neighbor graph that represent both the gene expression and 
 DNA accessibility measurements.
 
@@ -291,7 +242,7 @@ DimPlot(pbmc, label = TRUE, repel = TRUE, reduction = "umap") + NoLegend()
 For each gene, we can find the set of peaks that may regulate the gene by by
 computing the correlation between gene expression and accessibility at nearby
 peaks, and correcting for bias due to GC content, overall accessibility, and 
-peak size. See the [Signac paper](https://www.biorxiv.org/content/10.1101/2020.11.09.373613v1)
+peak size. See the [Signac paper](https://doi.org/10.1038/s41592-021-01282-5)
 for a full description of the method we use to link peaks to genes.
 
 Running this step on the whole genome can be time consuming, so here we demonstrate
@@ -313,8 +264,7 @@ pbmc <- LinkPeaks(
 )
 ```
 
-We can visualize these links using the `CoveragePlot()` function, or alternatively
-we could use the `CoverageBrowser()` function in an interactive analysis:
+We can visualize these links using the `CoveragePlot()` function:
 
 ```{r fig.height=10, message=FALSE, warning=FALSE}
 idents.plot <- c(
