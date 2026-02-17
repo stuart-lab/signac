@@ -42,5 +42,4 @@ granges(atac_small)
 \item \link[GenomicRanges:genomic-range-squeezers]{GenomicRanges::GRanges()}
 }
 }
-}
 \concept{granges}

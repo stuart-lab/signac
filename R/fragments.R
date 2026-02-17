@@ -77,7 +77,6 @@ header <- function(x) {
 #'   294 bp
 #'   - nucleosome_free: total number of fragments with length <147 bp
 #'   - reads_count: total number of reads sequenced for the cell
-#' }
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 #' counts <- CountFragments(fragments = fpath)

@@ -21,7 +21,6 @@ NULL
 #' @seealso
 #'   - [GenomicRanges::granges()]
 #'   - [GenomicRanges::GRanges()]
-#'  }
 #' @exportMethod granges
 #' @concept granges
 #' @examples
