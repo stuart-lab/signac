@@ -112,8 +112,10 @@ We highly recommend that you explore the [Cicero website](https://cole-trapnell-
 more information.
 
 ```{r cache=TRUE}
-# get the chromosome sizes from the Seurat object
-genome <- seqlengths(bone)
+library(BSgenome.Hsapiens.UCSC.hg19)
+
+# get the chromosome sizes
+genome <- seqlengths(BSgenome.Hsapiens.UCSC.hg19)
 
 # use chromosome 1 to save some time
 # omit this step to run on the whole genome
@@ -154,14 +156,14 @@ assignment function.
 
 ```{r}
 links <- ConnectionsToLinks(conns = conns, ccans = ccans)
-Links(bone) <- links
+Links(bone, key = 'cicero') <- links
 ```
 
 We can now visualize these links along with DNA accessibility information by
 running `CoveragePlot()` for a region:
 
 ```{r fig.height=8, fig.width=8, message=FALSE, warning=FALSE}
-CoveragePlot(bone, region = "chr1-40189344-40252549")
+CoveragePlot(bone, region = "chr1:40189344-40252549", links = "cicero")
 ```
 
 ```{r include=FALSE}
