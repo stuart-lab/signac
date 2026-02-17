@@ -125,6 +125,8 @@ ATACqc.ChromatinAssay5 <- function(
     cellconvert <- GetFragmentData(object = frags[[i]], slot = "cells")
     cc <- names(x = cellconvert)
     names(x = cc) <- cellconvert
+    # in case some cells are missing
+    cellconvert <- cellconvert[cellconvert %in% rownames(x = md)]
     md <- md[cellconvert, ]
     rownames(x = md) <- cc[rownames(x = md)]
 
