@@ -85,12 +85,14 @@ rownames(mtx) <- peaks$Feature
 ```
 
 ```{r message=FALSE, warning=FALSE}
-bone_assay <- CreateChromatinAssay(
+gr <- strsplit(rownames(mtx), "_")
+gr <- GRanges(seqnames <- sapply(gr, `[[`, 1), ranges = IRanges(start = as.numeric(sapply(gr, `[[`, 2)), end = as.numeric(sapply(gr, `[[`, 3))))
+
+bone_assay <- CreateGRangesAssay(
   counts = mtx,
+  ranges = gr,
   min.cells = 5,
-  fragments = "GSM3722029_CD34_Progenitors_Rep1_fragments.tsv.gz",
-  sep = c("_", "_"),
-  genome = "hg19"
+  fragments = "GSM3722029_CD34_Progenitors_Rep1_fragments.tsv.gz"
 )
 bone <- CreateSeuratObject(
   counts = bone_assay,
@@ -144,30 +146,22 @@ counts in genomic blacklist regions for each cell, and use these metrics to
 help remove low quality cells from the datasets.
 
 ```{r message=FALSE, warning=FALSE}
-bone <- TSSEnrichment(bone)
-bone <- NucleosomeSignal(bone)
-
-# blacklist regions for hg19
-library(AnnotationHub)
-ah <- AnnotationHub()
-blacklist_hg19 <- ah[["AH107314"]]
-
-bone$blacklist_fraction <- FractionCountsInRegion(bone, regions = blacklist_hg19)
+bone <- ATACqc(bone)
 ```
 
 ```{r fig.height=6, fig.width=10, message=FALSE, warning=FALSE}
 VlnPlot(
   object = bone,
-  features = c("nCount_ATAC", "TSS.enrichment", "nucleosome_signal", "blacklist_fraction"),
+  features = c("nCount_ATAC", "TSS_enrichment", "Nucleosome_signal"),
   pt.size = 0.1,
-  ncol = 4
+  ncol = 3
 )
 ```
 
 ```{r}
 bone <- bone[, (bone$nCount_ATAC < 50000) &
-  (bone$TSS.enrichment > 2) &
-  (bone$nucleosome_signal < 5)]
+  (bone$TSS_enrichment > 7) &
+  (bone$Nucleosome_signal < 5)]
 ```
 
 ## Dataset preprocessing
