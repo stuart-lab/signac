@@ -92,9 +92,8 @@ seqlevels(annotations) <- paste0("chr", seqlevels(annotations))
 genome(annotations) <- "hg19"
 
 # create object
-crc_assay <- CreateChromatinAssay(
+crc_assay <- CreateGRangesAssay(
   counts = counts,
-  sep = c(":", "-"),
   annotation = annotations,
   min.cells = 10,
   fragments = "CRC_v12-mtMask_mgatk.fragments.tsv.gz"
@@ -120,13 +119,12 @@ crc$pct_reads_in_DNase <- crc$DNase_sensitive_region_fragments / crc$passed_filt
 crc$blacklist_ratio <- crc$blacklist_region_fragments / crc$peak_region_fragments
 
 # compute TSS enrichment score and nucleosome banding pattern
-crc <- TSSEnrichment(crc)
-crc <- NucleosomeSignal(crc)
+crc <- ATACqc(crc)
 ```
 
 ```{r fig.width=8, fig.height=8, message=FALSE, warning=FALSE}
 # visualize QC metrics for each cell
-VlnPlot(crc, c("TSS.enrichment", "nCount_peaks", "nucleosome_signal", "pct_reads_in_peaks", "pct_reads_in_DNase", "blacklist_ratio"), pt.size = 0, ncol = 3)
+VlnPlot(crc, c("TSS_enrichment", "nCount_peaks", "Nucleosome_signal", "pct_reads_in_peaks", "pct_reads_in_DNase", "blacklist_ratio"), pt.size = 0, ncol = 3)
 ```
 
 ```{r}
@@ -137,8 +135,8 @@ crc <- subset(
     nCount_peaks < 50000 &
     pct_reads_in_DNase > 40 &
     blacklist_ratio < 0.05 &
-    TSS.enrichment > 3 &
-    nucleosome_signal < 4
+    TSS_enrichment > 7 &
+    Nucleosome_signal < 4
 )
 crc
 ```
@@ -156,7 +154,7 @@ and add it to the Seurat object as a new assay.
 mito.data <- ReadMGATK(dir = "crc/")
 
 # create an assay
-mito <- CreateAssayObject(counts = mito.data$counts)
+mito <- CreateAssay5Object(counts = mito.data$counts)
 
 # Subset to cell present in the scATAC-seq assat
 mito <- subset(mito, cells = Cells(crc))
@@ -208,14 +206,10 @@ promoter region.
 gene.activities <- GeneActivity(crc)
 
 # add to the Seurat object as a new assay
-crc[["RNA"]] <- CreateAssayObject(counts = gene.activities)
+rownames(gene.activities) <- make.unique(rownames(gene.activities))
+crc[["RNA"]] <- CreateAssay5Object(counts = gene.activities)
 
-crc <- NormalizeData(
-  object = crc,
-  assay = "RNA",
-  normalization.method = "LogNormalize",
-  scale.factor = median(crc$nCount_RNA)
-)
+crc <- NormalizeData(object = crc, assay = "RNA")
 ```
 
 ## Visualize interesting gene activity scores
@@ -248,9 +242,10 @@ crc <- RenameIdents(
   "0" = "Epithelial",
   "1" = "Epithelial",
   "2" = "Basophil",
-  "3" = "Myeloid_1",
-  "4" = "Myeloid_2",
-  "5" = "Tcell"
+  "3" = "Epithelial",
+  "4" = "Myeloid_1",
+  "5" = "Tcell",
+  "6" = "Myeloid_2"
 )
 ```
 
@@ -260,7 +255,7 @@ nucleosome banding pattern.
 
 ```{r cell_filtering_recap, message=FALSE, warning=FALSE}
 p1 <- FeatureScatter(crc, "mtDNA_depth", "pct_reads_in_peaks") + ggtitle("") + scale_x_log10()
-p2 <- FeatureScatter(crc, "mtDNA_depth", "nucleosome_signal") + ggtitle("") + scale_x_log10()
+p2 <- FeatureScatter(crc, "mtDNA_depth", "Nucleosome_signal") + ggtitle("") + scale_x_log10()
 
 p1 + p2 + plot_layout(guides = "collect")
 ```
@@ -441,7 +436,7 @@ counts <- FeatureMatrix(
 )
 
 # create assay with accessibility data and add it to the Seurat object
-tf1[["peaks"]] <- CreateChromatinAssay(
+tf1[["peaks"]] <- CreateGRangesAssay(
   counts = counts,
   fragments = frags
 )
@@ -457,19 +452,19 @@ Annotation(tf1[["peaks"]]) <- annotations
 ```{r message=FALSE, warning=FALSE}
 DefaultAssay(tf1) <- "peaks"
 
-tf1 <- NucleosomeSignal(tf1)
-tf1 <- TSSEnrichment(tf1)
+tf1 <- ATACqc(tf1)
 ```
 
 ```{r}
-VlnPlot(tf1, c("nCount_peaks", "nucleosome_signal", "TSS.enrichment"), pt.size = 0.1)
+VlnPlot(tf1, c("nCount_peaks", "Nucleosome_signal", "TSS_enrichment"), pt.size = 0.1)
 ```
+
 ```{r}
 tf1 <- subset(
   x = tf1,
   subset = nCount_peaks > 500 &
-    nucleosome_signal < 2 &
-    TSS.enrichment > 2.5
+    Nucleosome_signal < 2 &
+    TSS_enrichment > 4
 )
 tf1
 ```
@@ -534,7 +529,7 @@ to find peaks that are differentially accessible between clones.
 DefaultAssay(tf1) <- "peaks"
 
 # find peaks specific to one clone
-markers.fast <- FoldChange(tf1, ident.1 = 2)
+markers.fast <- FoldChange(tf1, ident.1 = 2, slot = "counts")
 markers.fast <- markers.fast[order(markers.fast$avg_log2FC, decreasing = TRUE), ] # sort by fold change
 head(markers.fast)
 ```
