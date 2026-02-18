@@ -60,10 +60,8 @@ fragments <- "fragments.sort.bed.gz"
 
 # create a Seurat object and add the assays
 snare <- CreateSeuratObject(counts = rna)
-snare[["ATAC"]] <- CreateChromatinAssay(
-  counts = atac,
-  sep = c(":", "-"),
-  genome = "mm10",
+snare[["ATAC"]] <- CreateGRangesAssay(
+  counts = atac[, colnames(snare)],
   fragments = fragments
 )
 
@@ -82,19 +80,7 @@ Annotation(snare[["ATAC"]]) <- annotations
 
 ```{r message=FALSE, warning=FALSE}
 DefaultAssay(snare) <- "ATAC"
-snare <- TSSEnrichment(snare)
-snare <- NucleosomeSignal(snare)
-
-# blacklist regions for mm10
-library(AnnotationHub)
-ah <- AnnotationHub()
-blacklist_mm10 <- ah[["AH107322"]]
-
-snare$blacklist_fraction <- FractionCountsInRegion(
-  object = snare,
-  assay = "ATAC",
-  regions = blacklist_mm10
-)
+snare <- ATACqc(snare)
 ```
 
 ```{r fig.width=18, message=FALSE, warning=FALSE}
@@ -102,19 +88,17 @@ Idents(snare) <- "all" # group all cells together, rather than by replicate
 VlnPlot(
   snare,
   features = c(
-    "nCount_RNA", "nCount_ATAC", "TSS.enrichment",
-    "nucleosome_signal", "blacklist_fraction"
+    "nCount_RNA", "nCount_ATAC", "TSS_enrichment", "Nucleosome_signal"
   ),
   pt.size = 0.1,
-  ncol = 5
+  ncol = 4
 )
 ```
 
 ```{r}
 snare <- subset(
   x = snare,
-  subset = blacklist_fraction < 0.03 &
-    TSS.enrichment < 20 &
+  subset = TSS_enrichment > 8 &
     nCount_RNA > 800 &
     nCount_ATAC > 500
 )
@@ -195,27 +179,7 @@ snare <- AddMetaData(object = snare, metadata = predicted.labels)
 ```
 
 ```{r}
-# label clusters based on predicted ID
-new.cluster.ids <- c(
-  "L2/3 IT",
-  "L4",
-  "L6 IT",
-  "L5 CT",
-  "L4",
-  "L5 PT",
-  "Pvalb",
-  "Sst",
-  "Astro",
-  "Oligo",
-  "Vip/Lamp5",
-  "L6 IT.2",
-  "L6b",
-  "NP"
-)
-names(x = new.cluster.ids) <- levels(x = snare)
-snare <- RenameIdents(object = snare, new.cluster.ids)
-snare$celltype <- Idents(snare)
-DimPlot(snare, group.by = "celltype", label = TRUE, reduction = "umap.rna")
+DimPlot(snare, group.by = "predicted.id", label = TRUE, repel = TRUE, reduction = "umap.rna")
 ```
 
 ## Jointly visualizing gene expression and DNA accessibility
@@ -227,7 +191,7 @@ expression information for different genes.
 
 ```{r message=FALSE, warning=FALSE, fig.width=12, fig.height=8}
 DefaultAssay(snare) <- "ATAC"
-CoveragePlot(snare, region = "chr2-22620000-22660000", features = "Gad2")
+CoveragePlot(snare, region = "chr2:22620000-22660000", features = "Gad2")
 ```
 
 ```{r include=FALSE}
