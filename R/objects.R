@@ -495,7 +495,7 @@ as.ChromatinAssay5.Assay5 <- function(
 #' @importFrom rlang is_integerish
 #' @export
 #' @return Returns a [RegionAggregation-class] object
-#' @concept regionaggregation
+#' @concept footprinting
 CreateRegionAggregationObject <- function(
   mat,
   regions,
@@ -1106,7 +1106,7 @@ RenameCells.Fragment2 <- function(object, new.names, ...) {
 
 #' @importFrom SeuratObject RenameCells
 #' @importFrom methods slot "slot<-"
-#' @concept RegionAggregation
+#' @concept footprinting
 #' @method RenameCells RegionAggregation
 #' @export
 RenameCells.RegionAggregation <- function(object, new.names, ...) {
@@ -1665,7 +1665,7 @@ subset.ChromatinAssay5 <- function(
 #' @importFrom methods slot "slot<-"
 #' @rdname RegionAggregation-class
 #' @export
-#' @concept RegionAggregation
+#' @concept footprinting
 subset.RegionAggregation <- function(
   x,
   cells = NULL,
@@ -1796,7 +1796,6 @@ merge.GRangesAssay <- function(
 # Compatibility between two RegionAggregation objects is determined by
 # \code{IsCompatibleRegionAggregation()}
 #
-# @concept RegionAggregation
 MergeRegionAggregation <- function(
   x = NULL
 ) {

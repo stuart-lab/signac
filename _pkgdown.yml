@@ -128,6 +128,11 @@ reference:
     desc: "Functions for working with genomic links"
   - contents:
     - has_concept("links")
+    
+  - title: "GWAS"
+    desc: "Functions for working with GWAS and QTL data"
+  - contents: 
+    - has_concept("gwas")
 
   - title: "Nearest methods"
     desc: "Nearest genomic range methods for Signac-defined classes"

@@ -17,6 +17,7 @@
 #' @importFrom data.table fread
 #'
 #' @references \doi{10.1101/2022.07.15.500230}
+#' @concept gwas
 #' @export
 LoadGWAS <- function(gwas.file) {
   # Read file
@@ -63,6 +64,7 @@ LoadGWAS <- function(gwas.file) {
 #' a lead SNP.
 #'
 #' @importFrom data.table fread
+#' @concept gwas
 #' @export
 LoadLDData <- function(ld.file) {
   ld_data <- fread(input = ld.file, data.table = FALSE)
@@ -104,7 +106,7 @@ LoadLDData <- function(ld.file) {
 #' credible set.
 #'
 #' @importFrom data.table fread
-#'
+#' @concept gwas
 #' @export
 LoadCredibleSets <- function(credset.file, credset.threshold = 0.01) {
   cs_data <- fread(input = credset.file, data.table = FALSE)

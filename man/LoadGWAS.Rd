@@ -29,3 +29,4 @@ format.
 \references{
 \doi{10.1101/2022.07.15.500230}
 }
+\concept{gwas}
