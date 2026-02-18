@@ -34,7 +34,7 @@ averaged frequency of sequenced DNA fragments for different groups of cells
 within a given genomic region. 
 
 ```{r}
-roi <- "chr2-86784605-86808396"
+roi <- "chr2:86784605-86808396"
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -123,20 +123,18 @@ library(GenomicRanges)
 # generate fake links and add to object
 cd8.coords <- LookupGeneCoords(object = pbmc, gene = "CD8A")
 
-links <- GRanges(
-  seqnames = "chr2",
-  ranges = IRanges(start = start(cd8.coords)[1] + 100, end = end(cd8.coords)[1] - 5000),
-  score = 1,
-  group = 1
-)
+gr1 <- GRanges(roi) - 1000
+gr2 <- GRanges(roi) - 2000
+links <- InteractionSet::GInteractions(gr1, gr2, score = 1)
 
-Links(pbmc) <- links
+Links(pbmc, key = "demo") <- links
 ```
 
 ```{r message=FALSE, warning=FALSE}
 link_plot <- LinkPlot(
   object = pbmc,
-  region = roi
+  region = roi,
+  key = "demo",
 )
 link_plot
 ```
@@ -233,7 +231,7 @@ CoveragePlot(
   annotation = TRUE,
   peaks = TRUE,
   tile = TRUE,
-  links = TRUE
+  links = "demo"
 )
 ```
 
@@ -242,23 +240,6 @@ that is shown in the coverage track, whereas above we were able to create a plot
 that showed the aggregated coverage for all groups of cells and the tile plot
 for only the CD4 memory cells and the CD8 effector cells. A higher degree of 
 customization is possible when creating each track separately.
-
-## Interactive visualization
-
-Above we demonstrated the different types of plots that can be constructed using
-Signac. Often when exploring genomic data it's useful to be able to
-interactively browse through different regions of the genome and adjust tracks
-on the fly. This can be done in Signac using the `CoverageBrowser()` function.
-This provides all the same functionality of the `CoveragePlot()` function,
-except that we can scroll upstream/downstream, zoom in/out of regions, navigate
-to new region, and adjust which tracks are shown or how the cells are grouped. 
-In exploring the data interactively, often you will find interesting plots that
-you'd like to save for viewing later. We've included a "Save plot" button that 
-will add the current plot to a list of plots that is returned when the
-interactive session is ended. Here's a recorded demonstration of the 
-`CoverageBrowser()` function:
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/S9b5rN32IC8" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 <details>
   <summary>**Session Info**</summary>
