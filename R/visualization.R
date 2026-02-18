@@ -885,13 +885,13 @@ globalVariables(
 #'
 #' Plot fragment counts within a set of regions.
 #'
-#' @param object A Seurat object
-#' @param assay Name of assay to use. If a list or vector of assay names is
-#' given, data will be plotted from each assay. Note that all assays must
-#' contain `RegionMatrix` results with the same key. Sorting will be
-#' defined by the first assay in the list
-#' @param key Name of key to pull data from. Stores the results from
-#' [RegionMatrix()]
+#' @param object The output of [RegionMatrix()]: a list containing two elements:
+#' - `matrix`: a named list of region by position matrices, one for each group
+#' of cells, with the name of each element corresponding to the group identity.
+#' - `parameters`: a list of function parameters "upstream", "downstream" and 
+#' "cells".
+#' Optionally, a list of such lists can be supplied for multi-assay plotting. In
+#' this case, the name of each element should correspond to the assay name.
 #' @param window Smoothing window to apply
 #' @param normalize Normalize by number of cells in each group
 #' @param order Order regions by the total number of fragments in the region
@@ -927,7 +927,7 @@ globalVariables(
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer
-#' @importFrom ggplot2 ggplot aes_string facet_wrap geom_raster guides theme
+#' @importFrom ggplot2 ggplot aes facet_wrap geom_raster guides theme .data vars
 #' element_blank element_text scale_fill_gradient ylab guide_legend xlab
 #' @importFrom scales hue_pal
 #' @importFrom patchwork wrap_plots
@@ -937,8 +937,6 @@ globalVariables(
 #' @concept heatmap
 RegionHeatmap <- function(
   object,
-  key,
-  assay = NULL,
   idents = NULL,
   group.order = NULL,
   normalize = TRUE,
@@ -951,13 +949,13 @@ RegionHeatmap <- function(
   order = TRUE,
   nrow = NULL
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
-  all.valid <- sapply(X = assay, FUN = function(x) {
-    inherits(x = object[[x]], what = "ChromatinAssay5")
-  })
-  if (!all(all.valid)) {
-    stop("The requested assay is not a ChromatinAssay5")
+  
+  # for multiassay support 
+  if ("parameters" %in% names(x = object)) {
+    object <- list("default" = object)
   }
+  assay <- names(x = object)
+  
   if (is.null(x = cols)) {
     colors_all <- hue_pal()(length(x = assay))
     names(x = colors_all) <- assay
@@ -974,17 +972,15 @@ RegionHeatmap <- function(
   }
 
   all.assay <- data.frame()
-  for (j in seq_along(along.with = assay)) {
-    heatmap_data <- get_heatmap_data(
-      object = object[[assay[[j]]]],
-      key = key,
-      upstream = upstream,
-      downstream = downstream
-    )
-    upstream.max <- heatmap_data$upstream.max
-    matlist <- heatmap_data$matlist
-    cells.per.group <- heatmap_data$cells.per.group
-    rm(heatmap_data)
+  for (j in seq_along(along.with = object)) {
+    
+    upstream.max <- object[[j]]$parameters$upstream
+    downstream.max <- object[[j]]$parameters$downstream
+    matlist <- object[[j]]$matrix
+    cells.per.group <- object[[j]]$parameters$cells
+    
+    upstream <- upstream %||% upstream.max
+    downstream <- downstream %||% downstream.max
 
     # define clipping
     cols.keep <- (upstream.max - upstream + 1):(upstream.max + downstream + 1)
@@ -1092,10 +1088,14 @@ RegionHeatmap <- function(
     data.use <- all.assay[all.assay$assay == assay[[i]], ]
     pp <- ggplot(
       data = data.use,
-      mapping = aes_string(x = "bin", y = "name", fill = "value")
+      mapping = aes(
+        x = .data[["bin"]],
+        y = .data[["name"]],
+        fill = .data[["value"]]
+      )
     ) +
       facet_wrap(
-        facets = ~group,
+        facets = vars(.data[["group"]]),
         scales = "free_y",
         nrow = nrow
       ) +
@@ -1131,72 +1131,17 @@ RegionHeatmap <- function(
   return(p)
 }
 
-#' @importFrom SeuratObject GetAssayData
-get_heatmap_data <- function(
-  object,
-  key,
-  upstream,
-  downstream
-) {
-  # each assay will set its own max value
-
-  if (!(key %in% names(x = GetAssayData(
-    object = object, layer = "positionEnrichment"
-  )))) {
-    stop("Requested key is not present in the assay")
-  }
-  matlist <- GetAssayData(
-    object = object,
-    layer = "positionEnrichment"
-  )[[key]]
-
-  # extract RegionMatrix parameters
-  function.params <- matlist$function.parameters
-  matlist$function.parameters <- NULL
-  cells.per.group <- function.params$cells
-  upstream.max <- function.params$upstream
-  downstream.max <- function.params$downstream
-
-  # set upstream/downstream parameters
-  if (is.null(x = upstream)) {
-    upstream <- upstream.max
-  } else {
-    if (upstream > upstream.max) {
-      warning(
-        "Requested more upstream bases than were computed. ",
-        "Re-run RegionMatrix with a different upstream parameter"
-      )
-      upstream <- upstream.max
-    }
-  }
-  if (is.null(x = downstream)) {
-    downstream <- downstream.max
-  } else {
-    if (downstream > downstream.max) {
-      warning(
-        "Requested more downstream bases than were computed. ",
-        "Re-run RegionMatrix with a different downstream parameter"
-      )
-      downstream <- downstream.max
-    }
-  }
-  return(list(
-    "matlist" = matlist, "cells.per.group" = cells.per.group,
-    "upstream.max" = upstream.max, "downstream.max" = downstream.max
-  ))
-}
-
 #' Region plot
 #'
 #' Plot fragment counts within a set of regions.
 #'
-#' @param object A Seurat object
-#' @param assay Name of assay to use. If a list or vector of assay names is
-#' given, data will be plotted from each assay. Note that all assays must
-#' contain `RegionMatrix` results with the same key. Sorting will be
-#' defined by the first assay in the list
-#' @param key Name of key to pull data from. Stores the results from
-#' [RegionMatrix()]
+#' @param object The output of [RegionMatrix()]: a list containing two elements:
+#' - `matrix`: a named list of region by position matrices, one for each group
+#' of cells, with the name of each element corresponding to the group identity.
+#' - `parameters`: a list of function parameters "upstream", "downstream" and 
+#' "cells".
+#' Optionally, a list of such lists can be supplied for multi-assay plotting. In
+#' this case, the name of each element should correspond to the assay name.
 #' @param window Smoothing window to apply
 #' @param normalize Normalize by number of cells in each group
 #' @param upstream Number of bases to include upstream of region. If NULL, use
@@ -1207,7 +1152,7 @@ get_heatmap_data <- function(
 #' @param downstream Number of bases to include downstream of region. See
 #' documentation for `upstream`
 #' @param idents Cell identities to include. Note that cells cannot be
-#' regrouped, this will require re-running `RegionMatrix` to generate a
+#' regrouped, this will require re-running [RegionMatrix()] to generate a
 #' new set of matrices
 #' @param group.order Order of groups to be shown in the plot. This should be a
 #' character vector. If NULL, the group order will not be changed.
@@ -1218,20 +1163,17 @@ get_heatmap_data <- function(
 #'
 #' @return Returns a ggplot2 object
 #'
-#' @importFrom SeuratObject DefaultAssay GetAssayData
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer
-#' @importFrom ggplot2 ggplot aes_string facet_wrap guides theme theme_classic
-#' element_blank element_text ylab xlab geom_line
+#' @importFrom ggplot2 ggplot aes facet_wrap guides theme theme_classic
+#' element_blank element_text ylab xlab geom_line .data vars
 #'
 #' @export
 #' @concept visualization
 #' @concept heatmap
 RegionPlot <- function(
   object,
-  key,
-  assay = NULL,
   idents = NULL,
   group.order = NULL,
   normalize = TRUE,
@@ -1240,30 +1182,19 @@ RegionPlot <- function(
   window = (upstream + downstream) / 500,
   nrow = NULL
 ) {
-  assay <- assay %||% DefaultAssay(object = object)
-  if (!inherits(x = assay, what = "list")) {
-    assay <- list(assay)
+  
+  # for multiassay support 
+  if ("parameters" %in% names(x = object)) {
+    object <- list("default" = object)
   }
-  all.valid <- sapply(X = assay, FUN = function(x) {
-    inherits(x = object[[x]], what = "ChromatinAssay5")
-  })
-  if (!all(all.valid)) {
-    stop("The requested assay is not a ChromatinAssay5")
-  }
+  assay <- names(x = object)
 
   all.assay <- data.frame()
-  for (j in seq_along(along.with = assay)) {
-    heatmap_data <- get_heatmap_data(
-      object = object[[assay[[j]]]],
-      key = key,
-      upstream = upstream,
-      downstream = downstream
-    )
-    upstream.max <- heatmap_data$upstream.max
-    downstream.max <- heatmap_data$downstream.max
-    matlist <- heatmap_data$matlist
-    cells.per.group <- heatmap_data$cells.per.group
-    rm(heatmap_data)
+  for (j in seq_along(along.with = object)) {
+    upstream.max <- object[[j]]$parameters$upstream
+    downstream.max <- object[[j]]$parameters$downstream
+    matlist <- object[[j]]$matrix
+    cells.per.group <- object[[j]]$parameters$cells
 
     upstream <- upstream %||% upstream.max
     downstream <- downstream %||% downstream.max
@@ -1336,9 +1267,9 @@ RegionPlot <- function(
 
   p <- ggplot(
     data = all.assay,
-    aes_string(x = "bin", y = "data", color = "assay")
+    aes(x = .data[["bin"]], y = .data[["data"]], color = .data[["assay"]])
   ) +
-    facet_wrap(facets = "group") +
+    facet_wrap(facets = vars(.data[["group"]])) +
     geom_line() +
     theme_classic() +
     theme(

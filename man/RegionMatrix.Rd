@@ -3,7 +3,7 @@
 \name{RegionMatrix}
 \alias{RegionMatrix}
 \alias{RegionMatrix.Seurat}
-\alias{RegionMatrix.ChromatinAssay}
+\alias{RegionMatrix.ChromatinAssay5}
 \alias{RegionMatrix.default}
 \title{Region enrichment analysis}
 \usage{
@@ -12,7 +12,6 @@ RegionMatrix(object, ...)
 \method{RegionMatrix}{Seurat}(
   object,
   regions,
-  key,
   assay = NULL,
   group.by = NULL,
   idents = NULL,
@@ -22,10 +21,9 @@ RegionMatrix(object, ...)
   ...
 )
 
-\method{RegionMatrix}{ChromatinAssay}(
+\method{RegionMatrix}{ChromatinAssay5}(
   object,
   regions,
-  key,
   assay = NULL,
   group.by = NULL,
   idents = NULL,
@@ -56,8 +54,6 @@ RegionMatrix(object, ...)
 \item{regions}{A \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object containing the
 set of genomic ranges to quantify}
 
-\item{key}{Name to store resulting matrices under}
-
 \item{assay}{Name of assay to use. If NULL, use the default assay}
 
 \item{group.by}{Grouping variable to use when aggregating data across cells.
@@ -72,7 +68,16 @@ If NULL, use the active cell identities}
 \item{verbose}{Display messages}
 }
 \value{
-Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
+Returns a list containing two elements:
+\itemize{
+\item \code{matrix}: a named list of region by position matrices, one for each group
+of cells, with the name of each element corresponding to the group identity.
+\item \code{parameters}: a list of function parameters "upstream", "downstream" and
+"cells".
+This is the input data format required by the \code{\link[=RegionHeatmap]{RegionHeatmap()}} and
+\code{\link[=RegionPlot]{RegionPlot()}} functions, or you can extract the data matrix for other
+plotting or downstream processing steps
+}
 }
 \description{
 Count fragments within a set of regions for different groups of

@@ -475,7 +475,14 @@ RegionAggNames <- function(object, ...) {
 #'
 #' @param object A Seurat or [ChromatinAssay5-class] object
 #' @param ... Arguments passed to other methods
-#' @return Returns a [SeuratObject::Seurat()] object
+#' @return Returns a list containing two elements:
+#' - `matrix`: a named list of region by position matrices, one for each group
+#' of cells, with the name of each element corresponding to the group identity.
+#' - `parameters`: a list of function parameters "upstream", "downstream" and 
+#' "cells".
+#' This is the input data format required by the [RegionHeatmap()] and
+#' [RegionPlot()] functions, or you can extract the data matrix for other
+#' plotting or downstream processing steps
 #' @rdname RegionMatrix
 #' @export RegionMatrix
 RegionMatrix <- function(object, ...) {
