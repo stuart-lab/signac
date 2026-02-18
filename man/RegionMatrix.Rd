@@ -36,7 +36,6 @@ RegionMatrix(object, ...)
 \method{RegionMatrix}{default}(
   object,
   regions,
-  key,
   assay = NULL,
   group.by = NULL,
   idents = NULL,

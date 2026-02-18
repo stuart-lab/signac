@@ -99,7 +99,6 @@ RegionMatrix.ChromatinAssay5 <- function(
 RegionMatrix.default <- function(
   object,
   regions,
-  key,
   assay = NULL,
   group.by = NULL,
   idents = NULL,
