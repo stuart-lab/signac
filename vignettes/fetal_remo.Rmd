@@ -1,5 +1,5 @@
 ---
-title: "Whole body scATAC-seq analysis with REMO"
+title: "Whole body scATAC-seq analysis with REMO and BPCells"
 output: html_document
 date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 ---
@@ -47,6 +47,7 @@ analyzing human data.
 ```{r setup, message=FALSE}
 library(Signac)
 library(Seurat)
+library(REMO.v1.GRCh38)
 library(GenomicRanges)
 library(ggplot2)
 library(patchwork)
@@ -88,18 +89,18 @@ if (!requireNamespace("BPCells", quietly = TRUE)) {
 ```{r}
 library(BPCells)
 
-setwd("../../vignette_data/zhang") # to remove
-
 counts <- import_matrix_market_10x(mtx_dir = "remo")
 ```
 
-```{r}
+```{r eval=FALSE, include=TRUE}
 # Write the matrix to a directory
-outpath <- paste0(normalizePath(getwd()), "../../vignette_data/bpcells_counts")
+outpath <- paste0(normalizePath(getwd()), "/../bpcells_counts")
 write_matrix_dir(mat = counts, dir = outpath)
+```
 
 # Load on-disk BPCells matrix
-remo_matrix <- open_matrix_dir(dir = outpath)
+```{r}
+remo_matrix <- open_matrix_dir(dir = "../bpcells_counts")
 ```
 
 ```{r}
@@ -122,8 +123,6 @@ seqlevelsStyle(annotations) <- "UCSC"
 Create Seurat object
 
 ```{r}
-setwd("../../vignette_data/zhang") # to remove
-
 chrom_assay <- CreateChromatinAssay5(
   counts = remo_matrix,
   fragments = "fragments.tsv.gz",
