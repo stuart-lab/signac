@@ -159,7 +159,13 @@ These metrics include:
 `total_fragments`
 
 ```{r}
-VlnPlot(pbmc, c("TSS_enrichment", "Nucleosome_signal", "total_fragments"), group.by = "orig.ident", ncol = 3, pt.size = 0)
+VlnPlot(
+  object = pbmc,
+  features = c("TSS_enrichment", "Nucleosome_signal", "total_fragments"),
+  group.by = "orig.ident",
+  ncol = 3,
+  pt.size = 0
+)
 ```
 
 The relationship between variables stored in the object metadata can
@@ -168,7 +174,13 @@ to quickly find suitable cutoff values for different QC metrics by setting
 `quantiles=TRUE`:
 
 ```{r}
-DensityScatter(pbmc, x = "total_fragments", y = "TSS_enrichment", log_x = TRUE, quantiles = TRUE)
+DensityScatter(
+  object = pbmc,
+  x = "total_fragments",
+  y = "TSS_enrichment",
+  log_x = TRUE,
+  quantiles = TRUE
+)
 ```
 
 
@@ -520,7 +532,12 @@ celltypes <- REMO.v1.GRCh38.terms[REMO.v1.GRCh38.tissues$Blood]
 ```
 
 ```{r message=FALSE, warning=FALSE}
-enrichments <- EnrichedTerms(pbmc, terms = celltypes, group.by = "seurat_clusters")
+enrichments <- EnrichedTerms(
+  object = pbmc,
+  terms = celltypes,
+  group.by = "seurat_clusters",
+  verbose = FALSE
+)
 ```
 
 For each cluster we have a list of potential cell type names and the strength of
@@ -534,7 +551,7 @@ Idents(pbmc) <- "seurat_clusters"
 pbmc <- RenameIdents(pbmc, new_ids)
 ```
 
-```{r}
+```{r fig.height=8, fig.width=15}
 plot5 <- DimPlot(pbmc, label = TRUE, repel = TRUE) + NoLegend() + ggtitle("CL enrichment")
 
 plot2 + ggtitle("Label transfer") | plot5
