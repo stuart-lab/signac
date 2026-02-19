@@ -40,8 +40,26 @@ CreateGRangesAssay <- function(
 ) {
   chrom.assay <- CreateChromatinAssay5(counts = counts, data = data, ...)
   if (!missing(x = counts)) {
+    if (any(grepl("_", rownames(x = counts)))) {
+      warning("Input matrix contains underscores in feature names. These are not
+            allowed by Seurat; replacing underscores with '.'")
+      rownames(x = counts) <- gsub(
+        pattern = "_",
+        replacement = ".",
+        x = rownames(x = counts)
+      )
+    }
     features.keep <- rownames(x = counts) %in% rownames(x = chrom.assay)
   } else {
+    if (any(grepl("_", rownames(x = data)))) {
+      warning("Input matrix contains underscores in feature names. These are not
+            allowed by Seurat; replacing underscores with '.'")
+      rownames(x = data) <- gsub(
+        pattern = "_",
+        replacement = ".",
+        x = rownames(x = data)
+      )
+    }
     features.keep <- rownames(x = data) %in% rownames(x = chrom.assay)
   }
   # subset ranges if there are features removed
@@ -477,7 +495,7 @@ as.ChromatinAssay5.Assay5 <- function(
 #' @importFrom rlang is_integerish
 #' @export
 #' @return Returns a [RegionAggregation-class] object
-#' @concept regionaggregation
+#' @concept footprinting
 CreateRegionAggregationObject <- function(
   mat,
   regions,
@@ -1088,7 +1106,7 @@ RenameCells.Fragment2 <- function(object, new.names, ...) {
 
 #' @importFrom SeuratObject RenameCells
 #' @importFrom methods slot "slot<-"
-#' @concept RegionAggregation
+#' @concept footprinting
 #' @method RenameCells RegionAggregation
 #' @export
 RenameCells.RegionAggregation <- function(object, new.names, ...) {
@@ -1647,7 +1665,7 @@ subset.ChromatinAssay5 <- function(
 #' @importFrom methods slot "slot<-"
 #' @rdname RegionAggregation-class
 #' @export
-#' @concept RegionAggregation
+#' @concept footprinting
 subset.RegionAggregation <- function(
   x,
   cells = NULL,
@@ -1778,7 +1796,6 @@ merge.GRangesAssay <- function(
 # Compatibility between two RegionAggregation objects is determined by
 # \code{IsCompatibleRegionAggregation()}
 #
-# @concept RegionAggregation
 MergeRegionAggregation <- function(
   x = NULL
 ) {

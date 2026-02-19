@@ -62,7 +62,6 @@ metadata <- read.csv(
 
 brain_assay <- CreateGRangesAssay(
   counts = counts,
-  sep = c(":", "-"),
   fragments = "atac_v1_adult_brain_fresh_5k_fragments.tsv.gz",
   min.cells = 1
 )
@@ -178,7 +177,7 @@ DimPlot(object = brain, label = TRUE) + NoLegend()
 gene.activities <- GeneActivity(brain)
 
 # add the gene activity matrix to the Seurat object as a new assay
-brain[["RNA"]] <- CreateAssayObject(counts = gene.activities)
+brain[["RNA"]] <- CreateAssay5Object(counts = gene.activities)
 brain <- NormalizeData(brain, assay = "RNA")
 ```
 

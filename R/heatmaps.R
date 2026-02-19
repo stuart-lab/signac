@@ -4,7 +4,6 @@ NULL
 
 #' @param regions A [GenomicRanges::GRanges()] object containing the
 #' set of genomic ranges to quantify
-#' @param key Name to store resulting matrices under
 #' @param assay Name of assay to use. If NULL, use the default assay
 #' @param group.by Grouping variable to use when aggregating data across cells.
 #' If NULL, use the active cell identities
@@ -20,7 +19,6 @@ NULL
 RegionMatrix.Seurat <- function(
   object,
   regions,
-  key,
   assay = NULL,
   group.by = NULL,
   idents = NULL,
@@ -30,39 +28,34 @@ RegionMatrix.Seurat <- function(
   ...
 ) {
   assay <- assay %||% DefaultAssay(object = object)
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("Requested assay is not a ChromatinAssay")
-  }
-  if (missing(x = key)) {
-    stop("No key supplied")
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
+    stop("Requested assay is not a ChromatinAssay5 or GRangesAssay")
   }
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
     idents = idents
   )
-  object[[assay]] <- RegionMatrix(
+  mat <- RegionMatrix(
     object = object[[assay]],
     regions = regions,
     group.by = obj.groups,
-    key = key,
     upstream = upstream,
     downstream = downstream,
     verbose = verbose,
     ...
   )
-  return(object)
+  return(mat)
 }
 
-#' @method RegionMatrix ChromatinAssay
+#' @method RegionMatrix ChromatinAssay5
 #' @export
 #' @importFrom SeuratObject GetAssayData
 #' @rdname RegionMatrix
 #' @concept heatmap
-RegionMatrix.ChromatinAssay <- function(
+RegionMatrix.ChromatinAssay5 <- function(
   object,
   regions,
-  key,
   assay = NULL,
   group.by = NULL,
   idents = NULL,
@@ -94,27 +87,7 @@ RegionMatrix.ChromatinAssay <- function(
     ...
   )
 
-  # get normalization factors
-  cells.per.group <- table(group.by, useNA = "always")
-  lut <- as.vector(x = cells.per.group)
-  names(x = lut) <- names(x = cells.per.group)
-
-  # store upstream and downstream parameters
-  params <- list(
-    "upstream" = upstream,
-    "downstream" = downstream,
-    "cells" = lut
-  )
-  matlist$function.parameters <- params
-
-  # assigning a list using SetAssayData will overwrite the whole slot
-  # temporary solution
-  if (key %in% names(GetAssayData(object, layer = "positionEnrichment"))) {
-    warning("Requested name is already present, overwriting existing data")
-  }
-  # TODO use the SetAssayData function here
-  object@positionEnrichment[[key]] <- matlist
-  return(object)
+  return(matlist)
 }
 
 #' @method RegionMatrix default
@@ -126,7 +99,6 @@ RegionMatrix.ChromatinAssay <- function(
 RegionMatrix.default <- function(
   object,
   regions,
-  key,
   assay = NULL,
   group.by = NULL,
   idents = NULL,
@@ -139,7 +111,7 @@ RegionMatrix.default <- function(
   if (!inherits(x = object, what = "list")) {
     object <- list(object)
   }
-  all.valid <- sapply(X = object, FUN = inherits, what = "Fragment")
+  all.valid <- sapply(X = object, FUN = inherits, what = "Fragment2")
   if (!all(all.valid)) {
     stop("Must supply a list of Fragment objects")
   }
@@ -157,7 +129,7 @@ RegionMatrix.default <- function(
 
   # separate matrix for each group of cells
   matlist <- list()
-  unique.groups <- unique(x = group.by)
+  unique.groups <- as.character(x = unique(x = group.by))
 
   on_plus <- strand(x = regions) == "+" | strand(x = regions) == "*"
   for (i in seq_along(along.with = object)) {
@@ -238,11 +210,24 @@ RegionMatrix.default <- function(
       # one fragment file
       matlist <- tmplist
     } else {
-      # sum acros fragment files
+      # sum across fragment files
       for (cell in unique.groups) {
         matlist[[cell]] <- matlist[[cell]] + tmplist[[cell]]
       }
     }
   }
-  return(matlist)
+  # get normalization factors
+  cells.per.group <- table(group.by, useNA = "always")
+  lut <- as.vector(x = cells.per.group)
+  names(x = lut) <- names(x = cells.per.group)
+  
+  
+  # store upstream and downstream parameters
+  params <- list(
+    "upstream" = upstream,
+    "downstream" = downstream,
+    "cells" = lut
+  )
+  results <- list("matrix" = matlist, "parameters" = params)
+  return(results)
 }

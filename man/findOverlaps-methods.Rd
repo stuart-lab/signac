@@ -184,5 +184,4 @@ directly on the Seurat object.
 \item \linkS4class{GRangesAssay}
 }
 }
-}
 \concept{overlaps}

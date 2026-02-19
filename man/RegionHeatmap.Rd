@@ -6,8 +6,6 @@
 \usage{
 RegionHeatmap(
   object,
-  key,
-  assay = NULL,
   idents = NULL,
   group.order = NULL,
   normalize = TRUE,
@@ -22,15 +20,15 @@ RegionHeatmap(
 )
 }
 \arguments{
-\item{object}{A Seurat object}
-
-\item{key}{Name of key to pull data from. Stores the results from
-\code{\link[=RegionMatrix]{RegionMatrix()}}}
-
-\item{assay}{Name of assay to use. If a list or vector of assay names is
-given, data will be plotted from each assay. Note that all assays must
-contain \code{RegionMatrix} results with the same key. Sorting will be
-defined by the first assay in the list}
+\item{object}{The output of \code{\link[=RegionMatrix]{RegionMatrix()}}: a list containing two elements:
+\itemize{
+\item \code{matrix}: a named list of region by position matrices, one for each group
+of cells, with the name of each element corresponding to the group identity.
+\item \code{parameters}: a list of function parameters "upstream", "downstream" and
+"cells".
+Optionally, a list of such lists can be supplied for multi-assay plotting. In
+this case, the name of each element should correspond to the assay name.
+}}
 
 \item{idents}{Cell identities to include. Note that cells cannot be
 regrouped, this will require re-running \code{RegionMatrix} to generate a

@@ -49,8 +49,8 @@ universal feature set for the human genome, [REMO](https://github.com/stuart-lab
 genomic links within the same assay. We have also moved to storing this information
 using the well-established `GInteractions` format from the [InteractionSet](https://www.bioconductor.org/packages/InteractionSet/)
 package.  
-* **New peak calling methods**: Signac now uses `macs3` in the `CallPeaks()`. We
-have also enabled peak parallelization of peak calls across groups of cells, and
+* **New peak calling methods**: Signac now uses `macs3` in `CallPeaks()`. We
+have also enabled parallelization of peak calling across groups of cells, and
 include an option to use the `hmmratac` peak calling method in `macs3`.  
 * **New data visualization methods**: we added the ability to plot GWAS and QTL
 data alongside single-cell chromatin data in the `CoveragePlot()` function

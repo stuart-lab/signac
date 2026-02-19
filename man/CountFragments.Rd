@@ -29,7 +29,6 @@ Returns a data.frame with the following columns:
 \item reads_count: total number of reads sequenced for the cell
 }
 }
-}
 \description{
 Count total fragments per cell barcode present in a fragment file.
 }

@@ -489,7 +489,6 @@ setMethod(
 #'   - [IRanges::findOverlaps-methods]
 #'   - [GenomicRanges::findOverlaps-methods]
 #'   - [GRangesAssay-class]
-#'  }
 #'
 #' @exportMethod findOverlaps
 #' @concept overlaps

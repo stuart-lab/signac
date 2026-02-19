@@ -25,3 +25,4 @@ Required columns: \code{chromosome}, \code{position}, \code{pip}, \code{credset_
 Column matching is case-insensitive. Variants with cs = -1 are not in a
 credible set.
 }
+\concept{gwas}

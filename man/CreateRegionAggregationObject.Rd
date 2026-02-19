@@ -47,4 +47,4 @@ Returns a \linkS4class{RegionAggregation} object
 Create a \code{\link[=RegionAggregation-class]{RegionAggregation-class()}} object to store the insertions over
 group of regions
 }
-\concept{regionaggregation}
+\concept{footprinting}

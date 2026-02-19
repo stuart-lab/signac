@@ -44,5 +44,4 @@ matrix. Each entry in the cells vector corresponds to a row in the region
 aggregation matrix.}
 }}
 
-\concept{RegionAggregation}
 \concept{footprinting}

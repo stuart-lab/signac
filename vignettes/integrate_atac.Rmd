@@ -7,6 +7,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir = "../vignette_data")
+mem.maxVSize(vsize = 10e9)
 ```
 
 Here we demonstrate the integration of multiple single-cell chromatin datasets
@@ -74,7 +75,7 @@ counts <- FeatureMatrix(
 )
 
 # add new assay with multiome peaks
-pbmc.atac[["ATAC"]] <- CreateChromatinAssay(
+pbmc.atac[["ATAC"]] <- CreateGRangesAssay(
   counts = counts,
   fragments = Fragments(pbmc.atac)
 )
@@ -99,6 +100,7 @@ pbmc.multi$dataset <- "Multiome"
 pbmc.combined <- merge(pbmc.atac, pbmc.multi)
 
 # process the combined dataset
+pbmc.combined <- JoinLayers(pbmc.combined)
 pbmc.combined <- FindTopFeatures(pbmc.combined, min.cutoff = 10)
 pbmc.combined <- RunTFIDF(pbmc.combined)
 pbmc.combined <- RunSVD(pbmc.combined)
