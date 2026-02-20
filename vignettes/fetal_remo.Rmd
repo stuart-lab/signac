@@ -44,13 +44,22 @@ laptop with 16 Gb RAM.
 First load in Signac, Seurat, and some other packages we will be using for
 analyzing human data.
 
+```{r include=FALSE}
+if (!requireNamespace("REMO.v1.GRCh38", quietly = TRUE)) {
+  remotes::install_github(repo = "stuart-lab/REMO.v1.GRCh38")
+}
+
+if (!requireNamespace("BPCells", quietly = TRUE)) {
+  remotes::install_github("bnprks/BPCells/r")
+}
+```
+
 ```{r setup, message=FALSE}
 library(Signac)
 library(Seurat)
 library(REMO.v1.GRCh38)
+library(BPCells)
 library(GenomicRanges)
-library(ggplot2)
-library(patchwork)
 ```
 
 ## Pre-processing workflow
@@ -76,29 +85,18 @@ fragtk matrix -f fragments.tsv.gz -b REMOv1_GRCh38.bed.gz -c cells.txt.gz -o rem
 
 </details>  
 
-```{r include=FALSE}
-if (!requireNamespace("REMO.v1.GRCh38", quietly = TRUE)) {
-  remotes::install_github(repo = "stuart-lab/REMO.v1.GRCh38")
-}
-
-if (!requireNamespace("BPCells", quietly = TRUE)) {
-  remotes::install_github("bnprks/BPCells/r")
-}
-```
-
-```{r}
-library(BPCells)
-
-counts <- import_matrix_market_10x(mtx_dir = "remo")
-```
 
 ```{r eval=FALSE, include=TRUE}
-# Write the matrix to a directory
-outpath <- paste0(normalizePath(getwd()), "/../bpcells_counts")
+# import count matrix
+counts <- import_matrix_market_10x(mtx_dir = "remo")
+
+# Write the matrix to a directory in BPCells format
+outpath <- paste0(normalizePath(getwd()), "/../vignette_data/bpcells_counts")
 write_matrix_dir(mat = counts, dir = outpath)
 ```
 
 # Load on-disk BPCells matrix
+
 ```{r}
 remo_matrix <- open_matrix_dir(dir = "../bpcells_counts")
 ```
@@ -109,7 +107,7 @@ class(remo_matrix)
 
 Load gene annotations for hg38
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(AnnotationHub)
 ah <- AnnotationHub()
 
@@ -198,19 +196,18 @@ fetal <- NormalizeData(fetal)
 fetal <- RunSVD(fetal, pca = TRUE)
 ```
 
-## Non-linear dimension reduction and clustering
+## Non-linear dimension reduction
 
-Now that the cells are embedded in a low-dimensional space we can use methods
-commonly applied for the analysis of scRNA-seq data to perform graph-based
-clustering and non-linear dimension reduction for visualization. The functions
-`RunUMAP()`, `FindNeighbors()`, and `FindClusters()` all come from the Seurat
-package.
+Now that the cells are embedded in a low-dimensional space we project the cells
+into a two dimensional space for visualization using UMAP, and color the cells
+by their original tissue annotation.
 
 ```{r message=FALSE, warning=FALSE}
 fetal <- RunUMAP(object = fetal, dims = 1:30)
-fetal <- FindNeighbors(object = fetal, dims = 1:30)
-fetal <- FindClusters(object = fetal, verbose = FALSE, algorithm = 3)
-DimPlot(fetal, label = TRUE, raster = FALSE, pt.size = 0.1) + NoLegend()
+
+# extract original tissue annotations
+fetal$tissue <- unlist(lapply(strsplit(as.character(fetal$orig.ident), "_SM-"), `[[`, 1))
+DimPlot(fetal, group.by = "tissue", label = TRUE, raster = FALSE, repel = TRUE, pt.size = 0.1) + NoLegend()
 ```
 
 ## Plotting genomic regions
@@ -218,6 +215,7 @@ DimPlot(fetal, label = TRUE, raster = FALSE, pt.size = 0.1) + NoLegend()
 ```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=6}
 CoveragePlot(
   object = fetal,
+  group.by = "tissue",
   region = "CD8A",
   ranges = REMO.v1.GRCh38,
   ranges.group.by = "REMO",
