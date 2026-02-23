@@ -195,7 +195,7 @@ FilterCells <- function(
   if (verbose) {
     message("Indexing fragment file")
   }
-  idx <- indexTabix(file = outfile, format = "bed")
+  invisible(indexTabix(file = outfile, format = "bed"))
 }
 
 #' Split fragment file by cell identities
