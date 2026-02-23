@@ -5,7 +5,6 @@
 .travis.yml
 appveyor.yml
 vignettes/
-vignette_data/
 _pkgdown.yml
 pkgdown/
 index.Rmd

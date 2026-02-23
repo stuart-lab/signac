@@ -7,7 +7,7 @@ output: html_document
 
 ```{r init, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data/GSE129785")
+knitr::opts_knit$set(root.dir = "../../vignette_data/GSE129785")
 ```
 
 ```{r message=FALSE, warning=FALSE}

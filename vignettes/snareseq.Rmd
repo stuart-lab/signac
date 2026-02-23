@@ -38,7 +38,7 @@ a separate folder.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data/snare-seq")
+knitr::opts_knit$set(root.dir = "../../vignette_data/snare-seq")
 ```
 
 ```{r include=FALSE}

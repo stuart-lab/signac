@@ -12,7 +12,7 @@ To demonstrate we'll use the human PBMC dataset processed in
 
 ```{r init, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data/pbmc_vignette")
+knitr::opts_knit$set(root.dir = "../../vignette_data/pbmc_vignette")
 ```
 
 ```{r message=FALSE, warning=FALSE}

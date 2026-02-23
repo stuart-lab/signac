@@ -65,13 +65,13 @@ wget https://cf.10xgenomics.com/samples/cell-atac/2.0.0/atac_pbmc_10k_nextgem/at
 library(Signac)
 
 # load data
-fragments <- "../vignette_data/atac_pbmc_10k_nextgem_fragments.tsv.gz"
+fragments <- "../../vignette_data/atac_pbmc_10k_nextgem_fragments.tsv.gz"
 peaks.10k <- read.table(
-  file = "../vignette_data/atac_pbmc_10k_nextgem_peaks.bed",
+  file = "../../vignette_data/atac_pbmc_10k_nextgem_peaks.bed",
   col.names = c("chr", "start", "end")
 )
 peaks <- GenomicRanges::makeGRangesFromDataFrame(peaks.10k)
-md <- read.csv("../vignette_data/atac_pbmc_10k_nextgem_singlecell.csv", row.names = 1, header = TRUE)[-1, ]
+md <- read.csv("../../vignette_data/atac_pbmc_10k_nextgem_singlecell.csv", row.names = 1, header = TRUE)[-1, ]
 cells <- rownames(md[md[["is__cell_barcode"]] == 1, ])
 
 fragments <- CreateFragmentObject(path = fragments, cells = cells, validate.fragments = FALSE)
@@ -135,7 +135,7 @@ results <- rbind(results, res)
 # save results
 write.table(
   x = results,
-  file = paste0("../vignette_data/pbmc10k/timings_", Sys.Date(), ".tsv"),
+  file = paste0("../../vignette_data/pbmc10k/timings_", Sys.Date(), ".tsv"),
   quote = FALSE,
   row.names = FALSE
 )
@@ -145,7 +145,7 @@ write.table(
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
-results <- read.table("../vignette_data/pbmc10k/timings_2023-03-21.tsv", header = TRUE)
+results <- read.table("../../vignette_data/pbmc10k/timings_2023-03-21.tsv", header = TRUE)
 results$cores <- factor(results$cores, levels = c("1", "4", "10"))
 
 p <- ggplot(results, aes(x = cores, y = time / 60, color = cores)) +

@@ -6,7 +6,7 @@ date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 
 ```{r init, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data/pbmc_vignette")
+knitr::opts_knit$set(root.dir = "../../vignette_data/pbmc_vignette")
 ```
 
 ```{r, include=FALSE}
