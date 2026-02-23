@@ -555,7 +555,7 @@ CreateRegionAggregationObject <- function(
     if (length(x = cells) != dim(x = mat)[1]) {
       stop(
         "Number of cells: (", length(x = cells),
-        ") does not match number of matrix rows (", dim(x = matrix)[1], ")"
+        ") does not match number of matrix rows (", dim(x = mat)[1], ")"
       )
     }
   }
@@ -1942,7 +1942,7 @@ merge.ChromatinAssay5 <- function(
       X = assays, FUN = function(x) as(object = x, Class = "Assay5")
     )
     new.assay <- merge(
-      x = assays[[1]], y = assays[[2:length(x = assays)]], ...
+      x = assays[[1]], y = assays[2:length(x = assays)], ...
     )
     return(new.assay)
   } else {
