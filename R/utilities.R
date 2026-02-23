@@ -662,7 +662,7 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
 #' @param ... Arguments passed to other functions
 #' @return Returns a character vector
 #'
-#' @importFrom stats density approx na.omit cov
+#' @importFrom stats na.omit cov
 #' @export
 #' @concept utilities
 #' @concept motifs
@@ -729,80 +729,74 @@ MatchRegionStats <- function(
             Returning ", n, " features")
   }
 
-  # convert to uncorrelated variables
+  # remove zero-variance features (carry no information for matching)
   mat <- as.matrix(x = meta.feature)
-  chol_cov_mat <- chol(x = cov(x = mat))
-  trans_mf <- t(x = forwardsolve(l = t(x = chol_cov_mat), t(x = mat)))
-  colnames(x = trans_mf) <- features.match
+  feat.var <- apply(X = mat, MARGIN = 2, FUN = var)
+  zero.var <- feat.var == 0
+  if (any(zero.var)) {
+    dropped <- features.match[zero.var]
+    warning(
+      "Removing features with zero variance: ",
+      paste(dropped, collapse = ", ")
+    )
+    features.match <- features.match[!zero.var]
+    if (length(x = features.match) == 0) {
+      stop("No features with non-zero variance remain for matching")
+    }
+    mat <- mat[, features.match, drop = FALSE]
+    query.feature <- query.feature[, features.match, drop = FALSE]
+  }
 
-  # transform query features
+  # decorrelate features via Cholesky decomposition
   q_mat <- as.matrix(x = query.feature)
-  trans_qf <- t(x = forwardsolve(l = t(x = chol_cov_mat), t(x = q_mat)))
+  if (length(x = features.match) == 1) {
+    # single feature: no decorrelation needed
+    trans_mf <- mat
+    trans_qf <- q_mat
+  } else {
+    cov_mat <- cov(x = mat)
+    chol_cov_mat <- chol(x = cov_mat)
+    trans_mf <- t(x = forwardsolve(l = t(x = chol_cov_mat), t(x = mat)))
+    trans_qf <- t(x = forwardsolve(l = t(x = chol_cov_mat), t(x = q_mat)))
+  }
+  if (!is.matrix(x = trans_mf)) {
+    trans_mf <- matrix(trans_mf, nrow = nrow(x = mat))
+  }
+  if (!is.matrix(x = trans_qf)) {
+    trans_qf <- matrix(trans_qf, nrow = nrow(x = q_mat))
+  }
+  colnames(x = trans_mf) <- features.match
   colnames(x = trans_qf) <- features.match
 
-  # compute weights
-  for (i in seq_along(along.with = features.match)) {
-    featmatch <- features.match[[i]]
-
-    if (verbose) {
-      message("Matching ", featmatch, " distribution")
-    }
-
-    if (nrow(x = trans_qf) < 3) {
-      density.query <- density(
-        x = trans_qf[, featmatch], kernel = "gaussian", bw = 1
-      )
-    } else {
-      density.query <- density(x = trans_qf[, featmatch], kernel = "gaussian")
-    }
-    if (nrow(x = trans_mf) < 3) {
-      density.meta <- density(
-        x = trans_mf[, featmatch], kernel = "gaussian", bw = 1
-      )
-    } else {
-      density.meta <- density(x = trans_mf[, featmatch], kernel = "gaussian")
-    }
-
-    qvals <- approx(
-      x = density.query$x,
-      y = density.query$y,
-      xout = trans_mf[, featmatch],
-      yleft = 1e-6,
-      yright = 1e-6
-    )$y
-
-    mvals <- approx(
-      x = density.meta$x,
-      y = density.meta$y,
-      xout = trans_mf[, featmatch],
-      yleft = 1e-6,
-      yright = 1e-6
-    )$y
-
-    weights <- qvals / mvals
-    weights[!is.finite(weights)] <- 0
-
-    if (i > 1) {
-      feature.weights <- feature.weights * weights
-    } else {
-      feature.weights <- weights
-    }
+  # nearest-neighbor matching: for each background region, compute
+  # distance to nearest query region in the decorrelated feature space,
+  # then select the n closest background regions
+  if (verbose) {
+    message("Matching region characteristics using nearest-neighbor distance")
   }
+  n_bg <- nrow(x = trans_mf)
+  n_q <- nrow(x = trans_qf)
+  sq_q <- rowSums(x = trans_qf^2)
+  min_dists <- numeric(length = n_bg)
 
-  if (requireNamespace(package = "wrswoR", quietly = TRUE)) {
-    feature.select <- wrswoR::sample_int_crank(
-      n = nrow(x = meta.feature),
-      size = n,
-      prob = feature.weights
-    )
-  } else {
-    feature.select <- sample.int(
-      n = nrow(x = meta.feature),
-      size = n,
-      prob = feature.weights
-    )
+  # process in chunks to limit memory usage
+  chunk_size <- max(1L, as.integer(x = floor(x = 1e8 / n_q)))
+  n_chunks <- ceiling(x = n_bg / chunk_size)
+
+  for (ch in seq_len(length.out = n_chunks)) {
+    idx_start <- (ch - 1L) * chunk_size + 1L
+    idx_end <- min(ch * chunk_size, n_bg)
+    chunk_idx <- idx_start:idx_end
+    bg_chunk <- trans_mf[chunk_idx, , drop = FALSE]
+    sq_bg <- rowSums(x = bg_chunk^2)
+    cross <- bg_chunk %*% t(x = trans_qf)
+    # squared Euclidean distance: ||bg - q||^2 = ||bg||^2 + ||q||^2 - 2*bg'q
+    dist_mat <- outer(X = sq_bg, Y = sq_q, FUN = "+") - 2 * cross
+    min_dists[chunk_idx] <- apply(X = dist_mat, MARGIN = 1, FUN = min)
   }
-  feature.select <- rownames(x = meta.feature)[feature.select]
+  feature.select <- rownames(x = meta.feature)[order(min_dists)[
+    seq_len(length.out = n)
+  ]]
   return(feature.select)
 }
 
