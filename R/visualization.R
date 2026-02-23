@@ -43,7 +43,7 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' number of points large, resulting in larger file sizes when saving the plot
 #' and a longer period of time needed to draw the plot.
 #'
-#' @importFrom ggplot2 ggplot aes_string geom_line geom_tile xlab ylab geom_area
+#' @importFrom ggplot2 ggplot aes geom_line geom_tile xlab ylab geom_area
 #' scale_fill_viridis_c scale_color_grey scale_fill_grey facet_wrap
 #' @importFrom RcppRoll roll_mean
 #' @importFrom GenomicRanges start end seqnames width
@@ -144,7 +144,7 @@ BigwigTrack <- function(
   if (type == "line") {
     p <- ggplot(
       data = coverages,
-      mapping = aes_string(x = "position", y = "score", color = "bw")
+      mapping = aes(x = .data[["position"]], y = .data[["score"]], color = .data[["bw"]])
     ) +
       geom_line() +
       facet_wrap(facets = ~bw, strip.position = "left", ncol = 1) +
@@ -159,7 +159,7 @@ BigwigTrack <- function(
     all.data <- unique(x = all.data[, c("bin", "score", "bw")])
     p <- ggplot(
       data = all.data,
-      mapping = aes_string(x = "bin", y = 1, fill = "score")
+      mapping = aes(x = .data[["bin"]], y = 1, fill = .data[["score"]])
     ) +
       geom_tile() +
       scale_fill_viridis_c() +
@@ -167,7 +167,7 @@ BigwigTrack <- function(
   } else if (type == "coverage") {
     p <- ggplot(
       data = coverages,
-      mapping = aes_string(x = "position", y = "score", fill = "bw")
+      mapping = aes(x = .data[["position"]], y = .data[["score"]], fill = .data[["bw"]])
     ) +
       geom_area() +
       facet_wrap(facets = ~bw, strip.position = "left", ncol = 1) +
@@ -196,7 +196,7 @@ BigwigTrack <- function(
 #' @export
 #' @importFrom SeuratObject Embeddings DefaultAssay
 #' @importFrom ggplot2 ggplot geom_point scale_x_continuous
-#' ylab ylim theme_light ggtitle aes_string
+#' ylab ylim theme_light ggtitle
 #' @importFrom stats cor
 #' @concept visualization
 #' @examples
@@ -214,7 +214,7 @@ DepthCor <- function(object, assay = NULL, reduction = "lsi", n = 10, ...) {
   depth.cor <- as.data.frame(cor(x = embed, y = counts, ...))
   depth.cor$counts <- depth.cor[, 1]
   depth.cor$Component <- seq_len(length.out = nrow(x = depth.cor))
-  p <- ggplot(depth.cor, aes_string("Component", "counts")) +
+  p <- ggplot(depth.cor, aes(x = .data[["Component"]], y = .data[["counts"]])) +
     geom_point() +
     scale_x_continuous(n.breaks = n, limits = c(1, n)) +
     ylab("Correlation") +
@@ -293,7 +293,7 @@ get_density <- function(x, y, n_sub = 50000, ...) {
 #' @param show.axis Show x-axis (default: TRUE)
 #' @return ggplot2 object
 #'
-#' @importFrom ggplot2 ggplot geom_point aes_string geom_hline
+#' @importFrom ggplot2 ggplot geom_point aes geom_hline
 #' theme_classic labs theme element_blank element_line element_text
 #' scale_shape_manual scale_size_manual scale_color_manual scale_y_continuous
 #' @importFrom Seqinfo seqnames
@@ -397,13 +397,13 @@ GWASTrack <- function(
   if ("in_credset" %in% colnames(x = gwas)) {
     if ("ld_category" %in% colnames(x = gwas)) {
       # LD + credible sets
-      p <- ggplot(data = gwas, mapping = aes_string(
-        x = "base_pair_location",
-        y = "log10p",
-        color = "ld_category"
+      p <- ggplot(data = gwas, mapping = aes(
+        x = .data[["base_pair_location"]],
+        y = .data[["log10p"]],
+        color = .data[["ld_category"]]
       )) +
         geom_point(
-          aes_string(shape = "in_credset", size = "in_credset"),
+          aes(shape = .data[["in_credset"]], size = .data[["in_credset"]]),
           alpha = 0.6
         ) +
         scale_shape_manual(
@@ -421,15 +421,15 @@ GWASTrack <- function(
         )
     } else {
       # Credible sets only
-      p <- ggplot(data = gwas, mapping = aes_string(
-        x = "base_pair_location",
-        y = "log10p"
+      p <- ggplot(data = gwas, mapping = aes(
+        x = .data[["base_pair_location"]],
+        y = .data[["log10p"]]
       )) +
         geom_point(
-          mapping = aes_string(
-            shape = "in_credset",
-            size = "in_credset",
-            color = "in_credset"
+          mapping = aes(
+            shape = .data[["in_credset"]],
+            size = .data[["in_credset"]],
+            color = .data[["in_credset"]]
           ),
           alpha = 0.6
         ) +
@@ -450,10 +450,10 @@ GWASTrack <- function(
   } else if ("ld_category" %in% colnames(x = gwas)) {
     # LD only
     p <- ggplot(
-      data = gwas, mapping = aes_string(
-        x = "base_pair_location",
-        y = "log10p",
-        color = "ld_category"
+      data = gwas, mapping = aes(
+        x = .data[["base_pair_location"]],
+        y = .data[["log10p"]],
+        color = .data[["ld_category"]]
       )
     ) +
       geom_point(size = point.size, alpha = 0.6) +
@@ -465,9 +465,9 @@ GWASTrack <- function(
   } else {
     # Basic plot
     p <- ggplot(
-      data = gwas, mapping = aes_string(
-        x = "base_pair_location",
-        y = "log10p"
+      data = gwas, mapping = aes(
+        x = .data[["base_pair_location"]],
+        y = .data[["log10p"]]
       )
     ) +
       geom_point(color = point.color, size = point.size, alpha = 0.6)
@@ -674,7 +674,7 @@ globalVariables(
 #' @concept visualization
 #' @concept footprinting
 #' @importFrom SeuratObject DefaultAssay
-#' @importFrom ggplot2 ggplot aes_string geom_line facet_wrap xlab ylab
+#' @importFrom ggplot2 ggplot aes geom_line facet_wrap xlab ylab
 #' theme element_blank geom_label guides guide_legend theme_classic
 #' @importFrom dplyr group_by summarize top_n
 #' @import patchwork
@@ -812,11 +812,11 @@ PlotFootprint <- function(
 
     p <- ggplot(
       data = df,
-      mapping = aes_string(
-        x = "position",
-        y = "norm.value",
-        color = "group",
-        label = "label"
+      mapping = aes(
+        x = .data[["position"]],
+        y = .data[["norm.value"]],
+        color = .data[["group"]],
+        label = .data[["label"]]
       )
     )
     p <- p +
@@ -854,7 +854,7 @@ PlotFootprint <- function(
         df <- expect[expect$feature == features[[i]], ]
         p1 <- ggplot(
           data = df,
-          mapping = aes_string(x = "position", y = "norm.value")
+          mapping = aes(x = .data[["position"]], y = .data[["norm.value"]])
         ) +
           geom_line(linewidth = 0.2) +
           xlab("Distance from motif") +
@@ -888,7 +888,7 @@ globalVariables(
 #' @param object The output of [RegionMatrix()]: a list containing two elements:
 #' - `matrix`: a named list of region by position matrices, one for each group
 #' of cells, with the name of each element corresponding to the group identity.
-#' - `parameters`: a list of function parameters "upstream", "downstream" and 
+#' - `parameters`: a list of function parameters "upstream", "downstream" and
 #' "cells".
 #' Optionally, a list of such lists can be supplied for multi-assay plotting. In
 #' this case, the name of each element should correspond to the assay name.
@@ -949,13 +949,12 @@ RegionHeatmap <- function(
   order = TRUE,
   nrow = NULL
 ) {
-  
-  # for multiassay support 
+  # for multiassay support
   if ("parameters" %in% names(x = object)) {
     object <- list("default" = object)
   }
   assay <- names(x = object)
-  
+
   if (is.null(x = cols)) {
     colors_all <- hue_pal()(length(x = assay))
     names(x = colors_all) <- assay
@@ -973,12 +972,11 @@ RegionHeatmap <- function(
 
   all.assay <- data.frame()
   for (j in seq_along(along.with = object)) {
-    
     upstream.max <- object[[j]]$parameters$upstream
     downstream.max <- object[[j]]$parameters$downstream
     matlist <- object[[j]]$matrix
     cells.per.group <- object[[j]]$parameters$cells
-    
+
     upstream <- upstream %||% upstream.max
     downstream <- downstream %||% downstream.max
 
@@ -1138,7 +1136,7 @@ RegionHeatmap <- function(
 #' @param object The output of [RegionMatrix()]: a list containing two elements:
 #' - `matrix`: a named list of region by position matrices, one for each group
 #' of cells, with the name of each element corresponding to the group identity.
-#' - `parameters`: a list of function parameters "upstream", "downstream" and 
+#' - `parameters`: a list of function parameters "upstream", "downstream" and
 #' "cells".
 #' Optionally, a list of such lists can be supplied for multi-assay plotting. In
 #' this case, the name of each element should correspond to the assay name.
@@ -1182,8 +1180,7 @@ RegionPlot <- function(
   window = (upstream + downstream) / 500,
   nrow = NULL
 ) {
-  
-  # for multiassay support 
+  # for multiassay support
   if ("parameters" %in% names(x = object)) {
     object <- list("default" = object)
   }
@@ -1696,7 +1693,7 @@ SingleCoveragePlot <- function(
 #
 #' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic
 #' aes ylim theme element_blank element_text geom_segment scale_color_identity
-#' scale_fill_manual geom_rect aes_string
+#' scale_fill_manual geom_rect aes
 #' @importFrom IRanges IRanges width
 #' @importFrom Seqinfo seqnames
 #' @importFrom Matrix colSums
@@ -1795,12 +1792,12 @@ CoverageTrack <- function(
   if (multicov) {
     p <- ggplot(
       data = coverages,
-      mapping = aes_string(x = "position", y = "coverage", fill = "Assay")
+      mapping = aes(x = .data[["position"]], y = .data[["coverage"]], fill = .data[["Assay"]])
     )
   } else {
     p <- ggplot(
       data = coverages,
-      mapping = aes_string(x = "position", y = "coverage", fill = "group")
+      mapping = aes(x = .data[["position"]], y = .data[["coverage"]], fill = .data[["group"]])
     )
   }
   p <- p +
@@ -1857,9 +1854,9 @@ CoverageTrack <- function(
         geom_rect(
           data = df,
           inherit.aes = FALSE,
-          aes_string(
-            xmin = "start",
-            xmax = "end",
+          aes(
+            xmin = .data[["start"]],
+            xmax = .data[["end"]],
             ymin = 0,
             ymax = ymax
           ),
@@ -2222,7 +2219,7 @@ globalVariables(names = "group", package = "Signac")
 #' @param log.scale Display Y-axis on log scale. Default is FALSE.
 #' @param ... Arguments passed to other functions
 #'
-#' @importFrom ggplot2 ggplot geom_histogram theme_classic aes_string facet_wrap
+#' @importFrom ggplot2 ggplot geom_histogram theme_classic aes facet_wrap
 #' scale_y_log10 theme element_blank xlim
 #' @importFrom SeuratObject DefaultAssay
 #'
@@ -2273,12 +2270,12 @@ FragmentHistogram <- function(
   }
   reads$group <- groups[reads$cell]
   if (length(x = unique(x = reads$group)) == 1) {
-    p <- ggplot(data = reads, mapping = aes_string("length")) +
+    p <- ggplot(data = reads, mapping = aes(x = .data[["length"]])) +
       geom_histogram(bins = 200)
   } else {
     p <- ggplot(
       data = reads,
-      mapping = aes_string(x = "length", fill = "group")
+      mapping = aes(x = .data[["length"]], fill = .data[["group"]])
     ) +
       geom_histogram(bins = 200) +
       facet_wrap(~group, scales = "free_y")
@@ -2404,7 +2401,7 @@ CombineTracks <- function(
 #' @importFrom GenomicRanges start end
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom Seqinfo seqnames
-#' @importFrom ggplot2 ggplot aes_string geom_segment theme_classic
+#' @importFrom ggplot2 ggplot aes geom_segment theme_classic
 #' theme xlab ylab scale_color_manual element_blank
 #' @examples
 #' \donttest{
@@ -2467,14 +2464,28 @@ PeakPlot <- function(
     }
     peak.df$start[peak.df$start < start.pos] <- start.pos
     peak.df$end[peak.df$end > end.pos] <- end.pos
-    peak.plot <- ggplot(
-      data = peak.df,
-      aes_string(color = group.by %||% "color")
-    ) +
-      geom_segment(aes_string(x = "start", y = 0, xend = "end", yend = 0),
-        linewidth = 2,
-        data = peak.df
+    if (!is.null(x = group.by)) {
+      peak.plot <- ggplot(
+        data = peak.df,
+        aes(color = .data[[group.by]])
       )
+    } else {
+      peak.plot <- ggplot(data = peak.df)
+    }
+    if (!is.null(x = group.by)) {
+      peak.plot <- peak.plot +
+        geom_segment(aes(x = .data[["start"]], y = 0, xend = .data[["end"]], yend = 0),
+          linewidth = 2,
+          data = peak.df
+        )
+    } else {
+      peak.plot <- peak.plot +
+        geom_segment(aes(x = .data[["start"]], y = 0, xend = .data[["end"]], yend = 0),
+          linewidth = 2,
+          color = color,
+          data = peak.df
+        )
+    }
   } else {
     # no peaks present in region, make empty panel
     peak.plot <- ggplot(data = peak.df)
@@ -2487,12 +2498,6 @@ PeakPlot <- function(
     ) +
     xlab(label = paste0(chromosome, " position (bp)")) +
     xlim(c(start.pos, end.pos))
-  if (is.null(x = group.by)) {
-    # remove legend, change color
-    peak.plot <- peak.plot +
-      scale_color_manual(values = color) +
-      theme(legend.position = "none")
-  }
   return(peak.plot)
 }
 
@@ -2517,7 +2522,7 @@ PeakPlot <- function(
 #' @importFrom GenomicRanges start end
 #' @importFrom Seqinfo seqnames
 #' @importFrom ggplot2 ggplot geom_hline theme_classic xlim
-#' ylab theme element_blank scale_color_gradient2 aes_string
+#' ylab theme element_blank scale_color_gradient2 aes
 #' @concept visualization
 #' @concept links
 LinkPlot <- function(
@@ -2608,22 +2613,22 @@ LinkPlot <- function(
       if (scale.linewidth) {
         p <- ggplot(data = df) +
           ggforce::geom_bezier(
-            mapping = aes_string(
-              x = "x",
-              y = "y",
-              group = "group",
-              color = "score",
-              linewidth = "score"
+            mapping = aes(
+              x = .data[["x"]],
+              y = .data[["y"]],
+              group = .data[["group"]],
+              color = .data[["score"]],
+              linewidth = .data[["score"]]
             )
           )
       } else {
         p <- ggplot(data = df) +
           ggforce::geom_bezier(
-            mapping = aes_string(
-              x = "x",
-              y = "y",
-              group = "group",
-              color = "score"
+            mapping = aes(
+              x = .data[["x"]],
+              y = .data[["y"]],
+              group = .data[["group"]],
+              color = .data[["score"]]
             )
           )
       }
@@ -2668,7 +2673,7 @@ LinkPlot <- function(
 #' @importFrom GenomicRanges start end
 #' @importFrom Seqinfo seqnames
 #' @importFrom ggplot2 theme_classic ylim xlim ylab xlab
-#' geom_segment geom_text aes_string scale_color_manual
+#' geom_segment geom_text aes scale_color_manual
 #' @importFrom grid arrow
 #' @importFrom S4Vectors split
 #' @importFrom fastmatch fmatch
@@ -2739,12 +2744,12 @@ AnnotationPlot <- function(
       # exons
       geom_segment(
         data = annotation_df_list$exons,
-        mapping = aes_string(
-          x = "start",
+        mapping = aes(
+          x = .data[["start"]],
           y = annotation_df_list$exons$dodge,
-          xend = "end",
+          xend = .data[["end"]],
           yend = annotation_df_list$exons$dodge,
-          color = "strand"
+          color = .data[["strand"]]
         ),
         show.legend = FALSE,
         linewidth = 3
@@ -2752,12 +2757,12 @@ AnnotationPlot <- function(
       # gene body
       geom_segment(
         data = annotation_df_list$labels,
-        mapping = aes_string(
-          x = "start",
+        mapping = aes(
+          x = .data[["start"]],
           y = annotation_df_list$labels$dodge,
-          xend = "end",
+          xend = .data[["end"]],
           yend = annotation_df_list$labels$dodge,
-          color = "strand"
+          color = .data[["strand"]]
         ),
         show.legend = FALSE,
         linewidth = 1 / 2
@@ -2766,12 +2771,12 @@ AnnotationPlot <- function(
       # forward strand arrows
       p <- p + geom_segment(
         data = annotation_df_list$plus,
-        mapping = aes_string(
-          x = "start",
+        mapping = aes(
+          x = .data[["start"]],
           y = annotation_df_list$plus$dodge,
-          xend = "end",
+          xend = .data[["end"]],
           yend = annotation_df_list$plus$dodge,
-          color = "strand"
+          color = .data[["strand"]]
         ),
         arrow = arrow(
           ends = "last",
@@ -2787,12 +2792,12 @@ AnnotationPlot <- function(
       # reverse strand arrows
       p <- p + geom_segment(
         data = annotation_df_list$minus,
-        mapping = aes_string(
-          x = "start",
+        mapping = aes(
+          x = .data[["start"]],
           y = annotation_df_list$minus$dodge,
-          xend = "end",
+          xend = .data[["end"]],
           yend = annotation_df_list$minus$dodge,
-          color = "strand"
+          color = .data[["strand"]]
         ),
         arrow = arrow(
           ends = "first",
@@ -2809,7 +2814,7 @@ AnnotationPlot <- function(
     annotation_df_list$labels$dodge <- annotation_df_list$labels$dodge + 0.2
     p <- p + geom_text(
       data = annotation_df_list$labels,
-      mapping = aes_string(x = "position", y = "dodge", label = label),
+      mapping = aes(x = .data[["position"]], y = .data[["dodge"]], label = .data[[label]]),
       size = 2.5
     )
     y_limit <- c(0.9, n_stack + 0.4)
@@ -2848,7 +2853,7 @@ AnnotationPlot <- function(
 #' @param slot Which slot to pull expression data from
 #'
 #' @importFrom SeuratObject GetAssayData DefaultAssay
-#' @importFrom ggplot2 ggplot geom_violin facet_wrap aes_string theme_classic
+#' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic
 #' element_blank scale_y_discrete scale_x_continuous scale_fill_manual theme
 #' @importFrom scales hue_pal
 #' @importFrom Seqinfo seqnames
@@ -2953,8 +2958,8 @@ ExpressionPlot <- function(
   lower.limit <- ifelse(test = slot == "scale.data", yes = NA, no = 0)
   for (i in seq_along(along.with = features)) {
     df.use <- df[df$gene == features[[i]], ]
-    p <- ggplot(data = df.use, aes_string(
-      x = "expression", y = "gene", fill = "group"
+    p <- ggplot(data = df.use, aes(
+      x = .data[["expression"]], y = .data[["gene"]], fill = .data[["group"]]
     )) +
       geom_violin(linewidth = 1 / 4) +
       facet_wrap(~group, ncol = 1, strip.position = "right") +
@@ -2993,7 +2998,7 @@ ExpressionPlot <- function(
 #' @concept mito
 #' @concept visualization
 #' @export
-#' @importFrom ggplot2 ggplot aes_string geom_point labs scale_y_log10
+#' @importFrom ggplot2 ggplot aes geom_point labs scale_y_log10
 #' geom_vline geom_hline theme_classic scale_color_manual theme
 #' @importFrom scales comma
 VariantPlot <- function(
@@ -3007,7 +3012,7 @@ VariantPlot <- function(
     high.conf$strand_correlation > concordance.threshold
   p <- ggplot(
     data = high.conf,
-    mapping = aes_string(x = "strand_correlation", y = "vmr", color = "pos")
+    mapping = aes(x = .data[["strand_correlation"]], y = .data[["vmr"]], color = .data[["pos"]])
   ) +
     geom_point() +
     labs(x = "Strand concordance", y = "Variance-mean ratio") +
@@ -3036,7 +3041,7 @@ VariantPlot <- function(
 #' @return Returns a ggplot2 object
 #' @export
 #' @concept visualization
-#' @importFrom ggplot2 geom_segment geom_text ylim margin labs aes_string
+#' @importFrom ggplot2 geom_segment geom_text ylim margin labs aes
 #' @examples
 #' # Define SNPs to mark
 #' variants <- data.frame(
@@ -3064,17 +3069,17 @@ VariantTrack <- function(
 
   snp_plot <- ggplot(data = variants) +
     geom_segment(
-      aes_string(
-        x = "position",
-        xend = "position",
+      aes(
+        x = .data[["position"]],
+        xend = .data[["position"]],
         y = 0,
         yend = 1,
-        color = "color"
+        color = .data[["color"]]
       ),
       linewidth = 1,
     ) +
     geom_text(
-      aes_string(x = "position", y = 1.2, label = "rsid"),
+      aes(x = .data[["position"]], y = 1.2, label = .data[["rsid"]]),
       size = 3.5, fontface = "italic"
     ) +
     scale_color_identity() +
@@ -3251,13 +3256,13 @@ ComputeTile <- function(
   return(smoothed)
 }
 
-#' @importFrom ggplot2 ggplot aes_string geom_raster ylab scale_fill_gradient
+#' @importFrom ggplot2 ggplot aes geom_raster ylab scale_fill_gradient
 #' scale_y_reverse guides guide_legend geom_hline
 CreateTilePlot <- function(df, n, legend = TRUE) {
   # create plot
   p <- ggplot(
     data = df,
-    aes_string(x = "bin", y = "idx", fill = "value")
+    aes(x = .data[["bin"]], y = .data[["idx"]], fill = .data[["value"]])
   ) +
     facet_wrap(
       facets = ~group,
