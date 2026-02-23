@@ -2759,9 +2759,9 @@ AnnotationPlot <- function(
         data = annotation_df_list$labels,
         mapping = aes(
           x = .data[["start"]],
-          y = annotation_df_list$labels$dodge,
+          y = .data[["dodge"]],
           xend = .data[["end"]],
-          yend = annotation_df_list$labels$dodge,
+          yend = .data[["dodge"]],
           color = .data[["strand"]]
         ),
         show.legend = FALSE,
