@@ -136,7 +136,7 @@ AverageCounts <- function(
 #' for the peak to be called accessible
 #' @export
 #' @concept utilities
-#' @importFrom SeuratObject WhichCells DefaultAssay GetAssayData DefaultLayer
+#' @importFrom SeuratObject WhichCells DefaultAssay LayerData DefaultLayer
 #' @importFrom Matrix rowSums
 #' @return Returns a vector of peak names
 AccessiblePeaks <- function(

@@ -195,7 +195,7 @@ BinarizeCounts.default <- function(
 
 #' @rdname BinarizeCounts
 #' @method BinarizeCounts Assay
-#' @importFrom SeuratObject GetAssayData SetAssayData
+#' @importFrom SeuratObject LayerData SetAssayData
 #' @export
 #' @concept preprocessing
 BinarizeCounts.Assay <- function(
@@ -204,7 +204,7 @@ BinarizeCounts.Assay <- function(
   verbose = TRUE,
   ...
 ) {
-  data.matrix <- GetAssayData(object = object, layer = "counts")
+  data.matrix <- LayerData(object = object, layer = "counts")
   object <- SetAssayData(
     object = object,
     layer = "counts",
@@ -970,7 +970,7 @@ PearsonResidualVar.Seurat <- function(
 #' @param verbose Display messages
 #'
 #' @importFrom Matrix colSums
-#' @importFrom SeuratObject GetAssayData AddMetaData
+#' @importFrom SeuratObject LayerData AddMetaData
 #'
 #' @export
 #' @concept qc
@@ -987,7 +987,7 @@ FRiP <- function(
   if (verbose) {
     message("Calculating fraction of reads in peaks per cell")
   }
-  peak.data <- GetAssayData(object = object, assay = assay, layer = "counts")
+  peak.data <- LayerData(object = object, assay = assay, layer = "counts")
   total_fragments_cell <- object[[]][[total.fragments]]
   peak.counts <- colSums(x = peak.data)
   frip <- peak.counts / total_fragments_cell
