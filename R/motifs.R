@@ -457,8 +457,7 @@ FindMotifs <- function(
 ) {
   assay <- assay %||% DefaultAssay(object = object)
   background <- background %||% rownames(x = object)
-  # TODO allow FindMotifs on a ChromatinAssay5 object
-  if (!inherits(x = object[[assay]], what = "GRangesAssay")) {
+  if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
     stop("Cannot run FindMotifs on ", class(x = object[[assay]]))
   }
   if (is(object = background, class2 = "numeric")) {
