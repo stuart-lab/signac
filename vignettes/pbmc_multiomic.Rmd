@@ -86,6 +86,9 @@ pbmc <- CreateSeuratObject(
   assay = "RNA"
 )
 
+# remove low-count peaks
+counts$Peaks <- counts$Peaks[rowSums(counts$Peaks) > 5, ]
+
 # create ATAC assay and add it to the object
 pbmc[["ATAC"]] <- CreateGRangesAssay(
   counts = counts$Peaks,
@@ -139,6 +142,16 @@ pbmc <- subset(
     TSS_enrichment > 8
 )
 pbmc
+```
+
+It can also be a good idea to filter peaks to remove very tiny or very large 
+peak regions:
+
+```{r}
+DefaultAssay(pbmc) <- "ATAC"
+peak_size <- width(granges(pbmc))
+
+pbmc[['ATAC']] <- subset(pbmc[['ATAC']], features = rownames(pbmc[['ATAC']])[peak_size > 50 & peak_size < 5000])
 ```
 
 ## Gene expression data processing
