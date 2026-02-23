@@ -742,7 +742,7 @@ CreateMotifObject <- function(
   meta.data <- meta.data %||% data.frame()
   if (
     !(inherits(x = data, what = "matrix") ||
-        inherits(x = data, what = "CsparseMatrix"))
+      inherits(x = data, what = "CsparseMatrix"))
   ) {
     stop(
       "Data must be matrix or sparse matrix class. Supplied ",
@@ -1462,7 +1462,7 @@ SetMotifData.ChromatinAssay5 <- function(object, slot, new.data, ...) {
   if (slot == "data") {
     if (
       !(inherits(x = new.data, what = "matrix") ||
-          inherits(x = new.data, what = "CsparseMatrix"))
+        inherits(x = new.data, what = "CsparseMatrix"))
     ) {
       stop(
         "Data must be matrix or sparse matrix class. Supplied ",
@@ -1628,21 +1628,25 @@ subset.ChromatinAssay5 <- function(
   x <- NextMethod()
 
   # subset cells in RegionAggregation objects
-  ragg <- RegionAggr(object = x)
-  if (length(x = ragg) > 0) {
-    # list of region aggregation objects
-    ragg <- lapply(X = ragg, FUN = subset, cells = cells)
-    ragg <- Filter(f = Negate(f = is.null), x = ragg)
+  if (!is.null(x = cells)) {
+    ragg <- RegionAggr(object = x)
+    if (length(x = ragg) > 0) {
+      # list of region aggregation objects
+      ragg <- lapply(X = ragg, FUN = subset, cells = cells)
+      ragg <- Filter(f = Negate(f = is.null), x = ragg)
+    }
+    RegionAggr(object = x, overwrite = TRUE) <- ragg
   }
-  RegionAggr(object = x, overwrite = TRUE) <- ragg
 
   # subset cells in Fragments objects
-  frags <- Fragments(object = x)
-  Fragments(object = x) <- NULL
-  for (i in seq_along(along.with = frags)) {
-    frags[[i]] <- subset(x = frags[[i]], cells = cells)
+  if (!is.null(x = cells)) {
+    frags <- Fragments(object = x)
+    Fragments(object = x) <- NULL
+    for (i in seq_along(along.with = frags)) {
+      frags[[i]] <- subset(x = frags[[i]], cells = cells)
+    }
+    Fragments(object = x) <- frags
   }
-  Fragments(object = x) <- frags
 
   # subset motifs
   motifs <- Motifs(object = x)
