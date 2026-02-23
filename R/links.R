@@ -311,6 +311,7 @@ LinkPeaks <- function(
     peak.layer <- peak.slot
   }
   features.match <- c("GC.percent", "count", "sequence.length")
+  
   if (method == "pearson") {
     cor_method <- corSparse
   } else if (method == "spearman") {
@@ -481,10 +482,17 @@ LinkPeaks <- function(
           )
           rownames(bg.coef) <- colnames(bg.access)
           zscores <- vector(mode = "numeric", length = length(x = peaks.test))
+          bg.lengths <- lengths(x = bg.peaks)
+          bg.ends <- cumsum(x = bg.lengths)
+          bg.starts <- bg.ends - bg.lengths + 1L
           for (j in seq_along(along.with = peaks.test)) {
-            coef.use <- bg.coef[(((j - 1) * n_sample) + 1):(j * n_sample), ]
-            z <- (coef.result[j] - mean(x = coef.use)) / sd(x = coef.use)
-            zscores[[j]] <- z
+            coef.use <- bg.coef[bg.starts[[j]]:bg.ends[[j]], ]
+            bg.sd <- sd(x = coef.use)
+            if (bg.sd == 0 || !is.finite(x = bg.sd)) {
+              zscores[[j]] <- 0
+            } else {
+              zscores[[j]] <- (coef.result[j] - mean(x = coef.use)) / bg.sd
+            }
           }
           names(x = coef.result) <- peaks.test
           names(x = zscores) <- peaks.test
