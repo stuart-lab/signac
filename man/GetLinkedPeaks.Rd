@@ -4,16 +4,16 @@
 \alias{GetLinkedPeaks}
 \alias{GetLinkedPeaks.Seurat}
 \alias{GetLinkedPeaks.Assay5}
-\alias{GetLinkedPeaks.GRangesAssay}
+\alias{GetLinkedPeaks.ChromatinAssay5}
 \title{Get peaks linked to genes}
 \usage{
 GetLinkedPeaks(object, ...)
 
-\method{GetLinkedPeaks}{Seurat}(object, features, assay = NULL, min.abs.score = 0, ...)
+\method{GetLinkedPeaks}{Seurat}(object, features, key, assay = NULL, min.abs.score = 0, ...)
 
 \method{GetLinkedPeaks}{Assay5}(object, ...)
 
-\method{GetLinkedPeaks}{GRangesAssay}(object, features, min.abs.score = 0, ...)
+\method{GetLinkedPeaks}{ChromatinAssay5}(object, features, key, min.abs.score = 0, ...)
 }
 \arguments{
 \item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object}
@@ -21,6 +21,8 @@ GetLinkedPeaks(object, ...)
 \item{...}{Arguments passed to other methods}
 
 \item{features}{A list of genes to find linked peaks for}
+
+\item{key}{Key for link information to extract from the assay}
 
 \item{assay}{Name of assay to use. If NULL, use the default assay}
 
@@ -31,15 +33,7 @@ be returned}
 Returns a character vector of genes
 }
 \description{
-Retrieve peak-gene links for a given set of genes. Links must be first
-obtained by running the \code{\link[=LinkPeaks]{LinkPeaks()}} function.
-}
-\details{
-This function is designed to obtain the stored results from running the
-\code{\link[=LinkPeaks]{LinkPeaks()}} function. Alternatively, custom peak-gene linkage methods
-can be used as long as they store the gene name, peak name, and a peak-gene
-score information as metadata columns named "gene," "peak," and "score"
-respectively.
+Retrieve genomic link information for a given set of genes.
 }
 \seealso{
 GetLinkedGenes

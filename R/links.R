@@ -3,6 +3,7 @@
 NULL
 
 #' @param assay Name of assay to use. If NULL, use the default assay
+#' @param key Key for link information to extract from the assay
 #' @importFrom SeuratObject DefaultAssay
 #' @method GetLinkedPeaks Seurat
 #' @concept links
@@ -11,6 +12,7 @@ NULL
 GetLinkedPeaks.Seurat <- function(
   object,
   features,
+  key,
   assay = NULL,
   min.abs.score = 0,
   ...
@@ -19,6 +21,7 @@ GetLinkedPeaks.Seurat <- function(
   links <- GetLinkedPeaks(
     object = object[[assay]],
     features = features,
+    key = key,
     min.abs.score = min.abs.score,
     ...
   )
@@ -33,31 +36,37 @@ GetLinkedPeaks.Assay5 <- function(
   object,
   ...
 ) {
-  stop("GetLinkedPeaks requires a GRangesAssay object")
+  stop("GetLinkedPeaks requires a ChromatinAssay5 object")
 }
 
 #' @param features A list of genes to find linked peaks for
 #' @param min.abs.score Minimum absolute value of the link score for a link to
 #' be returned
 #' @export
-#' @method GetLinkedPeaks GRangesAssay
+#' @method GetLinkedPeaks ChromatinAssay5
 #' @concept links
 #' @rdname GetLinkedPeaks
-GetLinkedPeaks.GRangesAssay <- function(
+GetLinkedPeaks.ChromatinAssay5 <- function(
   object,
   features,
+  key,
   min.abs.score = 0,
   ...
 ) {
-  lnk <- Links(object = object)
+  if (missing(x = key)) {
+    stop("Provide a key for link information to extract")
+  }
+  lnk <- Links(object = object)[[key]]
   if (length(x = lnk) == 0) {
     stop("No links present in assay. Run LinkPeaks first.")
   }
-  lnk.keep <- lnk[(abs(x = lnk$score) > min.abs.score) & lnk$gene %in% features]
+  lnk.keep <- lnk[(abs(x = lnk$score) > min.abs.score) & 
+                    lnk$anchor2.gene_name %in% features]
   return(unique(x = lnk.keep$peak))
 }
 
 #' @param assay Name of assay to use. If NULL, use the default assay
+#' @param key Key for link information to extract from the assay
 #' @importFrom SeuratObject DefaultAssay
 #' @method GetLinkedGenes Seurat
 #' @concept links
@@ -66,6 +75,7 @@ GetLinkedPeaks.GRangesAssay <- function(
 GetLinkedGenes.Seurat <- function(
   object,
   features,
+  key,
   assay = NULL,
   min.abs.score = 0,
   ...
@@ -74,6 +84,7 @@ GetLinkedGenes.Seurat <- function(
   links <- GetLinkedGenes(
     object = object[[assay]],
     features = features,
+    key = key,
     min.abs.score = min.abs.score,
     ...
   )
@@ -88,28 +99,34 @@ GetLinkedGenes.Assay5 <- function(
   object,
   ...
 ) {
-  stop("GetLinkedGenes requires a GRangesAssay object")
+  stop("GetLinkedGenes requires a ChromatinAssay5 object")
 }
 
 #' @param features A list of peaks to find linked genes for
 #' @param min.abs.score Minimum absolute value of the link score for a link to
 #' be returned
 #' @export
-#' @method GetLinkedGenes GRangesAssay
+#' @method GetLinkedGenes ChromatinAssay5
+#' @importFrom InteractionSet anchors
 #' @concept links
 #' @rdname GetLinkedGenes
-GetLinkedGenes.GRangesAssay <- function(
+GetLinkedGenes.ChromatinAssay5 <- function(
   object,
   features,
+  key,
   min.abs.score = 0,
   ...
 ) {
-  lnk <- Links(object = object)
+  if (missing(x = key)) {
+    stop("Provide a key for link information to extract")
+  }
+  lnk <- Links(object = object)[[key]]
   if (length(x = lnk) == 0) {
     stop("No links present in assay. Run LinkPeaks first.")
   }
-  lnk.keep <- lnk[(abs(x = lnk$score) > min.abs.score) & lnk$peak %in% features]
-  return(unique(x = lnk.keep$gene))
+  pknames <- as.character(x = anchors(x = object)$first)
+  lnk.keep <- lnk[(abs(x = lnk$score) > min.abs.score) & pknames %in% features]
+  return(unique(x = lnk.keep$anchor2.gene_name))
 }
 
 #' Cicero connections to links
@@ -409,7 +426,7 @@ LinkPeaks <- function(
   } else {
     mylapply <- ifelse(test = verbose, yes = pblapply, no = lapply)
   }
-
+  
   # run in parallel across genes
   res <- mylapply(
     X = seq_along(along.with = genes.use),

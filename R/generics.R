@@ -310,14 +310,8 @@ InsertionBias <- function(object, ...) {
 
 #' Get genes linked to peaks
 #'
-#' Retrieve peak-gene links for a given set of genes. Links must be first
-#' obtained by running the [LinkPeaks()] function.
+#' Retrieve genomic link information for a given set of regions.
 #'
-#' This function is designed to obtain the stored results from running the
-#' [LinkPeaks()] function. Alternatively, custom peak-gene linkage methods
-#' can be used as long as they store the gene name, peak name, and a peak-gene
-#' score information as metadata columns named "gene," "peak," and "score"
-#' respectively.
 #' @param object A [SeuratObject::Seurat] object
 #' @param ... Arguments passed to other methods
 #' @return Returns a character vector of peaks
@@ -331,14 +325,7 @@ GetLinkedGenes <- function(object, ...) {
 
 #' Get peaks linked to genes
 #'
-#' Retrieve peak-gene links for a given set of genes. Links must be first
-#' obtained by running the [LinkPeaks()] function.
-#'
-#' This function is designed to obtain the stored results from running the
-#' [LinkPeaks()] function. Alternatively, custom peak-gene linkage methods
-#' can be used as long as they store the gene name, peak name, and a peak-gene
-#' score information as metadata columns named "gene," "peak," and "score"
-#' respectively.
+#' Retrieve genomic link information for a given set of genes.
 #'
 #' @param object A [SeuratObject::Seurat] object
 #' @param ... Arguments passed to other methods
