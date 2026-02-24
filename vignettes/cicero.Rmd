@@ -55,6 +55,10 @@ if (!requireNamespace("monocle3", quietly = TRUE)) {
 if (!requireNamespace("cicero", quietly = TRUE)) {
   remotes::install_github("cole-trapnell-lab/cicero-release", ref = "monocle3")
 }
+
+if (!requireNamespace("BSgenome.Hsapiens.UCSC.hg19", quietly = TRUE)) {
+  BiocManager::install("BSgenome.Hsapiens.UCSC.hg19")
+}
 ```
 
 ```{r message=FALSE, warning=FALSE}
