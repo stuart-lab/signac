@@ -77,7 +77,7 @@ Motif <- setClass(
 #' genomic location of features in the object
 #' @slot motifs A \code{\link{Motif}} object
 #' @slot fragments A list of \code{\link{Fragment}} objects.
-#' @slot seqinfo A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
+#' @slot seqinfo A \code{Seqinfo} object containing basic
 #' information about the genome sequence used.
 #' @slot annotation A  \code{\link[GenomicRanges]{GRanges}} object containing
 #' genomic annotations. This should be a GRanges object with the following 
@@ -152,7 +152,7 @@ ChromatinAssay <- setClass(
 #' created using the \code{\link{CreateFragmentObject}} and
 #' \code{\link{Fragments}} functions. Alternatively, a list of
 #' \code{\link{Fragment}} objects can be provided.
-#' @param genome A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
+#' @param genome A \code{Seqinfo} object containing basic
 #' information about the genome used. Alternatively, the name of a UCSC genome
 #' can be provided and the sequence information will be downloaded from UCSC.
 #' @param annotation A set of \code{\link[GenomicRanges]{GRanges}} containing
@@ -369,7 +369,7 @@ CreateChromatinAssay <- function(
 }
 
 #' @param ranges A GRanges object
-#' @param seqinfo A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
+#' @param seqinfo A \code{Seqinfo} object containing basic
 #' information about the genome used. Alternatively, the name of a UCSC genome
 #' can be provided and the sequence information will be downloaded from UCSC.
 #' @param annotation Genomic annotation. It must have the following columns:
@@ -1301,7 +1301,6 @@ subset.IterableFragments <- function(
 #' @importFrom GenomicRanges union findOverlaps
 #' @importFrom SeuratObject RowMergeSparseMatrices Key Key<-
 #' @importFrom S4Vectors subjectHits queryHits mcols
-#' @importMethodsFrom GenomeInfoDb merge
 merge.ChromatinAssay <- function(
   x = NULL,
   y = NULL,
@@ -1395,10 +1394,10 @@ merge.ChromatinAssay <- function(
     all.seqinfo <- all.seqinfo[seqinfo.present]
     if (length(x = all.seqinfo) > 1) {
       seqinfo.use <- all.seqinfo[[1]]
-      # iteratively merge seqinfo objects
-      for (x in 2:length(x = all.seqinfo)) {
-        seqinfo.use <- merge(x = seqinfo.use, y = all.seqinfo[[x]])
-      }
+      # # iteratively merge seqinfo objects
+      # for (x in 2:length(x = all.seqinfo)) {
+      #   seqinfo.use <- merge(x = seqinfo.use, y = all.seqinfo[[x]])
+      # }
     } else {
       seqinfo.use <- all.seqinfo[[1]]
     }

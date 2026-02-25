@@ -213,7 +213,7 @@ ConnectionsToLinks <- function(
 #' using gene IDs rather than gene names.
 #' @param verbose Display messages
 #'
-#' @importFrom SeuratObject GetAssayData
+#' @importFrom SeuratObject GetAssayData Layers
 #' @importFrom stats pnorm sd
 #' @importFrom Matrix sparseMatrix rowSums
 #' @importFrom future.apply future_lapply
@@ -304,10 +304,9 @@ LinkPeaks <- function(
   peak.data <- GetAssayData(
     object = object, assay = peak.assay, layer = peak.slot
   )
-  # # depends on SeuratObject v5
-  # if (!(expression.slot %in% Layers(object = object))) {
-  #   stop("Requested expression layer not found")
-  # }
+  if (!(expression.slot %in% Layers(object = object))) {
+    stop("Requested expression layer not found")
+  }
   expression.data <- GetAssayData(
     object = object, assay = expression.assay, layer = expression.slot
   )
@@ -322,15 +321,6 @@ LinkPeaks <- function(
     )
   }
   expression.data <- expression.data[genes.keep, , drop = FALSE]
-  if (verbose) {
-    message(
-      "Testing ",
-      nrow(x = expression.data),
-      " genes and ",
-      sum(peaks.keep),
-      " peaks"
-    )
-  }
   genes <- rownames(x = expression.data)
   if (gene.id) {
     gene.coords.use <- gene.coords[gene.coords$gene_id %in% genes,]
@@ -366,6 +356,15 @@ LinkPeaks <- function(
          "Have you set the proper genome and seqlevelsStyle for ",
          peak.assay,
          " assay?")
+  }
+  if (verbose) {
+    message(
+      "Testing ",
+      nrow(x = expression.data),
+      " genes and ",
+      sum(rowSums(x = peak_distance_matrix) > 0),
+      " peaks"
+    )
   }
   genes.use <- colnames(x = peak_distance_matrix)
   all.peaks <- rownames(x = peak.data)
@@ -409,7 +408,7 @@ LinkPeaks <- function(
           # sample from peaks on a different chromosome to the gene
           peaks.test <- rownames(x = coef.result)
           trans.peaks <- all.peaks[
-            !grepl(pattern = paste0("^", gene.chrom), x = all.peaks)
+            !grepl(pattern = paste0("^", gene.chrom, "-"), x = all.peaks)
           ]
           meta.use <- meta.features[trans.peaks, ]
           pk.use <- meta.features[peaks.test, ]

@@ -27,7 +27,7 @@ as.ChromatinAssay(x, ...)
 
 \item{ranges}{A GRanges object}
 
-\item{seqinfo}{A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
+\item{seqinfo}{A \code{Seqinfo} object containing basic
 information about the genome used. Alternatively, the name of a UCSC genome
 can be provided and the sequence information will be downloaded from UCSC.}
 

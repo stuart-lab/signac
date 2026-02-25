@@ -56,7 +56,7 @@ created using the \code{\link{CreateFragmentObject}} and
 \code{\link{Fragments}} functions. Alternatively, a list of
 \code{\link{Fragment}} objects can be provided.}
 
-\item{genome}{A \code{\link[GenomeInfoDb]{Seqinfo}} object containing basic
+\item{genome}{A \code{Seqinfo} object containing basic
 information about the genome used. Alternatively, the name of a UCSC genome
 can be provided and the sequence information will be downloaded from UCSC.}
 

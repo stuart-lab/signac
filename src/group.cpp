@@ -169,6 +169,9 @@ SEXP groupCommand(
     line_seq.clear();
   } while(gzgets(fileHandler, buffer, buffer_length) !=0 );
 
+  // Back to line
+  Rcpp::Rcerr << "\n" << std::flush;
+
   //Cleanup
   gzclose(fileHandler);
 
