@@ -73,6 +73,7 @@ AddMotifs.default <- function(
 }
 
 #' @rdname AddMotifs
+#' @importFrom SeuratObject SetAssayData
 #' @method AddMotifs GRangesAssay
 #' @concept motifs
 #' @export

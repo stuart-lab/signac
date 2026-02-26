@@ -2636,7 +2636,6 @@ dim.Motif <- function(x) {
 #' @export
 #' @method Fragments<- ChromatinAssay5
 #' @rdname Fragments
-#' @importFrom SeuratObject SetAssayData
 #' @concept assay
 #' @concept fragments
 "Fragments<-.ChromatinAssay5" <- function(object, ..., value) {

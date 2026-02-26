@@ -613,7 +613,7 @@ GetFootprintRegions <- function(
 # @param object A Seurat object
 # @param feature A vector of footprinted TFs
 # @param assay Name of assay to use
-#' @importFrom SeuratObject DefaultAssay GetAssayData
+#' @importFrom SeuratObject DefaultAssay
 GetMotifSize <- function(
   object,
   features,
