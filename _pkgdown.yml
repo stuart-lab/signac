@@ -174,8 +174,9 @@ reference:
     - has_concept("internal")
 
 template:
+  bootstrap: 5
+  bootswatch: cosmo
   params:
-    bootswatch: cosmo
     ganalytics: UA-144505535-1
     docsearch:
       api_key: b3627b9c38aec1a8820bd5ae7063c9ef
