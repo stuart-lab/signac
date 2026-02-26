@@ -923,7 +923,6 @@ globalVariables(
 #'
 #' @return Returns a ggplot2 object
 #'
-#' @importFrom SeuratObject DefaultAssay GetAssayData
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer

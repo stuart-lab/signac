@@ -231,7 +231,7 @@ ConnectionsToLinks <- function(
 #' @param peak.slot Deprecated (use `peak.layer`)
 #' @param expression.slot Deprecated (used `expression.layer`)
 #'
-#' @importFrom SeuratObject GetAssayData Layers
+#' @importFrom SeuratObject LayerData Layers
 #' @importFrom stats pnorm sd
 #' @importFrom Matrix sparseMatrix rowSums
 #' @importFrom future.apply future_lapply
@@ -339,8 +339,10 @@ LinkPeaks <- function(
     )
   }
   if (!("count" %in% colnames(x = meta.features))) {
-    data.use <- GetAssayData(object = object[[peak.assay]], layer = peak.layer)
-    hvf.info <- FindTopFeatures(object = data.use, verbose = FALSE)
+    hvf.info <- FindTopFeatures(
+      object = LayerData(object = object[[peak.assay]], layer = peak.layer),
+      verbose = FALSE
+    )
     hvf.info <- hvf.info[rownames(meta.features), , drop = FALSE]
     meta.features <- cbind(meta.features, hvf.info)
   }

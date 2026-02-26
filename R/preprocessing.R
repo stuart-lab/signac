@@ -272,7 +272,7 @@ BinarizeCounts.Seurat <- function(
 #' @param assay Name of assay to use. Default is the active assay.
 #' @param n Number of features to retain (default 20000).
 #' @param verbose Display messages
-#' @importFrom SeuratObject DefaultAssay GetAssayData "VariableFeatures<-"
+#' @importFrom SeuratObject DefaultAssay "VariableFeatures<-"
 #' @return Returns a [SeuratObject::Seurat()] object with
 #' [SeuratObject::VariableFeatures()] set to the randomly sampled features.
 #' @export
@@ -888,7 +888,6 @@ PearsonResidualVar.Assay5 <- function(
 }
 
 #' @rdname PearsonResidualVar
-#' @importFrom SeuratObject GetAssayData VariableFeatures
 #' @importFrom utils packageVersion
 #' @export
 #' @method PearsonResidualVar StdAssay
@@ -1058,7 +1057,6 @@ RegionStats.default <- function(
 #' @rdname RegionStats
 #' @method RegionStats GRangesAssay
 #' @importFrom methods slot
-#' @importFrom SeuratObject GetAssayData
 #' @export
 #' @concept motifs
 #' @examples

@@ -24,7 +24,7 @@ NULL
 #'
 #' @importFrom fastmatch fmatch
 #' @importFrom Matrix sparseMatrix
-#' @importFrom SeuratObject DefaultAssay GetAssayData AddMetaData
+#' @importFrom SeuratObject DefaultAssay LayerData AddMetaData
 #'
 #' @export
 #' @concept utilities
@@ -70,7 +70,7 @@ AddChromatinModule <- function(
   )
 
   # add module scores to metadata
-  chromvar.data <- GetAssayData(object = cv, layer = "data")
+  chromvar.data <- LayerData(object = cv, layer = "data")
   object <- AddMetaData(
     object = object,
     metadata = as.data.frame(x = t(x = chromvar.data))
@@ -88,7 +88,7 @@ globalVariables(names = c("group", "readcount"), package = "Signac")
 #' @param group.by Grouping variable to use. Default is the active identities
 #' @param verbose Display messages
 #'
-#' @importFrom SeuratObject DefaultAssay Idents GetAssayData
+#' @importFrom SeuratObject DefaultAssay Idents
 #' @importFrom dplyr group_by summarize
 #' @export
 #' @concept utilities
