@@ -1,5 +1,5 @@
 ---
-title: "Whole body scATAC-seq analysis with REMO and BPCells"
+title: "Large-scale scATAC-seq analysis with REMO and BPCells"
 output: html_document
 date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 ---

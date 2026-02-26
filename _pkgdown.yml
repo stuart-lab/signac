@@ -29,6 +29,8 @@ navbar:
           href: articles/pbmc_multiomic.html
         - text: "Joint RNA and ATAC analysis: SNARE-seq"
           href: articles/snareseq.html
+        - text: "Large-scale scATAC-seq analysis"
+          href: articles/fetal_remo.html
         - text: "Peak calling"
           href: articles/peak_calling.html
         - text: "Merging objects"
