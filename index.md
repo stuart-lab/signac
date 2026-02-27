@@ -2,7 +2,10 @@
 [![CRAN Version](https://www.r-pkg.org/badges/version/Signac)](https://cran.r-project.org/package=Signac)
 [![CRAN Downloads](https://cranlogs.r-pkg.org/badges/Signac)](https://cran.r-project.org/package=Signac)
 
-# Signac <img src="man/figures/logo.png" style="float:right; height:100px;" />
+<br>
+<img src="man/figures/logo.png" style="float:right; height:100px;" />
+
+# Signac
 
 Signac is a comprehensive R package for the analysis of single-cell
 chromatin data.
@@ -53,8 +56,3 @@ If you would like to discuss questions related to single-cell analysis,
 you can open a
 [discussion](https://github.com/stuart-lab/signac/discussions).
 
-## Roadmap
-
-Signac runs on a quarterly release schedule. Additional releases will be 
-scheduled in the case of urgent bug fixes. The development roadmap can be viewed
-on GitHub [here](https://github.com/orgs/stuart-lab/projects/1).

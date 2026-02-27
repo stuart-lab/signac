@@ -4,7 +4,30 @@ details {
   border-radius: 5px;
 }
 
-pre, code {
+pre,
+code {
   white-space: pre !important;
   overflow-x: auto;
+}
+
+/* Hide auto-injected pkgdown logo globally so the user's markdown tag renders instead */
+.page-header img.logo {
+  display: none !important;
+}
+
+/* Remove scroll bar from dropdown menus and show all items */
+.dropdown-menu {
+  max-height: none !important;
+  overflow-y: visible !important;
+}
+
+/* Hide TOC sidebar and expand main content area for all articles */
+.template-article aside.col-md-3 {
+  display: none !important;
+}
+
+.template-article main.col-md-9 {
+  width: 100% !important;
+  flex: 0 0 100% !important;
+  max-width: 100% !important;
 }

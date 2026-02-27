@@ -6,6 +6,8 @@ home:
       href: https://github.com/stuart-lab/signac/graphs/contributors
 
 navbar:
+  bg: dark
+  type: dark
   title: "Signac"
   left:
     - text: "Install"
@@ -175,7 +177,8 @@ reference:
 
 template:
   bootstrap: 5
-  bootswatch: cosmo
+  bslib:
+    bootswatch: cosmo
   params:
     ganalytics: UA-144505535-1
     docsearch:
