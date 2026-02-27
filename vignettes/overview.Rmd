@@ -11,7 +11,7 @@ pipeline for different types of single-cell chromatin data.
 ## [Human peripheral blood mononuclear cells](pbmc_vignette.html)
 
 In this tutorial we analyze a human peripheral blood mononuclear cell (PBMC)
-dataset of ~7,000 cells.
+dataset of ~8,000 cells.
 
 ```{r echo=FALSE, out.height="30%"}
 knitr::include_graphics("./assets/pbmc.png")
@@ -30,7 +30,7 @@ knitr::include_graphics("./assets/mouse.png")
 
 In this tutorial we demonstrate a joint analysis of combined gene expression and
 DNA accessibility data, measured in the same human PBMCs using the 10x Genomics
-multiomic kit.
+multiome kit.
 
 ```{r echo=FALSE, out.height="30%"}
 knitr::include_graphics("./assets/multiomic.png")
@@ -45,6 +45,15 @@ same mouse brain nuclei.
 
 ```{r echo=FALSE, out.height="30%"}
 knitr::include_graphics("./assets/snareseq.png")
+```
+
+## [Large-scale scATAC-seq analysis with REMO and BPCells](fetal_remo.html)
+
+In this tutorial we demonstrate how to analyze a large scATAC-seq dataset of >500,000
+cells using REMO and BPCells.
+
+```{r echo=FALSE, out.height="30%"}
+knitr::include_graphics("./assets/fetal.png")
 ```
 
 ## [Joint single-cell mitochondrial DNA genotyping and DNA accessibility analysis](mito.html)
