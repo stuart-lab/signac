@@ -6,19 +6,24 @@ home:
       href: https://github.com/stuart-lab/signac/graphs/contributors
 
 navbar:
-  bg: dark
-  type: dark
-  title: "Signac"
-  left:
-    - text: "Install"
+  structure:
+    left: [install, news, started, faq, vignettes, reference, archive, discussion]
+    right: [github, lightswitch]
+  components:
+    install:
+      text: "Install"
       href: articles/install.html
-    - text: "News"
+    news:
+      text: "News"
       href: news/index.html
-    - text: "Get started"
+    started:
+      text: "Get started"
       href: articles/overview.html
-    - text: "FAQ"
+    faq:
+      text: "FAQ"
       href: articles/faq.html
-    - text: "Vignettes"
+    vignettes:
+      text: "Vignettes"
       menu:
         - text: "Vignettes overview"
           href: articles/overview.html
@@ -55,15 +60,20 @@ navbar:
           href: articles/future.html
         - text: "Data structures and object interaction"
           href: articles/data_structures.html
-    - text: "Reference"
+    reference:
+      text: "Reference"
       href: reference/index.html
-    - text: "Archive"
+    archive:
+      text: "Archive"
       href: articles/archive.html
-    - text: "Discussions"
+    discussions:
+      text: "Discussions"
       href: https://github.com/stuart-lab/signac/discussions
-  right:
-    - icon: fa-github
-      href: https://github.com/stuart-lab/signac
+      
+footer:
+  structure: 
+    left: 
+    right: 
 
 reference:
   - title: "Object interaction"
@@ -177,8 +187,7 @@ reference:
 
 template:
   bootstrap: 5
-  bslib:
-    bootswatch: cosmo
+  light-switch: true
   params:
     ganalytics: UA-144505535-1
     docsearch:

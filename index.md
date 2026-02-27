@@ -3,8 +3,8 @@
 [![CRAN Downloads](https://cranlogs.r-pkg.org/badges/Signac)](https://cran.r-project.org/package=Signac)
 
 <br>
-<img src="man/figures/logo.png" style="float:right; height:100px;" />
-
+<img src="man/figures/logo.svg" style="float:right; height:100px;" />
+  
 # Signac
 
 Signac is a comprehensive R package for the analysis of single-cell
