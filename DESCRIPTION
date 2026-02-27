@@ -4,9 +4,16 @@ Version: 2.0.0
 Date: 2025-12-11
 Authors@R: c(
   person(given = 'Tim', family = 'Stuart', email = 'stuartt@a-star.edu.sg', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3044-0897')),
-  person(given = 'Avi', family = 'Srivastava', email = 'asrivastava@wistar.org', role = 'aut', comment = c(ORCID = '0000-0001-9798-2079')),
+  person(given = 'Avi', family = 'Srivastava', email = 'asrivastava@wistar.org', role = 'ctb', comment = c(ORCID = '0000-0001-9798-2079')),
   person(given = 'Paul', family = 'Hoffman', email = 'phoffman@nygenome.org', role = 'ctb', comment = c(ORCID = '0000-0002-7693-8957')),
-  person(given = 'Rahul', family = 'Satija', email = 'rsatija@nygenome.org', role = 'ctb', comment = c(ORCID = '0000-0001-9448-8833'))
+  person(given = 'Rahul', family = 'Satija', email = 'rsatija@nygenome.org', role = 'ctb', comment = c(ORCID = '0000-0001-9448-8833')),
+  person(given = 'Saket', family = 'Choudhary', email = 'saketc@iitb.ac.in', role = 'ctb', comment = c(ORCID = '0000-0001-5202-7633')),
+  person(given = 'Caleb', family = 'Lareau', email = 'lareauc@mskcc.org', role = 'ctb', comment = c(ORCID = '0000-0003-4179-4807')),
+  person(given = 'Chrysania', family = 'Lim', email = 'Chrysania_Lim@a-star.edu.sg', role = 'ctb'),
+  person(given = 'Javen', family = 'Tan', email = 'javentyr@u.nus.edu', role = 'ctb'),
+  person(given = 'Jonathan', family = 'Bowles', email = 'jonathan_bowles@a-star.edu.sg', role = 'ctb'),
+  person(given = 'Ting Wei', family = 'Lim', email = 'Lim_Ting_Wei@a-star.edu.sg', role = 'ctb'),
+  person(given = 'Jay', family = 'Leung', email = 'leung_jia_yu@a-star.edu.sg', role = 'ctb')
   )
 Description: A framework for the analysis and exploration of single-cell chromatin data.
     The 'Signac' package contains functions for quantifying single-cell chromatin data,
