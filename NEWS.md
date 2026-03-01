@@ -1,4 +1,6 @@
-# Signac v2 (beta)
+# Signac 1.9999.0
+
+***v2 beta release***
 
 This is a major version release and includes many changes to the package,
 including new functionality and internal improvements to existing functionality.
@@ -61,7 +63,9 @@ object.
 * Changed the behavior of object merging to follow the standard Seurat merge method. Previously, 
 overlapping peaks were treated as the same feature.  
 
-# Develop (unreleased)
+# Signac 1.16.9004
+
+***develop branch***
 
 New features:
 
