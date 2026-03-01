@@ -1,7 +1,17 @@
+/* Prevent fixed navbar from overlapping page content on article pages */
+.container.template-article {
+  padding-top: 70px;
+}
+
 details {
   background-color: #f0f8ff;
   padding: 10px;
   border-radius: 5px;
+}
+
+/* Dark mode: adjust details background for lightswitch */
+[data-bs-theme="dark"] details {
+  background-color: #222f45;
 }
 
 pre,
@@ -29,5 +39,6 @@ code {
 .template-article main.col-md-9 {
   width: 100% !important;
   flex: 0 0 100% !important;
-  max-width: 100% !important;
+  max-width: 900px !important;
+  margin: 0 auto !important;
 }
