@@ -7,7 +7,7 @@ home:
 
 navbar:
   structure:
-    left: [install, news, started, faq, vignettes, reference, archive, discussion]
+    left: [install, news, started, faq, vignettes, reference, archive, discussions]
     right: [github, lightswitch]
   components:
     install:
