@@ -1,4 +1,4 @@
-# Signac v2 (unreleased)
+# Signac v2 (beta)
 
 This is a major version release and includes many changes to the package,
 including new functionality and internal improvements to existing functionality.
