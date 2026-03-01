@@ -31,14 +31,18 @@ code {
   overflow-y: visible !important;
 }
 
-/* Hide TOC sidebar and expand main content area for all articles */
-.template-article aside.col-md-3 {
+/* Constrain article content width for readability */
+.template-article main.col-md-9 {
+  max-width: 900px !important;
+}
+
+/* Hide TOC sidebar for articles with .no-toc class (added via extra.js) */
+.no-toc .template-article aside.col-md-3 {
   display: none !important;
 }
 
-.template-article main.col-md-9 {
+.no-toc .template-article main.col-md-9 {
   width: 100% !important;
   flex: 0 0 100% !important;
-  max-width: 900px !important;
   margin: 0 auto !important;
 }
