@@ -203,7 +203,7 @@ into a two dimensional space for visualization using UMAP, and color the cells
 by their original tissue annotation.
 
 ```{r message=FALSE, warning=FALSE}
-fetal <- RunUMAP(object = fetal, dims = 1:30)
+fetal <- RunUMAP(object = fetal, dims = 1:50)
 
 # extract original tissue annotations
 fetal$tissue <- unlist(lapply(strsplit(as.character(fetal$orig.ident), "_SM-"), `[[`, 1))
@@ -212,7 +212,7 @@ DimPlot(fetal, group.by = "tissue", label = TRUE, raster = FALSE, repel = TRUE, 
 
 ## Plotting genomic regions
 
-```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=6}
+```{r fig.height=12, fig.width=14, message=FALSE, warning=FALSE}
 CoveragePlot(
   object = fetal,
   group.by = "tissue",
