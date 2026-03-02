@@ -483,7 +483,8 @@ LinkPeaks <- function(
             }
           )
           # run background correlations
-          bg.access <- peak.data[, unlist(x = bg.peaks), drop = FALSE]
+          unique.bg <- unique(x = unlist(x = bg.peaks))
+          bg.access <- peak.data[, unique.bg, drop = FALSE]
           if (inherits(x = bg.access, what = 'IterableMatrix')) {
             bg.access <- as.sparse(x = bg.access)
           }
@@ -491,13 +492,10 @@ LinkPeaks <- function(
             X = bg.access,
             Y = gene.expression
           )
-          rownames(bg.coef) <- colnames(bg.access)
+          rownames(x = bg.coef) <- unique.bg
           zscores <- vector(mode = "numeric", length = length(x = peaks.test))
-          bg.lengths <- lengths(x = bg.peaks)
-          bg.ends <- cumsum(x = bg.lengths)
-          bg.starts <- bg.ends - bg.lengths + 1L
           for (j in seq_along(along.with = peaks.test)) {
-            coef.use <- bg.coef[bg.starts[[j]]:bg.ends[[j]], ]
+            coef.use <- bg.coef[bg.peaks[[j]], ]
             bg.sd <- sd(x = coef.use)
             if (bg.sd == 0 || !is.finite(x = bg.sd)) {
               zscores[[j]] <- 0
