@@ -151,6 +151,7 @@ RunSVD.default <- function(
 }
 
 # from SeuratObject (not exported)
+#' @importFrom SeuratObject VariableFeatures LayerData
 #' @importFrom stats var
 PrepDR5 <- function(
   object,
@@ -224,7 +225,6 @@ PrepDR5 <- function(
 #' @param features Which features to use. If NULL, use variable features
 #'
 #' @rdname RunSVD
-#' @importFrom SeuratObject VariableFeatures GetAssayData
 #' @export
 #' @concept dimension_reduction
 #' @method RunSVD Assay5
@@ -295,7 +295,6 @@ RunSVD.Assay <- function(
 #' @param features Which features to use. If NULL, use variable features
 #'
 #' @rdname RunSVD
-#' @importFrom SeuratObject VariableFeatures GetAssayData
 #' @export
 #' @concept dimension_reduction
 #' @method RunSVD StdAssay
@@ -332,6 +331,7 @@ RunSVD.StdAssay <- function(
 #' @rdname RunSVD
 #' @export
 #' @concept dimension_reduction
+#' @importFrom SeuratObject DefaultAssay
 #' @examples
 #' RunSVD(atac_small, features = rownames(atac_small))
 #' @method RunSVD Seurat

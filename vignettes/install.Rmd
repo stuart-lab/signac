@@ -19,11 +19,19 @@ install.packages("Signac")
 Unreleased versions of Signac can be installed from the GitHub repository using
 the devtools package:
 
+### v1 develop branch
+
 ```{r}
 if (!requireNamespace("remotes", quietly = TRUE)) {
   install.packages("remotes")
 }
 remotes::install_github("stuart-lab/signac", ref = "develop")
+```
+
+### v2 beta release
+
+```{r}
+remotes::install_github("stuart-lab/signac", ref = "v2")
 ```
 
 ## Old versions

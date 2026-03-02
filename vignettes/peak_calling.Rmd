@@ -28,7 +28,6 @@ In this demonstration we use scATAC-seq data for human PBMCs. See our
 and links to the raw data. First, load the required packages and the
 pre-computed Seurat object:
 
-
 ```{r message=FALSE, warning=FALSE}
 library(Signac)
 library(Seurat)
@@ -98,7 +97,8 @@ peaks_separate <- CallPeaks(
 ```
 
 ```{r echo=FALSE}
-knitr::kable(head(as.data.frame(peaks_separate)))
+knitr::kable(head(as.data.frame(peaks_separate[[1]])))
+knitr::kable(head(as.data.frame(peaks_separate[[2]])))
 ```
 
 ### HMMRATAC peak calling

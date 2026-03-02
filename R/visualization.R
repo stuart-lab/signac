@@ -923,7 +923,6 @@ globalVariables(
 #'
 #' @return Returns a ggplot2 object
 #'
-#' @importFrom SeuratObject DefaultAssay GetAssayData
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer
@@ -2852,7 +2851,7 @@ AnnotationPlot <- function(
 #' all identities
 #' @param slot Which slot to pull expression data from
 #'
-#' @importFrom SeuratObject GetAssayData DefaultAssay
+#' @importFrom SeuratObject LayerData DefaultAssay
 #' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic
 #' element_blank scale_y_discrete scale_x_continuous scale_fill_manual theme
 #' @importFrom scales hue_pal
