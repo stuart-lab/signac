@@ -2851,7 +2851,7 @@ AnnotationPlot <- function(
 #' all identities
 #' @param slot Which slot to pull expression data from
 #'
-#' @importFrom SeuratObject LayerData DefaultAssay
+#' @importFrom SeuratObject LayerData DefaultAssay as.sparse
 #' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic
 #' element_blank scale_y_discrete scale_x_continuous scale_fill_manual theme
 #' @importFrom scales hue_pal
@@ -2896,7 +2896,7 @@ ExpressionPlot <- function(
     )
     features <- common.features
   }
-  data.plot <- data.plot[features, ]
+  data.plot <- data.plot[features, , drop = FALSE]
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
@@ -2921,10 +2921,13 @@ ExpressionPlot <- function(
     obj.groups <- obj.groups[cells.keep]
   }
   # construct data frame
+  if (inherits(x = data.plot, what = "IterableMatrix")) {
+    data.plot <- as.sparse(x = data.plot)
+  }
   if (length(x = features) == 1) {
     df <- data.frame(
       gene = features,
-      expression = data.plot,
+      expression = as.vector(x = data.plot),
       group = obj.groups
     )
   } else {
