@@ -286,7 +286,7 @@ CreateMotifMatrix <- function(
   return(motif.matrix)
 }
 
-#' @importFrom SeuratObject LayerData CreateAssayObject DefaultLayer
+#' @importFrom SeuratObject LayerData CreateAssayObject DefaultLayer as.sparse
 #' @importFrom Matrix rowSums
 #'
 #' @concept motifs
@@ -318,10 +318,8 @@ RunChromVAR.GRangesAssay <- function(
   }
   motif.matrix <- motif.matrix %||% GetMotifData(object = object, slot = "data")
   peak.matrix <- LayerData(object = object, layer = layer)
-  peak.matrix <- as(object = peak.matrix, Class = "sparseMatrix")
-  if (!(all(peak.matrix@x == floor(peak.matrix@x)))) {
-    warning("Count matrix contains non-integer values.
-            ChromVAR should only be run on integer counts.")
+  if (inherits(x = peak.matrix, what = "IterableMatrix")) {
+    peak.matrix <- as.sparse(x = peak.matrix)
   }
   idx.keep <- rowSums(x = peak.matrix) > 0
   peak.matrix <- peak.matrix[idx.keep, , drop = FALSE]
