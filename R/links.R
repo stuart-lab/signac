@@ -231,7 +231,7 @@ ConnectionsToLinks <- function(
 #' @param peak.slot Deprecated (use `peak.layer`)
 #' @param expression.slot Deprecated (used `expression.layer`)
 #'
-#' @importFrom SeuratObject LayerData Layers
+#' @importFrom SeuratObject LayerData Layers as.sparse
 #' @importFrom stats pnorm sd
 #' @importFrom Matrix sparseMatrix rowSums
 #' @importFrom future.apply future_lapply
@@ -443,6 +443,12 @@ LinkPeaks <- function(
         return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
       } else {
         peak.access <- peak.data[, peak.use, drop = FALSE]
+        if (inherits(x = peak.access, what = "IterableMatrix")) {
+          peak.access <- as.sparse(x = peak.access)
+        }
+        if (inherits(x = gene.expression, what = "IterableMatrix")) {
+          gene.expression <- as.sparse(x = gene.expression)
+        }
         coef.result <- cor_method(
           X = peak.access,
           Y = gene.expression
@@ -478,6 +484,9 @@ LinkPeaks <- function(
           )
           # run background correlations
           bg.access <- peak.data[, unlist(x = bg.peaks), drop = FALSE]
+          if (inherits(x = bg.access, what = 'IterableMatrix')) {
+            bg.access <- as.sparse(x = bg.access)
+          }
           bg.coef <- cor_method(
             X = bg.access,
             Y = gene.expression
