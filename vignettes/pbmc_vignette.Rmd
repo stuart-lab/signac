@@ -87,7 +87,7 @@ CellRanger-called peaks.
 First load Signac, Seurat, and some other packages we will be using for
 analyzing human data.
 
-```{r peaks-setup, message=FALSE}
+```{r message=FALSE, warning=FALSE}
 library(Signac)
 library(Seurat)
 library(GenomicRanges)
@@ -497,6 +497,7 @@ ordered_platelet_scores_df <- platelet_scores[, ordered_columns]
 
 print(ordered_platelet_scores_df)
 ```
+
 </details>
 
 As there are only a very small number of cells classified as "platelets" (< 20), 
@@ -791,16 +792,25 @@ REMO can be installed from GitHub:
 remotes::install_github("stuart-lab/REMO.v1.GRCh38")
 ```
 
-```{r}
-library(REMO.v1.GRCh38)
-```
-
 #### Pre-processing workflow
 
 When pre-processing chromatin data, Signac uses the ATAC fragment file as the
 main input data. This represents a full list of all unique fragments across all
 single cells. It is stored on-disk for memory efficiency and scalability. More
 information about the fragment file can be found on the 10x Genomics [website](https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments) or on the [sinto website](https://timoast.github.io/sinto/basic_usage.html#create-scatac-seq-fragments-file).
+
+First load Signac, Seurat, and some other packages we will be using for
+analyzing human data.
+
+```{r message=FALSE}
+library(Signac)
+library(Seurat)
+library(GenomicRanges)
+library(ggplot2)
+library(patchwork)
+library(GenomeInfoDb)
+library(REMO.v1.GRCh38)
+```
 
 We start by selecting cells to include in the analysis:
 
@@ -1141,6 +1151,7 @@ ordered_platelet_scores_df <- platelet_scores[, ordered_columns]
 
 print(ordered_platelet_scores_df)
 ```
+
 </details>
 
 As there are only a very small number of cells classified as “platelets” (< 20), 
@@ -1344,7 +1355,7 @@ CoveragePlot(
 qs2::qs_save(object = pbmc, file = "pbmc_remo.qs2")
 ```
 
-# {-}
+## {-}
 
 <details>
   <summary>**Session Info**</summary>
