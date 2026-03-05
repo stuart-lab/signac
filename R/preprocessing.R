@@ -60,12 +60,15 @@ ATACqc.default <- function(
     out.path
   )
 
-  system(
+  exit_code <- system(
     command = cmd,
     wait = TRUE,
     ignore.stderr = !verbose,
     ignore.stdout = !verbose
   )
+  if (exit_code != 0) {
+    stop("fragtk returned a non-zero exit code (", exit_code, ")")
+  }
 
   # load results
   md <- read.table(file = out.path, header = TRUE, row.names = 1, sep = "\t")

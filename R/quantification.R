@@ -595,12 +595,15 @@ RunFragtk <- function(
     additional.args
   )
 
-  system(
+  exit_code <- system(
     command = cmd,
     wait = TRUE,
     ignore.stderr = !verbose,
     ignore.stdout = !verbose
   )
+  if (exit_code != 0) {
+    stop("fragtk returned a non-zero exit code (", exit_code, ")")
+  }
 
   # read results
   if (verbose) {
