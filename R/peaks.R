@@ -460,12 +460,15 @@ CallPeaks.default <- function(
   )
 
   # call macs3
-  system(
+  exit_code <- system(
     command = cmd,
     wait = TRUE,
     ignore.stderr = !verbose,
     ignore.stdout = !verbose
   )
+  if (exit_code != 0) {
+    stop("macs3 returned a non-zero exit code (", exit_code, ")")
+  }
 
   if (broad) {
     # read in broadpeak
