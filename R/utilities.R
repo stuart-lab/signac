@@ -485,7 +485,7 @@ GetTSSPositions <- function(ranges, biotypes = "protein_coding") {
     stop("Gene annotation does not contain gene_biotype information")
   }
   if (!is.null(x = biotypes)) {
-    ranges <- ranges[ranges$gene_biotype == "protein_coding"]
+    ranges <- ranges[ranges$gene_biotype %in% biotypes]
   }
   gene.ranges <- CollapseToLongestTranscript(ranges = ranges)
   # shrink to TSS position
