@@ -167,7 +167,7 @@ PrepDR5 <- function(
       paste0(
         "No layer matching pattern '",
         olayer,
-        "' not found. Please run ScaleData and retry"
+        "' found. Please run ScaleData and retry"
       )
     )
   }
