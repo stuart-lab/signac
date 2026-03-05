@@ -124,7 +124,7 @@ GetLinkedGenes.ChromatinAssay5 <- function(
   if (length(x = lnk) == 0) {
     stop("No links present in assay. Run LinkPeaks first.")
   }
-  pknames <- as.character(x = anchors(x = object)$first)
+  pknames <- as.character(x = anchors(x = lnk)$first)
   lnk.keep <- lnk[(abs(x = lnk$score) > min.abs.score) & pknames %in% features]
   return(unique(x = lnk.keep$anchor2.gene_name))
 }
