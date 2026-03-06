@@ -4,6 +4,132 @@
 NULL
 
 globalVariables(names = c("bin", "score", "bw"), package = "Signac")
+#' Plot multiple coverage plots
+#' @param region_list List of genes or GRanges object to plot
+#' @return Returns a ggplot object
+MultiCoveragePlot <- function(
+    object,
+    region_list = NULL,
+    assay = "peaks"
+) {
+  # check valid.assay.scale
+  # check cells and assay
+  # check group.by and idents
+  
+  # get ranges from region_list
+  regions.to.plot <- c()
+  for (i in seq_along(region_list)) {
+    # TODO: check if region exists in object
+    regions.to.plot[[i]] <- FindRegion(
+      object = object,
+      region = region_list[[i]],
+      assay = assay[[1]]
+    )
+  }
+
+  # TODO: upstream/downstream extension
+  # if null, no extend
+  # if integer, set same extension for all regions
+  # if vector, check if length is same as region_list, set diff extension per region
+  
+  # call SingleCoveragePlot
+  single.plots <- c()
+  region_name <- c()
+  for (i in seq_along(regions.to.plot)) {
+    single.plots[[i]] <- SingleCoveragePlot(object = object,
+                                            region = regions.to.plot[[i]],
+                                            assay = assay)
+    if (is(region_list[[i]], "GRanges")) {
+        region_name[[i]] <- as.character(regions.to.plot[[i]])
+    } else {
+        region_name[[i]] <- region_list[[i]]
+    }
+  }
+  
+  # rearrange plots
+  arranged.plots <- c()
+  for (i in seq_along(single.plots)) {
+    ## coverage.track
+    covplot <- single.plots[[i]]$patches$plots[[1]]
+
+    y_label <- covplot@labels$y
+    range <- sub(".*range ([^)]*).*", "\\1", y_label)
+    if (i == 1) {
+      range <- paste0(range, " (range)")
+    }
+    
+    covplot <- covplot + 
+      labs(
+        title = region_name[[i]],
+        subtitle = range
+      ) + 
+      theme(plot.title = element_text(size = 8, hjust=0.5),
+            plot.subtitle = element_text(size = 7, hjust = 1)) 
+
+    covplot@labels$y <- "Normalized accessibility"
+    
+    single.plots[[i]]$patches$plots[[1]] <- covplot
+    
+    arranged.plots[[i]] <- single.plots[[i]]
+  }
+  
+  # remove y axis text from 2nd plot on
+  for (i in 2:length(arranged.plots)) {
+      # y axis text
+      arranged.plots[[i]]$patches$plots[[1]]@labels$y <- "" # Normalized accessibility
+      arranged.plots[[i]]$patches$plots[[2]]@labels$y <- "" # Genes
+      arranged.plots[[i]]@labels$y <- "" # Peaks
+
+      # remove coverageplot idents
+      covplot <- arranged.plots[[i]]$patches$plots[[1]]
+      covplot <- covplot + theme(
+          strip.text.y.left = element_blank(),   
+          strip.background = element_blank(),
+          axis.ticks.y = element_blank(),
+          line = element_blank()
+      )
+      arranged.plots[[i]]$patches$plots[[1]] <- covplot
+
+      # remove genes lines
+      geneplot <- arranged.plots[[i]]$patches$plots[[2]]
+      geneplot <- geneplot + theme(
+          line = element_blank()
+      )
+      arranged.plots[[i]]$patches$plots[[2]] <- geneplot
+
+      # remove peak lines
+      arranged.plots[[i]] <- arranged.plots[[i]] + theme(
+          axis.line.y = element_blank()
+      )
+  }
+    
+  # adjust plot text, dimensions & add grid lines
+  for (i in seq_along(arranged.plots)) {
+      # remove chr position numbers
+      arranged.plots[[i]] <- arranged.plots[[i]] + theme(
+          axis.text.x = element_blank()
+      )
+        
+      # change x axis text to just chr
+      x_label <- arranged.plots[[i]]@labels$x
+      chr_position <- sub(" position \\(bp\\)", "", x_label)
+      arranged.plots[[i]]@labels$x <- chr_position
+        
+      # TODO: adjust margins
+      arranged.plots[[i]] <- arranged.plots[[i]] + theme(
+          plot.margin = margin(t = 5.5, r = 0, b = 5.5, l = 0, unit = "pt")
+      )
+        
+      # TODO: add grid lines
+    }
+
+  # combine plots
+  multi.plot <- wrap_plots(arranged.plots, ncol = length(arranged.plots))
+    
+  return(multi.plot)
+}
+
+
 #' Plot data from BigWig files
 #'
 #' Create coverage tracks, heatmaps, or line plots from bigwig files.
@@ -923,7 +1049,6 @@ globalVariables(
 #'
 #' @return Returns a ggplot2 object
 #'
-#' @importFrom SeuratObject DefaultAssay GetAssayData
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer
@@ -2852,7 +2977,7 @@ AnnotationPlot <- function(
 #' all identities
 #' @param slot Which slot to pull expression data from
 #'
-#' @importFrom SeuratObject GetAssayData DefaultAssay
+#' @importFrom SeuratObject LayerData DefaultAssay as.sparse
 #' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic
 #' element_blank scale_y_discrete scale_x_continuous scale_fill_manual theme
 #' @importFrom scales hue_pal
@@ -2897,7 +3022,7 @@ ExpressionPlot <- function(
     )
     features <- common.features
   }
-  data.plot <- data.plot[features, ]
+  data.plot <- data.plot[features, , drop = FALSE]
   obj.groups <- GetGroups(
     object = object,
     group.by = group.by,
@@ -2922,10 +3047,13 @@ ExpressionPlot <- function(
     obj.groups <- obj.groups[cells.keep]
   }
   # construct data frame
+  if (inherits(x = data.plot, what = "IterableMatrix")) {
+    data.plot <- as.sparse(x = data.plot)
+  }
   if (length(x = features) == 1) {
     df <- data.frame(
       gene = features,
-      expression = data.plot,
+      expression = as.vector(x = data.plot),
       group = obj.groups
     )
   } else {
