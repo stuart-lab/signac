@@ -52,14 +52,15 @@ head(peaks)
 We have observed that the runtime for MACS3 may be longer than previous versions
 of MACS that reads in the input as a standard BED file. When calling peaks
 across multiple groups of cells, we recommend enabling parallelization in R
-using the [future](https://cran.r-project.org/package=future) package. This
-will enable peaks to be called in parallel for each group of cells.
+using the [future](https://cran.r-project.org/package=future) package
+(see `future::plan()` for details on how to configure parallelization).
+This will enable peaks to be called in parallel for each group of cells.
 
 ```{r message=FALSE, warning=FALSE}
 library(future)
 
 # set up workers
-plan(multisession, workers = 6)
+plan(multicore, workers = 6)
 nbrOfWorkers()
 ```
 

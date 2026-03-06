@@ -152,10 +152,10 @@ head(ccans)
 
 ## Add links to a Seurat object
 
-We can add the co-accessible links found by Cicero to the `ChromatinAssay`
+We can add the co-accessible links found by Cicero to the `ChromatinAssay5`
 object in Seurat. Using the `ConnectionsToLinks()` function in Signac we can
 convert the outputs of Cicero to the format needed to store in the `links` slot
-in the `ChromatinAssay`, and add this to the object using the `Links<-`
+in the `ChromatinAssay5`, and add this to the object using the `Links<-`
 assignment function.
 
 ```{r}
