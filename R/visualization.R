@@ -8,11 +8,21 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' @param region_list List of genes or GRanges object to plot
 #' @param region_names List of plot titles for each region. If NULL, default to
 #' region_list as plot title
+#' @param extend.upstream Number of bases to extend the region upstream. Default 
+#' is 0. Can be supplied with a vector the same length as `region_list`. If 
+#' supplied with a single integer, extend upstream the same number of bases for 
+#' every region in `region_list` 
+#' @param extend.downstream Number of bases to extend the region downstream. 
+#' Default is 0. Can be supplied with a vector the same length as `region_list`. 
+#' If supplied with a single integer, extend upstream the same number of bases 
+#' for every region in `region_list` 
 #' @return Returns a ggplot object
 MultiCoveragePlot <- function(
     object,
     region_list = NULL,
     region_names = NULL,
+    extend.upstream = NULL,
+    extend.downstream = NULL,
     assay = "peaks",
     links = TRUE
 ) {
@@ -35,11 +45,25 @@ MultiCoveragePlot <- function(
   if (!is.null(region_names) && length(region_names) != length(region_list)) {
     stop("Supplied region list and region names differ in length.")
   }
-
-  # TODO: upstream/downstream extension
-  # if null, no extend
-  # if integer, set same extension for all regions
-  # if vector, check if length is same as region_list, set diff extension per region
+  
+  # upstream/downstream extension   
+  if (is.null(extend.upstream)) {
+    extend.upstream <- rep(0, length(region_list))
+  } else if (length(extend.upstream) == 1) {
+    extend.upstream <- rep(extend.upstream, length(region_list))
+  }
+  if (length(extend.upstream) != length(region_list)) {
+    stop("Supplied region list and extend.upstream vector differ in length.")
+  }
+  
+  if (is.null(extend.downstream)) {
+    extend.downstream <- rep(0, length(region_list))
+  } else if (length(extend.downstream) == 1) {
+    extend.downstream <- rep(extend.downstream, length(region_list))
+  }
+  if (length(extend.downstream) != length(region_list)) {
+    stop("Supplied region list and extend.downstream vector differ in length.")
+  }
   
   # call SingleCoveragePlot
   single.plots <- c()
@@ -49,6 +73,8 @@ MultiCoveragePlot <- function(
   for (i in seq_along(regions.to.plot)) {
     single.plots[[i]] <- SingleCoveragePlot(object = object,
                                             region = regions.to.plot[[i]],
+                                            extend.upstream = extend.upstream[[i]],
+                                            extend.downstream = extend.downstream[[i]],
                                             assay = assay,
                                             links = links)
     if (is.null(region_names)) {
@@ -65,7 +91,7 @@ MultiCoveragePlot <- function(
   for (i in seq_along(single.plots)) {
     ## coverage.track
     covplot <- single.plots[[i]]$patches$plots[[1]]
-
+    
     y_label <- covplot@labels$y
     range <- sub(".*range ([^)]*).*", "\\1", y_label)
     if (i == 1) {
@@ -74,12 +100,12 @@ MultiCoveragePlot <- function(
     
     covplot <- covplot + 
       labs(
-        title = region_name[[i]],
+        title = region_names[[i]],
         subtitle = range
       ) + 
       theme(plot.title = element_text(size = 8, hjust=0.5),
             plot.subtitle = element_text(size = 7, hjust = 1)) 
-
+    
     covplot@labels$y <- "Normalized accessibility"
     
     single.plots[[i]]$patches$plots[[1]] <- covplot
@@ -89,50 +115,50 @@ MultiCoveragePlot <- function(
   
   # remove y axis text from 2nd plot on
   for (i in 2:length(arranged.plots)) {
-      # remove coverageplot idents
-      covplot <- arranged.plots[[i]]$patches$plots[[1]]
-      covplot <- covplot + theme(
-          axis.title.y = element_blank(),
-          strip.text.y.left = element_blank(),   
-          strip.background = element_blank(),
-          axis.ticks.y = element_blank(),
-          line = element_blank()
-      )
-      arranged.plots[[i]]$patches$plots[[1]] <- covplot
-
-      # remove genes lines
-      geneplot <- arranged.plots[[i]]$patches$plots[[2]]
-      geneplot <- geneplot + theme(
-          axis.title.y = element_blank(),
-          line = element_blank()
-      )
-      arranged.plots[[i]]$patches$plots[[2]] <- geneplot
-
-      # remove peak lines
-      arranged.plots[[i]] <- arranged.plots[[i]] + theme(
-          axis.title.y = element_blank(),
-          axis.line.y = element_blank()
-      )
-  }
+    # remove coverageplot idents
+    covplot <- arranged.plots[[i]]$patches$plots[[1]]
+    covplot <- covplot + theme(
+      axis.title.y = element_blank(),
+      strip.text.y.left = element_blank(),   
+      strip.background = element_blank(),
+      axis.ticks.y = element_blank(),
+      line = element_blank()
+    )
+    arranged.plots[[i]]$patches$plots[[1]] <- covplot
     
+    # remove genes lines
+    geneplot <- arranged.plots[[i]]$patches$plots[[2]]
+    geneplot <- geneplot + theme(
+      axis.title.y = element_blank(),
+      line = element_blank()
+    )
+    arranged.plots[[i]]$patches$plots[[2]] <- geneplot
+    
+    # remove peak lines
+    arranged.plots[[i]] <- arranged.plots[[i]] + theme(
+      axis.title.y = element_blank(),
+      axis.line.y = element_blank()
+    )
+  }
+  
   # adjust plot text, dimensions & add grid lines
   for (i in seq_along(arranged.plots)) {
-      # remove chr position numbers
-      arranged.plots[[i]] <- arranged.plots[[i]] + theme(
-          axis.text.x = element_blank()
-      )
-        
-      # change x axis text to just chr
-      x_label <- arranged.plots[[i]]@labels$x
-      chr_position <- sub(" position \\(bp\\)", "", x_label)
-      arranged.plots[[i]]@labels$x <- chr_position
-        
-      # TODO: add grid lines
-    }
-
+    # remove chr position numbers
+    arranged.plots[[i]] <- arranged.plots[[i]] + theme(
+      axis.text.x = element_blank()
+    )
+    
+    # change x axis text to just chr
+    x_label <- arranged.plots[[i]]@labels$x
+    chr_position <- sub(" position \\(bp\\)", "", x_label)
+    arranged.plots[[i]]@labels$x <- chr_position
+    
+    # TODO: add grid lines
+  }
+  
   # combine plots
   multi.plot <- wrap_plots(arranged.plots, ncol = length(arranged.plots))
-    
+  
   return(multi.plot)
 }
 
