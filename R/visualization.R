@@ -6,11 +6,15 @@ NULL
 globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' Plot multiple coverage plots
 #' @param region_list List of genes or GRanges object to plot
+#' @param region_names List of plot titles for each region. If NULL, default to
+#' region_list as plot title
 #' @return Returns a ggplot object
 MultiCoveragePlot <- function(
     object,
     region_list = NULL,
-    assay = "peaks"
+    region_names = NULL,
+    assay = "peaks",
+    links = TRUE
 ) {
   # check valid.assay.scale
   # check cells and assay
@@ -26,6 +30,11 @@ MultiCoveragePlot <- function(
       assay = assay[[1]]
     )
   }
+  
+  # check region_names
+  if (!is.null(region_names) && length(region_names) != length(region_list)) {
+    stop("Supplied region list and region names differ in length.")
+  }
 
   # TODO: upstream/downstream extension
   # if null, no extend
@@ -34,16 +43,21 @@ MultiCoveragePlot <- function(
   
   # call SingleCoveragePlot
   single.plots <- c()
-  region_name <- c()
+  if (is.null(region_names)) {
+    region_names <- c() 
+  }
   for (i in seq_along(regions.to.plot)) {
     single.plots[[i]] <- SingleCoveragePlot(object = object,
                                             region = regions.to.plot[[i]],
-                                            assay = assay)
-    if (is(region_list[[i]], "GRanges")) {
-        region_name[[i]] <- as.character(regions.to.plot[[i]])
-    } else {
-        region_name[[i]] <- region_list[[i]]
-    }
+                                            assay = assay,
+                                            links = links)
+    if (is.null(region_names)) {
+      if (is(region_list[[i]], "GRanges")) {
+        region_names[[i]] <- as.character(regions.to.plot[[i]])
+      } else {
+        region_names[[i]] <- region_list[[i]]
+      }
+    } 
   }
   
   # rearrange plots
@@ -75,14 +89,10 @@ MultiCoveragePlot <- function(
   
   # remove y axis text from 2nd plot on
   for (i in 2:length(arranged.plots)) {
-      # y axis text
-      arranged.plots[[i]]$patches$plots[[1]]@labels$y <- "" # Normalized accessibility
-      arranged.plots[[i]]$patches$plots[[2]]@labels$y <- "" # Genes
-      arranged.plots[[i]]@labels$y <- "" # Peaks
-
       # remove coverageplot idents
       covplot <- arranged.plots[[i]]$patches$plots[[1]]
       covplot <- covplot + theme(
+          axis.title.y = element_blank(),
           strip.text.y.left = element_blank(),   
           strip.background = element_blank(),
           axis.ticks.y = element_blank(),
@@ -93,12 +103,14 @@ MultiCoveragePlot <- function(
       # remove genes lines
       geneplot <- arranged.plots[[i]]$patches$plots[[2]]
       geneplot <- geneplot + theme(
+          axis.title.y = element_blank(),
           line = element_blank()
       )
       arranged.plots[[i]]$patches$plots[[2]] <- geneplot
 
       # remove peak lines
       arranged.plots[[i]] <- arranged.plots[[i]] + theme(
+          axis.title.y = element_blank(),
           axis.line.y = element_blank()
       )
   }
@@ -114,11 +126,6 @@ MultiCoveragePlot <- function(
       x_label <- arranged.plots[[i]]@labels$x
       chr_position <- sub(" position \\(bp\\)", "", x_label)
       arranged.plots[[i]]@labels$x <- chr_position
-        
-      # TODO: adjust margins
-      arranged.plots[[i]] <- arranged.plots[[i]] + theme(
-          plot.margin = margin(t = 5.5, r = 0, b = 5.5, l = 0, unit = "pt")
-      )
         
       # TODO: add grid lines
     }
