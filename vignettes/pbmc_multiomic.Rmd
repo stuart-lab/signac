@@ -5,8 +5,9 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, dev = "png")
 knitr::opts_knit$set(root.dir = "../../vignette_data/multiomic")
+options(bitmapType = "cairo", future.globals.maxSize = 1e9)
 ```
 
 In this vignette, we'll demonstrate how to jointly analyze a single-cell dataset
