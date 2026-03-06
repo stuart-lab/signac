@@ -154,8 +154,3 @@ This vignette details each class defined in Signac, the methods that operate on
 each class, and provides some examples of how to interact with these objects to
 perform common analysis tasks.
 
-## [Parallel and distributed computing](future.html)
-
-This vignette demonstrates how to enable parallel computing in Signac and Seurat,
-and gives an example of the amount of speedup that might be expected from 
-enabling parallelization. 
