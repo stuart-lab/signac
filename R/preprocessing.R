@@ -60,12 +60,15 @@ ATACqc.default <- function(
     out.path
   )
 
-  system(
+  exit_code <- system(
     command = cmd,
     wait = TRUE,
     ignore.stderr = !verbose,
     ignore.stdout = !verbose
   )
+  if (exit_code != 0) {
+    stop("fragtk returned a non-zero exit code (", exit_code, ")")
+  }
 
   # load results
   md <- read.table(file = out.path, header = TRUE, row.names = 1, sep = "\t")
@@ -195,7 +198,7 @@ BinarizeCounts.default <- function(
 
 #' @rdname BinarizeCounts
 #' @method BinarizeCounts Assay
-#' @importFrom SeuratObject GetAssayData SetAssayData
+#' @importFrom SeuratObject LayerData SetAssayData
 #' @export
 #' @concept preprocessing
 BinarizeCounts.Assay <- function(
@@ -204,7 +207,7 @@ BinarizeCounts.Assay <- function(
   verbose = TRUE,
   ...
 ) {
-  data.matrix <- GetAssayData(object = object, layer = "counts")
+  data.matrix <- LayerData(object = object, layer = "counts")
   object <- SetAssayData(
     object = object,
     layer = "counts",
@@ -272,7 +275,7 @@ BinarizeCounts.Seurat <- function(
 #' @param assay Name of assay to use. Default is the active assay.
 #' @param n Number of features to retain (default 20000).
 #' @param verbose Display messages
-#' @importFrom SeuratObject DefaultAssay GetAssayData "VariableFeatures<-"
+#' @importFrom SeuratObject DefaultAssay "VariableFeatures<-"
 #' @return Returns a [SeuratObject::Seurat()] object with
 #' [SeuratObject::VariableFeatures()] set to the randomly sampled features.
 #' @export
@@ -888,7 +891,6 @@ PearsonResidualVar.Assay5 <- function(
 }
 
 #' @rdname PearsonResidualVar
-#' @importFrom SeuratObject GetAssayData VariableFeatures
 #' @importFrom utils packageVersion
 #' @export
 #' @method PearsonResidualVar StdAssay
@@ -970,7 +972,7 @@ PearsonResidualVar.Seurat <- function(
 #' @param verbose Display messages
 #'
 #' @importFrom Matrix colSums
-#' @importFrom SeuratObject GetAssayData AddMetaData
+#' @importFrom SeuratObject LayerData AddMetaData
 #'
 #' @export
 #' @concept qc
@@ -987,7 +989,7 @@ FRiP <- function(
   if (verbose) {
     message("Calculating fraction of reads in peaks per cell")
   }
-  peak.data <- GetAssayData(object = object, assay = assay, layer = "counts")
+  peak.data <- LayerData(object = object, assay = assay, layer = "counts")
   total_fragments_cell <- object[[]][[total.fragments]]
   peak.counts <- colSums(x = peak.data)
   frip <- peak.counts / total_fragments_cell
@@ -1058,7 +1060,6 @@ RegionStats.default <- function(
 #' @rdname RegionStats
 #' @method RegionStats GRangesAssay
 #' @importFrom methods slot
-#' @importFrom SeuratObject GetAssayData
 #' @export
 #' @concept motifs
 #' @examples

@@ -68,7 +68,7 @@ chromatin datasets. The class includes all the slots present in a standard
 Seurat object with the following additional information:
     
 * `motifs`: A `Motif` object
-* `fragments`: A list of `Fragment` objects
+* `fragments`: A list of `Fragment2` objects
 * `annotation`: A [`GRanges`](https://www.rdocumentation.org/packages/GenomicRanges/versions/1.24.1/topics/GRanges-class)
 object containing gene annotations
 * `bias`: A vector containing Tn5 integration bias information (the frequency of
@@ -282,7 +282,7 @@ sequence names in your assay object without needing to change your fragment file
 
 ### Constructing the `Fragment2` class
 
-A `Fragment` object can be constructed using the `CreateFragmentObject()`
+A `Fragment2` object can be constructed using the `CreateFragmentObject()`
 function. 
 
 ```{r}
@@ -306,7 +306,7 @@ not normally run on existing `Fragment2` files.
 ### Inspecting the fragment file
 
 To extract the first few lines of a fragment file on-disk, we can use the
-`head()` method defined for `Fragment` objects. This is useful for quickly
+`head()` method defined for `Fragment2` objects. This is useful for quickly
 checking the chromosome naming style in our fragment file, or checking how the 
 cell barcodes are named:
 
@@ -330,28 +330,28 @@ a new `Fragment2` object to a `GRangesAssay`, or a Seurat object containing a
 do a few things:
 
 1. Re-compute the MD5 hash for the fragment file and index and verify that it
-matches the hash computed when the `Fragment` object was created.
-2. Check that none of the cells contained in the `Fragment` object being added
-are already contained in another `Fragment` object stored in the
+matches the hash computed when the `Fragment2` object was created.
+2. Check that none of the cells contained in the `Fragment2` object being added
+are already contained in another `Fragment2` object stored in the
 `GRangesAssay`. All fragments from a cell must be present in only one fragment
 file.
 3. Check that the same fragment file is not already stored in the assay.  
-4. Append the `Fragment` object to the list of `Fragment` objects stored in the
+4. Append the `Fragment2` object to the list of `Fragment2` objects stored in the
 `GRangesAssay`.
 
 ```{r}
 Fragments(atac_small) <- fragments
 ```
 
-The `show()` method for `Fragment`-class objects prints the number of cells that
-the `Fragment` object contains data for.
+The `show()` method for `Fragment2`-class objects prints the number of cells that
+the `Fragment2` object contains data for.
 
 ```{r}
 fragments
 ```
 
-Alternatively, we can initialize the `GRangesAssay` with a `Fragment` object
-in a couple of ways. We can either pass a vector of `Fragment` objects to the
+Alternatively, we can initialize the `GRangesAssay` with a `Fragment2` object
+in a couple of ways. We can either pass a vector of `Fragment2` objects to the
 `fragments` parameter in `CreateGRangesAssay()`, or pass the path to a
 single fragment file. If we pass the path to a fragment file we assume that the
 file contains fragments for all cells in the `GRangesAssay` and that the cell
@@ -456,7 +456,7 @@ names(cells) <- cells
 Cells(fragments) <- cells
 ```
 
-To extract any of the data stored in a `Fragment` object we can also use the
+To extract any of the data stored in a `Fragment2` object we can also use the
 `GetFragmentData()` function. For example, we can find the path to the fragment
 file on disk:
 

@@ -98,7 +98,7 @@ RunSVD.default <- function(
       s <- BPCells::matrix_stats(object, row_stats = "variance")
       r_means <- s$row_stats["mean", ]
       r_vars <- s$row_stats["variance", ]
-      object <- (object - r_means) / r_vars
+      object <- (object - r_means) / sqrt(r_vars)
     } else {
       opts <- c(opts, list("center" = TRUE, "scale" = TRUE))
     }
@@ -151,6 +151,7 @@ RunSVD.default <- function(
 }
 
 # from SeuratObject (not exported)
+#' @importFrom SeuratObject VariableFeatures LayerData
 #' @importFrom stats var
 PrepDR5 <- function(
   object,
@@ -166,7 +167,7 @@ PrepDR5 <- function(
       paste0(
         "No layer matching pattern '",
         olayer,
-        "' not found. Please run ScaleData and retry"
+        "' found. Please run ScaleData and retry"
       )
     )
   }
@@ -179,14 +180,16 @@ PrepDR5 <- function(
       call. = FALSE
     )
   }
+  features.available <- features[features %in% rownames(data.use)]
   if (is(data.use, "IterableMatrix")) {
     features.var <- BPCells::matrix_stats(
-      matrix = data.use, row_stats = "variance"
+      matrix = data.use[features.available, ], row_stats = "variance"
     )$row_stats["variance", ]
+    features.keep <- names(features.var)[features.var > 0]
   } else {
-    features.var <- sparseMatrixStats::rowVars(x = data.use)
+    features.var <- sparseMatrixStats::rowVars(x = data.use[features.available, ])
+    features.keep <- features.available[features.var > 0]
   }
-  features.keep <- features[features.var > 0]
   if (!length(x = features.keep)) {
     stop("None of the requested features have any variance", call. = FALSE)
   } else if (length(x = features.keep) < length(x = features)) {
@@ -224,7 +227,6 @@ PrepDR5 <- function(
 #' @param features Which features to use. If NULL, use variable features
 #'
 #' @rdname RunSVD
-#' @importFrom SeuratObject VariableFeatures GetAssayData
 #' @export
 #' @concept dimension_reduction
 #' @method RunSVD Assay5
@@ -295,7 +297,6 @@ RunSVD.Assay <- function(
 #' @param features Which features to use. If NULL, use variable features
 #'
 #' @rdname RunSVD
-#' @importFrom SeuratObject VariableFeatures GetAssayData
 #' @export
 #' @concept dimension_reduction
 #' @method RunSVD StdAssay
@@ -332,6 +333,7 @@ RunSVD.StdAssay <- function(
 #' @rdname RunSVD
 #' @export
 #' @concept dimension_reduction
+#' @importFrom SeuratObject DefaultAssay
 #' @examples
 #' RunSVD(atac_small, features = rownames(atac_small))
 #' @method RunSVD Seurat

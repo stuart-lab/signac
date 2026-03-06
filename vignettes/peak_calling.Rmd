@@ -28,7 +28,6 @@ In this demonstration we use scATAC-seq data for human PBMCs. See our
 and links to the raw data. First, load the required packages and the
 pre-computed Seurat object:
 
-
 ```{r message=FALSE, warning=FALSE}
 library(Signac)
 library(Seurat)
@@ -53,15 +52,15 @@ head(peaks)
 We have observed that the runtime for MACS3 may be longer than previous versions
 of MACS that reads in the input as a standard BED file. When calling peaks
 across multiple groups of cells, we recommend enabling parallelization in R
-using the future package (see the parallel computing
-[vignette](https://stuartlab.org/signac/articles/future) for more details). This
-will enable peaks to be called in parallel for each group of cells.
+using the [future](https://cran.r-project.org/package=future) package
+(see `future::plan()` for details on how to configure parallelization).
+This will enable peaks to be called in parallel for each group of cells.
 
 ```{r message=FALSE, warning=FALSE}
 library(future)
 
 # set up workers
-plan(multisession, workers = 6)
+plan(multicore, workers = 6)
 nbrOfWorkers()
 ```
 
@@ -98,7 +97,8 @@ peaks_separate <- CallPeaks(
 ```
 
 ```{r echo=FALSE}
-knitr::kable(head(as.data.frame(peaks_separate)))
+knitr::kable(head(as.data.frame(peaks_separate[[1]])))
+knitr::kable(head(as.data.frame(peaks_separate[[2]])))
 ```
 
 ### HMMRATAC peak calling

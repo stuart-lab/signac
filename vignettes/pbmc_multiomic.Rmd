@@ -7,7 +7,6 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir = "../../vignette_data/multiomic")
-options(future.globals.maxSize = 20 * 1024^3)
 ```
 
 In this vignette, we'll demonstrate how to jointly analyze a single-cell dataset

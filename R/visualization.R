@@ -3039,11 +3039,7 @@ ExpressionPlot <- function(
     cells.keep <- names(x = obj.groups)[
       fmatch(x = obj.groups, table = idents, nomatch = 0L) > 0
     ]
-    if (length(x = features) > 1) {
-      data.plot <- data.plot[, cells.keep]
-    } else {
-      data.plot <- data.plot[cells.keep]
-    }
+    data.plot <- data.plot[, cells.keep, drop = FALSE]
     obj.groups <- obj.groups[cells.keep]
   }
   # construct data frame
@@ -3083,7 +3079,7 @@ ExpressionPlot <- function(
     }
   }
   p.list <- list()
-  lower.limit <- ifelse(test = slot == "scale.data", yes = NA, no = 0)
+  lower.limit <- ifelse(test = layer == "scale.data", yes = NA, no = 0)
   for (i in seq_along(along.with = features)) {
     df.use <- df[df$gene == features[[i]], ]
     p <- ggplot(data = df.use, aes(
