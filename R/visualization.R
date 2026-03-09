@@ -22,6 +22,22 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' needed for that particular region. By default, regions will be highlighted in
 #' grey. To change the color of the highlighting, include a metadata column in
 #' the GRanges object named "color" containing the color to use for each region.
+#' @param assay Name of the assay to plot. If a list of assays is provided,
+#' data from each assay will be shown overlaid on each track. The first assay in
+#' the list will define the assay used for gene annotations, links, and peaks
+#' (if shown). The order of assays given defines the plotting order.
+#' @param split.assays When plotting data from multiple assays, display each
+#' assay as a separate track. If FALSE, data from different assays are overlaid
+#' on a single track with transparancy applied.
+#' @param assay.scale Scaling to apply to data from different assays. Can be:
+#' \itemize{
+#' \item{common: plot all assays on a common scale (default)}
+#' \item{separate: plot each assay on a separate scale ranging from zero to the
+#' maximum value for that assay within the plotted region}
+#' }
+#' @param expression.assay Disabled
+#' @param expression.slot Disabled
+#' @param features Disabled
 #' @return Returns a ggplot object
 MultiCoveragePlot <- function(
     object,
@@ -31,11 +47,58 @@ MultiCoveragePlot <- function(
     extend.downstream = NULL,
     region.highlight = NULL, 
     assay = "peaks",
+    assay.scale = "common",
+    split.assays = FALSE,
+    expression.assay = NULL, # expression plot disabled
+    expression.slot = NULL,  # expression plot disabled
+    features = NULL,         # expression plot disabled
     links = TRUE
 ) {
+  # check disabled params
+  disabled.plots_params <- list(
+    expression.assay = expression.assay, 
+    expression.slot = expression.slot, 
+    features = features
+  )
+  disabled.params <- names(disabled.plots_params)[!sapply(disabled.plots_params, is.null)]
+  if (length(disabled.params) > 0) {
+    message(paste0(
+      "Warning: ExpressionPlot is disabled for MultiCoveragePlot, ignoring ",
+      paste(disabled.params, collapse = ", "), 
+      " parameters."
+    ))
+  }
+  
   # check valid.assay.scale
-  # check cells and assay
-  # check group.by and idents
+  valid.assay.scale <- c("common", "separate")
+  if (!(assay.scale %in% valid.assay.scale)) {
+    stop(
+      "Unknown assay.scale requested. Please choose from: ",
+      paste(valid.assay.scale, collapse = ", ")
+    )
+  }
+  
+  # check assay
+  assay <- assay %||% DefaultAssay(object = object)
+  if (!inherits(x = assay, what = "list")) {
+    assay <- list(assay)
+  }
+  lapply(X = assay, FUN = function(x) {
+    if (!inherits(x = object[[x]], what = "ChromatinAssay5")) {
+      stop("Requested assay is not a ChromatinAssay5.")
+    }
+  })
+  
+  is.granges <- inherits(x = object[[assay[[1]]]], what = "GRangesAssay")
+  if (length(colnames(object)) > length(colnames(object[[assay[[1]]]]))) {
+    object <- UpdateChromatinObject(
+      object = object,
+      chromatin.assay = assay
+    )
+  }
+  
+  # TODO: check cells
+  # TODO: check group.by and idents
   
   # get ranges from region_list    
   if (!is.null(region.highlight)) {
@@ -90,6 +153,11 @@ MultiCoveragePlot <- function(
                                             extend.downstream = extend.downstream[[i]],
                                             region.highlight = region.to.highlight[[i]],
                                             assay = assay,
+                                            assay.scale = assay.scale,
+                                            split.assays = split.assays,
+                                            expression.assay = NULL, # expression plot disabled
+                                            expression.slot = NULL,  # expression plot disabled
+                                            features = NULL,         # expression plot disabled
                                             links = links)
     # assign plot titles
     if (is.null(region_names)) {
@@ -101,6 +169,7 @@ MultiCoveragePlot <- function(
     } else {
       region.names_list[[i]] <- region_names[[i]]
     }
+    
   }
   
   # rearrange plots
