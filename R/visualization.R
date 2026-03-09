@@ -16,6 +16,12 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' Default is 0. Can be supplied with a vector the same length as `region_list`. 
 #' If supplied with a single integer, extend upstream the same number of bases 
 #' for every region in `region_list` 
+#' @param region.highlight List of regions to highlight for each plotted region,
+#' should be the same length as `region_list`. Each item should be a GRanges
+#' object containing the coordinates to highlight, or `NULL` if no highlight is
+#' needed for that particular region. By default, regions will be highlighted in
+#' grey. To change the color of the highlighting, include a metadata column in
+#' the GRanges object named "color" containing the color to use for each region.
 #' @return Returns a ggplot object
 MultiCoveragePlot <- function(
     object,
@@ -23,6 +29,7 @@ MultiCoveragePlot <- function(
     region_names = NULL,
     extend.upstream = NULL,
     extend.downstream = NULL,
+    region.highlight = NULL, 
     assay = "peaks",
     links = TRUE
 ) {
@@ -30,7 +37,15 @@ MultiCoveragePlot <- function(
   # check cells and assay
   # check group.by and idents
   
-  # get ranges from region_list
+  # get ranges from region_list    
+  if (!is.null(region.highlight)) {
+    stopifnot("region.highlight must be a list of the same length as region_list" =
+                length(region.highlight) == length(region_list))
+    region.to.highlight <- region.highlight
+  } else {
+    region.to.highlight <- vector("list", length(region_list))
+  }
+  
   regions.to.plot <- c()
   for (i in seq_along(region_list)) {
     # TODO: check if region exists in object
@@ -67,23 +82,25 @@ MultiCoveragePlot <- function(
   
   # call SingleCoveragePlot
   single.plots <- c()
-  if (is.null(region_names)) {
-    region_names <- c() 
-  }
+  region.names_list <- c() 
   for (i in seq_along(regions.to.plot)) {
     single.plots[[i]] <- SingleCoveragePlot(object = object,
                                             region = regions.to.plot[[i]],
                                             extend.upstream = extend.upstream[[i]],
                                             extend.downstream = extend.downstream[[i]],
+                                            region.highlight = region.to.highlight[[i]],
                                             assay = assay,
                                             links = links)
+    # assign plot titles
     if (is.null(region_names)) {
       if (is(region_list[[i]], "GRanges")) {
-        region_names[[i]] <- as.character(regions.to.plot[[i]])
+        region.names_list[[i]] <- as.character(regions.to.plot[[i]])
       } else {
-        region_names[[i]] <- region_list[[i]]
+        region.names_list[[i]] <- region_list[[i]]
       }
-    } 
+    } else {
+      region.names_list[[i]] <- region_names[[i]]
+    }
   }
   
   # rearrange plots
@@ -100,7 +117,7 @@ MultiCoveragePlot <- function(
     
     covplot <- covplot + 
       labs(
-        title = region_names[[i]],
+        title = region.names_list[[i]],
         subtitle = range
       ) + 
       theme(plot.title = element_text(size = 8, hjust=0.5),
