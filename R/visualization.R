@@ -38,6 +38,13 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' @param expression.assay Disabled
 #' @param expression.slot Disabled
 #' @param features Disabled
+#' @param annotation Display gene annotations. Set to TRUE or FALSE to control
+#' whether genes models are displayed, or choose "transcript" to display all
+#' transcript isoforms, or "gene" to display gene models only (same as setting
+#' TRUE).
+#' @param peaks Display peaks
+#' @param peaks.group.by Grouping variable to color peaks by. Must be a variable
+#' present in the feature metadata. If NULL, do not color peaks by any variable.
 #' @return Returns a ggplot object
 MultiCoveragePlot <- function(
     object,
@@ -52,6 +59,9 @@ MultiCoveragePlot <- function(
     expression.assay = NULL, # expression plot disabled
     expression.slot = NULL,  # expression plot disabled
     features = NULL,         # expression plot disabled
+    annotation = TRUE,
+    peaks = TRUE,
+    peaks.group.by = NULL,
     links = TRUE
 ) {
   # check disabled params
@@ -158,6 +168,9 @@ MultiCoveragePlot <- function(
                                             expression.assay = NULL, # expression plot disabled
                                             expression.slot = NULL,  # expression plot disabled
                                             features = NULL,         # expression plot disabled
+                                            annotation = annotation,
+                                            peaks = peaks,
+                                            peaks.group.by = peaks.group.by,
                                             links = links)
     # assign plot titles
     if (is.null(region_names)) {
@@ -169,62 +182,107 @@ MultiCoveragePlot <- function(
     } else {
       region.names_list[[i]] <- region_names[[i]]
     }
-    
   }
+  
+  # check number of plots
+  plot_params <- list(peaks = peaks, annotation = annotation)
+  n_plots <- 1 + sum(unlist(lapply(plot_params, isTRUE)))
   
   # rearrange plots
   arranged.plots <- c()
   for (i in seq_along(single.plots)) {
-    ## coverage.track
-    covplot <- single.plots[[i]]$patches$plots[[1]]
-    
-    y_label <- covplot@labels$y
-    range <- sub(".*range ([^)]*).*", "\\1", y_label)
-    if (i == 1) {
-      range <- paste0(range, " (range)")
-    }
-    
-    covplot <- covplot + 
-      labs(
-        title = region.names_list[[i]],
-        subtitle = range
-      ) + 
-      theme(plot.title = element_text(size = 8, hjust=0.5),
-            plot.subtitle = element_text(size = 7, hjust = 1)) 
-    
-    covplot@labels$y <- "Normalized accessibility"
-    
-    single.plots[[i]]$patches$plots[[1]] <- covplot
+    if (n_plots > 1) {
+      ## coverage.track
+      covplot <- single.plots[[i]]$patches$plots[[1]]
+      
+      y_label <- covplot@labels$y
+      range <- sub(".*range ([^)]*).*", "\\1", y_label)
+      if (i == 1) {
+        range <- paste0(range, " (range)")
+      }
+      
+      # move region name to title, move accessibility range to subtitle
+      covplot <- covplot + 
+        labs(
+          title = region.names_list[[i]],
+          subtitle = range
+        ) + 
+        theme(plot.title = element_text(size = 8, hjust=0.5),
+              plot.subtitle = element_text(size = 7, hjust = 1)) 
+      
+      # adjust y axis label
+      covplot@labels$y <- "Normalized accessibility"
+      
+      single.plots[[i]]$patches$plots[[1]] <- covplot
+      
+    } else if (n_plots == 1) {
+      y_label <- single.plots[[i]]@labels$y
+      range <- sub(".*range ([^)]*).*", "\\1", y_label)
+      if (i == 1) {
+        range <- paste0(range, " (range)")
+      }
+      
+      # adjust covplot title, subtitle
+      single.plots[[i]] <- single.plots[[i]] + 
+        labs(
+          title = region.names_list[[i]],
+          subtitle = range
+        ) + 
+        theme(plot.title = element_text(size = 8, hjust=0.5),
+              plot.subtitle = element_text(size = 7, hjust = 1)) 
+      
+      # adjust y axis label
+      single.plots[[i]]@labels$y <- "Normalized accessibility"
+    }    
     
     arranged.plots[[i]] <- single.plots[[i]]
   }
   
   # remove y axis text from 2nd plot on
   for (i in 2:length(arranged.plots)) {
-    # remove coverageplot idents
-    covplot <- arranged.plots[[i]]$patches$plots[[1]]
-    covplot <- covplot + theme(
-      axis.title.y = element_blank(),
-      strip.text.y.left = element_blank(),   
-      strip.background = element_blank(),
-      axis.ticks.y = element_blank(),
-      line = element_blank()
-    )
-    arranged.plots[[i]]$patches$plots[[1]] <- covplot
-    
-    # remove genes lines
-    geneplot <- arranged.plots[[i]]$patches$plots[[2]]
-    geneplot <- geneplot + theme(
-      axis.title.y = element_blank(),
-      line = element_blank()
-    )
-    arranged.plots[[i]]$patches$plots[[2]] <- geneplot
-    
-    # remove peak lines
-    arranged.plots[[i]] <- arranged.plots[[i]] + theme(
-      axis.title.y = element_blank(),
-      axis.line.y = element_blank()
-    )
+    if (n_plots > 1) { 
+      # remove coverageplot idents
+      covplot <- arranged.plots[[i]]$patches$plots[[1]]
+      covplot <- covplot + theme(
+        axis.title.y = element_blank(),
+        strip.text.y.left = element_blank(),   
+        strip.background = element_blank(),
+        axis.ticks.y = element_blank(),
+        line = element_blank()
+      )
+      arranged.plots[[i]]$patches$plots[[1]] <- covplot
+      
+      # remove genes lines
+      if (annotation == TRUE) {
+        if (peaks == TRUE) {
+          geneplot <- arranged.plots[[i]]$patches$plots[[2]]
+          geneplot <- geneplot + theme(
+            axis.title.y = element_blank(),
+            line = element_blank()
+          )
+          arranged.plots[[i]]$patches$plots[[2]] <- geneplot
+        } else {
+          arranged.plots[[i]] <- arranged.plots[[i]] + theme(
+            axis.title.y = element_blank(),
+            axis.line.y = element_blank()
+          )
+        }
+      }
+      
+      # remove peak lines
+      arranged.plots[[i]] <- arranged.plots[[i]] + theme(
+        axis.title.y = element_blank(),
+        axis.line.y = element_blank()
+      )
+    } else if (n_plots == 1) {
+      arranged.plots[[i]] <- arranged.plots[[i]] + theme(
+        axis.title.y = element_blank(),
+        strip.text.y.left = element_blank(),   
+        strip.background = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line.y = element_blank()
+      )
+    }
   }
   
   # adjust plot text, dimensions & add grid lines
