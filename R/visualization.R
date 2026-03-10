@@ -45,6 +45,14 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' @param peaks Display peaks
 #' @param peaks.group.by Grouping variable to color peaks by. Must be a variable
 #' present in the feature metadata. If NULL, do not color peaks by any variable.
+#' @param group.by Name of one or more metadata columns to group (color) the
+#' cells by. Default is the current cell identities
+#' @param idents Which identities to include in the plot. Default is all
+#' identities.
+#' @param split.by A metadata variable to split the tracks by. For example,
+#' grouping by "celltype" and splitting by "batch" will create separate tracks
+#' for each combination of celltype and batch.
+#' @param cells Which cells to plot. Default all cells
 #' @return Returns a ggplot object
 MultiCoveragePlot <- function(
     object,
@@ -62,6 +70,10 @@ MultiCoveragePlot <- function(
     annotation = TRUE,
     peaks = TRUE,
     peaks.group.by = NULL,
+    group.by = NULL,
+    idents = NULL, 
+    split.by = NULL,
+    cells = NULL,
     links = TRUE
 ) {
   # check disabled params
@@ -89,6 +101,7 @@ MultiCoveragePlot <- function(
   }
   
   # check assay
+  cells <- cells %||% Cells(x = object)
   assay <- assay %||% DefaultAssay(object = object)
   if (!inherits(x = assay, what = "list")) {
     assay <- list(assay)
@@ -106,9 +119,6 @@ MultiCoveragePlot <- function(
       chromatin.assay = assay
     )
   }
-  
-  # TODO: check cells
-  # TODO: check group.by and idents
   
   # get ranges from region_list    
   if (!is.null(region.highlight)) {
@@ -171,6 +181,10 @@ MultiCoveragePlot <- function(
                                             annotation = annotation,
                                             peaks = peaks,
                                             peaks.group.by = peaks.group.by,
+                                            group.by = group.by,
+                                            idents = idents, 
+                                            split.by = split.by,
+                                            cells = cells,
                                             links = links)
     # assign plot titles
     if (is.null(region_names)) {
