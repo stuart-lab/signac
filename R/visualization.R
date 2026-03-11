@@ -66,6 +66,13 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' @param show.bulk Include coverage track for all cells combined (pseudo-bulk).
 #' Note that this will plot the combined accessibility for all cells included in
 #' the plot (rather than all cells in the object).
+#' @param ranges_list List of additional genomic ranges to plot for each region 
+#' in `region_list`. 
+#' @param ranges.group.by Grouping variable to color ranges by. Must be a
+#' variable present in the metadata stored in the `ranges` genomic ranges.
+#' If NULL, do not color by any variable.
+#' @param ranges.title Y-axis title for ranges track. Only relevant if
+#' `ranges` parameter is set.
 #' @return Returns a ggplot object
 MultiCoveragePlot <- function(
     object,
@@ -97,6 +104,9 @@ MultiCoveragePlot <- function(
     gwas.credset.threshold = NULL, # gwas plot disabled
     variants = NULL, # variant plot disabled
     show.bulk = FALSE,
+    ranges_list = NULL, 
+    ranges.group.by = NULL,
+    ranges.title = "Ranges",
     links = NULL # link plot disabled
 ) {
   # check disabled params
@@ -153,7 +163,7 @@ MultiCoveragePlot <- function(
     )
   }
   
-  # get ranges from region_list    
+  # get region highlights from region_list    
   if (!is.null(region.highlight)) {
     stopifnot("region.highlight must be a list of the same length as region_list" =
                 length(region.highlight) == length(region_list))
@@ -162,6 +172,7 @@ MultiCoveragePlot <- function(
     region.to.highlight <- vector("list", length(region_list))
   }
   
+  # get plotting regions from region_list    
   regions.to.plot <- c()
   for (i in seq_along(region_list)) {
     # TODO: check if region exists in object
@@ -170,6 +181,20 @@ MultiCoveragePlot <- function(
       region = region_list[[i]],
       assay = assay[[1]]
     )
+  }
+  
+  # get additional ranges from ranges_list
+  if (!is.null(ranges_list)) {
+    stopifnot("ranges_list must be a list of the same length as region_list" =
+                length(ranges_list) == length(region_list))
+    for (i in seq_along(ranges_list)) {
+      if (is.null(ranges_list[[i]])) {
+        ranges_list[[i]] <- GRanges()
+      }
+    }
+    ranges.to.plot <- ranges_list
+  } else {
+    ranges.to.plot <- vector("list", length(region_list))
   }
   
   # check region_names
@@ -228,6 +253,9 @@ MultiCoveragePlot <- function(
                                             gwas.credset.threshold = NULL, # gwas plot disabled
                                             variants = NULL, # variant plot disabled
                                             show.bulk = show.bulk,
+                                            ranges = ranges.to.plot[[i]],
+                                            ranges.group.by = ranges.group.by,
+                                            ranges.title = ranges.title,
                                             links = NULL) # link plot disabled
     # assign plot titles
     if (is.null(region_names)) {
@@ -242,7 +270,10 @@ MultiCoveragePlot <- function(
   }
   
   # check number of plots
-  plot_params <- list(peaks = peaks, annotation = annotation, show.bulk = show.bulk)
+  plot_params <- list(peaks = peaks, 
+                      annotation = annotation, 
+                      show.bulk = show.bulk,
+                      ranges.to.plot = !is.null(ranges_list))
   n_plots <- 1 + sum(unlist(lapply(plot_params, isTRUE)))
   
   # rearrange plots
@@ -295,7 +326,7 @@ MultiCoveragePlot <- function(
     arranged.plots[[i]] <- single.plots[[i]]
   }
   
-  # remove y axis text from 2nd plot on
+  # remove y axis text from 2nd plot on    
   for (i in 2:length(arranged.plots)) {
     if (n_plots > 1) { 
       for (j in 1:(n_plots - 1)) {
