@@ -63,6 +63,9 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' @param gwas.credset.threshold Disabled
 #' @param variants Disabled
 #' @param links Disabled
+#' @param show.bulk Include coverage track for all cells combined (pseudo-bulk).
+#' Note that this will plot the combined accessibility for all cells included in
+#' the plot (rather than all cells in the object).
 #' @return Returns a ggplot object
 MultiCoveragePlot <- function(
     object,
@@ -93,6 +96,7 @@ MultiCoveragePlot <- function(
     gwas.credset.file = NULL,      # gwas plot disabled
     gwas.credset.threshold = NULL, # gwas plot disabled
     variants = NULL, # variant plot disabled
+    show.bulk = FALSE,
     links = NULL # link plot disabled
 ) {
   # check disabled params
@@ -223,6 +227,7 @@ MultiCoveragePlot <- function(
                                             gwas.credset.file = NULL,      # gwas plot disabled
                                             gwas.credset.threshold = NULL, # gwas plot disabled
                                             variants = NULL, # variant plot disabled
+                                            show.bulk = show.bulk,
                                             links = NULL) # link plot disabled
     # assign plot titles
     if (is.null(region_names)) {
@@ -237,7 +242,7 @@ MultiCoveragePlot <- function(
   }
   
   # check number of plots
-  plot_params <- list(peaks = peaks, annotation = annotation)
+  plot_params <- list(peaks = peaks, annotation = annotation, show.bulk = show.bulk)
   n_plots <- 1 + sum(unlist(lapply(plot_params, isTRUE)))
   
   # rearrange plots
@@ -293,37 +298,22 @@ MultiCoveragePlot <- function(
   # remove y axis text from 2nd plot on
   for (i in 2:length(arranged.plots)) {
     if (n_plots > 1) { 
-      # remove coverageplot idents
-      covplot <- arranged.plots[[i]]$patches$plots[[1]]
-      covplot <- covplot + theme(
+      for (j in 1:(n_plots - 1)) {
+        currentplot <- arranged.plots[[i]]$patches$plots[[j]]
+        currentplot <- currentplot + theme(
+          axis.title.y = element_blank(),
+          strip.text.y.left = element_blank(),   
+          strip.background = element_blank(),
+          axis.ticks.y = element_blank(),
+          line = element_blank()
+        )
+        arranged.plots[[i]]$patches$plots[[j]] <- currentplot
+      }
+      arranged.plots[[i]] <- arranged.plots[[i]] + theme(
         axis.title.y = element_blank(),
         strip.text.y.left = element_blank(),   
         strip.background = element_blank(),
         axis.ticks.y = element_blank(),
-        line = element_blank()
-      )
-      arranged.plots[[i]]$patches$plots[[1]] <- covplot
-      
-      # remove genes lines
-      if (annotation == TRUE) {
-        if (peaks == TRUE) {
-          geneplot <- arranged.plots[[i]]$patches$plots[[2]]
-          geneplot <- geneplot + theme(
-            axis.title.y = element_blank(),
-            line = element_blank()
-          )
-          arranged.plots[[i]]$patches$plots[[2]] <- geneplot
-        } else {
-          arranged.plots[[i]] <- arranged.plots[[i]] + theme(
-            axis.title.y = element_blank(),
-            axis.line.y = element_blank()
-          )
-        }
-      }
-      
-      # remove peak lines
-      arranged.plots[[i]] <- arranged.plots[[i]] + theme(
-        axis.title.y = element_blank(),
         axis.line.y = element_blank()
       )
     } else if (n_plots == 1) {
