@@ -53,6 +53,16 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' grouping by "celltype" and splitting by "batch" will create separate tracks
 #' for each combination of celltype and batch.
 #' @param cells Which cells to plot. Default all cells
+#' @param tile Disabled
+#' @param tile.size Disabled
+#' @param tile.cells Disabled
+#' @param gwas Disabled
+#' @param gwas.ld.file Disabled
+#' @param gwas.ld.lead.snp Disabled
+#' @param gwas.credset.file Disabled
+#' @param gwas.credset.threshold Disabled
+#' @param variants Disabled
+#' @param links Disabled
 #' @return Returns a ggplot object
 MultiCoveragePlot <- function(
     object,
@@ -74,20 +84,39 @@ MultiCoveragePlot <- function(
     idents = NULL, 
     split.by = NULL,
     cells = NULL,
-    links = TRUE
+    tile = NULL,       # tile plot disabled
+    tile.size = NULL,  # tile plot disabled
+    tile.cells = NULL, # tile plot disabled
+    gwas = NULL,                   # gwas plot disabled
+    gwas.ld.file = NULL,           # gwas plot disabled
+    gwas.ld.lead.snp = NULL,       # gwas plot disabled
+    gwas.credset.file = NULL,      # gwas plot disabled
+    gwas.credset.threshold = NULL, # gwas plot disabled
+    variants = NULL, # variant plot disabled
+    links = NULL # link plot disabled
 ) {
   # check disabled params
   disabled.plots_params <- list(
     expression.assay = expression.assay, 
     expression.slot = expression.slot, 
-    features = features
+    features = features,
+    tile = tile,
+    tile.size = tile.size,
+    tile.cells = tile.cells,
+    gwas = gwas,
+    gwas.ld.file = gwas.ld.file,
+    gwas.ld.lead.snp = gwas.ld.lead.snp,
+    gwas.credset.file = gwas.credset.file,
+    gwas.credset.threshold = gwas.credset.threshold,
+    variants = variants,
+    links = links
   )
   disabled.params <- names(disabled.plots_params)[!sapply(disabled.plots_params, is.null)]
   if (length(disabled.params) > 0) {
     message(paste0(
-      "Warning: ExpressionPlot is disabled for MultiCoveragePlot, ignoring ",
-      paste(disabled.params, collapse = ", "), 
-      " parameters."
+      "Warning: ExpressionPlot, TilePlot, GWASTrack, VariantTrack, & LinkPlot",
+      " are disabled for MultiCoveragePlot, ignoring the following parameters: ",
+      paste(disabled.params, collapse = ", ")
     ))
   }
   
@@ -185,7 +214,16 @@ MultiCoveragePlot <- function(
                                             idents = idents, 
                                             split.by = split.by,
                                             cells = cells,
-                                            links = links)
+                                            tile = FALSE,      # tile plot disabled
+                                            tile.size = NULL,  # tile plot disabled
+                                            tile.cells = NULL, # tile plot disabled
+                                            gwas = NULL,                   # gwas plot disabled
+                                            gwas.ld.file = NULL,           # gwas plot disabled
+                                            gwas.ld.lead.snp = NULL,       # gwas plot disabled
+                                            gwas.credset.file = NULL,      # gwas plot disabled
+                                            gwas.credset.threshold = NULL, # gwas plot disabled
+                                            variants = NULL, # variant plot disabled
+                                            links = NULL) # link plot disabled
     # assign plot titles
     if (is.null(region_names)) {
       if (is(region_list[[i]], "GRanges")) {
