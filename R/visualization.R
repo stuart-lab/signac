@@ -62,7 +62,6 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' @param gwas.credset.file Disabled
 #' @param gwas.credset.threshold Disabled
 #' @param variants Disabled
-#' @param links Disabled
 #' @param show.bulk Include coverage track for all cells combined (pseudo-bulk).
 #' Note that this will plot the combined accessibility for all cells included in
 #' the plot (rather than all cells in the object).
@@ -73,6 +72,26 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' If NULL, do not color by any variable.
 #' @param ranges.title Y-axis title for ranges track. Only relevant if
 #' `ranges` parameter is set.
+#' @param max.downsample Minimum number of positions kept when downsampling.
+#' Downsampling rate is adaptive to the window size, but this parameter will set
+#' the minimum possible number of positions to include so that plots do not
+#' become too sparse when the window size is small.
+#' @param downsample.rate Fraction of positions to retain when downsampling.
+#' Retaining more positions can give a higher-resolution plot but can make the
+#' number of points large, resulting in larger file sizes when saving the plot
+#' and a longer period of time needed to draw the plot.
+#' @param scale.factor Scaling factor for track height. If NULL (default),
+#' use the median group scaling factor determined by total number of fragments
+#' sequences in each group.
+#' @param ymax Maximum value for Y axis. Can be one of:
+#'  - `NULL`: set to the highest value among all the tracks (default)
+#'  - qXX: clip the maximum value to the XX quantile (for example, q95 will
+#' set the maximum value to 95% of the maximum value in the data). This can
+#' help remove the effect of extreme values that may otherwise distort the
+#' scale.
+#'  - numeric: manually define a Y-axis limit
+#' @param window Smoothing window size
+#' @param links Disabled
 #' @return Returns a ggplot object
 MultiCoveragePlot <- function(
     object,
@@ -107,6 +126,11 @@ MultiCoveragePlot <- function(
     ranges_list = NULL, 
     ranges.group.by = NULL,
     ranges.title = "Ranges",
+    max.downsample = 3000,
+    downsample.rate = 0.1,
+    scale.factor = NULL,
+    ymax = NULL,
+    window = 100,
     links = NULL # link plot disabled
 ) {
   # check disabled params
@@ -256,6 +280,11 @@ MultiCoveragePlot <- function(
                                             ranges = ranges.to.plot[[i]],
                                             ranges.group.by = ranges.group.by,
                                             ranges.title = ranges.title,
+                                            max.downsample = max.downsample,
+                                            downsample.rate = downsample.rate,
+                                            scale.factor = scale.factor,
+                                            ymax = ymax,
+                                            window = window,
                                             links = NULL) # link plot disabled
     # assign plot titles
     if (is.null(region_names)) {
