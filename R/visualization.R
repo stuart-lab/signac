@@ -91,6 +91,14 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' scale.
 #'  - numeric: manually define a Y-axis limit
 #' @param window Smoothing window size
+#' @param bigwig List of bigWig file paths to plot data from. Files can be
+#' remotely hosted. The name of each element in the list will determine the
+#' y-axis label given to the track.
+#' @param bigwig.type Type of track to use for bigWig files ("line", "heatmap",
+#' or "coverage"). Should either be a single value, or a list of values giving
+#' the type for each individual track in the provided list of bigwig files.
+#' @param bigwig.scale Same as `assay.scale` parameter, except for bigWig
+#' files when plotted with `bigwig.type="coverage"`
 #' @param links Disabled
 #' @return Returns a ggplot object
 MultiCoveragePlot <- function(
@@ -131,6 +139,10 @@ MultiCoveragePlot <- function(
     scale.factor = NULL,
     ymax = NULL,
     window = 100,
+    bigwig = NULL,
+    bigwig.type = "coverage",
+    bigwig.scale = "common",
+#    heights = NULL,
     links = NULL # link plot disabled
 ) {
   # check disabled params
@@ -285,6 +297,10 @@ MultiCoveragePlot <- function(
                                             scale.factor = scale.factor,
                                             ymax = ymax,
                                             window = window,
+                                            bigwig = NULL,
+                                            bigwig.type = "coverage",
+                                            bigwig.scale = "common",
+#                                            heights = heights,
                                             links = NULL) # link plot disabled
     # assign plot titles
     if (is.null(region_names)) {
