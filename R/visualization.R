@@ -234,14 +234,24 @@ MultiCoveragePlot <- function(
   
   # get additional ranges from ranges_list
   if (!is.null(ranges_list)) {
-    stopifnot("ranges_list must be a list of the same length as region_list" =
-                length(ranges_list) == length(region_list))
-    for (i in seq_along(ranges_list)) {
-      if (is.null(ranges_list[[i]])) {
-        ranges_list[[i]] <- GRanges() # create empty granges so plot space is just empty
+    if (is(ranges_list, "GRanges")) {
+      ranges.to.plot <- vector("list", length(region_list))
+      for (i in seq_along(ranges.to.plot)) {
+        ranges.to.plot[[i]] <- ranges_list
       }
+    } else if (is(ranges_list, "list")) {
+      stopifnot("ranges_list must be a list of the same length as region_list" =
+                  length(ranges_list) == length(region_list))
+      for (i in seq_along(ranges_list)) {
+        if (is.null(ranges_list[[i]])) {
+          ranges_list[[i]] <- GRanges() 
+        }
+      }
+      ranges.to.plot <- ranges_list
+    } else {
+      stop("Invalid ranges_list, choose either a single GRanges object to plot 
+           for every plot or a list of GRanges objects for each plot")
     }
-    ranges.to.plot <- ranges_list
   } else {
     ranges.to.plot <- vector("list", length(region_list))
   }
