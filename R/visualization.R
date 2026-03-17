@@ -67,8 +67,10 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' @param show.bulk Include coverage track for all cells combined (pseudo-bulk).
 #' Note that this will plot the combined accessibility for all cells included in
 #' the plot (rather than all cells in the object).
-#' @param ranges_list List of additional genomic ranges to plot for each region 
-#' in `region_list`. 
+#' @param ranges_list List of additional genomic ranges to plot for each region,
+#' should be the same length as `region_list`. Each item should be a GRanges
+#' object or `NULL` if no additional ranges is needed for a region. Can also be 
+#' a single GRanges object to be plotted for every region. 
 #' @param ranges.group.by Grouping variable to color ranges by. Must be a
 #' variable present in the metadata stored in the `ranges` genomic ranges.
 #' If NULL, do not color by any variable.
@@ -389,6 +391,9 @@ MultiCoveragePlot <- function(
           }
         }
       }
+      single.plots[[i]] <- single.plots[[i]] + theme(
+        legend.position = "none"
+      )
     } else if (n_plots == 1) {
       y_label <- single.plots[[i]]@labels$y
       range <- sub(".*range ([^)]*).*", "\\1", y_label)
