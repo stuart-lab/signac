@@ -179,6 +179,11 @@ accessibility between cells. See the chromVAR
 [paper](https://www.nature.com/articles/nmeth.4401) for a complete description
 of the method.
 
+```{r include=FALSE}
+library(BiocParallel)
+register(SerialParam())
+```
+
 ```{r message=FALSE, warning=FALSE, fig.width=12}
 mouse_brain <- RunChromVAR(
   object = mouse_brain,
