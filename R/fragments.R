@@ -571,6 +571,8 @@ UpdatePath <- function(
     } else if (!file.exists(index.file)) {
       stop("Fragment file not indexed")
     }
+  } else {
+    index.file <- character()
   }
   old.path <- GetFragmentData(object = object, slot = "file.path")
   old.is.remote <- isRemote(x = old.path)
