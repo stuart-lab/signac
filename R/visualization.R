@@ -174,7 +174,7 @@ MultiCoveragePlot <- function(
   # check warning params
   warning.plots_params <- list(
     tile = tile,
-    links = links
+    links = !is.null(links)
   )
   warning.params <- names(warning.plots_params)[!sapply(warning.plots_params, isFALSE)] 
   if (length(warning.params) > 0) {
@@ -332,7 +332,7 @@ MultiCoveragePlot <- function(
                       annotation = annotation, 
                       show.bulk = show.bulk,
                       tile = tile,
-                      links = links,
+                      links = !is.null(links),
                       ranges.to.plot = !is.null(ranges_list))
   n_plots <- 1 + sum(unlist(lapply(plot_params, isTRUE)))
   
@@ -372,7 +372,7 @@ MultiCoveragePlot <- function(
           )
           single.plots[[i]]$patches$plots[[j]] <- currentplot
           
-          if (links == TRUE) {
+          if (!is.null(links)) {
             single.plots[[i]] <- single.plots[[i]] + theme(
               legend.position = "none"
             )
