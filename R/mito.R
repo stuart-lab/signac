@@ -767,11 +767,11 @@ ReadMQuad <- function(dir, cb, verbose = TRUE) {
     message("Reading AD and DP sparse matrices...")
   }
 
-  cb <- read.table(file = cb.path, 
-                  header = FALSE)
+  cb <- read.delim(file = cb.path, 
+                  header = FALSE)[[1]]
   
-  variants <- read.table(file = variants.path, 
-                        header = FALSE)
+  variants <- read.delim(file = variants.path, 
+                        header = FALSE)[[1]]
 
   ad_matrix <- readMM(ad.path)
 
@@ -781,10 +781,10 @@ ReadMQuad <- function(dir, cb, verbose = TRUE) {
     stop("Number of barcodes do not match the columns of the matrices")
   }
 
-  colnames(ad_matrix) <- cb[,1]
-  colnames(dp_matrix) <- cb[,1]
-  rownames(ad_matrix) <- variants[,1]
-  rownames(dp_matrix) <- variants[,1]
+  colnames(ad_matrix) <- cb
+  colnames(dp_matrix) <- cb
+  rownames(ad_matrix) <- variants
+  rownames(dp_matrix) <- variants
 
   return(list("AD_matrix" = ad_matrix, "DP_matrix" = dp_matrix))
 }
