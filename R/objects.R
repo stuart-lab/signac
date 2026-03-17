@@ -179,7 +179,7 @@ CreateChromatinAssay5 <- function(
     )
     # subset to cells in the assay
     frags <- lapply(
-      X = fragments,
+      X = frags,
       FUN = subset,
       cells = colnames(x = seurat.assay)
     )
