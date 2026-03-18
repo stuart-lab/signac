@@ -53,11 +53,9 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' grouping by "celltype" and splitting by "batch" will create separate tracks
 #' for each combination of celltype and batch.
 #' @param cells Which cells to plot. Default all cells
-#' @param tile Display per-cell fragment information in sliding windows. If
-#' plotting multi-assay data, only the first assay is shown in the tile plot.
-#' @param tile.size Size of the sliding window for per-cell fragment tile plot
-#' @param tile.cells Number of cells to display fragment information for in tile
-#' plot.
+#' @param tile Disabled
+#' @param tile.size Disabled
+#' @param tile.cells Disabled
 #' @param gwas Disabled
 #' @param gwas.ld.file Disabled
 #' @param gwas.ld.lead.snp Disabled
@@ -103,10 +101,7 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' the type for each individual track in the provided list of bigwig files.
 #' @param bigwig.scale Same as `assay.scale` parameter, except for bigWig
 #' files when plotted with `bigwig.type="coverage"`
-#' @param links Character vector containing the keys of link information present
-#' in the assay to display. Default is "linkpeaks" which is the default key for
-#' peak-gene links stored using the [LinkPeaks()] function. If `NULL`, links
-#' will not be displayed.
+#' @param links Disabled
 #' @return Returns a ggplot object
 MultiCoveragePlot <- function(
     object,
@@ -128,9 +123,9 @@ MultiCoveragePlot <- function(
     idents = NULL, 
     split.by = NULL,
     cells = NULL,
-    tile = FALSE,     # tile plot warning
-    tile.size = 100,  # tile plot warning
-    tile.cells = 100, # tile plot warning
+    tile = NULL,       # tile plot disabled
+    tile.size = NULL,  # tile plot disabled
+    tile.cells = NULL, # tile plot disabled
     gwas = NULL,                   # gwas plot disabled
     gwas.ld.file = NULL,           # gwas plot disabled
     gwas.ld.lead.snp = NULL,       # gwas plot disabled
@@ -157,32 +152,28 @@ MultiCoveragePlot <- function(
     expression.assay = expression.assay, 
     expression.slot = expression.slot, 
     features = features,
+    tile = tile,
+    tile.size = tile.size,
+    tile.cells = tile.cells,
     gwas = gwas,
     gwas.ld.file = gwas.ld.file,
     gwas.ld.lead.snp = gwas.ld.lead.snp,
     gwas.credset.file = gwas.credset.file,
     gwas.credset.threshold = gwas.credset.threshold,
-    variants = variants
+    variants = variants,
+    links = links
   )
   disabled.params <- names(disabled.plots_params)[!sapply(disabled.plots_params, is.null)]
   if (length(disabled.params) > 0) {
     message(paste0(
-      "Warning: ExpressionPlot, GWASTrack, & VariantTrack",
+      "Warning: ExpressionPlot, TilePlot, LinkPlot, GWASTrack, & VariantTrack",
       " are disabled for MultiCoveragePlot, ignoring the following parameters: ",
       paste(disabled.params, collapse = ", ")
     ))
   }
-  
-  # check warning params
-  warning.plots_params <- list(
-    tile = tile,
-    links = !is.null(links)
-  )
-  warning.params <- names(warning.plots_params)[!sapply(warning.plots_params, isFALSE)] 
-  if (length(warning.params) > 0) {
-    message(
-      "Warning: Any plot legends for MultiCoveragePlot is removed"
-    )
+  if (!is.null(ranges.group.by)) {
+    message(paste0("Warning: coloring ranges by groups is disabled for MultiCoveragePlot",
+            " ignoring parameters: ranges.group.by"))
   }
   
   # check valid.assay.scale
@@ -226,7 +217,6 @@ MultiCoveragePlot <- function(
   # get plotting regions from region_list    
   regions.to.plot <- c()
   for (i in seq_along(region_list)) {
-    # TODO: check if region exists in object
     regions.to.plot[[i]] <- FindRegion(
       object = object,
       region = region_list[[i]],
@@ -304,9 +294,9 @@ MultiCoveragePlot <- function(
                                             idents = idents, 
                                             split.by = split.by,
                                             cells = cells,
-                                            tile = tile,             # tile plot warning
-                                            tile.size = tile.size,   # tile plot warning
-                                            tile.cells = tile.cells, # tile plot warning
+                                            tile = FALSE,        # tile plot disabled
+                                            tile.size = NULL,   # tile plot disabled
+                                            tile.cells = NULL,  # tile plot disabled
                                             gwas = NULL,                   # gwas plot disabled
                                             gwas.ld.file = NULL,           # gwas plot disabled
                                             gwas.ld.lead.snp = NULL,       # gwas plot disabled
@@ -315,7 +305,7 @@ MultiCoveragePlot <- function(
                                             variants = NULL, # variant plot disabled
                                             show.bulk = show.bulk,
                                             ranges = ranges.to.plot[[i]],
-                                            ranges.group.by = ranges.group.by,
+                                            ranges.group.by = NULL, # ranges.group.by disabled
                                             ranges.title = ranges.title,
                                             max.downsample = max.downsample,
                                             downsample.rate = downsample.rate,
@@ -326,7 +316,7 @@ MultiCoveragePlot <- function(
                                             bigwig.type = "coverage",
                                             bigwig.scale = "common",
                                             heights = heights,
-                                            links = links) # link plot warning
+                                            links = NULL) # link plot disabled
     # assign plot titles
     if (is.null(region_names)) {
       if (is(region_list[[i]], "GRanges")) {
@@ -343,8 +333,6 @@ MultiCoveragePlot <- function(
   plot_params <- list(peaks = peaks, 
                       annotation = annotation, 
                       show.bulk = show.bulk,
-                      tile = tile,
-                      links = !is.null(links),
                       ranges.to.plot = !is.null(ranges_list))
   n_plots <- 1 + sum(unlist(lapply(plot_params, isTRUE)))
   
@@ -375,25 +363,6 @@ MultiCoveragePlot <- function(
       
       single.plots[[i]]$patches$plots[[1]] <- covplot
       
-      # remove plot legend (all plots)
-      if (length(warning.params) > 0) {
-        for (j in 1:(n_plots - 1)) {
-          currentplot <- single.plots[[i]]$patches$plots[[j]]
-          currentplot <- currentplot + theme(
-            legend.position = "none"
-          )
-          single.plots[[i]]$patches$plots[[j]] <- currentplot
-          
-          if (!is.null(links)) {
-            single.plots[[i]] <- single.plots[[i]] + theme(
-              legend.position = "none"
-            )
-          }
-        }
-      }
-      single.plots[[i]] <- single.plots[[i]] + theme(
-        legend.position = "none"
-      )
     } else if (n_plots == 1) {
       y_label <- single.plots[[i]]@labels$y
       range <- sub(".*range ([^)]*).*", "\\1", y_label)
@@ -460,8 +429,6 @@ MultiCoveragePlot <- function(
     x_label <- arranged.plots[[i]]@labels$x
     chr_position <- sub(" position \\(bp\\)", "", x_label)
     arranged.plots[[i]]@labels$x <- chr_position
-    
-    # TODO: add grid lines
   }
   
   # combine plots
