@@ -69,9 +69,7 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' should be the same length as `region_list`. Each item should be a GRanges
 #' object or `NULL` if no additional ranges is needed for a region. Can also be 
 #' a single GRanges object to be plotted for every region. 
-#' @param ranges.group.by Grouping variable to color ranges by. Must be a
-#' variable present in the metadata stored in the `ranges` genomic ranges.
-#' If NULL, do not color by any variable.
+#' @param ranges.group.by Disabled
 #' @param ranges.title Y-axis title for ranges track. Only relevant if
 #' `ranges` parameter is set.
 #' @param max.downsample Minimum number of positions kept when downsampling.
@@ -96,8 +94,8 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' @param bigwig List of bigWig file paths to plot data from. Files can be
 #' remotely hosted. The name of each element in the list will determine the
 #' y-axis label given to the track.
-#' @param bigwig.type Type of track to use for bigWig files ("line", "heatmap",
-#' or "coverage"). Should either be a single value, or a list of values giving
+#' @param bigwig.type Type of track to use for bigWig files ("line" or 
+#' "coverage"). Should either be a single value, or a list of values giving
 #' the type for each individual track in the provided list of bigwig files.
 #' @param bigwig.scale Same as `assay.scale` parameter, except for bigWig
 #' files when plotted with `bigwig.type="coverage"`
@@ -173,7 +171,7 @@ MultiCoveragePlot <- function(
   }
   if (!is.null(ranges.group.by)) {
     message(paste0("Warning: coloring ranges by groups is disabled for MultiCoveragePlot",
-            " ignoring parameters: ranges.group.by"))
+                   " ignoring parameters: ranges.group.by"))
   }
   
   # check valid.assay.scale
@@ -182,6 +180,16 @@ MultiCoveragePlot <- function(
     stop(
       "Unknown assay.scale requested. Please choose from: ",
       paste(valid.assay.scale, collapse = ", ")
+    )
+  }
+  
+  # check bigwig.type
+  enabled.bigwig.type <- c("line", "coverage")
+  if (!(bigwig.type %in% enabled.bigwig.type)) {
+    stop(
+      paste0("Unknown bigwig.type requested. Please choose from: ",
+             paste(enabled.bigwig.type, collapse = ", "),
+             ". bigwig.type=`heatmap` is not enabled for MultiCoveragePlot")
     )
   }
   
@@ -312,9 +320,9 @@ MultiCoveragePlot <- function(
                                             scale.factor = scale.factor,
                                             ymax = ymax,
                                             window = window,
-                                            bigwig = NULL,
-                                            bigwig.type = "coverage",
-                                            bigwig.scale = "common",
+                                            bigwig = bigwig,
+                                            bigwig.type = bigwig.type,
+                                            bigwig.scale = bigwig.scale,
                                             heights = heights,
                                             links = NULL) # link plot disabled
     # assign plot titles
@@ -330,11 +338,27 @@ MultiCoveragePlot <- function(
   }
   
   # check number of plots
-  plot_params <- list(peaks = peaks, 
+  plot_params <- list(show.bulk = show.bulk,
+                      bigwig = !is.null(bigwig),
                       annotation = annotation, 
-                      show.bulk = show.bulk,
+                      peaks = peaks,
                       ranges.to.plot = !is.null(ranges_list))
   n_plots <- 1 + sum(unlist(lapply(plot_params, isTRUE)))
+  
+  # check bigwig plot position
+  if (!is.null(bigwig)) {
+    if (plot_params$show.bulk == TRUE) {
+      if (sum(plot_params == TRUE) == 2) {
+        bw_idx <- 1
+      } else {
+        bw_idx <- 3
+      }
+    } else if (sum(plot_params == TRUE) == 1) {
+      bw_idx <- 1 
+    } else {
+      bw_idx <- 2
+    }
+  }
   
   # rearrange plots
   arranged.plots <- c()
@@ -362,6 +386,18 @@ MultiCoveragePlot <- function(
       covplot@labels$y <- "Normalized accessibility"
       
       single.plots[[i]]$patches$plots[[1]] <- covplot
+      
+      # remove any plot legends
+      for (j in 1:(n_plots - 1)) {
+        currentplot <- single.plots[[i]]$patches$plots[[j]]
+        currentplot <- currentplot + theme(
+          legend.position = "none"
+        )
+        single.plots[[i]]$patches$plots[[j]] <- currentplot
+      }
+      single.plots[[i]] <- single.plots[[i]] + theme(
+        legend.position = "none"
+      )
       
     } else if (n_plots == 1) {
       y_label <- single.plots[[i]]@labels$y
@@ -394,10 +430,12 @@ MultiCoveragePlot <- function(
         currentplot <- currentplot + theme(
           axis.title.y = element_blank(),
           strip.text.y.left = element_blank(),   
+          axis.text.y = element_blank(), 
           strip.background = element_blank(),
           axis.ticks.y = element_blank(),
           line = element_blank()
         )
+        
         arranged.plots[[i]]$patches$plots[[j]] <- currentplot
       }
       arranged.plots[[i]] <- arranged.plots[[i]] + theme(
@@ -415,6 +453,37 @@ MultiCoveragePlot <- function(
         axis.ticks.y = element_blank(),
         axis.line.y = element_blank()
       )
+    }
+  }
+  
+  ## move bigwig plot range to sub title
+  if (!is.null(bigwig)) {
+    for (i in 1:length(arranged.plots)) {
+      if (bw_idx != 1) {
+        bwplot <- arranged.plots[[i]]$patches$plots[[bw_idx]]
+      } else {
+        bwplot <- arranged.plots[[i]]
+      }
+      
+      # get min max range for bigwig plot
+      max_range <- max(bwplot@data$score)
+      min_range <- min(bwplot@data$score)
+      bw_range <- paste0(min_range, " - ", round(max_range))
+      if (i == 1) {
+        bw_range <- paste0(bw_range, " (score range)")
+      }
+      
+      # add as sub title
+      bwplot <- bwplot + 
+        labs(subtitle = bw_range) + 
+        theme(plot.subtitle = element_text(size = 7, hjust = 1),
+              axis.text.y = element_blank()) # remove y axis range numbers
+      
+      if (bw_idx != 1) {
+        arranged.plots[[i]]$patches$plots[[bw_idx]] <- bwplot
+      } else {
+        arranged.plots[[i]] <- bwplot
+      }
     }
   }
   
