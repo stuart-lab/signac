@@ -101,24 +101,6 @@ knitr::kable(head(as.data.frame(peaks_separate[[1]])))
 knitr::kable(head(as.data.frame(peaks_separate[[2]])))
 ```
 
-### HMMRATAC peak calling
-
-For MACS version 3.0.4 or above, it is possible to call peaks using the hidden
-markov model ([HMMRATAC](https://academic.oup.com/nar/article/47/16/e91/5519166)) mode. 
-
-Do note that this mode requires more computing time and may need additional arguments.
-See the MACS3 hmmratac mode [documentation](https://macs3-project.github.io/MACS/docs/hmmratac.html) 
-for more details. Parallelization is recommended if using this mode to call peaks for multiple cell groups.
-
-```{r message=FALSE, warning=FALSE, cache=TRUE}
-peaks_hmmratac <- CallPeaks(
-  object = pbmc,
-  mode = "hmmratac",
-  group.by = "predicted.id",
-  idents = "CD16+ Monocytes"
-)
-```
-
 To quantify counts in each peak, you can use the `FeatureMatrix()` function.
 
 We can visualize the cell-type-specific MACS3 peak calls alongside the 10x Cellranger
@@ -129,8 +111,8 @@ function:
 CoveragePlot(
   object = pbmc,
   region = "CD8A",
-  ranges = c(peaks, peaks_hmmratac),
-  ranges.title = c("MACS3 callpeak", "MACS3 hmmratac")
+  ranges = peaks,
+  ranges.title = "MACS3"
 )
 ```
 
