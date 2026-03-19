@@ -585,6 +585,48 @@ da_peaks <- FindMarkers(
 head(da_peaks)
 ```
 
+Alternatively, we can find marker peaks for all cell types using the FindAllMarkers function and visualize them in one plot using MultiCoveragePlot.
+
+```{r message=TRUE, warning=FALSE}
+# find marker peaks for all clusters
+markers <- FindAllMarkers(object = pbmc, 
+                          assay = "peaks",
+                          group.by = "ident")
+
+# sort and select top marker peak for each cell cluster
+markers_sorted <- markers %>%
+  group_by(cluster) %>%
+  arrange(desc(avg_log2FC), desc(pct.1), .by_group = TRUE) %>%
+  slice_head(n = 1)
+
+markers_sorted
+```
+
+```{r cache=TRUE, message=TRUE, warning=FALSE, fig.width=18, fig.height=8}
+# convert peak coordinates to list of GRanges objects
+markers_list <- lapply(seq_len(nrow(markers_sorted)), function(i) {
+  coord <- markers_sorted$gene[i]
+  parts <- strsplit(coord, "[:-]")[[1]]
+  
+  gr <- GRanges(
+    seqnames = parts[1],
+    ranges = IRanges(
+      start = as.numeric(parts[2]),
+      end   = as.numeric(parts[3])
+    )
+  )
+  gr
+})
+
+# plot all marker peaks
+plot <- MultiCoveragePlot(object = pbmc, 
+                          region_list = markers_list,
+                          extend.upstream = 1000,
+                          extend.downstream = 1000)
+
+plot
+```
+
 <details>
 
 <summary>**Logistic regression with total fragment number as the latent variable**</summary>
@@ -794,13 +836,14 @@ remotes::install_github("stuart-lab/REMO.v1.GRCh38")
 
 #### Pre-processing workflow
 
-When pre-processing chromatin data, Signac uses the ATAC fragment file as the
-main input data. This represents a full list of all unique fragments across all
-single cells. It is stored on-disk for memory efficiency and scalability. More
-information about the fragment file can be found on the 10x Genomics [website](https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments) or on the [sinto website](https://timoast.github.io/sinto/basic_usage.html#create-scatac-seq-fragments-file).
-
 First load Signac, Seurat, and some other packages we will be using for
 analyzing human data.
+
+```{r include=FALSE}
+if (!requireNamespace("REMO.v1.GRCh38", quietly = TRUE)) {
+  remotes::install_github(repo = "stuart-lab/REMO.v1.GRCh38")
+}
+```
 
 ```{r message=FALSE}
 library(Signac)
@@ -812,7 +855,16 @@ library(GenomeInfoDb)
 library(REMO.v1.GRCh38)
 ```
 
-We start by selecting cells to include in the analysis:
+##### Defining gene annotations
+
+Multiple gene annotation patches are released for each genome assembly. It is
+advisable to always use the annotations from the same assembly patch that was
+used to perform the read mapping.
+
+From the [dataset summary](https://cf.10xgenomics.com/samples/cell-atac/2.1.0/10k_pbmc_ATACv2_nextgem_Chromium_Controller/10k_pbmc_ATACv2_nextgem_Chromium_Controller_web_summary.html), 
+we can see that the reference package 10x Genomics used to perform 
+the mapping was “GRCh38-2020-A”, which [corresponds to](https://www.10xgenomics.com/support/software/cell-ranger/downloads/cr-ref-build-steps#ref-2020-a) the Ensembl v98 patch release. 
+For more information on the various Ensembl releases, you can refer to [this site](https://www.ensembl.org/info/website/archives/assembly.html).
 
 ```{r warning=FALSE, message=FALSE}
 # load gene annotations
@@ -824,23 +876,41 @@ annotations <- GetGRangesFromEnsDb(ensdb = ensdb_v98)
 
 # change to UCSC style since the data was mapped to hg38
 seqlevelsStyle(annotations) <- "UCSC"
+```
 
+##### Quality control metrics
+
+We can compute quality control metrics for the scATAC-seq data using the `ATACqc` function.
+These metrics include:
+
+* Nucleosome banding pattern: The histogram of DNA fragment sizes (determined from the paired-end sequencing reads) should exhibit a strong nucleosome banding pattern corresponding to the length of DNA wrapped around a single nucleosome. We calculate this per single cell, and quantify the approximate ratio of mononucleosomal to nucleosome-free fragments (stored as `Nucleosome_signal`)
+
+* Transcriptional start site (TSS) enrichment score: The [ENCODE project](https://www.encodeproject.org/) has defined an ATAC-seq targeting score based on the ratio of fragments centered at the TSS to fragments in TSS-flanking regions (see https://www.encodeproject.org/data-standards/terms/). Poor ATAC-seq experiments typically will have a low TSS enrichment score. Results are stored in metadata under the column name `TSS_enrichment`.
+
+* Total number of fragments: A measure of cellular sequencing depth / complexity. Cells with very few fragments may need to be excluded due to low sequencing depth. Cells with extremely high levels may represent doublets, nuclei clumps, or other artefacts. This is stored as
+`total_fragments`
+
+Here we run `ATACqc()` directly on the fragment file to efficiently compute these
+QC metrics for every observed cell barcode:
+
+```{r}
 frags <- "10k_pbmc_ATACv2_nextgem_Chromium_Controller_fragments.tsv.gz"
 metadata <- ATACqc(object = frags, annotations = annotations)
 head(metadata)
 ```
 
+##### Matrix quantification
+
+We can start by selecting cells to include in the matrix quantification by
+setting some permissive QC thresholds:
+
 ```{r}
 cells <- rownames(metadata[metadata$TSS_enrichment > 5 & metadata$total_fragments > 8000, ])
 ```
 
-Create REMO matrix using [fragtk](https://crates.io/crates/fragtk):
-
-```{r include=FALSE}
-if (!requireNamespace("REMO.v1.GRCh38", quietly = TRUE)) {
-  remotes::install_github(repo = "stuart-lab/REMO.v1.GRCh38")
-}
-```
+This gives us an initial set of cell barcodes to work with, that we can include
+in the matrix quantification step. Here we will create a REMO matrix using 
+[fragtk](https://crates.io/crates/fragtk):
 
 ```{r}
 remo <- RunFragtk(
@@ -849,14 +919,19 @@ remo <- RunFragtk(
   cells = cells,
   group = TRUE
 )
+
+dim(remo)
 ```
 
-Create Seurat object
+##### Constructing the Seurat object
+
+Next we can create a Seurat object containing a `ChromatinAssay5-class` assay
+object storing the chromatin accessibility data.
 
 ```{r}
 chrom_assay <- CreateChromatinAssay5(
   counts = remo,
-  fragments = "10k_pbmc_ATACv2_nextgem_Chromium_Controller_fragments.tsv.gz",
+  fragments = frags,
   annotation = annotations,
   min.cells = 20
 )
@@ -873,30 +948,9 @@ pbmc <- CreateSeuratObject(
 pbmc
 ```
 
-We can also add gene annotations to the `pbmc` object for the human genome.
-This will allow downstream functions to pull the gene annotation information
-directly from the object.
+#### Quality control filtering
 
-Multiple patches are released for each genome assembly. When dealing with mapped 
-data (such as the 10x Genomics files we will be using), it is advisable to use 
-the annotations from the same assembly patch that was used to perform the mapping.
-
-From the [dataset summary](https://cf.10xgenomics.com/samples/cell-atac/2.1.0/10k_pbmc_ATACv2_nextgem_Chromium_Controller/10k_pbmc_ATACv2_nextgem_Chromium_Controller_web_summary.html), 
-we can see that the reference package 10x Genomics used to perform 
-the mapping was “GRCh38-2020-A”, which [corresponds to](https://www.10xgenomics.com/support/software/cell-ranger/downloads/cr-ref-build-steps#ref-2020-a) the Ensembl v98 patch release. 
-For more information on the various Ensembl releases, you can refer to [this site](https://www.ensembl.org/info/website/archives/assembly.html).
-
-#### Quality control
-
-We can compute quality control metrics for the scATAC-seq data using the `ATACqc` function.
-These metrics include:
-
-* Nucleosome banding pattern: The histogram of DNA fragment sizes (determined from the paired-end sequencing reads) should exhibit a strong nucleosome banding pattern corresponding to the length of DNA wrapped around a single nucleosome. We calculate this per single cell, and quantify the approximate ratio of mononucleosomal to nucleosome-free fragments (stored as `Nucleosome_signal`)
-
-* Transcriptional start site (TSS) enrichment score: The [ENCODE project](https://www.encodeproject.org/) has defined an ATAC-seq targeting score based on the ratio of fragments centered at the TSS to fragments in TSS-flanking regions (see https://www.encodeproject.org/data-standards/terms/). Poor ATAC-seq experiments typically will have a low TSS enrichment score. Results are stored in metadata under the column name `TSS_enrichment`.
-
-* Total number of fragments: A measure of cellular sequencing depth / complexity. Cells with very few fragments may need to be excluded due to low sequencing depth. Cells with extremely high levels may represent doublets, nuclei clumps, or other artefacts. This is stored as
-`total_fragments`
+Next we can perform some more stringent QC filtering on the object:
 
 ```{r}
 VlnPlot(
@@ -973,6 +1027,10 @@ pbmc <- FitMeanVar(pbmc)
 ```
 
 #### Normalization and linear dimensional reduction
+
+Next we perform data normalization and dimension reduction. Here we use the 
+`RunSVD()` function with `pca=TRUE` to efficiently compute PCA without storing
+the full standardized data matrix in memory:
 
 ```{r}
 pbmc <- NormalizeData(pbmc)
@@ -1310,8 +1368,7 @@ cells grouped by cluster, cell type, or any other metadata stored in the object
 for any genomic region using the `CoveragePlot()` function.
 These represent pseudo-bulk accessibility tracks, where signal from
 all cells within a group have been averaged together to visualize the DNA 
-accessibility in a region (thanks to Andrew Hill for giving the inspiration for
-this function in his excellent [blog post](http://andrewjohnhill.com/blog/2019/04/12/streamlining-scatac-seq-visualization-and-analysis/)). Alongside these accessibility tracks we can visualize other
+accessibility in a region. Alongside these accessibility tracks we can visualize other
 important information including gene annotation, peak coordinates, and genomic
 links (if they're stored in the object). See the
 [visualization vignette](visualization.html) for more information.
@@ -1325,16 +1382,13 @@ Idents(pbmc) <- "predicted.id"
 pbmc <- SortIdents(pbmc)
 ```
 
-We can then visualize the DA peaks open in CD4 naive cells and CD14 monocytes, 
-near some key marker genes for these cell types, CD4 and LYZ respectively.
-Here we'll highlight the DA peaks regions in grey.
+We can then visualize the DNA accessibility in different genomic regions using
+the `CoveragePlot()` function:
 
 ```{r message=FALSE, warning=FALSE, out.width='90%', fig.height=6}
 CoveragePlot(
   object = pbmc,
   region = "CD4",
-  ranges = REMO.v1.GRCh38,
-  ranges.group.by = "REMO",
   extend.upstream = 1000,
   extend.downstream = 1000
 )
@@ -1344,8 +1398,6 @@ CoveragePlot(
 CoveragePlot(
   object = pbmc,
   region = "LYZ",
-  ranges = REMO.v1.GRCh38,
-  ranges.group.by = "REMO",
   extend.upstream = 1000,
   extend.downstream = 5000
 )
