@@ -5,6 +5,7 @@ NULL
 
 globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' Plot multiple coverage plots
+#' @param object A Seurat object
 #' @param region_list List of genes or GRanges object to plot
 #' @param region_names List of plot titles for each region. If NULL, default to
 #' region_list as plot title
@@ -146,7 +147,6 @@ MultiCoveragePlot <- function(
     bigwig = NULL,
     bigwig.type = "coverage",
     bigwig.scale = "common",
-    heights = NULL,
     links = NULL, # link plot warning
     title_size = 6,
     subtitle_size = 5
@@ -329,7 +329,6 @@ MultiCoveragePlot <- function(
                                             bigwig = bigwig,
                                             bigwig.type = bigwig.type,
                                             bigwig.scale = bigwig.scale,
-                                            heights = heights,
                                             links = NULL) # link plot disabled
     # assign plot titles
     if (is.null(region_names)) {
