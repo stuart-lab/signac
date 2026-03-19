@@ -100,6 +100,10 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' @param bigwig.scale Same as `assay.scale` parameter, except for bigWig
 #' files when plotted with `bigwig.type="coverage"`
 #' @param links Disabled
+#' @param title_size Size of plot title (`region_list` or `region_names`). 
+#' Default is 6
+#' @param subtitle_size Size of plot subtitle (coverage plot range). 
+#' Default is 5
 #' @return Returns a ggplot object
 MultiCoveragePlot <- function(
     object,
@@ -143,7 +147,9 @@ MultiCoveragePlot <- function(
     bigwig.type = "coverage",
     bigwig.scale = "common",
     heights = NULL,
-    links = NULL # link plot warning
+    links = NULL, # link plot warning
+    title_size = 6,
+    subtitle_size = 5
 ) {
   # check disabled params
   disabled.plots_params <- list(
@@ -379,8 +385,8 @@ MultiCoveragePlot <- function(
           title = region.names_list[[i]],
           subtitle = range
         ) + 
-        theme(plot.title = element_text(size = 8, hjust=0.5),
-              plot.subtitle = element_text(size = 7, hjust = 1)) 
+        theme(plot.title = element_text(size = title_size, hjust=0.5),
+              plot.subtitle = element_text(size = subtitle_size, hjust = 1)) 
       
       # adjust y axis label
       covplot@labels$y <- "Normalized accessibility"
@@ -412,8 +418,8 @@ MultiCoveragePlot <- function(
           title = region.names_list[[i]],
           subtitle = range
         ) + 
-        theme(plot.title = element_text(size = 8, hjust=0.5),
-              plot.subtitle = element_text(size = 7, hjust = 1)) 
+        theme(plot.title = element_text(size = title_size, hjust=0.5),
+              plot.subtitle = element_text(size = subtitle_size, hjust = 1)) 
       
       # adjust y axis label
       single.plots[[i]]@labels$y <- "Normalized accessibility"
@@ -476,7 +482,7 @@ MultiCoveragePlot <- function(
       # add as sub title
       bwplot <- bwplot + 
         labs(subtitle = bw_range) + 
-        theme(plot.subtitle = element_text(size = 7, hjust = 1),
+        theme(plot.subtitle = element_text(size = subtitle_size, hjust = 1),
               axis.text.y = element_blank()) # remove y axis range numbers
       
       if (bw_idx != 1) {
