@@ -44,8 +44,7 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' transcript isoforms, or "gene" to display gene models only (same as setting
 #' TRUE).
 #' @param peaks Display peaks
-#' @param peaks.group.by Grouping variable to color peaks by. Must be a variable
-#' present in the feature metadata. If NULL, do not color peaks by any variable.
+#' @param peaks.group.by Disabled
 #' @param group.by Name of one or more metadata columns to group (color) the
 #' cells by. Default is the current cell identities
 #' @param idents Which identities to include in the plot. Default is all
@@ -303,7 +302,7 @@ MultiCoveragePlot <- function(
                                             features = NULL,         # expression plot disabled
                                             annotation = annotation,
                                             peaks = peaks,
-                                            peaks.group.by = peaks.group.by,
+                                            peaks.group.by = NULL, # peaks.group.by disabled
                                             group.by = group.by,
                                             idents = idents, 
                                             split.by = split.by,
