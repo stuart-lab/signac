@@ -16,14 +16,12 @@ MultiCoveragePlot(
   split.assays = FALSE,
   annotation = TRUE,
   peaks = TRUE,
-  peaks.group.by = NULL,
   group.by = NULL,
   idents = NULL,
   split.by = NULL,
   cells = NULL,
   show.bulk = FALSE,
   ranges_list = NULL,
-  ranges.group.by = NULL,
   ranges.title = "Ranges",
   max.downsample = 3000,
   downsample.rate = 0.1,
@@ -151,12 +149,6 @@ Default is 6}
 
 \item{subtitle_size}{Size of plot subtitle (coverage plot range).
 Default is 5}
-
-\item{expression.assay}{Disabled}
-
-\item{expression.slot}{Disabled}
-
-\item{features}{Disabled}
 }
 \value{
 Returns a ggplot object

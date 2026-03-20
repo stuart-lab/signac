@@ -36,9 +36,6 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' \item{separate: plot each assay on a separate scale ranging from zero to the
 #' maximum value for that assay within the plotted region}
 #' }
-#' @param expression.assay Disabled
-#' @param expression.slot Disabled
-#' @param features Disabled
 #' @param annotation Display gene annotations. Set to TRUE or FALSE to control
 #' whether genes models are displayed, or choose "transcript" to display all
 #' transcript isoforms, or "gene" to display gene models only (same as setting
@@ -105,14 +102,12 @@ MultiCoveragePlot <- function(
     split.assays = FALSE,
     annotation = TRUE,
     peaks = TRUE,
-    peaks.group.by = NULL,
     group.by = NULL,
     idents = NULL, 
     split.by = NULL,
     cells = NULL,
     show.bulk = FALSE,
     ranges_list = NULL, 
-    ranges.group.by = NULL,
     ranges.title = "Ranges",
     max.downsample = 3000,
     downsample.rate = 0.1,
@@ -125,35 +120,6 @@ MultiCoveragePlot <- function(
     title_size = 6,
     subtitle_size = 5
 ) {
-  # check disabled params
-  disabled.plots_params <- list(
-    expression.assay = expression.assay, 
-    expression.slot = expression.slot, 
-    features = features,
-    tile = tile,
-    tile.size = tile.size,
-    tile.cells = tile.cells,
-    gwas = gwas,
-    gwas.ld.file = gwas.ld.file,
-    gwas.ld.lead.snp = gwas.ld.lead.snp,
-    gwas.credset.file = gwas.credset.file,
-    gwas.credset.threshold = gwas.credset.threshold,
-    variants = variants,
-    links = links
-  )
-  disabled.params <- names(disabled.plots_params)[!sapply(disabled.plots_params, is.null)]
-  if (length(disabled.params) > 0) {
-    message(paste0(
-      "Warning: ExpressionPlot, TilePlot, LinkPlot, GWASTrack, & VariantTrack",
-      " are disabled for MultiCoveragePlot, ignoring the following parameters: ",
-      paste(disabled.params, collapse = ", ")
-    ))
-  }
-  if (!is.null(ranges.group.by)) {
-    message(paste0("Warning: coloring ranges by groups is disabled for MultiCoveragePlot",
-                   " ignoring parameters: ranges.group.by"))
-  }
-  
   # check valid.assay.scale
   valid.assay.scale <- c("common", "separate")
   if (!(assay.scale %in% valid.assay.scale)) {
