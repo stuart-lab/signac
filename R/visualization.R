@@ -44,7 +44,6 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' transcript isoforms, or "gene" to display gene models only (same as setting
 #' TRUE).
 #' @param peaks Display peaks
-#' @param peaks.group.by Disabled
 #' @param group.by Name of one or more metadata columns to group (color) the
 #' cells by. Default is the current cell identities
 #' @param idents Which identities to include in the plot. Default is all
@@ -53,23 +52,13 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' grouping by "celltype" and splitting by "batch" will create separate tracks
 #' for each combination of celltype and batch.
 #' @param cells Which cells to plot. Default all cells
-#' @param tile Disabled
-#' @param tile.size Disabled
-#' @param tile.cells Disabled
-#' @param gwas Disabled
-#' @param gwas.ld.file Disabled
-#' @param gwas.ld.lead.snp Disabled
-#' @param gwas.credset.file Disabled
-#' @param gwas.credset.threshold Disabled
-#' @param variants Disabled
 #' @param show.bulk Include coverage track for all cells combined (pseudo-bulk).
 #' Note that this will plot the combined accessibility for all cells included in
 #' the plot (rather than all cells in the object).
 #' @param ranges_list List of additional genomic ranges to plot for each region,
 #' should be the same length as `region_list`. Each item should be a GRanges
 #' object or `NULL` if no additional ranges is needed for a region. Can also be 
-#' a single GRanges object to be plotted for every region. 
-#' @param ranges.group.by Disabled
+#' a single GRanges object to be plotted for every region.
 #' @param ranges.title Y-axis title for ranges track. Only relevant if
 #' `ranges` parameter is set.
 #' @param max.downsample Minimum number of positions kept when downsampling.
@@ -99,7 +88,6 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' the type for each individual track in the provided list of bigwig files.
 #' @param bigwig.scale Same as `assay.scale` parameter, except for bigWig
 #' files when plotted with `bigwig.type="coverage"`
-#' @param links Disabled
 #' @param title_size Size of plot title (`region_list` or `region_names`). 
 #' Default is 6
 #' @param subtitle_size Size of plot subtitle (coverage plot range). 
@@ -115,9 +103,6 @@ MultiCoveragePlot <- function(
     assay = "peaks",
     assay.scale = "common",
     split.assays = FALSE,
-    expression.assay = NULL, # expression plot disabled
-    expression.slot = NULL,  # expression plot disabled
-    features = NULL,         # expression plot disabled
     annotation = TRUE,
     peaks = TRUE,
     peaks.group.by = NULL,
@@ -125,15 +110,6 @@ MultiCoveragePlot <- function(
     idents = NULL, 
     split.by = NULL,
     cells = NULL,
-    tile = NULL,       # tile plot disabled
-    tile.size = NULL,  # tile plot disabled
-    tile.cells = NULL, # tile plot disabled
-    gwas = NULL,                   # gwas plot disabled
-    gwas.ld.file = NULL,           # gwas plot disabled
-    gwas.ld.lead.snp = NULL,       # gwas plot disabled
-    gwas.credset.file = NULL,      # gwas plot disabled
-    gwas.credset.threshold = NULL, # gwas plot disabled
-    variants = NULL, # variant plot disabled
     show.bulk = FALSE,
     ranges_list = NULL, 
     ranges.group.by = NULL,
@@ -146,7 +122,6 @@ MultiCoveragePlot <- function(
     bigwig = NULL,
     bigwig.type = "coverage",
     bigwig.scale = "common",
-    links = NULL, # link plot warning
     title_size = 6,
     subtitle_size = 5
 ) {
@@ -297,28 +272,14 @@ MultiCoveragePlot <- function(
                                             assay = assay,
                                             assay.scale = assay.scale,
                                             split.assays = split.assays,
-                                            expression.assay = NULL, # expression plot disabled
-                                            expression.slot = NULL,  # expression plot disabled
-                                            features = NULL,         # expression plot disabled
                                             annotation = annotation,
                                             peaks = peaks,
-                                            peaks.group.by = NULL, # peaks.group.by disabled
                                             group.by = group.by,
                                             idents = idents, 
                                             split.by = split.by,
                                             cells = cells,
-                                            tile = FALSE,        # tile plot disabled
-                                            tile.size = NULL,   # tile plot disabled
-                                            tile.cells = NULL,  # tile plot disabled
-                                            gwas = NULL,                   # gwas plot disabled
-                                            gwas.ld.file = NULL,           # gwas plot disabled
-                                            gwas.ld.lead.snp = NULL,       # gwas plot disabled
-                                            gwas.credset.file = NULL,      # gwas plot disabled
-                                            gwas.credset.threshold = NULL, # gwas plot disabled
-                                            variants = NULL, # variant plot disabled
                                             show.bulk = show.bulk,
                                             ranges = ranges.to.plot[[i]],
-                                            ranges.group.by = NULL, # ranges.group.by disabled
                                             ranges.title = ranges.title,
                                             max.downsample = max.downsample,
                                             downsample.rate = downsample.rate,
@@ -327,8 +288,7 @@ MultiCoveragePlot <- function(
                                             window = window,
                                             bigwig = bigwig,
                                             bigwig.type = bigwig.type,
-                                            bigwig.scale = bigwig.scale,
-                                            links = NULL) # link plot disabled
+                                            bigwig.scale = bigwig.scale)
     # assign plot titles
     if (is.null(region_names)) {
       if (is(region_list[[i]], "GRanges")) {
