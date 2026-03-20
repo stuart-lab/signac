@@ -34,6 +34,7 @@ New features:
 * Added `fragtk` parameter to `GeneActivity()`
 * Added `fragtk` parameter to `FeatureMatrix()`
 * Added `raster` and `raster.dpi` parameters to `DensityScatter()`
+* Added `ReadMQuad()` function to import output from [MQuad](https://github.com/single-cell-genetics/MQuad) for mitochondrial variant analysis
 
 Removed functions:
 
