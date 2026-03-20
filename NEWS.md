@@ -50,6 +50,7 @@ include an option to use the `hmmratac` peak calling method in `macs3`.
 * Added the `raster` and `raster.dpi` parameters to `DensityScatter()`
 * Added `MultiCoveragePlot()` function for plotting multiple genomic
 regions side-by-side with shared formatting and axis labels
+* Added `ReadMQuad()` function to import output from [MQuad](https://github.com/single-cell-genetics/MQuad) for mitochondrial variant analysis
 
 Removed functions:
 

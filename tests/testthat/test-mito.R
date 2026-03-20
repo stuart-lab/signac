@@ -60,3 +60,61 @@ test_that("Allele frequency calculation works", {
   )
   expect_equal(object = alleles, expected = expected)
 })
+
+test_that("ReadMQuad imports data correctly", {
+  data.dir <- system.file(
+    "extdata", "test_mquad", package = "Signac"
+  )
+  cb.path <- file.path(data.dir, "barcodes.csv")
+  mquad <- ReadMQuad(dir = data.dir, cb = cb.path)
+
+  # returns a list with AD and DP matrices
+  expect_type(mquad, "list")
+  expect_named(mquad, c("AD_matrix", "DP_matrix"))
+
+  # correct dimensions: 5 variants x 10 cells
+  expect_equal(dim(mquad$AD_matrix), c(5L, 10L))
+  expect_equal(dim(mquad$DP_matrix), c(5L, 10L))
+
+  # matrices are sparse CsparseMatrix
+  expect_true(inherits(mquad$AD_matrix, "CsparseMatrix"))
+  expect_true(inherits(mquad$DP_matrix, "CsparseMatrix"))
+
+  # no explicit zeros stored
+  expect_equal(
+    length(mquad$AD_matrix@x),
+    sum(mquad$AD_matrix@x != 0)
+  )
+  expect_equal(
+    length(mquad$DP_matrix@x),
+    sum(mquad$DP_matrix@x != 0)
+  )
+
+  # row/col names are set correctly
+  expect_equal(
+    rownames(mquad$AD_matrix),
+    c("16147T>C", "310T>C", "9728C>T",
+      "12889G>A", "1227G>A")
+  )
+  expect_equal(
+    colnames(mquad$AD_matrix)[1:3],
+    c("AAACGAAAGAACCCGA-1", "AAACGAAAGTACCTCA-1",
+      "AAACGAACAGAAAGAG-1")
+  )
+})
+
+test_that("ReadMQuad errors on invalid input", {
+  data.dir <- system.file(
+    "extdata", "test_mquad", package = "Signac"
+  )
+  cb.path <- file.path(data.dir, "barcodes.csv")
+
+  expect_error(
+    ReadMQuad(dir = "/nonexistent/path", cb = cb.path),
+    "MQuad output directory not found"
+  )
+  expect_error(
+    ReadMQuad(dir = data.dir, cb = "/nonexistent/file.csv"),
+    "Cell barcode file not found"
+  )
+})

@@ -722,3 +722,87 @@ GetMutationMatrix <- function(object, letter, strand) {
   )
   return(object[keep.rows, ])
 }
+
+#' Read MQuad output
+#'
+#' Read output files from MQuad
+#' (\url{https://github.com/single-cell-genetics/MQuad}).
+#'
+#' @param dir Path to directory containing MQuad output files
+#' @param cb Path to file containing cell barcodes used to
+#' run MQuad
+#' @param verbose Display messages
+#'
+#' @return Returns a list containing two sparse matrices of
+#' alternate allele depth (AD) and total depth (DP) counts.
+#'
+#' The AD matrix contains the counts to the alternate
+#' allele for the informative mt variant in each cell.
+#'
+#' The DP matrix contains the total number of counts
+#' for the informative mt variant in each cell.
+#'
+#' @export
+#' @concept mito
+#' @importFrom utils read.delim
+#' @importFrom Matrix readMM drop0
+ReadMQuad <- function(dir, cb, verbose = TRUE) {
+  if (!dir.exists(dir)) {
+    stop("MQuad output directory not found")
+  }
+  if (!file.exists(cb)) {
+    stop("Cell barcode file not found")
+  }
+
+  ad.path <- list.files(
+    path = dir, pattern = "passed_ad\\.mtx$",
+    full.names = TRUE
+  )
+  dp.path <- list.files(
+    path = dir, pattern = "passed_dp\\.mtx$",
+    full.names = TRUE
+  )
+  variants.path <- list.files(
+    path = dir, pattern = "passed_variant_names\\.txt$",
+    full.names = TRUE
+  )
+
+  if (length(ad.path) != 1) {
+    stop("Expected one AD matrix file, found ", length(ad.path))
+  }
+  if (length(dp.path) != 1) {
+    stop("Expected one DP matrix file, found ", length(dp.path))
+  }
+  if (length(variants.path) != 1) {
+    stop("Expected one variants file, found ",
+         length(variants.path))
+  }
+
+  if (verbose) {
+    message("Reading AD and DP sparse matrices...")
+  }
+
+  barcodes <- read.delim(
+    file = cb, header = FALSE
+  )[[1]]
+  variants <- read.delim(
+    file = variants.path, header = FALSE
+  )[[1]]
+
+  ad_matrix <- drop0(as(readMM(ad.path), "CsparseMatrix"))
+  dp_matrix <- drop0(as(readMM(dp.path), "CsparseMatrix"))
+
+  if (length(barcodes) != ncol(ad_matrix)) {
+    stop(
+      "Number of barcodes do not match the columns ",
+      "of the matrices"
+    )
+  }
+
+  colnames(ad_matrix) <- barcodes
+  colnames(dp_matrix) <- barcodes
+  rownames(ad_matrix) <- variants
+  rownames(dp_matrix) <- variants
+
+  return(list(AD_matrix = ad_matrix, DP_matrix = dp_matrix))
+}
