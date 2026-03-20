@@ -57,6 +57,9 @@ AddMotifs.default <- function(
     out = 'positions',
     genome = genome
   )
+  # Since motifmatchr::matchMotifs returns a GenomicRanges without seqinfo
+  GenomeInfoDb::seqinfo(motif.positions) <- GenomeInfoDb::seqinfo(genome)[GenomeInfoDb::seqlevels(motif.positions)]
+  
   if (verbose) {
     message("Creating Motif object")
   }
