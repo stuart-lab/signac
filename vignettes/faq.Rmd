@@ -109,7 +109,7 @@ delimiters between an object key and feature name. You may run into this
 problem if using custom feature names, some NCBI Refseq annotations for non-model 
 organisms, or non-UCSC formatted annotations. In these cases, you might want to
 change the feature names to not use any underscores ("_") or dashes ("-"), or 
-change the parsing mechanism upstream to find the approriate start-end positions, 
+change the parsing mechanism upstream to find the appropriate start-end positions, 
 because Signac uses dashes ("-") to determine chromosome start and end position.
 
 ## How should I cite Signac?
