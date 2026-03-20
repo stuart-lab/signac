@@ -710,19 +710,15 @@ markers_sorted <- markers |>
   group_by(cluster) |> 
   arrange(desc(avg_log2FC), desc(pct.1), .by_group = TRUE) |> 
   slice_head(n = 1)
-
-markers_sorted
 ```
 
 ```{r message=TRUE, warning=FALSE, fig.width=18, fig.height=8}
-p <- MultiCoveragePlot(
+MultiCoveragePlot(
   object = pbmc, 
   regions = markers_sorted$gene,
   extend.upstream = 500,
   extend.downstream = 500
 )
-
-p
 ```
 
 #### Plotting genomic regions
