@@ -725,66 +725,84 @@ GetMutationMatrix <- function(object, letter, strand) {
 
 #' Read MQuad output
 #'
-#' Read output files from MQuad (\url{https://github.com/single-cell-genetics/MQuad}).
+#' Read output files from MQuad
+#' (\url{https://github.com/single-cell-genetics/MQuad}).
 #'
 #' @param dir Path to directory containing MQuad output files
-#' @param cb Path to file containing cell barcodes to run MQUad
+#' @param cb Path to file containing cell barcodes used to
+#' run MQuad
 #' @param verbose Display messages
 #'
-#' @return Returns a list containing two sparse matrices of 
+#' @return Returns a list containing two sparse matrices of
 #' alternate allele depth (AD) and total depth (DP) counts.
-#' 
-#' The AD matrix contains the counts to the alternate 
+#'
+#' The AD matrix contains the counts to the alternate
 #' allele for the informative mt variant in each cell.
-#' 
+#'
 #' The DP matrix contains the total number of counts
 #' for the informative mt variant in each cell.
 #'
 #' @export
 #' @concept mito
-#' @importFrom utils read.table
+#' @importFrom utils read.delim
 #' @importFrom Matrix readMM
 ReadMQuad <- function(dir, cb, verbose = TRUE) {
-  if (!dir.exists(paths = dir)) {
+  if (!dir.exists(dir)) {
     stop("MQuad output directory not found")
   }
-
-  if (!file.exists(paths = cb)) {
+  if (!file.exists(cb)) {
     stop("Cell barcode file not found")
   }
 
-  ad.path <- list.files(path = dir, pattern = "*passed_ad.mtx", full.names = TRUE)
+  ad.path <- list.files(
+    path = dir, pattern = "passed_ad\\.mtx$",
+    full.names = TRUE
+  )
+  dp.path <- list.files(
+    path = dir, pattern = "passed_dp\\.mtx$",
+    full.names = TRUE
+  )
+  variants.path <- list.files(
+    path = dir, pattern = "passed_variant_names\\.txt$",
+    full.names = TRUE
+  )
 
-  dp.path <- list.files(path = dir, pattern = "*passed_dp.mtx", full.names = TRUE)
-
-  # the variants file lists mt variants that passed MQuad filters
-  variants.path <- list.files(path = dir, pattern = "*passed_variant_names.txt", full.names = TRUE)
-
-  # the barcodes file lists all the cell barcodes used to run MQuad
-  cb.path <- file.path(path = cb)
+  if (length(ad.path) != 1) {
+    stop("Expected one AD matrix file, found ", length(ad.path))
+  }
+  if (length(dp.path) != 1) {
+    stop("Expected one DP matrix file, found ", length(dp.path))
+  }
+  if (length(variants.path) != 1) {
+    stop("Expected one variants file, found ",
+         length(variants.path))
+  }
 
   if (verbose) {
     message("Reading AD and DP sparse matrices...")
   }
 
-  cb <- read.delim(file = cb.path, 
-                  header = FALSE)[[1]]
-  
-  variants <- read.delim(file = variants.path, 
-                        header = FALSE)[[1]]
+  barcodes <- read.delim(
+    file = cb, header = FALSE
+  )[[1]]
+  variants <- read.delim(
+    file = variants.path, header = FALSE
+  )[[1]]
 
-  ad_matrix <- readMM(ad.path)
+  ad_matrix <- as(readMM(ad.path), "CsparseMatrix")
+  dp_matrix <- as(readMM(dp.path), "CsparseMatrix")
 
-  dp_matrix <- readMM(dp.path)
-
-  if (length(cb) != ncol(ad_matrix)) {
-    stop("Number of barcodes do not match the columns of the matrices")
+  if (length(barcodes) != ncol(ad_matrix)) {
+    stop(
+      "Number of barcodes do not match the columns ",
+      "of the matrices"
+    )
   }
 
-  colnames(ad_matrix) <- cb
-  colnames(dp_matrix) <- cb
+  colnames(ad_matrix) <- barcodes
+  colnames(dp_matrix) <- barcodes
   rownames(ad_matrix) <- variants
   rownames(dp_matrix) <- variants
 
-  return(list("AD_matrix" = ad_matrix, "DP_matrix" = dp_matrix))
+  return(list(AD_matrix = ad_matrix, DP_matrix = dp_matrix))
 }
