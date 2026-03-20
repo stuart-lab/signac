@@ -745,7 +745,7 @@ GetMutationMatrix <- function(object, letter, strand) {
 #' @export
 #' @concept mito
 #' @importFrom utils read.delim
-#' @importFrom Matrix readMM
+#' @importFrom Matrix readMM drop0
 ReadMQuad <- function(dir, cb, verbose = TRUE) {
   if (!dir.exists(dir)) {
     stop("MQuad output directory not found")
@@ -789,8 +789,8 @@ ReadMQuad <- function(dir, cb, verbose = TRUE) {
     file = variants.path, header = FALSE
   )[[1]]
 
-  ad_matrix <- as(readMM(ad.path), "CsparseMatrix")
-  dp_matrix <- as(readMM(dp.path), "CsparseMatrix")
+  ad_matrix <- drop0(as(readMM(ad.path), "CsparseMatrix"))
+  dp_matrix <- drop0(as(readMM(dp.path), "CsparseMatrix"))
 
   if (length(barcodes) != ncol(ad_matrix)) {
     stop(
