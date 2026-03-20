@@ -5,41 +5,39 @@ NULL
 
 globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' Plot multiple coverage plots
-#' @param object A Seurat object
-#' @param region_list List of genes or GRanges object to plot
+#' @param object A [SeuratObject::Seurat] object
+#' @param regions List of genes or a [GenomicRanges::GRanges()] object to plot
 #' @param region_names List of plot titles for each region. If NULL, default to
-#' region_list as plot title
+#' `regions` as plot title
 #' @param extend.upstream Number of bases to extend the region upstream. Default 
-#' is 0. Can be supplied with a vector the same length as `region_list`. If 
+#' is 0. Can be a vector the same length as `regions`, or a single integer. If 
 #' supplied with a single integer, extend upstream the same number of bases for 
-#' every region in `region_list` 
-#' @param extend.downstream Number of bases to extend the region downstream. 
-#' Default is 0. Can be supplied with a vector the same length as `region_list`. 
-#' If supplied with a single integer, extend upstream the same number of bases 
-#' for every region in `region_list` 
+#' every region in `regions`.
+#' @param extend.downstream Number of bases to extend the region downstream.
+#' Follows the same logic as `extend.upstream`, but applying to downstream
+#' bases.
 #' @param region.highlight List of regions to highlight for each plotted region,
-#' should be the same length as `region_list`. Each item should be a GRanges
-#' object containing the coordinates to highlight, or `NULL` if no highlight is
-#' needed for that particular region. By default, regions will be highlighted in
-#' grey. To change the color of the highlighting, include a metadata column in
-#' the GRanges object named "color" containing the color to use for each region.
+#' should be the same length as `regions`. Each item should be a
+#' [GenomicRanges::GRanges] object containing the coordinates to highlight, or
+#' `NULL` if no highlight is needed for that particular region. By default,
+#' regions will be highlighted in grey. To change the color of the highlighting,
+#' include a metadata column in the GRanges object named "color" containing the
+#' color to use for each region.
 #' @param assay Name of the assay to plot. If a list of assays is provided,
 #' data from each assay will be shown overlaid on each track. The first assay in
-#' the list will define the assay used for gene annotations, links, and peaks
+#' the list will define the assay used for gene annotations and peaks
 #' (if shown). The order of assays given defines the plotting order.
 #' @param split.assays When plotting data from multiple assays, display each
-#' assay as a separate track. If FALSE, data from different assays are overlaid
-#' on a single track with transparancy applied.
+#' assay as a separate track. If `FALSE`, data from different assays are
+#' overlaid on a single track with transparancy applied.
 #' @param assay.scale Scaling to apply to data from different assays. Can be:
-#' \itemize{
-#' \item{common: plot all assays on a common scale (default)}
-#' \item{separate: plot each assay on a separate scale ranging from zero to the
-#' maximum value for that assay within the plotted region}
-#' }
-#' @param annotation Display gene annotations. Set to TRUE or FALSE to control
-#' whether genes models are displayed, or choose "transcript" to display all
-#' transcript isoforms, or "gene" to display gene models only (same as setting
-#' TRUE).
+#'  - common: plot all assays on a common scale (default)
+#'  - separate: plot each assay on a separate scale ranging from zero to the
+#' maximum value for that assay within the plotted region
+#' @param annotation Display gene annotations. Set to `TRUE` or `FALSE` to
+#' control whether genes models are displayed, or choose "transcript" to
+#' display all transcript isoforms, or "gene" to display gene models only (same
+#' as setting TRUE).
 #' @param peaks Display peaks
 #' @param group.by Name of one or more metadata columns to group (color) the
 #' cells by. Default is the current cell identities
@@ -53,11 +51,12 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' Note that this will plot the combined accessibility for all cells included in
 #' the plot (rather than all cells in the object).
 #' @param ranges_list List of additional genomic ranges to plot for each region,
-#' should be the same length as `region_list`. Each item should be a GRanges
-#' object or `NULL` if no additional ranges is needed for a region. Can also be 
-#' a single GRanges object to be plotted for every region.
+#' should be the same length as `regions`. Each item should be a
+#' [GenomicRanges::GRanges] object or `NULL` if no additional ranges is needed
+#' for a region. Can also be a single GRanges object to be plotted for every
+#' region.
 #' @param ranges.title Y-axis title for ranges track. Only relevant if
-#' `ranges` parameter is set.
+#' `ranges_list` parameter is set.
 #' @param max.downsample Minimum number of positions kept when downsampling.
 #' Downsampling rate is adaptive to the window size, but this parameter will set
 #' the minimum possible number of positions to include so that plots do not
@@ -85,7 +84,7 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' the type for each individual track in the provided list of bigwig files.
 #' @param bigwig.scale Same as `assay.scale` parameter, except for bigWig
 #' files when plotted with `bigwig.type="coverage"`
-#' @param title_size Size of plot title (`region_list` or `region_names`). 
+#' @param title_size Size of plot title (`regions` or `region_names`). 
 #' Default is 6
 #' @param subtitle_size Size of plot subtitle (coverage plot range). 
 #' Default is 5
@@ -94,7 +93,7 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' @concept visualization
 MultiCoveragePlot <- function(
     object,
-    region_list = NULL,
+    regions,
     region_names = NULL,
     extend.upstream = NULL,
     extend.downstream = NULL,
@@ -153,21 +152,21 @@ MultiCoveragePlot <- function(
     }
   })
   
-  # get region highlights from region_list    
-  if (!is.null(region.highlight)) {
-    stopifnot("region.highlight must be a list of the same length as region_list" =
-                length(region.highlight) == length(region_list))
+  # get region highlights from regions    
+  if (!is.null(x = region.highlight)) {
+    stopifnot("region.highlight must be a list of the same length as regions" =
+                length(x = region.highlight) == length(regions))
     region.to.highlight <- region.highlight
   } else {
-    region.to.highlight <- vector("list", length(region_list))
+    region.to.highlight <- vector("list", length(regions))
   }
   
-  # get plotting regions from region_list    
+  # get plotting regions from regions    
   regions.to.plot <- c()
-  for (i in seq_along(region_list)) {
+  for (i in seq_along(regions)) {
     regions.to.plot[[i]] <- FindRegion(
       object = object,
-      region = region_list[[i]],
+      region = regions[[i]],
       assay = assay[[1]]
     )
   }
@@ -175,13 +174,13 @@ MultiCoveragePlot <- function(
   # get additional ranges from ranges_list
   if (!is.null(ranges_list)) {
     if (is(ranges_list, "GRanges")) {
-      ranges.to.plot <- vector("list", length(region_list))
+      ranges.to.plot <- vector("list", length(regions))
       for (i in seq_along(ranges.to.plot)) {
         ranges.to.plot[[i]] <- ranges_list
       }
     } else if (is(ranges_list, "list")) {
-      stopifnot("ranges_list must be a list of the same length as region_list" =
-                  length(ranges_list) == length(region_list))
+      stopifnot("ranges_list must be a list of the same length as regions" =
+                  length(ranges_list) == length(regions))
       for (i in seq_along(ranges_list)) {
         if (is.null(ranges_list[[i]])) {
           ranges_list[[i]] <- GRanges() 
@@ -193,30 +192,30 @@ MultiCoveragePlot <- function(
            for every plot or a list of GRanges objects for each plot")
     }
   } else {
-    ranges.to.plot <- vector("list", length(region_list))
+    ranges.to.plot <- vector("list", length(regions))
   }
   
   # check region_names
-  if (!is.null(region_names) && length(region_names) != length(region_list)) {
+  if (!is.null(region_names) && length(region_names) != length(regions)) {
     stop("Supplied region list and region names differ in length.")
   }
   
   # upstream/downstream extension   
   if (is.null(extend.upstream)) {
-    extend.upstream <- rep(0, length(region_list))
+    extend.upstream <- rep(0, length(regions))
   } else if (length(extend.upstream) == 1) {
-    extend.upstream <- rep(extend.upstream, length(region_list))
+    extend.upstream <- rep(extend.upstream, length(regions))
   }
-  if (length(extend.upstream) != length(region_list)) {
+  if (length(extend.upstream) != length(regions)) {
     stop("Supplied region list and extend.upstream vector differ in length.")
   }
   
   if (is.null(extend.downstream)) {
-    extend.downstream <- rep(0, length(region_list))
+    extend.downstream <- rep(0, length(regions))
   } else if (length(extend.downstream) == 1) {
-    extend.downstream <- rep(extend.downstream, length(region_list))
+    extend.downstream <- rep(extend.downstream, length(regions))
   }
-  if (length(extend.downstream) != length(region_list)) {
+  if (length(extend.downstream) != length(regions)) {
     stop("Supplied region list and extend.downstream vector differ in length.")
   }
   
@@ -254,10 +253,10 @@ MultiCoveragePlot <- function(
     )
     # assign plot titles
     if (is.null(region_names)) {
-      if (is(region_list[[i]], "GRanges")) {
+      if (is(regions[[i]], "GRanges")) {
         region.names_list[[i]] <- as.character(regions.to.plot[[i]])
       } else {
-        region.names_list[[i]] <- region_list[[i]]
+        region.names_list[[i]] <- regions[[i]]
       }
     } else {
       region.names_list[[i]] <- region_names[[i]]
