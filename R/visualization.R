@@ -230,31 +230,34 @@ MultiCoveragePlot <- function(
   single.plots <- c()
   region.names_list <- c() 
   for (i in seq_along(regions.to.plot)) {
-    single.plots[[i]] <- SingleCoveragePlot(object = object,
-                                            region = regions.to.plot[[i]],
-                                            extend.upstream = extend.upstream[[i]],
-                                            extend.downstream = extend.downstream[[i]],
-                                            region.highlight = region.to.highlight[[i]],
-                                            assay = assay,
-                                            assay.scale = assay.scale,
-                                            split.assays = split.assays,
-                                            annotation = annotation,
-                                            peaks = peaks,
-                                            group.by = group.by,
-                                            idents = idents, 
-                                            split.by = split.by,
-                                            cells = cells,
-                                            show.bulk = show.bulk,
-                                            ranges = ranges.to.plot[[i]],
-                                            ranges.title = ranges.title,
-                                            max.downsample = max.downsample,
-                                            downsample.rate = downsample.rate,
-                                            scale.factor = scale.factor,
-                                            ymax = ymax,
-                                            window = window,
-                                            bigwig = bigwig,
-                                            bigwig.type = bigwig.type,
-                                            bigwig.scale = bigwig.scale)
+    single.plots[[i]] <- SingleCoveragePlot(
+      object = object,
+      region = regions.to.plot[[i]],
+      extend.upstream = extend.upstream[[i]],
+      extend.downstream = extend.downstream[[i]],
+      region.highlight = region.to.highlight[[i]],
+      assay = assay,
+      assay.scale = assay.scale,
+      split.assays = split.assays,
+      annotation = annotation,
+      peaks = peaks,
+      group.by = group.by,
+      idents = idents, 
+      split.by = split.by,
+      cells = cells,
+      show.bulk = show.bulk,
+      ranges = ranges.to.plot[[i]],
+      ranges.title = ranges.title,
+      max.downsample = max.downsample,
+      downsample.rate = downsample.rate,
+      scale.factor = scale.factor,
+      ymax = ymax,
+      window = window,
+      bigwig = bigwig,
+      bigwig.type = bigwig.type,
+      bigwig.scale = bigwig.scale,
+      links = NULL
+    )
     # assign plot titles
     if (is.null(region_names)) {
       if (is(region_list[[i]], "GRanges")) {
@@ -431,7 +434,11 @@ MultiCoveragePlot <- function(
   }
   
   # combine plots
-  multi.plot <- wrap_plots(arranged.plots, ncol = length(arranged.plots))
+  multi.plot <- wrap_plots(arranged.plots, ncol = length(arranged.plots)) &
+    theme(
+      axis.line.y = element_line(linewidth = 1/2, color = "darkgrey"),
+      plot.margin = margin(2, 0, 2, 0, "pt")
+    )
   
   return(multi.plot)
 }
@@ -1732,7 +1739,7 @@ SingleCoveragePlot <- function(
   ranges.group.by = NULL,
   ranges.title = "Ranges",
   region.highlight = NULL,
-  links = TRUE,
+  links = "linkpeaks",
   tile = FALSE,
   tile.size = 100,
   tile.cells = 100,
@@ -3788,7 +3795,7 @@ reformat_annotations <- function(
   collapse_transcript = TRUE
 ) {
   total.width <- end.pos - start.pos
-  tick.freq <- total.width / 50
+  tick.freq <- total.width / 8
   annotation <- annotation[annotation$type == "exon"]
   exons <- as.data.frame(x = annotation, row.names = NULL)
   if (collapse_transcript) {
