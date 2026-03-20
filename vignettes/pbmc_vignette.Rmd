@@ -585,13 +585,11 @@ da_peaks <- FindMarkers(
 head(da_peaks)
 ```
 
-Alternatively, we can find marker peaks for all cell types using the FindAllMarkers function and visualize them in one plot using MultiCoveragePlot.
+Alternatively, we can find marker peaks for all cell types using the FindAllMarkers function and visualize them in one plot using `MultiCoveragePlot()`.
 
 ```{r message=TRUE, warning=FALSE}
 # find marker peaks for all clusters
-markers <- FindAllMarkers(object = pbmc, 
-                          assay = "peaks",
-                          group.by = "ident")
+markers <- FindAllMarkers(object = pbmc)
 
 # sort and select top marker peak for each cell cluster
 markers_sorted <- markers %>%
@@ -602,29 +600,15 @@ markers_sorted <- markers %>%
 markers_sorted
 ```
 
-```{r cache=TRUE, message=TRUE, warning=FALSE, fig.width=18, fig.height=8}
-# convert peak coordinates to list of GRanges objects
-markers_list <- lapply(seq_len(nrow(markers_sorted)), function(i) {
-  coord <- markers_sorted$gene[i]
-  parts <- strsplit(coord, "[:-]")[[1]]
-  
-  gr <- GRanges(
-    seqnames = parts[1],
-    ranges = IRanges(
-      start = as.numeric(parts[2]),
-      end   = as.numeric(parts[3])
-    )
-  )
-  gr
-})
+```{r message=TRUE, warning=FALSE, fig.width=18, fig.height=8}
+p <- MultiCoveragePlot(
+  object = pbmc, 
+  region_list = markers_sorted$gene,
+  extend.upstream = 500,
+  extend.downstream = 500
+)
 
-# plot all marker peaks
-plot <- MultiCoveragePlot(object = pbmc, 
-                          region_list = markers_list,
-                          extend.upstream = 1000,
-                          extend.downstream = 1000)
-
-plot
+p
 ```
 
 <details>
