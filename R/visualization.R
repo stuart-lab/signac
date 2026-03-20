@@ -114,7 +114,6 @@ MultiCoveragePlot <- function(
   region.highlight = NULL,
   assay = "peaks",
   assay.scale = "common",
-  split.assays = FALSE,
   annotation = TRUE,
   peaks = TRUE,
   group.by = NULL,

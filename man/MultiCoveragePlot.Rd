@@ -13,7 +13,6 @@ MultiCoveragePlot(
   region.highlight = NULL,
   assay = "peaks",
   assay.scale = "common",
-  split.assays = FALSE,
   annotation = TRUE,
   peaks = TRUE,
   group.by = NULL,
@@ -65,11 +64,7 @@ the highlighting, include a metadata column in the GRanges
 object named "color" containing the color to use for each
 region.}
 
-\item{assay}{Name of the assay to plot. If a list of assays
-is provided, data from each assay will be shown overlaid on
-each track. The first assay in the list will define the
-assay used for gene annotations and peaks (if shown). The
-order of assays given defines the plotting order.}
+\item{assay}{Name of the assay to plot.}
 
 \item{assay.scale}{Scaling to apply to data from different
 assays. Can be:
@@ -79,11 +74,6 @@ assays. Can be:
 from zero to the maximum value for that assay within the
 plotted region
 }}
-
-\item{split.assays}{When plotting data from multiple
-assays, display each assay as a separate track. If \code{FALSE},
-data from different assays are overlaid on a single track
-with transparancy applied.}
 
 \item{annotation}{Display gene annotations. Set to \code{TRUE}
 or \code{FALSE} to control whether genes models are displayed,
