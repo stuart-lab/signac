@@ -94,6 +94,7 @@ library(GenomicRanges)
 library(ggplot2)
 library(patchwork)
 library(GenomeInfoDb)
+library(dplyr)
 ```
 
 #### Pre-processing workflow
@@ -696,6 +697,29 @@ barplot(cd4naive_ego, showCategory = 20)
 ```
 
 </details>
+
+Alternatively, we can find marker peaks for all cell types using the FindAllMarkers
+function and visualize them in one plot using `MultiCoveragePlot()`.
+
+```{r message=TRUE, warning=FALSE}
+# find marker peaks for all clusters
+markers <- FindAllMarkers(object = pbmc)
+
+# sort and select top marker peak for each cell cluster
+markers_sorted <- markers |> 
+  group_by(cluster) |> 
+  arrange(desc(avg_log2FC), desc(pct.1), .by_group = TRUE) |> 
+  slice_head(n = 1)
+```
+
+```{r message=TRUE, warning=FALSE, fig.width=18, fig.height=8}
+MultiCoveragePlot(
+  object = pbmc, 
+  regions = markers_sorted$gene,
+  extend.upstream = 500,
+  extend.downstream = 500
+)
+```
 
 #### Plotting genomic regions
 

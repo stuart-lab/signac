@@ -4,6 +4,510 @@
 NULL
 
 globalVariables(names = c("bin", "score", "bw"), package = "Signac")
+#' Plot multiple coverage plots
+#' @param object A [SeuratObject::Seurat] object
+#' @param regions List of genes or a
+#' [GenomicRanges::GRanges()] object to plot
+#' @param region_names List of plot titles for each region.
+#' If NULL, no title is added.
+#' @param extend.upstream Number of bases to extend the region
+#' upstream. Default is 0. Can be a vector the same length as
+#' `regions`, or a single integer. If supplied with a single
+#' integer, extend upstream the same number of bases for
+#' every region in `regions`.
+#' @param extend.downstream Number of bases to extend the
+#' region downstream. Follows the same logic as
+#' `extend.upstream`, but applying to downstream bases.
+#' @param region.highlight List of regions to highlight for
+#' each plotted region, should be the same length as `regions`.
+#' Each item should be a [GenomicRanges::GRanges] object
+#' containing the coordinates to highlight, or `NULL` if no
+#' highlight is needed for that particular region. By default,
+#' regions will be highlighted in grey. To change the color of
+#' the highlighting, include a metadata column in the GRanges
+#' object named "color" containing the color to use for each
+#' region.
+#' @param assay Name of the assay to plot.
+#' @param assay.scale Scaling to apply to data from different
+#' assays. Can be:
+#'  - common: plot all assays on a common scale (default)
+#'  - separate: plot each assay on a separate scale ranging
+#' from zero to the maximum value for that assay within the
+#' plotted region
+#' @param annotation Display gene annotations. Set to `TRUE`
+#' or `FALSE` to control whether genes models are displayed,
+#' or choose "transcript" to display all transcript isoforms,
+#' or "gene" to display gene models only (same as setting
+#' TRUE).
+#' @param peaks Display peaks
+#' @param group.by Name of one or more metadata columns to
+#' group (color) the cells by. Default is the current cell
+#' identities
+#' @param idents Which identities to include in the plot.
+#' Default is all identities.
+#' @param split.by A metadata variable to split the tracks by.
+#' For example, grouping by "celltype" and splitting by
+#' "batch" will create separate tracks for each combination of
+#' celltype and batch.
+#' @param cells Which cells to plot. Default all cells
+#' @param show.bulk Include coverage track for all cells
+#' combined (pseudo-bulk). Note that this will plot the
+#' combined accessibility for all cells included in the plot
+#' (rather than all cells in the object).
+#' @param ranges_list List of additional genomic ranges to
+#' plot for each region, should be the same length as
+#' `regions`. Each item should be a [GenomicRanges::GRanges]
+#' object or `NULL` if no additional ranges is needed for a
+#' region. Can also be a single GRanges object to be plotted
+#' for every region.
+#' @param ranges.title Y-axis title for ranges track. Only
+#' relevant if `ranges_list` parameter is set.
+#' @param max.downsample Minimum number of positions kept when
+#' downsampling. Downsampling rate is adaptive to the window
+#' size, but this parameter will set the minimum possible
+#' number of positions to include so that plots do not become
+#' too sparse when the window size is small.
+#' @param downsample.rate Fraction of positions to retain when
+#' downsampling. Retaining more positions can give a
+#' higher-resolution plot but can make the number of points
+#' large, resulting in larger file sizes when saving the plot
+#' and a longer period of time needed to draw the plot.
+#' @param scale.factor Scaling factor for track height. If
+#' NULL (default), use the median group scaling factor
+#' determined by total number of fragments sequences in each
+#' group.
+#' @param ymax Maximum value for Y axis. Can be one of:
+#'  - `NULL`: set to the highest value among all the tracks
+#' (default)
+#'  - qXX: clip the maximum value to the XX quantile (for
+#' example, q95 will set the maximum value to 95% of the
+#' maximum value in the data). This can help remove the effect
+#' of extreme values that may otherwise distort the scale.
+#'  - numeric: manually define a Y-axis limit
+#' @param window Smoothing window size
+#' @param bigwig List of bigWig file paths to plot data from.
+#' Files can be remotely hosted. The name of each element in
+#' the list will determine the y-axis label given to the
+#' track.
+#' @param bigwig.type Type of track to use for bigWig files
+#' ("line" or "coverage"). Should either be a single value,
+#' or a list of values giving the type for each individual
+#' track in the provided list of bigwig files.
+#' @param bigwig.scale Same as `assay.scale` parameter,
+#' except for bigWig files when plotted with
+#' `bigwig.type="coverage"`
+#' @param title_size Size of plot title, only applicable if
+#' `region_names` is not NULL. Default is 6
+#' @param subtitle_size Size of plot subtitle (coverage plot
+#' range). Default is 5
+#' @param coords_size Size of plot coordinate text. Default
+#' is 6
+#' @return Returns a ggplot object
+#' @export
+#' @concept visualization
+MultiCoveragePlot <- function(
+  object,
+  regions,
+  region_names = NULL,
+  extend.upstream = NULL,
+  extend.downstream = NULL,
+  region.highlight = NULL,
+  assay = "peaks",
+  assay.scale = "common",
+  annotation = TRUE,
+  peaks = TRUE,
+  group.by = NULL,
+  idents = NULL,
+  split.by = NULL,
+  cells = NULL,
+  show.bulk = FALSE,
+  ranges_list = NULL,
+  ranges.title = "Ranges",
+  max.downsample = 3000,
+  downsample.rate = 0.1,
+  scale.factor = NULL,
+  ymax = NULL,
+  window = 100,
+  bigwig = NULL,
+  bigwig.type = "coverage",
+  bigwig.scale = "common",
+  title_size = 6,
+  subtitle_size = 5,
+  coords_size = 6
+) {
+  # check valid.assay.scale
+  valid.assay.scale <- c("common", "separate")
+  if (!(assay.scale %in% valid.assay.scale)) {
+    stop(
+      "Unknown assay.scale requested. Please choose from: ",
+      paste(valid.assay.scale, collapse = ", ")
+    )
+  }
+
+  # check bigwig.type
+  enabled.bigwig.type <- c("line", "coverage")
+  if (!(bigwig.type %in% enabled.bigwig.type)) {
+    stop(
+      paste0(
+        "Unknown bigwig.type requested. Please choose from: ",
+        paste(enabled.bigwig.type, collapse = ", "),
+        ". bigwig.type=`heatmap` is not enabled ",
+        "for MultiCoveragePlot"
+      )
+    )
+  }
+
+  # check assay
+  cells <- cells %||% Cells(x = object)
+  assay <- assay %||% DefaultAssay(object = object)
+  if (!inherits(x = assay, what = "list")) {
+    assay <- list(assay)
+  }
+  if (length(assay) > 1) {
+    stop("Multi assay is not supported in MultiCoveratePlot")
+  }
+  lapply(X = assay, FUN = function(x) {
+    if (!inherits(x = object[[x]], what = "ChromatinAssay5")) {
+      stop("Requested assay is not a ChromatinAssay5.")
+    }
+  })
+
+  # get region highlights from regions
+  if (!is.null(x = region.highlight)) {
+    stopifnot(
+      "region.highlight must be a list of the same length as regions" =
+        length(x = region.highlight) == length(regions)
+    )
+    region.to.highlight <- region.highlight
+  } else {
+    region.to.highlight <- vector("list", length(regions))
+  }
+
+  # get plotting regions from regions
+  regions.to.plot <- c()
+  for (i in seq_along(regions)) {
+    regions.to.plot[[i]] <- FindRegion(
+      object = object,
+      region = regions[[i]],
+      assay = assay[[1]]
+    )
+  }
+
+  # get additional ranges from ranges_list
+  if (!is.null(ranges_list)) {
+    if (is(ranges_list, "GRanges")) {
+      ranges.to.plot <- vector("list", length(regions))
+      for (i in seq_along(ranges.to.plot)) {
+        ranges.to.plot[[i]] <- ranges_list
+      }
+    } else if (is(ranges_list, "list")) {
+      stopifnot(
+        "ranges_list must be a list of the same length as regions" =
+          length(ranges_list) == length(regions)
+      )
+      for (i in seq_along(ranges_list)) {
+        if (is.null(ranges_list[[i]])) {
+          ranges_list[[i]] <- GRanges()
+        }
+      }
+      ranges.to.plot <- ranges_list
+    } else {
+      stop(
+        "Invalid ranges_list, choose either a single ",
+        "GRanges object to plot for every plot or a ",
+        "list of GRanges objects for each plot"
+      )
+    }
+  } else {
+    ranges.to.plot <- vector("list", length(regions))
+  }
+
+  # check region_names
+  if (!is.null(region_names) &&
+        length(region_names) != length(regions)) {
+    stop("Supplied region list and region names differ in length.")
+  }
+
+  # upstream/downstream extension
+  if (is.null(extend.upstream)) {
+    extend.upstream <- rep(0, length(regions))
+  } else if (length(extend.upstream) == 1) {
+    extend.upstream <- rep(extend.upstream, length(regions))
+  }
+  if (length(extend.upstream) != length(regions)) {
+    stop(
+      "Supplied region list and extend.upstream ",
+      "vector differ in length."
+    )
+  }
+
+  if (is.null(extend.downstream)) {
+    extend.downstream <- rep(0, length(regions))
+  } else if (length(extend.downstream) == 1) {
+    extend.downstream <- rep(extend.downstream, length(regions))
+  }
+  if (length(extend.downstream) != length(regions)) {
+    stop(
+      "Supplied region list and extend.downstream ",
+      "vector differ in length."
+    )
+  }
+
+  # call SingleCoveragePlot
+  single.plots <- c()
+  region.names_list <- as.list(region_names)
+  for (i in seq_along(regions.to.plot)) {
+    single.plots[[i]] <- SingleCoveragePlot(
+      object = object,
+      region = regions.to.plot[[i]],
+      extend.upstream = extend.upstream[[i]],
+      extend.downstream = extend.downstream[[i]],
+      region.highlight = region.to.highlight[[i]],
+      assay = assay,
+      assay.scale = assay.scale,
+      annotation = annotation,
+      peaks = peaks,
+      group.by = group.by,
+      idents = idents,
+      split.by = split.by,
+      cells = cells,
+      show.bulk = show.bulk,
+      ranges = ranges.to.plot[[i]],
+      ranges.title = ranges.title,
+      max.downsample = max.downsample,
+      downsample.rate = downsample.rate,
+      scale.factor = scale.factor,
+      ymax = ymax,
+      window = window,
+      bigwig = bigwig,
+      bigwig.type = bigwig.type,
+      bigwig.scale = bigwig.scale,
+      links = NULL
+    )
+  }
+
+  # check number of plots
+  plot_params <- list(
+    show.bulk = show.bulk,
+    bigwig = !is.null(bigwig),
+    annotation = !identical(annotation, FALSE),
+    peaks = peaks,
+    ranges.to.plot = !is.null(ranges_list)
+  )
+  n_plots <- 1 + sum(unlist(lapply(plot_params, isTRUE)))
+
+  # check bigwig plot position
+  if (!is.null(bigwig)) {
+    n_true <- sum(unlist(lapply(plot_params, isTRUE)))
+    if (isTRUE(plot_params$show.bulk)) {
+      if (n_true == 2) {
+        bw_idx <- 1
+      } else {
+        bw_idx <- 3
+      }
+    } else if (n_true == 1) {
+      bw_idx <- 1
+    } else {
+      bw_idx <- 2
+    }
+  }
+
+  # rearrange plots
+  arranged.plots <- c()
+  for (i in seq_along(single.plots)) {
+    if (n_plots > 1) {
+      ## coverage.track
+      covplot <- single.plots[[i]]$patches$plots[[1]]
+
+      y_label <- covplot@labels$y
+      range <- sub(".*range ([^)]*).*", "\\1", y_label)
+      if (i == 1) {
+        range <- paste0(range, " (range)")
+      }
+
+      # move region name to title, range to subtitle
+      covplot <- covplot +
+        labs(
+          title = if (!is.null(region_names)) {
+            region.names_list[[i]]
+          },
+          subtitle = range
+        ) +
+        theme(
+          plot.title = element_text(
+            size = title_size, hjust = 0.5
+          ),
+          plot.subtitle = element_text(
+            size = subtitle_size, hjust = 1
+          )
+        )
+
+      # adjust y axis label
+      covplot@labels$y <- "Normalized accessibility"
+
+      single.plots[[i]]$patches$plots[[1]] <- covplot
+
+      # remove any plot legends
+      for (j in 1:(n_plots - 1)) {
+        currentplot <- single.plots[[i]]$patches$plots[[j]]
+        currentplot <- currentplot + theme(
+          legend.position = "none"
+        )
+        single.plots[[i]]$patches$plots[[j]] <- currentplot
+      }
+      single.plots[[i]] <- single.plots[[i]] + theme(
+        legend.position = "none"
+      )
+
+    } else if (n_plots == 1) {
+      y_label <- single.plots[[i]]@labels$y
+      range <- sub(".*range ([^)]*).*", "\\1", y_label)
+      if (i == 1) {
+        range <- paste0(range, " (range)")
+      }
+
+      # adjust covplot title, subtitle
+      single.plots[[i]] <- single.plots[[i]] +
+        labs(
+          title = if (!is.null(region_names)) {
+            region.names_list[[i]]
+          },
+          subtitle = range
+        ) +
+        theme(
+          plot.title = element_text(
+            size = title_size, hjust = 0.5
+          ),
+          plot.subtitle = element_text(
+            size = subtitle_size, hjust = 1
+          )
+        )
+
+      # adjust y axis label
+      single.plots[[i]]@labels$y <- "Normalized accessibility"
+    }
+
+    arranged.plots[[i]] <- single.plots[[i]]
+  }
+
+  # remove y axis text from 2nd plot on
+  for (i in seq_len(max(0, length(arranged.plots) - 1)) + 1) {
+    if (n_plots > 1) {
+      for (j in 1:(n_plots - 1)) {
+        currentplot <- arranged.plots[[i]]$patches$plots[[j]]
+        currentplot <- currentplot + theme(
+          axis.title.y = element_blank(),
+          strip.text.y.left = element_blank(),
+          axis.text.y = element_blank(),
+          strip.background = element_blank(),
+          axis.ticks.y = element_blank(),
+          line = element_blank()
+        )
+
+        arranged.plots[[i]]$patches$plots[[j]] <- currentplot
+      }
+      arranged.plots[[i]] <- arranged.plots[[i]] + theme(
+        axis.title.y = element_blank(),
+        strip.text.y.left = element_blank(),
+        strip.background = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line.y = element_blank()
+      )
+    } else if (n_plots == 1) {
+      arranged.plots[[i]] <- arranged.plots[[i]] + theme(
+        axis.title.y = element_blank(),
+        strip.text.y.left = element_blank(),
+        strip.background = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line.y = element_blank()
+      )
+    }
+  }
+
+  ## move bigwig plot range to sub title
+  if (!is.null(bigwig)) {
+    for (i in seq_along(arranged.plots)) {
+      if (bw_idx != 1) {
+        bwplot <- arranged.plots[[i]]$patches$plots[[bw_idx]]
+      } else {
+        bwplot <- arranged.plots[[i]]
+      }
+
+      # get min max range for bigwig plot
+      max_range <- max(bwplot@data$score)
+      min_range <- min(bwplot@data$score)
+      bw_range <- paste0(min_range, " - ", round(max_range))
+      if (i == 1) {
+        bw_range <- paste0(bw_range, " (score range)")
+      }
+
+      # add as sub title
+      bwplot <- bwplot +
+        labs(subtitle = bw_range) +
+        theme(
+          plot.subtitle = element_text(
+            size = subtitle_size, hjust = 1
+          ),
+          axis.text.y = element_blank()
+        )
+
+      if (bw_idx != 1) {
+        arranged.plots[[i]]$patches$plots[[bw_idx]] <- bwplot
+      } else {
+        arranged.plots[[i]] <- bwplot
+      }
+    }
+  }
+
+  # adjust plot text, dimensions & add grid lines
+  for (i in seq_along(arranged.plots)) {
+    # remove chr position numbers
+    arranged.plots[[i]] <- arranged.plots[[i]] + theme(
+      axis.text.x = element_blank()
+    )
+
+    # change x axis text to chr start-end
+    if (n_plots > 1) {
+      startpos <- min(
+        arranged.plots[[i]]$patches$plots[[1]]$data$position
+      )
+      endpos <- max(
+        arranged.plots[[i]]$patches$plots[[1]]$data$position
+      )
+    } else if (n_plots == 1) {
+      startpos <- min(arranged.plots[[i]]$data$position)
+      endpos <- max(arranged.plots[[i]]$data$position)
+    }
+
+    x_label <- arranged.plots[[i]]@labels$x
+    chrpos <- sub(" position \\(bp\\)", "", x_label)
+    arranged.plots[[i]]@labels$x <- paste0(
+      chrpos, "\n", startpos, "-\n", endpos
+    )
+
+    # change font size
+    arranged.plots[[i]] <- arranged.plots[[i]] + theme(
+      axis.title.x.bottom = element_text(
+        size = coords_size, hjust = 0.5
+      )
+    )
+  }
+
+  # combine plots
+  multi.plot <- wrap_plots(
+    arranged.plots, ncol = length(arranged.plots)
+  ) &
+    theme(
+      axis.line.y = element_line(
+        linewidth = 1 / 2, color = "darkgrey"
+      ),
+      plot.margin = margin(2, 0, 2, 0, "pt")
+    )
+
+  return(multi.plot)
+}
+
+
 #' Plot data from BigWig files
 #'
 #' Create coverage tracks, heatmaps, or line plots from bigwig files.
@@ -1299,7 +1803,7 @@ SingleCoveragePlot <- function(
   ranges.group.by = NULL,
   ranges.title = "Ranges",
   region.highlight = NULL,
-  links = TRUE,
+  links = "linkpeaks",
   tile = FALSE,
   tile.size = 100,
   tile.cells = 100,
@@ -3355,7 +3859,7 @@ reformat_annotations <- function(
   collapse_transcript = TRUE
 ) {
   total.width <- end.pos - start.pos
-  tick.freq <- total.width / 50
+  tick.freq <- total.width / 8
   annotation <- annotation[annotation$type == "exon"]
   exons <- as.data.frame(x = annotation, row.names = NULL)
   if (collapse_transcript) {
