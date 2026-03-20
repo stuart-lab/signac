@@ -27,15 +27,7 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' the highlighting, include a metadata column in the GRanges
 #' object named "color" containing the color to use for each
 #' region.
-#' @param assay Name of the assay to plot. If a list of assays
-#' is provided, data from each assay will be shown overlaid on
-#' each track. The first assay in the list will define the
-#' assay used for gene annotations and peaks (if shown). The
-#' order of assays given defines the plotting order.
-#' @param split.assays When plotting data from multiple
-#' assays, display each assay as a separate track. If `FALSE`,
-#' data from different assays are overlaid on a single track
-#' with transparancy applied.
+#' @param assay Name of the assay to plot.
 #' @param assay.scale Scaling to apply to data from different
 #' assays. Can be:
 #'  - common: plot all assays on a common scale (default)
@@ -172,6 +164,9 @@ MultiCoveragePlot <- function(
   if (!inherits(x = assay, what = "list")) {
     assay <- list(assay)
   }
+  if (length(assay) > 1) {
+    stop("Multi assay is not supported in MultiCoveratePlot")
+  }
   lapply(X = assay, FUN = function(x) {
     if (!inherits(x = object[[x]], what = "ChromatinAssay5")) {
       stop("Requested assay is not a ChromatinAssay5.")
@@ -271,7 +266,6 @@ MultiCoveragePlot <- function(
       region.highlight = region.to.highlight[[i]],
       assay = assay,
       assay.scale = assay.scale,
-      split.assays = split.assays,
       annotation = annotation,
       peaks = peaks,
       group.by = group.by,
