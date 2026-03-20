@@ -90,6 +90,8 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' @param subtitle_size Size of plot subtitle (coverage plot range). 
 #' Default is 5
 #' @return Returns a ggplot object
+#' @export
+#' @concept visualization
 MultiCoveragePlot <- function(
     object,
     region_list = NULL,
@@ -150,14 +152,6 @@ MultiCoveragePlot <- function(
       stop("Requested assay is not a ChromatinAssay5.")
     }
   })
-  
-  is.granges <- inherits(x = object[[assay[[1]]]], what = "GRangesAssay")
-  if (length(colnames(object)) > length(colnames(object[[assay[[1]]]]))) {
-    object <- UpdateChromatinObject(
-      object = object,
-      chromatin.assay = assay
-    )
-  }
   
   # get region highlights from region_list    
   if (!is.null(region.highlight)) {
