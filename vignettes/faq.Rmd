@@ -102,6 +102,16 @@ fa <- Rsamtools::FaFile("path/to/fasta")
 Alternatively, you can create your own `BSgenome` data package, see this
 [vignette](https://www.bioconductor.org/packages/devel/bioc/vignettes/BSgenome/inst/doc/BSgenomeForge.pdf).
 
+## Why do underscores ("_") in my feature names automatically get replaced with dashes ("-")?
+
+Unfortunately, this is a constraint from Seurat as it reserves underscores for
+delimiters between an object key and feature name. You may run into this
+problem if using custom feature names, some NCBI Refseq annotations for non-model 
+organisms, or non-UCSC formatted annotations. In these cases, you might want to
+change the feature names to not use any underscores ("_") or dashes ("-"), or 
+change the parsing mechanism upstream to find the approriate start-end positions, 
+because Signac uses dashes ("-") to determine chromosome start and end position.
+
 ## How should I cite Signac?
 
 If you use Signac, please cite [Stuart et al., 2021](https://doi.org/10.1038/s41592-021-01282-5):
