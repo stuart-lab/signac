@@ -89,16 +89,16 @@ CountFragments <- function(
   if (!inherits(x = fragments, what = "list")) {
     fragments <- list(fragments)
   }
+  max_lines <- max_lines %||% 0
+  verbose <- as.logical(x = verbose)
+  if (!is.null(x = cells)) {
+    cells <- unique(x = cells)
+  }
   for (i in seq_along(along.with = fragments)) {
-    if (isRemote(x = i)) {
+    if (isRemote(x = fragments[[i]])) {
       stop("Remote fragment files not supported")
     }
     fragments[[i]] <- normalizePath(path = fragments[[i]], mustWork = TRUE)
-    max_lines <- max_lines %||% 0
-    verbose <- as.logical(x = verbose)
-    if (!is.null(x = cells)) {
-      cells <- unique(x = cells)
-    }
     counts <- groupCommand(
       fragments = fragments[[i]],
       some_whitelist_cells = cells,
@@ -571,6 +571,8 @@ UpdatePath <- function(
     } else if (!file.exists(index.file)) {
       stop("Fragment file not indexed")
     }
+  } else {
+    index.file <- character()
   }
   old.path <- GetFragmentData(object = object, slot = "file.path")
   old.is.remote <- isRemote(x = old.path)

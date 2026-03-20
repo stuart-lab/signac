@@ -1,4 +1,6 @@
-# Signac v2 (unreleased)
+# Signac 1.9999.0
+
+***v2 beta release***
 
 This is a major version release and includes many changes to the package,
 including new functionality and internal improvements to existing functionality.
@@ -30,10 +32,24 @@ than being user-facing.
 
 New features:
 
-* Added `RunFragtk()` function to run `fragtk matrix` command within R
-* Added `fragtk` parameter to `GeneActivity()`
-* Added `fragtk` parameter to `FeatureMatrix()`
-* Added `raster` and `raster.dpi` parameters to `DensityScatter()`
+* Added the ability to use a `BPCells` matrix in `CreateChromatinAssay5()` and `CreateGRangesAssay()`.  
+* Added GWAS visualization function `GWASTrack()` to enable plotting of GWAS and QTL data
+alongside single-cell accessibility data. This has also been added to the `CoveragePlot()` function
+with the addition of the parameters `gwas`, `gwas.ld.file`, `gwas.ld.lead.snp`, `gwas.credset.file`, and `gwas.credset.threshold`.  
+* Added functions to load GWAS and QTL data from various sources: `LoadGWAS()`, `LoadLDData()`, `LoadCredibleSets()`.  
+* More flexible storage of genomic links: you can now store multiple sets of
+genomic links within the same assay. We have also moved to storing this information
+using the well-established `GInteractions` format from the [InteractionSet](https://www.bioconductor.org/packages/InteractionSet/)
+package.  
+* New peak calling methods: Signac now uses `macs3` in `CallPeaks()`. We
+have also enabled parallelization of peak calling across groups of cells, and
+include an option to use the `hmmratac` peak calling method in `macs3`.  
+* Added the `RunFragtk()` function to run `fragtk matrix` command within R
+* Added the `fragtk` parameter to `GeneActivity()`
+* Added the `fragtk` parameter to `FeatureMatrix()`
+* Added the `raster` and `raster.dpi` parameters to `DensityScatter()`
+* Added `MultiCoveragePlot()` function for plotting multiple genomic
+regions side-by-side with shared formatting and axis labels
 * Added `ReadMQuad()` function to import output from [MQuad](https://github.com/single-cell-genetics/MQuad) for mitochondrial variant analysis
 
 Removed functions:
@@ -47,8 +63,12 @@ Other changes:
 * Added a check for duplicated fragment files when merging objects. If multiple
 assays have the same fragment file, they are now consolidated into one fragment
 object.
+* Changed the behavior of object merging to follow the standard Seurat merge method. Previously, 
+overlapping peaks were treated as the same feature.  
 
-# Develop (unreleased)
+# Signac 1.16.9004
+
+***develop branch***
 
 New features:
 

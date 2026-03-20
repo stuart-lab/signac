@@ -140,7 +140,7 @@ GetFootprintData <- function(
       if (length(x = cells.present) == 0) {
         return(NULL)
       }
-      mat.use <- fp[cells.use, , drop = FALSE]
+      mat.use <- fp[cells.present, , drop = FALSE]
       return(BackgroundMeanNorm(x = mat.use, background = 50))
     })
     bg.norm <- Filter(f = Negate(f = is.null), x = bg.norm)

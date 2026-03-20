@@ -179,6 +179,11 @@ accessibility between cells. See the chromVAR
 [paper](https://www.nature.com/articles/nmeth.4401) for a complete description
 of the method.
 
+```{r include=FALSE}
+library(BiocParallel)
+register(SerialParam())
+```
+
 ```{r message=FALSE, warning=FALSE, fig.width=12}
 mouse_brain <- RunChromVAR(
   object = mouse_brain,
@@ -190,7 +195,7 @@ DefaultAssay(mouse_brain) <- "chromvar"
 # look at the activity of Mef2c
 p2 <- FeaturePlot(
   object = mouse_brain,
-  features = "MA0497.1",
+  features = "MA0497.2",
   min.cutoff = "q10",
   max.cutoff = "q90",
   pt.size = 0.1

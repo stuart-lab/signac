@@ -1,10 +1,48 @@
+/* Prevent fixed navbar from overlapping page content on article pages */
+.container.template-article {
+  padding-top: 70px;
+}
+
 details {
   background-color: #f0f8ff;
   padding: 10px;
   border-radius: 5px;
 }
 
-pre, code {
+/* Dark mode: adjust details background for lightswitch */
+[data-bs-theme="dark"] details {
+  background-color: #222f45;
+}
+
+pre,
+code {
   white-space: pre !important;
   overflow-x: auto;
+}
+
+/* Hide auto-injected pkgdown logo globally so the user's markdown tag renders instead */
+.page-header img.logo {
+  display: none !important;
+}
+
+/* Remove scroll bar from dropdown menus and show all items */
+.dropdown-menu {
+  max-height: none !important;
+  overflow-y: visible !important;
+}
+
+/* Constrain article content width for readability */
+.template-article main.col-md-9 {
+  max-width: 900px !important;
+}
+
+/* Hide TOC sidebar for articles with .no-toc class (added via extra.js) */
+.no-toc .template-article aside.col-md-3 {
+  display: none !important;
+}
+
+.no-toc .template-article main.col-md-9 {
+  width: 100% !important;
+  flex: 0 0 100% !important;
+  margin: 0 auto !important;
 }

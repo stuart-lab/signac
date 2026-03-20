@@ -53,8 +53,8 @@ if (!requireNamespace("leidenbase", quietly = TRUE)) {
 
 if (!requireNamespace("monocle3", quietly = TRUE)) {
   install.packages("BPCells", repos = c("https://bnprks.r-universe.dev", "https://cloud.r-project.org"))
+  remotes::install_github("cole-trapnell-lab/monocle3")
 }
-remotes::install_github("cole-trapnell-lab/monocle3")
 
 if (!requireNamespace("EnsDb.Hsapiens.v75", quietly = TRUE)) {
   BiocManager::install("EnsDb.Hsapiens.v75")

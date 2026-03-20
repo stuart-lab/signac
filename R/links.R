@@ -124,7 +124,7 @@ GetLinkedGenes.ChromatinAssay5 <- function(
   if (length(x = lnk) == 0) {
     stop("No links present in assay. Run LinkPeaks first.")
   }
-  pknames <- as.character(x = anchors(x = object)$first)
+  pknames <- as.character(x = anchors(x = lnk)$first)
   lnk.keep <- lnk[(abs(x = lnk$score) > min.abs.score) & pknames %in% features]
   return(unique(x = lnk.keep$anchor2.gene_name))
 }
@@ -231,7 +231,7 @@ ConnectionsToLinks <- function(
 #' @param peak.slot Deprecated (use `peak.layer`)
 #' @param expression.slot Deprecated (used `expression.layer`)
 #'
-#' @importFrom SeuratObject LayerData Layers
+#' @importFrom SeuratObject LayerData Layers as.sparse
 #' @importFrom stats pnorm sd
 #' @importFrom Matrix sparseMatrix rowSums
 #' @importFrom future.apply future_lapply
@@ -443,6 +443,12 @@ LinkPeaks <- function(
         return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
       } else {
         peak.access <- peak.data[, peak.use, drop = FALSE]
+        if (inherits(x = peak.access, what = "IterableMatrix")) {
+          peak.access <- as.sparse(x = peak.access)
+        }
+        if (inherits(x = gene.expression, what = "IterableMatrix")) {
+          gene.expression <- as.sparse(x = gene.expression)
+        }
         coef.result <- cor_method(
           X = peak.access,
           Y = gene.expression
@@ -477,18 +483,19 @@ LinkPeaks <- function(
             }
           )
           # run background correlations
-          bg.access <- peak.data[, unlist(x = bg.peaks), drop = FALSE]
+          unique.bg <- unique(x = unlist(x = bg.peaks))
+          bg.access <- peak.data[, unique.bg, drop = FALSE]
+          if (inherits(x = bg.access, what = 'IterableMatrix')) {
+            bg.access <- as.sparse(x = bg.access)
+          }
           bg.coef <- cor_method(
             X = bg.access,
             Y = gene.expression
           )
-          rownames(bg.coef) <- colnames(bg.access)
+          rownames(x = bg.coef) <- unique.bg
           zscores <- vector(mode = "numeric", length = length(x = peaks.test))
-          bg.lengths <- lengths(x = bg.peaks)
-          bg.ends <- cumsum(x = bg.lengths)
-          bg.starts <- bg.ends - bg.lengths + 1L
           for (j in seq_along(along.with = peaks.test)) {
-            coef.use <- bg.coef[bg.starts[[j]]:bg.ends[[j]], ]
+            coef.use <- bg.coef[bg.peaks[[j]], ]
             bg.sd <- sd(x = coef.use)
             if (bg.sd == 0 || !is.finite(x = bg.sd)) {
               zscores[[j]] <- 0

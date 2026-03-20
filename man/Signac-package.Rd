@@ -33,15 +33,18 @@ Useful links:
 \author{
 \strong{Maintainer}: Tim Stuart \email{stuartt@a-star.edu.sg} (\href{https://orcid.org/0000-0002-3044-0897}{ORCID})
 
-Authors:
-\itemize{
-  \item Avi Srivastava \email{asrivastava@wistar.org} (\href{https://orcid.org/0000-0001-9798-2079}{ORCID})
-}
-
 Other contributors:
 \itemize{
+  \item Avi Srivastava \email{asrivastava@wistar.org} (\href{https://orcid.org/0000-0001-9798-2079}{ORCID}) [contributor]
   \item Paul Hoffman \email{phoffman@nygenome.org} (\href{https://orcid.org/0000-0002-7693-8957}{ORCID}) [contributor]
   \item Rahul Satija \email{rsatija@nygenome.org} (\href{https://orcid.org/0000-0001-9448-8833}{ORCID}) [contributor]
+  \item Saket Choudhary \email{saketc@iitb.ac.in} (\href{https://orcid.org/0000-0001-5202-7633}{ORCID}) [contributor]
+  \item Caleb Lareau \email{lareauc@mskcc.org} (\href{https://orcid.org/0000-0003-4179-4807}{ORCID}) [contributor]
+  \item Chrysania Lim \email{Chrysania_Lim@a-star.edu.sg} [contributor]
+  \item Javen Tan \email{javentyr@u.nus.edu} [contributor]
+  \item Jonathan Bowles \email{jonathan_bowles@a-star.edu.sg} [contributor]
+  \item Ting Wei Lim \email{Lim_Ting_Wei@a-star.edu.sg} [contributor]
+  \item Jay Leung \email{leung_jia_yu@a-star.edu.sg} [contributor]
 }
 
 }

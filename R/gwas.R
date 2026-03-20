@@ -22,15 +22,15 @@
 LoadGWAS <- function(gwas.file) {
   # Read file
   gwas_data <- fread(file = gwas.file, data.table = FALSE)
-  colnames_lower <- tolower(x = colnames(x = gwas_data))
+  colnames(x = gwas_data) <- tolower(x = colnames(x = gwas_data))
 
   # Validate required columns
   required <- c("chromosome", "base_pair_location", "p_value")
-  missing <- required[!required %in% colnames_lower]
-  if (length(missing) > 0) {
+  missing <- required[!required %in% colnames(x = gwas_data)]
+  if (length(x = missing) > 0) {
     stop(
       "Missing required columns: ", paste(missing, collapse = ", "), "\n",
-      "Found: ", paste(colnames(gwas_data), collapse = ", "), "\n",
+      "Found: ", paste(colnames(x = gwas_data), collapse = ", "), "\n",
       "Format: SSF-based (chromosome, base_pair_location, p_value)"
     )
   }

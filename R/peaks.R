@@ -415,7 +415,7 @@ CallPeaks.default <- function(
       "Invalid genome size, choose between `hs` (human, GRCh38)",
       "`mm` (mice, GRCm38), `ce` (c elegans, WBcel235), ",
       "`dm` (drosophila m, dm6) for MACS3 built-in genome size,",
-      " or manually set genome size with the gzise parameter"
+      " or manually set genome size with the gsize parameter"
     )
   }
 
@@ -460,12 +460,15 @@ CallPeaks.default <- function(
   )
 
   # call macs3
-  system(
+  exit_code <- system(
     command = cmd,
     wait = TRUE,
     ignore.stderr = !verbose,
     ignore.stdout = !verbose
   )
+  if (exit_code != 0) {
+    stop("macs3 returned a non-zero exit code (", exit_code, ")")
+  }
 
   if (broad) {
     # read in broadpeak
