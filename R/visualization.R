@@ -85,10 +85,11 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' the type for each individual track in the provided list of bigwig files.
 #' @param bigwig.scale Same as `assay.scale` parameter, except for bigWig
 #' files when plotted with `bigwig.type="coverage"`
-#' @param title_size Size of plot title (`region_list` or `region_names`). 
-#' Default is 6
+#' @param title_size Size of plot title, only applicable if `region_names` is 
+#' not NULL. Default is 6
 #' @param subtitle_size Size of plot subtitle (coverage plot range). 
 #' Default is 5
+#' @param coords_size Size of plot coordinate text. Default is 6
 #' @return Returns a ggplot object
 #' @export
 #' @concept visualization
@@ -120,7 +121,8 @@ MultiCoveragePlot <- function(
     bigwig.type = "coverage",
     bigwig.scale = "common",
     title_size = 6,
-    subtitle_size = 5
+    subtitle_size = 5,
+    coords_size = 6
 ) {
   # check valid.assay.scale
   valid.assay.scale <- c("common", "separate")
@@ -252,16 +254,6 @@ MultiCoveragePlot <- function(
       bigwig.scale = bigwig.scale,
       links = NULL
     )
-    # assign plot titles
-    if (is.null(region_names)) {
-      if (is(region_list[[i]], "GRanges")) {
-        region.names_list[[i]] <- as.character(regions.to.plot[[i]])
-      } else {
-        region.names_list[[i]] <- region_list[[i]]
-      }
-    } else {
-      region.names_list[[i]] <- region_names[[i]]
-    }
   }
   
   # check number of plots
@@ -421,10 +413,25 @@ MultiCoveragePlot <- function(
       axis.text.x = element_blank()
     )
     
-    # change x axis text to just chr
+    # change x axis text to chr start-end
+    if (n_plots > 1) {
+      startpos <- min(arranged.plots[[i]]$patches$plots[[1]]$data$position)
+      endpos <- max(arranged.plots[[i]]$patches$plots[[1]]$data$position)
+    } else if (n_plots == 1) {
+      startpos <- min(arranged.plots[[i]]$data$position)
+      endpos <- max(arranged.plots[[i]]$data$position)
+    }
+    
     x_label <- arranged.plots[[i]]@labels$x
-    chr_position <- sub(" position \\(bp\\)", "", x_label)
-    arranged.plots[[i]]@labels$x <- chr_position
+    chrpos <- sub(" position \\(bp\\)", "", x_label)
+    arranged.plots[[i]]@labels$x <- paste0(chrpos, "\n", 
+                                           startpos,"-\n", 
+                                           endpos)
+    
+    # change font size
+    arranged.plots[[i]] <- arranged.plots[[i]] + theme(
+      axis.title.x.bottom = element_text(size = coords_size, hjust = 0.5)
+    )
   }
   
   # combine plots
