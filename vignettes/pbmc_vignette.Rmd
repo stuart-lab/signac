@@ -717,7 +717,7 @@ markers_sorted
 ```{r message=TRUE, warning=FALSE, fig.width=18, fig.height=8}
 p <- MultiCoveragePlot(
   object = pbmc, 
-  region_list = markers_sorted$gene,
+  regions = markers_sorted$gene,
   extend.upstream = 500,
   extend.downstream = 500
 )
