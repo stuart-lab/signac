@@ -51,13 +51,13 @@ ATACqc.default <- function(
 
   # call fragtk qc
   cmd <- paste0(
-    fragtk.path,
+    shQuote(fragtk.path),
     " qc --fragments ",
-    object,
+    shQuote(object),
     " --bed ",
-    tss.path,
+    shQuote(tss.path),
     " --outfile ",
-    out.path
+    shQuote(out.path)
   )
 
   exit_code <- system(

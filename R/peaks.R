@@ -430,9 +430,9 @@ CallPeaks.default <- function(
 
   # object path
   if (mode == "callpeak") {
-    object_string <- paste0(" -t ", object)
+    object_string <- paste0(" -t ", shQuote(object))
   } else if (mode == "hmmratac") {
-    object_string <- paste0(" -i ", object)
+    object_string <- paste0(" -i ", shQuote(object))
     genome_string <- " "
     broad_string <- " "
     if (verbose) {
@@ -454,7 +454,7 @@ CallPeaks.default <- function(
     " -f FRAG ",
     barcode_string,
     " -n ", "'", as.character(x = name), "'",
-    " --outdir ", outdir,
+    " --outdir ", shQuote(outdir),
     " ",
     additional.args
   )
