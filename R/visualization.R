@@ -102,6 +102,12 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' range). Default is 5
 #' @param coords_size Size of plot coordinate text. Default
 #' is 6
+#' @param links Character vector containing the keys of link 
+#' information present in the assay to display. Default is 
+#' "linkpeaks" which is the default key for peak-gene links 
+#' stored using the [LinkPeaks()] function. If `NULL`, links
+#' will not be displayed. Color gradient will take into account 
+#' all links in `regions` and a common legend will be shown.
 #' @return Returns a ggplot object
 #' @export
 #' @concept visualization
@@ -133,7 +139,8 @@ MultiCoveragePlot <- function(
   bigwig.scale = "common",
   title_size = 6,
   subtitle_size = 5,
-  coords_size = 6
+  coords_size = 6,
+  links = NULL
 ) {
   # check valid.assay.scale
   valid.assay.scale <- c("common", "separate")
@@ -282,7 +289,7 @@ MultiCoveragePlot <- function(
       bigwig = bigwig,
       bigwig.type = bigwig.type,
       bigwig.scale = bigwig.scale,
-      links = NULL
+      links = links
     )
   }
 
@@ -292,7 +299,8 @@ MultiCoveragePlot <- function(
     bigwig = !is.null(bigwig),
     annotation = !identical(annotation, FALSE),
     peaks = peaks,
-    ranges.to.plot = !is.null(ranges_list)
+    ranges.to.plot = !is.null(ranges_list),
+    links = !is.null(links)
   )
   n_plots <- 1 + sum(unlist(lapply(plot_params, isTRUE)))
 
@@ -455,6 +463,25 @@ MultiCoveragePlot <- function(
         arranged.plots[[i]]$patches$plots[[bw_idx]] <- bwplot
       } else {
         arranged.plots[[i]] <- bwplot
+      }
+    }
+  }
+  
+  ## make common legend for links
+  if (!is.null(links)) {
+    # get global max score
+    max_score <- 0 
+    for (i in seq_along(arranged.plots)) {
+      max_score <- max(max(arranged.plots[[i]]@data$score), max_score)
+    }
+    
+    # adjust color gradient
+    for (i in seq_along(arranged.plots)) {
+      arranged.plots[[i]] <- arranged.plots[[i]] + 
+        scale_colour_gradient(limits = c(0, max_score))
+      if (i == length(arranged.plots)) {
+        arranged.plots[[i]] <- arranged.plots[[i]] +
+          theme(legend.position = "right")
       }
     }
   }
