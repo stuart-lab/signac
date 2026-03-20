@@ -48,6 +48,8 @@ include an option to use the `hmmratac` peak calling method in `macs3`.
 * Added the `fragtk` parameter to `GeneActivity()`
 * Added the `fragtk` parameter to `FeatureMatrix()`
 * Added the `raster` and `raster.dpi` parameters to `DensityScatter()`
+* Added `MultiCoveragePlot()` function for plotting multiple genomic
+regions side-by-side with shared formatting and axis labels
 
 Removed functions:
 
