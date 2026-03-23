@@ -478,7 +478,10 @@ MultiCoveragePlot <- function(
     # adjust color gradient
     for (i in seq_along(arranged.plots)) {
       arranged.plots[[i]] <- arranged.plots[[i]] + 
-        scale_colour_gradient(limits = c(0, max_score))
+        scale_colour_gradient2(
+          low = "red", mid = "grey", high = "blue",
+          limits = c(0, max_score),
+          n.breaks = 3)
       if (i == length(arranged.plots)) {
         arranged.plots[[i]] <- arranged.plots[[i]] +
           theme(legend.position = "right")
