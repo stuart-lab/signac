@@ -32,7 +32,8 @@ MultiCoveragePlot(
   bigwig.scale = "common",
   title_size = 6,
   subtitle_size = 5,
-  coords_size = 6
+  coords_size = 6,
+  links = NULL
 )
 }
 \arguments{
@@ -164,6 +165,13 @@ range). Default is 5}
 
 \item{coords_size}{Size of plot coordinate text. Default
 is 6}
+
+\item{links}{Character vector containing the keys of link
+information present in the assay to display. Default is
+"linkpeaks" which is the default key for peak-gene links
+stored using the \code{\link[=LinkPeaks]{LinkPeaks()}} function. If \code{NULL}, links
+will not be displayed. Color gradient will take into account
+all links in \code{regions} and a common legend will be shown.}
 }
 \value{
 Returns a ggplot object
