@@ -174,63 +174,6 @@ interneurons (https://www.nature.com/articles/nature25999). Here our results are
 consistent with these findings, and we observe a strong enrichment of Mef-family
 motifs in the top results from `FindMotifs()`.
 
-## Computing motif activities
-
-We can also compute a per-cell motif activity score by running 
-[chromVAR](https://greenleaflab.github.io/chromVAR/index.html). This allows us
-to visualize motif activities per cell, and also provides an alternative method
-of identifying differentially-active motifs between cell types.
-
-ChromVAR identifies motifs associated with variability in chromatin
-accessibility between cells. See the chromVAR
-[paper](https://www.nature.com/articles/nmeth.4401) for a complete description
-of the method.
-
-```{r message=FALSE, warning=FALSE, fig.width=12}
-mouse_brain <- RunChromVAR(
-  object = mouse_brain,
-  genome = BSgenome.Mmusculus.UCSC.mm10
-)
-
-DefaultAssay(mouse_brain) <- 'chromvar'
-
-# look at the activity of Mef2c
-p2 <- FeaturePlot(
-  object = mouse_brain,
-  features = "MA0497.1",
-  min.cutoff = 'q10',
-  max.cutoff = 'q90',
-  pt.size = 0.1
-)
-p1 + p2
-```
-
-We can also directly test for differential activity scores between cell types.
-This tends to give similar results as performing an enrichment test on
-differentially accessible peaks between the cell types (shown above).
-
-When performing differential testing on the chromVAR z-score, we can set 
-`mean.fxn=rowMeans` and `fc.name="avg_diff"` in the `FindMarkers()` function so
-that the fold-change calculation computes the average difference in z-score
-between the groups.
-
-```{r message=FALSE, warning=FALSE}
-differential.activity <- FindMarkers(
-  object = mouse_brain,
-  ident.1 = 'Pvalb',
-  ident.2 = 'Sst',
-  only.pos = TRUE,
-  mean.fxn = rowMeans,
-  fc.name = "avg_diff"
-)
-
-MotifPlot(
-  object = mouse_brain,
-  motifs = head(rownames(differential.activity)),
-  assay = 'peaks'
-)
-```
-
 <details>
   <summary>**Session Info**</summary>
 
