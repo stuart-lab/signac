@@ -1945,6 +1945,8 @@ FragmentHistogram <- function(
 globalVariables(names = "norm.value", package = "Signac")
 #' Plot signal enrichment around TSSs
 #'
+#' `r lifecycle::badge("deprecated")`
+#'
 #' Plot the normalized TSS enrichment score at each position relative to the
 #' TSS. Requires that [TSSEnrichment()] has already been run on the
 #' assay.
@@ -1971,6 +1973,7 @@ TSSPlot <- function(
   group.by = NULL,
   idents = NULL
 ) {
+  lifecycle::deprecate_soft(when = "1.17.0", what = "TSSPlot()")
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
     stop("The requested assay is not a ChromatinAssay.")
