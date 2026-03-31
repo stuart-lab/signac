@@ -6,7 +6,7 @@ NULL
 #' @method AddMotifs default
 #' @concept motifs
 #' @importFrom methods slot
-#' @importFrom Seqinfo seqlevels seqnames
+#' @importFrom Seqinfo seqlevels seqnames seqinfo seqinfo<-
 #' @export
 AddMotifs.default <- function(
   object,
@@ -61,6 +61,8 @@ AddMotifs.default <- function(
     out = "positions",
     genome = genome
   )
+  # Since motifmatchr::matchMotifs returns a GenomicRanges without seqinfo
+  seqinfo(motif.positions) <- seqinfo(genome)[seqlevels(motif.positions)]
   if (verbose) {
     message("Creating Motif object")
   }

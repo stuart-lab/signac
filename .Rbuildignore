@@ -26,3 +26,4 @@ build.sh
 ^data-raw$
 ^signac-private\.Rproj$
 .lintr
+.claude

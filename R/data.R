@@ -25,5 +25,5 @@
 #' }
 #'
 #' @concept data
-#' @source <https://support.10xgenomics.com/single-cell-atac/datasets/1.1.0/atac_v1_pbmc_10k>
+#' @source <https://www.10xgenomics.com/datasets/10k-human-pbmcs-atac-v2-chromium-controller-2-standard>
 "atac_small_old"
