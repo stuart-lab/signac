@@ -6,7 +6,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data/pbmc_vignette")
+knitr::opts_knit$set(root.dir = "../../vignette_data/pbmc_vignette")
 ```
 
 In this tutorial, we demonstrate how to call peaks on a single-cell ATAC-seq

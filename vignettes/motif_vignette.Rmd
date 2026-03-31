@@ -6,7 +6,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data/mouse_brain")
+knitr::opts_knit$set(root.dir = "../../vignette_data/mouse_brain")
 ```
 
 In this tutorial, we will perform DNA sequence motif analysis in Signac. We will

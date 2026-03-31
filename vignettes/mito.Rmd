@@ -14,7 +14,7 @@ if (!requireNamespace(package = "EnsDb.Hsapiens.v75", quietly = TRUE)) {
 
 ```{r init, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data/mito")
+knitr::opts_knit$set(root.dir = "../../vignette_data/mito")
 ```
 
 ```{r packages, message=FALSE, warning=FALSE, echo=TRUE}

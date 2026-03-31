@@ -6,7 +6,7 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data")
+knitr::opts_knit$set(root.dir = "../../vignette_data")
 ```
 
 In this vignette we demonstrate how to merge multiple Seurat objects containing 
