@@ -56,7 +56,7 @@ New features:
 Bug fixes:
 
 * Fix object subsetting when `RegionMatrix()` position enrichment information is present in the object.
-* Fix error in `RegionPlot()` x-axis ([@cmf1997](https://github.com/cmf1997); [#1899](https://github.com/stuart-lab/signac/pull/1899))
+* Fix error in `RegionPlot()` x-axis ([@Cmfffff](https://github.com/Cmfffff); [#1899](https://github.com/stuart-lab/signac/pull/1899))
 
 Other changes:
 
