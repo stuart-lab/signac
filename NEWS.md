@@ -3,17 +3,26 @@
 New features:
 
 * Added the `ATACqc()` function to run `fragtk qc` and store the results
-* Added `FitMeanVar()` and `PearsonResidualVar()` functions for highly variable feature selection 
+* Added `FitMeanVar()` and `PearsonResidualVar()` functions for highly variable feature selection
 * Added `pca` parameter to `RunSVD()` to compute PCA dimension reduction without storing standardized matrix
 * Added the `EnrichedTerms()` function to run `fgsea()` on differential testing results from each group of cell identities
+* Added `layer` parameter to `RunSVD()` to select which layer to use
 
 Other changes:
 
 * Deprecated `NucleosomeSignal` and `TSSEnrichment` functions in favor of the
 new `ATACqc` function
+* Deprecated `TSSPlot`
+* Deprecated `GRangesToString` and `StringToGRanges`
 * Deprecated the blacklist region data objects in favor of using the
 [excluderanges](https://github.com/dozmorovlab/excluderanges) package
 * Changed SVD function in `RunSVD()` from `irlba::irlba()` to `RSpectra::svds()`
+* Removed `irlba.work` parameter from `RunSVD()`
+* Added `sparseMatrixStats` and `RSpectra` to package dependencies; removed `irlba`
+* Added `fgsea` to suggested packages
+* Removed `RunChromVAR()` and `AddChromatinModule()` due to the chromVAR package
+being unavailable in Bioconductor 3.23
+* Removed `chromVAR` from suggested packages
 
 # Signac 1.16.0
 
