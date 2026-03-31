@@ -16,7 +16,7 @@ setClassUnion(name = "AnyMatrix", c("matrix", "dgCMatrix"))
 #' fragment files.
 #'
 #' @slot path Path to the fragment file on disk.
-#' See <https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments>
+#' See <https://www.10xgenomics.com/support/software/cell-ranger-atac/latest/analysis/outputs/fragments-file>
 #' @slot hash A vector of two md5sums: first element is the md5sum of the
 #' fragment file, the second element is the md5sum of the index.
 #' @slot cells A named vector of cells where each element is the cell barcode
