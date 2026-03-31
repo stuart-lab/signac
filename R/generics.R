@@ -337,7 +337,7 @@ IdentifyVariants <- function(object, ...) {
 #' @references
 #' Lause, J., Berens, P. & Kobak, D. Analytic Pearson residuals for
 #' normalization of single-cell RNA-seq UMI data. Genome Biol 22, 258 (2021).
-#' <https://doi.org/10.1186/s13059-021-02451-7>
+#' \doi{10.1186/s13059-021-02451-7}
 PearsonResidualVar <- function(object, ...) {
   UseMethod(generic = "PearsonResidualVar", object = object)
 }
