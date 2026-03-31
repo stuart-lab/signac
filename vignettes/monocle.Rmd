@@ -33,7 +33,7 @@ Signac.
 
 ```{r init, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data/GSE129785")
+knitr::opts_knit$set(root.dir = "../../vignette_data/GSE129785")
 ```
 
 ```{r include=FALSE}
@@ -139,6 +139,12 @@ help remove low quality cells from the datasets.
 ```{r message=FALSE, warning=FALSE}
 bone <- TSSEnrichment(bone)
 bone <- NucleosomeSignal(bone)
+
+# blacklist regions for hg19
+library(AnnotationHub)
+ah <- AnnotationHub()
+blacklist_hg19 <- ah[['AH107314']]
+
 bone$blacklist_fraction <- FractionCountsInRegion(bone, regions = blacklist_hg19)
 ```
 

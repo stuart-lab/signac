@@ -13,13 +13,13 @@ ValidateCells(
 )
 }
 \arguments{
-\item{object}{A \code{\link{Fragment}} object}
+\item{object}{A \code{\link[=Fragment]{Fragment()}} object}
 
 \item{cells}{A character vector containing cell barcodes to search for.
 If NULL, use the cells stored in the Fragment object.}
 
 \item{tolerance}{Fraction of input cells that can be unseen before returning
-TRUE. For example, \code{tolerance = 0.01} will return TRUE when 99% of cells
+TRUE. For example, \code{tolerance = 0.01} will return TRUE when 99\% of cells
 have observed fragments in the file. This can be useful if there are cells
 present that have much fewer total counts, and would require extensive
 searching before a fragment from those cells are found.}

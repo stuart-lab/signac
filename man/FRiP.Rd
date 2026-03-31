@@ -13,19 +13,19 @@ FRiP(object, assay, total.fragments, col.name = "FRiP", verbose = TRUE)
 
 \item{total.fragments}{Name of a metadata column containing the total number
 of sequenced fragments for each cell. This can be computed using the
-\code{\link{CountFragments}} function.}
+\code{\link[=CountFragments]{CountFragments()}} function.}
 
 \item{col.name}{Name of column in metadata to store the FRiP information.}
 
 \item{verbose}{Display messages}
 }
 \value{
-Returns a \code{\link[SeuratObject]{Seurat}} object
+Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
 }
 \description{
 Calculate fraction of reads in peaks per cell
 }
 \examples{
-FRiP(object = atac_small, assay = 'peaks', total.fragments = "fragments")
+FRiP(object = atac_small, assay = "peaks", total.fragments = "fragments")
 }
 \concept{qc}

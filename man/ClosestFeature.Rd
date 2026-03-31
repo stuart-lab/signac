@@ -14,7 +14,9 @@ ClosestFeature(object, regions, annotation = NULL, ...)
 \item{annotation}{A GRanges object containing annotation information. If
 NULL, use the annotations stored in the object.}
 
-\item{...}{Additional arguments passed to \code{\link{StringToGRanges}}}
+\item{...}{Additional arguments passed to \code{\link[=StringToGRanges]{StringToGRanges()}}
+
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}}
 }
 \value{
 Returns a dataframe with the name of each region, the closest feature

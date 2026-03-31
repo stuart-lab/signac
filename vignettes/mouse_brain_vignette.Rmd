@@ -6,7 +6,7 @@ date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 
 ```{r init, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data/mouse_brain")
+knitr::opts_knit$set(root.dir = "../../vignette_data/mouse_brain")
 ```
 
 For this tutorial, we will be analyzing a single-cell ATAC-seq dataset of adult

@@ -12,21 +12,21 @@
 \S4method{granges}{Seurat}(x, use.names = TRUE, use.mcols = FALSE, ...)
 }
 \arguments{
-\item{x}{A \code{\link{ChromatinAssay}} object}
+\item{x}{A \code{\link[=ChromatinAssay]{ChromatinAssay()}} object}
 
 \item{use.names}{Whether the names on the genomic ranges should be
 propagated to the returned object.}
 
-\item{use.mcols}{Not supported for \code{\link{ChromatinAssay}} objects}
+\item{use.mcols}{Not supported for \code{\link[=ChromatinAssay]{ChromatinAssay()}} objects}
 
 \item{...}{Additional arguments}
 }
 \value{
-Returns a \code{\link[GenomicRanges]{GRanges}} object
+Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
 }
 \description{
-Methods for accessing \code{\link[GenomicRanges]{GRanges}} object
-information stored in a \code{\link{ChromatinAssay}} object.
+Methods for accessing \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
+information stored in a \code{\link[=ChromatinAssay]{ChromatinAssay()}} object.
 }
 \section{Functions}{
 \itemize{
@@ -38,8 +38,8 @@ granges(atac_small)
 }
 \seealso{
 \itemize{
-  \item{\link[GenomicRanges]{granges} in the \pkg{GenomicRanges} package.}
-  \item{\link{ChromatinAssay-class}}
- }
+\item{\link[GenomicRanges:genomic-range-squeezers]{granges} in the \pkg{GenomicRanges} package.}
+\item{\linkS4class{ChromatinAssay}}
+}
 }
 \concept{granges}

@@ -17,12 +17,12 @@ CreateMotifMatrix(
 \arguments{
 \item{features}{A GRanges object containing a set of genomic features}
 
-\item{pwm}{A \code{\link[TFBSTools]{PFMatrixList}} or
-\code{\link[TFBSTools]{PWMatrixList}}
+\item{pwm}{A \code{\link[TFBSTools:XMatrixList-class]{TFBSTools::PFMatrixList()}} or
+\code{\link[TFBSTools:XMatrixList-class]{TFBSTools::PWMatrixList()}}
 object containing position weight/frequency matrices to use}
 
 \item{genome}{Any object compatible with the \code{genome} argument
-in \code{\link[motifmatchr]{matchMotifs}}}
+in \code{\link[motifmatchr:matchMotifs]{motifmatchr::matchMotifs()}}}
 
 \item{score}{Record the motif match score, rather than presence/absence
 (default FALSE)}
@@ -34,7 +34,7 @@ record presence/absence of motif. Only applicable if \code{score=FALSE}.}
 when constructing matrix rownames from the GRanges}
 
 \item{...}{Additional arguments passed to
-\code{\link[motifmatchr]{matchMotifs}}}
+\code{\link[motifmatchr:matchMotifs]{motifmatchr::matchMotifs()}}}
 }
 \value{
 Returns a sparse matrix

@@ -38,7 +38,7 @@ a separate folder.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data/snare-seq")
+knitr::opts_knit$set(root.dir = "../../vignette_data/snare-seq")
 ```
 
 ```{r include=FALSE}
@@ -83,6 +83,12 @@ Annotation(snare[["ATAC"]]) <- annotations
 DefaultAssay(snare) <- "ATAC"
 snare <- TSSEnrichment(snare)
 snare <- NucleosomeSignal(snare)
+
+# blacklist regions for mm10
+library(AnnotationHub)
+ah <- AnnotationHub()
+blacklist_mm10 <- ah[['AH107322']]
+
 snare$blacklist_fraction <- FractionCountsInRegion(
   object = snare,
   assay = 'ATAC',

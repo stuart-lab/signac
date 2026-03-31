@@ -1,11 +1,11 @@
 #' Add DNA sequence motif information
 #'
-#' Construct a \code{\link{Motif}} object containing DNA sequence motif
+#' Construct a [Motif()] object containing DNA sequence motif
 #' information and add it to an existing Seurat object or ChromatinAssay.
-#' If running on a Seurat object, \code{AddMotifs} will also run
-#' \code{\link{RegionStats}} to compute the GC content of each peak and store
+#' If running on a Seurat object, `AddMotifs` will also run
+#' [RegionStats()] to compute the GC content of each peak and store
 #' the results in the feature metadata. PFMs or PWMs are matched to the genome
-#' sequence using the \code{\link[motifmatchr]{matchMotifs}} function with
+#' sequence using the [motifmatchr::matchMotifs()] function with
 #' default parameters to construct a matrix of motif positions in genomic
 #' regions.
 #'
@@ -13,9 +13,9 @@
 #' @param ... Additional arguments passed to other methods
 #' @export AddMotifs
 #' @rdname AddMotifs
-#' @return When running on a \code{ChromatinAssay} or \code{Seurat} object,
+#' @return When running on a `ChromatinAssay` or `Seurat` object,
 #' returns a modified version of the input object. When running on a matrix,
-#' returns a \code{Motif} object.
+#' returns a `Motif` object.
 #' @seealso \pkg{motifmatchr}
 AddMotifs <- function(object, ...) {
   UseMethod(generic = "AddMotifs", object = object)
@@ -35,8 +35,31 @@ AggregateTiles <- function(object, ...) {
   UseMethod(generic = "AggregateTiles", object = object)
 }
 
+#' Compute scATAC-seq QC metrics
+#' 
+#' Wrapper function to run `fragtk qc` and add the metadata to the Seurat
+#' object.
+#' 
+#' @param object A Seurat object, ChromatinAssay object, or path to a fragment
+#' file.
+#' @param fragtk.path Path to fragtk executable. If NULL, try to find fragtk
+#' automatically.
+#' @param annotations [GenomicRanges::GRanges()] object containing
+#' gene annotations. If NULL, attempt to extract this from the ChromatinAssay
+#' object if provided.
+#' @param outdir Path for output directory
+#' @param cleanup Remove output files created by fragtk
+#' @param verbose Display messages
+#' @param ... Arguments passed to other methods
+#' 
+#' @export ATACqc
+#' @rdname ATACqc
+ATACqc <- function(object, ...) {
+  UseMethod(generic = "ATACqc", object = object)
+}
+
 #' Convert objects to a ChromatinAssay
-#' @param x An object to convert to class \code{\link{ChromatinAssay}}
+#' @param x An object to convert to class [ChromatinAssay()]
 #' @param ... Arguments passed to other methods
 #' @rdname as.ChromatinAssay
 #' @export as.ChromatinAssay
@@ -51,11 +74,11 @@ as.ChromatinAssay <- function(x, ...) {
 #'
 #' @param object A Seurat object, Assay, or matrix
 #' @param variants A character vector of informative variants to keep. For
-#' example, \code{c("627G>A","709G>A","1045G>A","1793G>A")}.
+#' example, `c("627G>A","709G>A","1045G>A","1793G>A")`.
 #' @param ... Arguments passed to other methods
 #'
 #' @export
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object with a new assay
+#' @return Returns a [SeuratObject::Seurat()] object with a new assay
 #' containing the allele frequencies for the informative variants.
 AlleleFreq <- function(object, ...) {
   UseMethod(generic = "AlleleFreq", object = object)
@@ -66,7 +89,7 @@ AlleleFreq <- function(object, ...) {
 #' Get the annotation from a ChromatinAssay
 #'
 #' @param ... Arguments passed to other methods
-#' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
+#' @return Returns a [GenomicRanges::GRanges()] object
 #' if the annotation data is present, otherwise returns NULL
 #' @rdname Annotation
 #' @export Annotation
@@ -75,8 +98,8 @@ Annotation <- function(object, ...) {
 }
 
 #' @param value A value to set. Can be NULL, to remove the current annotation
-#' information, or a \code{\link[GenomicRanges]{GRanges}} object. If a
-#' \code{GRanges} object is supplied and the genome information is stored in the
+#' information, or a [GenomicRanges::GRanges()] object. If a
+#' `GRanges` object is supplied and the genome information is stored in the
 #' assay, the genome of the new annotations must match the genome of the assay.
 #'
 #' @rdname Annotation
@@ -92,7 +115,7 @@ Annotation <- function(object, ...) {
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @return Returns a [SeuratObject::Seurat()] object
 #' @rdname BinarizeCounts
 #' @export BinarizeCounts
 BinarizeCounts <- function(object, ...) {
@@ -103,10 +126,10 @@ BinarizeCounts <- function(object, ...) {
 #'
 #' Call peaks using MACS. Fragment files linked to the specified assay will be
 #' used to call peaks. If multiple fragment files are present, all will be used
-#' in a single MACS invocation. Returns the \code{.narrowPeak} MACS output as a
-#' \code{GRanges} object.
+#' in a single MACS invocation. Returns the `.narrowPeak` MACS output as a
+#' `GRanges` object.
 #'
-#' See \url{https://macs3-project.github.io/MACS/} for MACS documentation.
+#' See <https://macs3-project.github.io/MACS/> for MACS documentation.
 #'
 #' If you call peaks using MACS2 please cite:
 #' \doi{10.1186/gb-2008-9-9-r137}
@@ -114,7 +137,7 @@ BinarizeCounts <- function(object, ...) {
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
 #'
-#' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
+#' @return Returns a [GenomicRanges::GRanges()] object
 #' @rdname CallPeaks
 #' @export CallPeaks
 CallPeaks <- function(object, ...) {
@@ -135,20 +158,44 @@ CallPeaks <- function(object, ...) {
 #' Convert between motif name and motif ID
 #'
 #' Converts from motif name to motif ID or vice versa. To convert common names
-#' to IDs, use the \code{name} parameter. To convert IDs to common names, use
-#' the \code{id} parameter.
+#' to IDs, use the `name` parameter. To convert IDs to common names, use
+#' the `id` parameter.
 #'
 #' @param object A Seurat, ChromatinAssay, or Motif object
 #' @param ... Arguments passed to other methods
 #'
 #' @return Returns a character vector with the same length and order as the
-#' input. Any names or IDs that were not found will be stored as \code{NA}.
+#' input. Any names or IDs that were not found will be stored as `NA`.
 #'
 #' @rdname ConvertMotifID
 #' @export ConvertMotifID
 #'
 ConvertMotifID <- function(object, ...) {
   UseMethod(generic = "ConvertMotifID", object = object)
+}
+
+#' Find variable features fitting LOESS
+#'
+#' Find highly variable features by fitting a locally polynomial regression
+#' model to the log(mean) and log(variance) of downsampled features.
+#' 
+#' This function is similar to the [Seurat::FindVariableFeatures()]
+#' function (with `selection.method="vst"`), but downsamples the features
+#' evenly across the range of mean values. This speeds up fitting of the loess 
+#' curve when the number of features is large.
+#' 
+#' The function also provides the ability to combine ranking of features
+#' according to their mean count and their residual variance, using a weighted
+#' rank sum with weights set by the `weight.mean` parameter. This can help
+#' to avoid selecting features with high residual variance but very low mean.
+#'
+#' @param object A Seurat object
+#' @param ... Arguments passed to other methods
+#' @return Returns a [SeuratObject::Seurat()] object
+#' @rdname FitMeanVar
+#' @export FitMeanVar
+FitMeanVar <- function(object, ...) {
+  UseMethod(generic = "FitMeanVar", object = object)
 }
 
 #' Find most frequently observed features
@@ -158,11 +205,11 @@ ConvertMotifID <- function(object, ...) {
 #' bound to determine the set of variable features. Running this function will
 #' store the total counts and percentile rank for each feature in the feature
 #' metadata for the assay. To only compute the feature metadata, without
-#' changing the variable features for the assay, set \code{min.cutoff=NA}.
+#' changing the variable features for the assay, set `min.cutoff=NA`.
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @return Returns a [SeuratObject::Seurat()] object
 #' @rdname FindTopFeatures
 #' @export FindTopFeatures
 FindTopFeatures <- function(object, ...) {
@@ -176,7 +223,7 @@ FindTopFeatures <- function(object, ...) {
 #'
 #' @param object A Seurat or ChromatinAssay object
 #' @param ... Arguments passed to other methods
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @return Returns a [SeuratObject::Seurat()] object
 #' @rdname Footprint
 #' @export Footprint
 Footprint <- function(object, ...) {
@@ -186,7 +233,7 @@ Footprint <- function(object, ...) {
 #' Get the Fragment objects
 #'
 #' @param ... Arguments passed to other methods
-#' @return Returns a list of \code{\link{Fragment}} objects. If there are
+#' @return Returns a list of [Fragment()] objects. If there are
 #' no Fragment objects present, returns an empty list.
 #' @rdname Fragments
 #' @export Fragments
@@ -194,7 +241,7 @@ Fragments <- function(object, ...) {
   UseMethod(generic = "Fragments", object = object)
 }
 
-#' @param value A \code{\link{Fragment}} object or list of Fragment objects
+#' @param value A [Fragment()] object or list of Fragment objects
 #'
 #' @rdname Fragments
 #' @export Fragments<-
@@ -221,7 +268,7 @@ InsertionBias <- function(object, ...) {
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @return Returns a [SeuratObject::Seurat()] object
 #' @rdname GetMotifData
 #' @export GetMotifData
 GetMotifData <- function(object, ...) {
@@ -239,7 +286,7 @@ Motifs <- function(object, ...) {
   UseMethod(generic = "Motifs", object = object)
 }
 
-#' @param value A \code{\link{Motif}} object
+#' @param value A [Motif()] object
 #' @rdname Motifs
 #' @export Motifs<-
 "Motifs<-" <- function(object, ..., value) {
@@ -257,7 +304,7 @@ Links <- function(object, ...) {
   UseMethod(generic = "Links", object = object)
 }
 
-#' @param value A \code{\link[GenomicRanges]{GRanges}} object
+#' @param value A [GenomicRanges::GRanges()] object
 #' @rdname Links
 #' @export Links<-
 "Links<-" <- function(object, ..., value) {
@@ -275,6 +322,26 @@ IdentifyVariants <- function(object, ...) {
   UseMethod(generic = "IdentifyVariants", object = object)
 }
 
+#' Compute analytic Pearson residual variance
+#' 
+#' Find the top features for a given assay based on analytic Pearson residual
+#' variance. This function computes the Pearson residual variance for each
+#' feature without constructing the entire dense matrix of Pearson residuals to
+#' reduce the memory required.
+#'
+#' @param object A Seurat object
+#' @param ... Arguments passed to other methods
+#' @return Returns a [SeuratObject::Seurat()] object
+#' @rdname PearsonResidualVar
+#' @export PearsonResidualVar
+#' @references
+#' Lause, J., Berens, P. & Kobak, D. Analytic Pearson residuals for
+#' normalization of single-cell RNA-seq UMI data. Genome Biol 22, 258 (2021).
+#' <https://doi.org/10.1186/s13059-021-02451-7>
+PearsonResidualVar <- function(object, ...) {
+  UseMethod(generic = "PearsonResidualVar", object = object)
+}
+
 #' Region enrichment analysis
 #'
 #' Count fragments within a set of regions for different groups of
@@ -282,7 +349,7 @@ IdentifyVariants <- function(object, ...) {
 #'
 #' @param object A Seurat or ChromatinAssay object
 #' @param ... Arguments passed to other methods
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @return Returns a [SeuratObject::Seurat()] object
 #' @rdname RegionMatrix
 #' @export RegionMatrix
 RegionMatrix <- function(object, ...) {
@@ -303,40 +370,14 @@ RegionStats <- function(object, ...) {
   UseMethod(generic = "RegionStats", object = object)
 }
 
-#' Run chromVAR
-#'
-#' Wrapper to run \code{\link[chromVAR]{chromVAR}} on an assay with a motif
-#' object present. Will return a new Seurat assay with the motif activities
-#' (the deviations in chromatin accessibility across the set of regions) as
-#' a new assay.
-#'
-#' See the chromVAR documentation for more information:
-#' \url{https://greenleaflab.github.io/chromVAR/index.html}
-#'
-#' See the chromVAR paper: \url{https://www.nature.com/articles/nmeth.4401}
-#'
-#' @param object A Seurat object
-#' @param genome A \code{BSgenome} object or string stating the genome build
-#' recognized by \code{getBSgenome}.
-#' @param motif.matrix A peak x motif matrix. If NULL, pull the peak x motif
-#' matrix from a Motif object stored in the assay.
-#' @param verbose Display messages
-#' @param ... Additional arguments passed to
-#' \code{\link[chromVAR]{getBackgroundPeaks}}
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object with a new assay
-#' @rdname RunChromVAR
-#' @export RunChromVAR
-RunChromVAR <- function(object, ...) {
-  UseMethod(generic = "RunChromVAR", object = object)
-}
 
 #' Run singular value decomposition
 #'
-#' Run partial singular value decomposition using \code{\link[irlba]{irlba}}
+#' Run partial singular value decomposition using [irlba::irlba()]
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @return Returns a [SeuratObject::Seurat()] object
 #' @rdname RunSVD
 #' @export RunSVD
 RunSVD <- function(object, ...) {
@@ -353,10 +394,10 @@ RunSVD <- function(object, ...) {
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @return Returns a [SeuratObject::Seurat()] object
 #' @rdname RunTFIDF
 #' @export RunTFIDF
-#' @references \url{https://en.wikipedia.org/wiki/Latent_semantic_analysis#Latent_semantic_indexing}
+#' @references <https://en.wikipedia.org/wiki/Latent_semantic_analysis#Latent_semantic_indexing>
 RunTFIDF <- function(object, ...) {
   UseMethod(generic = "RunTFIDF", object = object)
 }
@@ -367,7 +408,7 @@ RunTFIDF <- function(object, ...) {
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @return Returns a [SeuratObject::Seurat()] object
 #' @rdname SetMotifData
 #' @export SetMotifData
 SetMotifData <- function(object, ...) {

@@ -21,7 +21,7 @@ as.ChromatinAssay(x, ...)
 )
 }
 \arguments{
-\item{x}{An object to convert to class \code{\link{ChromatinAssay}}}
+\item{x}{An object to convert to class \code{\link[=ChromatinAssay]{ChromatinAssay()}}}
 
 \item{...}{Arguments passed to other methods}
 
@@ -33,16 +33,16 @@ can be provided and the sequence information will be downloaded from UCSC.}
 
 \item{annotation}{Genomic annotation. It must have the following columns:
 \itemize{
-  \item{tx_id or transcript_id: Transcript ID}
-  \item{gene_name: Gene name}
-  \item{gene_id: Gene ID}
-  \item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
-  \item{type: Annotation type (e.g. "exon", "gap")}
+\item{tx_id or transcript_id: Transcript ID}
+\item{gene_name: Gene name}
+\item{gene_id: Gene ID}
+\item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
+\item{type: Annotation type (e.g. "exon", "gap")}
 }}
 
-\item{motifs}{A \code{\link{Motif}} object}
+\item{motifs}{A \code{\link[=Motif]{Motif()}} object}
 
-\item{fragments}{A list of \code{\link{Fragment}} objects}
+\item{fragments}{A list of \code{\link[=Fragment]{Fragment()}} objects}
 
 \item{bias}{Tn5 integration bias matrix}
 

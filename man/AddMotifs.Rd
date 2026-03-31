@@ -42,12 +42,12 @@ returns a modified version of the input object. When running on a matrix,
 returns a \code{Motif} object.
 }
 \description{
-Construct a \code{\link{Motif}} object containing DNA sequence motif
+Construct a \code{\link[=Motif]{Motif()}} object containing DNA sequence motif
 information and add it to an existing Seurat object or ChromatinAssay.
 If running on a Seurat object, \code{AddMotifs} will also run
-\code{\link{RegionStats}} to compute the GC content of each peak and store
+\code{\link[=RegionStats]{RegionStats()}} to compute the GC content of each peak and store
 the results in the feature metadata. PFMs or PWMs are matched to the genome
-sequence using the \code{\link[motifmatchr]{matchMotifs}} function with
+sequence using the \code{\link[motifmatchr:matchMotifs]{motifmatchr::matchMotifs()}} function with
 default parameters to construct a matrix of motif positions in genomic
 regions.
 }

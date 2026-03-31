@@ -6,7 +6,7 @@ NULL
 #'
 #' Compute the transcription start site (TSS) enrichment score for each cell,
 #' as defined by ENCODE:
-#' \url{https://www.encodeproject.org/data-standards/terms/}.
+#' <https://www.encodeproject.org/data-standards/terms/>.
 #'
 #' The computed score will be added to the object metadata as "TSS.enrichment".
 #'
@@ -22,7 +22,7 @@ NULL
 #' base-resolution matrix of integration counts at each site. This reduces the
 #' memory required to store the object but does not allow plotting the
 #' accessibility profile at the TSS.
-#' @param process_n Number of regions to process at a time if using \code{fast}
+#' @param process_n Number of regions to process at a time if using `fast`
 #' option.
 #' @param verbose Display messages
 #' @param region_extension Distance extended upstream and downstream from TSS
@@ -36,7 +36,7 @@ NULL
 #' @importFrom GenomicRanges start width strand
 #' @importFrom SeuratObject DefaultAssay
 #'
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @return Returns a [SeuratObject::Seurat()] object
 #' @export
 #' @concept qc
 #' @examples
@@ -60,6 +60,7 @@ TSSEnrichment <- function(
   verbose = TRUE,
   region_extension = 1000
 ) {
+  .Deprecated(new = "ATACqc", package = "Signac")
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
     stop("The requested assay is not a ChromatinAssay")

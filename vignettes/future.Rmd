@@ -145,7 +145,7 @@ write.table(
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
-results <- read.table("../vignette_data/pbmc10k/timings_2023-03-21.tsv", header = TRUE)
+results <- read.table("../../vignette_data/pbmc10k/timings_2023-03-21.tsv", header = TRUE)
 results$cores <- factor(results$cores, levels = c("1", "4", "10"))
 
 p <- ggplot(results, aes(x = cores, y = time/60, color = cores)) +

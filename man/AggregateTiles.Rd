@@ -64,9 +64,9 @@ aggregation}
 }
 \value{
 When running on a Seurat object, returns the Seurat object with a new
-\code{\link{ChromatinAssay}} added.
+\code{\link[=ChromatinAssay]{ChromatinAssay()}} added.
 
-When running on a \code{\link{ChromatinAssay}}, returns a new
+When running on a \code{\link[=ChromatinAssay]{ChromatinAssay()}}, returns a new
 \code{ChromatinAssay} containing the aggregated genome tiles.
 
 When running on a fragment file, returns a sparse region x cell

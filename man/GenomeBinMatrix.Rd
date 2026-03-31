@@ -16,12 +16,12 @@ GenomeBinMatrix(
 }
 \arguments{
 \item{fragments}{Path to tabix-indexed fragments file or a list of
-\code{\link{Fragment}} objects}
+\code{\link[=Fragment]{Fragment()}} objects}
 
 \item{genome}{A vector of chromosome sizes for the genome. This is used to
 construct the genome bin coordinates. The can be obtained by calling
 \code{seqlengths} on a
-\code{\link[BSgenome]{BSgenome-class}} object.}
+\code{\link[BSgenome:BSgenome-class]{BSgenome::BSgenome-class()}} object.}
 
 \item{cells}{Vector of cells to include. If NULL, include all cells found
 in the fragments file}
@@ -44,7 +44,7 @@ Returns a sparse matrix
 Construct a bin x cell matrix from a fragments file.
 }
 \details{
-This function bins the genome and calls \code{\link{FeatureMatrix}} to
+This function bins the genome and calls \code{\link[=FeatureMatrix]{FeatureMatrix()}} to
 construct a bin x cell matrix.
 }
 \examples{

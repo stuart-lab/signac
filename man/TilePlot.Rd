@@ -55,7 +55,7 @@ total number of fragments in the region, "random" will select randomly.}
 all identities.}
 }
 \value{
-Returns a \code{\link[ggplot2]{ggplot}} object
+Returns a \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} object
 }
 \description{
 Plots the presence/absence of Tn5 integration sites for each cell

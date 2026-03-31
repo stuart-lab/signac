@@ -6,7 +6,7 @@ date: 'Compiled: `r format(Sys.Date(), "%B %d, %Y")`'
 
 ```{r init, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../vignette_data/pbmc_vignette")
+knitr::opts_knit$set(root.dir = "../../vignette_data/pbmc_vignette")
 ```
 
 ```{r, include=FALSE}
@@ -228,7 +228,7 @@ biological system, cell viability, and other factors.
 
 * Fraction of fragments in peaks: Represents the fraction of all fragments that fall within ATAC-seq peaks. Cells with low values (i.e. <15-20%) often represent low-quality cells or technical artifacts that should be removed. Note that this value can be sensitive to the set of peaks used.
 
-* Ratio reads in genomic blacklist regions: The [ENCODE project](https://www.encodeproject.org/) has provided a list of [blacklist regions](https://github.com/Boyle-Lab/Blacklist), representing reads which are often associated with artefactual signal. Cells with a high proportion of reads mapping to these areas (compared to reads mapping to peaks) often represent technical artifacts and should be removed. ENCODE blacklist regions for human (hg19 and hg38), mouse (mm9 and mm10), Drosophila (dm3 and dm6), and C. elegans (ce10 and ce11) are included in the Signac package. The `FractionCountsInRegion()` function can be used to calculate the fraction of all counts within a given set of regions per cell. We can use this function and the blacklist regions to find the fraction of blacklist counts per cell. 
+* Ratio reads in genomic blacklist regions: The [ENCODE project](https://www.encodeproject.org/) has provided a list of [blacklist regions](https://github.com/Boyle-Lab/Blacklist), representing reads which are often associated with artefactual signal. Cells with a high proportion of reads mapping to these areas (compared to reads mapping to peaks) often represent technical artifacts and should be removed. The `FractionCountsInRegion()` function can be used to calculate the fraction of all counts within a given set of regions per cell. We can use this function and a list of blacklist regions to find the fraction of blacklist counts per cell. 
 
 Note that the last three metrics can be obtained from the output of CellRanger
 (which is stored in the object metadata), but can also be calculated for non-10x
@@ -245,10 +245,11 @@ pbmc <- TSSEnrichment(object = pbmc)
 pbmc$pct_reads_in_peaks <- pbmc$peak_region_fragments / pbmc$passed_filters * 100
 
 # add blacklist ratio
+blacklist_regions <- ah[['AH107305']] # blacklist regions for hg38
 pbmc$blacklist_ratio <- FractionCountsInRegion(
   object = pbmc, 
   assay = 'peaks',
-  regions = blacklist_hg38_unified
+  regions = blacklist_regions
 )
 ```
 
@@ -831,11 +832,10 @@ pbmc <- FRiP(
 
 The ratio of reads in genomic blacklist regions, that are known to artifactually
 accumulate reads in genome sequencing assays, can be diagnostic of low-quality
-cells. We provide blacklist region coordinates for several genomes (hg19, hg38,
-mm9, mm10, ce10, ce11, dm3, dm6) in the Signac package for convenience. These
-regions were provided by the ENCODE consortium, and we encourage users to cite
-their [paper](https://doi.org/10.1038/s41598-019-45839-z) if you use the regions
-in your analysis. The `FractionCountsInRegion()` function can be used to
+cells. Genomic blacklist regions for a variety of species can be found in the
+[excluderanges](https://github.com/dozmorovlab/excluderanges) package available
+through [AnnotationHub](https://bioconductor.org/packages/AnnotationHub/).
+The `FractionCountsInRegion()` function can be used to
 calculate the fraction of all counts within a given set of regions per cell.
 We can use this function and the blacklist regions to find the fraction of
 blacklist counts per cell.
@@ -845,7 +845,7 @@ blacklist counts per cell.
 pbmc$blacklist_fraction <- FractionCountsInRegion(
   object = pbmc, 
   assay = 'peaks',
-  regions = blacklist_hg38_unified
+  regions = blacklist_regions
 )
 ```
 

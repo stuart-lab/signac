@@ -27,7 +27,7 @@ FindTopFeatures(object, ...)
 
 \item{min.cutoff}{Cutoff for feature to be included in the VariableFeatures
 for the object. This can be a percentile specified as 'q' followed by the
-minimum percentile, for example 'q5' to set the top 95\% most common features
+minimum percentile, for example 'q5' to set the top 95\\% most common features
 as the VariableFeatures for the object. Alternatively, this can be an integer
 specifying the minimum number of counts for the feature
 to be included in the set of VariableFeatures. For example, setting to 10
@@ -39,7 +39,7 @@ and percentile rank for each feature.}
 \item{verbose}{Display messages}
 }
 \value{
-Returns a \code{\link[SeuratObject]{Seurat}} object
+Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
 }
 \description{
 Find top features for a given assay based on total number of counts for the
@@ -50,9 +50,9 @@ metadata for the assay. To only compute the feature metadata, without
 changing the variable features for the assay, set \code{min.cutoff=NA}.
 }
 \examples{
-FindTopFeatures(object = atac_small[['peaks']]['data'])
-FindTopFeatures(object = atac_small[['peaks']])
-FindTopFeatures(object = atac_small[['peaks']])
+FindTopFeatures(object = atac_small[["peaks"]]["data"])
+FindTopFeatures(object = atac_small[["peaks"]])
+FindTopFeatures(object = atac_small[["peaks"]])
 FindTopFeatures(atac_small)
 }
 \concept{preprocessing}

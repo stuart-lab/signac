@@ -107,7 +107,7 @@ highlighted in grey. To change the color of the highlighting, include a
 metadata column in the GRanges object named "color" containing the color to
 use for each region.}
 
-\item{links}{Display links. This can be a TRUE/FALSE value which will 
+\item{links}{Display links. This can be a TRUE/FALSE value which will
 determine whether a links track is displayed, and if TRUE links for all genes
 in the plotted region will be shown. Alternatively, a character vector can be
 provided, giving a list of gene names to plot links for. If this is provided,
@@ -156,7 +156,7 @@ sequences in each group.}
 \itemize{
 \item{NULL: set to the highest value among all the tracks (default)}
 \item{qXX: clip the maximum value to the XX quantile (for example, q95 will
-set the maximum value to 95\% of the maximum value in the data). This can help
+set the maximum value to 95\\% of the maximum value in the data). This can help
 remove the effect of extreme values that may otherwise distort the scale.}
 \item{numeric: manually define a Y-axis limit}
 }}
@@ -180,10 +180,10 @@ Retaining more positions can give a higher-resolution plot but can make the
 number of points large, resulting in larger file sizes when saving the plot
 and a longer period of time needed to draw the plot.}
 
-\item{...}{Additional arguments passed to \code{\link[patchwork]{wrap_plots}}}
+\item{...}{Additional arguments passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}}
 }
 \value{
-Returns a \code{\link[patchwork]{patchwork}} object
+Returns a \code{\link[patchwork:patchwork-package]{patchwork::patchwork()}} object
 }
 \description{
 Plot frequency of Tn5 insertion events for different groups of cells within

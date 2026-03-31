@@ -14,7 +14,7 @@ theme_browser(..., legend = TRUE, axis.text.y = FALSE)
 \item{axis.text.y}{Display y-axis text}
 }
 \description{
-Theme applied to panels in the \code{\link{CoveragePlot}} function.
+Theme applied to panels in the \code{\link[=CoveragePlot]{CoveragePlot()}} function.
 }
 \examples{
 \donttest{

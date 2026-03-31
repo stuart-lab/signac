@@ -25,16 +25,16 @@ set. If a number is provided, regions will be selected to match the sequence
 characteristics of the query features. To match the sequence characteristics,
 these characteristics must be stored in the feature metadata for the assay.
 This can be added using the
- \code{\link{RegionStats}} function. If NULL, use all features in the assay.}
+\code{\link[=RegionStats]{RegionStats()}} function. If NULL, use all features in the assay.}
 
 \item{assay}{Which assay to use. Default is the active assay}
 
 \item{verbose}{Display messages}
 
 \item{p.adjust.method}{Multiple testing correction method to be applied.
-Passed to \code{\link[stats]{p.adjust}}.}
+Passed to \code{\link[stats:p.adjust]{stats::p.adjust()}}.}
 
-\item{...}{Arguments passed to \code{\link{MatchRegionStats}}.}
+\item{...}{Arguments passed to \code{\link[=MatchRegionStats]{MatchRegionStats()}}.}
 }
 \value{
 Returns a data frame

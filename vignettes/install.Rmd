@@ -25,6 +25,13 @@ if (!requireNamespace("remotes", quietly = TRUE))
 remotes::install_github("stuart-lab/signac", ref = "develop")
 ```
 
+## v2 beta release
+
+```{r}
+remotes::install_github("stuart-lab/signac", ref = "v2")
+```
+
+
 ## Old versions
 
 Older Signac releases can be installed from the CRAN archive using devtools:

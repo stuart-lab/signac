@@ -7,9 +7,9 @@
 \format{
 A Seurat object with the following assays
 \describe{
-  \item{peaks}{A peak x cell dataset}
-  \item{bins}{A 5 kb genome bin x cell dataset}
-  \item{RNA}{A gene x cell dataset}
+\item{peaks}{A peak x cell dataset}
+\item{bins}{A 5 kb genome bin x cell dataset}
+\item{RNA}{A gene x cell dataset}
 }
 }
 \source{

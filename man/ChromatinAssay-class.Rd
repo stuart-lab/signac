@@ -6,31 +6,31 @@
 \alias{ChromatinAssay}
 \title{The ChromatinAssay class}
 \description{
-The ChromatinAssay object is an extended \code{\link[SeuratObject]{Assay}}
+The ChromatinAssay object is an extended \code{\link[SeuratObject:Assay-class]{SeuratObject::Assay()}}
 for the storage and analysis of single-cell chromatin data.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{ranges}}{A \code{\link[GenomicRanges]{GRanges}} object describing the
+\item{\code{ranges}}{A \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object describing the
 genomic location of features in the object}
 
-\item{\code{motifs}}{A \code{\link{Motif}} object}
+\item{\code{motifs}}{A \code{\link[=Motif]{Motif()}} object}
 
-\item{\code{fragments}}{A list of \code{\link{Fragment}} objects.}
+\item{\code{fragments}}{A list of \code{\link[=Fragment]{Fragment()}} objects.}
 
 \item{\code{seqinfo}}{A \code{Seqinfo} object containing basic
 information about the genome sequence used.}
 
-\item{\code{annotation}}{A  \code{\link[GenomicRanges]{GRanges}} object containing
-genomic annotations. This should be a GRanges object with the following 
+\item{\code{annotation}}{A  \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object containing
+genomic annotations. This should be a GRanges object with the following
 columns:
 \itemize{
-  \item{tx_id: Transcript ID}
-  \item{gene_name: Gene name}
-  \item{gene_id: Gene ID}
-  \item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
-  \item{type: Annotation type (e.g. "exon", "gap")}
+\item{tx_id: Transcript ID}
+\item{gene_name: Gene name}
+\item{gene_id: Gene ID}
+\item{gene_biotype: Gene biotype (e.g. "protein_coding", "lincRNA")}
+\item{type: Annotation type (e.g. "exon", "gap")}
 }}
 
 \item{\code{bias}}{A vector containing Tn5 integration bias information
@@ -39,7 +39,7 @@ columns:
 \item{\code{positionEnrichment}}{A named list of matrices containing positional
 enrichment scores for Tn5 integration (for example, enrichment at the TSS)}
 
-\item{\code{links}}{A \code{\link[GenomicRanges]{GRanges}} object describing linked
+\item{\code{links}}{A \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object describing linked
 genomic positions, such as co-accessible sites or enhancer-gene regulatory
 relationships. This should be a \code{GRanges} object, where the start and
 end coordinates are the two linked genomic positions, and must contain a

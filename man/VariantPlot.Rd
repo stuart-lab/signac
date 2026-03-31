@@ -13,7 +13,7 @@ VariantPlot(
 }
 \arguments{
 \item{variants}{A dataframe containing variant information. This should be
-computed using \code{\link{IdentifyVariants}}}
+computed using \code{\link[=IdentifyVariants]{IdentifyVariants()}}}
 
 \item{min.cells}{Minimum number of high-confidence cells detected with the
 variant for the variant to be displayed.}

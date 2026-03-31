@@ -30,7 +30,9 @@ used to separate start and end coordinates.}
 
 \item{verbose}{Display messages}
 
-\item{...}{Additional arguments passed to \code{\link[IRanges]{findOverlaps}}}
+\item{...}{Additional arguments passed to \code{\link[IRanges:findOverlaps-methods]{IRanges::findOverlaps()}}
+
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}}
 }
 \value{
 Returns a sparse matrix

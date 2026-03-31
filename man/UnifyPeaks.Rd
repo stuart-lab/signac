@@ -11,9 +11,11 @@ UnifyPeaks(object.list, mode = "reduce")
 
 \item{mode}{Function to use when combining genomic ranges. Can be "reduce"
 (default) or "disjoin".
-See \code{\link[GenomicRanges]{reduce}}
-and \code{\link[GenomicRanges]{disjoin}}
-for more information on these functions.}
+See \code{\link[GenomicRanges:inter-range-methods]{GenomicRanges::reduce()}}
+and \code{\link[GenomicRanges:inter-range-methods]{GenomicRanges::disjoin()}}
+for more information on these functions.
+
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}}
 }
 \value{
 Returns a GRanges object

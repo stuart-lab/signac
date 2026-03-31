@@ -5,10 +5,10 @@ NULL
 #' Get peaks linked to genes
 #' 
 #' Retrieve peak-gene links for a given set of genes. Links must be first
-#' obtained by running the \code{LinkPeaks} function.
+#' obtained by running the `LinkPeaks` function.
 #' 
 #' This function is designed to obtain the stored results from running the
-#' \code{LinkPeaks} function. Alternatively, custom peak-gene linkage methods
+#' `LinkPeaks` function. Alternatively, custom peak-gene linkage methods
 #' can be used as long as they store the gene name, peak name, and a peak-gene
 #' score information as metadata columns named "gene," "peak," and "score"
 #' respectively.
@@ -42,10 +42,10 @@ GetLinkedPeaks <- function(
 #' Get genes linked to peaks
 #' 
 #' Retrieve peak-gene links for a given set of genes. Links must be first
-#' obtained by running the \code{LinkPeaks} function.
+#' obtained by running the `LinkPeaks` function.
 #' 
 #' This function is designed to obtain the stored results from running the
-#' \code{LinkPeaks} function. Alternatively, custom peak-gene linkage methods
+#' `LinkPeaks` function. Alternatively, custom peak-gene linkage methods
 #' can be used as long as they store the gene name, peak name, and a peak-gene
 #' score information as metadata columns named "gene," "peak," and "score"
 #' respectively.
@@ -83,11 +83,11 @@ GetLinkedGenes <- function(
 #' elements. Only elements on the same chromosome are included in the output.
 #'
 #' See the Cicero package for more information:
-#' \url{https://bioconductor.org/packages/cicero/}
+#' <https://bioconductor.org/packages/cicero/>
 #'
 #' @param conns A dataframe containing co-accessible elements. This would
-#' usually be the output of \code{run_cicero} or
-#' \code{assemble_connections}. Specifically, this should be a
+#' usually be the output of `run_cicero` or
+#' `assemble_connections`. Specifically, this should be a
 #' dataframe where the first column contains the genomic coordinates of the
 #' first element in the linked pair of elements, with chromosome, start, end
 #' coordinates separated by "-" characters. The second column should be the
@@ -95,7 +95,7 @@ GetLinkedGenes <- function(
 #' column. A third column should contain the co-accessibility scores.
 #' @param ccans This is optional, but if supplied should be a dataframe
 #' containing the cis-co-accessibility network (CCAN) information generated
-#' by \code{generate_ccans}. Specifically, this should be a
+#' by `generate_ccans`. Specifically, this should be a
 #' dataframe containing the name of the peak in the first column, and the
 #' CCAN that it belongs to in the second column.
 #' @param threshold Threshold for retaining a coaccessible site. Links with
@@ -110,7 +110,7 @@ GetLinkedGenes <- function(
 #' @importFrom stringi stri_split_fixed
 #'
 #' @concept links
-#' @return Returns a \code{\link[GenomicRanges]{GRanges}} object
+#' @return Returns a [GenomicRanges::GRanges()] object
 ConnectionsToLinks <- function(
   conns,
   ccans = NULL,
@@ -221,8 +221,8 @@ ConnectionsToLinks <- function(
 #' @importFrom pbapply pblapply
 #' @importMethodsFrom Matrix t
 #'
-#' @return Returns a Seurat object with the \code{Links} information set. This is
-#' a \code{\link[GenomicRanges]{granges}} object accessible via the \code{\link{Links}}
+#' @return Returns a Seurat object with the `Links` information set. This is
+#' a [GenomicRanges::granges()] object accessible via the [Links()]
 #' function, with the following information:
 #' \itemize{
 #'   \item{score: the correlation coefficient between the accessibility of the

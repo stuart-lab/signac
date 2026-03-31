@@ -18,7 +18,7 @@ rather than the 5' or 3' end for upstream and downstream
 respectively.}
 }
 \value{
-Returns a \code{\link[GenomicRanges]{GRanges}} object
+Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
 }
 \description{
 Resize GenomicRanges upstream and or downstream.

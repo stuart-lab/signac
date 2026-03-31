@@ -99,7 +99,7 @@ test_that("NucleosomeSignal works", {
     verbose = FALSE
   )
   Fragments(object = atac_small) <- fragments
-  ns <- NucleosomeSignal(object = atac_small, verbose = FALSE)
+  ns <- expect_warning(NucleosomeSignal(object = atac_small, verbose = FALSE))
   expect_equal(
     object = as.numeric(x = head(x = ns$nucleosome_signal)),
     expected = c(NaN, NaN, 0.0, 2.5, NaN, NaN)

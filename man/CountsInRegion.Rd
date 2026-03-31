@@ -13,7 +13,9 @@ CountsInRegion(object, assay, regions, ...)
 
 \item{regions}{A GRanges object}
 
-\item{...}{Additional arguments passed to \code{\link[IRanges]{findOverlaps}}}
+\item{...}{Additional arguments passed to \code{\link[IRanges:findOverlaps-methods]{IRanges::findOverlaps()}}
+
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}}
 }
 \value{
 Returns a numeric vector

@@ -127,9 +127,9 @@ AddMotifs.StdAssay <- function(
 }
 
 #' @param assay Name of assay to use. If NULL, use the default assay
-#' @param genome A \code{BSgenome}, \code{DNAStringSet}, \code{FaFile}, or
-#' string stating the genome build recognized by \code{getBSgenome}.
-#' @param pfm A \code{PFMatrixList} or \code{PWMatrixList} object containing
+#' @param genome A `BSgenome`, `DNAStringSet`, `FaFile`, or
+#' string stating the genome build recognized by `getBSgenome`.
+#' @param pfm A `PFMatrixList` or `PWMatrixList` object containing
 #' position weight/frequency matrices to use
 #' @param verbose Display messages
 #' @importFrom SeuratObject DefaultAssay
@@ -161,122 +161,6 @@ AddMotifs.Seurat <- function(
   return(object)
 }
 
-#' @importFrom SeuratObject GetAssayData CreateAssayObject
-#' @importFrom Matrix rowSums
-#'
-#' @concept motifs
-#' @method RunChromVAR ChromatinAssay
-#' @rdname RunChromVAR
-#' @export
-#' @examples
-#' \dontrun{
-#' library(BSgenome.Hsapiens.UCSC.hg19)
-#' RunChromVAR(object = atac_small[["peaks"]], genome = BSgenome.Hsapiens.UCSC.hg19)
-#' }
-RunChromVAR.ChromatinAssay <- function(
-  object,
-  genome,
-  motif.matrix = NULL,
-  verbose = TRUE,
-  ...
-) {
-  if (!requireNamespace("chromVAR", quietly = TRUE)) {
-    stop("Please install chromVAR. https://greenleaflab.github.io/chromVAR/")
-  }
-  if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
-    stop("Please install SummarizedExperiment")
-  }
-  motif.matrix <- SetIfNull(
-    x = motif.matrix,
-    y = GetMotifData(object = object, slot = "data")
-  )
-  peak.matrix <- GetAssayData(object = object, layer = "counts")
-  if (!(all(peak.matrix@x == floor(peak.matrix@x)))) {
-    warning("Count matrix contains non-integer values.
-            ChromVAR should only be run on integer counts.")
-  }
-  idx.keep <- rowSums(x = peak.matrix) > 0
-  peak.matrix <- peak.matrix[idx.keep, , drop = FALSE]
-  motif.matrix <- motif.matrix[idx.keep, , drop = FALSE]
-  peak.ranges <- granges(x = object)
-  peak.ranges <- peak.ranges[idx.keep]
-  chromvar.obj <- SummarizedExperiment::SummarizedExperiment(
-    assays = list(counts = peak.matrix),
-    rowRanges = peak.ranges
-  )
-  if (verbose) {
-    message("Computing GC bias per region")
-  }
-  chromvar.obj <- chromVAR::addGCBias(
-    object = chromvar.obj,
-    genome = genome
-  )
-  # Remove NA values https://github.com/GreenleafLab/chromVAR/issues/26
-  row.data <- data.frame(SummarizedExperiment::rowData(x = chromvar.obj))
-  row.data[is.na(x = row.data)] <- 0
-  SummarizedExperiment::rowData(x = chromvar.obj) <- row.data
-  if (verbose) {
-    message("Selecting background regions")
-  }
-  bg <- chromVAR::getBackgroundPeaks(
-    object = chromvar.obj,
-    ...
-  )
-  if (verbose) {
-    message("Computing deviations from background")
-  }
-  dev <- chromVAR::computeDeviations(
-    object = chromvar.obj,
-    annotations = motif.matrix,
-    background_peaks = bg
-  )
-  chromvar.z <- SummarizedExperiment::assays(dev)[[2]]
-  rownames(x = chromvar.z) <- colnames(x = motif.matrix)
-  if (verbose) {
-    message("Constructing chromVAR assay")
-  }
-  obj <- CreateAssayObject(data = chromvar.z)
-  return(obj)
-}
-
-#' @param assay Name of assay to use
-#' @param new.assay.name Name of new assay used to store the chromVAR results.
-#' Default is "chromvar".
-#' @method RunChromVAR Seurat
-#' @rdname RunChromVAR
-#' @export
-#' @importFrom SeuratObject DefaultAssay
-#' @concept motifs
-#' @examples
-#' \dontrun{
-#' library(BSgenome.Hsapiens.UCSC.hg19)
-#' RunChromVAR(object = atac_small, genome = BSgenome.Hsapiens.UCSC.hg19)
-#' }
-RunChromVAR.Seurat <- function(
-  object,
-  genome,
-  motif.matrix = NULL,
-  assay = NULL,
-  new.assay.name = "chromvar",
-  ...
-) {
-  if (!requireNamespace("chromVAR", quietly = TRUE)) {
-    stop("Please install chromVAR. https://greenleaflab.github.io/chromVAR/")
-  }
-  if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
-    stop("Please install SummarizedExperiment")
-  }
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  chromvar.assay <- RunChromVAR(
-    object = object[[assay]],
-    genome = genome,
-    motif.matrix = motif.matrix,
-    ...
-  )
-  object[[new.assay.name]] <- chromvar.assay
-  return(object)
-}
-
 globalVariables(names = "pvalue", package = "Signac")
 #' FindMotifs
 #'
@@ -294,11 +178,11 @@ globalVariables(names = "pvalue", package = "Signac")
 #' characteristics of the query features. To match the sequence characteristics,
 #' these characteristics must be stored in the feature metadata for the assay.
 #' This can be added using the
-#'  \code{\link{RegionStats}} function. If NULL, use all features in the assay.
+#'  [RegionStats()] function. If NULL, use all features in the assay.
 #' @param verbose Display messages
 #' @param p.adjust.method Multiple testing correction method to be applied.
-#' Passed to \code{\link[stats]{p.adjust}}.
-#' @param ... Arguments passed to \code{\link{MatchRegionStats}}.
+#' Passed to [stats::p.adjust()].
+#' @param ... Arguments passed to [MatchRegionStats()].
 #'
 #' @return Returns a data frame
 #'
@@ -415,7 +299,7 @@ FindMotifs <- function(
 }
 
 #' @param name A vector of motif names
-#' @param id A vector of motif IDs. Only one of \code{name} and \code{id} should
+#' @param id A vector of motif IDs. Only one of `name` and `id` should
 #' be supplied
 #' @rdname ConvertMotifID
 #' @concept motifs
@@ -481,7 +365,7 @@ ConvertMotifID.StdAssay <- function(object, ...) {
   stop("Cannot run ConvertMotifID on an Assay5 object")
 }
 
-#' @param assay For \code{Seurat} object. Name of assay to use.
+#' @param assay For `Seurat` object. Name of assay to use.
 #' If NULL, use the default assay
 #'
 #' @importFrom SeuratObject DefaultAssay
@@ -507,9 +391,11 @@ ConvertMotifID.Seurat <- function(object, assay = NULL, ...) {
 #' itself
 #' @param assay Name of assay to use. Must be a ChromatinAssay
 #' @param verbose Display messages
-#' @param ... Additional arguments passed to \code{\link{FeatureMatrix}}
+#' @param ... Additional arguments passed to [FeatureMatrix()]
 #' 
 #' @return Returns a list of sparse matrices
+#' 
+#' `r lifecycle::badge("deprecated")`
 #' 
 #' @importFrom SeuratObject DefaultAssay
 #' @concept motifs
@@ -522,6 +408,7 @@ MotifCounts <- function(
   verbose = TRUE,
   ...
 ) {
+  lifecycle::deprecate_soft(when = "1.17.0", what = "MotifCounts()")
   assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
   cells.use <- colnames(x = object)
   fraglist <- Fragments(object = object[[assay]])

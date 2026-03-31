@@ -26,7 +26,7 @@ lines. Default scales with the number of cells in the object.}
 \item{...}{Arguments passed to other functions}
 }
 \value{
-Returns a \code{\link[SeuratObject]{Seurat}} object with
+Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object with
 added metadata for the ratio of mononucleosomal to nucleosome-free fragments
 per cell, and the percentile rank of each ratio.
 }
@@ -36,7 +36,7 @@ Computes the ratio of fragments between 147 bp and 294 bp (mononucleosome) to
 fragments < 147 bp (nucleosome-free)
 }
 \examples{
-fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
+fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 Fragments(atac_small) <- CreateFragmentObject(
   path = fpath,
   cells = colnames(atac_small),

@@ -16,7 +16,8 @@ A GRanges object
 blacklist_hg38
 }
 \description{
-Genomic blacklist regions for Human GRCh38
+This dataset is deprecated and will be removed from Signac in the future.
+See \url{https://github.com/dozmorovlab/excluderanges} instead.
 }
 \concept{data}
 \keyword{datasets}

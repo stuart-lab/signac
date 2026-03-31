@@ -65,16 +65,16 @@ using gene IDs rather than gene names.}
 }
 \value{
 Returns a Seurat object with the \code{Links} information set. This is
-a \code{\link[GenomicRanges]{granges}} object accessible via the \code{\link{Links}}
+a \code{\link[GenomicRanges:genomic-range-squeezers]{GenomicRanges::granges()}} object accessible via the \code{\link[=Links]{Links()}}
 function, with the following information:
 \itemize{
-  \item{score: the correlation coefficient between the accessibility of the
-  peak and expression of the gene}
-  \item{zscore: the z-score of the correlation coefficient, computed based on
-  the distribution of correlation coefficients from a set of background peaks}
-  \item{pvalue: the p-value associated with the z-score for the link}
-  \item{gene: name of the linked gene}
-  \item{peak: name of the linked peak}
+\item{score: the correlation coefficient between the accessibility of the
+peak and expression of the gene}
+\item{zscore: the z-score of the correlation coefficient, computed based on
+the distribution of correlation coefficients from a set of background peaks}
+\item{pvalue: the p-value associated with the z-score for the link}
+\item{gene: name of the linked gene}
+\item{peak: name of the linked peak}
 }
 }
 \description{

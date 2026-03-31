@@ -145,7 +145,7 @@ AlleleFreq.Seurat <- function(
 #'
 #' @export
 #' @return Returns a list containing two objects of class
-#' \code{\link[stats]{hclust}}, one for the cell clustering and one for the
+#' [stats::hclust()], one for the cell clustering and one for the
 #' feature (allele) clustering
 #'
 #' @concept mito
@@ -195,13 +195,13 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
 #' @param features Features to include when constructing neighbor graph
 #' @param metric Distance metric to use
 #' @param resolution Clustering resolution to use. See
-#' \code{\link[Seurat]{FindClusters}}
-#' @param k Passed to \code{k.param} argument in
-#' \code{\link[Seurat]{FindNeighbors}}
+#' [Seurat::FindClusters()]
+#' @param k Passed to `k.param` argument in
+#' [Seurat::FindNeighbors()]
 #' @param algorithm Community detection algorithm to use. See
-#' \code{\link[Seurat]{FindClusters}}
+#' [Seurat::FindClusters()]
 #'
-#' @return Returns a \code{\link[SeuratObject]{Seurat}} object
+#' @return Returns a [SeuratObject::Seurat()] object
 #'
 #' @export
 #' @concept mito
@@ -252,7 +252,7 @@ FindClonotypes <- function(
 
 #' Read MGATK output
 #'
-#' Read output files from MGATK (\url{https://github.com/caleblareau/mgatk}).
+#' Read output files from MGATK (<https://github.com/caleblareau/mgatk>).
 #'
 #' @param dir Path to directory containing MGATK output files
 #' @param verbose Display messages

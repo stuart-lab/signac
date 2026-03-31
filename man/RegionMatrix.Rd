@@ -53,7 +53,7 @@ RegionMatrix(object, ...)
 
 \item{...}{Arguments passed to other methods}
 
-\item{regions}{A \code{\link[GenomicRanges]{GRanges}} object containing the
+\item{regions}{A \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object containing the
 set of genomic ranges to quantify}
 
 \item{key}{Name to store resulting matrices under}
@@ -72,7 +72,7 @@ If NULL, use the active cell identities}
 \item{verbose}{Display messages}
 }
 \value{
-Returns a \code{\link[SeuratObject]{Seurat}} object
+Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
 }
 \description{
 Count fragments within a set of regions for different groups of

@@ -14,12 +14,15 @@ used to separate chromosome and coordinates, second separator is used to
 separate start and end coordinates.}
 
 \item{...}{Additional arguments passed to
-\code{\link[GenomicRanges]{makeGRangesFromDataFrame}}}
+\code{\link[GenomicRanges:makeGRangesFromDataFrame]{GenomicRanges::makeGRangesFromDataFrame()}}}
 }
 \value{
 Returns a GRanges object
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+}
+\details{
 Convert a genomic coordinate string to a GRanges object
 }
 \examples{

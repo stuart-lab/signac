@@ -14,10 +14,10 @@
 \item{...}{Arguments passed to other methods}
 }
 \value{
-Returns a subsetted \code{\link{Fragment}} object
+Returns a subsetted \code{\link[=Fragment]{Fragment()}} object
 }
 \description{
-Returns a subset of a \code{\link{Fragment-class}} object.
+Returns a subset of a \code{\link[=Fragment-class]{Fragment-class()}} object.
 }
 \examples{
 fpath <- system.file("extdata", "fragments.tsv.gz", package="Signac")
@@ -27,6 +27,6 @@ frags <- CreateFragmentObject(path = fpath, cells = cells, verbose = FALSE, tole
 subset(frags, head(names(cells)))
 }
 \seealso{
-\code{\link[base]{subset}}
+\code{\link[base:subset]{base::subset()}}
 }
 \concept{fragments}

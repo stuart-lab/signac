@@ -16,7 +16,8 @@ A GRanges object
 blacklist_ce11
 }
 \description{
-Genomic blacklist regions for C. elegans ce11 (0-based)
+This dataset is deprecated and will be removed from Signac in the future.
+See \url{https://github.com/dozmorovlab/excluderanges} instead.
 }
 \concept{data}
 \keyword{datasets}

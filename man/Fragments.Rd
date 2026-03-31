@@ -26,10 +26,10 @@ Fragments(object, ...) <- value
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{A \code{\link{Fragment}} object or list of Fragment objects}
+\item{value}{A \code{\link[=Fragment]{Fragment()}} object or list of Fragment objects}
 }
 \value{
-Returns a list of \code{\link{Fragment}} objects. If there are
+Returns a list of \code{\link[=Fragment]{Fragment()}} objects. If there are
 no Fragment objects present, returns an empty list.
 }
 \description{

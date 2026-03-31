@@ -30,7 +30,7 @@ First element is used to separate the chromosome from the coordinates, second
 element is used to separate the start from end coordinate.}
 }
 \value{
-Returns a \code{\link[GenomicRanges]{GRanges}} object
+Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
 }
 \description{
 Convert the output of Cicero connections to a set of genomic ranges where

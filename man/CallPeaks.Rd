@@ -93,7 +93,7 @@ peaks using subsets of cells we first split the fragment file/s used, so
 using a grouping variable will require extra time to split the files and
 perform multiple MACS peak calls, and will store additional files on-disk
 that may be large. Note that we store split fragment files in the temp
-directory (\code{\link[base]{tempdir}}) by default, and if the program is
+directory (\code{\link[base:tempfile]{base::tempdir()}}) by default, and if the program is
 interrupted before completing these temporary files will not be removed. If
 NULL, peaks are called using all cells together (pseudobulk).}
 
@@ -106,7 +106,7 @@ automatically.}
 
 \item{broad}{Call broad peaks (\code{--broad} parameter for MACS)}
 
-\item{format}{File format to use. Should be either "BED" or "BEDPE" (see 
+\item{format}{File format to use. Should be either "BED" or "BEDPE" (see
 MACS documentation).}
 
 \item{outdir}{Path for output files}
@@ -124,7 +124,7 @@ combining peaks.}
 \item{effective.genome.size}{Effective genome size parameter for MACS
 (\code{-g}). Default is the human effective genome size (2.7e9).}
 
-\item{extsize}{\code{extsize} parameter for MACS. Only relevant if 
+\item{extsize}{\code{extsize} parameter for MACS. Only relevant if
 format="BED"}
 
 \item{shift}{\code{shift} parameter for MACS. Only relevant if format="BED"}
@@ -140,7 +140,7 @@ single character string}
 \item{verbose}{Display messages}
 }
 \value{
-Returns a \code{\link[GenomicRanges]{GRanges}} object
+Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
 }
 \description{
 Call peaks using MACS. Fragment files linked to the specified assay will be
