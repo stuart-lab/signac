@@ -17,6 +17,9 @@ separate start and end coordinates.}
 Returns a character vector
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+}
+\details{
 Convert GRanges object to a vector of strings
 }
 \examples{

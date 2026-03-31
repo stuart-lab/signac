@@ -21,6 +21,9 @@ already computed by running \code{\link[=TSSEnrichment]{TSSEnrichment()}}}
 Returns a \code{\link[ggplot2:ggplot2-package]{ggplot2::ggplot2()}} object
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+}
+\details{
 Plot the normalized TSS enrichment score at each position relative to the
 TSS. Requires that \code{\link[=TSSEnrichment]{TSSEnrichment()}} has already been run on the
 assay.
