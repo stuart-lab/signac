@@ -712,7 +712,7 @@ markers_sorted <- markers |>
   slice_head(n = 1)
 ```
 
-```{r message=TRUE, warning=FALSE, fig.width=18, fig.height=8}
+```{r message=TRUE, warning=FALSE, fig.width=12, fig.height=8}
 MultiCoveragePlot(
   object = pbmc, 
   regions = markers_sorted$gene,
