@@ -8,6 +8,12 @@ New features:
 * Added the `EnrichedTerms()` function to run `fgsea()` on differential testing results from each group of cell identities
 * Added `layer` parameter to `RunSVD()` to select which layer to use
 
+Bug fixes:
+
+* Added `seqinfo` to motif positions in `AddMotifs()` to prevent the extension
+of motif regions beyond the ends of chromosomes
+([#1983](https://github.com/stuart-lab/signac/pull/1983); [@chenyenchung](https://github.com/chenyenchung))
+
 Other changes:
 
 * Deprecated `NucleosomeSignal` and `TSSEnrichment` functions in favor of the
@@ -20,6 +26,7 @@ new `ATACqc` function
 * Removed `irlba.work` parameter from `RunSVD()`
 * Added `sparseMatrixStats` and `RSpectra` to package dependencies; removed `irlba`
 * Added `fgsea` to suggested packages
+* Added `Seqinfo` to dependencies
 * Removed `RunChromVAR()` and `AddChromatinModule()` due to the chromVAR package
 being unavailable in Bioconductor 3.23
 * Removed `chromVAR` from suggested packages
