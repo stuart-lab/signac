@@ -3,77 +3,6 @@
 NULL
 
 
-#' Add chromatin module
-#'
-#' Compute chromVAR deviations for groups of peaks. The goal of this function is
-#' similar to that of [Seurat::AddModuleScore()] except that it is
-#' designed for single-cell chromatin data. The chromVAR deviations for each
-#' group of peaks will be added to the object metadata.
-#'
-#' @param object A Seurat object
-#' @param features A named list of features to include in each module. The name
-#' of each element in the list will be used to name the modules computed, which
-#' will be stored in the object metadata.
-#' @param genome A BSgenome object
-#' @param assay Name of assay to use. If NULL, use the default assay.
-#' @param verbose Display messages
-#' @param ... Additional arguments passed to `RunChromVAR`
-#'
-#' @return Returns a Seurat object
-#'
-#' @importFrom fastmatch fmatch
-#' @importFrom Matrix sparseMatrix
-#' @importFrom SeuratObject DefaultAssay GetAssayData AddMetaData
-#'
-#' @export
-#' @concept utilities
-AddChromatinModule <- function(
-  object,
-  features,
-  genome,
-  assay = NULL,
-  verbose = TRUE,
-  ...
-) {
-  assay <- SetIfNull(x = assay, y = DefaultAssay(object = object))
-  if (!inherits(x = object[[assay]], what = "ChromatinAssay")) {
-    stop("The requested assay is not a ChromatinAssay.")
-  }
-
-  # first find index of each feature
-  feat.idx <- sapply(X = features, FUN = fmatch, rownames(x = object[[assay]]))
-  j <- sapply(X = seq_along(along.with = features), FUN = function(x) {
-    rep(x = x, length(x = features[[x]]))
-  })
-
-  # construct sparse matrix with features
-  mat <- sparseMatrix(
-    i = unlist(x = feat.idx, use.names = FALSE),
-    j = unlist(x = j, use.names = FALSE),
-    x = 1,
-    dims = c(nrow(x = object[[assay]]), length(x = features))
-  )
-  rownames(x = mat) <- rownames(x = object[[assay]])
-  colnames(x = mat) <- names(x = features)
-
-  # run chromVAR
-  cv <- RunChromVAR(
-    object = object[[assay]],
-    motif.matrix = mat,
-    genome = genome,
-    verbose = verbose,
-    ...
-  )
-
-  # add module scores to metadata
-  chromvar.data <- GetAssayData(object = cv, layer = "data")
-  object <- AddMetaData(
-    object = object,
-    metadata = as.data.frame(x = t(x = chromvar.data))
-  )
-  return(object)
-}
-
 globalVariables(names = c("group", "readcount"), package = "Signac")
 #' Average Counts
 #'
@@ -708,6 +637,8 @@ GetIntersectingFeatures <- function(
 
 #' String to GRanges
 #'
+#' `r lifecycle::badge("deprecated")`
+#'
 #' Convert a genomic coordinate string to a GRanges object
 #'
 #' @param regions Vector of genomic region strings
@@ -725,6 +656,7 @@ GetIntersectingFeatures <- function(
 #' @export
 #' @concept utilities
 StringToGRanges <- function(regions, sep = c("-", "-"), ...) {
+  lifecycle::deprecate_soft(when = "1.17.0", what = "StringToGRanges()")
   ranges.df <- data.frame(ranges = regions)
   ranges.df <- separate(
     data = ranges.df,
@@ -737,6 +669,8 @@ StringToGRanges <- function(regions, sep = c("-", "-"), ...) {
 }
 
 #' GRanges to String
+#'
+#' `r lifecycle::badge("deprecated")`
 #'
 #' Convert GRanges object to a vector of strings
 #'
@@ -751,6 +685,7 @@ StringToGRanges <- function(regions, sep = c("-", "-"), ...) {
 #' @export
 #' @concept utilities
 GRangesToString <- function(grange, sep = c("-", "-")) {
+  lifecycle::deprecate_soft(when = "1.17.0", what = "GRangesToString()")
   regions <- paste0(
     as.character(x = seqnames(x = grange)),
     sep[[1]],
