@@ -61,6 +61,7 @@ library(Seurat)
 library(GenomicRanges)
 library(ggplot2)
 library(patchwork)
+library(GenomeInfoDb)
 ```
 
 ## Pre-processing workflow
