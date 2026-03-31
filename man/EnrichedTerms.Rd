@@ -50,3 +50,4 @@ Run ontology term enrichment testing on differential features for each of the
 identity classes. Runs \code{\link[fgsea:fgsea]{fgsea::fgsea()}} on differential testing
 results from each identity class.
 }
+\concept{utilities}

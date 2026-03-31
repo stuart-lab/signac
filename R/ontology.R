@@ -26,7 +26,7 @@
 #' 
 #' @return Returns a named list of dataframes. Each element of the list contains
 #' a dataframe with the term enrichment results for an identity class.
-#' 
+#' @concept utilities
 #' @export
 EnrichedTerms <- function(
     object,
