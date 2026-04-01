@@ -33,6 +33,17 @@ if (!requireNamespace("remotes", quietly = TRUE))
 remotes::install_github("stuart-lab/signac", ref = "develop")
 ```
 
+To install the Signac v2 beta version:
+
+``` r
+if (!requireNamespace("remotes", quietly = TRUE))
+    install.packages("remotes")
+remotes::install_github("stuart-lab/signac", ref = "v2")
+```
+
+Documentation for the v2 beta can be found [here](https://stuartlab.org/signac2/)
+
+
 ## Release notes
 
 For a changelog please see the [NEWS
@@ -79,7 +90,6 @@ al. 2021](https://doi.org/10.1038/s41592-021-01282-5)
 
 -   [Seurat](https://github.com/satijalab/seurat)
 -   [SeuratObject](https://github.com/satijalab/seurat-object)
--   [SeuratDisk](https://github.com/mojaveazure/seurat-disk)
 -   [SeuratData](https://github.com/satijalab/seurat-data)
 -   [SeuratWrappers](https://github.com/satijalab/seurat-wrappers)
 -   [Azimuth](https://github.com/satijalab/azimuth)

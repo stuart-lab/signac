@@ -29,7 +29,7 @@ Signac currently supports the following features:
 * Transcription factor footprinting analysis
 * Linking peaks to correlated genes
 * Parallelization through the [future](https://cran.r-project.org/package=future) package
-* Seamless interface with [Seurat](https://satijalab.org/seurat), [SeuratWrappers](https://github.com/satijalab/seurat-wrappers), [SeuratDisk](https://github.com/mojaveazure/seurat-disk), and [SeuratData](https://github.com/satijalab/seurat-data) functionality
+* Seamless interface with [Seurat](https://satijalab.org/seurat), [SeuratWrappers](https://github.com/satijalab/seurat-wrappers), and [SeuratData](https://github.com/satijalab/seurat-data) functionality
 * Interoperability with [Bioconductor](https://bioconductor.org/) tools
 
 Check out the Signac [vignettes](articles/overview.html) page for in-depth 
