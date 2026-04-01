@@ -38,12 +38,6 @@ if (!requireNamespace("EnsDb.Hsapiens.v86", quietly = TRUE))
 if (!requireNamespace("BSgenome.Hsapiens.UCSC.hg38", quietly = TRUE))
     BiocManager::install("BSgenome.Hsapiens.UCSC.hg38")
 
-if (!requireNamespace("remotes", quietly = TRUE))
-    install.packages("remotes")
-
-if (!requireNamespace("SeuratDisk", quietly = TRUE))
-    remotes::install_github("mojaveazure/seurat-disk")
-
 if (!requireNamespace("glmGamPoi", quietly = TRUE))
     BiocManager::install("glmGamPoi")
 ```
@@ -209,17 +203,12 @@ PBMC reference dataset using tools in the Seurat package. See the
 Seurat reference mapping [vignette](https://satijalab.org/seurat/v4.0/reference_mapping.html)
 for more information.
 
-We'll use an annotated PBMC reference dataset from [Hao et al. (2020)](https://www.biorxiv.org/content/10.1101/2020.10.12.335331v1),
-available for download here: https://atlas.fredhutch.org/data/nygc/multimodal/pbmc_multimodal.h5seurat
-
-Note that the SeuratDisk package is required to load the reference dataset.
-Installation instructions for SeuratDisk can be found [here](https://github.com/mojaveazure/seurat-disk).
+We'll use an annotated PBMC reference dataset from [Hao et al. (2021)](https://doi.org/10.1016/j.cell.2021.04.048),
+available for download here: https://zenodo.org/records/7779017/files/pbmc_multimodal_2023.rds
 
 ```{r message=FALSE, warning=FALSE}
-library(SeuratDisk)
-
 # load PBMC reference
-reference <- LoadH5Seurat("pbmc_multimodal.h5seurat", assays = list("SCT" = "counts"), reductions = 'spca')
+reference <- readRDS("pbmc_multimodal_2023.rds")
 reference <- UpdateSeuratObject(reference)
 
 DefaultAssay(pbmc) <- "SCT"
