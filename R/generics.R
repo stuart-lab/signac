@@ -373,7 +373,7 @@ RegionStats <- function(object, ...) {
 
 #' Run singular value decomposition
 #'
-#' Run partial singular value decomposition using [irlba::irlba()]
+#' Run partial singular value decomposition using [RSpectra::svds]
 #'
 #' @param object A Seurat object
 #' @param ... Arguments passed to other methods

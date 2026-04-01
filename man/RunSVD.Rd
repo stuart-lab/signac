@@ -97,7 +97,7 @@ Larger values speed up convergence due to greater amount of allowed error.}
 Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
 }
 \description{
-Run partial singular value decomposition using \code{\link[irlba:irlba]{irlba::irlba()}}
+Run partial singular value decomposition using \link[RSpectra:svds]{RSpectra::svds}
 }
 \examples{
 x <- matrix(data = rnorm(100), ncol = 10)
