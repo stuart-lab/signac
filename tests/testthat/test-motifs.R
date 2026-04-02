@@ -4,6 +4,7 @@ genome <- Rsamtools::FaFile(genome.fasta)
 
 
 test_that("AddMotifs works", {
+  skip_on_cran()
   skip_if_not_installed("motifmatchr")
   motif <- AddMotifs(
     atac_small[["peaks"]],
@@ -36,6 +37,7 @@ test_that("AddMotifs works with fakechr", {
     fragments = fragments,
     verbose = FALSE
   ))
+  skip_on_cran()
   skip_if_not_installed("motifmatchr")
   motif <- suppressWarnings(AddMotifs(
     granges(object)[1:20],

@@ -111,6 +111,7 @@ test_that("CreateMotifMatrix works", {
   pwm <- readRDS("../testdata/pwm_2motifs.rds")
   genome.fasta <- system.file("extdata", "chr1_start.fa", package = "Signac")
   genome <- Rsamtools::FaFile(genome.fasta)
+  skip_on_cran()
   skip_if_not_installed("motifmatchr")
   motif.matrix <- suppressWarnings(CreateMotifMatrix(
     features = granges(atac_small),
