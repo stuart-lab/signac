@@ -340,14 +340,6 @@ MultiCoveragePlot(
 )
 ```
 
-Due to plotting limitations, the following plots and their arguments are 
-disabled for `MultiCoveragePlot`:
-- `TilePlot`
-- `FeaturePlot`
-- `peaks.group.by` and `ranges.group.by`
-- `split.assays` for multi assay support
-
-
 <details>
   <summary>**Session Info**</summary>
   
