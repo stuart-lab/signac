@@ -353,6 +353,8 @@ MultiCoveragePlot <- function(
       # adjust y axis label
       covplot@labels$y <- "Normalized accessibility"
 
+      covplot <- covplot + guides(color = "none", fill = "none")
+
       single.plots[[i]]$patches$plots[[1]] <- covplot
 
       # remove any plot legends
@@ -482,10 +484,9 @@ MultiCoveragePlot <- function(
           low = "red", mid = "grey", high = "blue",
           limits = c(0, max_score),
           n.breaks = 3)
-      if (i == length(arranged.plots)) {
-        arranged.plots[[i]] <- arranged.plots[[i]] +
-          theme(legend.position = "right")
-      }
+
+      arranged.plots[[i]] <- arranged.plots[[i]] +
+        theme(legend.position = "right")
     }
   }
 
@@ -533,6 +534,15 @@ MultiCoveragePlot <- function(
       ),
       plot.margin = margin(2, 0, 2, 0, "pt")
     )
+
+  if (!is.null(links)) {
+    multi.plot <- (multi.plot | guide_area()) +
+      plot_layout(guides = "collect", widths = c(15, 1)) & 
+      theme(
+        legend.position = c(1, 0),
+        legend.justification = c(1, 0)
+      )
+    }
 
   return(multi.plot)
 }
