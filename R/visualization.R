@@ -33,7 +33,7 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' (if shown). The order of assays given defines the plotting order.
 #' @param split.assays When plotting data from multiple assays, display each
 #' assay as a separate track. If FALSE, data from different assays are overlaid
-#' on a single track with transparancy applied.
+#' on a single track with transparency applied.
 #' @param assay.scale Scaling to apply to data from different
 #' assays. Can be:
 #'  - common: plot all assays on a common scale (default)
@@ -126,6 +126,7 @@ MultiCoveragePlot <- function(
   region.highlight = NULL,
   assay = "peaks",
   assay.scale = "common",
+  split.assays = FALSE,
   annotation = TRUE,
   peaks = TRUE,
   group.by = NULL,
@@ -146,7 +147,7 @@ MultiCoveragePlot <- function(
   title_size = 6,
   subtitle_size = 5,
   coords_size = 6,
-  links = NULL
+  links = "linkpeaks"
 ) {
   # check valid.assay.scale
   valid.assay.scale <- c("common", "separate")
@@ -181,6 +182,14 @@ MultiCoveragePlot <- function(
       stop("Requested assay is not a ChromatinAssay5.")
     }
   })
+
+  # check if requested link key is present
+  if (!is.null(links)) {
+    obj.links <- Links(object = object[[assay[[1]]]])
+    if (is.null(obj.links) || is.null(obj.links[[links]])) {
+      links <- NULL
+    }
+  }
 
   # get region highlights from regions
   if (!is.null(x = region.highlight)) {
@@ -477,18 +486,21 @@ MultiCoveragePlot <- function(
   
   ## make common legend for links
   if (!is.null(links)) {
-    # get global max score
-    max_score <- 0 
+    # get global score range
+    max_score <- 0
+    min_score <- 0
     for (i in seq_along(arranged.plots)) {
-      max_score <- max(max(arranged.plots[[i]]@data$score), max_score)
+      scores <- arranged.plots[[i]]@data$score
+      max_score <- max(max(scores), max_score)
+      min_score <- min(min(scores), min_score)
     }
-    
+
     # adjust color gradient
     for (i in seq_along(arranged.plots)) {
-      arranged.plots[[i]] <- arranged.plots[[i]] + 
+      arranged.plots[[i]] <- arranged.plots[[i]] +
         scale_color_gradient2(
           low = "red", mid = "grey", high = "blue",
-          limits = c(0, max_score),
+          limits = c(min_score, max_score),
           n.breaks = 3)
 
       arranged.plots[[i]] <- arranged.plots[[i]] +
