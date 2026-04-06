@@ -229,7 +229,7 @@ We can now create a matrix of peaks x cell for each sample using the
 [parallelization](https://satijalab.org/signac/articles/future.html) vignette
 for more information about using `future`.
 
-```{r message=FALSE, warning=FALSE, cache=TRUE}
+```{r message=FALSE, warning=FALSE, cache=FALSE}
 pbmc500.counts <- FeatureMatrix(
   fragments = frags.500,
   features = combined.peaks,
