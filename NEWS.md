@@ -66,9 +66,11 @@ object.
 * Changed the behavior of object merging to follow the standard Seurat merge method. Previously, 
 overlapping peaks were treated as the same feature.  
 
-# Signac 1.16.9004
+# Signac 1.17.1
 
-***develop branch***
+* Removed `Seqinfo` package dependency
+
+# Signac 1.17.0
 
 New features:
 
