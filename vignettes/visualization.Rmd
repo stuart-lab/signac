@@ -241,6 +241,105 @@ that showed the aggregated coverage for all groups of cells and the tile plot
 for only the CD4 memory cells and the CD8 effector cells. A higher degree of 
 customization is possible when creating each track separately.
 
+## Plotting multiple regions and multiple tracks
+
+It is also possible to show multiple regions of interest in one plot using the 
+`MultiCoveragePlot` function. This function can generate multiple `CoveragePlot` 
+plots side by side using gene names, peak coordinates, or any genomic coordinate 
+(`GRanges` object) as its input. 
+
+```{r message=FALSE, warning=FALSE}
+region_list <- list(roi, "CD4", GRanges("chr1:207880972-207911402"))
+
+MultiCoveragePlot(
+  object = pbmc,
+  regions = region_list,  
+  annotation = TRUE,
+  peaks = TRUE
+)
+```
+
+Most of the customization options of `CoveragePlot` can also be applied in
+`MultiCoveragePlot`, such as region highlights, upstream/downstream extension,
+additional ranges, and `LinkPlot`. 
+
+```{r message=FALSE, warning=FALSE}
+highlights <- list(GRanges("chr2:86794605-86805396"),
+                    GRanges("chr12:6789907-6810749"),
+                    GRanges("chr1:207893972-207900402"))
+```
+
+``` {r message=FALSE, warning=FALSE}
+MultiCoveragePlot(
+  object = pbmc,
+  regions = region_list,  
+  annotation = TRUE,
+  peaks = TRUE,
+  region.highlight = highlights
+)
+```
+
+`extend.upstream` and `extend.downstream` can either be a single number to
+extend the same number of bases for all regions, or a vector the same length as
+`regions` to extend different number of bases for each region. 
+
+```{r message=FALSE, warning=FALSE}
+MultiCoveragePlot(
+  object = pbmc,
+  regions = region_list,  
+  annotation = TRUE,
+  peaks = TRUE,
+  extend.upstream = 2000, 
+  extend.downstream = c(1000,5000,12000)
+)
+```
+
+Additional ranges can be plotted alongside the coverage track using the
+`ranges_list` argument. 
+
+```{r message=FALSE, warning=FALSE}
+ranges <- list(GRanges("chr2:86794605-86805396"),
+               GRanges("chr12:6789907-6810749"),
+               GRanges("chr1:207893972-207900402"))
+```
+
+```{r message=FALSE, warning=FALSE}
+MultiCoveragePlot(
+  object = pbmc,
+  regions = region_list,  
+  annotation = TRUE,
+  peaks = TRUE,
+  ranges_list = ranges
+)
+```
+
+For `LinkPlot`, a common legend will be generated for all regions
+
+```{r message=FALSE, warning=FALSE}
+# make fake links for additional genes
+coords2 <- LookupGeneCoords(object = pbmc, gene = "CD4")
+gr1 <- GRanges(coords2) - 1500
+gr2 <- GRanges(coords2) - 3000
+links2 <- InteractionSet::GInteractions(gr1, gr2, score = 0.5)
+
+coords3 <- LookupGeneCoords(object = pbmc, gene = "CD34")
+gr1 <- GRanges(coords3) - 2000
+gr2 <- GRanges(coords3) - 4000
+links3 <- InteractionSet::GInteractions(gr1, gr2, score = 0.1)
+
+Links(pbmc, key = "demo2") <- c(links, links2, links3)
+```
+
+```{r message=FALSE, warning=FALSE}
+MultiCoveragePlot(
+  object = pbmc,
+  regions = region_list,  
+  annotation = TRUE,
+  peaks = TRUE,
+  links = "demo2"
+)
+```
+
 <details>
   <summary>**Session Info**</summary>
   
