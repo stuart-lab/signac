@@ -6,7 +6,7 @@ NULL
 #' @method AddMotifs default
 #' @concept motifs
 #' @importFrom methods slot
-#' @importFrom Seqinfo seqlevels seqnames seqinfo seqinfo<-
+#' @importFrom GenomeInfoDb seqlevels seqnames seqinfo seqinfo<-
 #' @export
 AddMotifs.default <- function(
   object,
