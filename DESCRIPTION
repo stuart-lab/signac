@@ -1,7 +1,7 @@
 Package: Signac
 Title: Analysis of Single-Cell Chromatin Data
-Version: 1.17.0
-Date: 2026-03-31
+Version: 1.17.1
+Date: 2026-04-06
 Authors@R: c(
   person(given = 'Tim', family = 'Stuart', email = 'stuartt@a-star.edu.sg', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3044-0897')),
   person(given = 'Avi', family = 'Srivastava', email = 'asrivastava@wistar.org', role = 'aut', comment = c(ORCID = '0000-0001-9798-2079')),
@@ -53,8 +53,7 @@ Imports:
     vctrs,
     lifecycle,
     sparseMatrixStats,
-    RSpectra,
-    Seqinfo
+    RSpectra
 Collate: 
     'RcppExports.R'
     'Signac-package.R'

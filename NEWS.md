@@ -1,3 +1,7 @@
+# Signac 1.17.1
+
+* Remove `Seqinfo` package dependency
+
 # Signac 1.17.0
 
 New features:
