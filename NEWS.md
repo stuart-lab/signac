@@ -51,6 +51,8 @@ include an option to use the `hmmratac` peak calling method in `macs3`.
 * Added `MultiCoveragePlot()` function for plotting multiple genomic
 regions side-by-side with shared formatting and axis labels
 * Added `ReadMQuad()` function to import output from [MQuad](https://github.com/single-cell-genetics/MQuad) for mitochondrial variant analysis
+* Added `ReadPWM()` function to read `.pwm` files from a directory into a `PWMatrixList`
+* Added `ReadJASPAR()` function to read motifs from a JASPAR-format file into a `PWMatrixList`
 
 Removed functions:
 
