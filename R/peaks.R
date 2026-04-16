@@ -399,9 +399,6 @@ CallPeaks.default <- function(
     object <- paste(" ", object, collapse = " ")
   }
 
-  # buffer with whitespace
-  object <- paste0(" ", object, " ")
-
   # check genome format
   if (!is.null(x = genome) && genome %in% c("hs", "mm", "ce", "dm")) {
     genome_string <- paste0(" -g ", genome, " ")
