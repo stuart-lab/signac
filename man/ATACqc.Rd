@@ -3,6 +3,7 @@
 \name{ATACqc}
 \alias{ATACqc}
 \alias{ATACqc.default}
+\alias{ATACqc.Fragment2}
 \alias{ATACqc.ChromatinAssay5}
 \alias{ATACqc.Seurat}
 \title{Compute scATAC-seq QC metrics}
@@ -10,6 +11,16 @@
 ATACqc(object, ...)
 
 \method{ATACqc}{default}(
+  object,
+  annotations,
+  fragtk.path = NULL,
+  outdir = tempdir(),
+  cleanup = TRUE,
+  verbose = TRUE,
+  ...
+)
+
+\method{ATACqc}{Fragment2}(
   object,
   annotations,
   fragtk.path = NULL,
