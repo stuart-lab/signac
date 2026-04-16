@@ -1,7 +1,7 @@
 FROM rocker/r-ver:4.5
 MAINTAINER Tim Stuart <stuartt@a-star.edu.sg>
 
-ARG bioc_ver=3.21
+ARG bioc_ver=3.22
 
 RUN apt-get clean all && \
 	apt-get update && \
