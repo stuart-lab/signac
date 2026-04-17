@@ -39,9 +39,11 @@ ATACqc.default <- function(
   tss.path <- tempfile(pattern = "signac_fragtk_tss", tmpdir = outdir)
   out.path <- tempfile(pattern = "signac_fragtk_qc", tmpdir = outdir)
 
-  # write tss
+  # write tss as 0-based half-open BED
+  tss.df <- as.data.frame(x = tss)
+  tss.df[, 2] <- tss.df[, 2] - 1L
   write.table(
-    x = as.data.frame(x = tss),
+    x = tss.df,
     file = tss.path,
     sep = "\t",
     row.names = FALSE,
