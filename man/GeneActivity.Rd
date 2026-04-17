@@ -14,7 +14,10 @@ GeneActivity(
   max.width = 5e+05,
   process_n = 2000,
   fragtk = TRUE,
+  pic = TRUE,
   gene.id = FALSE,
+  bpcells = FALSE,
+  bpcells.dir = NULL,
   verbose = TRUE
 )
 }
@@ -46,17 +49,28 @@ quantification. Can be TRUE/FALSE or a character vector. If TRUE,
 \code{fragtk} will be used and attempt to find the \code{fragtk} executable
 in the path. If FALSE, use the R implementation to produce the data matrix.
 If a character vector is provided, this should be the path to the
-\code{fragtk} executable and \code{fragtk} will be used. Note that
-\code{fragtk} uses the Paired Insertion Counting method, whereas the R
-implementation counts insertions. See
+\code{fragtk} executable and \code{fragtk} will be used. See
 \url{https://crates.io/crates/fragtk} for fragtk documentation.}
 
+\item{pic}{Use Paired Insertion Counting. If TRUE (default), each fragment
+contributes at most 1 count per gene region. If FALSE, each insertion site
+is counted separately (fragments with both ends in a region contribute 2
+counts).}
+
 \item{gene.id}{Record gene IDs in output matrix rather than gene name.}
+
+\item{bpcells}{If \code{TRUE}, return a \code{BPCells::IterableMatrix} backed by an
+on-disk BPCells directory instead of an in-memory sparse matrix. See
+\code{\link[=FeatureMatrix]{FeatureMatrix()}}.}
+
+\item{bpcells.dir}{Optional path to persist the BPCells directory beyond
+the R session. See \code{\link[=FeatureMatrix]{FeatureMatrix()}}.}
 
 \item{verbose}{Display messages}
 }
 \value{
-Returns a sparse matrix
+Returns a sparse matrix, or a \code{BPCells::IterableMatrix} when
+\code{bpcells = TRUE}.
 }
 \description{
 Compute counts per cell in gene body and promoter region.

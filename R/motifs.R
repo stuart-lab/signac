@@ -6,7 +6,7 @@ NULL
 #' @method AddMotifs default
 #' @concept motifs
 #' @importFrom methods slot
-#' @importFrom Seqinfo seqlevels seqnames
+#' @importFrom Seqinfo seqlevels seqnames seqinfo seqinfo<-
 #' @export
 AddMotifs.default <- function(
   object,
@@ -61,6 +61,8 @@ AddMotifs.default <- function(
     out = "positions",
     genome = genome
   )
+  # Since motifmatchr::matchMotifs returns a GenomicRanges without seqinfo
+  seqinfo(motif.positions) <- seqinfo(genome)[seqlevels(motif.positions)]
   if (verbose) {
     message("Creating Motif object")
   }
@@ -406,6 +408,119 @@ RunChromVAR.Seurat <- function(
   return(object)
 }
 
+#' Read PWM files into a PWMatrixList
+#'
+#' Read position weight matrices from a directory of `.pwm` files
+#' and return as a [TFBSTools::PWMatrixList]. Each `.pwm` file
+#' should contain a header line starting with `>` followed by the motif
+#' ID, and subsequent lines containing a position x 4 nucleotide matrix
+#' (columns: A, C, G, T).
+#'
+#' @param pwm_dir Path to directory containing `.pwm` files
+#' @param short_names Use the first section of the motif ID (before the first
+#'   `.`) as the motif name. For example, `AHR.H14CORE.0.P.B` becomes `AHR`.
+#'   Default is `TRUE`.
+#' @return A [TFBSTools::PWMatrixList]
+#' @export
+#' @concept motifs
+ReadPWM <- function(pwm_dir, short_names = TRUE) {
+  if (!requireNamespace("TFBSTools", quietly = TRUE)) {
+    stop("Please install TFBSTools.
+         https://www.bioconductor.org/packages/TFBSTools/")
+  }
+  pwm_files <- list.files(
+    path = pwm_dir, pattern = "\\.pwm$", full.names = TRUE
+  )
+  pwm_list <- lapply(X = pwm_files, FUN = function(f) {
+    lines <- readLines(con = f)
+    motif_id <- sub(pattern = "^>", replacement = "", x = lines[1])
+    motif_name <- if (short_names) {
+      strsplit(x = motif_id, split = ".", fixed = TRUE)[[1]][[1]]
+    } else {
+      motif_id
+    }
+    mat <- do.call(what = rbind, args = lapply(
+      X = lines[-1],
+      FUN = function(l) {
+        as.numeric(x = strsplit(x = trimws(x = l), split = "\\s+")[[1]])
+      }
+    ))
+    colnames(x = mat) <- c("A", "C", "G", "T")
+    mat <- t(x = mat)
+    TFBSTools::PWMatrix(
+      ID = motif_id,
+      name = motif_name,
+      profileMatrix = mat
+    )
+  })
+  names(x = pwm_list) <- vapply(
+    X = pwm_list, FUN = TFBSTools::name, FUN.VALUE = character(1L)
+  )
+  do.call(what = TFBSTools::PWMatrixList, args = pwm_list)
+}
+
+#' Read JASPAR-format PFMs and convert to PWMs
+#'
+#' Read position frequency matrices (PFMs) from a JASPAR-format file and
+#' convert to position weight matrices (PWMs). Each motif entry should have
+#' a header line starting with `>` followed by 4 rows (A, C, G, T). Rows
+#' may optionally include nucleotide labels and brackets
+#' (e.g. `A  [ 4 19 0 0 ]`).
+#'
+#' @param file Path to JASPAR-format PFM file
+#' @param pseudocount Pseudocount added during PFM to PWM conversion
+#' @return A [TFBSTools::PWMatrixList]
+#' @importFrom methods is
+#' @export
+#' @concept motifs
+ReadJASPAR <- function(file, pseudocount = 1) {
+  if (!requireNamespace("TFBSTools", quietly = TRUE)) {
+    stop("Please install TFBSTools.
+         https://www.bioconductor.org/packages/TFBSTools/")
+  }
+  lines <- trimws(x = readLines(con = file))
+  motif_indices <- grep(pattern = "^>", x = lines)
+  motifs <- list()
+  for (i in seq_along(along.with = motif_indices)) {
+    start <- motif_indices[i]
+    end <- if (i < length(x = motif_indices)) {
+      motif_indices[i + 1] - 1
+    } else {
+      length(x = lines)
+    }
+    name <- strsplit(
+      x = sub(pattern = "^>", replacement = "", x = lines[start]),
+      split = ".", fixed = TRUE
+    )[[1]][[1]]
+    mat_lines <- lines[(start + 1):end]
+    mat <- do.call(what = rbind, args = lapply(
+      X = mat_lines,
+      FUN = function(x) {
+        # strip nucleotide labels and brackets (e.g. "A  [ 1 2 3 ]")
+        x <- gsub(pattern = "[A-Za-z]|\\[|\\]", replacement = "", x = x)
+        as.numeric(x = strsplit(x = trimws(x = x), split = "\\s+")[[1]])
+      }
+    ))
+    if (nrow(x = mat) != 4) {
+      stop(
+        "Motif ", name, " has ", nrow(x = mat),
+        " rows; expected 4 (A,C,G,T)."
+      )
+    }
+    rownames(x = mat) <- c("A", "C", "G", "T")
+    pfm <- TFBSTools::PFMatrix(
+      ID = name, name = name, profileMatrix = mat
+    )
+    pwm <- suppressWarnings(
+      expr = TFBSTools::toPWM(x = pfm, pseudocounts = pseudocount)
+    )
+    if (is(object = pwm, class2 = "PWMatrix")) {
+      motifs[[name]] <- pwm
+    }
+  }
+  do.call(what = TFBSTools::PWMatrixList, args = motifs)
+}
+
 globalVariables(names = "pvalue", package = "Signac")
 #' FindMotifs
 #'
@@ -459,6 +574,31 @@ FindMotifs <- function(
   if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
     stop("Cannot run FindMotifs on ", class(x = object[[assay]]))
   }
+  motif.all <- GetMotifData(
+    object = object, assay = assay, slot = "data"
+  )
+  motif.names <- GetMotifData(
+    object = object, assay = assay, slot = "motif.names"
+  )
+  motif.features <- rownames(x = motif.all)
+
+  # features and background must correspond to rows of the motif matrix.
+  # ChromatinAssay5 does not require the motif matrix to mirror the data layer,
+  # so drop anything not present in the motif matrix before subsetting.
+  missing.query <- setdiff(x = features, y = motif.features)
+  if (length(x = missing.query) > 0) {
+    warning(
+      "The following features are not in the motif matrix ",
+      "and will be ignored: ",
+      paste(missing.query, collapse = ", "),
+      immediate. = TRUE
+    )
+    features <- intersect(x = features, y = motif.features)
+  }
+  if (length(x = features) == 0) {
+    stop("No query features are present in the motif matrix")
+  }
+
   if (is(object = background, class2 = "numeric")) {
     if (verbose) {
       message(
@@ -467,6 +607,11 @@ FindMotifs <- function(
       )
     }
     meta.feature <- object[[assay]][[]]
+    # only sample candidates that are present in the motif matrix
+    meta.feature <- meta.feature[
+      intersect(x = rownames(x = meta.feature), y = motif.features), ,
+      drop = FALSE
+    ]
     mf.choose <- meta.feature[
       setdiff(x = rownames(x = meta.feature), y = features), ,
       drop = FALSE
@@ -494,6 +639,20 @@ FindMotifs <- function(
       verbose = verbose,
       ...
     )
+  } else {
+    missing.bg <- setdiff(x = background, y = motif.features)
+    if (length(x = missing.bg) > 0) {
+      warning(
+        "The following background features are not in the motif matrix ",
+        "and will be ignored: ",
+        paste(missing.bg, collapse = ", "),
+        immediate. = TRUE
+      )
+      background <- intersect(x = background, y = motif.features)
+    }
+    if (length(x = background) == 0) {
+      stop("No background features are present in the motif matrix")
+    }
   }
   if (verbose) {
     msg <- ifelse(
@@ -509,16 +668,6 @@ FindMotifs <- function(
       "not recommended"
     )
   }
-  motif.all <- GetMotifData(
-    object = object, assay = assay, slot = "data"
-  )
-  motif.names <- GetMotifData(
-    object = object, assay = assay, slot = "motif.names"
-  )
-
-  # TODO update this for new ChromatinAssay5 class definition
-  # no longer require that features in motif matrix match features in the data
-  # layer will need to check that all features are in the motif object
 
   query.motifs <- motif.all[features, , drop = FALSE]
   background.motifs <- motif.all[background, , drop = FALSE]

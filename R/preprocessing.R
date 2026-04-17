@@ -39,9 +39,11 @@ ATACqc.default <- function(
   tss.path <- tempfile(pattern = "signac_fragtk_tss", tmpdir = outdir)
   out.path <- tempfile(pattern = "signac_fragtk_qc", tmpdir = outdir)
 
-  # write tss
+  # write tss as 0-based half-open BED
+  tss.df <- as.data.frame(x = tss)
+  tss.df[, 2] <- tss.df[, 2] - 1L
   write.table(
-    x = as.data.frame(x = tss),
+    x = tss.df,
     file = tss.path,
     sep = "\t",
     row.names = FALSE,
@@ -51,13 +53,13 @@ ATACqc.default <- function(
 
   # call fragtk qc
   cmd <- paste0(
-    fragtk.path,
+    shQuote(fragtk.path),
     " qc --fragments ",
-    object,
+    shQuote(object),
     " --bed ",
-    tss.path,
+    shQuote(tss.path),
     " --outfile ",
-    out.path
+    shQuote(out.path)
   )
 
   exit_code <- system(
@@ -89,6 +91,56 @@ ATACqc.default <- function(
 #' @export
 #' @concept qc
 #' @rdname ATACqc
+#' @method ATACqc Fragment2
+#' @importFrom GenomeInfoDb renameSeqlevels
+ATACqc.Fragment2 <- function(
+  object,
+  annotations,
+  fragtk.path = NULL,
+  outdir = tempdir(),
+  cleanup = TRUE,
+  verbose = TRUE,
+  ...
+) {
+  fpath <- GetFragmentData(object = object, slot = "file.path")
+  if (verbose) {
+    message("Processing ", fpath)
+  }
+
+  # convert annotation seqlevels to match fragment file
+  seqlevel.conversion <- GetFragmentData(object = object, slot = "seqlevels")
+  if (!is.null(x = seqlevel.conversion)) {
+    annotations <- suppressWarnings(
+      expr = renameSeqlevels(x = annotations, value = seqlevel.conversion)
+    )
+  }
+
+  md <- ATACqc(
+    object = fpath,
+    fragtk.path = fragtk.path,
+    annotations = annotations,
+    outdir = outdir,
+    cleanup = cleanup,
+    verbose = verbose,
+    ...
+  )
+
+  # convert cell names
+  cellconvert <- GetFragmentData(object = object, slot = "cells")
+  if (!is.null(x = cellconvert)) {
+    cc <- names(x = cellconvert)
+    names(x = cc) <- cellconvert
+    cellconvert <- cellconvert[cellconvert %in% rownames(x = md)]
+    md <- md[cellconvert, ]
+    rownames(x = md) <- cc[rownames(x = md)]
+  }
+
+  return(md)
+}
+
+#' @export
+#' @concept qc
+#' @rdname ATACqc
 #' @method ATACqc ChromatinAssay5
 #' @importFrom utils write.table
 ATACqc.ChromatinAssay5 <- function(
@@ -109,13 +161,8 @@ ATACqc.ChromatinAssay5 <- function(
   results <- data.frame()
 
   for (i in seq_along(along.with = frags)) {
-    fragments <- GetFragmentData(object = frags[[i]], slot = "file.path")
-    if (verbose) {
-      message("Processing ", fragments)
-    }
-
     md <- ATACqc(
-      object = fragments,
+      object = frags[[i]],
       fragtk.path = fragtk.path,
       annotations = annotations,
       outdir = outdir,
@@ -123,17 +170,6 @@ ATACqc.ChromatinAssay5 <- function(
       verbose = verbose,
       ...
     )
-
-    # convert cell names
-    cellconvert <- GetFragmentData(object = frags[[i]], slot = "cells")
-    cc <- names(x = cellconvert)
-    names(x = cc) <- cellconvert
-    # in case some cells are missing
-    cellconvert <- cellconvert[cellconvert %in% rownames(x = md)]
-    md <- md[cellconvert, ]
-    rownames(x = md) <- cc[rownames(x = md)]
-
-    # concat across fragment files
     results <- rbind(results, md)
   }
   return(results)

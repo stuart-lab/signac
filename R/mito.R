@@ -563,7 +563,13 @@ ComputeTotalCoverage <- function(object, verbose = TRUE) {
   if (verbose) {
     message("Computing total coverage per base")
   }
-  rowstep <- nrow(x = object) / 8
+  if (nrow(x = object) %% 8L != 0L) {
+    stop(
+      "Input matrix must have a row count divisible by 8 ",
+      "(4 bases x 2 strands stacked by position)."
+    )
+  }
+  rowstep <- as.integer(x = nrow(x = object) / 8L)
   mat.list <- list()
   for (i in seq_len(length.out = 8)) {
     mat.list[[i]] <- object[(rowstep * (i - 1) + 1):(rowstep * i), ]

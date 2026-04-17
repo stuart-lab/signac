@@ -11,6 +11,7 @@ EnrichedTerms(
   assay = NULL,
   var.features = TRUE,
   scoreType = "std",
+  direction = c("up", "down", "both"),
   top.n = NULL,
   verbose = TRUE,
   ...
@@ -33,6 +34,12 @@ enrichment.}
 
 \item{scoreType}{\code{scoreType} parameter for \code{\link[fgsea:fgseaSimple]{fgsea::fgseaSimple()}}.
 Options are "std", "pos", "neg" (two-tailed or one-tailed tests).}
+
+\item{direction}{Which direction of enrichment to retain. \code{"up"} (default)
+keeps terms with positive NES (enriched in the identity class), \code{"down"}
+keeps terms with negative NES (depleted), and \code{"both"} retains both and
+orders terms by \code{abs(NES)}. When \code{scoreType} is \code{"pos"} or \code{"neg"} only
+one direction is testable, so set \code{direction} accordingly.}
 
 \item{top.n}{Number of top enriched terms to retain for each set of cells. If
 NULL, retain all terms.}

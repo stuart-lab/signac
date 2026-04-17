@@ -52,14 +52,17 @@ if (!requireNamespace("REMO.v1.GRCh38", quietly = TRUE)) {
 if (!requireNamespace("BPCells", quietly = TRUE)) {
   remotes::install_github("bnprks/BPCells/r")
 }
+
+if (!requireNamespace("DropletUtils", quietly = TRUE)) {
+  BiocManager::install("DropletUtils")
+}
 ```
 
 ```{r setup, message=FALSE}
 library(Signac)
 library(Seurat)
-library(REMO.v1.GRCh38)
-library(BPCells)
 library(GenomicRanges)
+library(ggplot2)
 ```
 
 ## Pre-processing workflow
@@ -69,60 +72,79 @@ main input data. This represents a full list of all unique fragments across all
 single cells. It is stored on-disk for memory efficiency and scalability. More
 information about the fragment file can be found on the 10x Genomics [website](https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments) or on the [sinto website](https://timoast.github.io/sinto/basic_usage.html#create-scatac-seq-fragments-file).
 
-For improved scalability we will use our recently-released [REMO features]()
+For improved scalability we will use our recently-released [REMO features](https://github.com/stuart-lab/REMO.v1.GRCh38)
 for the human genome, and store these features on-disk using [BPCells](https://bnprks.github.io/BPCells/index.html).
 
-Here we have pre-computed the REMO count matrix using our [`fragtk`]() Rust software
-for fast and memory-efficient matrix quantification, and start by converting this
-matrix file to a BPCells matrix:
+You can install REMO and BPCells from GitHub:
 
-<details>
-  <summary>**View `fragtk` command**</summary>
-
-```{bash, eval=FALSE}
-fragtk matrix -f fragments.tsv.gz -b REMOv1_GRCh38.bed.gz -c cells.txt.gz -o remo --pic --group
+```{r eval=FALSE}
+remotes::install_github(repo = "stuart-lab/REMO.v1.GRCh38")
 ```
 
-</details>  
-
-
-```{r eval=FALSE, include=TRUE}
-# import count matrix
-counts <- import_matrix_market_10x(mtx_dir = "remo")
-
-# Write the matrix to a directory in BPCells format
-outpath <- paste0(normalizePath(getwd()), "/../bpcells_counts")
-write_matrix_dir(mat = counts, dir = outpath)
-```
-
-# Load on-disk BPCells matrix
-
-```{r}
-remo_matrix <- open_matrix_dir(dir = "../bpcells_counts")
+```{r eval=FALSE}
+remotes::install_github("bnprks/BPCells/r")
 ```
 
 ```{r}
-class(remo_matrix)
+library(REMO.v1.GRCh38)
+library(BPCells)
 ```
 
-Load gene annotations for hg38
+We start by identifying a set of cell barcodes to include in the analysis by running
+the `ATACqc()` function on the fragment file:
 
 ```{r message=FALSE, warning=FALSE}
+# load gene annotations for hg38
 library(AnnotationHub)
 ah <- AnnotationHub()
 
 ensdb_v98 <- ah[["AH75011"]]
 annotations <- GetGRangesFromEnsDb(ensdb = ensdb_v98)
-
-# change to UCSC style since the data was mapped to hg38
 seqlevelsStyle(annotations) <- "UCSC"
+
+qc <- ATACqc(object = "fragments.tsv.gz", annotations = annotations)
 ```
 
-Create Seurat object
+```{r}
+# calculate knee plot using DropletUtils
+br <- DropletUtils::barcodeRanks(matrix(qc$total_fragments, nrow = 1))
+df <- as.data.frame(br)
+knee <- S4Vectors::metadata(br)$knee
+
+ggplot(df, aes(rank, total)) +
+  geom_line() +
+  geom_hline(yintercept = knee, linetype = "dashed") +
+  annotate("text", x = 1, y = knee, label = paste0("knee = ", round(knee)),
+           hjust = 0, vjust = -0.5) +
+  scale_x_log10() + scale_y_log10() +
+  xlab("Barcode rank") + ylab("Total fragments") +
+  theme_bw()
+```
+
+Next we can quantify REMO features for the selected cells using the
+`FeatureMatrix()` function in Signac, storing the resulting matrix on-disk using
+BPCells by setting `bpcells=TRUE`:
+
+```{r cache = TRUE}
+cells.use <- rownames(qc)[qc$total_fragments > knee]
+  
+counts <- FeatureMatrix(
+  object = "fragments.tsv.gz",
+  cells = cells.use,
+  features = REMO.v1.GRCh38,
+  group = TRUE,
+  bpcells = TRUE,
+  bpcells.dir = "./bpcells_counts"
+)
+```
+
+# Creating the Seurat object
+
+Next we initialize a Seurat object to store the data, using the Signac `ChromatinAssay5` assay class:
 
 ```{r}
 chrom_assay <- CreateChromatinAssay5(
-  counts = remo_matrix,
+  counts = counts,
   fragments = "fragments.tsv.gz",
   annotation = annotations,
   min.cells = 20
@@ -132,7 +154,8 @@ fetal <- CreateSeuratObject(
   counts = chrom_assay,
   assay = "REMO",
   names.field = 2,
-  names.delim = "__"
+  names.delim = "__",
+  meta.data = qc
 )
 ```
 
@@ -147,51 +170,13 @@ less that 1 Gb of RAM due to storing the count matrix on disk:
 format(object.size(fetal), "Gb")
 ```
 
+## Normalization and linear dimensional reduction
 
-## Quality control
-
-We can compute quality control metrics for the scATAC-seq data using the `ATACqc` function.
-These metrics include:
-
-* Nucleosome banding pattern: The histogram of DNA fragment sizes (determined from the paired-end sequencing reads) should exhibit a strong nucleosome banding pattern corresponding to the length of DNA wrapped around a single nucleosome. We calculate this per single cell, and quantify the approximate ratio of mononucleosomal to nucleosome-free fragments (stored as `Nucleosome_signal`)
-
-* Transcriptional start site (TSS) enrichment score: The [ENCODE project](https://www.encodeproject.org/) has defined an ATAC-seq targeting score based on the ratio of fragments centered at the TSS to fragments in TSS-flanking regions (see https://www.encodeproject.org/data-standards/terms/). Poor ATAC-seq experiments typically will have a low TSS enrichment score. Results are stored in metadata under the column name `TSS_enrichment`.
-
-* Total number of fragments: A measure of cellular sequencing depth / complexity. Cells with very few fragments may need to be excluded due to low sequencing depth. Cells with extremely high levels may represent doublets, nuclei clumps, or other artefacts. This is stored as
-`total_fragments`
-
-```{r}
-fetal <- ATACqc(fetal)
-```
-
-```{r}
-DensityScatter(
-  object = fetal,
-  x = "total_fragments",
-  y = "TSS_enrichment",
-  log_x = TRUE,
-  log_y = TRUE,
-  quantiles = TRUE
-)
-```
-
-```{r}
-fetal <- subset(fetal, TSS_enrichment > 1)
-```
-
-```{r}
-fetal
-```
-
-## Feature selection
+We proceed with standard feature selection, normalization, and PCA steps using 
+the chromatin assay containing REMO features:
 
 ```{r}
 fetal <- FitMeanVar(fetal)
-```
-
-## Normalization and linear dimensional reduction
-
-```{r}
 fetal <- NormalizeData(fetal)
 fetal <- RunSVD(fetal, pca = TRUE)
 ```
@@ -211,6 +196,8 @@ DimPlot(fetal, group.by = "tissue", label = TRUE, raster = FALSE, repel = TRUE, 
 ```
 
 ## Plotting genomic regions
+
+We can create genomic coverage plots for any region of the genome:
 
 ```{r fig.height=12, fig.width=14, message=FALSE, warning=FALSE}
 CoveragePlot(

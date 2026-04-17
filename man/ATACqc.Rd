@@ -3,6 +3,7 @@
 \name{ATACqc}
 \alias{ATACqc}
 \alias{ATACqc.default}
+\alias{ATACqc.Fragment2}
 \alias{ATACqc.ChromatinAssay5}
 \alias{ATACqc.Seurat}
 \title{Compute scATAC-seq QC metrics}
@@ -10,6 +11,16 @@
 ATACqc(object, ...)
 
 \method{ATACqc}{default}(
+  object,
+  annotations,
+  fragtk.path = NULL,
+  outdir = tempdir(),
+  cleanup = TRUE,
+  verbose = TRUE,
+  ...
+)
+
+\method{ATACqc}{Fragment2}(
   object,
   annotations,
   fragtk.path = NULL,
@@ -60,6 +71,13 @@ automatically.}
 \item{verbose}{Display messages}
 
 \item{assay}{Name of assay to use. If NULL, use the default assay.}
+}
+\value{
+When run on a \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object, returns the input
+object with per-cell QC metrics added to the cell metadata. When run on a
+\linkS4class{ChromatinAssay5}, \linkS4class{Fragment2}, or path to a fragment file,
+returns a \code{data.frame} of per-cell QC metrics with cell barcodes as row
+names. Column names correspond to the metrics produced by \verb{fragtk qc}.
 }
 \description{
 Wrapper function to run \verb{fragtk qc} and add the metadata to the Seurat

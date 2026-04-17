@@ -27,7 +27,13 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' the highlighting, include a metadata column in the GRanges
 #' object named "color" containing the color to use for each
 #' region.
-#' @param assay Name of the assay to plot.
+#' @param assay Name of the assay to plot. If a list of assays is provided,
+#' data from each assay will be shown overlaid on each track. The first assay in
+#' the list will define the assay used for gene annotations, links, and peaks
+#' (if shown). The order of assays given defines the plotting order.
+#' @param split.assays When plotting data from multiple assays, display each
+#' assay as a separate track. If FALSE, data from different assays are overlaid
+#' on a single track with transparency applied.
 #' @param assay.scale Scaling to apply to data from different
 #' assays. Can be:
 #'  - common: plot all assays on a common scale (default)
@@ -102,6 +108,12 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' range). Default is 5
 #' @param coords_size Size of plot coordinate text. Default
 #' is 6
+#' @param links Character vector containing the keys of link 
+#' information present in the assay to display. Default is 
+#' "linkpeaks" which is the default key for peak-gene links 
+#' stored using the [LinkPeaks()] function. If `NULL`, links
+#' will not be displayed. Color gradient will take into account 
+#' all links in `regions` and a common legend will be shown.
 #' @return Returns a ggplot object
 #' @export
 #' @concept visualization
@@ -114,6 +126,7 @@ MultiCoveragePlot <- function(
   region.highlight = NULL,
   assay = "peaks",
   assay.scale = "common",
+  split.assays = FALSE,
   annotation = TRUE,
   peaks = TRUE,
   group.by = NULL,
@@ -133,7 +146,8 @@ MultiCoveragePlot <- function(
   bigwig.scale = "common",
   title_size = 6,
   subtitle_size = 5,
-  coords_size = 6
+  coords_size = 6,
+  links = "linkpeaks"
 ) {
   # check valid.assay.scale
   valid.assay.scale <- c("common", "separate")
@@ -163,14 +177,19 @@ MultiCoveragePlot <- function(
   if (!inherits(x = assay, what = "list")) {
     assay <- list(assay)
   }
-  if (length(assay) > 1) {
-    stop("Multi assay is not supported in MultiCoveratePlot")
-  }
   lapply(X = assay, FUN = function(x) {
     if (!inherits(x = object[[x]], what = "ChromatinAssay5")) {
       stop("Requested assay is not a ChromatinAssay5.")
     }
   })
+
+  # check if requested link key is present
+  if (!is.null(links)) {
+    obj.links <- Links(object = object[[assay[[1]]]])
+    if (is.null(obj.links) || is.null(obj.links[[links]])) {
+      links <- NULL
+    }
+  }
 
   # get region highlights from regions
   if (!is.null(x = region.highlight)) {
@@ -264,6 +283,7 @@ MultiCoveragePlot <- function(
       extend.downstream = extend.downstream[[i]],
       region.highlight = region.to.highlight[[i]],
       assay = assay,
+      split.assays = split.assays,
       assay.scale = assay.scale,
       annotation = annotation,
       peaks = peaks,
@@ -282,7 +302,7 @@ MultiCoveragePlot <- function(
       bigwig = bigwig,
       bigwig.type = bigwig.type,
       bigwig.scale = bigwig.scale,
-      links = NULL
+      links = links
     )
   }
 
@@ -292,7 +312,8 @@ MultiCoveragePlot <- function(
     bigwig = !is.null(bigwig),
     annotation = !identical(annotation, FALSE),
     peaks = peaks,
-    ranges.to.plot = !is.null(ranges_list)
+    ranges.to.plot = !is.null(ranges_list),
+    links = !is.null(links)
   )
   n_plots <- 1 + sum(unlist(lapply(plot_params, isTRUE)))
 
@@ -345,6 +366,10 @@ MultiCoveragePlot <- function(
       # adjust y axis label
       covplot@labels$y <- "Normalized accessibility"
 
+      if (!is.null(links)) {
+        covplot <- covplot + guides(color = "none", fill = "none")
+      }
+        
       single.plots[[i]]$patches$plots[[1]] <- covplot
 
       # remove any plot legends
@@ -458,6 +483,30 @@ MultiCoveragePlot <- function(
       }
     }
   }
+  
+  ## make common legend for links
+  if (!is.null(links)) {
+    # get global score range
+    max_score <- 0
+    min_score <- 0
+    for (i in seq_along(arranged.plots)) {
+      scores <- arranged.plots[[i]]@data$score
+      max_score <- max(max(scores), max_score)
+      min_score <- min(min(scores), min_score)
+    }
+
+    # adjust color gradient
+    for (i in seq_along(arranged.plots)) {
+      arranged.plots[[i]] <- arranged.plots[[i]] +
+        scale_color_gradient2(
+          low = "red", mid = "grey", high = "blue",
+          limits = c(min_score, max_score),
+          n.breaks = 3)
+
+      arranged.plots[[i]] <- arranged.plots[[i]] +
+        theme(legend.position = "right")
+    }
+  }
 
   # adjust plot text, dimensions & add grid lines
   for (i in seq_along(arranged.plots)) {
@@ -503,6 +552,15 @@ MultiCoveragePlot <- function(
       ),
       plot.margin = margin(2, 0, 2, 0, "pt")
     )
+
+  if (!is.null(links)) {
+    multi.plot <- (multi.plot | guide_area()) +
+      plot_layout(guides = "collect", widths = c(15, 1)) & 
+      theme(
+        legend.position = c(1, 0),
+        legend.justification = c(1, 0)
+      )
+  }
 
   return(multi.plot)
 }

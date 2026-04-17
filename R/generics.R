@@ -52,6 +52,12 @@ AggregateTiles <- function(object, ...) {
 #' @param verbose Display messages
 #' @param ... Arguments passed to other methods
 #'
+#' @return When run on a [SeuratObject::Seurat] object, returns the input
+#' object with per-cell QC metrics added to the cell metadata. When run on a
+#' [ChromatinAssay5-class], [Fragment2-class], or path to a fragment file,
+#' returns a `data.frame` of per-cell QC metrics with cell barcodes as row
+#' names. Column names correspond to the metrics produced by `fragtk qc`.
+#'
 #' @export ATACqc
 #' @rdname ATACqc
 ATACqc <- function(object, ...) {
@@ -259,6 +265,81 @@ FindTopFeatures <- function(object, ...) {
   UseMethod(generic = "FindTopFeatures", object = object)
 }
 
+#' Feature Matrix
+#'
+#' Construct a sparse feature x cell count matrix from one or more genomic
+#' fragment files. Rows of the returned matrix correspond to features
+#' (genomic intervals supplied in `features`) and columns correspond to cells.
+#' Each entry records the number of fragments from that cell overlapping that
+#' feature.
+#'
+#' # Counting
+#'
+#' Two counting schemes are supported:
+#'
+#' * Paired Insertion Counting (PIC, the default, `pic = TRUE`): each fragment
+#'   contributes at most one count per feature, regardless of whether one or
+#'   both insertion sites (fragment start and end) fall inside the feature.
+#'   See Martens et al. (2024) \doi{10.1038/s41592-023-02103-7}.
+#' * Insertion counting (`pic = FALSE`): each Tn5 insertion site is counted
+#'   independently, so a fragment with both ends inside a feature contributes 2
+#'   counts.
+#'
+#' # Backends
+#'
+#' Quantification is performed by one of two backends:
+#'
+#' * `fragtk` (default, `fragtk = TRUE`): fast, memory-efficient Rust
+#'   implementation suitable for large feature sets or many fragment files.
+#'   Requires the `fragtk` executable on `PATH` (or an explicit path passed as
+#'   a character string to `fragtk`). See <https://crates.io/crates/fragtk>.
+#' * R implementation (`fragtk = FALSE`): a pure-R path built on
+#'   [Rsamtools::TabixFile()]. Lower overhead for small feature sets (for
+#'   example, a handful of peaks) and useful when `fragtk` is not installed.
+#'
+#' # Dispatch
+#'
+#' `FeatureMatrix` is a generic function able to be called using multiple
+#' inputs. Methods are provided for
+#' [SeuratObject::Seurat], [ChromatinAssay5-class], [Fragment2-class], and for
+#' a character fragment file path (`default`). Higher-level methods extract
+#' the fragment information they need and delegate to the `default` method,
+#' which operates directly on a single fragment file path.
+#'
+#' When multiple fragment files are associated with an assay (for example, a
+#' merged dataset), each is quantified independently and the resulting
+#' matrices are merged by adding counts for shared cells and features. Cells
+#' that appear in only a subset of fragment files are still represented in the
+#' output (zero-filled for the files in which they are absent).
+#'
+#' # On-disk output via BPCells
+#'
+#' Setting `bpcells = TRUE` writes the count matrix to disk in BPCells format
+#' at `bpcells.dir` and returns a `BPCells::IterableMatrix` instead of an
+#' in-memory sparse matrix. This is recommended for large datasets where the
+#' dense count matrix would not fit in memory. With the `fragtk` backend, the
+#' matrix is streamed from fragtk's 10x Matrix Market output into BPCells
+#' without materializing a dense in-memory copy. With the R backend, the
+#' matrix is built in memory first and then written out; the benefit there is
+#' on-disk persistence, not reduced memory use. `bpcells.dir` is required when
+#' `bpcells = TRUE` and must point to a directory that does not already exist
+#' or is empty. Requires the `BPCells` package.
+#'
+#' @param object A [SeuratObject::Seurat] object, [ChromatinAssay5-class]
+#' object, [Fragment2-class] object, or a character path to a tabix-indexed
+#' fragment file.
+#' @param ... Arguments passed to other methods.
+#' @return If `bpcells = FALSE` (the default) returns a sparse feature x cell
+#' [Matrix::CsparseMatrix-class]. If `bpcells = TRUE`, returns a
+#' `BPCells::IterableMatrix` backed by an on-disk BPCells directory.
+#' @seealso [GenomeBinMatrix()], [GeneActivity()], [CreateFragmentObject()],
+#' [Fragment2-class].
+#' @rdname FeatureMatrix
+#' @export FeatureMatrix
+FeatureMatrix <- function(object, ...) {
+  UseMethod(generic = "FeatureMatrix", object = object)
+}
+
 #' Transcription factor footprinting analysis
 #'
 #' Compute the normalized observed/expected Tn5 insertion frequency
@@ -415,7 +496,7 @@ IdentifyVariants <- function(object, ...) {
 #' @references
 #' Lause, J., Berens, P. & Kobak, D. Analytic Pearson residuals for
 #' normalization of single-cell RNA-seq UMI data. Genome Biol 22, 258 (2021).
-#' <https://doi.org/10.1186/s13059-021-02451-7>
+#' \doi{10.1186/s13059-021-02451-7}
 PearsonResidualVar <- function(object, ...) {
   UseMethod(generic = "PearsonResidualVar", object = object)
 }

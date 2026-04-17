@@ -165,7 +165,7 @@ frags <- CreateFragmentObject(path = fragpath, cells = barcodes)
 peaks <- CallPeaks(frags)
 
 # Quantify fragments in each peak
-counts <- FeatureMatrix(fragments = frags, features = peaks, cells = barcodes)
+counts <- FeatureMatrix(object = frags, features = peaks, cells = barcodes)
 ```
 
 </details>
@@ -712,7 +712,7 @@ markers_sorted <- markers |>
   slice_head(n = 1)
 ```
 
-```{r message=TRUE, warning=FALSE, fig.width=18, fig.height=8}
+```{r message=TRUE, warning=FALSE, fig.width=12, fig.height=8}
 MultiCoveragePlot(
   object = pbmc, 
   regions = markers_sorted$gene,
@@ -777,7 +777,7 @@ bins that span the entire genome.
 # not run
 # peak_ranges should be a set of genomic ranges spanning the set of peaks to be quantified per cell
 peak_matrix <- FeatureMatrix(
-  fragments = Fragments(pbmc),
+  object = pbmc,
   features = peak_ranges
 )
 ```
@@ -895,8 +895,8 @@ in the matrix quantification step. Here we will create a REMO matrix using
 [fragtk](https://crates.io/crates/fragtk):
 
 ```{r}
-remo <- RunFragtk(
-  fragments = frags,
+remo <- FeatureMatrix(
+  object = frags,
   features = REMO.v1.GRCh38,
   cells = cells,
   group = TRUE

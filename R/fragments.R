@@ -408,7 +408,7 @@ ValidateFragments <- function(
 #'
 #' To access the cell names that are stored in the fragment file itself, use
 #' `GetFragmentData(object = x, name = "cells")`.
-#' @param x A Fragment object
+#' @param x A [Fragment2-class] object
 #' @param ... Arguments passed to other methods
 #' @rdname Cells
 #' @concept fragments

@@ -15,6 +15,11 @@
 #' enrichment.
 #' @param scoreType `scoreType` parameter for [fgsea::fgseaSimple()].
 #' Options are "std", "pos", "neg" (two-tailed or one-tailed tests).
+#' @param direction Which direction of enrichment to retain. `"up"` (default)
+#' keeps terms with positive NES (enriched in the identity class), `"down"`
+#' keeps terms with negative NES (depleted), and `"both"` retains both and
+#' orders terms by `abs(NES)`. When `scoreType` is `"pos"` or `"neg"` only
+#' one direction is testable, so set `direction` accordingly.
 #' @param top.n Number of top enriched terms to retain for each set of cells. If
 #' NULL, retain all terms.
 #' @param verbose Display messages.
@@ -35,6 +40,7 @@ EnrichedTerms <- function(
   assay = NULL,
   var.features = TRUE,
   scoreType = "std",
+  direction = c("up", "down", "both"),
   top.n = NULL,
   verbose = TRUE,
   ...
@@ -45,6 +51,7 @@ EnrichedTerms <- function(
   if (!requireNamespace(package = "fgsea", quietly = TRUE)) {
     stop("Please install fgsea: BiocManager::install('fgsea')")
   }
+  direction <- match.arg(arg = direction)
 
   assay <- assay %||% DefaultAssay(object = object)
 
@@ -91,10 +98,21 @@ EnrichedTerms <- function(
       stats = ranked_list,
       scoreType = scoreType
     )
-    fgsea_results <- fgsea_results[fgsea_results$NES > 0, ]
+    fgsea_results <- switch(
+      EXPR = direction,
+      up = fgsea_results[fgsea_results$NES > 0, ],
+      down = fgsea_results[fgsea_results$NES < 0, ],
+      both = fgsea_results
+    )
     fgsea_results <- fgsea_results[fgsea_results$padj < 0.05, ]
+    sort_score <- switch(
+      EXPR = direction,
+      up = fgsea_results$NES,
+      down = -fgsea_results$NES,
+      both = abs(x = fgsea_results$NES)
+    )
     fgsea_results <- fgsea_results[order(
-      fgsea_results$NES,
+      sort_score,
       fgsea_results$padj,
       decreasing = c(TRUE, FALSE)
     ), ]

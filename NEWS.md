@@ -44,13 +44,22 @@ package.
 * New peak calling methods: Signac now uses `macs3` in `CallPeaks()`. We
 have also enabled parallelization of peak calling across groups of cells, and
 include an option to use the `hmmratac` peak calling method in `macs3`.  
-* Added the `RunFragtk()` function to run `fragtk matrix` command within R
+* Converted `FeatureMatrix()` to a generic function able to be called on a `Seurat`
+object, `ChromatinAssay5` object, `Fragment2` object, or a character string giving
+the path to a single fragment file
 * Added the `fragtk` parameter to `GeneActivity()`
 * Added the `fragtk` parameter to `FeatureMatrix()`
+* Added `bpcells` and `bpcells.dir` parameters to `FeatureMatrix()`,
+`GeneActivity()`, and `GenomeBinMatrix()` to return a `BPCells::IterableMatrix`
+backed by an on-disk BPCells directory instead of an in-memory sparse matrix
+* Added the `pic` parameter to `FeatureMatrix()` and `GeneActivity()` to enable paired insertion counting
+* Added the `group` parameter to `FeatureMatrix()` to enabled grouped region quantification
 * Added the `raster` and `raster.dpi` parameters to `DensityScatter()`
 * Added `MultiCoveragePlot()` function for plotting multiple genomic
 regions side-by-side with shared formatting and axis labels
 * Added `ReadMQuad()` function to import output from [MQuad](https://github.com/single-cell-genetics/MQuad) for mitochondrial variant analysis
+* Added `ReadPWM()` function to read `.pwm` files from a directory into a `PWMatrixList`
+* Added `ReadJASPAR()` function to read motifs from a JASPAR-format file into a `PWMatrixList`
 
 Removed functions:
 
@@ -65,25 +74,45 @@ assays have the same fragment file, they are now consolidated into one fragment
 object.
 * Changed the behavior of object merging to follow the standard Seurat merge method. Previously, 
 overlapping peaks were treated as the same feature.  
+* Fixed p-value calculation in `LinkPeaks()`. The reported p-value was
+previously one-sided while the test statistic was two-sided.
 
-# Signac 1.16.9004
+# Signac 1.17.1
 
-***develop branch***
+* Removed `Seqinfo` package dependency
+
+# Signac 1.17.0
 
 New features:
 
 * Added the `ATACqc()` function to run `fragtk qc` and store the results
-* Added `FitMeanVar()` and `PearsonResidualVar()` functions for highly variable feature selection 
+* Added `FitMeanVar()` and `PearsonResidualVar()` functions for highly variable feature selection
 * Added `pca` parameter to `RunSVD()` to compute PCA dimension reduction without storing standardized matrix
 * Added the `EnrichedTerms()` function to run `fgsea()` on differential testing results from each group of cell identities
+* Added `layer` parameter to `RunSVD()` to select which layer to use
+
+Bug fixes:
+
+* Added `seqinfo` to motif positions in `AddMotifs()` to prevent the extension
+of motif regions beyond the ends of chromosomes
+([#1983](https://github.com/stuart-lab/signac/pull/1983); [@chenyenchung](https://github.com/chenyenchung))
 
 Other changes:
 
 * Deprecated `NucleosomeSignal` and `TSSEnrichment` functions in favor of the
 new `ATACqc` function
+* Deprecated `TSSPlot`
+* Deprecated `GRangesToString` and `StringToGRanges`
 * Deprecated the blacklist region data objects in favor of using the
 [excluderanges](https://github.com/dozmorovlab/excluderanges) package
 * Changed SVD function in `RunSVD()` from `irlba::irlba()` to `RSpectra::svds()`
+* Removed `irlba.work` parameter from `RunSVD()`
+* Added `sparseMatrixStats` and `RSpectra` to package dependencies; removed `irlba`
+* Added `fgsea` to suggested packages
+* Added `Seqinfo` to dependencies
+* Removed `RunChromVAR()` and `AddChromatinModule()` due to the chromVAR package
+being unavailable in Bioconductor 3.23
+* Removed `chromVAR` from suggested packages
 
 # Signac 1.16.0
 

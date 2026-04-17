@@ -10,7 +10,7 @@
 \method{Cells}{Fragment2}(x, ...) <- value
 }
 \arguments{
-\item{x}{A Fragment object}
+\item{x}{A \linkS4class{Fragment2} object}
 
 \item{...}{Arguments passed to other methods}
 
