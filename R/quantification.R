@@ -144,9 +144,15 @@ AggregateTiles.default <- function(
 #' is counted separately (fragments with both ends in a region contribute 2
 #' counts).
 #' @param gene.id Record gene IDs in output matrix rather than gene name.
+#' @param bpcells If `TRUE`, return a `BPCells::IterableMatrix` backed by an
+#' on-disk BPCells directory instead of an in-memory sparse matrix. See
+#' [FeatureMatrix()].
+#' @param bpcells.dir Optional path to persist the BPCells directory beyond
+#' the R session. See [FeatureMatrix()].
 #' @param verbose Display messages
 #'
-#' @return Returns a sparse matrix
+#' @return Returns a sparse matrix, or a `BPCells::IterableMatrix` when
+#' `bpcells = TRUE`.
 #'
 #' @concept utilities
 #' @export
@@ -172,6 +178,8 @@ GeneActivity <- function(
   fragtk = TRUE,
   pic = TRUE,
   gene.id = FALSE,
+  bpcells = FALSE,
+  bpcells.dir = NULL,
   verbose = TRUE
 ) {
   if (!is.null(x = features)) {
@@ -179,6 +187,7 @@ GeneActivity <- function(
       stop("Empty list of features provided")
     }
   }
+  ValidateBPCellsArgs(bpcells = bpcells, bpcells.dir = bpcells.dir)
   # collapse to longest protein coding transcript
   assay <- assay %||% DefaultAssay(object = object)
   if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
@@ -230,13 +239,23 @@ GeneActivity <- function(
     downstream = extend.downstream
   )
 
-  # quantify
+  # quantify. When bpcells is requested, route FeatureMatrix output through an
+  # intermediate session-lifetime directory so that gene-name row renaming and
+  # empty-row dropping can happen before the final matrix is persisted to the
+  # user-supplied `bpcells.dir`.
+  intermediate.dir <- if (isTRUE(x = bpcells)) {
+    tempfile(pattern = "signac_geneactivity_")
+  } else {
+    NULL
+  }
   counts <- FeatureMatrix(
     object = object[[assay]],
     features = transcripts,
     process_n = process_n,
     fragtk = fragtk,
     pic = pic,
+    bpcells = bpcells,
+    bpcells.dir = intermediate.dir,
     verbose = verbose
   )
   # set row names
@@ -245,6 +264,12 @@ GeneActivity <- function(
   rownames(x = counts) <- as.vector(x = gene.key[rownames(x = counts)])
   counts <- counts[rownames(x = counts) != "", ]
 
+  if (isTRUE(x = bpcells)) {
+    counts <- AsBPCells(
+      mat = counts, bpcells = TRUE, bpcells.dir = bpcells.dir
+    )
+    unlink(x = intermediate.dir, recursive = TRUE)
+  }
   return(counts)
 }
 
@@ -266,13 +291,19 @@ GeneActivity <- function(
 #' @param binsize Size of the genome bins to use
 #' @param process_n Number of regions to load into memory at a time, per thread.
 #' Processing more regions at once can be faster but uses more memory.
+#' @param bpcells If `TRUE`, return a `BPCells::IterableMatrix` backed by an
+#' on-disk BPCells directory instead of an in-memory sparse matrix. See
+#' [FeatureMatrix()].
+#' @param bpcells.dir Optional path to persist the BPCells directory beyond
+#' the R session. See [FeatureMatrix()].
 #' @param verbose Display messages.
 #' @param ... Arguments passed to [FeatureMatrix()].
 #'
 #' @importFrom GenomicRanges tileGenome
 #' @export
 #' @concept quantification
-#' @return Returns a sparse matrix
+#' @return Returns a sparse matrix, or a `BPCells::IterableMatrix` when
+#' `bpcells = TRUE`.
 #' @examples
 #' \donttest{
 #' genome <- 780007
@@ -291,6 +322,8 @@ GenomeBinMatrix <- function(
   cells = NULL,
   binsize = 5000,
   process_n = 2000,
+  bpcells = FALSE,
+  bpcells.dir = NULL,
   verbose = TRUE,
   ...
 ) {
@@ -305,6 +338,8 @@ GenomeBinMatrix <- function(
       features = tiles,
       cells = cells,
       process_n = process_n,
+      bpcells = bpcells,
+      bpcells.dir = bpcells.dir,
       verbose = verbose,
       ...
     )
@@ -314,6 +349,8 @@ GenomeBinMatrix <- function(
       features = tiles,
       cells = cells,
       process_n = process_n,
+      bpcells = bpcells,
+      bpcells.dir = bpcells.dir,
       verbose = verbose,
       ...
     )
@@ -372,6 +409,13 @@ GenomeBinMatrix <- function(
 #' @param process_n Number of regions to load into memory at a time, per
 #' worker. Larger values can be faster but use more memory. Only affects the R
 #' backend.
+#' @param bpcells Logical. If `TRUE`, write the count matrix to disk in
+#' BPCells format at `bpcells.dir` and return a `BPCells::IterableMatrix`
+#' instead of an in-memory sparse matrix. Requires the `BPCells` package.
+#' Default `FALSE`.
+#' @param bpcells.dir Character. Path to a directory where the BPCells output
+#' will be written. Required when `bpcells = TRUE`. The directory must not
+#' already exist as a non-empty directory. Ignored when `bpcells = FALSE`.
 #' @param verbose Display progress messages.
 #'
 #' @rdname FeatureMatrix
@@ -467,6 +511,8 @@ FeatureMatrix.default <- function(
   group = FALSE,
   keep_all_features = FALSE,
   process_n = 2000,
+  bpcells = FALSE,
+  bpcells.dir = NULL,
   verbose = TRUE,
   ...
 ) {
@@ -480,6 +526,7 @@ FeatureMatrix.default <- function(
       stop("features should be a GRanges object")
     }
   }
+  ValidateBPCellsArgs(bpcells = bpcells, bpcells.dir = bpcells.dir)
   file.index <- file.index %||% paste0(object, ".tbi")
 
   # resolve file-level cells and object<->file barcode mapping
@@ -524,6 +571,7 @@ FeatureMatrix.default <- function(
       pic = pic,
       fragtk.path = fragtk.path,
       seqlevels = NULL,
+      bpcells = bpcells,
       verbose = verbose,
       cleanup = TRUE
     )
@@ -561,6 +609,11 @@ FeatureMatrix.default <- function(
     rownames(x = mat) <- as.character(x = orig)
   }
 
+  # persist final BPCells matrix to disk with final dimnames
+  mat <- AsBPCells(
+    mat = mat, bpcells = bpcells, bpcells.dir = bpcells.dir
+  )
+
   return(mat)
 }
 
@@ -576,6 +629,8 @@ FeatureMatrixList <- function(
   cells = NULL,
   group = FALSE,
   keep_all_features = FALSE,
+  bpcells = FALSE,
+  bpcells.dir = NULL,
   ...
 ) {
   if (!inherits(x = features, what = "GRanges")) {
@@ -585,6 +640,7 @@ FeatureMatrixList <- function(
       stop("features should be a GRanges object")
     }
   }
+  ValidateBPCellsArgs(bpcells = bpcells, bpcells.dir = bpcells.dir)
   # filter frags to those containing any of the requested cells
   if (!is.null(x = cells)) {
     obj.use <- c()
@@ -598,6 +654,8 @@ FeatureMatrixList <- function(
   } else {
     obj.use <- seq_along(along.with = frags)
   }
+  # quantify each fragment in-memory; we BPCells-persist only at the end so
+  # the Reduce(`+`) merge below operates on sparse matrices.
   mat.list <- lapply(
     X = frags[obj.use],
     FUN = FeatureMatrix,
@@ -605,10 +663,14 @@ FeatureMatrixList <- function(
     cells = cells,
     group = group,
     keep_all_features = keep_all_features,
+    bpcells = FALSE,
+    bpcells.dir = NULL,
     ...
   )
   if (length(x = mat.list) == 1) {
-    return(mat.list[[1]])
+    return(AsBPCells(
+      mat = mat.list[[1]], bpcells = bpcells, bpcells.dir = bpcells.dir
+    ))
   }
   grouped <- (is.logical(x = group) && group) || is.character(x = group)
   all.cells <- unique(
@@ -627,7 +689,72 @@ FeatureMatrixList <- function(
     cells = all.cells,
     features = feat.names
   )
-  Reduce(f = `+`, x = mat.list)
+  mat <- Reduce(f = `+`, x = mat.list)
+  AsBPCells(mat = mat, bpcells = bpcells, bpcells.dir = bpcells.dir)
+}
+
+# Validate the bpcells / bpcells.dir arguments.
+#
+# Errors if `bpcells` is not a single logical, if `bpcells = TRUE` without a
+# `bpcells.dir`, if `bpcells.dir` is not a single character, or if
+# `bpcells.dir` points to a non-empty directory. Warns if `bpcells.dir` is
+# supplied while `bpcells = FALSE`.
+ValidateBPCellsArgs <- function(bpcells, bpcells.dir) {
+  if (!is.logical(x = bpcells) || length(x = bpcells) != 1 || is.na(x = bpcells)) {
+    stop("`bpcells` must be a single logical value")
+  }
+  if (isTRUE(x = bpcells)) {
+    if (is.null(x = bpcells.dir)) {
+      stop(
+        "`bpcells.dir` must be supplied when `bpcells = TRUE`. ",
+        "Provide a path to a persistent directory where the BPCells output ",
+        "will be written."
+      )
+    }
+    if (!requireNamespace("BPCells", quietly = TRUE)) {
+      stop(
+        "`bpcells = TRUE` requires the BPCells package. Install from ",
+        "https://github.com/bnprks/BPCells"
+      )
+    }
+  }
+  if (!is.null(x = bpcells.dir)) {
+    if (!is.character(x = bpcells.dir) || length(x = bpcells.dir) != 1) {
+      stop("`bpcells.dir` must be a single character string")
+    }
+    if (dir.exists(paths = bpcells.dir) &&
+        length(x = list.files(path = bpcells.dir)) > 0) {
+      stop(
+        "`bpcells.dir` (", bpcells.dir, ") already exists and is not empty"
+      )
+    }
+  }
+  if (!isTRUE(x = bpcells) && !is.null(x = bpcells.dir)) {
+    warning("`bpcells.dir` is ignored when `bpcells = FALSE`")
+  }
+  invisible(x = NULL)
+}
+
+# Persist a matrix to BPCells format and return an IterableMatrix.
+#
+# If `bpcells = FALSE`, returns `mat` unchanged. Otherwise writes `mat` to
+# `bpcells.dir` via `BPCells::write_matrix_dir` and returns the opened
+# IterableMatrix.
+AsBPCells <- function(mat, bpcells, bpcells.dir) {
+  if (!isTRUE(x = bpcells)) {
+    return(mat)
+  }
+  # BPCells::write_matrix_dir requires dgCMatrix specifically (or an existing
+  # IterableMatrix). Other CsparseMatrix subclasses produced upstream are
+  # coerced here.
+  if (!inherits(x = mat, what = c("IterableMatrix", "dgCMatrix"))) {
+    mat <- as(object = mat, Class = "CsparseMatrix")
+    if (!inherits(x = mat, what = "dgCMatrix")) {
+      mat <- as(object = mat, Class = "dgCMatrix")
+    }
+  }
+  BPCells::write_matrix_dir(mat = mat, dir = bpcells.dir)
+  BPCells::open_matrix_dir(dir = bpcells.dir)
 }
 
 # Run fragtk matrix
@@ -653,8 +780,11 @@ FeatureMatrixList <- function(
 # before quantification, and reverse-map row names in the output.
 # @param outdir Path for output directory
 # @param cleanup Remove output files created by fragtk
+# @param bpcells If TRUE, import the fragtk MTX output into a BPCells
+# IterableMatrix instead of a sparse in-memory matrix.
 # @param verbose Display messages
-# @return Returns a CsparseMatrix
+# @return Returns a CsparseMatrix, or a BPCells IterableMatrix if
+# `bpcells = TRUE`.
 #
 #' @importFrom S4Vectors mcols
 #' @importFrom Matrix readMM
@@ -670,6 +800,7 @@ RunFragtk <- function(
   seqlevels = NULL,
   outdir = tempdir(),
   cleanup = TRUE,
+  bpcells = FALSE,
   verbose = TRUE
 ) {
   # find fragtk
@@ -773,10 +904,23 @@ RunFragtk <- function(
   rownames.file <- paste0(out.path, .Platform$file.sep, "features.tsv.gz")
   colnames.file <- paste0(out.path, .Platform$file.sep, "barcodes.tsv.gz")
 
-  counts <- readMM(file = matrix.file)
-  rownames(x = counts) <- readLines(con = rownames.file)
-  colnames(x = counts) <- readLines(con = colnames.file)
-  counts <- as(object = counts, Class = "CsparseMatrix")
+  if (isTRUE(x = bpcells)) {
+    # stream the fragtk MTX directory into an on-disk BPCells matrix
+    bpcells.tmp <- tempfile(pattern = "signac_fragtk_bpcells_")
+    imported <- BPCells::import_matrix_market_10x(mtx_dir = out.path)
+    BPCells::write_matrix_dir(mat = imported, dir = bpcells.tmp)
+    counts <- BPCells::open_matrix_dir(dir = bpcells.tmp)
+    # BPCells sets colnames from barcodes.tsv and rownames from features.tsv
+    # (first column). Replicate the second-column row name (interval string)
+    # so it matches the behavior of the sparse code path.
+    rownames(x = counts) <- readLines(con = rownames.file)
+    colnames(x = counts) <- readLines(con = colnames.file)
+  } else {
+    counts <- readMM(file = matrix.file)
+    rownames(x = counts) <- readLines(con = rownames.file)
+    colnames(x = counts) <- readLines(con = colnames.file)
+    counts <- as(object = counts, Class = "CsparseMatrix")
+  }
 
   # reverse-map seqlevels in row names back to original names
   if (!is.null(x = seqlevels)) {

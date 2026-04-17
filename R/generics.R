@@ -306,11 +306,26 @@ FindTopFeatures <- function(object, ...) {
 #' that appear in only a subset of fragment files are still represented in the
 #' output (zero-filled for the files in which they are absent).
 #'
+#' # On-disk output via BPCells
+#'
+#' Setting `bpcells = TRUE` writes the count matrix to disk in BPCells format
+#' at `bpcells.dir` and returns a `BPCells::IterableMatrix` instead of an
+#' in-memory sparse matrix. This is recommended for large datasets where the
+#' dense count matrix would not fit in memory. With the `fragtk` backend, the
+#' matrix is streamed from fragtk's 10x Matrix Market output into BPCells
+#' without materializing a dense in-memory copy. With the R backend, the
+#' matrix is built in memory first and then written out; the benefit there is
+#' on-disk persistence, not reduced memory use. `bpcells.dir` is required when
+#' `bpcells = TRUE` and must point to a directory that does not already exist
+#' or is empty. Requires the `BPCells` package.
+#'
 #' @param object A [SeuratObject::Seurat] object, [ChromatinAssay5-class]
 #' object, [Fragment2-class] object, or a character path to a tabix-indexed
 #' fragment file.
 #' @param ... Arguments passed to other methods.
-#' @return Returns a sparse feature x cell [Matrix::CsparseMatrix-class].
+#' @return If `bpcells = FALSE` (the default) returns a sparse feature x cell
+#' [Matrix::CsparseMatrix-class]. If `bpcells = TRUE`, returns a
+#' `BPCells::IterableMatrix` backed by an on-disk BPCells directory.
 #' @seealso [GenomeBinMatrix()], [GeneActivity()], [CreateFragmentObject()],
 #' [Fragment2-class].
 #' @rdname FeatureMatrix
