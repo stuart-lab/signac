@@ -12,6 +12,13 @@ GetFragmentData(object, slot = "file.path")
 \item{slot}{Information to pull from object
 (file.path, index.path, hash, cells, seqlevels)}
 }
+\value{
+The contents of the requested slot: a character string for
+\code{file.path} or \code{index.path}, an MD5 hash string for \code{hash}, a named
+character vector mapping object-level cell names to fragment-file barcodes
+for \code{cells}, or a named character vector of seqname conversions for
+\code{seqlevels} (may be \code{NULL} if not set).
+}
 \description{
 Extract data from a \linkS4class{Fragment2} object
 }

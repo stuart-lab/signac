@@ -68,11 +68,15 @@ path; populated automatically when dispatched from a \linkS4class{Fragment2}
 object via the \code{cells} slot.}
 
 \item{seqlevels}{A named character vector specifying a seqname conversion
-used to rename \code{features} to match the fragment file before quantification
-(e.g. \code{c(chr1 = "1")} to convert UCSC-style names to Ensembl). Row names of
-the output are mapped back to the original seqnames after quantification.
-Typically \code{NULL} for raw path input; set automatically from the
-\linkS4class{Fragment2} \code{seqlevels} slot.}
+used to rename \code{features} to match the fragment file before quantification.
+The names of the vector are the seqnames as they appear in \code{features} and
+the values are the corresponding seqnames in the fragment file (e.g.
+\code{c(chr1 = "1", chr2 = "2")} to convert UCSC-style names to Ensembl). Row
+names of the returned matrix are mapped back to the original \code{features}
+seqnames after quantification, so the output always matches the input
+coordinate system regardless of what is stored on disk. Typically \code{NULL}
+for raw path input; set automatically from the \linkS4class{Fragment2}
+\code{seqlevels} slot.}
 
 \item{fragtk}{Use the \code{fragtk} backend for quantification. \code{TRUE} (default)
 looks up \code{fragtk} on \code{PATH}; \code{FALSE} uses the R implementation; a character
