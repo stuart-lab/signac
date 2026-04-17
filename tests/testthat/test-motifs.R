@@ -69,7 +69,7 @@ test_that("AddMotifs works with fakechr", {
     )
   ))
   mat <- FeatureMatrix(
-    fragments = fragments,
+    object = fragments,
     features = features,
     keep_all_features = TRUE,
     fragtk = FALSE,

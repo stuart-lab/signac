@@ -9,14 +9,14 @@ test_that("FeatureMatrix works on grange on diff seqnames", {
     )
   ))
   expect_warning(mat <- FeatureMatrix(
-    fragments = fragments,
+    object = fragments,
     features = features,
     verbose = FALSE,
     fragtk = FALSE
   ))
   expect_equal(dim(mat), c(100, 76))
   mat <- FeatureMatrix(
-    fragments = fragments,
+    object = fragments,
     features = features,
     keep_all_features = TRUE,
     fragtk = FALSE,

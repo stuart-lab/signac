@@ -74,7 +74,7 @@ test_that("FeatureMatrix works", {
     verbose = FALSE
   )
   fm <- FeatureMatrix(
-    fragments = fragments,
+    object = fragments,
     features = granges(atac_small),
     fragtk = FALSE,
     verbose = FALSE
