@@ -510,7 +510,7 @@ LinkPeaks <- function(
           coef.vec <- c(coef.vec, coef.result)
         }
         gc(verbose = FALSE)
-        pval.vec <- pnorm(q = -abs(x = zscore.vec))
+        pval.vec <- 2 * pnorm(q = -abs(x = zscore.vec))
         links.keep <- pval.vec < pvalue_cutoff
         if (sum(x = links.keep) == 0) {
           return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
@@ -568,7 +568,7 @@ LinkPeaks <- function(
     gene.coords = gene.coords.use
   )
   links$zscore <- z.lnk$score
-  links$pvalue <- pnorm(q = -abs(x = links$zscore))
+  links$pvalue <- 2 * pnorm(q = -abs(x = links$zscore))
   links <- links[links$pvalue < pvalue_cutoff]
   Links(object = object[[peak.assay]], key = key) <- links
   return(object)
