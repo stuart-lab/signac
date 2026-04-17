@@ -241,8 +241,9 @@ CallPeaks.ChromatinAssay5 <- function(
 
   if (is.null(x = cells)) {
     # cells not set, one combined MACS3 call with all fragment files
-    allfragpaths <- lapply(X = frags, FUN = GetFragmentData, slot = "file.path")
-    allfragpaths <- paste(allfragpaths, collapse = " ")
+    allfragpaths <- unlist(
+      x = lapply(X = frags, FUN = GetFragmentData, slot = "file.path")
+    )
     peakcalls <- CallPeaks(
       object = allfragpaths,
       macs3.path = macs3.path,
@@ -382,7 +383,7 @@ CallPeaks.default <- function(
   }
   macs3.path <- macs3_pathcheck(macs3.path = macs3.path, mode = mode)
 
-  if (nchar(x = object) == 0 || object == " ") {
+  if (length(x = object) == 0 || any(nchar(x = object) == 0)) {
     stop("Empty path given for fragment file")
   }
 
@@ -392,11 +393,6 @@ CallPeaks.default <- function(
   # check macs3 mode
   if (!mode %in% c("callpeak", "hmmratac")) {
     stop("Invalid macs3 command, choose between `callpeak` or `hmmratac`")
-  }
-
-  # if list of paths given, collapse to a single space-separated string
-  if (length(x = object) > 1) {
-    object <- paste(" ", object, collapse = " ")
   }
 
   # check genome format
@@ -427,7 +423,7 @@ CallPeaks.default <- function(
 
   # object path
   if (mode == "callpeak") {
-    object_string <- paste0(" -t ", shQuote(object))
+    object_string <- paste0(" -t ", paste(shQuote(object), collapse = " "))
   } else if (mode == "hmmratac") {
     object_string <- paste0(" -i ", shQuote(object))
     genome_string <- " "
