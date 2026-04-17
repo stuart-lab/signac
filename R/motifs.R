@@ -574,6 +574,31 @@ FindMotifs <- function(
   if (!inherits(x = object[[assay]], what = "ChromatinAssay5")) {
     stop("Cannot run FindMotifs on ", class(x = object[[assay]]))
   }
+  motif.all <- GetMotifData(
+    object = object, assay = assay, slot = "data"
+  )
+  motif.names <- GetMotifData(
+    object = object, assay = assay, slot = "motif.names"
+  )
+  motif.features <- rownames(x = motif.all)
+
+  # features and background must correspond to rows of the motif matrix.
+  # ChromatinAssay5 does not require the motif matrix to mirror the data layer,
+  # so drop anything not present in the motif matrix before subsetting.
+  missing.query <- setdiff(x = features, y = motif.features)
+  if (length(x = missing.query) > 0) {
+    warning(
+      "The following features are not in the motif matrix ",
+      "and will be ignored: ",
+      paste(missing.query, collapse = ", "),
+      immediate. = TRUE
+    )
+    features <- intersect(x = features, y = motif.features)
+  }
+  if (length(x = features) == 0) {
+    stop("No query features are present in the motif matrix")
+  }
+
   if (is(object = background, class2 = "numeric")) {
     if (verbose) {
       message(
@@ -582,6 +607,11 @@ FindMotifs <- function(
       )
     }
     meta.feature <- object[[assay]][[]]
+    # only sample candidates that are present in the motif matrix
+    meta.feature <- meta.feature[
+      intersect(x = rownames(x = meta.feature), y = motif.features), ,
+      drop = FALSE
+    ]
     mf.choose <- meta.feature[
       setdiff(x = rownames(x = meta.feature), y = features), ,
       drop = FALSE
@@ -609,6 +639,20 @@ FindMotifs <- function(
       verbose = verbose,
       ...
     )
+  } else {
+    missing.bg <- setdiff(x = background, y = motif.features)
+    if (length(x = missing.bg) > 0) {
+      warning(
+        "The following background features are not in the motif matrix ",
+        "and will be ignored: ",
+        paste(missing.bg, collapse = ", "),
+        immediate. = TRUE
+      )
+      background <- intersect(x = background, y = motif.features)
+    }
+    if (length(x = background) == 0) {
+      stop("No background features are present in the motif matrix")
+    }
   }
   if (verbose) {
     msg <- ifelse(
@@ -624,16 +668,6 @@ FindMotifs <- function(
       "not recommended"
     )
   }
-  motif.all <- GetMotifData(
-    object = object, assay = assay, slot = "data"
-  )
-  motif.names <- GetMotifData(
-    object = object, assay = assay, slot = "motif.names"
-  )
-
-  # TODO update this for new ChromatinAssay5 class definition
-  # no longer require that features in motif matrix match features in the data
-  # layer will need to check that all features are in the motif object
 
   query.motifs <- motif.all[features, , drop = FALSE]
   background.motifs <- motif.all[background, , drop = FALSE]
