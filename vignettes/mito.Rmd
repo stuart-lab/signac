@@ -11,6 +11,9 @@ output:
 if (!requireNamespace(package = "EnsDb.Hsapiens.v86", quietly = TRUE)) {
   BiocManager::install("EnsDb.Hsapiens.v86")
 }
+if (!requireNamespace(package = "eulerr", quietly = TRUE)) {
+  install.packages("eulerr")
+}
 ```
 
 ```{r init, include=FALSE}
@@ -25,7 +28,6 @@ library(ggplot2)
 library(ggrepel)
 library(patchwork)
 library(EnsDb.Hsapiens.v86)
-library(ggVennDiagram)
 ```
 
 In this vignette, we take a look at two different datasets containing both DNA 
@@ -99,7 +101,6 @@ crc <- CreateSeuratObject(
 
 crc[["peaks"]]
 ```
-
 
 ## Quality control
 
@@ -238,7 +239,7 @@ cluster.
 
 ## Mitochondrial variant analysis {.tabset}
 
-We now import the mitochondrial variant data identified by 2 tools - 
+We now import the mitochondrial variant data identified by two tools - 
 [mgatk](https://github.com/caleblareau/mgatk) or [MQuad](https://github.com/single-cell-genetics/MQuad). 
 The former performs genotyping of mtDNA variants & identifies high confidence 
 variants using strand correlation & variance mean ratio metrics. 
@@ -390,7 +391,6 @@ Other variants including 16093T>C, 9804G>A, and 824T>C are found specifically
 in immune cell populations, suggesting that these arose from a common hematopoetic
 progenitor cell (probably in the bone marrow).
 
-
 ### MQuad
 
 In this tab, we explore mitochondrial variants identified to be clonally
@@ -436,10 +436,6 @@ ref) & NA (not detected), and thus should be used with caution.
 mquad_vaf <- crc[["mquad"]]$counts / crc[["mquad"]]$DP
 crc[["mquad"]]$data <- mquad_vaf
 
-# Check number of 0 counts in DP matrix
-sum(mquad.data$DP_matrix[,passed_cells] == 0)
-sum(is.na(mquad_vaf))
-
 # Set NAs in VAF data to 0 (assuming not too many 0s)
 crc[["mquad"]]$data[is.na(crc[["mquad"]]$data)] <- 0
 ```
@@ -472,29 +468,29 @@ DoHeatmap(crc, features = sort(rownames(crc)), slot = "data", disp.max = 1) +
 
 ## Investigate overlap between mgatk & MQuad variants
 
-From the `mgatk` and `MQuad` heatmaps, the detected mitochondrial variants 
-mostly overlaps. We investigate the overlapping and distinct variants further 
-using a venn diagram.
+From the `mgatk` and `MQuad` heatmaps, the detected mitochondrial variants
+mostly overlaps. We investigate the overlapping and distinct variants further
+using an Euler diagram.
 
 ```{r message=FALSE, warning=FALSE}
+library(eulerr)
+
 # list of variants by each tool
 mgatk_variants <- high.conf$variant
 mquad_variants <- rownames(mquad_vaf)
 
-# plot venn
-p3 <- ggVennDiagram(x = list(mgatk = mgatk_variants, mquad = mquad_variants),
-                   set_size = 3, label_size = 3)
-p3 + NoLegend() + coord_fixed(clip = "off")
+# plot Euler diagram
+fit <- euler(list(mgatk = mgatk_variants, mquad = mquad_variants))
+plot(fit, quantities = TRUE)
 ```
 
 A total of 8 variants were commonly identified by `mgatk` and `MQuad`. `MQuad` 
 identified 1 unique mitochondrial variant, while `mgatk` identified 4 other 
 unique variants that did not pass the BIC threshold in MQuad.
 
+### MQuad-specific variants
 
-### MQuad-specific variant(s)
-
-We now investigate the distinct variant(s) by plotting them with `FeaturePlot()`.
+We now investigate the distinct variants by plotting them with `FeaturePlot()`.
 
 ```{r fig.width=4, fig.height=4, message=FALSE, warning=FALSE}
 # get distinct MQuad variants
@@ -509,8 +505,7 @@ FeaturePlot(
 ) & NoLegend()
 ```
 
-
-We can also visualize the distinct variant(s) identified by MQuad on the 
+We can also visualize the distinct variants identified by MQuad on the 
 `VariantPlot()` to see where they are in the VMR-strand concordance space.
 
 ```{r message=FALSE, warning=FALSE}
@@ -530,7 +525,6 @@ p4 +
 
 From the plot, the variant 310T>C was filtered out from mgatk as it did not 
 pass the strand concordance test. 
-
 
 ### mgatk-specific variants
 
@@ -556,8 +550,6 @@ clonally informative.
 
 Overall, both mitochondrial variant tools show high concordance, and either 
 tool can be used for clonal analysis.
-
-
 
 # TF1 cell line dataset
 
@@ -643,7 +635,6 @@ mito.depth <- read.delim("tf1/mgatk/mgatk_tf1_1.depthTable.txt",
 tf1 <- AddMetaData(object = tf1, metadata = mito.depth)
 ```
 
-
 ```{r fig.width=12, fig.height=4, message=FALSE, warning=FALSE}
 VlnPlot(tf1, 
         c("TSS_enrichment", "nCount_peaks", "Nucleosome_signal","Mito_fraction", "mtDNA_depth"), 
@@ -689,7 +680,6 @@ mgatk <- subset(mgatk, cells = Cells(tf1))
 tf1[["mgatk"]] <- mgatk
 ```
 
-
 #### mgatk informative mtDNA variants
 
 Plot the VMR-strand concordance plot & identify high-confidence variants.
@@ -733,7 +723,7 @@ tf1 <- FindClonotypes(tf1)
 ```
 
 ```{r}
-table(Idents(tf1))
+sort(table(Idents(tf1)))
 ```
 
 Here we see that the clonal clustering has identified 9 different clones in the
@@ -748,8 +738,6 @@ to get a decent ordering of both features and clones automatically:
 DoHeatmap(tf1, features = VariableFeatures(tf1), slot = "data", disp.max = 0.3) +
   scale_fill_viridis_c()
 ```
-
-
 
 ### MQuad
 
@@ -788,14 +776,14 @@ sum(is.na(mquad_vaf))
 tf1[["mquad"]]$data[is.na(tf1[["mquad"]]$data)] <- 0
 ```
 
-
 #### Identification of MQuad clones 
 
 We perform clonotype clustering using the identified MQuad variants.
 ```{r message=FALSE, warning=FALSE}
 DefaultAssay(tf1) <- "mquad"
 tf1 <- FindClonotypes(tf1, assay = "mquad")
-table(Idents(tf1))
+
+sort(table(Idents(tf1)))
 ```
 
 ```{r fig.width=8, fig.height=5, message=FALSE, warning=FALSE}
@@ -803,27 +791,23 @@ DoHeatmap(tf1, features = VariableFeatures(tf1), slot = "data", disp.max = 0.3) 
   scale_fill_viridis_c()
 ```
 
-
 ## Investigate overlap between mgatk & MQuad variants
 
-
-We investigate the common and unique variants identified using a venn diagram.
+We investigate the common and unique variants identified using an Euler diagram.
 
 ```{r message=FALSE, warning=FALSE}
 # list of variants by each tool
 mgatk_variants <- high.conf$variant
 mquad_variants <- rownames(mquad_vaf)
 
-# plot venn
-p5 <- ggVennDiagram(x = list(mgatk = mgatk_variants, mquad = mquad_variants),
-                   set_size = 3, label_size = 3)
-p5 + NoLegend() + coord_fixed(clip = "off")
+# plot Euler diagram
+fit <- euler(list(mgatk = mgatk_variants, mquad = mquad_variants))
+plot(fit, quantities = TRUE)
 ```
 
 Again, we observe a significant subset of variants that are commonly identified 
 between the 2 tools. Generally, we observe that MQuad results in a smaller 
 subset of variants, likely due to stricter filtering criteria.
-
 
 <details>
   <summary>**Session Info**</summary>
