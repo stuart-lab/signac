@@ -154,6 +154,13 @@ output (zero-filled for the files in which they are absent).
 }
 
 \examples{
+fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+fragments <- CreateFragmentObject(
+  path = fpath,
+  cells = colnames(atac_small),
+  validate.fragments = FALSE
+)
+Fragments(atac_small) <- fragments
 FeatureMatrix(atac_small, features = granges(atac_small), fragtk = FALSE)
 fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
 FeatureMatrix(

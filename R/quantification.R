@@ -379,6 +379,13 @@ GenomeBinMatrix <- function(
 #' @method FeatureMatrix Seurat
 #' @concept quantification
 #' @examples
+#' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+#' fragments <- CreateFragmentObject(
+#'   path = fpath,
+#'   cells = colnames(atac_small),
+#'   validate.fragments = FALSE
+#' )
+#' Fragments(atac_small) <- fragments
 #' FeatureMatrix(atac_small, features = granges(atac_small), fragtk = FALSE)
 FeatureMatrix.Seurat <- function(
   object,
