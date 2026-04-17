@@ -44,6 +44,9 @@ package.
 * New peak calling methods: Signac now uses `macs3` in `CallPeaks()`. We
 have also enabled parallelization of peak calling across groups of cells, and
 include an option to use the `hmmratac` peak calling method in `macs3`.  
+* Converted `FeatureMatrix()` to a generic function able to be called on a `Seurat`
+object, `ChromatinAssay5` object, `Fragment2` object, or a character string giving
+the path to a single fragment file
 * Added the `fragtk` parameter to `GeneActivity()`
 * Added the `fragtk` parameter to `FeatureMatrix()`
 * Added the `pic` parameter to `FeatureMatrix()` and `GeneActivity()` to enable paired insertion counting
