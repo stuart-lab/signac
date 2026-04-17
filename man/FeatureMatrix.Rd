@@ -8,6 +8,8 @@ FeatureMatrix(
   fragments,
   features,
   fragtk = TRUE,
+  pic = TRUE,
+  group = FALSE,
   keep_all_features = FALSE,
   cells = NULL,
   process_n = 2000,
@@ -30,12 +32,21 @@ quantification. Can be TRUE/FALSE or a character vector. If TRUE,
 \code{fragtk} will be used and attempt to find the \code{fragtk} executable
 in the path. If FALSE, use the R implementation to produce the data matrix.
 If a character vector is provided, this should be the path to the
-\code{fragtk} executable and \code{fragtk} will be used. Note that
-\code{fragtk} uses the Paired Insertion Counting method, whereas the R
-implementation counts insertions. See
+\code{fragtk} executable and \code{fragtk} will be used. See
 \url{https://crates.io/crates/fragtk} for fragtk documentation. The R
 implementation (\code{fragtk=FALSE}) will be faster for quantifying a small
 number of genomic regions.}
+
+\item{pic}{Use Paired Insertion Counting. If TRUE (default), each fragment
+contributes at most 1 count per region, regardless of whether one or both
+insertion sites fall within the region. If FALSE, each insertion site is
+counted separately (fragments with both ends in a region contribute 2
+counts).}
+
+\item{group}{Group genomic ranges according to a grouping variable and sum
+counts across grouped rows. If FALSE (default), no grouping is performed.
+If TRUE, group by the first metadata column of \code{features}. If a character
+string, this should match a metadata column in \code{features}.}
 
 \item{keep_all_features}{By default, if a genomic region provided is on a
 chromosome that is not present in the fragment file,
