@@ -987,6 +987,12 @@ GetAssayData.ChromatinAssay5 <- function(
 #' @param object A [Fragment2-class] object
 #' @param slot Information to pull from object
 #' (file.path, index.path, hash, cells, seqlevels)
+#'
+#' @return The contents of the requested slot: a character string for
+#' `file.path` or `index.path`, an MD5 hash string for `hash`, a named
+#' character vector mapping object-level cell names to fragment-file barcodes
+#' for `cells`, or a named character vector of seqname conversions for
+#' `seqlevels` (may be `NULL` if not set).
 #' @export
 #' @concept assay
 GetFragmentData <- function(object, slot = "file.path") {

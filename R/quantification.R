@@ -401,11 +401,15 @@ GenomeBinMatrix <- function(
 #' path; populated automatically when dispatched from a [Fragment2-class]
 #' object via the `cells` slot.
 #' @param seqlevels A named character vector specifying a seqname conversion
-#' used to rename `features` to match the fragment file before quantification
-#' (e.g. `c(chr1 = "1")` to convert UCSC-style names to Ensembl). Row names of
-#' the output are mapped back to the original seqnames after quantification.
-#' Typically `NULL` for raw path input; set automatically from the
-#' [Fragment2-class] `seqlevels` slot.
+#' used to rename `features` to match the fragment file before quantification.
+#' The names of the vector are the seqnames as they appear in `features` and
+#' the values are the corresponding seqnames in the fragment file (e.g.
+#' `c(chr1 = "1", chr2 = "2")` to convert UCSC-style names to Ensembl). Row
+#' names of the returned matrix are mapped back to the original `features`
+#' seqnames after quantification, so the output always matches the input
+#' coordinate system regardless of what is stored on disk. Typically `NULL`
+#' for raw path input; set automatically from the [Fragment2-class]
+#' `seqlevels` slot.
 #' @param process_n Number of regions to load into memory at a time, per
 #' worker. Larger values can be faster but use more memory. Only affects the R
 #' backend.

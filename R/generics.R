@@ -52,6 +52,12 @@ AggregateTiles <- function(object, ...) {
 #' @param verbose Display messages
 #' @param ... Arguments passed to other methods
 #'
+#' @return When run on a [SeuratObject::Seurat] object, returns the input
+#' object with per-cell QC metrics added to the cell metadata. When run on a
+#' [ChromatinAssay5-class], [Fragment2-class], or path to a fragment file,
+#' returns a `data.frame` of per-cell QC metrics with cell barcodes as row
+#' names. Column names correspond to the metrics produced by `fragtk qc`.
+#'
 #' @export ATACqc
 #' @rdname ATACqc
 ATACqc <- function(object, ...) {
