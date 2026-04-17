@@ -231,16 +231,10 @@ GeneActivity <- function(
   )
 
   # quantify
-  frags <- Fragments(object = object[[assay]])
-  if (length(x = frags) == 0) {
-    stop("No fragment information found for requested assay")
-  }
-  cells <- colnames(x = object[[assay]])
   counts <- FeatureMatrix(
-    fragments = frags,
+    object = object[[assay]],
     features = transcripts,
     process_n = process_n,
-    cells = cells,
     fragtk = fragtk,
     pic = pic,
     verbose = verbose
@@ -305,81 +299,277 @@ GenomeBinMatrix <- function(
     tilewidth = binsize,
     cut.last.tile.in.chrom = TRUE
   )
-  binmat <- FeatureMatrix(
-    fragments = fragments,
-    features = tiles,
-    cells = cells,
-    process_n = process_n,
-    verbose = verbose,
-    ...
-  )
+  if (inherits(x = fragments, what = "list")) {
+    binmat <- FeatureMatrixList(
+      frags = fragments,
+      features = tiles,
+      cells = cells,
+      process_n = process_n,
+      verbose = verbose,
+      ...
+    )
+  } else {
+    binmat <- FeatureMatrix(
+      object = fragments,
+      features = tiles,
+      cells = cells,
+      process_n = process_n,
+      verbose = verbose,
+      ...
+    )
+  }
   return(binmat)
 }
 
-#' Feature Matrix
+#' @param features A [GenomicRanges::GRanges()] object containing the genomic
+#' intervals to quantify. These form the rows of the returned matrix. A
+#' character vector of UCSC-style coordinates (e.g. `"chr1:1-1000"`) is also
+#' accepted and will be coerced to a `GRanges`.
+#' @param assay Name of assay to use. If NULL, the default assay is used. The
+#' assay must be a [ChromatinAssay5-class] with fragment information attached
+#' via [Fragments()].
+#' @param cells Character vector of cell barcodes to include as columns in the
+#' output. If NULL, all cells present in the fragment file(s) are included.
+#' When called on a [SeuratObject::Seurat] or [ChromatinAssay5-class] object,
+#' the assay's `colnames` are used as the default. Cell names are matched
+#' against the object-level names recorded in the [Fragment2-class] `cells`
+#' slot; file-level barcodes are resolved internally.
+#' @param fragtk Use the `fragtk` backend for quantification. `TRUE` (default)
+#' looks up `fragtk` on `PATH`; `FALSE` uses the R implementation; a character
+#' string is interpreted as an explicit path to the `fragtk` executable. The R
+#' backend is typically faster for small numbers of features (e.g. a handful
+#' of peaks); `fragtk` is faster for genome-scale quantifications. See
+#' <https://crates.io/crates/fragtk>.
+#' @param pic Use Paired Insertion Counting. If `TRUE` (default), each
+#' fragment contributes at most 1 count per feature, regardless of whether
+#' one or both insertion sites fall inside the feature. If `FALSE`, each
+#' insertion site (fragment start and end) is counted independently, so a
+#' fragment with both ends inside a feature contributes 2 counts.
+#' @param group Group features and sum counts across grouped rows. If `FALSE`
+#' (default), no grouping is performed and each feature becomes a row in the
+#' output. If `TRUE`, group by the first metadata column of `features` (from
+#' `mcols(features)`). If a character string, group by the named metadata
+#' column of `features`. Useful for collapsing exon- or transcript-level
+#' intervals to gene-level counts.
+#' @param keep_all_features By default, features on chromosomes not present in
+#' the fragment file are dropped with a warning. Set `keep_all_features =
+#' TRUE` to keep every feature in `features`; rows for absent chromosomes are
+#' filled with zeros. Only honored by the R backend (`fragtk = FALSE`).
+#' @param file.index Path to the tabix index (`.tbi`) for the fragment file.
+#' If `NULL`, defaults to `paste0(object, ".tbi")`.
+#' @param frag.cells A named character vector mapping object-level cell names
+#' (the `names()`) to file-level barcodes (the values). Used to translate
+#' between the cell names used in a Seurat object and the barcodes written in
+#' the fragment file. Typically `NULL` when calling with a raw fragment file
+#' path; populated automatically when dispatched from a [Fragment2-class]
+#' object via the `cells` slot.
+#' @param seqlevels A named character vector specifying a seqname conversion
+#' used to rename `features` to match the fragment file before quantification
+#' (e.g. `c(chr1 = "1")` to convert UCSC-style names to Ensembl). Row names of
+#' the output are mapped back to the original seqnames after quantification.
+#' Typically `NULL` for raw path input; set automatically from the
+#' [Fragment2-class] `seqlevels` slot.
+#' @param process_n Number of regions to load into memory at a time, per
+#' worker. Larger values can be faster but use more memory. Only affects the R
+#' backend.
+#' @param verbose Display progress messages.
 #'
-#' Construct a feature x cell matrix from a genomic fragments file
-#'
-#' @param fragments A list of [Fragment()] objects. Note that if
-#' setting the `cells` parameter, the requested cells should be present in
-#' the supplied `Fragment` objects. However, if the cells information in
-#' the fragment object is not set (`Cells(fragments)` is `NULL`), then
-#' the fragment object will still be searched.
-#' @param features A GRanges object containing a set of genomic intervals.
-#' These will form the rows of the matrix, with each entry recording the number
-#' of unique reads falling in the genomic region for each cell.
-#' @param fragtk Use `fragtk` for fast and memory-efficient data
-#' quantification. Can be TRUE/FALSE or a character vector. If TRUE,
-#' `fragtk` will be used and attempt to find the `fragtk` executable
-#' in the path. If FALSE, use the R implementation to produce the data matrix.
-#' If a character vector is provided, this should be the path to the
-#' `fragtk` executable and `fragtk` will be used. See
-#' <https://crates.io/crates/fragtk> for fragtk documentation. The R
-#' implementation (`fragtk=FALSE`) will be faster for quantifying a small
-#' number of genomic regions.
-#' @param pic Use Paired Insertion Counting. If TRUE (default), each fragment
-#' contributes at most 1 count per region, regardless of whether one or both
-#' insertion sites fall within the region. If FALSE, each insertion site is
-#' counted separately (fragments with both ends in a region contribute 2
-#' counts).
-#' @param group Group genomic ranges according to a grouping variable and sum
-#' counts across grouped rows. If FALSE (default), no grouping is performed.
-#' If TRUE, group by the first metadata column of `features`. If a character
-#' string, this should match a metadata column in `features`.
-#' @param keep_all_features By default, if a genomic region provided is on a
-#' chromosome that is not present in the fragment file,
-#' it will not be included in the returned matrix. Set `keep_all_features` to
-#' TRUE to force output to include all features in the input ranges. Note that
-#' features on chromosomes that are not present in the fragment file will be
-#' filled with zero counts.
-#' @param cells Vector of cells to include. If NULL, include all cells found
-#' in the fragments file
-#' @param process_n Number of regions to load into memory at a time, per thread.
-#' Processing more regions at once can be faster but uses more memory.
-#' @param verbose Display messages
-#'
+#' @rdname FeatureMatrix
 #' @export
-#' @importFrom SeuratObject RowMergeSparseMatrices
+#' @method FeatureMatrix Seurat
 #' @concept quantification
-#' @return Returns a sparse matrix
+#' @examples
+#' FeatureMatrix(atac_small, features = granges(atac_small), fragtk = FALSE)
+FeatureMatrix.Seurat <- function(
+  object,
+  features,
+  assay = NULL,
+  ...
+) {
+  assay <- assay %||% DefaultAssay(object = object)
+  FeatureMatrix(object = object[[assay]], features = features, ...)
+}
+
+#' @rdname FeatureMatrix
+#' @export
+#' @method FeatureMatrix ChromatinAssay5
+#' @concept quantification
+FeatureMatrix.ChromatinAssay5 <- function(
+  object,
+  features,
+  cells = NULL,
+  ...
+) {
+  frags <- Fragments(object = object)
+  if (length(x = frags) == 0) {
+    stop("No fragment information found for requested assay")
+  }
+  cells <- cells %||% colnames(x = object)
+  FeatureMatrixList(
+    frags = frags,
+    features = features,
+    cells = cells,
+    ...
+  )
+}
+
+#' @rdname FeatureMatrix
+#' @export
+#' @method FeatureMatrix Fragment2
+#' @concept quantification
+FeatureMatrix.Fragment2 <- function(
+  object,
+  features,
+  cells = NULL,
+  ...
+) {
+  FeatureMatrix(
+    object = GetFragmentData(object = object, slot = "file.path"),
+    features = features,
+    cells = cells,
+    file.index = GetFragmentData(object = object, slot = "file.index"),
+    frag.cells = GetFragmentData(object = object, slot = "cells"),
+    seqlevels = GetFragmentData(object = object, slot = "seqlevels"),
+    ...
+  )
+}
+
+#' @rdname FeatureMatrix
+#' @export
+#' @method FeatureMatrix default
+#' @importFrom SeuratObject RowMergeSparseMatrices
+#' @importFrom GenomeInfoDb renameSeqlevels
+#' @importFrom fastmatch fmatch
+#' @concept quantification
 #' @examples
 #' fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
-#' fragments <- CreateFragmentObject(fpath)
 #' FeatureMatrix(
-#'   fragments = fragments,
+#'   object = fpath,
 #'   features = granges(atac_small),
 #'   fragtk = FALSE
 #' )
-FeatureMatrix <- function(
-  fragments,
+FeatureMatrix.default <- function(
+  object,
   features,
+  cells = NULL,
+  file.index = NULL,
+  frag.cells = NULL,
+  seqlevels = NULL,
   fragtk = TRUE,
   pic = TRUE,
   group = FALSE,
   keep_all_features = FALSE,
-  cells = NULL,
   process_n = 2000,
-  verbose = TRUE
+  verbose = TRUE,
+  ...
+) {
+  if (!is.character(x = object) || length(x = object) != 1) {
+    stop("object should be a single fragment file path")
+  }
+  if (!inherits(x = features, what = "GRanges")) {
+    if (inherits(x = features, what = "character")) {
+      features <- GRanges(features)
+    } else {
+      stop("features should be a GRanges object")
+    }
+  }
+  file.index <- file.index %||% paste0(object, ".tbi")
+
+  # resolve file-level cells and object<->file barcode mapping
+  if (!is.null(x = frag.cells)) {
+    if (!is.null(x = cells)) {
+      keep <- fmatch(
+        x = names(x = frag.cells), table = cells, nomatch = 0L
+      ) > 0
+      cells.use <- frag.cells[keep]
+    } else {
+      cells.use <- frag.cells
+    }
+  } else if (!is.null(x = cells)) {
+    cells.use <- cells
+    names(x = cells.use) <- cells
+  } else {
+    cells.use <- NULL
+  }
+
+  # rename features to match the fragment file's seqlevels (pre)
+  if (!is.null(x = seqlevels)) {
+    feat.use <- suppressWarnings(
+      expr = renameSeqlevels(x = features, value = seqlevels)
+    )
+  } else {
+    feat.use <- features
+  }
+
+  fragtk.path <- NULL
+  if (is.character(x = fragtk)) {
+    fragtk.path <- fragtk
+    fragtk <- TRUE
+  }
+  grouped <- (is.logical(x = group) && group) || is.character(x = group)
+
+  if (fragtk) {
+    mat <- RunFragtk(
+      fragments = object,
+      features = feat.use,
+      cells = unname(obj = cells.use),
+      group = group,
+      pic = pic,
+      fragtk.path = fragtk.path,
+      seqlevels = NULL,
+      verbose = verbose,
+      cleanup = TRUE
+    )
+    if (!grouped) {
+      rownames(x = mat) <- as.character(x = feat.use)
+    }
+  } else {
+    mat <- SingleFeatureMatrix(
+      path = object,
+      file.index = file.index,
+      features = feat.use,
+      cells = cells.use,
+      pic = pic,
+      group = group,
+      keep_all_features = keep_all_features,
+      process_n = process_n,
+      verbose = verbose
+    )
+  }
+
+  # remap column names back to object-level cell names
+  if (!is.null(x = cells.use) && !is.null(x = names(x = cells.use))) {
+    to.obj <- names(x = cells.use)
+    names(x = to.obj) <- unname(obj = cells.use)
+    colnames(x = mat) <- unname(obj = to.obj[colnames(x = mat)])
+  }
+
+  # map row names back to original seqlevels (non-grouped only)
+  if (!is.null(x = seqlevels) && !grouped) {
+    sl <- names(x = seqlevels)
+    names(x = sl) <- seqlevels
+    orig <- suppressWarnings(
+      expr = renameSeqlevels(x = feat.use, value = sl)
+    )
+    rownames(x = mat) <- as.character(x = orig)
+  }
+
+  return(mat)
+}
+
+# Iterate FeatureMatrix over a list of Fragment2 objects and merge
+# @param frags A list of Fragment2 objects
+# @param features A GRanges object
+# @param cells Object-level cells to include (or NULL)
+# @param ... Additional arguments passed to FeatureMatrix.Fragment2
+#' @importFrom SeuratObject Cells
+FeatureMatrixList <- function(
+  frags,
+  features,
+  cells = NULL,
+  group = FALSE,
+  keep_all_features = FALSE,
+  ...
 ) {
   if (!inherits(x = features, what = "GRanges")) {
     if (inherits(x = features, what = "character")) {
@@ -388,115 +578,49 @@ FeatureMatrix <- function(
       stop("features should be a GRanges object")
     }
   }
-  if (!inherits(x = fragments, what = "list")) {
-    if (inherits(x = fragments, what = "Fragment2")) {
-      fragments <- list(fragments)
-    } else {
-      stop("fragments should be a list of Fragment objects")
-    }
-  }
-  # if cells is not NULL, iterate over all fragment objects
-  # and find which objects contain cells that are requested
+  # filter frags to those containing any of the requested cells
   if (!is.null(x = cells)) {
     obj.use <- c()
-    for (i in seq_along(along.with = fragments)) {
-      if (is.null(x = Cells(fragments[[i]]))) {
-        # cells information not set for fragment object
+    for (i in seq_along(along.with = frags)) {
+      if (is.null(x = Cells(x = frags[[i]]))) {
         obj.use <- c(obj.use, i)
-      } else if (any(cells %in% Cells(x = fragments[[i]]))) {
+      } else if (any(cells %in% Cells(x = frags[[i]]))) {
         obj.use <- c(obj.use, i)
       }
     }
   } else {
-    obj.use <- seq_along(along.with = fragments)
+    obj.use <- seq_along(along.with = frags)
   }
-  grouped <- (is.logical(x = group) && group) || is.character(x = group)
-  # create a matrix from each fragment file
-  fragtk.path <- NULL
-  if (is.character(x = fragtk)) {
-    # fragtk is the path to executable
-    fragtk.path <- fragtk
-    fragtk <- TRUE
-  }
-  if (fragtk) {
-    # run fragtk on each fragment file
-    # update cell names in output matrix
-    mat.list <- sapply(
-      X = obj.use,
-      FUN = function(x) {
-        cell.vec <- GetFragmentData(
-          object = fragments[[x]],
-          slot = "cells"
-        )
-        seqlevel.conversion <- GetFragmentData(
-          object = fragments[[x]],
-          slot = "seqlevels"
-        )
-        mat <- RunFragtk(
-          fragments = GetFragmentData(
-            object = fragments[[x]],
-            slot = "file.path"
-          ),
-          features = features,
-          cells = cell.vec,
-          group = group,
-          pic = pic,
-          fragtk.path = fragtk.path,
-          seqlevels = seqlevel.conversion,
-          verbose = verbose,
-          cleanup = TRUE
-        )
-        if (!is.null(x = names(x = cell.vec))) {
-          colnames(x = mat) <- names(x = cell.vec)
-        }
-        if (!grouped) {
-          rownames(x = mat) <- as.character(x = features)
-        }
-        mat
-      }
-    )
-  } else {
-    mat.list <- sapply(
-      X = obj.use,
-      FUN = function(x) {
-        SingleFeatureMatrix(
-          fragment = fragments[[x]],
-          features = features,
-          pic = pic,
-          group = group,
-          keep_all_features = keep_all_features,
-          cells = cells,
-          verbose = verbose,
-          process_n = process_n
-        )
-      }
-    )
-  }
-
-  # merge all the matrices
+  mat.list <- lapply(
+    X = frags[obj.use],
+    FUN = FeatureMatrix,
+    features = features,
+    cells = cells,
+    group = group,
+    keep_all_features = keep_all_features,
+    ...
+  )
   if (length(x = mat.list) == 1) {
     return(mat.list[[1]])
-  } else {
-    # ensure all cells and features present, same order
-    all.cells <- unique(
-      x = unlist(x = lapply(X = mat.list, FUN = colnames))
-    )
-    if (grouped) {
-      feat.names <- unique(
-        x = unlist(x = lapply(X = mat.list, FUN = rownames))
-      )
-    } else {
-      feat.names <- as.character(x = features)
-    }
-    mat.list <- lapply(
-      X = mat.list,
-      FUN = AddMissing,
-      cells = all.cells,
-      features = feat.names
-    )
-    featmat <- Reduce(f = `+`, x = mat.list)
-    return(featmat)
   }
+  grouped <- (is.logical(x = group) && group) || is.character(x = group)
+  all.cells <- unique(
+    x = unlist(x = lapply(X = mat.list, FUN = colnames))
+  )
+  if (grouped) {
+    feat.names <- unique(
+      x = unlist(x = lapply(X = mat.list, FUN = rownames))
+    )
+  } else {
+    feat.names <- as.character(x = features)
+  }
+  mat.list <- lapply(
+    X = mat.list,
+    FUN = AddMissing,
+    cells = all.cells,
+    features = feat.names
+  )
+  Reduce(f = `+`, x = mat.list)
 }
 
 # Run fragtk matrix
@@ -759,53 +883,19 @@ CombineTiles <- function(bins) {
 #' @importFrom Rsamtools TabixFile seqnamesTabix
 #' @importFrom fastmatch fmatch
 SingleFeatureMatrix <- function(
-  fragment,
+  path,
   features,
+  file.index = NULL,
+  cells = NULL,
   pic = TRUE,
   group = FALSE,
   keep_all_features = FALSE,
-  cells = NULL,
   process_n = 2000,
   verbose = TRUE
 ) {
-  fragment.path <- GetFragmentData(object = fragment, slot = "file.path")
-  fragment.index <- GetFragmentData(object = fragment, slot = "file.index")
-  frag.cells <- GetFragmentData(object = fragment, slot = "cells")
-  seqlevel.conversion <- GetFragmentData(object = fragment, slot = "seqlevels")
-
-  # rename seqlevels of features to match seqlevels in the fragment file
-  # afterwards, map back to the seqlevels in the input features
-  if (!is.null(x = seqlevel.conversion)) {
-    # replace seqnames with names in the fragment file
-    feat.use <- suppressWarnings(
-      expr = renameSeqlevels(x = features, value = seqlevel.conversion)
-    )
-  } else {
-    feat.use <- features
-  }
-
-  if (!is.null(cells)) {
-    # only look for cells that are in the fragment file
-    if (is.null(x = frag.cells)) {
-      # cells information not set in fragment object
-      names(x = cells) <- cells
-    } else {
-      # first subset frag.cells
-      cell.idx <- fmatch(
-        x = names(x = frag.cells),
-        table = cells,
-        nomatch = 0L
-      ) > 0
-      cells <- frag.cells[cell.idx]
-    }
-  } else {
-    # cells not set, but still need to only return cells that
-    # are in the fragment objects, with cell names converted
-    if (!is.null(x = frag.cells)) {
-      cells <- frag.cells
-    }
-  }
-  tbx <- TabixFile(file = fragment.path, index = fragment.index)
+  file.index <- file.index %||% paste0(path, ".tbi")
+  feat.use <- features
+  tbx <- TabixFile(file = path, index = file.index)
   n_feat_start <- length(x = feat.use)
   if (keep_all_features) {
     features_to_get <- as.character(x = feat.use)
@@ -886,12 +976,6 @@ SingleFeatureMatrix <- function(
     )
   }
   featmat <- do.call(what = rbind, args = matrix.parts)
-  if (!is.null(x = cells)) {
-    # cells supplied, rename with cell name from object rather than file
-    cell.convert <- names(x = cells)
-    names(x = cell.convert) <- cells
-    colnames(x = featmat) <- unname(obj = cell.convert[colnames(x = featmat)])
-  }
   # reorder features
   if (keep_all_features) {
     feat.str <- features_to_get
@@ -899,19 +983,9 @@ SingleFeatureMatrix <- function(
     feat.str <- as.character(x = feat.use)
   }
   featmat <- featmat[feat.str, , drop = FALSE]
-  if (!is.null(x = seqlevel.conversion)) {
-    # map back to original seqnames
-    sl <- names(x = seqlevel.conversion)
-    names(x = sl) <- seqlevel.conversion
-    features <- suppressWarnings(
-      expr = renameSeqlevels(x = feat.use, value = sl)
-    )
-    feat.str <- as.character(x = features)
-    rownames(x = featmat) <- feat.str
-  }
   # apply grouping if requested
   if (!is.logical(x = group) || group) {
-    featmat <- GroupMatrix(mat = featmat, features = features, group = group)
+    featmat <- GroupMatrix(mat = featmat, features = feat.use, group = group)
   }
   return(featmat)
 }

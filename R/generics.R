@@ -259,6 +259,66 @@ FindTopFeatures <- function(object, ...) {
   UseMethod(generic = "FindTopFeatures", object = object)
 }
 
+#' Feature Matrix
+#'
+#' Construct a sparse feature x cell count matrix from one or more genomic
+#' fragment files. Rows of the returned matrix correspond to features
+#' (genomic intervals supplied in `features`) and columns correspond to cells.
+#' Each entry records the number of fragments from that cell overlapping that
+#' feature.
+#'
+#' # Counting
+#'
+#' Two counting schemes are supported:
+#'
+#' * Paired Insertion Counting (PIC, the default, `pic = TRUE`): each fragment
+#'   contributes at most one count per feature, regardless of whether one or
+#'   both insertion sites (fragment start and end) fall inside the feature.
+#'   See Martens et al. (2024) \doi{10.1038/s41592-023-02103-7}.
+#' * Insertion counting (`pic = FALSE`): each Tn5 insertion site is counted
+#'   independently, so a fragment with both ends inside a feature contributes 2
+#'   counts.
+#'
+#' # Backends
+#'
+#' Quantification is performed by one of two backends:
+#'
+#' * `fragtk` (default, `fragtk = TRUE`): fast, memory-efficient Rust
+#'   implementation suitable for large feature sets or many fragment files.
+#'   Requires the `fragtk` executable on `PATH` (or an explicit path passed as
+#'   a character string to `fragtk`). See <https://crates.io/crates/fragtk>.
+#' * R implementation (`fragtk = FALSE`): a pure-R path built on
+#'   [Rsamtools::TabixFile()]. Lower overhead for small feature sets (for
+#'   example, a handful of peaks) and useful when `fragtk` is not installed.
+#'
+#' # Dispatch
+#'
+#' `FeatureMatrix` is a generic function able to be called using multiple
+#' inputs. Methods are provided for
+#' [SeuratObject::Seurat], [ChromatinAssay5-class], [Fragment2-class], and for
+#' a character fragment file path (`default`). Higher-level methods extract
+#' the fragment information they need and delegate to the `default` method,
+#' which operates directly on a single fragment file path.
+#'
+#' When multiple fragment files are associated with an assay (for example, a
+#' merged dataset), each is quantified independently and the resulting
+#' matrices are merged by adding counts for shared cells and features. Cells
+#' that appear in only a subset of fragment files are still represented in the
+#' output (zero-filled for the files in which they are absent).
+#'
+#' @param object A [SeuratObject::Seurat] object, [ChromatinAssay5-class]
+#' object, [Fragment2-class] object, or a character path to a tabix-indexed
+#' fragment file.
+#' @param ... Arguments passed to other methods.
+#' @return Returns a sparse feature x cell [Matrix::CsparseMatrix-class].
+#' @seealso [GenomeBinMatrix()], [GeneActivity()], [CreateFragmentObject()],
+#' [Fragment2-class].
+#' @rdname FeatureMatrix
+#' @export FeatureMatrix
+FeatureMatrix <- function(object, ...) {
+  UseMethod(generic = "FeatureMatrix", object = object)
+}
+
 #' Transcription factor footprinting analysis
 #'
 #' Compute the normalized observed/expected Tn5 insertion frequency
