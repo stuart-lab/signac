@@ -967,22 +967,76 @@ ChunkGRanges <- function(granges, nchunk) {
 
 # Extract cell
 #
-# Extract cell barcode from list of tab delimited character
+# Extract fragment fields from list of tab delimited character
 # vectors (output of \code{\link{scanTabix}})
 #
 # @param x List of character vectors
 # @param ncol Number of columns in the fragment file
-# @return Returns a string
+# @param positions If FALSE (default), return cell barcodes only. If TRUE,
+# return a named list with vectors cell, start, end.
+# @return If positions = FALSE, a character vector of cell barcodes. If
+# positions = TRUE, a named list with vectors cell, start, end.
 #' @importFrom stringi stri_split_fixed
-ExtractCell <- function(x, ncol = 5) {
+ExtractCell <- function(x, ncol = 5, positions = FALSE) {
   if (length(x = x) == 0) {
     return(NULL)
-  } else {
-    x <- stri_split_fixed(str = x, pattern = "\t")
-    n <- length(x = x)
-    x <- unlist(x = x)
-    return(unlist(x = x)[ncol * (1:n) - (ncol - 4)])
   }
+  x <- stri_split_fixed(str = x, pattern = "\t")
+  n <- length(x = x)
+  xu <- unlist(x = x)
+  cell <- xu[ncol * (1:n) - (ncol - 4)]
+  if (!positions) {
+    return(cell)
+  }
+  list(
+    cell = cell,
+    start = as.integer(x = xu[ncol * (1:n) - (ncol - 2)]),
+    end = as.integer(x = xu[ncol * (1:n) - (ncol - 3)])
+  )
+}
+
+# Get fragments in a region
+#
+# Extract fragment data (cell barcode, start, end) for reads overlapping a
+# given genomic region. Similar to \code{\link{GetCellsInRegion}} but returns
+# positional information needed for paired insertion counting.
+#
+# @param tabix Tabix object
+# @param region A GRanges object or string giving the region to extract
+# @param cells Vector of cells to include in output. If NULL, include all cells
+# @return Returns a list of named lists, each with vectors cell, start, end
+#' @importFrom Rsamtools scanTabix
+#' @importFrom methods is
+#' @importFrom fastmatch fmatch
+GetFragmentsInRegion <- function(tabix, region, cells = NULL) {
+  if (!is(object = region, class2 = "GRanges")) {
+    region <- GRanges(region)
+  }
+  reads <- scanTabix(file = tabix, param = region)
+  s <- reads[[which(x = lengths(x = reads) > 0)[1]]]
+  if (length(x = s) > 0) {
+    ncol_frags <- lengths(x = gregexpr(pattern = "\t", text = s[1]))[[1]] + 1
+  } else {
+    ncol_frags <- 5
+  }
+  reads <- lapply(
+    X = reads,
+    FUN = ExtractCell,
+    ncol = ncol_frags,
+    positions = TRUE
+  )
+  if (!is.null(x = cells)) {
+    reads <- lapply(X = reads, FUN = function(lst) {
+      if (is.null(x = lst)) return(NULL)
+      idx <- fmatch(x = lst$cell, table = cells, nomatch = 0L) > 0L
+      list(
+        cell = lst$cell[idx],
+        start = lst$start[idx],
+        end = lst$end[idx]
+      )
+    })
+  }
+  return(reads)
 }
 
 # Run groupCommand for the first n lines, convert the cell barcodes in the file
@@ -1706,71 +1760,115 @@ IsMatrixEmpty <- function(x) {
 
 #' @importFrom Matrix sparseMatrix
 #' @importFrom S4Vectors elementNROWS
-PartialMatrix <- function(tabix, regions, cells = NULL) {
+#' @importFrom BiocGenerics start end
+PartialMatrix <- function(tabix, regions, cells = NULL, pic = TRUE) {
   # construct sparse matrix for one set of regions
   # names of the cells vector can be ignored here, conversion is handled in
   # the parent functions
   open(con = tabix)
-  cells.in.regions <- GetCellsInRegion(
+  frags.in.regions <- GetFragmentsInRegion(
     tabix = tabix,
     region = regions,
     cells = cells
   )
   close(con = tabix)
   gc(verbose = FALSE)
-  nrep <- elementNROWS(x = cells.in.regions)
+
+  all.features <- as.character(x = regions)
+
+  # convert GRanges 1-based closed to 0-based half-open for comparison
+  # with fragment file coordinates (0-based half-open BED format)
+  r_starts <- start(x = regions) - 1L
+  r_ends <- end(x = regions)
+
+  # compute per-fragment counts using vectorized Map
+  # PIC: count at most 1 per fragment per peak
+  # non-PIC: count each insertion site (start and end-1) separately
+  res <- Map(f = function(lst, r_start, r_end) {
+    if (is.null(x = lst) || length(x = lst$cell) == 0) return(NULL)
+
+    start_in <- lst$start >= r_start & lst$start < r_end
+    end_in <- (lst$end - 1L) >= r_start & (lst$end - 1L) < r_end
+
+    if (pic) {
+      counts <- as.integer(x = start_in | end_in)
+    } else {
+      counts <- start_in + end_in
+    }
+    keep <- counts > 0L
+
+    if (!any(keep)) return(NULL)
+    list(cell = lst$cell[keep], count = counts[keep])
+  }, frags.in.regions, r_starts, r_ends)
+
+  nrep <- vapply(
+    X = res,
+    FUN = function(x) if (is.null(x)) 0L else length(x = x$cell),
+    FUN.VALUE = integer(1)
+  )
+
   if (all(nrep == 0) && !is.null(x = cells)) {
-    # no fragments
-    # zero for all requested cells
     featmat <- sparseMatrix(
       dims = c(length(x = regions), length(x = cells)),
       i = NULL,
       j = NULL
     )
-    rownames(x = featmat) <- as.character(regions)
+    rownames(x = featmat) <- all.features
     colnames(x = featmat) <- cells
     featmat <- as(object = featmat, Class = "CsparseMatrix")
     return(featmat)
   } else if (all(nrep == 0)) {
-    # no fragments, no cells requested
-    # create empty matrix
     featmat <- sparseMatrix(
       dims = c(length(x = regions), 0),
       i = NULL,
       j = NULL
     )
-    rownames(x = featmat) <- as.character(regions)
+    rownames(x = featmat) <- all.features
     featmat <- as(object = featmat, Class = "CsparseMatrix")
     return(featmat)
   } else {
-    # fragments detected
+    # build cell lookup
+    all.cell.names <- unlist(x = lapply(
+      X = res[nrep > 0],
+      FUN = function(x) x$cell
+    ))
     if (is.null(x = cells)) {
-      all.cells <- unique(x = unlist(x = cells.in.regions))
-      cell.lookup <- seq_along(along.with = all.cells)
-      names(x = cell.lookup) <- all.cells
+      unique.cells <- unique(x = all.cell.names)
+      cell.lookup <- seq_along(along.with = unique.cells)
+      names(x = cell.lookup) <- unique.cells
     } else {
       cell.lookup <- seq_along(along.with = cells)
-      names(cell.lookup) <- cells
+      names(x = cell.lookup) <- cells
     }
-    # convert cell name to integer
-    cells.in.regions <- unlist(x = cells.in.regions)
-    cells.in.regions <- unname(obj = cell.lookup[cells.in.regions])
-    all.features <- as.character(regions)
-    feature.vec <- rep(x = seq_along(along.with = all.features), nrep)
+
+    # build sparse matrix triplets
+    feature.vec <- rep(
+      x = seq_along(along.with = all.features),
+      times = nrep
+    )
+    cell.vec <- unname(obj = cell.lookup[all.cell.names])
+    count.vec <- unlist(x = lapply(
+      X = res[nrep > 0],
+      FUN = function(x) x$count
+    ))
+
     featmat <- sparseMatrix(
       i = feature.vec,
-      j = cells.in.regions,
-      x = rep(x = 1, length(x = cells.in.regions))
+      j = cell.vec,
+      x = count.vec
     )
-    featmat <- as(Class = "CsparseMatrix", object = featmat)
+    featmat <- as(object = featmat, Class = "CsparseMatrix")
     rownames(x = featmat) <- all.features[1:max(feature.vec)]
-    colnames(x = featmat) <- names(x = cell.lookup)[1:max(cells.in.regions)]
+    colnames(x = featmat) <- names(x = cell.lookup)[1:max(cell.vec)]
+
     # add zero columns for missing cells
     if (!is.null(x = cells)) {
       featmat <- AddMissing(x = featmat, cells = cells, features = NULL)
     }
     # add zero rows for missing features
-    missing.features <- all.features[!(all.features %in% rownames(x = featmat))]
+    missing.features <- all.features[
+      !(all.features %in% rownames(x = featmat))
+    ]
     if (length(x = missing.features) > 0) {
       null.mat <- sparseMatrix(
         i = c(),

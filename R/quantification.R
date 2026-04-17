@@ -329,12 +329,19 @@ GenomeBinMatrix <- function(
 #' `fragtk` will be used and attempt to find the `fragtk` executable
 #' in the path. If FALSE, use the R implementation to produce the data matrix.
 #' If a character vector is provided, this should be the path to the
-#' `fragtk` executable and `fragtk` will be used. Note that
-#' `fragtk` uses the Paired Insertion Counting method, whereas the R
-#' implementation counts insertions. See
+#' `fragtk` executable and `fragtk` will be used. See
 #' <https://crates.io/crates/fragtk> for fragtk documentation. The R
 #' implementation (`fragtk=FALSE`) will be faster for quantifying a small
 #' number of genomic regions.
+#' @param pic Use Paired Insertion Counting. If TRUE (default), each fragment
+#' contributes at most 1 count per region, regardless of whether one or both
+#' insertion sites fall within the region. If FALSE, each insertion site is
+#' counted separately (fragments with both ends in a region contribute 2
+#' counts).
+#' @param group Group genomic ranges according to a grouping variable and sum
+#' counts across grouped rows. If FALSE (default), no grouping is performed.
+#' If TRUE, group by the first metadata column of `features`. If a character
+#' string, this should match a metadata column in `features`.
 #' @param keep_all_features By default, if a genomic region provided is on a
 #' chromosome that is not present in the fragment file,
 #' it will not be included in the returned matrix. Set `keep_all_features` to
@@ -349,7 +356,6 @@ GenomeBinMatrix <- function(
 #'
 #' @export
 #' @importFrom SeuratObject RowMergeSparseMatrices
-#' @importFrom GenomeInfoDb renameSeqlevels
 #' @concept quantification
 #' @return Returns a sparse matrix
 #' @examples
@@ -364,6 +370,8 @@ FeatureMatrix <- function(
   fragments,
   features,
   fragtk = TRUE,
+  pic = TRUE,
+  group = FALSE,
   keep_all_features = FALSE,
   cells = NULL,
   process_n = 2000,
@@ -398,6 +406,7 @@ FeatureMatrix <- function(
   } else {
     obj.use <- seq_along(along.with = fragments)
   }
+  grouped <- (is.logical(x = group) && group) || is.character(x = group)
   # create a matrix from each fragment file
   fragtk.path <- NULL
   if (is.character(x = fragtk)) {
@@ -419,29 +428,26 @@ FeatureMatrix <- function(
           object = fragments[[x]],
           slot = "seqlevels"
         )
-
-        if (!is.null(x = seqlevel.conversion)) {
-          # replace seqnames
-          feat.use <- suppressWarnings(
-            expr = renameSeqlevels(x = features, value = seqlevel.conversion)
-          )
-        } else {
-          feat.use <- features
-        }
-
         mat <- RunFragtk(
           fragments = GetFragmentData(
             object = fragments[[x]],
             slot = "file.path"
           ),
-          features = feat.use,
+          features = features,
           cells = cell.vec,
+          group = group,
+          pic = pic,
           fragtk.path = fragtk.path,
+          seqlevels = seqlevel.conversion,
           verbose = verbose,
           cleanup = TRUE
         )
-        colnames(x = mat) <- names(x = cell.vec)
-        rownames(x = mat) <- as.character(x = features)
+        if (!is.null(x = names(x = cell.vec))) {
+          colnames(x = mat) <- names(x = cell.vec)
+        }
+        if (!grouped) {
+          rownames(x = mat) <- as.character(x = features)
+        }
         mat
       }
     )
@@ -452,6 +458,8 @@ FeatureMatrix <- function(
         SingleFeatureMatrix(
           fragment = fragments[[x]],
           features = features,
+          pic = pic,
+          group = group,
           keep_all_features = keep_all_features,
           cells = cells,
           verbose = verbose,
@@ -469,47 +477,54 @@ FeatureMatrix <- function(
     all.cells <- unique(
       x = unlist(x = lapply(X = mat.list, FUN = colnames))
     )
+    if (grouped) {
+      feat.names <- unique(
+        x = unlist(x = lapply(X = mat.list, FUN = rownames))
+      )
+    } else {
+      feat.names <- as.character(x = features)
+    }
     mat.list <- lapply(
       X = mat.list,
       FUN = AddMissing,
       cells = all.cells,
-      features = as.character(x = features)
+      features = feat.names
     )
     featmat <- Reduce(f = `+`, x = mat.list)
     return(featmat)
   }
 }
 
-#' Run fragtk matrix
-#'
-#' Wrapper function to run `fragtk matrix` and return the output as a sparse
-#' matrix in R.
-#'
-#' See <https://crates.io/crates/fragtk> for fragtk documentation.
-#'
-#' @param fragments A list of Fragment objects or fragment file paths
-#' @param features A GRanges object containing a set of genomic intervals to
-#' quantify. These genomic ranges will be passed to the `--bed` argument in
-#' `fragtk matrix`
-#' @param cells List of cells to include
-#' @param group Group genomic ranges according to a grouping variable. If NULL,
-#' no grouping variable is used. If a character string is provided, this should
-#' match a column in the provided GRanges object supplied in the `features`
-#' parameter.
-#' @param pic Use paired insertion counting
-#' @param fragtk.path Path to fragtk executable. If NULL, try to find fragtk
-#' automatically.
-#' @param outdir Path for output directory
-#' @param cleanup Remove output files created by fragtk
-#' @param verbose Display messages
-#'
+# Run fragtk matrix
+#
+# Wrapper function to run `fragtk matrix` and return the output as a sparse
+# matrix in R.
+#
+# See <https://crates.io/crates/fragtk> for fragtk documentation.
+#
+# @param fragments Path to a fragment file
+# @param features A GRanges object containing a set of genomic intervals to
+# quantify
+# @param cells List of cells to include
+# @param group Group genomic ranges according to a grouping variable. If FALSE,
+# no grouping variable is used. If TRUE, group by the first metadata column.
+# If a character string is provided, this should match a column in the
+# provided GRanges object supplied in the `features` parameter.
+# @param pic Use paired insertion counting
+# @param fragtk.path Path to fragtk executable. If NULL, try to find fragtk
+# automatically.
+# @param seqlevels Named character vector for seqlevels conversion. If
+# provided, rename the seqlevels in `features` to match the fragment file
+# before quantification, and reverse-map row names in the output.
+# @param outdir Path for output directory
+# @param cleanup Remove output files created by fragtk
+# @param verbose Display messages
+# @return Returns a CsparseMatrix
+#
 #' @importFrom S4Vectors mcols
 #' @importFrom Matrix readMM
-#'
-#' @concept quantification
-#'
-#' @return Returns a CsparseMatrix
-#' @export
+#' @importFrom GenomeInfoDb renameSeqlevels
+#' @keywords internal
 RunFragtk <- function(
   fragments,
   features,
@@ -517,6 +532,7 @@ RunFragtk <- function(
   group = FALSE,
   pic = TRUE,
   fragtk.path = NULL,
+  seqlevels = NULL,
   outdir = tempdir(),
   cleanup = TRUE,
   verbose = TRUE
@@ -534,6 +550,13 @@ RunFragtk <- function(
     stop("Requested output directory does not exist")
   }
 
+  # convert seqlevels to match fragment file if needed
+  if (!is.null(x = seqlevels)) {
+    features <- suppressWarnings(
+      expr = renameSeqlevels(x = features, value = seqlevels)
+    )
+  }
+
   # temp files
   bed.path <- tempfile(pattern = "signac_fragtk_bed", tmpdir = outdir)
   cells.path <- tempfile(pattern = "signac_fragtk_cells", tmpdir = outdir)
@@ -542,26 +565,28 @@ RunFragtk <- function(
   additional.args <- ""
 
   # write cells and regions files
-  feat <- as.data.frame(features)[, 1:3]
+  # convert GRanges 1-based closed to 0-based half-open BED format
+  feat <- as.data.frame(x = features)[, 1:3]
+  feat[, 2] <- feat[, 2] - 1L
   if (is.logical(x = group)) {
     if (group) {
-      # passed group=TRUE, assume group by the 4th bed column
+      # passed group=TRUE, assume group by the first metadata column
       if (verbose) {
         message("Grouping regions by column: ", names(mcols(features))[1])
       }
-      feat$group <- mcols(features)[[1]]
+      feat$group <- mcols(x = features)[[1]]
       additional.args <- paste0(additional.args, " --group")
     }
   } else {
     if (is.character(x = group)) {
       # passed column name
-      if (!(group %in% names(mcols(features)))) {
+      if (!(group %in% names(x = mcols(x = features)))) {
         stop("Requested grouping column '", group, "' does not exist")
       } else {
         if (verbose) {
           message("Grouping regions by column: ", group)
         }
-        feat$group <- mcols(features)[[group]]
+        feat$group <- mcols(x = features)[[group]]
         additional.args <- paste0(additional.args, " --group")
       }
     }
@@ -582,15 +607,15 @@ RunFragtk <- function(
 
   # call fragtk
   cmd <- paste0(
-    fragtk.path,
+    shQuote(string = fragtk.path),
     " matrix --fragments ",
-    fragments,
+    shQuote(string = fragments),
     " --bed ",
-    bed.path,
+    shQuote(string = bed.path),
     " --cells ",
-    cells.path,
+    shQuote(string = cells.path),
     " --outdir ",
-    out.path,
+    shQuote(string = out.path),
     " ",
     additional.args
   )
@@ -614,9 +639,23 @@ RunFragtk <- function(
   colnames.file <- paste0(out.path, .Platform$file.sep, "barcodes.tsv.gz")
 
   counts <- readMM(file = matrix.file)
-  rownames(counts) <- readLines(rownames.file)
-  colnames(counts) <- readLines(colnames.file)
+  rownames(x = counts) <- readLines(con = rownames.file)
+  colnames(x = counts) <- readLines(con = colnames.file)
   counts <- as(object = counts, Class = "CsparseMatrix")
+
+  # reverse-map seqlevels in row names back to original names
+  if (!is.null(x = seqlevels)) {
+    sl <- names(x = seqlevels)
+    names(x = sl) <- seqlevels
+    mapped.features <- suppressWarnings(
+      expr = renameSeqlevels(x = features, value = sl)
+    )
+    feat.str <- as.character(x = mapped.features)
+    # only remap row names for non-grouped output
+    if (is.logical(x = group) && !group) {
+      rownames(x = counts) <- feat.str
+    }
+  }
 
   # remove temp files
   if (cleanup) {
@@ -638,6 +677,47 @@ RunFragtk <- function(
 }
 
 #### Not Exported ####
+
+# Collapse matrix rows by group labels
+#
+# Sum rows of a sparse matrix according to a grouping variable, using
+# matrix multiplication (same pattern as CombineTiles).
+#
+# @param mat A sparse matrix
+# @param features A GRanges object with metadata columns
+# @param group If TRUE, group by the first metadata column. If a character
+# string, group by the named metadata column. If FALSE, return mat unchanged.
+# @return Returns a sparse matrix with rows collapsed by group
+#' @importFrom S4Vectors mcols
+#' @importFrom Matrix sparseMatrix crossprod
+#' @importMethodsFrom Matrix t
+GroupMatrix <- function(mat, features, group) {
+  if (is.logical(x = group) && !group) {
+    return(mat)
+  }
+  if (is.logical(x = group) && group) {
+    group_labels <- mcols(x = features)[[1]]
+  } else if (is.character(x = group)) {
+    if (!(group %in% names(x = mcols(x = features)))) {
+      stop("Requested grouping column '", group, "' does not exist")
+    }
+    group_labels <- mcols(x = features)[[group]]
+  } else {
+    return(mat)
+  }
+  unique_groups <- unique(x = group_labels)
+  group_idx <- match(x = group_labels, table = unique_groups)
+  collapse <- sparseMatrix(
+    i = seq_along(along.with = group_labels),
+    j = group_idx,
+    x = 1,
+    dims = c(length(x = group_labels), length(x = unique_groups))
+  )
+  collapsed <- crossprod(x = mat, y = collapse)
+  collapsed <- t(x = collapsed)
+  rownames(x = collapsed) <- unique_groups
+  return(as(object = collapsed, Class = "CsparseMatrix"))
+}
 
 # matrix multiplication method for summing matrix rows
 #' @importFrom GenomicRanges reduce
@@ -677,6 +757,8 @@ CombineTiles <- function(bins) {
 SingleFeatureMatrix <- function(
   fragment,
   features,
+  pic = TRUE,
+  group = FALSE,
   keep_all_features = FALSE,
   cells = NULL,
   process_n = 2000,
@@ -764,6 +846,7 @@ SingleFeatureMatrix <- function(
       FUN = PartialMatrix,
       tabix = tbx,
       cells = cells,
+      pic = pic,
       future.globals = list(),
       future.scheduling = FALSE
     )
@@ -773,7 +856,8 @@ SingleFeatureMatrix <- function(
       X = feature.list,
       FUN = PartialMatrix,
       tabix = tbx,
-      cells = cells
+      cells = cells,
+      pic = pic
     )
   }
   # remove any that are NULL (no fragments for any cells in the region)
@@ -820,6 +904,10 @@ SingleFeatureMatrix <- function(
     )
     feat.str <- as.character(x = features)
     rownames(x = featmat) <- feat.str
+  }
+  # apply grouping if requested
+  if (!is.logical(x = group) || group) {
+    featmat <- GroupMatrix(mat = featmat, features = features, group = group)
   }
   return(featmat)
 }
