@@ -137,10 +137,12 @@ AggregateTiles.default <- function(
 #' `fragtk` will be used and attempt to find the `fragtk` executable
 #' in the path. If FALSE, use the R implementation to produce the data matrix.
 #' If a character vector is provided, this should be the path to the
-#' `fragtk` executable and `fragtk` will be used. Note that
-#' `fragtk` uses the Paired Insertion Counting method, whereas the R
-#' implementation counts insertions. See
+#' `fragtk` executable and `fragtk` will be used. See
 #' <https://crates.io/crates/fragtk> for fragtk documentation.
+#' @param pic Use Paired Insertion Counting. If TRUE (default), each fragment
+#' contributes at most 1 count per gene region. If FALSE, each insertion site
+#' is counted separately (fragments with both ends in a region contribute 2
+#' counts).
 #' @param gene.id Record gene IDs in output matrix rather than gene name.
 #' @param verbose Display messages
 #'
@@ -168,6 +170,7 @@ GeneActivity <- function(
   max.width = 500000,
   process_n = 2000,
   fragtk = TRUE,
+  pic = TRUE,
   gene.id = FALSE,
   verbose = TRUE
 ) {
@@ -239,6 +242,7 @@ GeneActivity <- function(
     process_n = process_n,
     cells = cells,
     fragtk = fragtk,
+    pic = pic,
     verbose = verbose
   )
   # set row names
