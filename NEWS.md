@@ -44,9 +44,10 @@ package.
 * New peak calling methods: Signac now uses `macs3` in `CallPeaks()`. We
 have also enabled parallelization of peak calling across groups of cells, and
 include an option to use the `hmmratac` peak calling method in `macs3`.  
-* Added the `RunFragtk()` function to run `fragtk matrix` command within R
 * Added the `fragtk` parameter to `GeneActivity()`
 * Added the `fragtk` parameter to `FeatureMatrix()`
+* Added the `pic` parameter to `FeatureMatrix()` to enable paired insertion counting
+* Added the `group` parameter to `FeatureMatrix()` to enabled grouped region quantification
 * Added the `raster` and `raster.dpi` parameters to `DensityScatter()`
 * Added `MultiCoveragePlot()` function for plotting multiple genomic
 regions side-by-side with shared formatting and axis labels
