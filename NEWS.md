@@ -49,6 +49,9 @@ object, `ChromatinAssay5` object, `Fragment2` object, or a character string givi
 the path to a single fragment file
 * Added the `fragtk` parameter to `GeneActivity()`
 * Added the `fragtk` parameter to `FeatureMatrix()`
+* Added `bpcells` and `bpcells.dir` parameters to `FeatureMatrix()`,
+`GeneActivity()`, and `GenomeBinMatrix()` to return a `BPCells::IterableMatrix`
+backed by an on-disk BPCells directory instead of an in-memory sparse matrix
 * Added the `pic` parameter to `FeatureMatrix()` and `GeneActivity()` to enable paired insertion counting
 * Added the `group` parameter to `FeatureMatrix()` to enabled grouped region quantification
 * Added the `raster` and `raster.dpi` parameters to `DensityScatter()`
@@ -71,6 +74,8 @@ assays have the same fragment file, they are now consolidated into one fragment
 object.
 * Changed the behavior of object merging to follow the standard Seurat merge method. Previously, 
 overlapping peaks were treated as the same feature.  
+* Fixed p-value calculation in `LinkPeaks()`. The reported p-value was
+previously one-sided while the test statistic was two-sided.
 
 # Signac 1.17.1
 
