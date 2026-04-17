@@ -37,10 +37,11 @@ other is from a polyclonal TF1 cell line. This data was produced by Lareau
 and Ludwig et al. (2020), and you can read the original paper here: 
 https://doi.org/10.1038/s41587-020-0645-6.
 
-Processed data files, including mitochondrial variant data for the CRC and TF1
-dataset is available on Zenodo here: [to be updated]
+We have re-processed the original data mapping to the hg38 genome. These updated
+files, including mitochondrial variant data for the CRC and TF1
+datasets, are available on Zenodo here: [to be updated]
 
-Raw sequencing data and DNA accessibility processed files for the these datasets
+Original sequencing reads and processed data mapped to hg19 for the these datasets
 are available on NCBI GEO here:
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE142745
 
