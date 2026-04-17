@@ -15,7 +15,7 @@ if (!requireNamespace(package = "EnsDb.Hsapiens.v86", quietly = TRUE)) {
 
 ```{r init, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "../../../mito_data")
+knitr::opts_knit$set(root.dir = "../../vignette_data/mito")
 ```
 
 ```{r packages, message=FALSE, warning=FALSE, echo=TRUE}
@@ -186,7 +186,7 @@ crc <- NormalizeData(object = crc, assay = "RNA")
 We note the following markers for different cell types in the CRC dataset:
 
 - EPCAM is a marker for epithelial cells
-- TREM1 is a meyloid marker
+- TREM1 is a myeloid marker
 - PTPRC = CD45 is a pan-immune cell marker
 - IL1RL1 is a basophil marker
 - GATA3 is a Tcell maker
@@ -271,7 +271,7 @@ mgatk.data <- ReadMGATK(dir = "crc/mgatk")
 # create an assay
 mgatk <- CreateAssay5Object(counts = mgatk.data$counts)
 
-# Subset to cell present in the scATAC-seq assat
+# Subset to cells present in the scATAC-seq assay
 mgatk <- subset(mgatk, cells = Cells(crc))
 
 # add assay and metadata to the seurat object
@@ -394,7 +394,7 @@ progenitor cell (probably in the bone marrow).
 ### MQuad
 
 In this tab, we explore mitochondrial variants identified to be clonally
-informative by `MQuad`. Bi-alleloc genotyping of the chrM DNA was performed using
+informative by `MQuad`. Bi-allelic genotyping of the chrM DNA was performed using
 [cellsnp-lite](https://github.com/single-cell-genetics/cellsnp-lite), 
 using the same reference as was used in mgatk
 ([rCRS](https://github.com/caleblareau/mgatk/blob/master/mgatk/bin/anno/fasta/rCRS.fasta)).
@@ -682,7 +682,7 @@ mgatk.data <- ReadMGATK(dir = "tf1/mgatk")
 
 mgatk <- CreateAssayObject(counts = mgatk.data$counts)
 
-# Subset to cell present in the scATAC-seq assat
+# Subset to cells present in the scATAC-seq assay
 mgatk <- subset(mgatk, cells = Cells(tf1))
 
 # add assay and metadata to the seurat object
