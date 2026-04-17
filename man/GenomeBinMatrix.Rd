@@ -10,6 +10,8 @@ GenomeBinMatrix(
   cells = NULL,
   binsize = 5000,
   process_n = 2000,
+  bpcells = FALSE,
+  bpcells.dir = NULL,
   verbose = TRUE,
   ...
 )
@@ -31,12 +33,20 @@ in the fragments file}
 \item{process_n}{Number of regions to load into memory at a time, per thread.
 Processing more regions at once can be faster but uses more memory.}
 
+\item{bpcells}{If \code{TRUE}, return a \code{BPCells::IterableMatrix} backed by an
+on-disk BPCells directory instead of an in-memory sparse matrix. See
+\code{\link[=FeatureMatrix]{FeatureMatrix()}}.}
+
+\item{bpcells.dir}{Optional path to persist the BPCells directory beyond
+the R session. See \code{\link[=FeatureMatrix]{FeatureMatrix()}}.}
+
 \item{verbose}{Display messages.}
 
 \item{...}{Arguments passed to \code{\link[=FeatureMatrix]{FeatureMatrix()}}.}
 }
 \value{
-Returns a sparse matrix
+Returns a sparse matrix, or a \code{BPCells::IterableMatrix} when
+\code{bpcells = TRUE}.
 }
 \description{
 Construct a bin x cell matrix from a fragments file.

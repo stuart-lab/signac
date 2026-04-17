@@ -28,6 +28,8 @@ FeatureMatrix(object, ...)
   group = FALSE,
   keep_all_features = FALSE,
   process_n = 2000,
+  bpcells = FALSE,
+  bpcells.dir = NULL,
   verbose = TRUE,
   ...
 )
@@ -100,10 +102,21 @@ filled with zeros. Only honored by the R backend (\code{fragtk = FALSE}).}
 worker. Larger values can be faster but use more memory. Only affects the R
 backend.}
 
+\item{bpcells}{Logical. If \code{TRUE}, write the count matrix to disk in
+BPCells format at \code{bpcells.dir} and return a \code{BPCells::IterableMatrix}
+instead of an in-memory sparse matrix. Requires the \code{BPCells} package.
+Default \code{FALSE}.}
+
+\item{bpcells.dir}{Character. Path to a directory where the BPCells output
+will be written. Required when \code{bpcells = TRUE}. The directory must not
+already exist as a non-empty directory. Ignored when \code{bpcells = FALSE}.}
+
 \item{verbose}{Display progress messages.}
 }
 \value{
-Returns a sparse feature x cell \link[Matrix:CsparseMatrix-class]{Matrix::CsparseMatrix}.
+If \code{bpcells = FALSE} (the default) returns a sparse feature x cell
+\link[Matrix:CsparseMatrix-class]{Matrix::CsparseMatrix}. If \code{bpcells = TRUE}, returns a
+\code{BPCells::IterableMatrix} backed by an on-disk BPCells directory.
 }
 \description{
 Construct a sparse feature x cell count matrix from one or more genomic
@@ -151,6 +164,19 @@ merged dataset), each is quantified independently and the resulting
 matrices are merged by adding counts for shared cells and features. Cells
 that appear in only a subset of fragment files are still represented in the
 output (zero-filled for the files in which they are absent).
+}
+
+\section{On-disk output via BPCells}{
+Setting \code{bpcells = TRUE} writes the count matrix to disk in BPCells format
+at \code{bpcells.dir} and returns a \code{BPCells::IterableMatrix} instead of an
+in-memory sparse matrix. This is recommended for large datasets where the
+dense count matrix would not fit in memory. With the \code{fragtk} backend, the
+matrix is streamed from fragtk's 10x Matrix Market output into BPCells
+without materializing a dense in-memory copy. With the R backend, the
+matrix is built in memory first and then written out; the benefit there is
+on-disk persistence, not reduced memory use. \code{bpcells.dir} is required when
+\code{bpcells = TRUE} and must point to a directory that does not already exist
+or is empty. Requires the \code{BPCells} package.
 }
 
 \examples{
