@@ -241,25 +241,25 @@ We can now create a matrix of peaks x cell for each sample using the
 
 ```{r message=FALSE, warning=FALSE, cache=TRUE}
 pbmc500.counts <- FeatureMatrix(
-  fragments = frags.500,
+  object = frags.500,
   features = combined.peaks,
   cells = rownames(md.500)
 )
 
 pbmc1k.counts <- FeatureMatrix(
-  fragments = frags.1k,
+  object = frags.1k,
   features = combined.peaks,
   cells = rownames(md.1k)
 )
 
 pbmc5k.counts <- FeatureMatrix(
-  fragments = frags.5k,
+  object = frags.5k,
   features = combined.peaks,
   cells = rownames(md.5k)
 )
 
 pbmc10k.counts <- FeatureMatrix(
-  fragments = frags.10k,
+  object = frags.10k,
   features = combined.peaks,
   cells = rownames(md.10k)
 )

@@ -69,7 +69,7 @@ information about merging chromatin assays.
 ```{r message=FALSE, warning=FALSE}
 # quantify multiome peaks in the scATAC-seq dataset
 counts <- FeatureMatrix(
-  fragments = Fragments(pbmc.atac),
+  object = pbmc.atac,
   features = granges(pbmc.multi),
   cells = colnames(pbmc.atac)
 )

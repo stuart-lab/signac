@@ -430,7 +430,7 @@ frags <- CreateFragmentObject(
 
 # quantify the DNA accessibility data
 counts <- FeatureMatrix(
-  fragments = frags,
+  object = frags,
   features = peaks,
   cells = colnames(tf1)
 )
