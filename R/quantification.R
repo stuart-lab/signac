@@ -707,20 +707,12 @@ ValidateBPCellsArgs <- function(bpcells, bpcells.dir) {
   if (!is.logical(x = bpcells) || length(x = bpcells) != 1 || is.na(x = bpcells)) {
     stop("`bpcells` must be a single logical value")
   }
-  if (isTRUE(x = bpcells)) {
-    if (is.null(x = bpcells.dir)) {
-      stop(
-        "`bpcells.dir` must be supplied when `bpcells = TRUE`. ",
-        "Provide a path to a persistent directory where the BPCells output ",
-        "will be written."
-      )
-    }
-    if (!requireNamespace("BPCells", quietly = TRUE)) {
-      stop(
-        "`bpcells = TRUE` requires the BPCells package. Install from ",
-        "https://github.com/bnprks/BPCells"
-      )
-    }
+  if (isTRUE(x = bpcells) && is.null(x = bpcells.dir)) {
+    stop(
+      "`bpcells.dir` must be supplied when `bpcells = TRUE`. ",
+      "Provide a path to a persistent directory where the BPCells output ",
+      "will be written."
+    )
   }
   if (!is.null(x = bpcells.dir)) {
     if (!is.character(x = bpcells.dir) || length(x = bpcells.dir) != 1) {
@@ -732,6 +724,13 @@ ValidateBPCellsArgs <- function(bpcells, bpcells.dir) {
         "`bpcells.dir` (", bpcells.dir, ") already exists and is not empty"
       )
     }
+  }
+  if (isTRUE(x = bpcells) &&
+      !requireNamespace("BPCells", quietly = TRUE)) {
+    stop(
+      "`bpcells = TRUE` requires the BPCells package. Install from ",
+      "https://github.com/bnprks/BPCells"
+    )
   }
   if (!isTRUE(x = bpcells) && !is.null(x = bpcells.dir)) {
     warning("`bpcells.dir` is ignored when `bpcells = FALSE`")
