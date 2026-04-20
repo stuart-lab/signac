@@ -39,7 +39,7 @@ https://doi.org/10.1038/s41587-020-0645-6.
 
 We have re-processed the original data mapping to the hg38 genome. These updated
 files, including mitochondrial variant data for the CRC and TF1
-datasets, are available on Zenodo here: [to be updated]
+datasets, are available on Zenodo here: https://zenodo.org/records/19450459
 
 Original sequencing reads and processed data mapped to hg19 for the these datasets
 are available on NCBI GEO here:
