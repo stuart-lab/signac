@@ -51,9 +51,14 @@ https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE142745
 The required files can be downloaded by running the following lines in a shell:
 
 ```{bash eval=FALSE}
-# ATAC data, to be updated
+# ATAC data
+wget https://zenodo.org/records/19450459/files/crc_atac.zip
 
-# mitochondrial allele data, to be updated
+# mgatk data
+wget https://zenodo.org/records/19450459/files/crc_mgatk.zip
+
+# MQuad data
+wget https://zenodo.org/records/19450459/files/crc_mquad.zip
 ```
 
 </details>
@@ -568,9 +573,14 @@ accessibility differences utilizing the multimodal capabilities of Signac.
 To download the data from Zenodo run the following in a shell:
 
 ```{bash eval=FALSE}
-# ATAC data, to be updated
+# ATAC data
+wget https://zenodo.org/records/19450459/files/tf1_atac.zip
 
-# mitochondrial genome data, to be updated
+# mgatk data
+wget https://zenodo.org/records/19450459/files/tf1_mgatk.zip
+
+# MQuad data
+wget https://zenodo.org/records/19450459/files/tf1_mquad.zip
 ```
 
 </details>
