@@ -6,9 +6,13 @@ output:
   html_document:
     self_contained: True
 ---
+
 ```{r, include=FALSE}
-if (!requireNamespace(package = "EnsDb.Hsapiens.v75", quietly = TRUE)) {
-  BiocManager::install("EnsDb.Hsapiens.v75")
+if (!requireNamespace(package = "EnsDb.Hsapiens.v86", quietly = TRUE)) {
+  BiocManager::install("EnsDb.Hsapiens.v86")
+}
+if (!requireNamespace(package = "eulerr", quietly = TRUE)) {
+  install.packages("eulerr")
 }
 ```
 
@@ -21,21 +25,23 @@ knitr::opts_knit$set(root.dir = "../../vignette_data/mito")
 library(Signac)
 library(Seurat)
 library(ggplot2)
+library(ggrepel)
 library(patchwork)
-library(EnsDb.Hsapiens.v75)
+library(EnsDb.Hsapiens.v86)
 ```
 
-Here, we take a look at two different datasets containing both DNA accessibility
-measurements and mitochondrial mutation data in the same cells. One was sampled
-from a patient with a colorectal cancer (CRC) tumor, and the other is from a 
-polyclonal TF1 cell line. This data was produced by Lareau and Ludwig
-et al. (2020), and you can read the original paper
-here: https://doi.org/10.1038/s41587-020-0645-6.
+In this vignette, we take a look at two different datasets containing both DNA 
+accessibility measurements and mitochondrial mutation data in the same cells. 
+One was sampled from a patient with a colorectal cancer (CRC) tumor, and the 
+other is from a polyclonal TF1 cell line. This data was produced by Lareau 
+and Ludwig et al. (2020), and you can read the original paper here: 
+https://doi.org/10.1038/s41587-020-0645-6.
 
-Processed data files, including mitochondrial variant data for the CRC and TF1
-dataset is available on Zenodo here: https://zenodo.org/record/3977808
+We have re-processed the original data mapping to the hg38 genome. These updated
+files, including mitochondrial variant data for the CRC and TF1
+datasets, are available on Zenodo here: https://zenodo.org/records/19450459
 
-Raw sequencing data and DNA accessibility processed files for the these datasets
+Original sequencing reads and processed data mapped to hg19 for the these datasets
 are available on NCBI GEO here:
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE142745
 
@@ -46,24 +52,19 @@ The required files can be downloaded by running the following lines in a shell:
 
 ```{bash eval=FALSE}
 # ATAC data
-wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.filtered_peak_bc_matrix.h5
-wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.singlecell.csv
-wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.fragments.tsv.gz
-wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.fragments.tsv.gz.tbi
+wget https://zenodo.org/records/19450459/files/crc_atac.zip
 
-# mitochondrial allele data
-wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.A.txt.gz
-wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.C.txt.gz
-wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.G.txt.gz
-wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.T.txt.gz
-wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.depthTable.txt
-wget https://zenodo.org/record/3977808/files/CRC_v12-mtMask_mgatk.chrM_refAllele.txt
+# mgatk data
+wget https://zenodo.org/records/19450459/files/crc_mgatk.zip
+
+# MQuad data
+wget https://zenodo.org/records/19450459/files/crc_mquad.zip
 ```
 
 </details>
 
 
-# Colorectal cancer dataset
+# Colorectal cancer dataset 
 
 To demonstrate combined analyses of mitochondrial DNA variants and accessible
 chromatin, we'll walk through a vignette analyzing cells from a primary
@@ -77,27 +78,27 @@ standard workflow for scATAC-seq data.
 
 ```{r importData, message=FALSE, warning=FALSE}
 # load counts and metadata from cellranger-atac
-counts <- Read10X_h5(filename = "CRC_v12-mtMask_mgatk.filtered_peak_bc_matrix.h5")
-metadata <- read.csv(
-  file = "CRC_v12-mtMask_mgatk.singlecell.csv",
-  header = TRUE,
-  row.names = 1
-)
+counts <- Read10X_h5(filename = "crc/atac/crc_filtered_peak_bc_matrix.h5")
+
+metadata <- read.csv(file = "crc/atac/crc_singlecell.csv",
+                     header = TRUE,
+                     row.names = 1)
 
 # load gene annotations from Ensembl
-annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v75)
+annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
 
-# change to UCSC style since the data was mapped to hg19
+# change to UCSC style since the data was mapped to hg38 UCSC
 seqlevels(annotations) <- paste0("chr", seqlevels(annotations))
-genome(annotations) <- "hg19"
+genome(annotations) <- "hg38"
 
 # create object
 crc_assay <- CreateGRangesAssay(
   counts = counts,
   annotation = annotations,
   min.cells = 10,
-  fragments = "CRC_v12-mtMask_mgatk.fragments.tsv.gz"
+  fragments = "crc/atac/crc_fragments.tsv.gz"
 )
+
 crc <- CreateSeuratObject(
   counts = crc_assay,
   assay = "peaks",
@@ -110,21 +111,33 @@ crc[["peaks"]]
 ## Quality control
 
 We can compute the standard quality control metrics for scATAC-seq and filter
-out low-quality cells based on these metrics.
+out low-quality cells based on these metrics. Additionally, we import the mean
+mitochondrial depth per cell (total mt base counts/length of mtDNA contig) from
+mgatk to filter out cells with low mtDNA depth.
 
 ```{r message=FALSE, warning=FALSE}
 # Augment QC metrics that were computed by cellranger-atac
 crc$pct_reads_in_peaks <- crc$peak_region_fragments / crc$passed_filters * 100
-crc$pct_reads_in_DNase <- crc$DNase_sensitive_region_fragments / crc$passed_filters * 100
-crc$blacklist_ratio <- crc$blacklist_region_fragments / crc$peak_region_fragments
 
 # compute TSS enrichment score and nucleosome banding pattern
 crc <- ATACqc(crc)
+
+# Import mtDNA depth & add to metadata
+mito.depth <- read.delim("crc/mgatk/mgatk_crc.depthTable.txt", 
+                         header = FALSE, 
+                         row.names = 1, 
+                         col.names = c("cell","mtDNA_depth"))
+
+crc <- AddMetaData(object = crc, metadata = mito.depth)
 ```
 
-```{r fig.width=8, fig.height=8, message=FALSE, warning=FALSE}
+
+```{r fig.width=12, fig.height=4, message=FALSE, warning=FALSE}
 # visualize QC metrics for each cell
-VlnPlot(crc, c("TSS_enrichment", "nCount_peaks", "Nucleosome_signal", "pct_reads_in_peaks", "pct_reads_in_DNase", "blacklist_ratio"), pt.size = 0, ncol = 3)
+VlnPlot(crc, 
+        c("TSS_enrichment", "nCount_peaks", "Nucleosome_signal", "Mito_fraction", "mtDNA_depth"), 
+        pt.size = 0.1, 
+        ncol = 5) + scale_y_log10()
 ```
 
 ```{r}
@@ -133,47 +146,10 @@ crc <- subset(
   x = crc,
   subset = nCount_peaks > 1000 &
     nCount_peaks < 50000 &
-    pct_reads_in_DNase > 40 &
-    blacklist_ratio < 0.05 &
-    TSS_enrichment > 7 &
-    Nucleosome_signal < 4
+    TSS_enrichment > 3 & 
+    Nucleosome_signal < 4 &
+    mtDNA_depth >=10
 )
-crc
-```
-
-## Loading the mitochondrial variant data
-
-Next we can load the mitochondrial DNA variant data for these cells that was 
-quantified using [mgatk](https://github.com/caleblareau/mgatk). The `ReadMGATK()`
-function in Signac allows the output from `mgatk` to be read directly into R in
-a convenient format for downstream analysis with Signac. Here, we load the data
-and add it to the Seurat object as a new assay.
-
-```{r process_mito, message=FALSE, warning=FALSE, echo=TRUE}
-# load mgatk output
-mito.data <- ReadMGATK(dir = "crc/")
-
-# create an assay
-mito <- CreateAssay5Object(counts = mito.data$counts)
-
-# Subset to cell present in the scATAC-seq assat
-mito <- subset(mito, cells = Cells(crc))
-
-# add assay and metadata to the seurat object
-crc[["mito"]] <- mito
-crc <- AddMetaData(crc, metadata = mito.data$depth[Cells(mito), ], col.name = "mtDNA_depth")
-```
-
-We can look at the mitochondrial sequencing depth for each cell, and further
-subset the cells based on mitochondrial sequencing depth.
-
-```{r message=FALSE, warning=FALSE}
-VlnPlot(crc, "mtDNA_depth", pt.size = 0.1) + scale_y_log10()
-```
-
-```{r}
-# filter cells based on mitochondrial depth
-crc <- subset(crc, mtDNA_depth >= 10)
 crc
 ```
 
@@ -188,7 +164,7 @@ crc <- FindTopFeatures(crc, min.cutoff = 10)
 crc <- RunSVD(crc)
 crc <- RunUMAP(crc, reduction = "lsi", dims = 2:50)
 crc <- FindNeighbors(crc, reduction = "lsi", dims = 2:50)
-crc <- FindClusters(crc, resolution = 0.7, algorithm = 3)
+crc <- FindClusters(crc, resolution = 0.5, algorithm = 3)
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -217,7 +193,7 @@ crc <- NormalizeData(object = crc, assay = "RNA")
 We note the following markers for different cell types in the CRC dataset:
 
 - EPCAM is a marker for epithelial cells
-- TREM1 is a meyloid marker
+- TREM1 is a myeloid marker
 - PTPRC = CD45 is a pan-immune cell marker
 - IL1RL1 is a basophil marker
 - GATA3 is a Tcell maker
@@ -240,14 +216,14 @@ Using these gene score values, we can assign cluster identities:
 crc <- RenameIdents(
   object = crc,
   "0" = "Epithelial",
-  "1" = "Epithelial",
-  "2" = "Basophil",
-  "3" = "Epithelial",
-  "4" = "Myeloid_1",
-  "5" = "Tcell",
-  "6" = "Myeloid_2"
+  "1" = "Myeloid_1",
+  "2" = "Epithelial",
+  "3" = "Basophil",
+  "4" = "Tcell",
+  "5" = "Myeloid_2"
 )
 ```
+
 
 One of the myeloid clusters has a lower percentage of fragments in peaks, as
 well as a lower overall mitochondrial sequencing depth and a different
@@ -266,7 +242,51 @@ chromatin enrichment. Similarly, the unusual nuclear chromatin packaging of this
 cell type yields slightly reduced mtDNA coverage compared to the `myeloid 2`
 cluster.
 
-## Find informative mtDNA variants
+
+## Mitochondrial variant analysis {.tabset}
+
+We now import the mitochondrial variant data identified by two tools - 
+[mgatk](https://github.com/caleblareau/mgatk) or [MQuad](https://github.com/single-cell-genetics/MQuad). 
+The former performs genotyping of mtDNA variants & identifies high confidence 
+variants using strand correlation & variance mean ratio metrics. 
+The latter takes in genotyped mitochondrial DNA data and identifies informative 
+variants using a binomial mixture model to assess heteroplasmy. 
+Both tools provide a list of useful mitochondrial variants that provide clonal 
+information, as we will see below. 
+
+We observe significant overlap of mitochondrial variants identified between both
+tools, with differences due to the their approaches in classifying 
+informativeness.
+
+### mgatk
+
+In this tab, we load mitochondrial DNA variant data that was quantified using 
+`mgatk`. 
+
+#### Load mgatk mitochondrial DNA variant data
+
+The `ReadMGATK()`function in Signac allows the output to be read 
+directly into R in a convenient format for downstream analysis with Signac. 
+`ReadMGATK()` returns a list containing the mitochondrial allele counts at each 
+position & 2 dataframes containing the depth and reference allele. 
+Here, we load the data and add the counts to the Seurat object as a new assay. 
+
+```{r process_mgatk, message=FALSE, warning=FALSE, echo=TRUE}
+# load mgatk output
+mgatk.data <- ReadMGATK(dir = "crc/mgatk")
+
+# create an assay
+mgatk <- CreateAssay5Object(counts = mgatk.data$counts)
+
+# Subset to cells present in the scATAC-seq assay
+mgatk <- subset(mgatk, cells = Cells(crc))
+
+# add assay and metadata to the seurat object
+crc[["mgatk"]] <- mgatk
+```
+
+
+#### mgatk informative mtDNA variants
 
 Next, we can identify sites in the mitochondrial genome that vary across cells, 
 and cluster the cells into clonotypes based on the frequency of these variants
@@ -274,7 +294,9 @@ in the cells. Signac utilizes the principles established in the original
 mtscATAC-seq work of identifying high-quality variants.  
 
 ```{r call_variants, message=FALSE, warning=FALSE}
-variable.sites <- IdentifyVariants(crc, assay = "mito", refallele = mito.data$refallele)
+variable.sites <- IdentifyVariants(crc, 
+                                   assay = "mgatk", 
+                                   refallele = mgatk.data$refallele)
 VariantPlot(variants = variable.sites)
 ```
 
@@ -307,8 +329,8 @@ high.conf <- subset(
 high.conf[, c(1, 2, 5)]
 ```
 
-A few things stand out. First, 10 out of the 12 variants occur at less than 1% 
-allele frequency in the population. However, 16147C>T is present at about 62%.
+A few things stand out. First, 9 out of the 12 variants occur at less than 1% 
+allele frequency in the population. However, 16147C>T is present at about 59.7%.
 We'll see that this is a clonal variant marking the epithelial cells.
 Additionally, all of the called variants are transitions (A - G or C - T) rather
 than transversion mutations (A - T or C - G). This fits what we know about how
@@ -317,33 +339,35 @@ these mutations arise in the mitochondrial genome.
 Depending on your analytical question, these thresholds can be adjusted to
 identify variants that are more prevalent in other cells. 
 
-## Compute the variant allele frequency for each cell
+#### Compute allele frequency of informative mgatk variants for each cell
 
-We currently have information for each strand stored in the mito assay to allow
+We currently have information for each strand stored in the `mgatk` assay to allow
 strand concordance to be assessed. Now that we have our set of high-confidence
 informative variants, we can create a new assay containing strand-collapsed
 allele frequency counts for each cell for these variants using the `AlleleFreq()`
-function.
+function. 
 
 ```{r}
 crc <- AlleleFreq(
   object = crc,
   variants = high.conf$variant,
-  assay = "mito"
+  assay = "mgatk",
+  new.assay.name = "mgatk_af"
 )
-crc[["alleles"]]
+crc[["mgatk_af"]]
 ```
 
-## Visualize the variants
+#### Visualize informative mgatk variants
 
 Now that the allele frequencies are stored as an additional assay, we can use
 the standard functions in Seurat to visualize how these allele frequencies are
-distributed across the cells. Here we visualize a subset of the variants using 
-`FeaturePlot()` and `DoHeatmap()`.
+distributed across the cells. Here we visualize a subset of the variants 
+identified by both `mgatk` and `MQuad` using `FeaturePlot()`.
 
-```{r visualize variants, message=FALSE, warning=FALSE}
-DefaultAssay(crc) <- "alleles"
-alleles.view <- c("12889G>A", "16147C>T", "9728C>T", "9804G>A")
+```{r visualize variants, fig.width=12, fig.height=4, message=FALSE, warning=FALSE}
+DefaultAssay(crc) <- "mgatk_af"
+alleles.view <- c("12889G>A", "16147C>T", 
+                  "9728C>T", "9804G>A")
 FeaturePlot(
   object = crc,
   features = alleles.view,
@@ -353,8 +377,12 @@ FeaturePlot(
 ) & NoLegend()
 ```
 
-```{r message=FALSE, warning=FALSE}
-DoHeatmap(crc, features = rownames(crc), slot = "data", disp.max = 1) +
+
+We also explore all informative mtDNA variants identified by `mgatk` using
+`DoHeatmap()` to plot the allele frequencies across all cells.
+
+```{r fig.width=8, fig.height=6, message=FALSE, warning=FALSE}
+DoHeatmap(crc, features = sort(rownames(crc)), slot = "data", disp.max = 1) +
   scale_fill_viridis_c()
 ```
 
@@ -365,9 +393,169 @@ UMAP and clustering don't full agree). It is at 100% allele frequency-- strongly
 suggestive of whatever cell of origin of this tumor had the mutation at 100% and
 then expanded. We then see at least 3 variants 1227G>A, 12889G>A, and 9728C>T that
 are mostly present specifically in the epithelial cells that define subclones. 
-Other variants including 3244G>A, 9804G>A, and 824T>C are found specifically
+Other variants including 16093T>C, 9804G>A, and 824T>C are found specifically
 in immune cell populations, suggesting that these arose from a common hematopoetic
 progenitor cell (probably in the bone marrow).
+
+### MQuad
+
+In this tab, we explore mitochondrial variants identified to be clonally
+informative by `MQuad`. Bi-allelic genotyping of the chrM DNA was performed using
+[cellsnp-lite](https://github.com/single-cell-genetics/cellsnp-lite), 
+using the same reference as was used in mgatk
+([rCRS](https://github.com/caleblareau/mgatk/blob/master/mgatk/bin/anno/fasta/rCRS.fasta)).
+
+#### Load MQuad mitochondrial variant data
+
+We load the AD (alternate allele depth) & DP (sum of alternate + reference 
+allele depth) sparse matrices for informative variants identified by `MQuad` 
+using the `ReadMQuad` function. 
+We will add the AD counts to the `mquad` assay, and add the DP counts as another
+layer in the assay. These matrices will then be used to calculate the allele 
+frequency of the informative variants per cell.
+
+```{r import_mquad, message=FALSE, warning=FALSE}
+# load MQuad data
+mquad.data <- ReadMQuad(dir = "crc/mquad",
+                        cb = "crc/mquad/mquad_crc_cellSNP.samples.tsv")
+
+# create an assay with AD counts of filtered cells
+passed_cells <- as.vector(colnames(crc))
+mquad <- CreateAssay5Object(counts = mquad.data$AD_matrix[,passed_cells])
+
+# Add assay & add DP as layer
+crc[["mquad"]] <- mquad
+crc[["mquad"]]$DP <- mquad.data$DP_matrix[,passed_cells]
+```
+
+#### Compute allele frequency of informative MQuad variants for each cell
+
+We compute the allele frequency & add to data slot of the `mquad` assay. 
+Note that there will be some 0 values in the DP matrix, as some variants may not
+be detected in some cells. This will result in some NA values in the allele 
+frequency. We set these values to 0 in the data slot to facilitate downstream 
+analysis. This will however erase the biological significance between 0 (all 
+ref) & NA (not detected), and thus should be used with caution.
+
+```{r mquad_vaf, message=FALSE, warning=FALSE}
+# compute VAF
+mquad_vaf <- crc[["mquad"]]$counts / crc[["mquad"]]$DP
+crc[["mquad"]]$data <- mquad_vaf
+
+# Set NAs in VAF data to 0 (assuming not too many 0s)
+crc[["mquad"]]$data[is.na(crc[["mquad"]]$data)] <- 0
+```
+
+#### Visualize informative MQuad variants
+
+We can now visualize the subset of the variants identified by both mgatk & MQuad 
+using `FeaturePlot()`.
+
+```{r visualize_variants, fig.width=12, fig.height=4, message=FALSE, warning=FALSE}
+DefaultAssay(crc) <- "mquad"
+alleles.view <- c("12889G>A", "16147C>T", 
+                  "9728C>T", "9804G>A")
+FeaturePlot(
+  object = crc,
+  features = alleles.view,
+  order = TRUE,
+  cols = c("grey", "darkred"),
+  ncol = 4
+) & NoLegend()
+```
+
+We also explore all informative mtDNA variants identified by `MQuad` using
+`DoHeatmap()` to plot the allele frequencies across all cells.
+
+```{r fig.width=8, fig.height=6, message=FALSE, warning=FALSE}
+DoHeatmap(crc, features = sort(rownames(crc)), slot = "data", disp.max = 1) +
+  scale_fill_viridis_c()
+```
+
+## Investigate overlap between mgatk & MQuad variants
+
+From the `mgatk` and `MQuad` heatmaps, the detected mitochondrial variants
+mostly overlaps. We investigate the overlapping and distinct variants further
+using an Euler diagram.
+
+```{r message=FALSE, warning=FALSE}
+library(eulerr)
+
+# list of variants by each tool
+mgatk_variants <- high.conf$variant
+mquad_variants <- rownames(mquad_vaf)
+
+# plot Euler diagram
+fit <- euler(list(mgatk = mgatk_variants, mquad = mquad_variants))
+plot(fit, quantities = TRUE)
+```
+
+A total of 8 variants were commonly identified by `mgatk` and `MQuad`. `MQuad` 
+identified 1 unique mitochondrial variant, while `mgatk` identified 4 other 
+unique variants that did not pass the BIC threshold in MQuad.
+
+### MQuad-specific variants
+
+We now investigate the distinct variants by plotting them with `FeaturePlot()`.
+
+```{r fig.width=4, fig.height=4, message=FALSE, warning=FALSE}
+# get distinct MQuad variants
+mquad_unique <- setdiff(mquad_variants, mgatk_variants)
+
+DefaultAssay(crc) <- "mquad"
+FeaturePlot(
+  object = crc,
+  features = mquad_unique,
+  order = TRUE,
+  cols = c("grey", "darkred")
+) & NoLegend()
+```
+
+We can also visualize the distinct variants identified by MQuad on the 
+`VariantPlot()` to see where they are in the VMR-strand concordance space.
+
+```{r message=FALSE, warning=FALSE}
+p4 <- VariantPlot(variable.sites)
+
+p4$data$highlight <- p4$data$variant %in% mquad_unique
+
+p4 + 
+  geom_point(aes(color = highlight)) +
+  scale_color_manual(values = c("grey", "blue")) +
+  geom_text_repel(
+    data = subset(p4$data, variant %in% mquad_unique),
+    aes(label = variant),
+    color = "blue"
+  )
+```
+
+From the plot, the variant 310T>C was filtered out from mgatk as it did not 
+pass the strand concordance test. 
+
+### mgatk-specific variants
+
+We next investigate mgatk distinct variants by plotting them with `FeaturePlot()`.
+
+```{r fig.width=12, fig.height=4, message=FALSE, warning=FALSE}
+# get distinct mgatk variants
+mgatk_unique <- setdiff(mgatk_variants, mquad_variants)
+
+DefaultAssay(crc) <- "mgatk_af"
+FeaturePlot(
+  object = crc,
+  features = mgatk_unique,
+  order = TRUE,
+  cols = c("grey", "darkred"),
+  ncol = 4
+) & NoLegend()
+```
+
+The above variants were filtered out by MQuad as they did not pass the cutoff 
+in ΔBIC (Bayesian Information Criterion), and thus were not thought to be 
+clonally informative. 
+
+Overall, both mitochondrial variant tools show high concordance, and either 
+tool can be used for clonal analysis.
 
 # TF1 cell line dataset
 
@@ -379,8 +567,6 @@ We'll demonstrate how to identify groups of related cells (clones) by clustering
 the allele frequency data and how to relate these clonal groups to 
 accessibility differences utilizing the multimodal capabilities of Signac. 
 
-## Data loading
-
 <details>
   <summary>**View data download code**</summary>
 
@@ -388,92 +574,130 @@ To download the data from Zenodo run the following in a shell:
 
 ```{bash eval=FALSE}
 # ATAC data
-wget https://zenodo.org/record/3977808/files/TF1.filtered.fragments.tsv.gz
-wget https://zenodo.org/record/3977808/files/TF1.filtered.fragments.tsv.gz.tbi
-wget https://zenodo.org/record/3977808/files/TF1.filtered.narrowPeak.gz
+wget https://zenodo.org/records/19450459/files/tf1_atac.zip
 
-# mitochondrial genome data
-wget https://zenodo.org/record/3977808/files/TF1_filtered.A.txt.gz
-wget https://zenodo.org/record/3977808/files/TF1_filtered.T.txt.gz
-wget https://zenodo.org/record/3977808/files/TF1_filtered.C.txt.gz
-wget https://zenodo.org/record/3977808/files/TF1_filtered.G.txt.gz
-wget https://zenodo.org/record/3977808/files/TF1_filtered.chrM_refAllele.txt.gz
-wget https://zenodo.org/record/3977808/files/TF1_filtered.depthTable.txt.gz
+# mgatk data
+wget https://zenodo.org/records/19450459/files/tf1_mgatk.zip
+
+# MQuad data
+wget https://zenodo.org/records/19450459/files/tf1_mquad.zip
 ```
 
 </details>
 
-```{r}
-# read the mitochondrial data
-tf1.data <- ReadMGATK(dir = "tf1/")
 
-# create a Seurat object
-tf1 <- CreateSeuratObject(
-  counts = tf1.data$counts,
-  meta.data = tf1.data$depth,
-  assay = "mito"
+## Loading the DNA accessibility data
+
+As the data was generated from mixed cell lines (TF1 & GM11906), we subset 
+the TF1-barcodes out from the peak matrix. 
+
+```{r message=FALSE, warning=FALSE}
+# load counts and metadata from cellranger-atac
+counts <- Read10X_h5(filename = "tf1/atac/tf1_filtered_peak_bc_matrix.h5")
+
+metadata <- read.csv(
+  file = "tf1/atac/tf1_singlecell.csv",
+  header = TRUE,
+  row.names = 1
 )
 
-# load the peak set
-peaks <- read.table(
-  file = "TF1.filtered.narrowPeak.gz",
-  sep = "\t",
-  col.names = c("chrom", "start", "end", "peak", "width", "strand", "x", "y", "z", "w")
-)
-peaks <- makeGRangesFromDataFrame(peaks)
-
-# create fragment object
-frags <- CreateFragmentObject(
-  path = "TF1.filtered.fragments.tsv.gz",
-  cells = colnames(tf1)
-)
-
-# quantify the DNA accessibility data
-counts <- FeatureMatrix(
-  object = frags,
-  features = peaks,
-  cells = colnames(tf1)
-)
-
-# create assay with accessibility data and add it to the Seurat object
-tf1[["peaks"]] <- CreateGRangesAssay(
+# create object
+tf1_assay <- CreateGRangesAssay(
   counts = counts,
-  fragments = frags
+  annotation = annotations,
+  min.cells = 10,
+  fragments = "tf1/atac/tf1_fragments.tsv.gz"
 )
+
+tf1 <- CreateSeuratObject(
+  counts = tf1_assay,
+  assay = "peaks",
+  meta.data = metadata
+)
+
+# Subset TF1 barcodes out 
+tf1_bc <- read.delim("tf1/atac/tf1_barcodes.tsv",
+                     sep = '\t',
+                     header = FALSE)
+
+tf1 <- subset(tf1, cells = tf1_bc[,1])
+tf1[["peaks"]]
 ```
 
 ## Quality control
 
-```{r message=FALSE, warning=FALSE}
-# add annotations
-Annotation(tf1[["peaks"]]) <- annotations
-```
+Compute the standard quality control metrics for scATAC-seq and filter
+out low-quality cells based on these metrics. We also import the mean
+mitochondrial depth per cell (total mt base counts/length of mtDNA contig) from
+mgatk to filter out cells with low mtDNA depth.
 
 ```{r message=FALSE, warning=FALSE}
 DefaultAssay(tf1) <- "peaks"
 
-tf1 <- ATACqc(tf1)
+# compute TSS enrichment score and nucleosome banding pattern
+tf1 <- ATACqc(object = tf1)
+
+# Import mtDNA depth & add to metadata
+mito.depth <- read.delim("tf1/mgatk/mgatk_tf1_1.depthTable.txt", 
+                         header = FALSE, 
+                         row.names = 1, 
+                         col.names = c("cell","mtDNA_depth"))
+
+tf1 <- AddMetaData(object = tf1, metadata = mito.depth)
 ```
 
-```{r}
-VlnPlot(tf1, c("nCount_peaks", "Nucleosome_signal", "TSS_enrichment"), pt.size = 0.1)
+```{r fig.width=12, fig.height=4, message=FALSE, warning=FALSE}
+VlnPlot(tf1, 
+        c("TSS_enrichment", "nCount_peaks", "Nucleosome_signal","Mito_fraction", "mtDNA_depth"), 
+        pt.size = 0.1, 
+        ncol = 5) + scale_y_log10()
 ```
 
 ```{r}
 tf1 <- subset(
   x = tf1,
   subset = nCount_peaks > 500 &
-    Nucleosome_signal < 2 &
-    TSS_enrichment > 4
+    Nucleosome_signal < 1 &
+    TSS_enrichment > 3 &
+    mtDNA_depth >=10
 )
 tf1
 ```
 
-## Identifying variants
+## Mitochondrial variant analysis {.tabset}
+
+Similarly, we analyze mitochondrial variants identified by `mgatk` and `MQuad` 
+in the TF1 dataset.
+
+### mgatk
+
+In this tab, we load mitochondrial DNA variant data that was quantified using 
+`mgatk`. 
+
+#### Load mgatk mitochondrial DNA variant data
+
+We load `mgatk` data using `ReadMGATK()` function.
 
 ```{r}
-DefaultAssay(tf1) <- "mito"
-variants <- IdentifyVariants(tf1, refallele = tf1.data$refallele)
+# read mgatk data
+mgatk.data <- ReadMGATK(dir = "tf1/mgatk")
+
+mgatk <- CreateAssayObject(counts = mgatk.data$counts)
+
+# Subset to cells present in the scATAC-seq assay
+mgatk <- subset(mgatk, cells = Cells(tf1))
+
+# add assay and metadata to the seurat object
+tf1[["mgatk"]] <- mgatk
+```
+
+#### mgatk informative mtDNA variants
+
+Plot the VMR-strand concordance plot & identify high-confidence variants.
+
+```{r}
+DefaultAssay(tf1) <- "mgatk"
+variants <- IdentifyVariants(tf1, refallele = mgatk.data$refallele)
 VariantPlot(variants)
 ```
 
@@ -486,28 +710,34 @@ high.conf <- subset(
 )
 ```
 
+
+Calculate allele frequencies of the high confidence subset variants.
+
 ```{r}
-tf1 <- AlleleFreq(tf1, variants = high.conf$variant, assay = "mito")
-tf1[["alleles"]]
+tf1 <- AlleleFreq(tf1, 
+                  variants = high.conf$variant, 
+                  assay = "mgatk",
+                  new.assay.name = "mgatk_af")
+tf1[["mgatk_af"]]
 ```
 
-## Identifying clones
+
+#### Identification of mgatk clones
 
 Now that we've identified a set of variable alleles, we can cluster the cells
 based on the frequency of each of these alleles using the `FindClonotypes()`
-function. This uses the Louvain community detection algorithm implemented in 
-Seurat.
+function.
 
 ```{r message=FALSE, warning=FALSE}
-DefaultAssay(tf1) <- "alleles"
+DefaultAssay(tf1) <- "mgatk_af"
 tf1 <- FindClonotypes(tf1)
 ```
 
 ```{r}
-table(Idents(tf1))
+sort(table(Idents(tf1)))
 ```
 
-Here we see that the clonal clustering has identified 12 different clones in the
+Here we see that the clonal clustering has identified 9 different clones in the
 TF1 dataset. We can further visualize the frequency of alleles in these clones
 using `DoHeatmap()`. The `FindClonotypes()` function also performs hierarchical
 clustering on both the clonotypes and the alleles, and sets the factor levels
@@ -515,37 +745,81 @@ for the clonotypes based on the hierarchical clustering order, and the order of
 variable features based on the hierarchical feature clustering. This allows us
 to get a decent ordering of both features and clones automatically:
 
-```{r message=FALSE, warning=FALSE}
-DoHeatmap(tf1, features = VariableFeatures(tf1), slot = "data", disp.max = 0.1) +
+```{r fig.width=8, fig.height=7, message=FALSE, warning=FALSE}
+DoHeatmap(tf1, features = VariableFeatures(tf1), slot = "data", disp.max = 0.3) +
   scale_fill_viridis_c()
 ```
 
-## Find differentially accessible peaks between clones
+### MQuad
 
-Next we can use the clonal information derived from the mitochondrial assay
-to find peaks that are differentially accessible between clones.
+In this tab, we load mitochondrial DNA variant data that was quantified using 
+`MQuad`. 
+
+#### Load MQuad mitochondrial DNA variant data
+
+Import the AD & DP matrices using the `ReadMQuad()` function.
 
 ```{r message=FALSE, warning=FALSE}
-DefaultAssay(tf1) <- "peaks"
+mquad.data <- ReadMQuad(dir = "tf1/mquad", 
+                        cb = "tf1/mquad/tf1_mquad_cellSNP.samples.tsv")
 
-# find peaks specific to one clone
-markers.fast <- FoldChange(tf1, ident.1 = 2, slot = "counts")
-markers.fast <- markers.fast[order(markers.fast$avg_log2FC, decreasing = TRUE), ] # sort by fold change
-head(markers.fast)
+# create an assay with AD counts of filtered cells
+passed_cells <- as.vector(colnames(tf1))
+mquad <- CreateAssay5Object(counts = mquad.data$AD_matrix[,passed_cells])
+
+# Add assay & add DP as layer
+tf1[["mquad"]] <- mquad
+tf1[["mquad"]]$DP <- mquad.data$DP_matrix[,passed_cells]
 ```
 
-We can the DNA accessibility in these regions for each clone using
-the `CoveragePlot()` function. As you can see, the peaks identified are highly
-specific to one clone.
 
-```{r}
-CoveragePlot(
-  object = tf1,
-  region = rownames(markers.fast)[1],
-  extend.upstream = 2000,
-  extend.downstream = 2000
-)
+Compute MQuad VAF & add to data slot of mquad assay. 
+
+```{r message=FALSE, warning=FALSE}
+# compute VAF
+mquad_vaf <- tf1[["mquad"]]$counts / tf1[["mquad"]]$DP
+tf1[["mquad"]]$data <- mquad_vaf
+
+# Check number of 0 counts in DP matrix
+sum(mquad.data$DP_matrix[,passed_cells] == 0)
+sum(is.na(mquad_vaf))
+# Set NAs in VAF to 0 
+tf1[["mquad"]]$data[is.na(tf1[["mquad"]]$data)] <- 0
 ```
+
+#### Identification of MQuad clones 
+
+We perform clonotype clustering using the identified MQuad variants.
+```{r message=FALSE, warning=FALSE}
+DefaultAssay(tf1) <- "mquad"
+tf1 <- FindClonotypes(tf1, assay = "mquad")
+
+sort(table(Idents(tf1)))
+```
+
+```{r fig.width=8, fig.height=5, message=FALSE, warning=FALSE}
+DoHeatmap(tf1, features = VariableFeatures(tf1), slot = "data", disp.max = 0.3) +
+  scale_fill_viridis_c()
+```
+
+## Investigate overlap between mgatk & MQuad variants
+
+We investigate the common and unique variants identified using an Euler diagram.
+
+```{r message=FALSE, warning=FALSE}
+# list of variants by each tool
+mgatk_variants <- high.conf$variant
+mquad_variants <- rownames(mquad_vaf)
+
+# plot Euler diagram
+fit <- euler(list(mgatk = mgatk_variants, mquad = mquad_variants))
+plot(fit, quantities = TRUE)
+```
+
+Again, we observe a significant subset of variants that are commonly identified 
+between the 2 tools. Generally, we observe that MQuad results in a smaller 
+subset of variants, likely due to stricter filtering criteria.
+
 <details>
   <summary>**Session Info**</summary>
 
