@@ -453,9 +453,10 @@ ReadPWM <- function(pwm_dir, short_names = TRUE) {
       profileMatrix = mat
     )
   })
-  names(x = pwm_list) <- vapply(
+  raw_names <- vapply(
     X = pwm_list, FUN = TFBSTools::name, FUN.VALUE = character(1L)
   )
+  names(x = pwm_list) <- make.unique(names = raw_names)
   do.call(what = TFBSTools::PWMatrixList, args = pwm_list)
 }
 
