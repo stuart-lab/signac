@@ -65,10 +65,11 @@ Imports:
 Collate: 
     'RcppExports.R'
     'Signac-package.R'
+    'generics.R'
+    'bigwig.R'
     'classes.R'
     'data.R'
     'differential_accessibility.R'
-    'generics.R'
     'dimension_reduction.R'
     'footprinting.R'
     'fragments.R'
