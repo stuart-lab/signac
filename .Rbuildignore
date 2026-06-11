@@ -27,3 +27,5 @@ build.sh
 ^signac-private\.Rproj$
 .lintr
 .claude
+^\.positai$
+^\.claude$
