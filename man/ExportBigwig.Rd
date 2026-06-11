@@ -29,11 +29,11 @@ ExportBigwig(
 
 \item{idents}{Identities to include (defined by group.by parameter)}
 
-\item{normMethod}{Normalization method for the bigwig files. Default 'RC'.
-'RC' will divide the number of insertions in a tile by the total number of
+\item{normMethod}{Normalization method for the bigwig files. Default \code{RC}.
+\code{RC} will divide the number of insertions in a tile by the total number of
 fragments in the group. A scaling factor of 10^4 will be applied.
-'ncells' will divide the number of insertions in a tile by the number of
-cells in the group. 'none' (or \code{NULL}) will apply no normalization.
+\code{ncells} will divide the number of insertions in a tile by the number of
+cells in the group. \code{none} (or \code{NULL}) will apply no normalization.
 The name of a metadata column can also be passed, in which case insertions
 will be divided by the sum of that column over the cells in the group, with a
 scaling factor of 10^4 applied.}
@@ -54,16 +54,15 @@ chromosomes present in \code{seqlengths}.}
 
 \item{seqlengths}{Chromosome lengths used to define the genomic tiles. Can be
 a named numeric vector of chromosome lengths, or any object with a
-\code{seqlengths} method such as a \code{BSgenome} or
-\code{\link[Seqinfo:Seqinfo]{Seqinfo}} object. If \code{NULL}, the chromosome
-lengths stored in the object are used; note that these are frequently unset,
-in which case \code{seqlengths} must be supplied.}
+\code{seqlengths} method such as a \code{BSgenome} or \code{\link[Seqinfo:Seqinfo]{Seqinfo::Seqinfo()}} object. If
+\code{NULL}, the chromosome lengths stored in the object are used; note that these
+are frequently unset, in which case \code{seqlengths} must be supplied.}
 
 \item{outdir}{Directory to write output files (split bed files and bigwigs).
 Defaults to a temporary directory.}
 
 \item{cleanup}{Remove the intermediate per-group bed files after writing the
-bigwig files. Default TRUE.}
+bigwig files. Default \code{TRUE}.}
 
 \item{verbose}{Display messages}
 }
