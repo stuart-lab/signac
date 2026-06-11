@@ -2456,7 +2456,9 @@ CoverageTrack <- function(
 #' @param region A set of genomic coordinates to show. Can be a GRanges object,
 #' a string encoding a genomic position, a gene name, or a vector of strings
 #' describing the genomic coordinates or gene names to plot. If a gene name is
-#' supplied, annotations must be present in the assay.
+#' supplied, annotations must be present in the assay. If a GRanges object
+#' containing more than one range is supplied, a separate plot is produced for
+#' each range.
 #' @param features A vector of features present in another assay to plot
 #' alongside accessibility tracks (for example, gene names).
 #' @param assay Name of the assay to plot. If a list of assays is provided,
@@ -2650,7 +2652,9 @@ CoveragePlot <- function(
   variants = NULL,
   ...
 ) {
-  if (length(x = region) == 1) {
+  if (inherits(x = region, what = "GRanges") && length(x = region) > 1) {
+    region <- as.list(x = split(x = region, f = seq_along(region)))
+  } else if (length(x = region) == 1) {
     region <- list(region)
   }
   plot.list <- lapply(
