@@ -4,24 +4,30 @@ NULL
 
 #' Export bigwig files for groups of cells
 #'
-#' Export coverage tracks as bigwig files, one per group of cells. Fragments
-#' are split by group, the genome is tiled, and the number of fragments in each
-#' tile is counted and (optionally) normalized before writing the bigwig files.
+#' Export Tn5 insertion coverage tracks as bigwig files, one per group of cells.
+#' Fragments are split by group, the genome is tiled, and the number of fragment
+#' ends (Tn5 insertion sites) falling in each tile is counted and (optionally)
+#' normalized before writing the bigwig files. Note that each fragment
+#' contributes two insertion events (one at each end), so the tracks represent
+#' insertion-site coverage rather than fragment pileup.
 #'
 #' @param object A Seurat object
 #' @param assay Name of assay to use
 #' @param group.by The metadata variable used to group the cells
 #' @param idents Identities to include (defined by group.by parameter)
 #' @param normMethod Normalization method for the bigwig files. Default 'RC'.
-#' 'RC' will divide the number of fragments in a tile by the total number of
+#' 'RC' will divide the number of insertions in a tile by the total number of
 #' fragments in the group. A scaling factor of 10^4 will be applied.
-#' 'ncells' will divide the number of fragments in a tile by the number of cells
-#' in the group. 'none' will apply no normalization method.
-#' A vector of values for each cell can also be passed as a metadata column
-#' name. A scaling factor of 10^4 will be applied.
+#' 'ncells' will divide the number of insertions in a tile by the number of
+#' cells in the group. 'none' (or \code{NULL}) will apply no normalization.
+#' The name of a metadata column can also be passed, in which case insertions
+#' will be divided by the sum of that column over the cells in the group, with a
+#' scaling factor of 10^4 applied.
 #' @param tileSize The size of the tiles in the bigwig file
-#' @param minCells The minimum number of cells in a group to be exported
-#' @param cutoff The maximum number of fragments in a given genomic tile
+#' @param minCells The minimum number of cells in a group for it to be exported.
+#' Groups with fewer than \code{minCells} cells are skipped.
+#' @param cutoff The maximum number of insertions for a single cell in a given
+#' genomic tile. Counts above this value are capped before summing across cells.
 #' @param chromosome A vector of chromosomes to export. If \code{NULL}, use all
 #' chromosomes present in \code{seqlengths}.
 #' @param seqlengths Chromosome lengths used to define the genomic tiles. Can be
@@ -30,7 +36,10 @@ NULL
 #' \code{\link[Seqinfo:Seqinfo]{Seqinfo}} object. If \code{NULL}, the chromosome
 #' lengths stored in the object are used; note that these are frequently unset,
 #' in which case \code{seqlengths} must be supplied.
-#' @param outdir Directory to write output files (split bed files and bigwigs)
+#' @param outdir Directory to write output files (split bed files and bigwigs).
+#' Defaults to a temporary directory.
+#' @param cleanup Remove the intermediate per-group bed files after writing the
+#' bigwig files. Default TRUE.
 #' @param verbose Display messages
 #'
 #' @importFrom GenomicRanges GRanges slidingWindows
@@ -47,9 +56,9 @@ NULL
 #'
 #' @examples
 #' \dontrun{
-#' ExportGroupBW(object, assay = "peaks")
+#' ExportBigwig(object, assay = "peaks")
 #' }
-ExportGroupBW <- function(
+ExportBigwig <- function(
   object,
   assay = NULL,
   group.by = NULL,
@@ -60,17 +69,26 @@ ExportGroupBW <- function(
   cutoff = NULL,
   chromosome = NULL,
   seqlengths = NULL,
-  outdir = getwd(),
+  outdir = tempdir(),
+  cleanup = TRUE,
   verbose = TRUE
 ) {
   # Check if output directory exists
   if (!dir.exists(paths = outdir)) {
-    dir.create(path = outdir)
+    dir.create(path = outdir, recursive = TRUE)
+  }
+  if (!requireNamespace("rtracklayer", quietly = TRUE)) {
+    stop(
+      "Please install rtracklayer: ",
+      "BiocManager::install('rtracklayer')"
+    )
   }
   if (length(x = Fragments(object = object)) == 0) {
     stop("This object does not have Fragments, cannot generate bigwig.")
   }
   assay <- assay %||% DefaultAssay(object = object)
+  # a NULL normMethod is equivalent to applying no normalization
+  normMethod <- normMethod %||% "none"
 
   # Resolve chromosome lengths, falling back to the object's seqinfo
   chromLengths <- seqlengths %||% seqlengths(x = object)
@@ -111,8 +129,16 @@ ExportGroupBW <- function(
     group.by = group.by,
     idents = idents
   )
+  # match the group name sanitization done by SplitFragments so that the bed
+  # file names we read back line up with the files that were written
+  group.cells <- names(x = obj.groups)
+  obj.groups <- gsub(pattern = " ", replacement = "_", x = obj.groups)
+  obj.groups <- gsub(
+    pattern = .Platform$file.sep, replacement = "_", x = obj.groups
+  )
+  names(x = obj.groups) <- group.cells
   GroupsNames <- names(
-    x = table(obj.groups)[table(obj.groups) > minCells]
+    x = table(obj.groups)[table(obj.groups) >= minCells]
   )
   # Check if output files already exist
   lapply(X = GroupsNames, FUN = function(x) {
@@ -142,13 +168,25 @@ ExportGroupBW <- function(
     buffer_length = 256L,
     verbose = verbose
   )
-  # Column to normalize by
-  if (!is.null(x = normMethod)) {
-    if (tolower(x = normMethod) %in% c("rc", "ncells", "none")) {
-      normBy <- normMethod
-    } else {
-      normBy <- object[[normMethod, drop = FALSE]]
+  # Determine the per-group normalization factor. For a metadata column we sum
+  # the values over the cells in each group here (keyed by group name), since
+  # the object cell names do not necessarily match the cell barcodes written to
+  # the split bed files.
+  if (tolower(x = normMethod) %in% c("rc", "ncells", "none")) {
+    normBy <- NULL
+  } else {
+    if (!normMethod %in% colnames(x = object[[]])) {
+      stop(
+        "normMethod must be one of 'RC', 'ncells', 'none', or the name of a ",
+        "metadata column. '", normMethod, "' is not a metadata column."
+      )
     }
+    md <- object[[normMethod]]
+    normBy <- tapply(
+      X = md[names(x = obj.groups), 1],
+      INDEX = obj.groups,
+      FUN = sum
+    )
   }
 
   if (verbose) {
@@ -179,10 +217,18 @@ ExportGroupBW <- function(
     cutoff,
     outdir
   )
+  # remove the intermediate split bed files (written for every group, including
+  # those below minCells)
+  if (cleanup) {
+    bedfiles <- file.path(
+      outdir, paste0(unique(x = obj.groups), ".bed")
+    )
+    file.remove(bedfiles[file.exists(bedfiles)])
+  }
   return(covFiles)
 }
 
-# Helper function for ExportGroupBW
+# Helper function for ExportBigwig
 #
 # @param groupNamei The group to be exported
 # @param availableChr Chromosomes to be processed
@@ -262,11 +308,17 @@ CreateBWGroup <- function(
       # set the associated counts matching with the fragments
       # This changes compared to ArchR version 1.0.2
       # See https://github.com/GreenleafLab/ArchR/issues/2214
+      # Clamp tile indices so fragment ends sitting beyond the chromosome
+      # boundary (e.g. from read extension) fall in the last tile rather than
+      # producing an out-of-bounds matrix index.
+      startTile <- pmin(
+        trunc(x = (start(x = fragik) - 1) / tileSize) + 1, nTiles
+      )
+      endTile <- pmin(
+        trunc(x = (end(x = fragik) - 1) / tileSize) + 1, nTiles
+      )
       mat <- sparseMatrix(
-        i = c(
-          trunc(x = (start(x = fragik) - 1) / tileSize),
-          trunc(x = (end(x = fragik) - 1) / tileSize)
-        ) + 1,
+        i = c(startTile, endTile),
         j = as.vector(x = c(matchID, matchID)),
         x = rep(x = 1, times = 2 * length(x = fragik)),
         dims = c(nTiles, length(x = cellGroupi))
@@ -280,17 +332,15 @@ CreateBWGroup <- function(
       mat <- rowSums(x = mat)
       tilesk$reads <- mat
       # Normalization
-      if (!is.null(x = normMethod)) {
-        if (normMethod == "rc") {
-          tilesk$reads <- tilesk$reads * 10^4 / length(x = fragi$name)
-        } else if (normMethod == "ncells") {
-          tilesk$reads <- tilesk$reads / length(x = cellGroupi)
-        } else if (normMethod == "none") {
-        } else {
-          if (!is.null(x = normBy)) {
-            tilesk$reads <- tilesk$reads * 10^4 / sum(normBy[cellGroupi, 1])
-          }
-        }
+      if (normMethod == "rc") {
+        tilesk$reads <- tilesk$reads * 10^4 / length(x = fragi$name)
+      } else if (normMethod == "ncells") {
+        tilesk$reads <- tilesk$reads / length(x = cellGroupi)
+      } else if (normMethod == "none") {
+        # no normalization
+      } else {
+        # normBy holds the per-group sum of the requested metadata column
+        tilesk$reads <- tilesk$reads * 10^4 / normBy[[groupNamei]]
       }
     }
     tilesk <- coverage(x = tilesk, weight = tilesk$reads)[[availableChr[k]]]
