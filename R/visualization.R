@@ -68,11 +68,11 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' for every region.
 #' @param ranges.title Y-axis title for ranges track. Only
 #' relevant if `ranges_list` parameter is set.
-#' @param max.downsample Minimum number of positions kept when
-#' downsampling. Downsampling rate is adaptive to the window
-#' size, but this parameter will set the minimum possible
-#' number of positions to include so that plots do not become
-#' too sparse when the window size is small.
+#' @param max.downsample Maximum amount of downsampling to apply. Corresponds to
+#' the minimum number of positions to be kept when downsampling. The
+#' downsampling rate is adaptive to the window size, but this parameter will set
+#' the minimum possible number of positions to include so that plots do not
+#' become too sparse when the window size is small.
 #' @param downsample.rate Fraction of positions to retain when
 #' downsampling. Retaining more positions can give a
 #' higher-resolution plot but can make the number of points
@@ -596,8 +596,9 @@ MultiCoveragePlot <- function(
 #'  help remove the effect of extreme values that may otherwise distort the
 #'  scale.
 #'  - numeric: manually define a Y-axis limit
-#' @param max.downsample Minimum number of positions kept when downsampling.
-#' Downsampling rate is adaptive to the window size, but this parameter will set
+#' @param max.downsample Maximum amount of downsampling to apply. Corresponds to
+#' the minimum number of positions to be kept when downsampling. The
+#' downsampling rate is adaptive to the window size, but this parameter will set
 #' the minimum possible number of positions to include so that plots do not
 #' become too sparse when the window size is small.
 #' @param downsample.rate Fraction of positions to retain when downsampling.
@@ -681,8 +682,8 @@ BigwigTrack <- function(
   }
   all.data$bw <- factor(x = all.data$bw, levels = names(x = bigwig))
   window.size <- width(x = region)
-  sampling <- ceiling(x = max(max.downsample, window.size * downsample.rate))
-  coverages <- slice_sample(.data = all.data, n = sampling)
+  sampling <- min(max.downsample, window.size * downsample.rate)
+  coverages <- slice_sample(.data = all.data, n = as.integer(x = sampling))
 
   covmax <- signif(x = max(coverages$score, na.rm = TRUE), digits = 2)
   if (is.null(x = ymax)) {
@@ -2005,7 +2006,8 @@ SingleCoveragePlot <- function(
         bigwig = bigwig[bw.use],
         type = unique.types[[i]],
         bigwig.scale = bigwig.scale,
-        ymax = ymax
+        ymax = ymax,
+        max.downsample = max.downsample
       )
     }
     bigwig.tracks <- CombineTracks(
@@ -2530,8 +2532,9 @@ CoverageTrack <- function(
 #' for each combination of celltype and batch.
 #' @param heights Relative heights for each track (accessibility, gene
 #' annotations, peaks, links).
-#' @param max.downsample Minimum number of positions kept when downsampling.
-#' Downsampling rate is adaptive to the window size, but this parameter will set
+#' @param max.downsample Maximum amount of downsampling to apply. Corresponds to
+#' the minimum number of positions to be kept when downsampling. The
+#' downsampling rate is adaptive to the window size, but this parameter will set
 #' the minimum possible number of positions to include so that plots do not
 #' become too sparse when the window size is small.
 #' @param downsample.rate Fraction of positions to retain when downsampling.

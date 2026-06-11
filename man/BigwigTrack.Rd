@@ -54,8 +54,9 @@ scale.
 \item numeric: manually define a Y-axis limit
 }}
 
-\item{max.downsample}{Minimum number of positions kept when downsampling.
-Downsampling rate is adaptive to the window size, but this parameter will set
+\item{max.downsample}{Maximum amount of downsampling to apply. Corresponds to
+the minimum number of positions to be kept when downsampling. The
+downsampling rate is adaptive to the window size, but this parameter will set
 the minimum possible number of positions to include so that plots do not
 become too sparse when the window size is small.}
 

@@ -121,11 +121,11 @@ for every region.}
 \item{ranges.title}{Y-axis title for ranges track. Only
 relevant if \code{ranges_list} parameter is set.}
 
-\item{max.downsample}{Minimum number of positions kept when
-downsampling. Downsampling rate is adaptive to the window
-size, but this parameter will set the minimum possible
-number of positions to include so that plots do not become
-too sparse when the window size is small.}
+\item{max.downsample}{Maximum amount of downsampling to apply. Corresponds to
+the minimum number of positions to be kept when downsampling. The
+downsampling rate is adaptive to the window size, but this parameter will set
+the minimum possible number of positions to include so that plots do not
+become too sparse when the window size is small.}
 
 \item{downsample.rate}{Fraction of positions to retain when
 downsampling. Retaining more positions can give a
