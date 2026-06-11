@@ -16,6 +16,7 @@ ExportBigwig(
   chromosome = NULL,
   seqlengths = NULL,
   outdir = getwd(),
+  temp.dir = tempdir(),
   cleanup = TRUE,
   verbose = TRUE
 )
@@ -58,8 +59,11 @@ a named numeric vector of chromosome lengths, or any object with a
 \code{NULL}, the chromosome lengths stored in the object are used; note that these
 are frequently unset, in which case \code{seqlengths} must be supplied.}
 
-\item{outdir}{Directory to write output files (split bed files and bigwigs).
-Defaults to the current working directory.}
+\item{outdir}{Directory to write the output bigwig files. Defaults to the
+current working directory.}
+
+\item{temp.dir}{Directory to write the intermediate per-group bed files.
+Defaults to a temporary directory (\code{\link[base:tempdir]{base::tempdir()}}).}
 
 \item{cleanup}{Remove the intermediate per-group bed files after writing the
 bigwig files. Default \code{TRUE}.}

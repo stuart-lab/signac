@@ -38,8 +38,10 @@ NULL
 #' `seqlengths` method such as a `BSgenome` or [Seqinfo::Seqinfo()] object. If
 #' `NULL`, the chromosome lengths stored in the object are used; note that these
 #' are frequently unset, in which case `seqlengths` must be supplied.
-#' @param outdir Directory to write output files (split bed files and bigwigs).
-#' Defaults to the current working directory.
+#' @param outdir Directory to write the output bigwig files. Defaults to the
+#' current working directory.
+#' @param temp.dir Directory to write the intermediate per-group bed files.
+#' Defaults to a temporary directory ([base::tempdir()]).
 #' @param cleanup Remove the intermediate per-group bed files after writing the
 #' bigwig files. Default `TRUE`.
 #' @param verbose Display messages
@@ -72,12 +74,16 @@ ExportBigwig <- function(
   chromosome = NULL,
   seqlengths = NULL,
   outdir = getwd(),
+  temp.dir = tempdir(),
   cleanup = TRUE,
   verbose = TRUE
 ) {
-  # Check if output directory exists
+  # Check that the output and temporary directories exist
   if (!dir.exists(paths = outdir)) {
     dir.create(path = outdir, recursive = TRUE)
+  }
+  if (!dir.exists(paths = temp.dir)) {
+    dir.create(path = temp.dir, recursive = TRUE)
   }
   if (!requireNamespace("rtracklayer", quietly = TRUE)) {
     stop(
@@ -151,14 +157,14 @@ ExportBigwig <- function(
     )
     return(list())
   }
-  # Check if output files already exist
+  # Remove any pre-existing split bed files so we do not append to stale data
   lapply(X = GroupsNames, FUN = function(x) {
-    fn <- paste0(outdir, .Platform$file.sep, x, ".bed")
+    fn <- paste0(temp.dir, .Platform$file.sep, x, ".bed")
     if (file.exists(fn)) {
       message(
         sprintf(
           paste0(
-            "The group \"%s\" is already present in the destination folder ",
+            "The group \"%s\" is already present in the temporary folder ",
             "and will be overwritten !"
           ),
           x
@@ -167,13 +173,13 @@ ExportBigwig <- function(
       file.remove(fn)
     }
   })
-  # Splitting fragments file for each ident in group.by
+  # Split the fragment file for each group into the temporary directory
   SplitFragments(
     object = object,
     assay = assay,
     group.by = group.by,
     idents = idents,
-    outdir = outdir,
+    outdir = temp.dir,
     file.suffix = "",
     append = TRUE,
     buffer_length = 256L,
@@ -233,13 +239,14 @@ ExportBigwig <- function(
     tileSize,
     normMethod,
     cutoff,
-    outdir
+    outdir,
+    temp.dir
   )
   # remove the intermediate split bed files (written for every group, including
   # those below minCells)
   if (cleanup) {
     bedfiles <- file.path(
-      outdir, paste0(unique(x = obj.groups), ".bed")
+      temp.dir, paste0(unique(x = obj.groups), ".bed")
     )
     file.remove(bedfiles[file.exists(bedfiles)])
   }
@@ -265,7 +272,9 @@ ExportBigwig <- function(
 # in the group. 'none' will apply no normalization method. A meta.data column
 # name can also be passed. A scaling factor of 10^4 will be applied
 # @param cutoff The maximum number of insertions for a cell in a given tile
-# @param outdir The output directory for bigwig file
+# @param outdir The output directory for the bigwig file
+# @param bed.dir Directory containing the per-group bed file to read. If NULL,
+# uses outdir.
 #
 #' @importFrom GenomicRanges seqnames GRanges
 #' @importFrom IRanges coverage
@@ -282,7 +291,8 @@ CreateBWGroup <- function(
   tileSize,
   normMethod,
   cutoff,
-  outdir
+  outdir,
+  bed.dir = NULL
 ) {
   if (!requireNamespace("rtracklayer", quietly = TRUE)) {
     message(
@@ -291,10 +301,11 @@ CreateBWGroup <- function(
     )
     return(NULL)
   }
+  bed.dir <- bed.dir %||% outdir
   normMethod <- tolower(x = normMethod)
   # Read the fragments file associated with the group
   fragi <- rtracklayer::import(
-    paste0(outdir, .Platform$file.sep, groupNamei, ".bed"),
+    paste0(bed.dir, .Platform$file.sep, groupNamei, ".bed"),
     format = "bed"
   )
   cellGroupi <- unique(x = fragi$name)

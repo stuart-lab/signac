@@ -169,6 +169,11 @@ test_that("ExportBigwig works", {
     unlink(x = outdir, recursive = TRUE)
   }
   dir.create(outdir, showWarnings = FALSE)
+  bdir <- file.path(tempdir(), "ExportBigwig_bed")
+  if (dir.exists(paths = bdir)) {
+    unlink(x = bdir, recursive = TRUE)
+  }
+  dir.create(bdir, showWarnings = FALSE)
   fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
   cells <- colnames(x = atac_small)
   names(x = cells) <- cells
@@ -193,9 +198,10 @@ test_that("ExportBigwig works", {
     minCells = 5,
     seqlengths = c("chr1" = 1e6),
     outdir = outdir,
+    temp.dir = bdir,
     verbose = FALSE
   )
-  # one bed file + one bigwig file per group
+  # one bigwig file per group written to outdir
   expect_length(object = covfiles, n = 2)
   expect(
     file.exists(file.path(outdir, "g1-TileSize-100-normMethod-rc.bw")),
@@ -210,9 +216,11 @@ test_that("ExportBigwig works", {
   )
   expect_equal(object = length(seqlengths(bw)), expected = 1)
   expect_equal(object = unname(seqlengths(bw)), expected = 1e6)
-  # intermediate bed files are cleaned up by default
-  expect_false(object = file.exists(file.path(outdir, "g1.bed")))
-  expect_false(object = file.exists(file.path(outdir, "g2.bed")))
+  # intermediate bed files go to temp.dir and are cleaned up by default
+  expect_false(object = file.exists(file.path(bdir, "g1.bed")))
+  expect_false(object = file.exists(file.path(bdir, "g2.bed")))
+  # no bed files left behind in the output directory
+  expect_length(object = list.files(outdir, pattern = "[.]bed$"), n = 0)
 })
 
 test_that("ExportBigwig handles group names containing spaces", {
