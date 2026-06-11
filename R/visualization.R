@@ -605,8 +605,7 @@ MultiCoveragePlot <- function(
 #' number of points large, resulting in larger file sizes when saving the plot
 #' and a longer period of time needed to draw the plot.
 #'
-#' @importFrom ggplot2 ggplot aes geom_line geom_tile xlab ylab geom_area
-#' scale_fill_viridis_c scale_color_grey scale_fill_grey facet_wrap
+#' @importFrom ggplot2 ggplot aes geom_line geom_tile xlab ylab geom_area scale_fill_viridis_c scale_color_grey scale_fill_grey facet_wrap
 #' @importFrom RcppRoll roll_mean
 #' @importFrom GenomicRanges start end seqnames width
 #' @importFrom dplyr slice_sample group_by mutate ungroup
@@ -757,8 +756,7 @@ BigwigTrack <- function(
 #' @return Returns a [ggplot2::ggplot()] object
 #' @export
 #' @importFrom SeuratObject Embeddings DefaultAssay
-#' @importFrom ggplot2 ggplot geom_point scale_x_continuous
-#' ylab ylim theme_light ggtitle
+#' @importFrom ggplot2 ggplot geom_point scale_x_continuous ylab ylim theme_light ggtitle
 #' @importFrom stats cor
 #' @concept visualization
 #' @examples
@@ -855,9 +853,7 @@ get_density <- function(x, y, n_sub = 50000, ...) {
 #' @param show.axis Show x-axis (default: TRUE)
 #' @return ggplot2 object
 #'
-#' @importFrom ggplot2 ggplot geom_point aes geom_hline
-#' theme_classic labs theme element_blank element_line element_text
-#' scale_shape_manual scale_size_manual scale_color_manual scale_y_continuous
+#' @importFrom ggplot2 ggplot geom_point aes geom_hline theme_classic labs theme element_blank element_line element_text scale_shape_manual scale_size_manual scale_color_manual scale_y_continuous
 #' @importFrom Seqinfo seqnames
 #' @importFrom GenomicRanges start end
 #' @export
@@ -1081,8 +1077,7 @@ globalVariables(".data")
 #' automatically be rasterized if plotting more than 100,000 cells.
 #' @param raster.dpi Pixel resolution for rasterized plots.
 #' @return Returns a ggplot object
-#' @importFrom ggplot2 ggplot aes geom_point scale_color_viridis_c
-#' theme_bw scale_x_log10 scale_y_log10 geom_vline geom_hline labs
+#' @importFrom ggplot2 ggplot aes geom_point scale_color_viridis_c theme_bw scale_x_log10 scale_y_log10 geom_vline geom_hline labs
 #' @importFrom rlang .data
 #' @importFrom stats quantile
 #' @export
@@ -1236,8 +1231,7 @@ globalVariables(
 #' @concept visualization
 #' @concept footprinting
 #' @importFrom SeuratObject DefaultAssay
-#' @importFrom ggplot2 ggplot aes geom_line facet_wrap xlab ylab
-#' theme element_blank geom_label guides guide_legend theme_classic
+#' @importFrom ggplot2 ggplot aes geom_line facet_wrap xlab ylab theme element_blank geom_label guides guide_legend theme_classic
 #' @importFrom dplyr group_by summarize top_n
 #' @import patchwork
 PlotFootprint <- function(
@@ -1488,8 +1482,7 @@ globalVariables(
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer
-#' @importFrom ggplot2 ggplot aes facet_wrap geom_raster guides theme .data vars
-#' element_blank element_text scale_fill_gradient ylab guide_legend xlab
+#' @importFrom ggplot2 ggplot aes facet_wrap geom_raster guides theme .data vars element_blank element_text scale_fill_gradient ylab guide_legend xlab
 #' @importFrom scales hue_pal
 #' @importFrom patchwork wrap_plots
 #'
@@ -1725,8 +1718,7 @@ RegionHeatmap <- function(
 #' @importFrom RcppRoll roll_sum
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_longer
-#' @importFrom ggplot2 ggplot aes facet_wrap guides theme theme_classic
-#' element_blank element_text ylab xlab geom_line .data vars
+#' @importFrom ggplot2 ggplot aes facet_wrap guides theme theme_classic element_blank element_text ylab xlab geom_line .data vars
 #'
 #' @export
 #' @concept visualization
@@ -2252,9 +2244,7 @@ SingleCoveragePlot <- function(
 
 # Coverage Track
 #
-#' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic
-#' aes ylim theme element_blank element_text geom_segment scale_color_identity
-#' scale_fill_manual geom_rect aes
+#' @importFrom ggplot2 geom_area geom_hline facet_wrap xlab ylab theme_classic aes ylim theme element_blank element_text geom_segment scale_color_identity scale_fill_manual geom_rect aes
 #' @importFrom IRanges IRanges width
 #' @importFrom Seqinfo seqnames
 #' @importFrom Matrix colSums
@@ -2784,8 +2774,7 @@ globalVariables(names = "group", package = "Signac")
 #' @param log.scale Display Y-axis on log scale. Default is FALSE.
 #' @param ... Arguments passed to other functions
 #'
-#' @importFrom ggplot2 ggplot geom_histogram theme_classic aes facet_wrap
-#' scale_y_log10 theme element_blank xlim
+#' @importFrom ggplot2 ggplot geom_histogram theme_classic aes facet_wrap scale_y_log10 theme element_blank xlim
 #' @importFrom SeuratObject DefaultAssay
 #'
 #' @export
@@ -2966,8 +2955,7 @@ CombineTracks <- function(
 #' @importFrom GenomicRanges start end
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom Seqinfo seqnames
-#' @importFrom ggplot2 ggplot aes geom_segment theme_classic
-#' theme xlab ylab scale_color_manual element_blank
+#' @importFrom ggplot2 ggplot aes geom_segment theme_classic theme xlab ylab scale_color_manual element_blank
 #' @examples
 #' \donttest{
 #' # plot peaks in assay
@@ -3086,8 +3074,7 @@ PeakPlot <- function(
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom GenomicRanges start end
 #' @importFrom Seqinfo seqnames
-#' @importFrom ggplot2 ggplot geom_hline theme_classic xlim
-#' ylab theme element_blank scale_color_gradient2 aes
+#' @importFrom ggplot2 ggplot geom_hline theme_classic xlim ylab theme element_blank scale_color_gradient2 aes
 #' @concept visualization
 #' @concept links
 LinkPlot <- function(
@@ -3237,8 +3224,7 @@ LinkPlot <- function(
 #' @importFrom IRanges subsetByOverlaps
 #' @importFrom GenomicRanges start end
 #' @importFrom Seqinfo seqnames
-#' @importFrom ggplot2 theme_classic ylim xlim ylab xlab
-#' geom_segment geom_text aes scale_color_manual
+#' @importFrom ggplot2 theme_classic ylim xlim ylab xlab geom_segment geom_text aes scale_color_manual
 #' @importFrom grid arrow
 #' @importFrom S4Vectors split
 #' @importFrom fastmatch fmatch
@@ -3418,8 +3404,7 @@ AnnotationPlot <- function(
 #' @param slot Which slot to pull expression data from
 #'
 #' @importFrom SeuratObject LayerData DefaultAssay as.sparse
-#' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic
-#' element_blank scale_y_discrete scale_x_continuous scale_fill_manual theme
+#' @importFrom ggplot2 ggplot geom_violin facet_wrap aes theme_classic element_blank scale_y_discrete scale_x_continuous scale_fill_manual theme
 #' @importFrom scales hue_pal
 #' @importFrom Seqinfo seqnames
 #' @importFrom IRanges start end
@@ -3562,8 +3547,7 @@ ExpressionPlot <- function(
 #' @concept mito
 #' @concept visualization
 #' @export
-#' @importFrom ggplot2 ggplot aes geom_point labs scale_y_log10
-#' geom_vline geom_hline theme_classic scale_color_manual theme
+#' @importFrom ggplot2 ggplot aes geom_point labs scale_y_log10 geom_vline geom_hline theme_classic scale_color_manual theme
 #' @importFrom scales comma
 VariantPlot <- function(
   variants,
@@ -3820,8 +3804,7 @@ ComputeTile <- function(
   return(smoothed)
 }
 
-#' @importFrom ggplot2 ggplot aes geom_raster ylab scale_fill_gradient
-#' scale_y_reverse guides guide_legend geom_hline
+#' @importFrom ggplot2 ggplot aes geom_raster ylab scale_fill_gradient scale_y_reverse guides guide_legend geom_hline
 CreateTilePlot <- function(df, n, legend = TRUE) {
   # create plot
   p <- ggplot(

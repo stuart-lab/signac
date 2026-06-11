@@ -1,14 +1,7 @@
 #' @include generics.R
 #' @importFrom methods callGeneric
 #' @importFrom SeuratObject DefaultAssay
-#' @importFrom Seqinfo
-#' seqinfo
-#' seqnames
-#' seqlevels
-#' sortSeqlevels
-#' seqlengths
-#' isCircular
-#' genome
+#' @importFrom Seqinfo seqinfo seqnames seqlevels sortSeqlevels seqlengths isCircular genome
 NULL
 
 

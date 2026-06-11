@@ -1,5 +1,4 @@
-#' @importFrom methods setClass setClassUnion
-#' slotNames
+#' @importFrom methods setClass setClassUnion slotNames
 #' @importClassesFrom Matrix CsparseMatrix
 #' @import GenomicRanges
 #' @importClassesFrom InteractionSet GInteractions

@@ -209,8 +209,7 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
 #'
 #' @export
 #' @concept mito
-#' @importFrom SeuratObject DefaultAssay LayerData
-#' VariableFeatures
+#' @importFrom SeuratObject DefaultAssay LayerData VariableFeatures
 FindClonotypes <- function(
   object,
   assay = NULL,

@@ -558,8 +558,7 @@ FitMeanVar.Seurat <- function(
 }
 
 #' @rdname FitMeanVar
-#' @importFrom SeuratObject Layers LayerData Features VariableFeatures
-#' VariableFeatures<-
+#' @importFrom SeuratObject Layers LayerData Features VariableFeatures VariableFeatures<-
 #' @export
 #' @concept preprocessing
 #' @method FitMeanVar Assay5
