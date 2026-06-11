@@ -21,6 +21,7 @@ CallPeaks(object, ...)
   broad = FALSE,
   genome = "hs",
   gsize = NULL,
+  seqlengths = NULL,
   outdir = tempdir(),
   combine.peaks = TRUE,
   additional.args = NULL,
@@ -40,6 +41,7 @@ CallPeaks(object, ...)
   cells = NULL,
   genome = "hs",
   gsize = NULL,
+  seqlengths = NULL,
   additional.args = NULL,
   name = "macs3",
   cleanup = TRUE,
@@ -56,6 +58,7 @@ CallPeaks(object, ...)
   cells = NULL,
   genome = "hs",
   gsize = NULL,
+  seqlengths = NULL,
   additional.args = NULL,
   name = "macs3",
   cleanup = TRUE,
@@ -72,6 +75,7 @@ CallPeaks(object, ...)
   barcodes = NULL,
   genome = "hs",
   gsize = NULL,
+  seqlengths = NULL,
   additional.args = NULL,
   name = "macs3",
   cleanup = TRUE,
@@ -119,6 +123,16 @@ and \code{dm} (Drosophila M., dm6) are also available.}
 
 \item{gsize}{Manually set effective genome size parameter. If specified,
 overrides MACS3 built-in genome sizes.}
+
+\item{seqlengths}{Chromosome lengths used to clip peaks that extend beyond
+chromosome boundaries (which can occur due to read extension during peak
+calling). Can be a named numeric vector of chromosome lengths, or any object
+with a \code{seqlengths} method such as a \code{BSgenome} object or a
+\link[Seqinfo:Seqinfo]{Seqinfo::Seqinfo} object (for example the \code{BSgenome} for the genome used,
+or \code{seqlengths(genome)}). Peaks ending past a chromosome boundary are clipped
+to the boundary and peaks starting beyond it are removed. Sequence names must
+match those of the called peaks (e.g. \code{chr1} vs \code{1}). If \code{NULL} (default), no
+clipping is performed.}
 
 \item{outdir}{Path for output files.}
 
