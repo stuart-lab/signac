@@ -38,6 +38,45 @@ test_that("CreateBWGroup works with single tile", {
   expect_equal(object = bw$score, 20000)
 })
 
+test_that("CreateBWGroup ncells uses the supplied per-group cell count", {
+  skip_if_not_installed("rtracklayer")
+  outdir <- file.path(tempdir(), "createBW_ncells")
+  dir.create(outdir, showWarnings = FALSE)
+  fake.bed.data <- data.frame(
+    seqnames = rep("chr1", 5),
+    start = c(0, 10, 100, 110, 300),
+    end = c(100, 150, 200, 250, 500),
+    cell_name = rep("fake_cell", 5),
+    nb = 1:5
+  )
+  write.table(
+    fake.bed.data, file.path(outdir, "0.bed"),
+    col.names = FALSE, quote = FALSE, sep = "\t",
+    row.names = FALSE
+  )
+  # the bed has a single unique barcode, but nCells says the group has 5 cells;
+  # ncells normalization must divide by 5, not by 1
+  CreateBWGroup(
+    groupNamei = "0",
+    availableChr = "chr1",
+    chromLengths = c("chr1" = 249250621),
+    tiles = GRanges(
+      seqnames = "chr1", ranges = IRanges(start = 1, end = 249250621)
+    ),
+    normBy = NULL,
+    nCells = c("0" = 5),
+    tileSize = 249250621,
+    normMethod = "ncells",
+    cutoff = NULL,
+    outdir = outdir
+  )
+  bw <- rtracklayer::import.bw(
+    file.path(outdir, "0-TileSize-249250621-normMethod-ncells.bw")
+  )
+  # 5 fragments -> 10 insertion events in the single tile, divided by 5 cells
+  expect_equal(object = bw$score, 2)
+})
+
 test_that("CreateBWGroup works with 100bp tile", {
   skip_if_not_installed("rtracklayer")
   outdir <- file.path(tempdir(), "createBW2")

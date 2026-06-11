@@ -28,6 +28,9 @@ NULL
 #' Groups with fewer than \code{minCells} cells are skipped.
 #' @param cutoff The maximum number of insertions for a single cell in a given
 #' genomic tile. Counts above this value are capped before summing across cells.
+#' Note that cells are identified by their fragment-file barcode, so when an
+#' assay contains multiple fragment files this cap is shared between any cells
+#' that have the same barcode in different files.
 #' @param chromosome A vector of chromosomes to export. If \code{NULL}, use all
 #' chromosomes present in \code{seqlengths}.
 #' @param seqlengths Chromosome lengths used to define the genomic tiles. Can be
@@ -137,9 +140,11 @@ ExportBigwig <- function(
     pattern = .Platform$file.sep, replacement = "_", x = obj.groups
   )
   names(x = obj.groups) <- group.cells
-  GroupsNames <- names(
-    x = table(obj.groups)[table(obj.groups) >= minCells]
-  )
+  # true number of cells per group (used for 'ncells' normalization; deriving
+  # this from the bed files would undercount cells when fragment-file barcodes
+  # collide across multiple fragment files)
+  group.counts <- table(obj.groups)
+  GroupsNames <- names(x = group.counts[group.counts >= minCells])
   if (length(x = GroupsNames) == 0) {
     warning(
       "No groups contain at least minCells (", minCells, ") cells; ",
@@ -225,6 +230,7 @@ ExportBigwig <- function(
     chromLengths,
     tiles,
     normBy,
+    group.counts,
     tileSize,
     normMethod,
     cutoff,
@@ -247,16 +253,19 @@ ExportBigwig <- function(
 # @param availableChr Chromosomes to be processed
 # @param chromLengths Chromosome lengths
 # @param tiles The tiles object
-# @param normBy A vector of values to normalize the cells by
+# @param normBy Per-group normalization factor (a named vector keyed by group)
+# used when normMethod is a metadata column
+# @param nCells Per-group cell counts (a named vector keyed by group) used for
+# 'ncells' normalization. If NULL, the number of unique cell barcodes in the
+# group's bed file is used.
 # @param tileSize The size of the tiles in the bigwig file
 # @param normMethod Normalization method for the bigwig files
-# 'RC' will divide the number of fragments in a tile by the number of fragments
+# 'RC' will divide the number of insertions in a tile by the number of fragments
 # in the group. A scaling factor of 10^4 will be applied
-# 'ncells' will divide the number of fragments in a tile by the number of cells
-# in the group. 'none' will apply no normalization method. A vector of values
-# for each cell can also be passed as a meta.data column name. A scaling factor
-# of 10^4 will be applied
-# @param cutoff The maximum number of fragments in a given tile
+# 'ncells' will divide the number of insertions in a tile by the number of cells
+# in the group. 'none' will apply no normalization method. A meta.data column
+# name can also be passed. A scaling factor of 10^4 will be applied
+# @param cutoff The maximum number of insertions for a cell in a given tile
 # @param outdir The output directory for bigwig file
 #
 #' @importFrom GenomicRanges seqnames GRanges
@@ -270,6 +279,7 @@ CreateBWGroup <- function(
   chromLengths,
   tiles,
   normBy,
+  nCells = NULL,
   tileSize,
   normMethod,
   cutoff,
@@ -348,7 +358,14 @@ CreateBWGroup <- function(
       if (normMethod == "rc") {
         tilesk$reads <- tilesk$reads * 10^4 / length(x = fragi$name)
       } else if (normMethod == "ncells") {
-        tilesk$reads <- tilesk$reads / length(x = cellGroupi)
+        # use the true per-group cell count when supplied, otherwise fall back
+        # to the number of unique barcodes in the bed file
+        n.cells <- if (is.null(x = nCells)) {
+          length(x = cellGroupi)
+        } else {
+          nCells[[groupNamei]]
+        }
+        tilesk$reads <- tilesk$reads / n.cells
       } else if (normMethod == "none") {
         # no normalization
       } else {

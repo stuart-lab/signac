@@ -44,7 +44,10 @@ scaling factor of 10^4 applied.}
 Groups with fewer than \code{minCells} cells are skipped.}
 
 \item{cutoff}{The maximum number of insertions for a single cell in a given
-genomic tile. Counts above this value are capped before summing across cells.}
+genomic tile. Counts above this value are capped before summing across cells.
+Note that cells are identified by their fragment-file barcode, so when an
+assay contains multiple fragment files this cap is shared between any cells
+that have the same barcode in different files.}
 
 \item{chromosome}{A vector of chromosomes to export. If \code{NULL}, use all
 chromosomes present in \code{seqlengths}.}
