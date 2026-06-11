@@ -3,25 +3,25 @@
 \name{Cells.Fragment2}
 \alias{Cells.Fragment2}
 \alias{Cells<-.Fragment2}
-\title{Set and get cell barcode information for a \linkS4class{Fragment2} object}
+\title{Set and get cell barcode information for a \link[=Fragment2-class]{Fragment2} object}
 \usage{
 \method{Cells}{Fragment2}(x, ...)
 
 \method{Cells}{Fragment2}(x, ...) <- value
 }
 \arguments{
-\item{x}{A \linkS4class{Fragment2} object}
+\item{x}{A \link[=Fragment2-class]{Fragment2} object}
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{A vector of cell names to store in the \linkS4class{Fragment2}
+\item{value}{A vector of cell names to store in the \link[=Fragment2-class]{Fragment2}
 object}
 }
 \description{
 This returns the names of cells in the object that are contained in the
 fragment file. These cell barcodes may not match the barcodes present in the
-fragment file. The \linkS4class{Fragment2} object contains an internal mapping
-of the cell names in the \linkS4class{ChromatinAssay5} object to the cell
+fragment file. The \link[=Fragment2-class]{Fragment2} object contains an internal mapping
+of the cell names in the \link[=ChromatinAssay5-class]{ChromatinAssay5} object to the cell
 names in the fragment file, so that cell names can be changed in the
 assay without needing to change the cell names on disk.
 }

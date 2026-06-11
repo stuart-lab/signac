@@ -26,7 +26,7 @@ CCAN that it belongs to in the second column.}
 a value less than or equal to this threshold will be discarded.}
 }
 \value{
-Returns a \code{\link[InteractionSet:GInteractions-class]{InteractionSet::GInteractions()}} object
+Returns a \code{\link[InteractionSet:GInteractions]{InteractionSet::GInteractions()}} object
 }
 \description{
 Convert the output of Cicero connections to a

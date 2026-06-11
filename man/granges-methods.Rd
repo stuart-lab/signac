@@ -12,21 +12,21 @@
 \S4method{granges}{Seurat}(x, use.names = TRUE, use.mcols = FALSE, ...)
 }
 \arguments{
-\item{x}{A \linkS4class{GRangesAssay} object}
+\item{x}{A \link[=GRangesAssay-class]{GRangesAssay} object}
 
 \item{use.names}{Whether the names on the genomic ranges should be
 propagated to the returned object.}
 
-\item{use.mcols}{Not supported for \linkS4class{GRangesAssay} objects}
+\item{use.mcols}{Not supported for \link[=GRangesAssay-class]{GRangesAssay} objects}
 
 \item{...}{Additional arguments}
 }
 \value{
-Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
+Returns a \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object
 }
 \description{
-Methods for accessing \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
-information stored in a \linkS4class{GRangesAssay} object.
+Methods for accessing \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object
+information stored in a \link[=GRangesAssay-class]{GRangesAssay} object.
 }
 \section{Functions}{
 \itemize{
@@ -38,8 +38,8 @@ granges(atac_small)
 }
 \seealso{
 \itemize{
-\item \code{\link[GenomicRanges:genomic-range-squeezers]{GenomicRanges::granges()}}
-\item \link[GenomicRanges:genomic-range-squeezers]{GenomicRanges::GRanges()}
+\item \code{\link[GenomicRanges:granges]{GenomicRanges::granges()}}
+\item \link[GenomicRanges:granges]{GenomicRanges::GRanges()}
 }
 }
 \concept{granges}

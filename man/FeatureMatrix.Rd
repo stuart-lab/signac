@@ -35,26 +35,26 @@ FeatureMatrix(object, ...)
 )
 }
 \arguments{
-\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object, \linkS4class{ChromatinAssay5}
-object, \linkS4class{Fragment2} object, or a character path to a tabix-indexed
+\item{object}{A \link[SeuratObject:Seurat]{SeuratObject::Seurat} object, \link[=ChromatinAssay5-class]{ChromatinAssay5}
+object, \link[=Fragment2-class]{Fragment2} object, or a character path to a tabix-indexed
 fragment file.}
 
 \item{...}{Arguments passed to other methods.}
 
-\item{features}{A \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object containing the genomic
+\item{features}{A \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object containing the genomic
 intervals to quantify. These form the rows of the returned matrix. A
 character vector of UCSC-style coordinates (e.g. \code{"chr1:1-1000"}) is also
 accepted and will be coerced to a \code{GRanges}.}
 
 \item{assay}{Name of assay to use. If NULL, the default assay is used. The
-assay must be a \linkS4class{ChromatinAssay5} with fragment information attached
+assay must be a \link[=ChromatinAssay5-class]{ChromatinAssay5} with fragment information attached
 via \code{\link[=Fragments]{Fragments()}}.}
 
 \item{cells}{Character vector of cell barcodes to include as columns in the
 output. If NULL, all cells present in the fragment file(s) are included.
-When called on a \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} or \linkS4class{ChromatinAssay5} object,
+When called on a \link[SeuratObject:Seurat]{SeuratObject::Seurat} or \link[=ChromatinAssay5-class]{ChromatinAssay5} object,
 the assay's \code{colnames} are used as the default. Cell names are matched
-against the object-level names recorded in the \linkS4class{Fragment2} \code{cells}
+against the object-level names recorded in the \link[=Fragment2-class]{Fragment2} \code{cells}
 slot; file-level barcodes are resolved internally.}
 
 \item{file.index}{Path to the tabix index (\code{.tbi}) for the fragment file.
@@ -64,7 +64,7 @@ If \code{NULL}, defaults to \code{paste0(object, ".tbi")}.}
 (the \code{names()}) to file-level barcodes (the values). Used to translate
 between the cell names used in a Seurat object and the barcodes written in
 the fragment file. Typically \code{NULL} when calling with a raw fragment file
-path; populated automatically when dispatched from a \linkS4class{Fragment2}
+path; populated automatically when dispatched from a \link[=Fragment2-class]{Fragment2}
 object via the \code{cells} slot.}
 
 \item{seqlevels}{A named character vector specifying a seqname conversion
@@ -75,7 +75,7 @@ the values are the corresponding seqnames in the fragment file (e.g.
 names of the returned matrix are mapped back to the original \code{features}
 seqnames after quantification, so the output always matches the input
 coordinate system regardless of what is stored on disk. Typically \code{NULL}
-for raw path input; set automatically from the \linkS4class{Fragment2}
+for raw path input; set automatically from the \link[=Fragment2-class]{Fragment2}
 \code{seqlevels} slot.}
 
 \item{fragtk}{Use the \code{fragtk} backend for quantification. \code{TRUE} (default)
@@ -150,7 +150,7 @@ implementation suitable for large feature sets or many fragment files.
 Requires the \code{fragtk} executable on \code{PATH} (or an explicit path passed as
 a character string to \code{fragtk}). See \url{https://crates.io/crates/fragtk}.
 \item R implementation (\code{fragtk = FALSE}): a pure-R path built on
-\code{\link[Rsamtools:TabixFile-class]{Rsamtools::TabixFile()}}. Lower overhead for small feature sets (for
+\code{\link[Rsamtools:TabixFile]{Rsamtools::TabixFile()}}. Lower overhead for small feature sets (for
 example, a handful of peaks) and useful when \code{fragtk} is not installed.
 }
 }
@@ -158,7 +158,7 @@ example, a handful of peaks) and useful when \code{fragtk} is not installed.
 \section{Dispatch}{
 \code{FeatureMatrix} is a generic function able to be called using multiple
 inputs. Methods are provided for
-\link[SeuratObject:Seurat-class]{SeuratObject::Seurat}, \linkS4class{ChromatinAssay5}, \linkS4class{Fragment2}, and for
+\link[SeuratObject:Seurat]{SeuratObject::Seurat}, \link[=ChromatinAssay5-class]{ChromatinAssay5}, \link[=Fragment2-class]{Fragment2}, and for
 a character fragment file path (\code{default}). Higher-level methods extract
 the fragment information they need and delegate to the \code{default} method,
 which operates directly on a single fragment file path.
@@ -201,6 +201,6 @@ FeatureMatrix(
 }
 \seealso{
 \code{\link[=GenomeBinMatrix]{GenomeBinMatrix()}}, \code{\link[=GeneActivity]{GeneActivity()}}, \code{\link[=CreateFragmentObject]{CreateFragmentObject()}},
-\linkS4class{Fragment2}.
+\link[=Fragment2-class]{Fragment2}.
 }
 \concept{quantification}

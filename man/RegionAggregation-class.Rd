@@ -9,7 +9,7 @@
 \method{subset}{RegionAggregation}(x, cells = NULL, ...)
 }
 \arguments{
-\item{x}{A \linkS4class{RegionAggregation} object}
+\item{x}{A \link[=RegionAggregation-class]{RegionAggregation} object}
 
 \item{cells}{Vector of cells to retain}
 
@@ -25,7 +25,7 @@ object stored is a cell-by-position matrix.
 \describe{
 \item{\code{matrix}}{A cell-by-position matrix}
 
-\item{\code{regions}}{A \code{\link[GenomicRanges:genomic-range-squeezers]{GenomicRanges::granges()}} object containing the
+\item{\code{regions}}{A \code{\link[GenomicRanges:granges]{GenomicRanges::granges()}} object containing the
 regions aggregated across.}
 
 \item{\code{upstream}}{Integer denoting number of bases upstream of the centered

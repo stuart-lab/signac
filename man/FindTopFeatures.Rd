@@ -43,7 +43,7 @@ FindTopFeatures(object, ...)
 )
 }
 \arguments{
-\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object}
+\item{object}{A \link[SeuratObject:Seurat]{SeuratObject::Seurat} object}
 
 \item{...}{Arguments passed to other methods}
 
@@ -66,7 +66,7 @@ If \code{NULL}, include all features in VariableFeatures.}
 the assay.}
 }
 \value{
-Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
+Returns a \code{\link[SeuratObject:Seurat]{SeuratObject::Seurat()}} object
 }
 \description{
 Find top features for a given assay based on total number of counts for the

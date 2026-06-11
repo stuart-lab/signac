@@ -52,14 +52,14 @@ ATACqc(object, ...)
 )
 }
 \arguments{
-\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object, \linkS4class{ChromatinAssay5} object
+\item{object}{A \link[SeuratObject:Seurat]{SeuratObject::Seurat} object, \link[=ChromatinAssay5-class]{ChromatinAssay5} object
 , or path to a fragment file.}
 
 \item{...}{Arguments passed to other methods}
 
-\item{annotations}{\code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object containing
+\item{annotations}{\code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object containing
 gene annotations. If \code{NULL}, attempt to extract this from the
-\linkS4class{ChromatinAssay5} object if provided.}
+\link[=ChromatinAssay5-class]{ChromatinAssay5} object if provided.}
 
 \item{fragtk.path}{Path to \code{fragtk} executable. If NULL, try to find \code{fragtk}
 automatically.}
@@ -73,9 +73,9 @@ automatically.}
 \item{assay}{Name of assay to use. If NULL, use the default assay.}
 }
 \value{
-When run on a \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object, returns the input
+When run on a \link[SeuratObject:Seurat]{SeuratObject::Seurat} object, returns the input
 object with per-cell QC metrics added to the cell metadata. When run on a
-\linkS4class{ChromatinAssay5}, \linkS4class{Fragment2}, or path to a fragment file,
+\link[=ChromatinAssay5-class]{ChromatinAssay5}, \link[=Fragment2-class]{Fragment2}, or path to a fragment file,
 returns a \code{data.frame} of per-cell QC metrics with cell barcodes as row
 names. Column names correspond to the metrics produced by \verb{fragtk qc}.
 }

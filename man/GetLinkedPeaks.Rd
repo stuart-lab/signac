@@ -16,7 +16,7 @@ GetLinkedPeaks(object, ...)
 \method{GetLinkedPeaks}{ChromatinAssay5}(object, features, key, min.abs.score = 0, ...)
 }
 \arguments{
-\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object}
+\item{object}{A \link[SeuratObject:Seurat]{SeuratObject::Seurat} object}
 
 \item{...}{Arguments passed to other methods}
 

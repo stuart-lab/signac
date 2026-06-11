@@ -12,7 +12,7 @@ ReadJASPAR(file, pseudocount = 1)
 \item{pseudocount}{Pseudocount added during PFM to PWM conversion}
 }
 \value{
-A \link[TFBSTools:XMatrixList-class]{TFBSTools::PWMatrixList}
+A \link[TFBSTools:PWMatrixList]{TFBSTools::PWMatrixList}
 }
 \description{
 Read position frequency matrices (PFMs) from a JASPAR-format file and

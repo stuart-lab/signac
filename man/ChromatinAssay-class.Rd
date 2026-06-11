@@ -5,7 +5,7 @@
 \alias{ChromatinAssay-class}
 \title{The ChromatinAssay class (old)}
 \description{
-The ChromatinAssay object is an extended \code{\link[SeuratObject:Assay-class]{SeuratObject::Assay()}}
+The ChromatinAssay object is an extended \code{\link[SeuratObject:Assay]{SeuratObject::Assay()}}
 for the storage and analysis of single-cell chromatin data.
 }
 \details{
@@ -14,17 +14,17 @@ This is an old object class used in Signac v1
 \section{Slots}{
 
 \describe{
-\item{\code{ranges}}{A \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object describing the
+\item{\code{ranges}}{A \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object describing the
 genomic location of features in the object}
 
-\item{\code{motifs}}{A \linkS4class{Motif} object}
+\item{\code{motifs}}{A \link[=Motif-class]{Motif} object}
 
-\item{\code{fragments}}{A list of \linkS4class{Fragment2} objects.}
+\item{\code{fragments}}{A list of \link[=Fragment2-class]{Fragment2} objects.}
 
-\item{\code{seqinfo}}{A \code{\link[Seqinfo:Seqinfo-class]{Seqinfo::Seqinfo()}} object containing basic
+\item{\code{seqinfo}}{A \code{\link[Seqinfo:Seqinfo]{Seqinfo::Seqinfo()}} object containing basic
 information about the genome sequence used.}
 
-\item{\code{annotation}}{A  \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object containing
+\item{\code{annotation}}{A  \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object containing
 genomic annotations. This should be a GRanges object with the following
 columns:
 \itemize{
@@ -41,7 +41,7 @@ columns:
 \item{\code{positionEnrichment}}{A named list of matrices containing positional
 enrichment scores for Tn5 integration (for example, enrichment at the TSS)}
 
-\item{\code{links}}{A \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object describing linked
+\item{\code{links}}{A \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object describing linked
 genomic positions, such as co-accessible sites or enhancer-gene regulatory
 relationships. This should be a \code{GRanges} object, where the start and
 end coordinates are the two linked genomic positions, and must contain a

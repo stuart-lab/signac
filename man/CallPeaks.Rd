@@ -80,8 +80,8 @@ CallPeaks(object, ...)
 )
 }
 \arguments{
-\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object, \linkS4class{ChromatinAssay5}
-object, \linkS4class{Fragment2} object, or the path to fragment file/s.}
+\item{object}{A \link[SeuratObject:Seurat]{SeuratObject::Seurat} object, \link[=ChromatinAssay5-class]{ChromatinAssay5}
+object, \link[=Fragment2-class]{Fragment2} object, or the path to fragment file/s.}
 
 \item{...}{Arguments passed to other methods.}
 
@@ -92,7 +92,7 @@ independently on each group of cells. If multiple fragments are present in
 the object,  peaks will be called separately for each fragment file and for
 each group of cells. Note that to call peaks using a subset of cells, we
 write the cell barcodes into \code{.txt} file/s that are stored in the temp
-directory (\code{\link[base:tempfile]{base::tempdir()}}) by default and removed upon completion (if
+directory (\code{\link[base:tempdir]{base::tempdir()}}) by default and removed upon completion (if
 \code{cleanup=TRUE}). If \code{NULL}, peaks are called using all cells.}
 
 \item{idents}{List of identities to include if grouping cells (only valid if
@@ -123,9 +123,9 @@ overrides MACS3 built-in genome sizes.}
 \item{outdir}{Path for output files.}
 
 \item{combine.peaks}{Controls whether peak calls from different groups of
-cells are combined using \code{\link[GenomicRanges:inter-range-methods]{GenomicRanges::reduce()}} when calling peaks for
+cells are combined using \code{\link[GenomicRanges:reduce]{GenomicRanges::reduce()}} when calling peaks for
 different groups of cells (\code{group.by} parameter). If \code{FALSE}, a list of
-\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges} object will be returned. Note that metadata fields
+\link[GenomicRanges:GRanges]{GenomicRanges::GRanges} object will be returned. Note that metadata fields
 such as the p-value, q-value, and fold-change information for each peak will
 be lost if combining peaks.}
 
@@ -142,13 +142,13 @@ single character string.}
 \item{barcodes}{Path to cell barcodes (\code{--barcodes} parameter for MACS).}
 }
 \value{
-Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
+Returns a \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object
 }
 \description{
 Call peaks using \code{MACS}. Fragment files linked to the specified assay will be
 used to call peaks. If multiple fragment files are present, all will be used
 in a single MACS invocation unless the \code{cells} or \code{group.by} parameters are
-used. Returns the \code{.narrowPeak} MACS output as a \link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges}
+used. Returns the \code{.narrowPeak} MACS output as a \link[GenomicRanges:GRanges]{GenomicRanges::GRanges}
 object.
 }
 \details{

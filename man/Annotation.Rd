@@ -27,16 +27,16 @@ Annotation(object, ...) <- value
 \item{...}{Arguments passed to other methods}
 
 \item{value}{A value to set. Can be \code{NULL}, to remove the current annotation
-information, or a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object.}
+information, or a \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object.}
 
 \item{assay}{Name of assay to use}
 }
 \value{
-Returns a \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object
+Returns a \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object
 if the annotation data is present, otherwise returns NULL
 }
 \description{
-Get the annotation from a \linkS4class{ChromatinAssay5} object
+Get the annotation from a \link[=ChromatinAssay5-class]{ChromatinAssay5} object
 }
 \examples{
 \donttest{

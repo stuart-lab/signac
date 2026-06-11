@@ -22,7 +22,7 @@
 \S4method{renameSeqlevels}{Fragment2}(x, value)
 }
 \arguments{
-\item{x}{A \linkS4class{Fragment2} object}
+\item{x}{A \link[=Fragment2-class]{Fragment2} object}
 
 \item{value}{A named character vector or name of a seqlevelsStyle}
 }

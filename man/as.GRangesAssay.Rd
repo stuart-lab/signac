@@ -5,7 +5,7 @@
 \alias{as.GRangesAssay.ChromatinAssay}
 \alias{as.GRangesAssay.Assay5}
 \alias{as.GRangesAssay.ChromatinAssay5}
-\title{Convert objects to a \linkS4class{GRangesAssay} object}
+\title{Convert objects to a \link[=GRangesAssay-class]{GRangesAssay} object}
 \usage{
 as.GRangesAssay(x, ...)
 
@@ -26,7 +26,7 @@ as.GRangesAssay(x, ...)
 \method{as.GRangesAssay}{ChromatinAssay5}(x, ranges = NULL, ...)
 }
 \arguments{
-\item{x}{An object to convert to class \linkS4class{GRangesAssay}}
+\item{x}{An object to convert to class \link[=GRangesAssay-class]{GRangesAssay}}
 
 \item{...}{Arguments passed to other methods}
 
@@ -54,6 +54,6 @@ contained in the input matrix.}
 \item{links}{A named list of \code{InteractionSet::GInteractions()} objects}
 }
 \description{
-Convert objects to a \linkS4class{GRangesAssay} object
+Convert objects to a \link[=GRangesAssay-class]{GRangesAssay} object
 }
 \concept{assay}

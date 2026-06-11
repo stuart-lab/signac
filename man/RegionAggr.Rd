@@ -26,8 +26,8 @@ RegionAggr(object, ...) <- value
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{A \linkS4class{RegionAggregation} object or list of
-\linkS4class{RegionAggregation} objects}
+\item{value}{A \link[=RegionAggregation-class]{RegionAggregation} object or list of
+\link[=RegionAggregation-class]{RegionAggregation} objects}
 
 \item{features}{Optional character vector of region aggregation names to
 return}
@@ -35,10 +35,10 @@ return}
 \item{assay}{Name of assay to use}
 }
 \value{
-Returns a list of \linkS4class{RegionAggregation} objects
+Returns a list of \link[=RegionAggregation-class]{RegionAggregation} objects
 }
 \description{
-Get the region aggregation information from a \linkS4class{ChromatinAssay5} object
+Get the region aggregation information from a \link[=ChromatinAssay5-class]{ChromatinAssay5} object
 }
 \examples{
 RegionAggr(atac_small[["peaks"]])

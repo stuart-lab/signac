@@ -39,12 +39,12 @@ Footprint(object, ...)
 )
 }
 \arguments{
-\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} or \linkS4class{ChromatinAssay5} object}
+\item{object}{A \link[SeuratObject:Seurat]{SeuratObject::Seurat} or \link[=ChromatinAssay5-class]{ChromatinAssay5} object}
 
 \item{...}{Arguments passed to other methods}
 
 \item{genome}{A \link[BSgenome:BSgenome-class]{BSgenome::BSgenome} object or any other object
-supported by \code{\link[BSgenome:getSeq-methods]{BSgenome::getSeq()}}. Do \code{showMethods("getSeq")} to get the list
+supported by \code{\link[BSgenome:getSeq]{BSgenome::getSeq()}}. Do \code{showMethods("getSeq")} to get the list
 of all supported object types.}
 
 \item{motif.name}{Name of a motif stored in the assay to footprint. If not
@@ -66,13 +66,13 @@ position given the local DNA sequence context and the insertion bias of Tn5}
 
 \item{in.peaks}{Restrict motifs to those that fall in peaks}
 
-\item{overwrite}{Overwrite existing \linkS4class{RegionAggregation} objects with
+\item{overwrite}{Overwrite existing \link[=RegionAggregation-class]{RegionAggregation} objects with
 the same name}
 
 \item{verbose}{Display messages}
 }
 \value{
-Returns a \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object
+Returns a \link[SeuratObject:Seurat]{SeuratObject::Seurat} object
 }
 \description{
 Compute the normalized observed/expected Tn5 insertion frequency

@@ -100,10 +100,10 @@
 \S4method{distanceToNearest}{Seurat,Seurat}(x, subject, ignore.strand = FALSE, ...)
 }
 \arguments{
-\item{x}{A query \linkS4class{GRangesAssay} object}
+\item{x}{A query \link[=GRangesAssay-class]{GRangesAssay} object}
 
-\item{subject}{The subject \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} or
-\linkS4class{GRangesAssay} object. If missing, \code{x} is used as the
+\item{subject}{The subject \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} or
+\link[=GRangesAssay-class]{GRangesAssay} object. If missing, \code{x} is used as the
 subject.}
 
 \item{select}{Logic for handling ties. See \code{\link[GenomicRanges:nearest-methods]{GenomicRanges::nearest-methods()}}}
@@ -112,14 +112,14 @@ subject.}
 should be ignored.}
 
 \item{y}{For the \code{distance} method, a
-\code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object or a \linkS4class{GRangesAssay}
+\code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object or a \link[=GRangesAssay-class]{GRangesAssay}
 object}
 
 \item{...}{Additional arguments for methods}
 }
 \description{
 The \verb{precede, follow, nearest, distance, distanceToNearest} methods
-are available for \linkS4class{GRangesAssay} objects.
+are available for \link[=GRangesAssay-class]{GRangesAssay} objects.
 }
 \section{Functions}{
 \itemize{
@@ -184,9 +184,9 @@ are available for \linkS4class{GRangesAssay} objects.
 }}
 \seealso{
 \itemize{
-\item \code{\link[IRanges:nearest-methods]{IRanges::nearest()}}
-\item \code{\link[GenomicRanges:nearest-methods]{GenomicRanges::nearest()}}
-\item \linkS4class{GRangesAssay}
+\item \code{\link[IRanges:nearest]{IRanges::nearest()}}
+\item \code{\link[GenomicRanges:nearest]{GenomicRanges::nearest()}}
+\item \link[=GRangesAssay-class]{GRangesAssay}
 }
 }
 \concept{nearest}

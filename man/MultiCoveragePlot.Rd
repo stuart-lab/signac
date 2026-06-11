@@ -38,10 +38,10 @@ MultiCoveragePlot(
 )
 }
 \arguments{
-\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object}
+\item{object}{A \link[SeuratObject:Seurat]{SeuratObject::Seurat} object}
 
 \item{regions}{List of genes or a
-\code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object to plot}
+\code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object to plot}
 
 \item{region_names}{List of plot titles for each region.
 If NULL, no title is added.}
@@ -58,7 +58,7 @@ region downstream. Follows the same logic as
 
 \item{region.highlight}{List of regions to highlight for
 each plotted region, should be the same length as \code{regions}.
-Each item should be a \link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges} object
+Each item should be a \link[GenomicRanges:GRanges]{GenomicRanges::GRanges} object
 containing the coordinates to highlight, or \code{NULL} if no
 highlight is needed for that particular region. By default,
 regions will be highlighted in grey. To change the color of
@@ -113,7 +113,7 @@ combined accessibility for all cells included in the plot
 
 \item{ranges_list}{List of additional genomic ranges to
 plot for each region, should be the same length as
-\code{regions}. Each item should be a \link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges}
+\code{regions}. Each item should be a \link[GenomicRanges:GRanges]{GenomicRanges::GRanges}
 object or \code{NULL} if no additional ranges is needed for a
 region. Can also be a single GRanges object to be plotted
 for every region.}

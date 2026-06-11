@@ -64,7 +64,7 @@ FitMeanVar(object, ...)
 )
 }
 \arguments{
-\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} object}
+\item{object}{A \link[SeuratObject:Seurat]{SeuratObject::Seurat} object}
 
 \item{...}{Arguments passed to other methods}
 
@@ -97,7 +97,7 @@ the assay.}
 \item{random.seed}{Random seed to set for sampling.}
 }
 \value{
-Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
+Returns a \code{\link[SeuratObject:Seurat]{SeuratObject::Seurat()}} object
 }
 \description{
 Find highly variable features by fitting a locally polynomial regression

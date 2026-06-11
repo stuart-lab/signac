@@ -89,7 +89,7 @@ input data matrix.}
 \item{save}{Name of layer to save results in.}
 }
 \value{
-Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
+Returns a \code{\link[SeuratObject:Seurat]{SeuratObject::Seurat()}} object
 }
 \description{
 Run term frequency inverse document frequency (TF-IDF) normalization on a

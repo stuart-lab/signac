@@ -27,7 +27,7 @@ Character vector of stored result names
 \description{
 Generic function for listing stored RegionAggregation objects
 
-Returns the names of all stored  \linkS4class{RegionAggregation} objects
+Returns the names of all stored  \link[=RegionAggregation-class]{RegionAggregation} objects
 }
 \examples{
 RegionAggr(atac_small)

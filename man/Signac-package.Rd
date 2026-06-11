@@ -5,11 +5,11 @@
 \alias{Signac-package}
 \title{Signac: Analysis of Single-Cell Chromatin Data}
 \description{
-\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+\if{html}{\figure{logo.svg}{options: style='float: right' alt='logo' width='120'}}
 
 A framework for the analysis and exploration of single-cell chromatin data. The 'Signac' package contains functions for quantifying single-cell chromatin data, computing per-cell quality control metrics, dimension reduction and normalization, visualization, and DNA sequence motif analysis. Reference: Stuart et al. (2021) \doi{10.1038/s41592-021-01282-5}.
 
-\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+\if{html}{\figure{logo.svg}{options: style='float: right' alt='logo' width='120'}}
 
 A framework for the analysis and exploration of single-cell chromatin data. The 'Signac' package contains functions for quantifying single-cell chromatin data, computing per-cell quality control metrics, dimension reduction and normalization, visualization, and DNA sequence motif analysis. Reference: Stuart et al. (2021) \doi{10.1038/s41592-021-01282-5}.
 }
@@ -21,17 +21,14 @@ Useful links:
   \item Report bugs at \url{https://github.com/stuart-lab/signac/issues}
 }
 
-
-Useful links:
-\itemize{
-  \item \url{https://github.com/stuart-lab/signac}
-  \item \url{https://stuartlab.org/signac}
-  \item Report bugs at \url{https://github.com/stuart-lab/signac/issues}
-}
-
 }
 \author{
 \strong{Maintainer}: Tim Stuart \email{stuartt@a-star.edu.sg} (\href{https://orcid.org/0000-0002-3044-0897}{ORCID})
+
+Authors:
+\itemize{
+  \item Tim Stuart \email{stuartt@a-star.edu.sg} (\href{https://orcid.org/0000-0002-3044-0897}{ORCID})
+}
 
 Other contributors:
 \itemize{

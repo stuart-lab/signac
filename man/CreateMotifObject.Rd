@@ -25,7 +25,7 @@ list of position weight or position frequency matrices. This can be used to
 set a alternative common name for the motif. If a PFMatrixList is passed to
 \code{pwm}, it will pull the motif name from the PFMatrixList.}
 
-\item{positions}{A \code{\link[GenomicRanges:GRangesList-class]{GenomicRanges::GRangesList()}} object containing
+\item{positions}{A \code{\link[GenomicRanges:GRangesList]{GenomicRanges::GRangesList()}} object containing
 exact positions of each motif.}
 
 \item{meta.data}{A data.frame containing metadata}

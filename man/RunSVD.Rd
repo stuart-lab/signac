@@ -110,7 +110,7 @@ Larger values speed up convergence due to greater amount of allowed error.}
 \item{reduction.name}{Name for stored dimension reduction object.}
 }
 \value{
-Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
+Returns a \code{\link[SeuratObject:Seurat]{SeuratObject::Seurat()}} object
 }
 \description{
 Run partial singular value decomposition using \code{\link[RSpectra:svds]{RSpectra::svds()}}

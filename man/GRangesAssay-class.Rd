@@ -7,7 +7,7 @@
 \title{ChromatinAssay5 and GRangesAssay object classes}
 \description{
 The \code{GRangesAssay} and \code{ChromatinAssay5} classes are extended
-\code{\link[SeuratObject:Assay5-class]{SeuratObject::Assay5()}} classes for the storage and analysis of
+\code{\link[SeuratObject:Assay5]{SeuratObject::Assay5()}} classes for the storage and analysis of
 single-cell chromatin data. The \code{GRangesAssay} class requires that
 features in the assay are genomic ranges.
 }
@@ -16,7 +16,7 @@ features in the assay are genomic ranges.
 \describe{
 \item{\code{fragments}}{A list of \code{\link[=Fragment]{Fragment()}} objects.}
 
-\item{\code{annotation}}{A  \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object containing
+\item{\code{annotation}}{A  \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object containing
 genomic annotations. This should be a GRanges object with the following
 columns:
 \itemize{
@@ -33,19 +33,19 @@ numeric vector where the name of the element corresponds to the DNA sequence
 and the value represents the bias value. All DNA hexamers must be present in
 the vector.}
 
-\item{\code{region.aggregation}}{A list of \linkS4class{RegionAggregation} objects}
+\item{\code{region.aggregation}}{A list of \link[=RegionAggregation-class]{RegionAggregation} objects}
 
-\item{\code{motifs}}{A \linkS4class{Motif} object}
+\item{\code{motifs}}{A \link[=Motif-class]{Motif} object}
 
-\item{\code{links}}{A list of \code{\link[InteractionSet:GInteractions-class]{InteractionSet::GInteractions()}} objects
+\item{\code{links}}{A list of \code{\link[InteractionSet:GInteractions]{InteractionSet::GInteractions()}} objects
 describing linked genomic positions, such as co-accessible sites, eQTLs,
 Hi-C contact, or enhancer-gene regulatory relationships.}
 
-\item{\code{ranges}}{A \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object describing the
+\item{\code{ranges}}{A \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object describing the
 genomic location of features in the object}
 }}
 
 \seealso{
-\code{\link[SeuratObject:Assay5-class]{SeuratObject::Assay5()}}
+\code{\link[SeuratObject:Assay5]{SeuratObject::Assay5()}}
 }
 \concept{assay}

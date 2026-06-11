@@ -47,12 +47,12 @@
 \S4method{isCircular}{Seurat}(x)
 }
 \arguments{
-\item{x}{A \linkS4class{GRangesAssay} object}
+\item{x}{A \link[=GRangesAssay-class]{GRangesAssay} object}
 }
 \description{
 Methods for accessing and modifying
-\code{\link[Seqinfo:Seqinfo-class]{Seqinfo::Seqinfo()}} object information stored in a
-\linkS4class{GRangesAssay} object.
+\code{\link[Seqinfo:Seqinfo]{Seqinfo::Seqinfo()}} object information stored in a
+\link[=GRangesAssay-class]{GRangesAssay} object.
 }
 \section{Functions}{
 \itemize{
@@ -82,7 +82,7 @@ Methods for accessing and modifying
 \seealso{
 \itemize{
 \item{\link[Seqinfo:seqinfo]{seqinfo} in the \pkg{Seqinfo} package.}
-\item{\linkS4class{GRangesAssay}}
+\item{\link[=GRangesAssay-class]{GRangesAssay}}
 }
 }
 \concept{seqinfo}

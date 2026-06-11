@@ -20,7 +20,7 @@
 \alias{disjointBins,GRangesAssay-method}
 \alias{disjointBins}
 \alias{disjointBins,Seurat-method}
-\title{Inter-range transformations for \linkS4class{GRangesAssay} objects}
+\title{Inter-range transformations for \link[=GRangesAssay-class]{GRangesAssay} objects}
 \usage{
 \S4method{range}{GRangesAssay}(x, ..., with.revmap = FALSE, na.rm = FALSE)
 
@@ -47,7 +47,7 @@
 \S4method{disjointBins}{Seurat}(x, ...)
 }
 \arguments{
-\item{x}{A \linkS4class{GRangesAssay} object}
+\item{x}{A \link[=GRangesAssay-class]{GRangesAssay} object}
 
 \item{...}{Additional arguments}
 
@@ -63,33 +63,33 @@
 }
 \description{
 The \verb{range, reduce, gaps, disjoin, isDisjoint, disjointBins} methods
-are available for \linkS4class{GRangesAssay} objects.
+are available for \link[=GRangesAssay-class]{GRangesAssay} objects.
 }
 \section{Functions}{
 \itemize{
 \item \code{range(Seurat)}: method for \link[SeuratObject:Seurat-class]{SeuratObject::Seurat}
 objects
 
-\item \code{reduce(GRangesAssay)}: method for \linkS4class{GRangesAssay} objects
+\item \code{reduce(GRangesAssay)}: method for \link[=GRangesAssay-class]{GRangesAssay} objects
 
 \item \code{reduce(Seurat)}: method for \link[SeuratObject:Seurat-class]{SeuratObject::Seurat}
 objects
 
-\item \code{gaps(GRangesAssay)}: method for \linkS4class{GRangesAssay} objects
+\item \code{gaps(GRangesAssay)}: method for \link[=GRangesAssay-class]{GRangesAssay} objects
 
 \item \code{gaps(Seurat)}: method for \link[SeuratObject:Seurat-class]{SeuratObject::Seurat}
 objects
 
-\item \code{disjoin(GRangesAssay)}: method for \linkS4class{GRangesAssay} objects
+\item \code{disjoin(GRangesAssay)}: method for \link[=GRangesAssay-class]{GRangesAssay} objects
 
 \item \code{disjoin(Seurat)}: method for Seurat objects
 
-\item \code{isDisjoint(GRangesAssay)}: method for \linkS4class{GRangesAssay} objects
+\item \code{isDisjoint(GRangesAssay)}: method for \link[=GRangesAssay-class]{GRangesAssay} objects
 
 \item \code{isDisjoint(Seurat)}: method for \link[SeuratObject:Seurat-class]{SeuratObject::Seurat}
 objects
 
-\item \code{disjointBins(GRangesAssay)}: method for \linkS4class{GRangesAssay} objects
+\item \code{disjointBins(GRangesAssay)}: method for \link[=GRangesAssay-class]{GRangesAssay} objects
 
 \item \code{disjointBins(Seurat)}: method for \link[SeuratObject:Seurat-class]{SeuratObject::Seurat}
 objects
@@ -99,7 +99,7 @@ objects
 \itemize{
 \item \link[IRanges:inter-range-methods]{IRanges::inter-range-methods}
 \item \link[GenomicRanges:inter-range-methods]{GenomicRanges::inter-range-methods}
-\item \linkS4class{GRangesAssay}
+\item \link[=GRangesAssay-class]{GRangesAssay}
 }
 }
 \concept{inter_range}

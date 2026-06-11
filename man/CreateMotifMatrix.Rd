@@ -16,8 +16,8 @@ CreateMotifMatrix(
 \arguments{
 \item{features}{A GRanges object containing a set of genomic features}
 
-\item{pwm}{A \code{\link[TFBSTools:XMatrixList-class]{TFBSTools::PFMatrixList()}} or
-\code{\link[TFBSTools:XMatrixList-class]{TFBSTools::PWMatrixList()}}
+\item{pwm}{A \code{\link[TFBSTools:PFMatrixList]{TFBSTools::PFMatrixList()}} or
+\code{\link[TFBSTools:PWMatrixList]{TFBSTools::PWMatrixList()}}
 object containing position weight/frequency matrices to use}
 
 \item{genome}{Any object compatible with the \code{genome} argument

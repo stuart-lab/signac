@@ -14,11 +14,11 @@ ReadPWM(pwm_dir, short_names = TRUE)
 Default is \code{TRUE}.}
 }
 \value{
-A \link[TFBSTools:XMatrixList-class]{TFBSTools::PWMatrixList}
+A \link[TFBSTools:PWMatrixList]{TFBSTools::PWMatrixList}
 }
 \description{
 Read position weight matrices from a directory of \code{.pwm} files
-and return as a \link[TFBSTools:XMatrixList-class]{TFBSTools::PWMatrixList}. Each \code{.pwm} file
+and return as a \link[TFBSTools:PWMatrixList]{TFBSTools::PWMatrixList}. Each \code{.pwm} file
 should contain a header line starting with \code{>} followed by the motif
 ID, and subsequent lines containing a position x 4 nucleotide matrix
 (columns: A, C, G, T).

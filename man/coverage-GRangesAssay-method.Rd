@@ -4,7 +4,7 @@
 \alias{coverage,GRangesAssay-method}
 \alias{coverage}
 \alias{coverage,Seurat-method}
-\title{Coverage of a \linkS4class{GRangesAssay} object}
+\title{Coverage of a \link[=GRangesAssay-class]{GRangesAssay} object}
 \usage{
 \S4method{coverage}{GRangesAssay}(
   x,
@@ -23,22 +23,22 @@
 )
 }
 \arguments{
-\item{x}{A \linkS4class{GRangesAssay} object}
+\item{x}{A \link[=GRangesAssay-class]{GRangesAssay} object}
 
 \item{shift}{How much each range should be shifted before coverage is
-computed. See \code{\link[IRanges:coverage-methods]{IRanges::coverage()}} in the \link[IRanges:IRanges-constructor]{IRanges::IRanges} package.}
+computed. See \code{\link[IRanges:coverage]{IRanges::coverage()}} in the \link[IRanges:IRanges]{IRanges} package.}
 
 \item{width}{Specifies the length of the returned coverage vectors.
-See \code{\link[IRanges:coverage-methods]{IRanges::coverage()}} in the \link[IRanges:IRanges-constructor]{IRanges::IRanges} package.}
+See \code{\link[IRanges:coverage]{IRanges::coverage()}} in the \link[IRanges:IRanges]{IRanges} package.}
 
 \item{weight}{Assigns weight to each range in \code{x}.
-See \code{\link[IRanges:coverage-methods]{IRanges::coverage()}} in the \link[IRanges:IRanges-constructor]{IRanges::IRanges} package.}
+See \code{\link[IRanges:coverage]{IRanges::coverage()}} in the \link[IRanges:IRanges]{IRanges} package.}
 
-\item{method}{See \code{\link[IRanges:coverage-methods]{IRanges::coverage()}} in the \link[IRanges:IRanges-constructor]{IRanges::IRanges}
+\item{method}{See \code{\link[IRanges:coverage]{IRanges::coverage()}} in the \link[IRanges:IRanges]{IRanges}
 package}
 }
 \description{
-This is the \code{coverage} method for \linkS4class{GRangesAssay} objects.
+This is the \code{coverage} method for \link[=GRangesAssay-class]{GRangesAssay} objects.
 }
 \section{Functions}{
 \itemize{
@@ -49,9 +49,9 @@ This is the \code{coverage} method for \linkS4class{GRangesAssay} objects.
 }}
 \seealso{
 \itemize{
-\item \code{\link[IRanges:coverage-methods]{IRanges::coverage()}}
-\item \code{\link[GenomicRanges:coverage-methods]{GenomicRanges::coverage()}}
-\item \linkS4class{GRangesAssay}
+\item \code{\link[IRanges:coverage]{IRanges::coverage()}}
+\item \code{\link[GenomicRanges:coverage]{GenomicRanges::coverage()}}
+\item \link[=GRangesAssay-class]{GRangesAssay}
 }
 }
 \concept{coverage}

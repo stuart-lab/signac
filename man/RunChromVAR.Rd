@@ -49,7 +49,7 @@ matrix from a Motif object stored in the assay.}
 Default is "chromvar".}
 }
 \value{
-Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object with a new assay
+Returns a \code{\link[SeuratObject:Seurat]{SeuratObject::Seurat()}} object with a new assay
 }
 \description{
 Wrapper to run \code{\link[chromVAR:chromVAR]{chromVAR::chromVAR()}} on an assay with a motif

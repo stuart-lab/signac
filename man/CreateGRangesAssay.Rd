@@ -26,7 +26,7 @@ CreateChromatinAssay5(
 
 \item{data}{Optional pre-normalized count matrix}
 
-\item{ranges}{A set of \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} corresponding to
+\item{ranges}{A set of \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} corresponding to
 the rows of the input matrix. If \code{NULL}, genomic ranges will be extracted
 from the rownames of the input data matrix, and those rownames must be
 formatted as \code{chromosome:start-end}.}
@@ -41,7 +41,7 @@ created using the \code{\link[=CreateFragmentObject]{CreateFragmentObject()}} an
 \code{\link[=Fragments]{Fragments()}} functions. Alternatively, a list of
 \code{\link[=Fragment]{Fragment()}} objects can be provided.}
 
-\item{annotation}{A set of \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} containing
+\item{annotation}{A set of \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} containing
 annotations for the genome used. It must have the following columns:
 \itemize{
 \item{tx_id or transcript_id: Transcript ID}
@@ -53,12 +53,12 @@ annotations for the genome used. It must have the following columns:
 
 \item{motifs}{A Motif object}
 
-\item{links}{A named list of \code{\link[InteractionSet:GInteractions-class]{InteractionSet::GInteractions()}}
+\item{links}{A named list of \code{\link[InteractionSet:GInteractions]{InteractionSet::GInteractions()}}
 objects}
 
 \item{bias}{A Tn5 integration bias matrix}
 
-\item{region.aggregation}{A named list of \linkS4class{RegionAggregation}
+\item{region.aggregation}{A named list of \link[=RegionAggregation-class]{RegionAggregation}
 objects.}
 
 \item{validate.fragments}{Check that cells in the assay are present in the
@@ -71,7 +71,7 @@ Returns a Seurat object
 }
 \description{
 The \code{\link[=ChromatinAssay5-class]{ChromatinAssay5-class()}} and \code{\link[=GRangesAssay-class]{GRangesAssay-class()}}
-classes extend \code{\link[SeuratObject:Assay5-class]{SeuratObject::Assay5()}} objects for single-cell
+classes extend \code{\link[SeuratObject:Assay5]{SeuratObject::Assay5()}} objects for single-cell
 chromatin data, with or without genomic ranges for each feature in the assay.
 Use \code{CreateGRangesAssay} to construct a \code{GRangesAssay} object or
 \code{CreateChromatinAssay5} to construct a \code{ChromatinAssay5} object.

@@ -46,11 +46,11 @@ RegionMatrix(object, ...)
 )
 }
 \arguments{
-\item{object}{A Seurat or \linkS4class{ChromatinAssay5} object}
+\item{object}{A Seurat or \link[=ChromatinAssay5-class]{ChromatinAssay5} object}
 
 \item{...}{Arguments passed to other methods}
 
-\item{regions}{A \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object containing the
+\item{regions}{A \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object containing the
 set of genomic ranges to quantify}
 
 \item{assay}{Name of assay to use. If NULL, use the default assay}

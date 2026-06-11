@@ -3,18 +3,18 @@
 \name{as.Fragment2}
 \alias{as.Fragment2}
 \alias{as.Fragment2.Fragment}
-\title{Convert objects to a \linkS4class{Fragment2} object}
+\title{Convert objects to a \link[=Fragment2-class]{Fragment2} object}
 \usage{
 as.Fragment2(x, ...)
 
 \method{as.Fragment2}{Fragment}(x, ...)
 }
 \arguments{
-\item{x}{An object to convert to class \linkS4class{Fragment2}}
+\item{x}{An object to convert to class \link[=Fragment2-class]{Fragment2}}
 
 \item{...}{Arguments passed to other methods}
 }
 \description{
-Convert objects to a \linkS4class{Fragment2} object
+Convert objects to a \link[=Fragment2-class]{Fragment2} object
 }
 \concept{fragments}

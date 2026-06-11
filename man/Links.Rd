@@ -26,16 +26,16 @@ Links(object, ...) <- value
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{A \code{\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges()}} object}
+\item{value}{A \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object}
 
 \item{assay}{Name of assay to use}
 
-\item{key}{Key to use when adding a new \link[InteractionSet:GInteractions-class]{InteractionSet::GInteractions}
+\item{key}{Key to use when adding a new \link[InteractionSet:GInteractions]{InteractionSet::GInteractions}
 object}
 }
 \description{
 Get or set the genomic link information for a Seurat object or
-\linkS4class{ChromatinAssay5}
+\link[=ChromatinAssay5-class]{ChromatinAssay5}
 }
 \examples{
 Links(atac_small[["peaks"]])

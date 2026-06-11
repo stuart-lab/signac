@@ -20,12 +20,12 @@ InsertionBias(object, ...)
 )
 }
 \arguments{
-\item{object}{A \link[SeuratObject:Seurat-class]{SeuratObject::Seurat} or \linkS4class{ChromatinAssay5} object}
+\item{object}{A \link[SeuratObject:Seurat]{SeuratObject::Seurat} or \link[=ChromatinAssay5-class]{ChromatinAssay5} object}
 
 \item{...}{Arguments passed to other methods}
 
 \item{genome}{A \link[BSgenome:BSgenome-class]{BSgenome::BSgenome} object or any other object
-supported by \link[BSgenome:getSeq-methods]{BSgenome::getSeq}. Do \code{showMethods("getSeq")} to get the list
+supported by \link[BSgenome:getSeq]{BSgenome::getSeq}. Do \code{showMethods("getSeq")} to get the list
 of all supported object types.}
 
 \item{region}{Genomic region to use when assessing bias.}

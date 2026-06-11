@@ -10,7 +10,7 @@ VariantTrack(variants, region)
 \item{variants}{Data frame with columns: position (numeric), rsid
 (character), color (character). Each row defines one SNP marker to display.}
 
-\item{region}{Genomic region (\link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges} or a string like
+\item{region}{Genomic region (\link[GenomicRanges:GRanges]{GenomicRanges::GRanges} or a string like
 "chr10:112900000-113100000" that can be converted to \code{GRanges})}
 }
 \value{

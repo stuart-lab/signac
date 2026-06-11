@@ -16,7 +16,7 @@ DownsampleFeatures(object, assay = NULL, n = 20000, verbose = TRUE)
 \item{verbose}{Display messages}
 }
 \value{
-Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object with
+Returns a \code{\link[SeuratObject:Seurat]{SeuratObject::Seurat()}} object with
 \code{\link[SeuratObject:VariableFeatures]{SeuratObject::VariableFeatures()}} set to the randomly sampled features.
 }
 \description{

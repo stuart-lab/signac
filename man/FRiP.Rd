@@ -20,7 +20,7 @@ of sequenced fragments for each cell. This can be computed using the
 \item{verbose}{Display messages}
 }
 \value{
-Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
+Returns a \code{\link[SeuratObject:Seurat]{SeuratObject::Seurat()}} object
 }
 \description{
 Calculate fraction of reads in peaks per cell

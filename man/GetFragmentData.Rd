@@ -7,7 +7,7 @@
 GetFragmentData(object, slot = "file.path")
 }
 \arguments{
-\item{object}{A \linkS4class{Fragment2} object}
+\item{object}{A \link[=Fragment2-class]{Fragment2} object}
 
 \item{slot}{Information to pull from object
 (file.path, index.path, hash, cells, seqlevels)}
@@ -20,6 +20,6 @@ for \code{cells}, or a named character vector of seqname conversions for
 \code{seqlevels} (may be \code{NULL} if not set).
 }
 \description{
-Extract data from a \linkS4class{Fragment2} object
+Extract data from a \link[=Fragment2-class]{Fragment2} object
 }
 \concept{assay}

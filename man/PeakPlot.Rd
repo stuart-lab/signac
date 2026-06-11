@@ -16,7 +16,7 @@ PeakPlot(
 )
 }
 \arguments{
-\item{object}{A \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object}
+\item{object}{A \code{\link[SeuratObject:Seurat]{SeuratObject::Seurat()}} object}
 
 \item{region}{A genomic region to plot}
 
@@ -40,7 +40,7 @@ custom color scale (see examples).}
 Returns a \code{\link[ggplot2:ggplot]{ggplot2::ggplot()}} object
 }
 \description{
-Display the genomic ranges in a \linkS4class{GRangesAssay} object that fall
+Display the genomic ranges in a \link[=GRangesAssay-class]{GRangesAssay} object that fall
 in a given genomic region
 }
 \examples{

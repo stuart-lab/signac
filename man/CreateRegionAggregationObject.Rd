@@ -18,7 +18,7 @@ CreateRegionAggregationObject(
 \arguments{
 \item{mat}{A cell-by-position matrix}
 
-\item{regions}{A \code{\link[GenomicRanges:genomic-range-squeezers]{GenomicRanges::granges()}} object containing the
+\item{regions}{A \code{\link[GenomicRanges:granges]{GenomicRanges::granges()}} object containing the
 regions aggregated across.}
 
 \item{upstream}{Integer denoting number of bases upstream of the
@@ -41,7 +41,7 @@ position.}
 \item{verbose}{Display messages.}
 }
 \value{
-Returns a \linkS4class{RegionAggregation} object
+Returns a \link[=RegionAggregation-class]{RegionAggregation} object
 }
 \description{
 Create a \code{\link[=RegionAggregation-class]{RegionAggregation-class()}} object to store the insertions over

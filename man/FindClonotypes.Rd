@@ -33,7 +33,7 @@ FindClonotypes(
 \code{\link[Seurat:FindClusters]{Seurat::FindClusters()}}}
 }
 \value{
-Returns a \code{\link[SeuratObject:Seurat-class]{SeuratObject::Seurat()}} object
+Returns a \code{\link[SeuratObject:Seurat]{SeuratObject::Seurat()}} object
 }
 \description{
 Identify groups of related cells from allele frequency data. This will

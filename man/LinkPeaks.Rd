@@ -75,8 +75,8 @@ using gene IDs rather than gene names.}
 \value{
 Returns a Seurat object with results added to the \code{links} slot in the
 assay, stored under the key specified in the function. The results are stored
-as an \link[InteractionSet:GInteractions-class]{InteractionSet::GInteractions} object accessible via the \code{\link[=Links]{Links()}}
-function. This contains the \link[GenomicRanges:GRanges-class]{GenomicRanges::GRanges} for the pair of linked
+as an \link[InteractionSet:GInteractions]{InteractionSet::GInteractions} object accessible via the \code{\link[=Links]{Links()}}
+function. This contains the \link[GenomicRanges:GRanges]{GenomicRanges::GRanges} for the pair of linked
 regions (peak and gene), with \code{anchor1} corresponding to the peak region and
 \code{anchor2} corresponding to the gene region linked to the peak. The following
 metadata is also stored in the \code{GInteractions} object:

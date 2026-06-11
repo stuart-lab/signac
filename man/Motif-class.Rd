@@ -20,7 +20,7 @@ contains the motif and 0 otherwise.}
 
 \item{\code{motif.names}}{A list containing the name of each motif}
 
-\item{\code{positions}}{A \code{\link[GenomicRanges:GRangesList-class]{GenomicRanges::GRangesList()}} object containing
+\item{\code{positions}}{A \code{\link[GenomicRanges:GRangesList]{GenomicRanges::GRangesList()}} object containing
 exact positions of each motif in the genome.}
 
 \item{\code{meta.data}}{A dataframe for storage of additional
