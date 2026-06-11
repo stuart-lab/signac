@@ -140,6 +140,13 @@ ExportBigwig <- function(
   GroupsNames <- names(
     x = table(obj.groups)[table(obj.groups) >= minCells]
   )
+  if (length(x = GroupsNames) == 0) {
+    warning(
+      "No groups contain at least minCells (", minCells, ") cells; ",
+      "nothing to export."
+    )
+    return(list())
+  }
   # Check if output files already exist
   lapply(X = GroupsNames, FUN = function(x) {
     fn <- paste0(outdir, .Platform$file.sep, x, ".bed")
@@ -182,6 +189,12 @@ ExportBigwig <- function(
       )
     }
     md <- object[[normMethod]]
+    if (!is.numeric(x = md[[1]])) {
+      stop(
+        "The '", normMethod, "' metadata column must be numeric to be used ",
+        "for normalization."
+      )
+    }
     normBy <- tapply(
       X = md[names(x = obj.groups), 1],
       INDEX = obj.groups,

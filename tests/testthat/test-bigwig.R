@@ -298,4 +298,41 @@ test_that("ExportBigwig supports NULL and metadata-column normalization", {
   )
   expect_true(all(is.finite(bw$score)))
   expect_true(any(bw$score > 0))
+
+  # a non-numeric normalization column gives a clear error
+  atac_small$celltype <- rep(x = c("a", "b"), length.out = ncol(x = atac_small))
+  expect_error(
+    object = ExportBigwig(
+      object = atac_small,
+      normMethod = "celltype",
+      seqlengths = c("chr1" = 1e6),
+      outdir = outdir,
+      verbose = FALSE
+    ),
+    regexp = "must be numeric"
+  )
+})
+
+test_that("ExportBigwig warns when no group meets minCells", {
+  skip_if_not_installed("rtracklayer")
+  outdir <- file.path(tempdir(), "ExportBigwig_mincells")
+  dir.create(outdir, showWarnings = FALSE)
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  cells <- colnames(x = atac_small)
+  names(x = cells) <- cells
+  frags <- CreateFragmentObject(
+    path = fpath, cells = cells, verbose = FALSE, validate.fragments = FALSE
+  )
+  Fragments(atac_small) <- frags
+  expect_warning(
+    object = res <- ExportBigwig(
+      object = atac_small,
+      minCells = 1e6,
+      seqlengths = c("chr1" = 1e6),
+      outdir = outdir,
+      verbose = FALSE
+    ),
+    regexp = "minCells"
+  )
+  expect_length(object = res, n = 0)
 })
