@@ -87,6 +87,15 @@ CombinePeaks <- function(grlist) {
 #' and `dm` (Drosophila M., dm6) are also available.
 #' @param gsize Manually set effective genome size parameter. If specified,
 #' overrides MACS3 built-in genome sizes.
+#' @param seqlengths Chromosome lengths used to clip peaks that extend beyond
+#' chromosome boundaries (which can occur due to read extension during peak
+#' calling). Can be a named numeric vector of chromosome lengths, or any object
+#' with a `seqlengths` method such as a `BSgenome` object or a
+#' [Seqinfo::Seqinfo] object (for example the `BSgenome` for the genome used,
+#' or `seqlengths(genome)`). Peaks ending past a chromosome boundary are clipped
+#' to the boundary and peaks starting beyond it are removed. Sequence names must
+#' match those of the called peaks (e.g. `chr1` vs `1`). If `NULL` (default), no
+#' clipping is performed.
 #' @param additional.args Additional arguments passed to MACS. This should be a
 #' single character string.
 #' @param name Name for output MACS files. This will also be placed in the
@@ -115,6 +124,7 @@ CallPeaks.Seurat <- function(
   broad = FALSE,
   genome = "hs",
   gsize = NULL,
+  seqlengths = NULL,
   outdir = tempdir(),
   combine.peaks = TRUE,
   additional.args = NULL,
@@ -182,6 +192,7 @@ CallPeaks.Seurat <- function(
           broad = broad,
           genome = genome,
           gsize = gsize,
+          seqlengths = seqlengths,
           additional.args = additional.args,
           name = x,
           cleanup = cleanup,
@@ -207,6 +218,7 @@ CallPeaks.Seurat <- function(
       broad = broad,
       genome = genome,
       gsize = gsize,
+      seqlengths = seqlengths,
       additional.args = additional.args,
       name = name,
       cleanup = cleanup,
@@ -230,6 +242,7 @@ CallPeaks.ChromatinAssay5 <- function(
   cells = NULL,
   genome = "hs",
   gsize = NULL,
+  seqlengths = NULL,
   additional.args = NULL,
   name = "macs3",
   cleanup = TRUE,
@@ -252,6 +265,7 @@ CallPeaks.ChromatinAssay5 <- function(
       broad = broad,
       genome = genome,
       gsize = gsize,
+      seqlengths = seqlengths,
       additional.args = additional.args,
       name = name,
       cleanup = cleanup,
@@ -270,6 +284,7 @@ CallPeaks.ChromatinAssay5 <- function(
         broad = broad,
         genome = genome,
         gsize = gsize,
+        seqlengths = seqlengths,
         additional.args = additional.args,
         name = paste0(name, as.character(x = i)),
         cleanup = cleanup,
@@ -308,6 +323,7 @@ CallPeaks.Fragment2 <- function(
   cells = NULL,
   genome = "hs",
   gsize = NULL,
+  seqlengths = NULL,
   additional.args = NULL,
   name = "macs3",
   cleanup = TRUE,
@@ -347,6 +363,7 @@ CallPeaks.Fragment2 <- function(
     barcodes = barcodes,
     genome = genome,
     gsize = gsize,
+    seqlengths = seqlengths,
     additional.args = additional.args,
     name = name,
     cleanup = cleanup,
@@ -372,6 +389,7 @@ CallPeaks.default <- function(
   barcodes = NULL,
   genome = "hs",
   gsize = NULL,
+  seqlengths = NULL,
   additional.args = NULL,
   name = "macs3",
   cleanup = TRUE,
@@ -515,6 +533,11 @@ CallPeaks.default <- function(
     df = df, keep.extra.columns = TRUE, starts.in.df.are.0based = TRUE
   )
 
+  # clip peaks that extend beyond chromosome boundaries
+  if (!is.null(x = seqlengths)) {
+    gr <- ClipPeaks(gr = gr, seqlengths = seqlengths, verbose = verbose)
+  }
+
   if (cleanup) {
     # remove macs3 files
     files.to.remove <- paste0(outdir, .Platform$file.sep, files.to.remove)
@@ -531,5 +554,59 @@ CallPeaks.default <- function(
     }
   }
 
+  return(gr)
+}
+
+### Not exported ###
+
+# Clip peaks that extend beyond chromosome boundaries
+#
+# Peaks whose end coordinate falls past the chromosome end are clipped to the
+# boundary, and peaks starting beyond the chromosome end are removed.
+#
+# @param gr A GRanges object containing the peaks to clip
+# @param seqlengths A named vector of chromosome lengths, or any object with a
+# seqlengths method (e.g. a Seqinfo or BSgenome object)
+# @param verbose Display messages
+# @return Returns a GRanges object
+#' @importFrom Seqinfo seqlengths seqlengths<- seqlevels
+#' @importFrom GenomicRanges trim seqnames
+#' @importFrom BiocGenerics start end width
+ClipPeaks <- function(gr, seqlengths, verbose = TRUE) {
+  if (!is.numeric(x = seqlengths)) {
+    # extract a named length vector from a Seqinfo, BSgenome, etc.
+    seqlengths <- Seqinfo::seqlengths(x = seqlengths)
+  }
+  lvls <- seqlevels(x = gr)
+  if (length(x = intersect(x = lvls, y = names(x = seqlengths))) == 0) {
+    warning(
+      "None of the peak seqnames match the names in seqlengths; ",
+      "no clipping applied. Check that the sequence naming style is ",
+      "consistent (e.g. 'chr1' vs '1')."
+    )
+    return(gr)
+  }
+  # assign known lengths to matching seqlevels; unmatched levels remain NA and
+  # are left untouched by trim()
+  new.lengths <- unname(obj = seqlengths[lvls])
+  names(x = new.lengths) <- lvls
+  # assigning lengths while out-of-bound peaks are still present triggers a
+  # validity warning suggesting trim(); we clip below, so suppress it here
+  suppressWarnings(expr = seqlengths(x = gr) <- new.lengths)
+  chrom.len <- seqlengths(x = gr)[as.character(x = seqnames(x = gr))]
+  # remove peaks that start beyond the chromosome end entirely
+  keep <- is.na(x = chrom.len) | (start(x = gr) <= chrom.len)
+  n.removed <- sum(!keep)
+  gr <- gr[keep]
+  # clip peaks whose end extends past the chromosome boundary
+  chrom.len <- seqlengths(x = gr)[as.character(x = seqnames(x = gr))]
+  n.clipped <- sum(end(x = gr) > chrom.len, na.rm = TRUE)
+  gr <- trim(x = gr)
+  if (verbose && (n.clipped > 0 || n.removed > 0)) {
+    message(
+      "Clipped ", n.clipped, " and removed ", n.removed,
+      " peak(s) extending beyond chromosome boundaries"
+    )
+  }
   return(gr)
 }
