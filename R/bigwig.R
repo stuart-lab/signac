@@ -39,7 +39,7 @@ NULL
 #' `NULL`, the chromosome lengths stored in the object are used; note that these
 #' are frequently unset, in which case `seqlengths` must be supplied.
 #' @param outdir Directory to write output files (split bed files and bigwigs).
-#' Defaults to a temporary directory.
+#' Defaults to the current working directory.
 #' @param cleanup Remove the intermediate per-group bed files after writing the
 #' bigwig files. Default `TRUE`.
 #' @param verbose Display messages
@@ -71,7 +71,7 @@ ExportBigwig <- function(
   cutoff = NULL,
   chromosome = NULL,
   seqlengths = NULL,
-  outdir = tempdir(),
+  outdir = getwd(),
   cleanup = TRUE,
   verbose = TRUE
 ) {
