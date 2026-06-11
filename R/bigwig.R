@@ -54,13 +54,19 @@ NULL
 #' @importFrom SeuratObject DefaultAssay
 #'
 #' @export
-#' @concept bigwig
+#' @concept visualization
 #'
 #' @return Returns a list of paths to the bigwig files that were created
 #'
 #' @examples
 #' \dontrun{
-#' ExportBigwig(object, assay = "peaks")
+#' # chromosome lengths can be supplied as a BSgenome object, a Seqinfo, or a
+#' # named numeric vector
+#' ExportBigwig(
+#'   object,
+#'   group.by = "celltype",
+#'   seqlengths = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
+#' )
 #' }
 ExportBigwig <- function(
   object,

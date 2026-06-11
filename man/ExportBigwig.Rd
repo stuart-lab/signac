@@ -83,7 +83,13 @@ insertion-site coverage rather than fragment pileup.
 }
 \examples{
 \dontrun{
-ExportBigwig(object, assay = "peaks")
+# chromosome lengths can be supplied as a BSgenome object, a Seqinfo, or a
+# named numeric vector
+ExportBigwig(
+  object,
+  group.by = "celltype",
+  seqlengths = BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
+)
 }
 }
-\concept{bigwig}
+\concept{visualization}
