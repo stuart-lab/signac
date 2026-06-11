@@ -77,6 +77,9 @@ object.
 overlapping peaks were treated as the same feature.  
 * Fixed p-value calculation in `LinkPeaks()`. The reported p-value was
 previously one-sided while the test statistic was two-sided.
+* Added `seqlengths` parameter to `CallPeaks()` to automatically clip peaks
+beyond the ends of chromosomes.
+* Updated `CoveragePlot()` to accept multi-range `GRanges` objects as input.
 
 # Signac 1.17.1
 
