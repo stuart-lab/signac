@@ -21,9 +21,9 @@ BigwigTrack(
 \arguments{
 \item{region}{GRanges object specifying region to plot}
 
-\item{bigwig}{List of bigwig file paths. List should be named, and the name
-of each element in the list of files will be displayed alongside the track
-in the final plot.}
+\item{bigwig}{A named list or named character vector of bigwig file paths.
+The name of each element will be displayed alongside the track in the final
+plot.}
 
 \item{smooth}{Number of bases to smooth data over (rolling mean). If NULL,
 do not apply smoothing.}

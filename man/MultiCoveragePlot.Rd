@@ -151,10 +151,9 @@ of extreme values that may otherwise distort the scale.
 
 \item{window}{Smoothing window size}
 
-\item{bigwig}{List of bigWig file paths to plot data from.
-Files can be remotely hosted. The name of each element in
-the list will determine the y-axis label given to the
-track.}
+\item{bigwig}{A named list or named character vector of bigWig file paths to
+plot data from. Files can be remotely hosted. The name of each element
+determines the y-axis label given to the track.}
 
 \item{bigwig.type}{Type of track to use for bigWig files
 ("line" or "coverage"). Should either be a single value,

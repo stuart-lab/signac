@@ -91,10 +91,9 @@ globalVariables(names = c("bin", "score", "bw"), package = "Signac")
 #' of extreme values that may otherwise distort the scale.
 #'  - numeric: manually define a Y-axis limit
 #' @param window Smoothing window size
-#' @param bigwig List of bigWig file paths to plot data from.
-#' Files can be remotely hosted. The name of each element in
-#' the list will determine the y-axis label given to the
-#' track.
+#' @param bigwig A named list or named character vector of bigWig file paths to
+#' plot data from. Files can be remotely hosted. The name of each element
+#' determines the y-axis label given to the track.
 #' @param bigwig.type Type of track to use for bigWig files
 #' ("line" or "coverage"). Should either be a single value,
 #' or a list of values giving the type for each individual
@@ -573,9 +572,9 @@ MultiCoveragePlot <- function(
 #' Note that this function does not work on windows.
 #'
 #' @param region GRanges object specifying region to plot
-#' @param bigwig List of bigwig file paths. List should be named, and the name
-#' of each element in the list of files will be displayed alongside the track
-#' in the final plot.
+#' @param bigwig A named list or named character vector of bigwig file paths.
+#' The name of each element will be displayed alongside the track in the final
+#' plot.
 #' @param smooth Number of bases to smooth data over (rolling mean). If NULL,
 #' do not apply smoothing.
 #' @param extend.upstream Number of bases to extend the region upstream.
@@ -628,7 +627,11 @@ BigwigTrack <- function(
   downsample.rate = 0.1
 ) {
   if (!inherits(x = bigwig, what = "list")) {
-    bigwig <- list("bigWig" = bigwig)
+    # accept a (named) character vector of file paths
+    bigwig <- as.list(x = bigwig)
+  }
+  if (is.null(x = names(x = bigwig))) {
+    names(x = bigwig) <- paste0("bigWig_", seq_along(along.with = bigwig))
   }
   possible_types <- c("line", "heatmap", "coverage")
   if (!(type %in% possible_types)) {
@@ -1989,8 +1992,11 @@ SingleCoveragePlot <- function(
   # create bigwig tracks
   if (!is.null(x = bigwig)) {
     if (!inherits(x = bigwig, what = "list")) {
-      warning("BigWig should be a list of file paths")
-      bigwig <- list("bigWig" = bigwig)
+      # accept a (named) character vector of file paths
+      bigwig <- as.list(x = bigwig)
+    }
+    if (is.null(x = names(x = bigwig))) {
+      names(x = bigwig) <- paste0("bigWig_", seq_along(along.with = bigwig))
     }
     if (length(x = bigwig.type) == 1) {
       bigwig.type <- rep(x = bigwig.type, length(x = bigwig))
@@ -2501,9 +2507,9 @@ CoverageTrack <- function(
 #' @param tile.size Size of the sliding window for per-cell fragment tile plot
 #' @param tile.cells Number of cells to display fragment information for in tile
 #' plot.
-#' @param bigwig List of bigWig file paths to plot data from. Files can be
-#' remotely hosted. The name of each element in the list will determine the
-#' y-axis label given to the track.
+#' @param bigwig A named list or named character vector of bigWig file paths to
+#' plot data from. Files can be remotely hosted. The name of each element
+#' determines the y-axis label given to the track.
 #' @param bigwig.type Type of track to use for bigWig files ("line", "heatmap",
 #' or "coverage"). Should either be a single value, or a list of values giving
 #' the type for each individual track in the provided list of bigwig files.

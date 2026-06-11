@@ -127,9 +127,9 @@ plotting multi-assay data, only the first assay is shown in the tile plot.}
 \item{tile.cells}{Number of cells to display fragment information for in tile
 plot.}
 
-\item{bigwig}{List of bigWig file paths to plot data from. Files can be
-remotely hosted. The name of each element in the list will determine the
-y-axis label given to the track.}
+\item{bigwig}{A named list or named character vector of bigWig file paths to
+plot data from. Files can be remotely hosted. The name of each element
+determines the y-axis label given to the track.}
 
 \item{bigwig.type}{Type of track to use for bigWig files ("line", "heatmap",
 or "coverage"). Should either be a single value, or a list of values giving
