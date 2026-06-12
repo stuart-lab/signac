@@ -57,10 +57,10 @@ AlleleFreq.default <- function(object, variants, ...) {
   rev_half_idx <- sapply(X = idx_numerator, FUN = `[[`, 2)
 
   # verify that the object is behaving like we expect
-  if (!all.equal(
+  if (!isTRUE(x = all.equal(
     target = meta_row_mat[fwd_half_idx, 2],
     current = meta_row_mat[rev_half_idx, 2]
-  )) {
+  ))) {
     stop("Variant count matrix does not have the required structure")
   }
   numerator_counts <- object[fwd_half_idx, ] + object[rev_half_idx, ]
