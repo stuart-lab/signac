@@ -392,8 +392,10 @@ GenomeBinMatrix <- function(
 #' the fragment file are dropped with a warning. Set `keep_all_features =
 #' TRUE` to keep every feature in `features`; rows for absent chromosomes are
 #' filled with zeros. Only honored by the R backend (`fragtk = FALSE`).
-#' @param file.index Path to the tabix index (`.tbi`) for the fragment file.
-#' If `NULL`, defaults to `paste0(object, ".tbi")`.
+#' @param file.index Path to the tabix index (`.tbi` or `.csi`) for the
+#' fragment file. If `NULL`, the index is located automatically from the
+#' fragment file path (preferring `.tbi` when both are present). Only used by
+#' the R backend (`fragtk = FALSE`).
 #' @param frag.cells A named character vector mapping object-level cell names
 #' (the `names()`) to file-level barcodes (the values). Used to translate
 #' between the cell names used in a Seurat object and the barcodes written in
@@ -531,7 +533,6 @@ FeatureMatrix.default <- function(
     }
   }
   ValidateBPCellsArgs(bpcells = bpcells, bpcells.dir = bpcells.dir)
-  file.index <- file.index %||% paste0(object, ".tbi")
 
   # resolve file-level cells and object<->file barcode mapping
   if (!is.null(x = frag.cells)) {
@@ -583,6 +584,9 @@ FeatureMatrix.default <- function(
       rownames(x = mat) <- as.character(x = feat.use)
     }
   } else {
+    file.index <- file.index %||% GetIndexFile(
+      fragment = object, verbose = verbose
+    )
     mat <- SingleFeatureMatrix(
       path = object,
       file.index = file.index,
@@ -1047,7 +1051,8 @@ SingleFeatureMatrix <- function(
   process_n = 2000,
   verbose = TRUE
 ) {
-  file.index <- file.index %||% paste0(path, ".tbi")
+  # locate the index automatically (handles both .tbi and .csi) when not given
+  file.index <- file.index %||% GetIndexFile(fragment = path, verbose = verbose)
   feat.use <- features
   tbx <- TabixFile(file = path, index = file.index)
   n_feat_start <- length(x = feat.use)

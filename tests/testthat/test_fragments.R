@@ -106,6 +106,21 @@ test_that("UpdatePath works", {
   )
 })
 
+test_that("as.Fragment2 resolves the fragment index", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  old <- new(
+    Class = "Fragment", path = fpath, hash = c("a", "b"),
+    cells = c(x = "AAACGAACAAGCACTT-1")
+  )
+  f2 <- as.Fragment2(old)
+  expect_s4_class(f2, "Fragment2")
+  # the index is located automatically (here the .tbi alongside the fixture)
+  expect_equal(
+    GetFragmentData(object = f2, slot = "file.index"),
+    paste0(fpath, ".tbi")
+  )
+})
+
 test_that("CountFragments works", {
   fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
   fpath_headered <- system.file(

@@ -57,8 +57,10 @@ the assay's \code{colnames} are used as the default. Cell names are matched
 against the object-level names recorded in the \link[=Fragment2-class]{Fragment2} \code{cells}
 slot; file-level barcodes are resolved internally.}
 
-\item{file.index}{Path to the tabix index (\code{.tbi}) for the fragment file.
-If \code{NULL}, defaults to \code{paste0(object, ".tbi")}.}
+\item{file.index}{Path to the tabix index (\code{.tbi} or \code{.csi}) for the
+fragment file. If \code{NULL}, the index is located automatically from the
+fragment file path (preferring \code{.tbi} when both are present). Only used by
+the R backend (\code{fragtk = FALSE}).}
 
 \item{frag.cells}{A named character vector mapping object-level cell names
 (the \code{names()}) to file-level barcodes (the values). Used to translate

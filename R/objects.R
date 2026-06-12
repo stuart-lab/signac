@@ -300,7 +300,8 @@ as.Fragment2.Fragment <- function(x, ...) {
 
   # extract information from old object
   file.path <- x@path
-  file.index <- paste0(file.path, ".tbi")
+  # locate the index automatically (handles both .tbi and .csi)
+  file.index <- GetIndexFile(fragment = file.path, verbose = FALSE)
   hash <- x@hash
   cells <- x@cells
 
