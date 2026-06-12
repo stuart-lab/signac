@@ -523,29 +523,86 @@ ReadJASPAR <- function(file, pseudocount = 1) {
 }
 
 globalVariables(names = "pvalue", package = "Signac")
-#' FindMotifs
+#' Find over-represented motifs in genomic regions
 #'
-#' Find motifs over-represented in a given set of genomic features.
-#' Computes the number of features containing the motif (observed) and
-#' compares this to the total number of features containing the
-#' motif (background) using the hypergeometric test.
+#' Identify DNA sequence motifs that are over-represented in a set of genomic
+#' features (for example, a set of differentially accessible peaks) relative to
+#' a background set of features. Enrichment is quantified with a one-sided
+#' hypergeometric test.
+#'
+#' @details
+#' For each motif, `FindMotifs` compares how often the motif occurs in the
+#' query features to how often it occurs in a background set of features. The
+#' motif occurrences themselves are taken from the `motifs` data of the assay
+#' (a binary feature-by-motif matrix created with [AddMotifs()]). The procedure is:
+#'
+#' 1. **Restrict to scored features.** Query and background features that are
+#'    not present in the motif matrix are dropped, since motif occurrences are
+#'    only known for the features that were scored.
+#' 2. **Select the background set.** If `background` is a single number, that
+#'    many features are selected to match the sequence characteristics (by
+#'    default GC content) of the query using [MatchRegionStats()], drawn from
+#'    features other than the query. If `background` is a vector of feature
+#'    names it is used directly; if it is `NULL`, all features in the assay are
+#'    used. Matching the background to the query's sequence composition is
+#'    important, since a motif can appear enriched simply because the query
+#'    features differ in base composition from the genomic average (for example,
+#'    a GC-rich query will appear enriched for GC-rich motifs) rather than
+#'    because of genuine biological enrichment.
+#' 3. **Count motif occurrences.** For every motif the function counts the
+#'    number of query features containing it (`observed`) and the number of
+#'    background features containing it (`background`).
+#' 4. **Compute the enrichment p-value.** The query and background features
+#'    together define a population of features (their union). For each motif,
+#'    let `q` be the number of query features containing the motif, `k` the
+#'    number of query features, `m` the number of features in the population
+#'    containing the motif, and `N` the total number of features in the
+#'    population. The one-sided hypergeometric p-value is
+#'    `phyper(q - 1, m, N - m, k, lower.tail = FALSE)`, the probability of
+#'    observing at least `q` motif-containing features when `k` features are
+#'    drawn at random from the population. Defining the population as the union
+#'    of the query and background guarantees that `m >= q` and `N >= k`, so the
+#'    test is always well defined whether or not the background overlaps the
+#'    query.
+#'    
+#' 5. **Summarize and correct for multiple testing.** A fold enrichment is
+#'    reported as the percentage of query features containing the motif divided
+#'    by the percentage of background features containing the motif, and the
+#'    p-values are adjusted across motifs with [stats::p.adjust()] using
+#'    `p.adjust.method`. Results are ordered by increasing p-value, breaking
+#'    ties by decreasing fold enrichment.
 #'
 #' @param object A Seurat object
-#' @param features A vector of features to test for enrichments over background
+#' @param features A vector of features to test for enrichment over the
+#' background set. These should be present in the `motifs` data of the assay.
 #' @param assay Which assay to use. Default is the active assay
 #' @param background Either a vector of features to use as the background set,
-#' or a number specify the number of features to randomly select as a background
-#' set. If a number is provided, regions will be selected to match the sequence
+#' or a number specifying the number of features to select as a background set.
+#' If a number is provided, regions will be selected to match the sequence
 #' characteristics of the query features. To match the sequence characteristics,
 #' these characteristics must be stored in the feature metadata for the assay.
-#' This can be added using the
-#'  [RegionStats()] function. If NULL, use all features in the assay.
+#' This can be added using the [RegionStats()] function. If `NULL`, use all
+#' features in the assay.
 #' @param verbose Display messages
 #' @param p.adjust.method Multiple testing correction method to be applied.
 #' Passed to [stats::p.adjust()].
 #' @param ... Arguments passed to [MatchRegionStats()].
 #'
-#' @return Returns a data frame
+#' @return Returns a data frame with one row per motif and the following
+#' columns:
+#'   - `motif`: the motif ID
+#'   - `observed`: number of query features containing the motif
+#'   - `background`: number of background features containing the motif
+#'   - `percent.observed`: percentage of query features containing the motif
+#'   - `percent.background`: percentage of background features containing the
+#'   motif
+#'   - `fold.enrichment`: `percent.observed` divided by `percent.background`
+#'   - `pvalue`: the hypergeometric enrichment p-value
+#'   - `motif.name`: the motif name
+#'   - `p.adjust`: the p-value adjusted for multiple testing
+#'
+#'  Rows are ordered by increasing `pvalue`, breaking ties by decreasing
+#'  `fold.enrichment`.
 #'
 #' @importFrom Matrix colSums
 #' @importFrom stats phyper p.adjust
@@ -677,16 +734,15 @@ FindMotifs <- function(
   percent.observed <- query.counts / length(x = features) * 100
   percent.background <- background.counts / length(x = background) * 100
   fold.enrichment <- percent.observed / percent.background
-  p.list <- vector(mode = "numeric")
-  for (i in seq_along(along.with = query.counts)) {
-    p.list[[i]] <- phyper(
-      q = query.counts[[i]] - 1,
-      m = background.counts[[i]],
-      n = nrow(x = background.motifs) - background.counts[[i]],
-      k = length(x = features),
-      lower.tail = FALSE
-    )
-  }
+  test.features <- union(x = features, y = background)
+  test.counts <- colSums(x = motif.all[test.features, , drop = FALSE])
+  p.list <- phyper(
+    q = query.counts - 1,
+    m = test.counts,
+    n = length(x = test.features) - test.counts,
+    k = length(x = features),
+    lower.tail = FALSE
+  )
   results <- data.frame(
     motif = names(x = query.counts),
     observed = query.counts,
