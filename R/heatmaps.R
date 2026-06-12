@@ -130,7 +130,6 @@ RegionMatrix.default <- function(
   matlist <- list()
   unique.groups <- as.character(x = unique(x = group.by))
 
-  on_plus <- strand(x = regions) == "+" | strand(x = regions) == "*"
   for (i in seq_along(along.with = object)) {
     tmplist <- list()
 
@@ -198,8 +197,10 @@ RegionMatrix.default <- function(
               startpos <- total_bases - subfrag$start
               endpos <- total_bases - subfrag$end
             }
-            tmplist[[cell]][j, startpos] <- tmplist[[cell]][j, startpos] + 1
-            tmplist[[cell]][j, endpos] <- tmplist[[cell]][j, endpos] + 1
+            # accumulate insertions per position
+            tmplist[[cell]][j, ] <- tmplist[[cell]][j, ] +
+              tabulate(bin = startpos, nbins = ncol.mat) +
+              tabulate(bin = endpos, nbins = ncol.mat)
           }
         }
       }
