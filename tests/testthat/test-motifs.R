@@ -132,6 +132,39 @@ make_motif_object <- function(hits) {
   obj
 }
 
+test_that("CreateMotifMatrix pads missing features with all-zero rows", {
+  m <- Matrix::Matrix(
+    data = c(1, 0, 1, 0, 1, 0), nrow = 2, byrow = TRUE, sparse = TRUE
+  )
+  rownames(m) <- c("chr1:1-100", "chr1:200-300")
+  colnames(m) <- c("MA1", "MA2", "MA3")
+  feature_order <- c("chr1:1-100", "chrZ:1-100", "chr1:200-300")
+
+  out <- PadMissingFeatures(
+    motif.matrix = m,
+    feature_order = feature_order,
+    missing.features = "chrZ:1-100"
+  )
+
+  expect_equal(dim(out), c(3, 3))
+  # original feature order is restored
+  expect_equal(rownames(out), feature_order)
+  # the missing feature carries NO motif hits (the bug planted a spurious 1)
+  expect_equal(sum(out["chrZ:1-100", ]), 0)
+  # scored features are unchanged
+  expect_equal(as.numeric(out["chr1:1-100", ]), c(1, 0, 1))
+  expect_equal(as.numeric(out["chr1:200-300", ]), c(0, 1, 0))
+
+  # works for (and preserves) a logical match matrix
+  out.lgl <- PadMissingFeatures(
+    motif.matrix = as(m > 0, "lgCMatrix"),
+    feature_order = feature_order,
+    missing.features = "chrZ:1-100"
+  )
+  expect_equal(sum(out.lgl["chrZ:1-100", ]), 0)
+  expect_true(is(out.lgl, "lsparseMatrix"))
+})
+
 test_that("FindMotifs computes valid hypergeometric enrichment p-values", {
   feats <- rownames(x = atac_small[["peaks"]])
   query <- feats[1:20]
