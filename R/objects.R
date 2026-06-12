@@ -1350,9 +1350,12 @@ SetAssayData.ChromatinAssay5 <- function(
               compatible <- IsCompatibleRegionAggregation(old.agg, new.agg)
 
               if (compatible) {
-                # concatenate the matrix and the cells vector
-                old.agg@matrix <- rbind(old.agg@matrix, new.agg@matrix)
-                old.agg@cells <- c(old.agg@cells, new.agg@cells)
+                # only add the cells not already present; overlapping cells are
+                # not recomputed (see warning above), so subset to new.cells
+                # before binding to avoid duplicating overlapping cells/rows
+                new.sub <- subset(x = new.agg, cells = new.cells)
+                old.agg@matrix <- rbind(old.agg@matrix, new.sub@matrix)
+                old.agg@cells <- c(old.agg@cells, new.sub@cells)
                 agg.list[[j]] <- old.agg
                 merged <- TRUE
                 break
