@@ -1087,7 +1087,7 @@ RegionStats.default <- function(
   rownames(x = nadf) <- enum[!seq.keep]
   rownames(x = sequence.stats) <- enum[seq.keep]
   sequence.stats <- rbind(sequence.stats, nadf)
-  sequence.stats <- sequence.stats[enum, ]
+  sequence.stats <- sequence.stats[as.character(x = enum), , drop = FALSE]
   sequence.stats <- cbind(sequence.stats, sequence.length)
   return(sequence.stats)
 }
