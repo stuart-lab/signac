@@ -1,5 +1,6 @@
 #include <Rcpp.h>
 #include <zlib.h>
+#include "fragment_utils.h"
 
 // [[Rcpp::export]]
 SEXP groupCommand(
@@ -84,6 +85,12 @@ SEXP groupCommand(
 
   // looping over the fragments file
   do {
+    if (!fragmentLineComplete(buffer, fileHandler)) {
+      Rcpp::Rcerr << "Error: fragment file line exceeds maximum length ("
+                  << buffer_length << " bytes)\n" << std::flush;
+      gzclose(fileHandler);
+      return (Rcpp::DataFrame::create());
+    }
     cb_char = strtok ( buffer, "\t" );
     
     if (cb_char == NULL) {

@@ -2,6 +2,7 @@
 #include <zlib.h>
 #include <iostream>
 #include <fstream>
+#include "fragment_utils.h"
 
 
 // [[Rcpp::export]]
@@ -66,6 +67,13 @@ int filterCells(
   line_seq.clear();
   // looping over the fragments file
   do {
+    if (!fragmentLineComplete(buffer, ifileHandler)) {
+      Rcpp::Rcerr << "Error: fragment file line exceeds buffer_length ("
+                  << buffer_length << "); increase buffer_length\n"
+                  << std::flush;
+      gzclose(ifileHandler);
+      return 1;
+    }
     line_seq.append(buffer);
 
     cb_char = strtok ( buffer, "\t" );

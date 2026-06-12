@@ -320,6 +320,66 @@ test_that("FilterCells works", {
   expect_equal(object = output, expected = expected)
 })
 
+test_that("fragment parsers detect lines longer than the read buffer", {
+  write_frags <- function(lines) {
+    p <- tempfile(fileext = ".tsv.gz")
+    con <- gzfile(description = p, open = "w")
+    writeLines(text = lines, con = con)
+    close(con = con)
+    p
+  }
+  bc <- "AAACGAACAAGCACTT-1"
+  normal <- paste0("chr1\t100\t200\t", bc, "\t1")
+  # a line longer than the small (param) buffer but under the fixed 4096 buffer
+  long_line <- paste0("chr1\t300\t400\t", strrep("N", 500), "\t1")
+  # a line longer than the fixed 4096-byte buffer used by group/validate
+  huge_line <- paste0("chr1\t300\t400\t", strrep("N", 5000), "\t1")
+
+  out <- tempfile(fileext = ".tsv")
+  fp_long <- write_frags(c(normal, long_line))
+  fp_huge <- write_frags(c(normal, huge_line))
+  fp_ok <- write_frags(normal)
+
+  # filterCells: small buffer cannot hold the long line -> error (return 1)
+  expect_equal(
+    filterCells(fragments = fp_long, outfile = out, keep_cells = bc,
+                buffer_length = 64, verbose = FALSE),
+    1
+  )
+  # a buffer large enough -> no truncation, success (return 0)
+  expect_equal(
+    filterCells(fragments = fp_long, outfile = out, keep_cells = bc,
+                buffer_length = 4096, verbose = FALSE),
+    0
+  )
+
+  # splitFragments: small buffer cannot hold the long line -> error (return 1)
+  expect_equal(
+    splitFragments(fragments = fp_long, cells = bc, idents = "a",
+                   unique_idents = "a", outdir = paste0(tempdir(), "/"),
+                   suffix = "_buftest", buffer_length = 64, verbose = FALSE),
+    1
+  )
+
+  # groupCommand uses a fixed 4096-byte buffer: a >4096 line -> empty result,
+  # whereas a well-formed file returns one row per barcode
+  expect_equal(nrow(groupCommand(fragments = fp_huge, verbose = FALSE)), 0)
+  expect_equal(nrow(groupCommand(fragments = fp_ok, verbose = FALSE)), 1)
+
+  # validateCells: a >4096 first line halts before the barcode can be found,
+  # whereas the same barcode in a well-formed file is found
+  fp_huge_first <- write_frags(c(huge_line, normal))
+  expect_false(
+    validateCells(fragments = fp_huge_first, cells = bc, find_n = 1,
+                  verbose = FALSE)
+  )
+  expect_true(
+    validateCells(fragments = fp_ok, cells = bc, find_n = 1, verbose = FALSE)
+  )
+
+  unlink(c(out, fp_long, fp_huge, fp_ok, fp_huge_first))
+})
+
 test_that("SplitFragments works", {
   fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
   fpath_headered <- system.file(
