@@ -274,18 +274,38 @@ CreateMotifMatrix <- function(
       X = pwm, FUN = slot, FUN.VALUE = "character", "name"
     )
   }
-  # add missing features
+  # features on seqlevels absent from the genome were dropped above; add them
+  # back as all-zero rows and restore the original feature order
   if (sum(miss_sn) > 0) {
-    replacement_matrix <- sparseMatrix(
-      i = sum(miss_sn),
-      j = ncol(x = motif.matrix)
+    motif.matrix <- PadMissingFeatures(
+      motif.matrix = motif.matrix,
+      feature_order = as.character(x = feature_order),
+      missing.features = as.character(x = feature_order[miss_sn])
     )
-    rownames(x = replacement_matrix) <- as.character(x = feature_order[miss_sn])
-    colnames(x = replacement_matrix) <- colnames(x = motif.matrix)
-    motif.matrix <- rbind(motif.matrix, replacement_matrix)
-    motif.matrix <- motif.matrix[as.character(x = feature_order), ]
   }
   return(motif.matrix)
+}
+
+# Re-insert dropped features into a motif match matrix as all-zero rows,
+# restoring the original feature order. Features on seqlevels not present in the
+# genome cannot be scored by motifmatchr and are removed before matching (see
+# CreateMotifMatrix); they carry no motif hits, so they are added back as zeros.
+# @param motif.matrix Sparse motif match matrix for the scored features.
+# @param feature_order Character vector of all feature names in original order.
+# @param missing.features Character vector of the dropped feature names.
+# @return The motif matrix with all features present, ordered by feature_order.
+PadMissingFeatures <- function(motif.matrix, feature_order, missing.features) {
+  # an empty sparse matrix (no nonzero entries) of the correct dimensions
+  # one all-zero row per missing feature
+  replacement_matrix <- sparseMatrix(
+    i = integer(length = 0L),
+    j = integer(length = 0L),
+    dims = c(length(x = missing.features), ncol(x = motif.matrix))
+  )
+  rownames(x = replacement_matrix) <- missing.features
+  colnames(x = replacement_matrix) <- colnames(x = motif.matrix)
+  motif.matrix <- rbind(motif.matrix, replacement_matrix)
+  return(motif.matrix[feature_order, ])
 }
 
 #' @importFrom SeuratObject LayerData CreateAssayObject DefaultLayer as.sparse
