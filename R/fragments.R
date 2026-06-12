@@ -184,7 +184,9 @@ FilterCells <- function(
     verbose = verbose
   )
   if (filtered == 1) {
-    stop("Error: cannot open requested file")
+    stop("Error filtering fragment file (see message above): the file could ",
+         "not be opened or a line exceeded buffer_length (", buffer_length,
+         "). Increase buffer_length if lines are longer than this.")
   }
   # bgzip and index output
   if (verbose) {
