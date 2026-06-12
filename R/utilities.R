@@ -1758,6 +1758,22 @@ IsMatrixEmpty <- function(x) {
   return(all(matrix.dims == 0) || matrix.na)
 }
 
+# Resolve a cutoff value, interpreting "q<n>" strings as the nth percentile of
+# the positive values in `data`. Numeric cutoffs are returned unchanged. This
+# mirrors Seurat::SetQuantile so quantile clipping does not require Seurat.
+#' @importFrom stats quantile
+SetQuantile <- function(cutoff, data) {
+  if (grepl(pattern = "^q[0-9]{1,3}$", x = as.character(x = cutoff))) {
+    this.quantile <- as.numeric(
+      x = sub(pattern = "q", replacement = "", x = as.character(x = cutoff))
+    ) / 100
+    data <- unlist(x = data)
+    data <- data[data > 0]
+    cutoff <- quantile(x = data, probs = this.quantile)
+  }
+  return(as.numeric(x = cutoff))
+}
+
 #' @importFrom Matrix sparseMatrix
 #' @importFrom S4Vectors elementNROWS
 #' @importFrom BiocGenerics start end
