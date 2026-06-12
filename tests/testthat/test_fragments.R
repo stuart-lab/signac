@@ -101,23 +101,18 @@ test_that("Subset fragment object works", {
 })
 
 test_that("UpdatePath works", {
+  # a non-existent path is rejected
   expect_error(
-    object = UpdatePath(frags, new.path = "x")
+    object = UpdatePath(frags, new.path = "x"),
+    regexp = "No such file"
   )
-})
-
-test_that("as.Fragment2 resolves the fragment index", {
-  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
-  old <- new(
-    Class = "Fragment", path = fpath, hash = c("a", "b"),
-    cells = c(x = "AAACGAACAAGCACTT-1")
+  # pointing at a file whose contents differ fails the stored MD5 check
+  fpath_other <- system.file(
+    "extdata", "fragments_header.tsv.gz", package = "Signac"
   )
-  f2 <- as.Fragment2(old)
-  expect_s4_class(f2, "Fragment2")
-  # the index is located automatically (here the .tbi alongside the fixture)
-  expect_equal(
-    GetFragmentData(object = f2, slot = "file.index"),
-    paste0(fpath, ".tbi")
+  expect_error(
+    object = UpdatePath(frags, new.path = fpath_other),
+    regexp = "MD5 sum does not match"
   )
 })
 
@@ -218,13 +213,13 @@ test_that("ValidateCells works", {
     path = fpath,
     cells = cells,
     verbose = FALSE,
-    validate = FALSE
+    validate.fragments = FALSE
   )
   frags_headered <- CreateFragmentObject(
     path = fpath_headered,
     cells = cells,
     verbose = FALSE,
-    validate = FALSE
+    validate.fragments = FALSE
   )
   valid <- Signac:::ValidateCells(
     object = frags,
@@ -264,13 +259,13 @@ test_that("ValidateHash works", {
     path = fpath,
     cells = cells,
     verbose = FALSE,
-    validate = FALSE
+    validate.fragments = FALSE
   )
   frags_headered <- CreateFragmentObject(
     path = fpath_headered,
     cells = cells,
     verbose = FALSE,
-    validate = FALSE
+    validate.fragments = FALSE
   )
 
   valid <- Signac:::ValidateHash(
@@ -335,66 +330,6 @@ test_that("FilterCells works", {
   expect_equal(object = output, expected = expected)
 })
 
-test_that("fragment parsers detect lines longer than the read buffer", {
-  write_frags <- function(lines) {
-    p <- tempfile(fileext = ".tsv.gz")
-    con <- gzfile(description = p, open = "w")
-    writeLines(text = lines, con = con)
-    close(con = con)
-    p
-  }
-  bc <- "AAACGAACAAGCACTT-1"
-  normal <- paste0("chr1\t100\t200\t", bc, "\t1")
-  # a line longer than the small (param) buffer but under the fixed 4096 buffer
-  long_line <- paste0("chr1\t300\t400\t", strrep("N", 500), "\t1")
-  # a line longer than the fixed 4096-byte buffer used by group/validate
-  huge_line <- paste0("chr1\t300\t400\t", strrep("N", 5000), "\t1")
-
-  out <- tempfile(fileext = ".tsv")
-  fp_long <- write_frags(c(normal, long_line))
-  fp_huge <- write_frags(c(normal, huge_line))
-  fp_ok <- write_frags(normal)
-
-  # filterCells: small buffer cannot hold the long line -> error (return 1)
-  expect_equal(
-    filterCells(fragments = fp_long, outfile = out, keep_cells = bc,
-                buffer_length = 64, verbose = FALSE),
-    1
-  )
-  # a buffer large enough -> no truncation, success (return 0)
-  expect_equal(
-    filterCells(fragments = fp_long, outfile = out, keep_cells = bc,
-                buffer_length = 4096, verbose = FALSE),
-    0
-  )
-
-  # splitFragments: small buffer cannot hold the long line -> error (return 1)
-  expect_equal(
-    splitFragments(fragments = fp_long, cells = bc, idents = "a",
-                   unique_idents = "a", outdir = paste0(tempdir(), "/"),
-                   suffix = "_buftest", buffer_length = 64, verbose = FALSE),
-    1
-  )
-
-  # groupCommand uses a fixed 4096-byte buffer: a >4096 line -> empty result,
-  # whereas a well-formed file returns one row per barcode
-  expect_equal(nrow(groupCommand(fragments = fp_huge, verbose = FALSE)), 0)
-  expect_equal(nrow(groupCommand(fragments = fp_ok, verbose = FALSE)), 1)
-
-  # validateCells: a >4096 first line halts before the barcode can be found,
-  # whereas the same barcode in a well-formed file is found
-  fp_huge_first <- write_frags(c(huge_line, normal))
-  expect_false(
-    validateCells(fragments = fp_huge_first, cells = bc, find_n = 1,
-                  verbose = FALSE)
-  )
-  expect_true(
-    validateCells(fragments = fp_ok, cells = bc, find_n = 1, verbose = FALSE)
-  )
-
-  unlink(c(out, fp_long, fp_huge, fp_ok, fp_huge_first))
-})
-
 test_that("SplitFragments works", {
   fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
   fpath_headered <- system.file(
@@ -406,13 +341,13 @@ test_that("SplitFragments works", {
     path = fpath,
     cells = cells,
     verbose = FALSE,
-    validate = FALSE
+    validate.fragments = FALSE
   )
   frags_headered <- CreateFragmentObject(
     path = fpath,
     cells = cells,
     verbose = FALSE,
-    validate = FALSE
+    validate.fragments = FALSE
   )
   Fragments(atac_small) <- frags
   SplitFragments(
@@ -645,4 +580,184 @@ test_that("SplitFragments works", {
     object = bed2_h,
     expected = bed2
   )
+})
+
+# CountFragments ---------------------------------------------------------------
+
+test_that("CountFragments doubles counts when given the same file twice", {
+  # Combining a fragment file with itself should sum per-cell counts
+  single <- CountFragments(fragments = fpath, verbose = FALSE)
+  double <- CountFragments(fragments = list(fpath, fpath), verbose = FALSE)
+  rownames(single) <- single$CB
+  rownames(double) <- double$CB
+  expect_equal(
+    double[single$CB, "frequency_count"],
+    single$frequency_count * 2L
+  )
+})
+
+test_that("CountFragments errors on remote file", {
+  expect_error(
+    CountFragments(
+      fragments = "https://example.com/file.tsv.gz", verbose = FALSE
+    ),
+    regexp = "Remote"
+  )
+})
+
+test_that("CountFragments with cells filter", {
+  cells <- head(colnames(atac_small), 5)
+  res <- CountFragments(fragments = fpath, cells = cells, verbose = FALSE)
+  expect_s3_class(res, "data.frame")
+  expect_true(all(res$CB %in% cells))
+})
+
+# FilterCells extras -----------------------------------------------------------
+
+test_that("FilterCells errors on remote file", {
+  expect_error(
+    FilterCells(
+      fragments = "https://example.com/file.tsv.gz",
+      cells = "x", verbose = FALSE
+    ),
+    regexp = "Remote"
+  )
+})
+
+# header -----------------------------------------------------------------------
+
+test_that("header reads comment lines starting with '#' from headered file", {
+  frags_h <- CreateFragmentObject(path = fpath_headered, verbose = FALSE)
+  h <- header(frags_h)
+  # the test file has at least one comment line
+  expect_true(length(h) > 0)
+  expect_true(all(startsWith(h, "#")))
+})
+
+# seqlevels / renameSeqlevels --------------------------------------------------
+
+test_that("seqlevels<-, renameSeqlevels work on Fragment2", {
+  f <- CreateFragmentObject(path = fpath, verbose = FALSE)
+  seqlevels(f) <- c(chr1 = "chr1", chr2 = "chr2")
+  expect_equal(seqlevels(f), c("chr1", "chr2"))
+  f2 <- renameSeqlevels(f, value = c(chr1 = "1"))
+  expect_true("1" %in% seqlevels(f2))
+  f3 <- renameSeqlevels(f, value = c("A", "B"))
+  expect_equal(seqlevels(f3), c("A", "B"))
+})
+
+test_that("seqlevels<- validates", {
+  f <- CreateFragmentObject(path = fpath, verbose = FALSE)
+  expect_error(seqlevels(f) <- 1:3, regexp = "character vector")
+  expect_error(seqlevels(f) <- c("chr1", "chr2"), regexp = "named vector")
+  seqlevels(f) <- NULL
+  expect_null(seqlevels(f))
+})
+
+test_that("renameSeqlevels errors on length mismatch", {
+  f <- CreateFragmentObject(path = fpath, verbose = FALSE)
+  seqlevels(f) <- c(chr1 = "chr1", chr2 = "chr2")
+  expect_error(
+    renameSeqlevels(f, value = c("A", "B", "C")), regexp = "same number"
+  )
+})
+
+test_that("renameSeqlevels errors when seqlevels not set", {
+  f <- CreateFragmentObject(path = fpath, verbose = FALSE)
+  expect_error(
+    renameSeqlevels(f, value = c(chr1 = "A")),
+    regexp = "seqlevels information not set"
+  )
+})
+
+# Cells<- ----------------------------------------------------------------------
+
+test_that("Cells<- assignment works for Fragment2", {
+  new_cells <- GetFragmentData(frags, "cells")
+  Cells(frags) <- new_cells
+  expect_equal(GetFragmentData(frags, "cells"), new_cells)
+  expect_error(Cells(frags) <- unname(new_cells), regexp = "named vector")
+})
+
+# UpdatePath -------------------------------------------------------------------
+
+test_that("UpdatePath same path returns same object", {
+  f <- CreateFragmentObject(path = fpath, verbose = FALSE)
+  expect_identical(UpdatePath(f, new.path = fpath), f)
+})
+
+
+test_that("as.Fragment2 resolves the fragment index", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  old <- new(
+    Class = "Fragment", path = fpath, hash = c("a", "b"),
+    cells = c(x = "AAACGAACAAGCACTT-1")
+  )
+  f2 <- as.Fragment2(old)
+  expect_s4_class(f2, "Fragment2")
+  # the index is located automatically (here the .tbi alongside the fixture)
+  expect_equal(
+    GetFragmentData(object = f2, slot = "file.index"),
+    paste0(fpath, ".tbi")
+  )
+})
+
+test_that("fragment parsers detect lines longer than the read buffer", {
+  write_frags <- function(lines) {
+    p <- tempfile(fileext = ".tsv.gz")
+    con <- gzfile(description = p, open = "w")
+    writeLines(text = lines, con = con)
+    close(con = con)
+    p
+  }
+  bc <- "AAACGAACAAGCACTT-1"
+  normal <- paste0("chr1\t100\t200\t", bc, "\t1")
+  # a line longer than the small (param) buffer but under the fixed 4096 buffer
+  long_line <- paste0("chr1\t300\t400\t", strrep("N", 500), "\t1")
+  # a line longer than the fixed 4096-byte buffer used by group/validate
+  huge_line <- paste0("chr1\t300\t400\t", strrep("N", 5000), "\t1")
+
+  out <- tempfile(fileext = ".tsv")
+  fp_long <- write_frags(c(normal, long_line))
+  fp_huge <- write_frags(c(normal, huge_line))
+  fp_ok <- write_frags(normal)
+
+  # filterCells: small buffer cannot hold the long line -> error (return 1)
+  expect_equal(
+    filterCells(fragments = fp_long, outfile = out, keep_cells = bc,
+                buffer_length = 64, verbose = FALSE),
+    1
+  )
+  # a buffer large enough -> no truncation, success (return 0)
+  expect_equal(
+    filterCells(fragments = fp_long, outfile = out, keep_cells = bc,
+                buffer_length = 4096, verbose = FALSE),
+    0
+  )
+
+  # splitFragments: small buffer cannot hold the long line -> error (return 1)
+  expect_equal(
+    splitFragments(fragments = fp_long, cells = bc, idents = "a",
+                   unique_idents = "a", outdir = paste0(tempdir(), "/"),
+                   suffix = "_buftest", buffer_length = 64, verbose = FALSE),
+    1
+  )
+
+  # groupCommand uses a fixed 4096-byte buffer: a >4096 line -> empty result,
+  # whereas a well-formed file returns one row per barcode
+  expect_equal(nrow(groupCommand(fragments = fp_huge, verbose = FALSE)), 0)
+  expect_equal(nrow(groupCommand(fragments = fp_ok, verbose = FALSE)), 1)
+
+  # validateCells: a >4096 first line halts before the barcode can be found,
+  # whereas the same barcode in a well-formed file is found
+  fp_huge_first <- write_frags(c(huge_line, normal))
+  expect_false(
+    validateCells(fragments = fp_huge_first, cells = bc, find_n = 1,
+                  verbose = FALSE)
+  )
+  expect_true(
+    validateCells(fragments = fp_ok, cells = bc, find_n = 1, verbose = FALSE)
+  )
+
+  unlink(c(out, fp_long, fp_huge, fp_ok, fp_huge_first))
 })
