@@ -69,6 +69,9 @@ RegionMatrix.ChromatinAssay5 <- function(
   }
   # get relevant fragment files
   allfrag <- Fragments(object = object)
+  if (length(x = allfrag) == 0) {
+    stop("No fragment files present in assay")
+  }
   frag.keep <- sapply(X = allfrag, FUN = function(x) {
     any(names(x = group.by) %in% Cells(x = x))
   })
