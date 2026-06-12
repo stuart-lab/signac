@@ -29,8 +29,12 @@ cell identities.}
 
 \item{assay}{Name of assay to use. If \code{NULL}, use the default assay.}
 
-\item{var.features}{Subset to only variable features for ontology term
-enrichment.}
+\item{var.features}{Restrict the analysis to variable features. When \code{TRUE}
+(the default), differential testing is performed only on the variable
+features of the assay, so the ranked list scored by \code{\link[fgsea:fgsea]{fgsea::fgsea()}} (the
+enrichment universe) and the term gene sets are evaluated within the same
+variable-feature space. Requires variable features to be set for the assay
+(e.g. with \code{\link[=FindTopFeatures]{FindTopFeatures()}}).}
 
 \item{scoreType}{\code{scoreType} parameter for \code{\link[fgsea:fgseaSimple]{fgsea::fgseaSimple()}}.
 Options are "std", "pos", "neg" (two-tailed or one-tailed tests).}
