@@ -63,13 +63,14 @@ AlleleFreq.default <- function(object, variants, ...) {
   ))) {
     stop("Variant count matrix does not have the required structure")
   }
-  numerator_counts <- object[fwd_half_idx, ] + object[rev_half_idx, ]
+  numerator_counts <- object[fwd_half_idx, , drop = FALSE] +
+    object[rev_half_idx, , drop = FALSE]
   rownames(x = numerator_counts) <- variants
 
   # Same idea for the denominator but use all counts at each position
   denom_counts <- sapply(X = variant_df$position, FUN = function(x) {
     idx <- which(meta_row_mat$position == x)
-    total_coverage <- colSums(x = object[idx, ])
+    total_coverage <- colSums(x = object[idx, , drop = FALSE])
     return(total_coverage)
   })
   denom_counts <- t(x = denom_counts)
@@ -82,8 +83,8 @@ AlleleFreq.default <- function(object, variants, ...) {
   # Set NaN value due to 0 total counts to 0
   allele_freq_matrix@x[is.nan(x = allele_freq_matrix@x)] <- 0
 
-  # reorder before returning
-  return(allele_freq_matrix[variants, ])
+  # reorder before returning (drop = FALSE keeps a single variant 2-dimensional)
+  return(allele_freq_matrix[variants, , drop = FALSE])
 }
 
 #' @rdname AlleleFreq
