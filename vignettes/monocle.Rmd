@@ -252,6 +252,7 @@ reproducibility. This file can be downloaded [here](https://www.dropbox.com/s/w5
 ```{r}
 # load the pre-selected HSCs
 hsc <- readLines("../hsc_cells.txt")
+hsc <- intersect(hsc, colnames(bone))
 ```
 
 ```{r message=FALSE, warning=FALSE}
