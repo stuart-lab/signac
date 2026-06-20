@@ -272,6 +272,14 @@ SplitFragments <- function(
       idents.use <- as.character(x = unname(obj = groups[names(x = cells.use)]))
       frag.cell.name <- as.character(x = unname(obj = cells.use))
 
+      if (length(x = cells.use) == 0) {
+        if (verbose) {
+          message(
+            "No requested cells found in fragment file, skipping ", fragpath
+          )
+        }
+        next
+      }
       if (verbose) {
         message("Processing file ", fragpath)
       }

@@ -80,6 +80,8 @@ previously one-sided while the test statistic was two-sided.
 * Added `seqlengths` parameter to `CallPeaks()` to automatically clip peaks
 beyond the ends of chromosomes.
 * Updated `CoveragePlot()` to accept multi-range `GRanges` objects as input.
+* `SplitFragments()` now skips fragment files that contain none of the requested
+cells, avoiding an unnecessary scan of the whole file.
 
 # Signac 1.17.1
 
