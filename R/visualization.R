@@ -1595,10 +1595,7 @@ RegionHeatmap <- function(
 
       # clip values
       if (!is.na(x = max.cutoff)) {
-        if (!requireNamespace(package = "Seurat", quietly = TRUE)) {
-          stop("Please install Seurat: install.packages('Seurat')")
-        }
-        cutoff <- Seurat::SetQuantile(cutoff = max.cutoff, data = smoothed)
+        cutoff <- SetQuantile(cutoff = max.cutoff, data = smoothed)
         smoothed[smoothed > cutoff] <- cutoff
       }
 

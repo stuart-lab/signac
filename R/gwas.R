@@ -68,11 +68,11 @@ LoadGWAS <- function(gwas.file) {
 #' @export
 LoadLDData <- function(ld.file) {
   ld_data <- fread(input = ld.file, data.table = FALSE)
-  colnames_lower <- tolower(x = colnames(x = ld_data))
+  colnames(x = ld_data) <- tolower(x = colnames(x = ld_data))
 
   # Validate required columns
   required <- c("chromosome", "position", "r2")
-  missing <- required[!required %in% colnames_lower]
+  missing <- required[!required %in% colnames(x = ld_data)]
   if (length(missing) > 0) {
     stop(
       "Missing required columns: ", paste(missing, collapse = ", "), "\n",
@@ -110,16 +110,16 @@ LoadLDData <- function(ld.file) {
 #' @export
 LoadCredibleSets <- function(credset.file, credset.threshold = 0.01) {
   cs_data <- fread(input = credset.file, data.table = FALSE)
-  colnames_lower <- tolower(x = colnames(x = cs_data))
 
   # Check for header
   if (all(grepl("^V[0-9]+$", colnames(x = cs_data)))) {
     stop("File has no header row")
   }
+  colnames(x = cs_data) <- tolower(x = colnames(x = cs_data))
 
   # Validate required columns
   required <- c("chromosome", "position", "pip", "cs")
-  missing <- required[!required %in% colnames_lower]
+  missing <- required[!required %in% colnames(x = cs_data)]
   if (length(missing) > 0) {
     stop(
       "Missing required columns: ", paste(missing, collapse = ", "), "\n",

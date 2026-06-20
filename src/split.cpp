@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
+#include "fragment_utils.h"
 
 
 // [[Rcpp::export]]
@@ -99,6 +100,13 @@ int splitFragments(
 
   // looping over the fragments file
   do {
+    if (!fragmentLineComplete(buffer, ifileHandler)) {
+      Rcpp::Rcerr << "Error: fragment file line exceeds buffer_length ("
+                  << buffer_length << "); increase buffer_length\n"
+                  << std::flush;
+      gzclose(ifileHandler);
+      return 1;
+    }
     line_seq.clear();
     line_seq.append(buffer);
 

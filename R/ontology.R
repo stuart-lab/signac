@@ -11,8 +11,12 @@
 #' @param group.by Name of grouping variable to use. If `NULL`, use the active
 #' cell identities.
 #' @param assay Name of assay to use. If `NULL`, use the default assay.
-#' @param var.features Subset to only variable features for ontology term
-#' enrichment.
+#' @param var.features Restrict the analysis to variable features. When `TRUE`
+#' (the default), differential testing is performed only on the variable
+#' features of the assay, so the ranked list scored by [fgsea::fgsea()] (the
+#' enrichment universe) and the term gene sets are evaluated within the same
+#' variable-feature space. Requires variable features to be set for the assay
+#' (e.g. with [FindTopFeatures()]).
 #' @param scoreType `scoreType` parameter for [fgsea::fgseaSimple()].
 #' Options are "std", "pos", "neg" (two-tailed or one-tailed tests).
 #' @param direction Which direction of enrichment to retain. `"up"` (default)
@@ -55,12 +59,25 @@ EnrichedTerms <- function(
 
   assay <- assay %||% DefaultAssay(object = object)
 
+  marker.args <- list(...)
   if (var.features) {
+    var.feat <- VariableFeatures(object = object[[assay]])
+    if (length(x = var.feat) == 0) {
+      stop(
+        "var.features = TRUE but no variable features are set for assay '",
+        assay, "'. Compute variable features first (for example with ",
+        "FindTopFeatures()) or set var.features = FALSE."
+      )
+    }
+    # Restrict the analysis to variable features
+    marker.args$features <- if (is.null(x = marker.args$features)) {
+      var.feat
+    } else {
+      intersect(x = marker.args$features, y = var.feat)
+    }
     terms <- lapply(
       X = terms,
-      FUN = function(x) {
-        x[x %in% VariableFeatures(object = object[[assay]])]
-      }
+      FUN = function(x) x[x %in% var.feat]
     )
   }
 
@@ -80,17 +97,19 @@ EnrichedTerms <- function(
     )
   }
   for (i in seq_along(along.with = cellgroups)) {
-    mk <- Seurat::FindMarkers(
-      object = object,
-      assay = assay,
-      ident.1 = cellgroups[[i]],
-      group.by = group.by,
-      ...
+    mk <- do.call(
+      what = Seurat::FindMarkers,
+      args = c(
+        list(
+          object = object,
+          assay = assay,
+          ident.1 = cellgroups[[i]],
+          group.by = group.by
+        ),
+        marker.args
+      )
     )
-    mk$rank_score <- sign(mk$avg_log2FC) * -log10(mk$p_val)
-    ranked_list <- setNames(object = mk$rank_score, nm = rownames(x = mk))
-    max_non_infinite <- max(ranked_list[!is.infinite(x = ranked_list)])
-    ranked_list[is.infinite(x = ranked_list)] <- max_non_infinite
+    ranked_list <- RankFeatures(markers = mk)
 
     # run fgsea
     fgsea_results <- fgsea::fgsea(
@@ -126,4 +145,27 @@ EnrichedTerms <- function(
     }
   }
   return(pred)
+}
+
+# Build a named ranked statistic vector for fgsea from a FindMarkers result.
+# The score for each feature is sign(avg_log2FC) * -log10(p_val), so that
+# strongly up-regulated features get large positive scores and strongly
+# down-regulated features get large negative scores. A p-value of exactly zero
+# produces an infinite score (+Inf when up-regulated, -Inf when down-regulated);
+# each infinite score is capped at the most extreme finite score of the same
+# sign. Capping the two signs separately keeps up-regulated features at the top
+# of the ranking and down-regulated features at the bottom
+# @param markers A data frame of differential test results with columns
+#   `avg_log2FC` and `p_val` and feature names as row names (as returned by
+#   [Seurat::FindMarkers()]).
+# @return A named numeric vector of ranking statistics.
+RankFeatures <- function(markers) {
+  rank_score <- sign(x = markers$avg_log2FC) * -log10(x = markers$p_val)
+  ranked_list <- setNames(object = rank_score, nm = rownames(x = markers))
+  finite_scores <- ranked_list[is.finite(x = ranked_list)]
+  pos_cap <- if (length(x = finite_scores) > 0) max(finite_scores) else 1
+  neg_cap <- if (length(x = finite_scores) > 0) min(finite_scores) else -1
+  ranked_list[ranked_list == Inf] <- pos_cap
+  ranked_list[ranked_list == -Inf] <- neg_cap
+  return(ranked_list)
 }

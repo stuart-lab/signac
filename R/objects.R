@@ -300,7 +300,8 @@ as.Fragment2.Fragment <- function(x, ...) {
 
   # extract information from old object
   file.path <- x@path
-  file.index <- paste0(file.path, ".tbi")
+  # locate the index automatically (handles both .tbi and .csi)
+  file.index <- GetIndexFile(fragment = file.path, verbose = FALSE)
   hash <- x@hash
   cells <- x@cells
 
@@ -1349,9 +1350,12 @@ SetAssayData.ChromatinAssay5 <- function(
               compatible <- IsCompatibleRegionAggregation(old.agg, new.agg)
 
               if (compatible) {
-                # concatenate the matrix and the cells vector
-                old.agg@matrix <- rbind(old.agg@matrix, new.agg@matrix)
-                old.agg@cells <- c(old.agg@cells, new.agg@cells)
+                # only add the cells not already present; overlapping cells are
+                # not recomputed (see warning above), so subset to new.cells
+                # before binding to avoid duplicating overlapping cells/rows
+                new.sub <- subset(x = new.agg, cells = new.cells)
+                old.agg@matrix <- rbind(old.agg@matrix, new.sub@matrix)
+                old.agg@cells <- c(old.agg@cells, new.sub@cells)
                 agg.list[[j]] <- old.agg
                 merged <- TRUE
                 break

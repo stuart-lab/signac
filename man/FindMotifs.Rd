@@ -2,7 +2,7 @@
 % Please edit documentation in R/motifs.R
 \name{FindMotifs}
 \alias{FindMotifs}
-\title{FindMotifs}
+\title{Find over-represented motifs in genomic regions}
 \usage{
 FindMotifs(
   object,
@@ -17,15 +17,16 @@ FindMotifs(
 \arguments{
 \item{object}{A Seurat object}
 
-\item{features}{A vector of features to test for enrichments over background}
+\item{features}{A vector of features to test for enrichment over the
+background set. These should be present in the \code{motifs} data of the assay.}
 
 \item{background}{Either a vector of features to use as the background set,
-or a number specify the number of features to randomly select as a background
-set. If a number is provided, regions will be selected to match the sequence
+or a number specifying the number of features to select as a background set.
+If a number is provided, regions will be selected to match the sequence
 characteristics of the query features. To match the sequence characteristics,
 these characteristics must be stored in the feature metadata for the assay.
-This can be added using the
-\code{\link[=RegionStats]{RegionStats()}} function. If NULL, use all features in the assay.}
+This can be added using the \code{\link[=RegionStats]{RegionStats()}} function. If \code{NULL}, use all
+features in the assay.}
 
 \item{assay}{Which assay to use. Default is the active assay}
 
@@ -37,13 +38,71 @@ Passed to \code{\link[stats:p.adjust]{stats::p.adjust()}}.}
 \item{...}{Arguments passed to \code{\link[=MatchRegionStats]{MatchRegionStats()}}.}
 }
 \value{
-Returns a data frame
+Returns a data frame with one row per motif and the following
+columns:
+\itemize{
+\item \code{motif}: the motif ID
+\item \code{observed}: number of query features containing the motif
+\item \code{background}: number of background features containing the motif
+\item \code{percent.observed}: percentage of query features containing the motif
+\item \code{percent.background}: percentage of background features containing the
+motif
+\item \code{fold.enrichment}: \code{percent.observed} divided by \code{percent.background}
+\item \code{pvalue}: the hypergeometric enrichment p-value
+\item \code{motif.name}: the motif name
+\item \code{p.adjust}: the p-value adjusted for multiple testing
+}
+
+Rows are ordered by increasing \code{pvalue}, breaking ties by decreasing
+\code{fold.enrichment}.
 }
 \description{
-Find motifs over-represented in a given set of genomic features.
-Computes the number of features containing the motif (observed) and
-compares this to the total number of features containing the
-motif (background) using the hypergeometric test.
+Identify DNA sequence motifs that are over-represented in a set of genomic
+features (for example, a set of differentially accessible peaks) relative to
+a background set of features. Enrichment is quantified with a one-sided
+hypergeometric test.
+}
+\details{
+For each motif, \code{FindMotifs} compares how often the motif occurs in the
+query features to how often it occurs in a background set of features. The
+motif occurrences themselves are taken from the \code{motifs} data of the assay
+(a binary feature-by-motif matrix created with \code{\link[=AddMotifs]{AddMotifs()}}). The procedure is:
+\enumerate{
+\item \strong{Restrict to scored features.} Query and background features that are
+not present in the motif matrix are dropped, since motif occurrences are
+only known for the features that were scored.
+\item \strong{Select the background set.} If \code{background} is a single number, that
+many features are selected to match the sequence characteristics (by
+default GC content) of the query using \code{\link[=MatchRegionStats]{MatchRegionStats()}}, drawn from
+features other than the query. If \code{background} is a vector of feature
+names it is used directly; if it is \code{NULL}, all features in the assay are
+used. Matching the background to the query's sequence composition is
+important, since a motif can appear enriched simply because the query
+features differ in base composition from the genomic average (for example,
+a GC-rich query will appear enriched for GC-rich motifs) rather than
+because of genuine biological enrichment.
+\item \strong{Count motif occurrences.} For every motif the function counts the
+number of query features containing it (\code{observed}) and the number of
+background features containing it (\code{background}).
+\item \strong{Compute the enrichment p-value.} The query and background features
+together define a population of features (their union). For each motif,
+let \code{q} be the number of query features containing the motif, \code{k} the
+number of query features, \code{m} the number of features in the population
+containing the motif, and \code{N} the total number of features in the
+population. The one-sided hypergeometric p-value is
+\code{phyper(q - 1, m, N - m, k, lower.tail = FALSE)}, the probability of
+observing at least \code{q} motif-containing features when \code{k} features are
+drawn at random from the population. Defining the population as the union
+of the query and background guarantees that \code{m >= q} and \code{N >= k}, so the
+test is always well defined whether or not the background overlaps the
+query.
+\item \strong{Summarize and correct for multiple testing.} A fold enrichment is
+reported as the percentage of query features containing the motif divided
+by the percentage of background features containing the motif, and the
+p-values are adjusted across motifs with \code{\link[stats:p.adjust]{stats::p.adjust()}} using
+\code{p.adjust.method}. Results are ordered by increasing p-value, breaking
+ties by decreasing fold enrichment.
+}
 }
 \examples{
 de.motif <- head(rownames(atac_small))

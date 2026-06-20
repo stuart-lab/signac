@@ -61,6 +61,39 @@ test_that("Allele frequency calculation works", {
   expect_equal(object = alleles, expected = expected)
 })
 
+test_that("AlleleFreq works for a single variant", {
+  data.dir <- system.file("extdata", "test_mgatk", package = "Signac")
+  mgatk <- ReadMGATK(dir = data.dir)
+  multi <- AlleleFreq(
+    object = mgatk$counts, variants = c("627G>A", "1888G>A", "1888G>C")
+  )
+  single <- AlleleFreq(object = mgatk$counts, variants = "627G>A")
+
+  # result stays a 1-row matrix rather than collapsing to a vector
+  expect_equal(object = dim(single), expected = c(1L, ncol(x = mgatk$counts)))
+  expect_equal(object = rownames(x = single), expected = "627G>A")
+  # values match the corresponding row of the multi-variant computation
+  expect_equal(
+    object = as.numeric(single["627G>A", ]),
+    expected = as.numeric(multi["627G>A", ])
+  )
+})
+
+test_that("AlleleFreq errors informatively on a malformed count matrix", {
+  # rownames are "letter-position-strand"; here the forward and reverse rows
+  # for the variant resolve to different positions, violating the structural
+  # assumption
+  m <- Matrix::Matrix(
+    data = c(1, 2, 3, 4, 5, 6), nrow = 3, ncol = 2, sparse = TRUE
+  )
+  rownames(m) <- c("T-100-fwd", "0T-10-rev", "T-100-rev")
+  colnames(m) <- c("cell1", "cell2")
+  expect_error(
+    AlleleFreq(object = m, variants = "100C>T"),
+    regexp = "required structure"
+  )
+})
+
 test_that("ReadMQuad imports data correctly", {
   data.dir <- system.file(
     "extdata", "test_mquad", package = "Signac"
