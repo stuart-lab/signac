@@ -907,32 +907,50 @@ globalVariables(
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
 #' @importFrom data.table as.data.table
 CollapseToLongestTranscript <- function(ranges) {
-  range.df <- as.data.table(x = ranges)
+  range.df <- as.data.table(x = as.data.frame(x = ranges))
+
+  if (!"gene_id" %in% colnames(x = range.df)) {
+    stop("Input ranges must contain gene_id")
+  }
+
+  if (!"gene_name" %in% colnames(x = range.df)) {
+    range.df[, gene_name := gene_id]
+  }
+
+  if (!"gene_biotype" %in% colnames(x = range.df)) {
+    range.df[, gene_biotype := if ("gene_type" %in% colnames(x = range.df)) {
+      gene_type
+    } else {
+      NA_character_
+    }]
+  }
+
   range.df$strand <- as.character(x = range.df$strand)
   range.df$strand <- ifelse(
     test = range.df$strand == "*",
     yes = "+",
     no = range.df$strand
   )
+
   collapsed <- range.df[
     , list(
-      unique(seqnames),
-      min(start),
-      max(end),
-      strand[[1]],
-      gene_biotype[[1]],
-      gene_name[[1]]
+      seqnames = unique(seqnames)[1],
+      start = min(start),
+      end = max(end),
+      strand = strand[[1]],
+      gene_biotype = gene_biotype[[1]],
+      gene_name = gene_name[[1]]
     ),
-    "gene_id"
+    by = "gene_id"
   ]
-  colnames(x = collapsed) <- c(
-    "gene_id", "seqnames", "start", "end", "strand", "gene_biotype", "gene_name"
-  )
+
   collapsed$gene_name <- make.unique(names = collapsed$gene_name)
+
   gene.ranges <- makeGRangesFromDataFrame(
     df = collapsed,
     keep.extra.columns = TRUE
   )
+
   return(gene.ranges)
 }
 
