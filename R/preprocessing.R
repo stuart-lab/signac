@@ -176,6 +176,12 @@ ATACqc.ChromatinAssay5 <- function(
 }
 
 #' @param assay Name of assay to use. If NULL, use the default assay.
+#' @param suffix Suffix to append to the names of QC metric columns that
+#' already exist in the object metadata, to avoid overwriting them. For
+#' example, if a `FRiP` column computed by [FRiP()] is already present, the
+#' promoter-based FRiP metric computed here will instead be stored as
+#' `FRiP<suffix>`. Set to `NULL` to disable this behavior and allow existing
+#' columns to be overwritten.
 #' @rdname ATACqc
 #' @method ATACqc Seurat
 #' @importFrom SeuratObject AddMetaData DefaultAssay
@@ -189,6 +195,7 @@ ATACqc.Seurat <- function(
   outdir = tempdir(),
   cleanup = TRUE,
   verbose = TRUE,
+  suffix = ".atacqc",
   ...
 ) {
   assay <- assay %||% DefaultAssay(object = object)
@@ -201,6 +208,21 @@ ATACqc.Seurat <- function(
     verbose = verbose,
     ...
   )
+  # avoid overwriting existing metadata columns (e.g. FRiP from FRiP())
+  if (!is.null(x = suffix)) {
+    clash <- intersect(x = colnames(x = md), y = colnames(x = object[[]]))
+    if (length(x = clash) > 0) {
+      warning(
+        "The following metadata columns already exist and will be added with ",
+        "the suffix '", suffix, "': ", paste(clash, collapse = ", "),
+        call. = FALSE
+      )
+      to.rename <- colnames(x = md) %in% clash
+      colnames(x = md)[to.rename] <- paste0(
+        colnames(x = md)[to.rename], suffix
+      )
+    }
+  }
   object <- AddMetaData(object = object, metadata = md)
   return(object)
 }

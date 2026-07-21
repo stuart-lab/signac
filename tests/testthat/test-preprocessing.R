@@ -416,6 +416,39 @@ test_that("ATACqc errors when fragtk not installed", {
   }
 })
 
+test_that("ATACqc does not overwrite existing metadata columns", {
+  if (nchar(Sys.which("fragtk")) == 0) {
+    skip("fragtk not installed")
+  }
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  frags <- CreateFragmentObject(
+    path = fpath,
+    cells = colnames(x = atac_small),
+    tolerance = 0.5,
+    verbose = FALSE
+  )
+  obj <- atac_small
+  Fragments(obj[["peaks"]]) <- frags
+  # pre-existing peak-based FRiP column, as produced by FRiP()
+  obj$FRiP <- 0.5
+
+  res <- expect_warning(
+    object = ATACqc(object = obj, assay = "peaks", verbose = FALSE),
+    regexp = "FRiP"
+  )
+  # existing FRiP column is preserved, not overwritten
+  expect_true(all(res$FRiP == 0.5))
+  # ATACqc FRiP is stored under the suffixed name
+  expect_true("FRiP.atacqc" %in% colnames(res[[]]))
+
+  # suffix = NULL restores overwriting behavior
+  res2 <- suppressWarnings(
+    ATACqc(object = obj, assay = "peaks", suffix = NULL, verbose = FALSE)
+  )
+  expect_false("FRiP.atacqc" %in% colnames(res2[[]]))
+  expect_true("FRiP" %in% colnames(res2[[]]))
+})
+
 test_that("FeatureMatrix works", {
   computed_fmat <- readRDS("../testdata/featurematrix.rds")
   fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
