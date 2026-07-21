@@ -532,7 +532,7 @@ FitMeanVar.Seurat <- function(
   nfeatures = 20000,
   loess.span = 0.1,
   min.cutoff = 10,
-  weight.mean = 0.5,
+  weight.mean = 0,
   bins = 1000,
   sample_per_bin = 50,
   key = "dsLoess",
