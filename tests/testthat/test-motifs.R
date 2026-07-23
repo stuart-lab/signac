@@ -199,6 +199,45 @@ test_that("MotifPlot errors on non-GRangesAssay", {
   )
 })
 
+test_that("MotifPlot gives informative error for missing motifs", {
+  skip_if_not_installed("ggseqlogo")
+  skip_if_not_installed("TFBSTools")
+  ids <- c("MA0030.1", "MA0031.1")
+  names(pwm) <- ids
+  npeak <- nrow(atac_small[["peaks"]])
+  set.seed(1)
+  mat <- as(
+    matrix(
+      sample(c(0, 1), npeak * 2, replace = TRUE), ncol = 2,
+      dimnames = list(rownames(atac_small[["peaks"]]), ids)
+    ),
+    "CsparseMatrix"
+  )
+  motif <- CreateMotifObject(data = mat, pwm = pwm)
+  obj <- atac_small
+  obj[["peaks"]] <- SetAssayData(
+    object = obj[["peaks"]], layer = "motifs", new.data = motif
+  )
+  # a present motif still plots (by ID and by name)
+  expect_s3_class(
+    MotifPlot(obj, motifs = "MA0030.1", assay = "peaks"), "ggplot"
+  )
+  expect_s3_class(
+    MotifPlot(obj, motifs = "FOXF2", assay = "peaks"), "ggplot"
+  )
+  # a partially-missing request warns and plots the motifs that were found
+  expect_warning(
+    p <- MotifPlot(obj, motifs = c("MA0030.1", "NOPE"), assay = "peaks"),
+    regexp = "NOPE"
+  )
+  expect_s3_class(p, "ggplot")
+  # an all-missing request errors, not the opaque ggseqlogo error
+  expect_error(
+    MotifPlot(obj, motifs = c("NOPE", "NOPE2"), assay = "peaks"),
+    regexp = "None of the requested motifs"
+  )
+})
+
 # GetMotifData / SetMotifData --------------------------------------------------
 
 test_that("GetMotifData returns the underlying matrix", {

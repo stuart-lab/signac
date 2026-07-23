@@ -2746,12 +2746,31 @@ MotifPlot <- function(
   if (length(x = data.use) == 0) {
     stop("Position weight matrix list for the requested assay is empty")
   }
+  requested.motifs <- motifs
   missing.motifs <- !(motifs %in% names(x = data.use))
   for (i in seq_along(along.with = motifs)) {
     if (missing.motifs[i]) {
       # try looking up ID
       motifs[i] <- ConvertMotifID(object = object, name = motifs[i])
     }
+  }
+  # motifs not found by name or ID are NA after conversion
+  not.found <- is.na(x = motifs) | !(motifs %in% names(x = data.use))
+  if (any(not.found)) {
+    if (all(not.found)) {
+      stop(
+        "None of the requested motifs were found in the ", assay,
+        " assay: ", paste(requested.motifs, collapse = ", "),
+        call. = FALSE
+      )
+    }
+    warning(
+      "The following requested motifs were not found in the ", assay,
+      " assay and will be skipped: ",
+      paste(requested.motifs[not.found], collapse = ", "),
+      call. = FALSE
+    )
+    motifs <- motifs[!not.found]
   }
   data.use <- data.use[motifs]
   if (use.names) {
