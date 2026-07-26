@@ -343,13 +343,13 @@ ValidateCells <- function(
   }
   max.lines <- max.lines %||% 0
   filepath <- GetFragmentData(object = object, slot = "file.path")
-  filepath <- normalizePath(path = filepath, mustWork = TRUE)
-  is.remote <- isRemote(x = filepath)
-  find_n <- as.integer(x = length(x = cells) * (1 - tolerance))
-  # if remote, return TRUE
-  if (is.remote) {
+  # if remote, return TRUE. This must be checked before normalizePath, which
+  # errors on a remote path
+  if (isRemote(x = filepath)) {
     return(TRUE)
   }
+  filepath <- normalizePath(path = filepath, mustWork = TRUE)
+  find_n <- as.integer(x = length(x = cells) * (1 - tolerance))
   valid <- validateCells(
     fragments = filepath,
     cells = cells,
@@ -364,10 +364,11 @@ ValidateCells <- function(
 #'
 #' @param object A [Fragment2-class] object
 #' @param verbose Display messages
+#' @param ... Arguments passed to other methods. Ignored.
 #' @export
 #' @concept fragments
 #' @importFrom tools md5sum
-ValidateHash <- function(object, verbose = TRUE) {
+ValidateHash <- function(object, verbose = TRUE, ...) {
   path <- GetFragmentData(object = object, slot = "file.path")
   index.file <- GetFragmentData(object = object, slot = "file.index")
   is.remote <- isRemote(x = path)
