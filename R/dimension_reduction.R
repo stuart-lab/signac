@@ -84,7 +84,16 @@ RunSVD.default <- function(
   if (is.null(x = colnames(x = object))) {
     colnames(x = object) <- seq_len(length.out = ncol(x = object))
   }
-  n <- min(n, (ncol(x = object) - 1))
+  # svds requires k < min(dim(A)), and A is t(object), so n is bounded by both
+  # the number of cells and the number of features
+  n <- min(n, ncol(x = object) - 1, nrow(x = object) - 1)
+  if (n < 1) {
+    stop(
+      "Cannot compute components: the input matrix has ",
+      nrow(x = object), " features and ", ncol(x = object), " cells. ",
+      "At least two of each are required."
+    )
+  }
 
   opts <- list("tol" = tol)
   if (pca) {
@@ -98,6 +107,22 @@ RunSVD.default <- function(
       s <- BPCells::matrix_stats(object, row_stats = "variance")
       r_means <- s$row_stats["mean", ]
       r_vars <- s$row_stats["variance", ]
+      # zero-variance features would divide by zero and propagate NaN into the
+      # embeddings; the in-memory path filters these in PrepDR5
+      keep.var <- r_vars > 0
+      if (!all(keep.var)) {
+        if (sum(keep.var) == 0) {
+          stop("None of the requested features have any variance")
+        }
+        warning(
+          "Removing ", sum(!keep.var), " features with zero variance",
+          call. = FALSE, immediate. = TRUE
+        )
+        object <- object[keep.var, ]
+        r_means <- r_means[keep.var]
+        r_vars <- r_vars[keep.var]
+        n <- min(n, nrow(x = object) - 1)
+      }
       object <- (object - r_means) / sqrt(r_vars)
     } else {
       opts <- c(opts, list("center" = TRUE, "scale" = TRUE))
@@ -110,10 +135,17 @@ RunSVD.default <- function(
 
   components <- svds(A = t(x = object), k = n, opts = opts)
   feature.loadings <- components$v
-  sdev <- components$d / sqrt(x = max(1, nrow(x = object) - 1))
+  obs.scale <- sqrt(x = max(1, ncol(x = object) - 1))
+  if (isTRUE(x = opts$scale)) {
+    sdev <- components$d
+    singular.values <- components$d * obs.scale
+  } else {
+    sdev <- components$d / obs.scale
+    singular.values <- components$d
+  }
   if (pca) {
-    # weight by eigenvalues
-    cell.embeddings <- components$u %*% diag(components$d)
+    cell.embeddings <- components$u %*%
+      diag(x = singular.values, nrow = n, ncol = n)
   } else {
     cell.embeddings <- components$u
   }
@@ -123,6 +155,16 @@ RunSVD.default <- function(
     }
     embed.mean <- apply(X = cell.embeddings, MARGIN = 2, FUN = mean)
     embed.sd <- apply(X = cell.embeddings, MARGIN = 2, FUN = sd)
+    # a degenerate component has zero SD
+    zero.sd <- !is.finite(x = embed.sd) | embed.sd == 0
+    if (any(zero.sd)) {
+      warning(
+        "Component(s) ", paste(which(x = zero.sd), collapse = ", "),
+        " have zero standard deviation and were left unscaled",
+        call. = FALSE, immediate. = TRUE
+      )
+      embed.sd[zero.sd] <- 1
+    }
     norm.embeddings <- t((t(cell.embeddings) - embed.mean) / embed.sd)
     if (!is.null(x = scale.max)) {
       norm.embeddings[norm.embeddings > scale.max] <- scale.max

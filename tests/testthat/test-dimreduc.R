@@ -145,9 +145,11 @@ test_that("RunSVD with pca = TRUE works", {
       tolerance = 1 / 1000
     ))
   )
+  # the embeddings are the principal component scores. Checked against prcomp
+  pr <- prcomp(t(m), center = TRUE, scale. = TRUE)
   expect_equal(
-    object = as.vector(emb.pca[1, ]),
-    expected = c(-1.2143982, 0.4486555, -0.2778468, -0.3807493, -0.6286513),
+    object = abs(as.vector(emb.pca[1, ])),
+    expected = abs(as.vector(pr$x[1, 1:5])),
     tolerance = 1 / 1000
   )
 })
@@ -205,3 +207,44 @@ test_that("RunSVD on assay returns DimReduc", {
     tolerance = 1 / 1000
   )
 })
+
+test_that("RunSVD does not produce NA embeddings for degenerate components", {
+  # regression test: a component with zero standard deviation divided by zero
+  # when scaling the embeddings, filling them with NA
+  set.seed(2)
+  x <- matrix(rnorm(20 * 40), nrow = 20, ncol = 40)
+  # duplicate a cell so at least one component is degenerate
+  x[, 2] <- x[, 1]
+  res <- suppressWarnings(RunSVD(x, n = 10, verbose = FALSE))
+  expect_false(anyNA(Embeddings(object = res)))
+  expect_true(all(is.finite(Embeddings(object = res))))
+})
+
+test_that("RunSVD handles a single component", {
+  # diag() given a length-one vector builds an identity matrix of that size
+  # rather than a 1x1 scaling matrix
+  set.seed(1)
+  x <- matrix(rnorm(50 * 30), nrow = 50, ncol = 30)
+  res <- RunSVD(x, n = 1, pca = TRUE, verbose = FALSE)
+  expect_equal(dim(Embeddings(object = res)), c(30L, 1L))
+  pr <- prcomp(t(x), center = TRUE, scale. = TRUE)
+  expect_equal(
+    abs(as.vector(Embeddings(object = res))), abs(pr$x[, 1]),
+    tolerance = 1e-5, ignore_attr = TRUE
+  )
+})
+
+test_that("RunSVD with pca = FALSE returns the left singular vectors", {
+  set.seed(1)
+  x <- matrix(rnorm(50 * 30), nrow = 50, ncol = 30)
+  res <- RunSVD(
+    x, n = 5, pca = FALSE, scale.embeddings = FALSE, verbose = FALSE
+  )
+  u <- RSpectra::svds(A = t(x), k = 5, opts = list(tol = 1e-5))$u
+  expect_equal(unname(Embeddings(object = res)), u)
+  # left singular vectors are orthonormal
+  expect_equal(
+    unname(crossprod(Embeddings(object = res))), diag(5), tolerance = 1e-6
+  )
+})
+
