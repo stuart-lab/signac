@@ -194,15 +194,15 @@ GeneActivity <- function(
     stop("The requested assay is not a ChromatinAssay5.")
   }
   annotation <- Annotation(object = object[[assay]])
+  if (is.null(x = annotation) || length(x = annotation) == 0) {
+    stop("No gene annotations present in object")
+  }
   # replace NA names with gene ID
   annotation$gene_name <- ifelse(
     test = is.na(x = annotation$gene_name) | (annotation$gene_name == ""),
     yes = annotation$gene_id,
     no = annotation$gene_name
   )
-  if (length(x = annotation) == 0) {
-    stop("No gene annotations present in object")
-  }
   if (verbose) {
     message("Extracting gene coordinates")
   }
@@ -366,11 +366,13 @@ GenomeBinMatrix <- function(
 #' assay must be a [ChromatinAssay5-class] with fragment information attached
 #' via [Fragments()].
 #' @param cells Character vector of cell barcodes to include as columns in the
-#' output. If NULL, all cells present in the fragment file(s) are included.
-#' When called on a [SeuratObject::Seurat] or [ChromatinAssay5-class] object,
-#' the assay's `colnames` are used as the default. Cell names are matched
-#' against the object-level names recorded in the [Fragment2-class] `cells`
-#' slot; file-level barcodes are resolved internally.
+#' output. If NULL, all cells present in the fragment file(s) are included;
+#' this requires the R backend, since `fragtk` needs the set of cells up front
+#' (see `fragtk`). When called on a [SeuratObject::Seurat] or
+#' [ChromatinAssay5-class] object, the assay's `colnames` are used as the
+#' default. Cell names are matched against the object-level names recorded in
+#' the [Fragment2-class] `cells` slot; file-level barcodes are resolved
+#' internally.
 #' @param fragtk Use the `fragtk` backend for quantification. `TRUE` (default)
 #' looks up `fragtk` on `PATH`; `FALSE` uses the R implementation; a character
 #' string is interpreted as an explicit path to the `fragtk` executable. The R
@@ -567,6 +569,14 @@ FeatureMatrix.default <- function(
   }
   grouped <- (is.logical(x = group) && group) || is.character(x = group)
 
+  if (fragtk && is.null(x = cells.use)) {
+    # `fragtk matrix` requires a --cells file, so the set of cells has to be
+    # known up front
+    stop(
+      "`fragtk = TRUE` requires a set of cells. Supply `cells`, or use ",
+      "`fragtk = FALSE` to quantify every cell found in the fragment file."
+    )
+  }
   if (fragtk) {
     mat <- RunFragtk(
       fragments = object,
@@ -661,6 +671,12 @@ FeatureMatrixList <- function(
     }
   } else {
     obj.use <- seq_along(along.with = frags)
+  }
+  if (length(x = obj.use) == 0) {
+    stop(
+      "None of the requested cells were found in any of the fragment objects ",
+      "for this assay"
+    )
   }
   # quantify each fragment in-memory; we BPCells-persist only at the end so
   # the Reduce(`+`) merge below operates on sparse matrices.
@@ -1124,19 +1140,15 @@ SingleFeatureMatrix <- function(
       X = matrix.parts,
       FUN = AddMissing,
       cells = all.cells,
-      features = features_to_get
-    )
-  } else if (keep_all_features) {
-    matrix.parts <- lapply(
-      X = matrix.parts,
-      FUN = AddMissing,
-      cells = NULL,
-      features = features_to_get
+      features = NULL
     )
   }
   featmat <- do.call(what = rbind, args = matrix.parts)
-  # reorder features
+  # add zero rows for features that were not quantified, and reorder features
   if (keep_all_features) {
+    featmat <- AddMissing(
+      x = featmat, cells = NULL, features = features_to_get
+    )
     feat.str <- features_to_get
   } else {
     feat.str <- as.character(x = feat.use)
