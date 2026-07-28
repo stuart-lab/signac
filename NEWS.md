@@ -84,6 +84,7 @@ beyond the ends of chromosomes.
 * `SplitFragments()` now skips fragment files that contain none of the requested
 cells, avoiding an unnecessary scan of the whole file.
 * Functions no longer reset the random number seed.
+* Added back `RunChromVAR()` and `AddChromatinModule()`
 
 # Signac 1.17.1
 
