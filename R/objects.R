@@ -278,14 +278,13 @@ as.GRangesAssay.ChromatinAssay <- function(x, ...) {
 
   newobj <- as.GRangesAssay(
     x = newobj,
-    Class = "GRangesAssay",
     ranges = x@ranges,
     annotation = x@annotation,
     fragments = frags,
     bias = x@bias,
     motifs = x@motifs,
     links = gi,
-    region.aggregation = NULL,
+    region.aggregation = NULL
   )
 
   return(newobj)
@@ -641,23 +640,32 @@ CreateFragmentObject <- function(
     stop("Fragment file index does not exist.")
   }
   if (is.remote) {
-    con <- gzcon(con = url(description = path))
+    con <- gzcon(con = url(description = path, open = "rb"))
   } else {
-    con <- path
+    con <- gzfile(description = path, open = "rt")
   }
-  df <- readLines(con = con, n = 10000)
-  for (i in df) {
-    if (grepl(pattern = "^#", x = i)) {
-      next
-    } else {
-      ncol_frag <- length(x = strsplit(x = i, split = "\t")[[1]])
-      if (!(ncol_frag == 5 || ncol_frag == 6)) {
-        # cellranger-atac v2.2 introduces strand column in fragment file
-        stop("Incorrect number of columns found in fragment file")
-      } else {
-        break
-      }
+  on.exit(expr = close(con = con), add = TRUE)
+  # the file can be preceded by an arbitrary number of comment lines, so read
+  # in small batches until the first record is found rather than reading a
+  # fixed large number of lines up front
+  ncol_frag <- NULL
+  repeat {
+    lines <- readLines(con = con, n = 100L)
+    if (length(x = lines) == 0) {
+      break
     }
+    lines <- lines[!grepl(pattern = "^#", x = lines)]
+    if (length(x = lines) > 0) {
+      ncol_frag <- length(x = strsplit(x = lines[[1]], split = "\t")[[1]])
+      break
+    }
+  }
+  if (is.null(x = ncol_frag)) {
+    stop("No fragment records found in fragment file")
+  }
+  if (!(ncol_frag == 5 || ncol_frag == 6)) {
+    # cellranger-atac v2.2 introduces strand column in fragment file
+    stop("Incorrect number of columns found in fragment file")
   }
   if (!is.null(x = cells)) {
     if (is.null(names(x = cells))) {
@@ -757,8 +765,8 @@ CreateMotifObject <- function(
       stop("Motif names in data matrix and PWM list are inconsistent")
     }
   }
-  if ((nrow(x = data) > 0) && (nrow(x = meta.data) > 0)) {
-    if (!all(rownames(x = meta.data) == rownames(x = data))) {
+  if ((ncol(x = data) > 0) && (nrow(x = meta.data) > 0)) {
+    if (!identical(x = rownames(x = meta.data), y = colnames(x = data))) {
       stop("Motif names in data matrix and metadata are inconsistent")
     }
   }
@@ -783,19 +791,27 @@ CreateMotifObject <- function(
     pwm <- lapply(X = pwm.converted, FUN = "[[", 1)
     motif.names <- lapply(X = pwm.converted, FUN = "[[", 2)
   }
-  # ensure names are unique
-  motif.id <- names(x = motif.names)
-  mn.stash <- as.character(x = motif.names)
-  mn.unique <- make.unique(names = as.character(motif.names))
-  if (!identical(x = mn.stash, y = mn.unique)) {
-    warning("Non-unique motif names supplied, making unique", immediate. = TRUE)
-  }
-  motif.names <- as.list(x = mn.unique)
-  names(x = motif.names) <- motif.id
   pwm <- pwm %||% list()
-  if (is.null(x = motif.names)) {
+  # if names were not supplied, and were not derived from a PFMatrixList or
+  # PWMatrixList above, fall back to the names of the PWM list
+  if (is.null(x = motif.names) && length(x = pwm) > 0) {
     motif.names <- as.list(x = names(x = pwm))
-    names(motif.names) <- names(x = pwm)
+    names(x = motif.names) <- names(x = pwm)
+  }
+  # ensure names are unique
+  if (length(x = motif.names) > 0) {
+    motif.id <- names(x = motif.names)
+    mn.stash <- as.character(x = motif.names)
+    mn.unique <- make.unique(names = mn.stash)
+    if (!identical(x = mn.stash, y = mn.unique)) {
+      warning(
+        "Non-unique motif names supplied, making unique", immediate. = TRUE
+      )
+    }
+    motif.names <- as.list(x = mn.unique)
+    names(x = motif.names) <- motif.id
+  } else {
+    motif.names <- list()
   }
   motif.obj <- new(
     Class = "Motif",
@@ -1102,10 +1118,18 @@ RenameCells.Fragment2 <- function(object, new.names, ...) {
     if (length(x = new.names) != length(x = cells)) {
       stop("Insufficient names supplied to rename cells")
     }
-    names(x = new.names) <- cells
+    names(x = new.names) <- names(x = cells)
   }
-  cells <- cells[names(x = new.names)]
-  names(x = cells) <- new.names[names(x = cells)]
+  # new.names can cover more cells than are present in this fragment object
+  # (for example when renaming cells in an assay containing multiple fragment
+  # files). Only rename the cells that are actually stored here, otherwise the
+  # cells not covered are introduced as NA entries.
+  common <- intersect(x = names(x = cells), y = names(x = new.names))
+  if (length(x = common) == 0) {
+    stop("None of the cells in the Fragment object are present in new.names")
+  }
+  cells <- cells[common]
+  names(x = cells) <- unname(obj = new.names[common])
   slot(object = object, name = "cells") <- cells
   return(object)
 }
@@ -1133,7 +1157,17 @@ RenameCells.RegionAggregation <- function(object, new.names, ...) {
     }
     names(x = new.names) <- cells
   }
-  new_cells <- unname(new.names[cells])
+  common <- intersect(x = cells, y = names(x = new.names))
+  if (length(x = common) == 0) {
+    stop(
+      "None of the cells in the RegionAggregation object are present in ",
+      "new.names"
+    )
+  }
+  lookup <- cells
+  names(x = lookup) <- cells
+  lookup[common] <- unname(obj = new.names[common])
+  new_cells <- unname(obj = lookup[cells])
   slot(object = object, name = "cells") <- new_cells
   return(object)
 }
@@ -1276,8 +1310,9 @@ SetAssayData.ChromatinAssay5 <- function(
     }
     methods::slot(object = object, name = layer) <- new.data
   } else if (layer == "bias") {
-    if (!is(object = new.data, class2 = "vector")) {
-      stop("Bias must be provided as a vector")
+    bias.problem <- CheckBias(bias = new.data)
+    if (!is.null(x = bias.problem)) {
+      stop(bias.problem)
     }
     methods::slot(object = object, name = layer) <- new.data
   } else if (layer == "region.aggregation") {
@@ -2232,6 +2267,7 @@ setMethod(
         length(x = ragg),
         "region aggregation",
         ifelse(length(x = ragg) == 1, "matrix:", "matrices:"),
+        paste(head(x = names(x = ragg)), collapse = ", "),
         ragstr, "\n"
       )
     }
@@ -2754,4 +2790,35 @@ AddFragments <- function(object, fragments) {
   current.frags[[length(x = current.frags) + 1]] <- fragments
   slot(object = object, name = "fragments") <- current.frags
   return(object)
+}
+
+# Check that a Tn5 bias vector is well formed
+#
+# Shared by the class validity method and by Bias<-, so that assigning an
+# invalid bias vector is reported at assignment rather than later.
+#
+# @param bias A bias vector, or NULL
+#
+# @return NULL if valid, otherwise a string describing the problem
+#
+CheckBias <- function(bias) {
+  if (is.null(x = bias)) {
+    return(NULL)
+  }
+  if (!is.numeric(x = bias)) {
+    return("Bias must be a numeric vector")
+  }
+  if (is.null(x = names(x = bias))) {
+    return("Bias must be a named numeric vector")
+  }
+  bases <- c("A", "C", "G", "T")
+  hexamers <- apply(
+    X = expand.grid(rep(x = list(bases), 6)),
+    MARGIN = 1,
+    FUN = paste0, collapse = ""
+  )
+  if (!all(hexamers %in% names(x = bias))) {
+    return("Bias vector must contain each hexamer")
+  }
+  return(NULL)
 }

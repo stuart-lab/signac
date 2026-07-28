@@ -216,22 +216,9 @@ setValidity(Class = "ChromatinAssay5", function(object) {
       "All elements of 'region.aggregation' must be RegionAggregation objects"
     )
   }
-  if (!is.null(x = object@bias)) {
-    if (!is.numeric(x = object@bias)) {
-      return("Bias must be a numeric vector")
-    }
-    if (is.null(x = names(x = object@bias))) {
-      return("Bias must be a named numeric vector")
-    }
-    bases <- c("A", "C", "G", "T")
-    hexamers <- apply(
-      X = expand.grid(rep(x = list(bases), 6)),
-      MARGIN = 1,
-      FUN = paste0, collapse = ""
-    )
-    if (!all(hexamers %in% names(x = object@bias))) {
-      return("Bias vector must contain each hexamer")
-    }
+  bias.problem <- CheckBias(bias = object@bias)
+  if (!is.null(x = bias.problem)) {
+    return(bias.problem)
   }
   TRUE
 })
