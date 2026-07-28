@@ -100,9 +100,9 @@ AggregateTiles.default <- function(
   )
 
   # filter out low coverage bins
-  keep.rows <- rowSums(x = bins) > min_counts
+  keep.rows <- rowSums(x = bins) >= min_counts
   if (sum(x = keep.rows) == 0) {
-    stop("No bins found with over ", min_counts, " cells")
+    stop("No bins found with at least ", min_counts, " counts")
   }
   bins <- bins[keep.rows, ]
 
@@ -577,7 +577,16 @@ FeatureMatrix.default <- function(
       "`fragtk = FALSE` to quantify every cell found in the fragment file."
     )
   }
+  # fragtk writes its BPCells output to an intermediate directory, since the
+  # row and column names are only finalized below. It is removed once the
+  # matrix has been re-persisted to the user-supplied bpcells.dir.
+  intermediate.dir <- NULL
   if (fragtk) {
+    intermediate.dir <- if (isTRUE(x = bpcells)) {
+      tempfile(pattern = "signac_fragtk_")
+    } else {
+      NULL
+    }
     mat <- RunFragtk(
       fragments = object,
       features = feat.use,
@@ -587,6 +596,7 @@ FeatureMatrix.default <- function(
       fragtk.path = fragtk.path,
       seqlevels = NULL,
       bpcells = bpcells,
+      bpcells.dir = intermediate.dir,
       verbose = verbose,
       cleanup = TRUE
     )
@@ -631,6 +641,9 @@ FeatureMatrix.default <- function(
   mat <- AsBPCells(
     mat = mat, bpcells = bpcells, bpcells.dir = bpcells.dir
   )
+  if (!is.null(x = intermediate.dir)) {
+    unlink(x = intermediate.dir, recursive = TRUE)
+  }
 
   return(mat)
 }
@@ -805,6 +818,9 @@ AsBPCells <- function(mat, bpcells, bpcells.dir) {
 # @param cleanup Remove output files created by fragtk
 # @param bpcells If TRUE, import the fragtk MTX output into a BPCells
 # IterableMatrix instead of a sparse in-memory matrix.
+# @param bpcells.dir Directory to write the BPCells matrix to. This directory
+# backs the returned matrix and so is not removed by `cleanup`; the caller is
+# responsible for removing it. If NULL, a session temporary directory is used.
 # @param verbose Display messages
 # @return Returns a CsparseMatrix, or a BPCells IterableMatrix if
 # `bpcells = TRUE`.
@@ -824,6 +840,7 @@ RunFragtk <- function(
   outdir = tempdir(),
   cleanup = TRUE,
   bpcells = FALSE,
+  bpcells.dir = NULL,
   verbose = TRUE
 ) {
   # find fragtk
@@ -928,8 +945,11 @@ RunFragtk <- function(
   colnames.file <- paste0(out.path, .Platform$file.sep, "barcodes.tsv.gz")
 
   if (isTRUE(x = bpcells)) {
-    # stream the fragtk MTX directory into an on-disk BPCells matrix
-    bpcells.tmp <- tempfile(pattern = "signac_fragtk_bpcells_")
+    # stream the fragtk MTX directory into an on-disk BPCells matrix. This
+    # directory backs the returned matrix, so the caller owns it and is
+    # responsible for removing it once the matrix has been re-persisted.
+    bpcells.tmp <- bpcells.dir %||%
+      tempfile(pattern = "signac_fragtk_bpcells_")
     imported <- BPCells::import_matrix_market_10x(mtx_dir = out.path)
     BPCells::write_matrix_dir(mat = imported, dir = bpcells.tmp)
     counts <- BPCells::open_matrix_dir(dir = bpcells.tmp)
