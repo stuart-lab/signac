@@ -35,6 +35,12 @@ LoadGWAS <- function(gwas.file) {
     )
   }
 
+  # standardize the position type so that it matches the LD and credible set
+  # tables when merging
+  gwas_data[["base_pair_location"]] <- as.integer(
+    x = gwas_data[["base_pair_location"]]
+  )
+
   # Optional columns
   variant_present <- "variant_id" %in% colnames(x = gwas_data)
   effect_allele_present <- "effect_allele" %in% colnames(x = gwas_data)
@@ -150,4 +156,22 @@ LoadCredibleSets <- function(credset.file, credset.threshold = 0.01) {
   }
 
   return(result)
+}
+
+# Standardize chromosome names for matching
+#
+# GWAS summary statistics commonly name chromosomes without the "chr" prefix
+# while genome annotations use it (or the other way around), and fread will
+# read a prefix-free chromosome column as integer. Reducing both sides to a
+# prefix-free character vector lets them be compared and merged.
+#
+# @param x A vector of chromosome names
+#
+# @return A character vector with any leading "chr" removed
+#
+NormalizeChromosome <- function(x) {
+  return(sub(
+    pattern = "^chr", replacement = "", x = as.character(x = x),
+    ignore.case = TRUE
+  ))
 }
