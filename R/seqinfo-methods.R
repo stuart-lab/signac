@@ -5,11 +5,11 @@
 NULL
 
 
-#' Access and modify sequence information for GRangesAssay objects
+#' Access sequence information for GRangesAssay objects
 #'
-#' Methods for accessing and modifying
-#' [Seqinfo::Seqinfo()] object information stored in a
-#' [GRangesAssay-class] object.
+#' Methods for accessing the [Seqinfo::Seqinfo()] object information stored in a
+#' [GRangesAssay-class] object. To change the sequence information, set the
+#' ranges with `granges<-`.
 #'
 #' @name seqinfo-methods
 #' @param x A [GRangesAssay-class] object
@@ -76,11 +76,7 @@ setMethod(
     if (is.null(x = x)) {
       return(NULL)
     } else {
-      if (is.null(x = x)) {
-        return(NULL)
-      } else {
-        callGeneric()
-      }
+      callGeneric()
     }
   }
 )
