@@ -210,21 +210,6 @@ FeaturePlot(
 )
 ```
 
-Using these gene score values, we can assign cluster identities: 
-
-```{r}
-crc <- RenameIdents(
-  object = crc,
-  "0" = "Epithelial",
-  "1" = "Myeloid_1",
-  "2" = "Epithelial",
-  "3" = "Basophil",
-  "4" = "Tcell",
-  "5" = "Myeloid_2"
-)
-```
-
-
 One of the myeloid clusters has a lower percentage of fragments in peaks, as
 well as a lower overall mitochondrial sequencing depth and a different
 nucleosome banding pattern.
@@ -236,10 +221,10 @@ p2 <- FeatureScatter(crc, "mtDNA_depth", "Nucleosome_signal") + ggtitle("") + sc
 p1 + p2 + plot_layout(guides = "collect")
 ```
 
-We can see that most of the low FRIP cells were the `myeloid 1` cluster. This is
+We can see that most of the low FRIP cells were the myeloid cluster. This is
 most likely an intra-tumor granulocyte that has relatively poor accessible
 chromatin enrichment. Similarly, the unusual nuclear chromatin packaging of this
-cell type yields slightly reduced mtDNA coverage compared to the `myeloid 2`
+cell type yields slightly reduced mtDNA coverage compared to the other myeloid
 cluster.
 
 
@@ -771,7 +756,6 @@ mquad <- CreateAssay5Object(counts = mquad.data$AD_matrix[,passed_cells])
 tf1[["mquad"]] <- mquad
 tf1[["mquad"]]$DP <- mquad.data$DP_matrix[,passed_cells]
 ```
-
 
 Compute MQuad VAF & add to data slot of mquad assay. 
 
