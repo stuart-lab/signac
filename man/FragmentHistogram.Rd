@@ -11,6 +11,7 @@ FragmentHistogram(
   group.by = NULL,
   cells = NULL,
   log.scale = FALSE,
+  max.length = 800,
   ...
 )
 }
@@ -29,6 +30,9 @@ cells by. Default is the current cell identities}
 \item{cells}{Which cells to plot. Default all cells}
 
 \item{log.scale}{Display Y-axis on log scale. Default is FALSE.}
+
+\item{max.length}{Maximum fragment length to display. Fragments longer than
+this are not shown. If \code{NULL}, show all fragment lengths present.}
 
 \item{...}{Arguments passed to other functions}
 }

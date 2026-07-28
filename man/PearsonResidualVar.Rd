@@ -51,7 +51,7 @@ PearsonResidualVar(object, ...)
   object,
   assay = NULL,
   min.counts = 100,
-  weight.mean = 0.5,
+  weight.mean = 0,
   theta = 10,
   ncell.batch = 100,
   key = "pearson",

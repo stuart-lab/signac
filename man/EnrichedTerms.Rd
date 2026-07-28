@@ -13,6 +13,7 @@ EnrichedTerms(
   scoreType = "std",
   direction = c("up", "down", "both"),
   top.n = NULL,
+  padj.cutoff = 0.05,
   verbose = TRUE,
   ...
 )
@@ -47,6 +48,8 @@ one direction is testable, so set \code{direction} accordingly.}
 
 \item{top.n}{Number of top enriched terms to retain for each set of cells. If
 NULL, retain all terms.}
+
+\item{padj.cutoff}{Maximum adjusted p-value for a term to be retained.}
 
 \item{verbose}{Display messages.}
 

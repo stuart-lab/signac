@@ -138,8 +138,11 @@ the type for each individual track in the provided list of bigwig files.}
 \item{bigwig.scale}{Same as \code{assay.scale} parameter, except for bigWig
 files when plotted with \code{bigwig.type="coverage"}}
 
-\item{heights}{Relative heights for each track (accessibility, gene
-annotations, peaks, links).}
+\item{heights}{Relative heights for each displayed track, given in plotting
+order (top to bottom): GWAS, variants, accessibility, pseudobulk, bigWig,
+tile, gene annotations, peaks, ranges, links. Only the tracks actually shown
+are counted, so the vector must have one value per displayed track. If
+\code{NULL} (default), heights are chosen automatically.}
 
 \item{group.by}{Name of one or more metadata columns to group (color) the
 cells by. Default is the current cell identities}
