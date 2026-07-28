@@ -2,6 +2,7 @@
 #' @method FoldChange ChromatinAssay5
 #' @importFrom SeuratObject LayerData
 #' @importFrom Matrix rowMeans
+#' @exportS3Method Seurat::FoldChange
 FoldChange.ChromatinAssay5 <- function(
   object,
   cells.1,

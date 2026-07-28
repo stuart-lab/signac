@@ -4,7 +4,3 @@
 #' @concept assay
 #'
 "_PACKAGE"
-
-.onLoad <- function(...) {
-  vctrs::s3_register(generic = "Seurat::FoldChange", class = "ChromatinAssay5")
-}
