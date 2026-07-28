@@ -157,9 +157,10 @@ MultiCoveragePlot <- function(
     )
   }
 
-  # check bigwig.type
+  # check bigwig.type. This can be one value per bigwig file, so every element
+  # is checked rather than relying on a length-1 condition
   enabled.bigwig.type <- c("line", "coverage")
-  if (!(bigwig.type %in% enabled.bigwig.type)) {
+  if (!all(unlist(x = bigwig.type) %in% enabled.bigwig.type)) {
     stop(
       paste0(
         "Unknown bigwig.type requested. Please choose from: ",
@@ -556,7 +557,8 @@ MultiCoveragePlot <- function(
     multi.plot <- (multi.plot | guide_area()) +
       plot_layout(guides = "collect", widths = c(15, 1)) & 
       theme(
-        legend.position = c(1, 0),
+        legend.position = "inside",
+        legend.position.inside = c(1, 0),
         legend.justification = c(1, 0)
       )
   }
@@ -884,16 +886,28 @@ GWASTrack <- function(
     region <- GRanges(region)
   }
 
-  # subset to region
+  # subset to region. Compare chromosome names with the "chr" prefix removed
+  # from both sides, so that a GWAS file naming chromosomes "1" matches an
+  # object naming them "chr1"
   chromosome <- as.character(x = seqnames(x = region))
+  gwas[["chrom.key"]] <- NormalizeChromosome(x = gwas[["chromosome"]])
+  chromosomes.present <- unique(x = gwas[["chromosome"]])
+  on.chromosome <- gwas[["chrom.key"]] == NormalizeChromosome(x = chromosome)
   gwas <- gwas[
-    gwas[["chromosome"]] == chromosome &
+    on.chromosome &
       gwas[["base_pair_location"]] >= start(x = region) &
       gwas[["base_pair_location"]] <= end(x = region),
   ]
   gwas <- gwas[!is.na(x = gwas[["p_value"]]), ]
 
   if (nrow(x = gwas) == 0) {
+    if (!any(on.chromosome)) {
+      stop(
+        "No GWAS data found on ", chromosome,
+        ". Chromosomes present in the GWAS data: ",
+        paste(head(x = chromosomes.present), collapse = ", ")
+      )
+    }
     stop("No GWAS data found in region")
   }
   gwas[["log10p"]] <- -log10(x = gwas[["p_value"]])
@@ -915,10 +929,14 @@ GWASTrack <- function(
   # Merge LD data
   if (!is.null(x = ld.file)) {
     ld_data <- LoadLDData(ld.file = ld.file)
+    ld_data[["chrom.key"]] <- NormalizeChromosome(
+      x = ld_data[["chromosome"]]
+    )
+    ld_data[["chromosome"]] <- NULL
     gwas <- merge(
       x = gwas,
       y = ld_data,
-      by = c("chromosome", "base_pair_location"),
+      by = c("chrom.key", "base_pair_location"),
       all.x = TRUE
     )
     gwas[["r2"]] <- as.numeric(x = gwas[["r2"]])
@@ -941,14 +959,21 @@ GWASTrack <- function(
     credset_data <- LoadCredibleSets(
       credset.file = credset.file, credset.threshold = credset.threshold
     )
+    credset_data[["chrom.key"]] <- NormalizeChromosome(
+      x = credset_data[["chromosome"]]
+    )
+    credset_data[["chromosome"]] <- NULL
     gwas <- merge(
       x = gwas,
       y = credset_data,
-      by = c("chromosome", "base_pair_location"),
+      by = c("chrom.key", "base_pair_location"),
       all.x = TRUE
     )
     gwas[["in_credset"]] <- !is.na(x = gwas[["pip"]])
   }
+
+  # the join key is internal, and should not appear in the returned plot data
+  gwas[["chrom.key"]] <- NULL
 
   # Y-axis limit
   if (is.null(x = ymax)) {
@@ -1119,15 +1144,13 @@ DensityScatter <- function(
   )
   md <- md[order(md$Density), ]
 
-  if (is.null(x = raster) && (nrow(x = md) > 100000)) {
-    raster <- TRUE
-  }
+  # resolve the automatic case first, so raster is always TRUE or FALSE below
+  raster <- raster %||% (nrow(x = md) > 100000)
 
-  if (!requireNamespace(package = "scattermore", quietly = TRUE)) {
-    if (raster) {
-      warning("scattermore is not installed, plot cannot be rasterized")
-      raster <- FALSE
-    }
+  if (isTRUE(x = raster) &&
+      !requireNamespace(package = "scattermore", quietly = TRUE)) {
+    warning("scattermore is not installed, plot cannot be rasterized")
+    raster <- FALSE
   }
 
   # quantiles
@@ -1174,7 +1197,7 @@ DensityScatter <- function(
     data = md,
     mapping = aes(x = .data[[x]], y = .data[[y]], color = .data[["Density"]])
   )
-  if (!is.null(x = raster)) {
+  if (isTRUE(x = raster)) {
     p <- p + scattermore::geom_scattermore(pixels = raster.dpi, pointsize = 3.2)
   } else {
     p <- p + geom_point(size = 1)
@@ -1295,14 +1318,9 @@ PlotFootprint <- function(
   # flanks are motif edge to 50 bp each side
   # add flank information (T/F)
   base <- ceiling(motif.sizes / 2)
-  obs$flanks <- sapply(
-    X = seq_len(length.out = nrow(x = obs)),
-    FUN = function(x) {
-      pos <- abs(obs[x, "position"])
-      size <- base[[obs[x, "feature"]]]
-      return((pos > size) & (pos < (size + 50)))
-    }
-  )
+  flank.pos <- abs(x = obs$position)
+  flank.size <- unname(obj = base[obs$feature])
+  obs$flanks <- (flank.pos > flank.size) & (flank.pos < (flank.size + 50))
 
   if (!is.null(normalization)) {
     # need to group by position and motif
@@ -1340,9 +1358,12 @@ PlotFootprint <- function(
   ymax <- top_n(x = flankmeans, n = 1, wt = mn)
   ymin <- top_n(x = flankmeans, n = 1, wt = -mn)
 
-  # make df for labels
+  # make df for labels. Labels sit at position 75 by default, but the plotted
+  # region can be narrower than that, so use the closest position available
+  all.positions <- unique(x = obs$position)
+  label.position <- all.positions[which.min(x = abs(x = all.positions - 75))]
   label.df <- data.frame()
-  sub <- obs[obs$position == 75, ]
+  sub <- obs[obs$position == label.position, ]
   for (i in seq_along(along.with = features)) {
     if (is.null(x = label.idents)) {
       # determine which idents to label based on flanking accessibility
@@ -1545,6 +1566,9 @@ RegionHeatmap <- function(
       valid.idents <- intersect(x = idents, y = names(x = matlist))
       matlist <- matlist[valid.idents]
     }
+    if (length(x = matlist) == 0) {
+      stop("None of the requested idents found")
+    }
 
     if (j == 1) {
       rsums <- lapply(X = matlist, FUN = rowSums)
@@ -1593,11 +1617,8 @@ RegionHeatmap <- function(
       smoothed <- as.data.frame(x = smoothed)
       colnames(smoothed) <- seq_len(length.out = ncol(x = smoothed))
 
-      # clip values
-      if (!is.na(x = max.cutoff)) {
-        cutoff <- SetQuantile(cutoff = max.cutoff, data = smoothed)
-        smoothed[smoothed > cutoff] <- cutoff
-      }
+      # values are clipped once across all groups after the loop, so that the
+      # shared colour scale corresponds to a single threshold
 
       # add extra column as bin ID
       regions <- colnames(x = smoothed)
@@ -1620,6 +1641,11 @@ RegionHeatmap <- function(
     df$assay <- assay[[j]]
 
     all.assay <- rbind(all.assay, df)
+  }
+
+  if (!is.null(x = max.cutoff) && !is.na(x = max.cutoff)) {
+    cutoff <- SetQuantile(cutoff = max.cutoff, data = all.assay$value)
+    all.assay$value[all.assay$value > cutoff] <- cutoff
   }
 
   maxval <- max(all.assay$value)
@@ -1966,9 +1992,9 @@ SingleCoveragePlot <- function(
     )
     colnames(cutmat) <- start(x = region):end(x = region)
     group.scale.factors <- suppressWarnings(reads.per.group * cells.per.group)
-    scale.factor <- scale.factor %||% median(x = group.scale.factors)
+    scale.factor.use <- scale.factor %||% median(x = group.scale.factors)
     cm.list[[i]] <- cutmat
-    sf.list[[i]] <- scale.factor
+    sf.list[[i]] <- scale.factor.use
     gsf.list[[i]] <- group.scale.factors
   }
   names(x = cm.list) <- unlist(x = assay)
@@ -2133,8 +2159,13 @@ SingleCoveragePlot <- function(
     bulk.plot <- CoverageTrack(
       cutmat = cm.list,
       region = region,
-      group.scale.factors = list(bulk.scale.factor),
-      scale.factor = scale.factor,
+      # CoverageTrack indexes these per assay, so recycle across the assays
+      group.scale.factors = rep(
+        x = list(bulk.scale.factor), length(x = cm.list)
+      ),
+      # sf.list holds the resolved (non-NULL) scale factor for each assay
+      scale.factor = sf.list,
+      assay.scale = assay.scale,
       window = window,
       ymax = ymax,
       obj.groups = bulk.groups,
@@ -2215,27 +2246,42 @@ SingleCoveragePlot <- function(
   bw.height <- 10
   gwas.height <- 3
   variants.height <- 1
-  heights <- heights %||% c(
-    gwas.height,
-    variants.height,
-    10,
-    bulk.height,
-    bw.height,
-    10, 3, 1, 1, 3
+  plot.list <- list(
+    gwas.tracks,
+    variant.track,
+    p,
+    bulk.plot,
+    bigwig.tracks,
+    tile.plot,
+    gene.plot,
+    peak.plot,
+    range.plot,
+    link.plot
   )
+  if (is.null(x = heights)) {
+    # one entry per slot in plot.list; CombineTracks drops the entries for
+    # tracks that were not requested along with the NULL plots
+    heights <- c(
+      gwas.height,
+      variants.height,
+      10,
+      bulk.height,
+      bw.height,
+      10, 3, 1, 1, 3
+    )
+  } else {
+    # a user-supplied vector already refers to the displayed tracks, so drop
+    # the unused slots before passing it on
+    plot.list <- Filter(f = Negate(f = is.null), x = plot.list)
+    if (length(x = heights) != length(x = plot.list)) {
+      stop(
+        "heights must contain one value for each displayed track (",
+        length(x = plot.list), " tracks are shown), or be NULL"
+      )
+    }
+  }
   p <- CombineTracks(
-    plotlist = list(
-      gwas.tracks,
-      variant.track,
-      p,
-      bulk.plot,
-      bigwig.tracks,
-      tile.plot,
-      gene.plot,
-      peak.plot,
-      range.plot,
-      link.plot
-    ),
+    plotlist = plot.list,
     expression.plot = ex.plot,
     heights = heights,
     widths = widths
@@ -2259,6 +2305,7 @@ SingleCoveragePlot <- function(
 #' @importFrom methods is
 #' @importFrom scales hue_pal
 #' @importFrom S4Vectors mcols
+#' @importFrom withr with_seed
 #' @importMethodsFrom GenomicRanges start end
 CoverageTrack <- function(
   cutmat,
@@ -2304,8 +2351,10 @@ CoverageTrack <- function(
     coverages <- coverages[!is.na(x = coverages$coverage), ]
     coverages <- group_by(.data = coverages, group)
     sampling <- min(max.downsample, window.size * downsample.rate)
-    set.seed(seed = 1234)
-    coverages <- slice_sample(.data = coverages, n = as.integer(x = sampling))
+    coverages <- with_seed(
+      seed = 1234,
+      code = slice_sample(.data = coverages, n = as.integer(x = sampling))
+    )
     coverages$Assay <- names(x = cutmat)[[i]]
     if (multicov) {
       if (assay.scale == "separate") {
@@ -2406,6 +2455,11 @@ CoverageTrack <- function(
         yes = end.pos,
         no = df$end
       )
+      n.panels <- if (split.assays) {
+        length(x = unique(x = coverages$assay_group))
+      } else {
+        length(x = unique(x = coverages$group))
+      }
       p <- p +
         geom_rect(
           data = df,
@@ -2416,7 +2470,7 @@ CoverageTrack <- function(
             ymin = 0,
             ymax = ymax
           ),
-          fill = rep(x = df$color, length(x = unique(x = coverages$group))),
+          fill = rep(x = df$color, n.panels),
           color = "transparent",
           alpha = 0.2
         )
@@ -2533,8 +2587,11 @@ CoverageTrack <- function(
 #' @param split.by A metadata variable to split the tracks by. For example,
 #' grouping by "celltype" and splitting by "batch" will create separate tracks
 #' for each combination of celltype and batch.
-#' @param heights Relative heights for each track (accessibility, gene
-#' annotations, peaks, links).
+#' @param heights Relative heights for each displayed track, given in plotting
+#' order (top to bottom): GWAS, variants, accessibility, pseudobulk, bigWig,
+#' tile, gene annotations, peaks, ranges, links. Only the tracks actually shown
+#' are counted, so the vector must have one value per displayed track. If
+#' `NULL` (default), heights are chosen automatically.
 #' @param max.downsample Maximum amount of downsampling to apply. Corresponds to
 #' the minimum number of positions to be kept when downsampling. The
 #' downsampling rate is adaptive to the window size, but this parameter will set
@@ -2797,6 +2854,8 @@ globalVariables(names = "group", package = "Signac")
 #' @param group.by Name of one or more metadata columns to group (color) the
 #' cells by. Default is the current cell identities
 #' @param log.scale Display Y-axis on log scale. Default is FALSE.
+#' @param max.length Maximum fragment length to display. Fragments longer than
+#' this are not shown. If `NULL`, show all fragment lengths present.
 #' @param ... Arguments passed to other functions
 #'
 #' @importFrom ggplot2 ggplot geom_histogram theme_classic aes facet_wrap scale_y_log10 theme element_blank xlim
@@ -2823,6 +2882,7 @@ FragmentHistogram <- function(
   group.by = NULL,
   cells = NULL,
   log.scale = FALSE,
+  max.length = 800,
   ...
 ) {
   cells <- cells %||% colnames(x = object)
@@ -2848,6 +2908,16 @@ FragmentHistogram <- function(
     names(x = groups) <- rownames(x = md)
   }
   reads$group <- groups[reads$cell]
+  if (!is.null(x = max.length)) {
+    n.dropped <- sum(reads$length > max.length)
+    if (n.dropped > 0) {
+      message(
+        n.dropped, " fragments longer than max.length (", max.length,
+        " bp) are not shown"
+      )
+      reads <- reads[reads$length <= max.length, ]
+    }
+  }
   if (length(x = unique(x = reads$group)) == 1) {
     p <- ggplot(data = reads, mapping = aes(x = .data[["length"]])) +
       geom_histogram(bins = 200)
@@ -2859,7 +2929,10 @@ FragmentHistogram <- function(
       geom_histogram(bins = 200) +
       facet_wrap(~group, scales = "free_y")
   }
-  p <- p + xlim(c(0, 800)) +
+  if (!is.null(x = max.length)) {
+    p <- p + xlim(c(0, max.length))
+  }
+  p <- p +
     theme_classic() +
     theme(
       legend.position = "none",
@@ -3405,7 +3478,11 @@ AnnotationPlot <- function(
       axis.ticks.y = element_blank(),
       axis.text.y = element_blank()
     ) +
-    scale_color_manual(values = c("darkblue", "darkgreen"))
+    # name the values so that a strand keeps the same colour whether or not
+    # the other strands are present in the region
+    scale_color_manual(
+      values = c("+" = "darkblue", "-" = "darkgreen", "*" = "grey40")
+    )
   return(p)
 }
 
@@ -3825,7 +3902,8 @@ ComputeTile <- function(
 
   smoothed$group <- groups[smoothed$name]
   smoothed$idx <- cell.idx[smoothed$name]
-  smoothed$bin <- smoothed$bin + as.numeric(x = colnames(x = cutmatrix)[[1]])
+  smoothed$bin <- (smoothed$bin - 1) * window +
+    as.numeric(x = colnames(x = cutmatrix)[[1]])
   return(smoothed)
 }
 
@@ -3905,7 +3983,7 @@ split_body <- function(df, width = 1000) {
   if (nbreak > 1) {
     steps <- 0:(nbreak)
     starts <- (width * steps) + df$start
-    starts[starts > df$end] <- NULL
+    starts <- starts[starts <= df$end]
   } else {
     starts <- df$end
   }
