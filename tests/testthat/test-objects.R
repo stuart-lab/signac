@@ -395,13 +395,34 @@ test_that("SetAssayData ChromatinAssay5 annotation with transcript_id works", {
 
 test_that("SetAssayData ChromatinAssay5 bias validates", {
   obj <- atac_small[["peaks"]]
-  # a non-vector triggers the setter's own check (a list is a vector, so it
-  # would slip past it and only fail later in slot validation)
   expect_error(
     SetAssayData(
       obj, layer = "bias", new.data = GenomicRanges::GRanges("chr1:1-2")
     ),
-    regexp = "Bias must be provided as a vector"
+    regexp = "Bias must be a numeric vector"
+  )
+  # the setter applies the same checks as the class validity method, so an
+  # unnamed or incomplete bias vector is rejected at assignment
+  expect_error(
+    SetAssayData(obj, layer = "bias", new.data = 1:10),
+    regexp = "Bias must be a named numeric vector"
+  )
+  expect_error(
+    SetAssayData(
+      obj, layer = "bias", new.data = setNames(object = 1:2, nm = c("AA", "CC"))
+    ),
+    regexp = "Bias vector must contain each hexamer"
+  )
+  # a complete hexamer vector is accepted
+  bases <- c("A", "C", "G", "T")
+  hexamers <- apply(
+    X = expand.grid(rep(x = list(bases), 6)), MARGIN = 1,
+    FUN = paste0, collapse = ""
+  )
+  bias <- setNames(object = seq_along(hexamers), nm = hexamers)
+  expect_s4_class(
+    object = SetAssayData(obj, layer = "bias", new.data = bias),
+    class = "ChromatinAssay5"
   )
 })
 

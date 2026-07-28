@@ -36,6 +36,64 @@ test_that("RegionMatrix produces expected matrix structure", {
   }
 })
 
+test_that("RegionMatrix tolerates regions on absent chromosomes", {
+  obj <- setup_obj_frag()
+  real <- head(granges(obj), 3)
+  absent <- GRanges("chrZZ", IRanges(1000, 2000))
+  regions <- suppressWarnings(c(real, absent))
+
+  expect_warning(
+    rm <- RegionMatrix(
+      object = obj, regions = regions,
+      upstream = 100, downstream = 100, verbose = FALSE
+    ),
+    regexp = "not present in the fragment file"
+  )
+  # the absent region is still a row, filled with zeros
+  for (m in rm$matrix) {
+    expect_equal(dim(m), c(4, 201))
+    expect_equal(sum(m[4, ]), 0)
+  }
+  # rows for the real regions are unchanged relative to quantifying them alone
+  rm.real <- RegionMatrix(
+    object = obj, regions = real,
+    upstream = 100, downstream = 100, verbose = FALSE
+  )
+  for (grp in names(rm$matrix)) {
+    expect_equal(rm$matrix[[grp]][1:3, ], rm.real$matrix[[grp]])
+  }
+})
+
+test_that("RegionMatrix counts insertions at the window edges", {
+  obj <- setup_obj_frag()
+  region <- GRanges("chr1", IRanges(start = 181348, end = 181348))
+  rm <- RegionMatrix(
+    object = obj, regions = region,
+    upstream = 100, downstream = 100, verbose = FALSE
+  )
+  expect_equal(sum(sapply(rm$matrix, sum)), 1)
+
+  # the matrix total equals a brute-force count of insertion sites in the
+  # window, for a window with a fully-contained fragment as well
+  region2 <- GRanges("chr1", IRanges(start = 10000, end = 10000))
+  rm2 <- RegionMatrix(
+    object = obj, regions = region2,
+    upstream = 300, downstream = 300, verbose = FALSE
+  )
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  d <- read.table(
+    gzfile(fpath), sep = "\t",
+    col.names = c("chr", "start", "end", "cb", "n")
+  )
+  d <- d[d$cb %in% colnames(atac_small) & d$chr == "chr1", ]
+  win.start <- 10000 - 300
+  in.window <- function(p) sum((p - win.start) >= 1 & (p - win.start) <= 601)
+  expect_equal(
+    sum(sapply(rm2$matrix, sum)),
+    in.window(d$start) + in.window(d$end)
+  )
+})
+
 test_that("RegionMatrix errors when no fragments", {
   expect_error(
     RegionMatrix(

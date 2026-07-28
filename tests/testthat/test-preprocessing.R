@@ -84,13 +84,49 @@ test_that("FindTopFeatures works", {
   expect_equal(
     object = head(SeuratObject::VariableFeatures(object = atac_small)),
     expected = c(
-      "chr1:191183-192084",
-      "chr1:270850-271755",
-      "chr1:273946-274792",
-      "chr1:854732-855551",
-      "chr1:877256-878073",
-      "chr1:897006-897867"
+      "chr1:1115790-1116694",
+      "chr1:1307720-1308738",
+      "chr1:778263-779184",
+      "chr1:1231645-1232553",
+      "chr1:1012999-1013896",
+      "chr1:1068591-1069593"
     )
+  )
+})
+
+test_that("FindTopFeatures returns the most accessible features first", {
+  obj <- atac_small
+  VariableFeatures(obj) <- NULL
+  obj <- FindTopFeatures(object = obj, min.cutoff = "q50", verbose = FALSE)
+  counts <- Matrix::rowSums(
+    x = LayerData(object = obj[["peaks"]], layer = "counts")
+  )
+  vf <- VariableFeatures(object = obj)
+  # ordered by decreasing total count
+  expect_false(is.unsorted(x = rev(x = counts[vf])))
+  # and drawn from the upper half of the count distribution, not the lower
+  expect_gt(median(x = counts[vf]), median(x = counts))
+})
+
+test_that("FindTopFeatures sums counts over layers", {
+  obj <- atac_small[["peaks"]]
+  counts <- LayerData(object = obj, layer = "counts")
+  split.obj <- CreateAssay5Object(
+    counts = list(counts.1 = counts[, 1:50], counts.2 = counts[, 51:100])
+  )
+  split.obj <- FindTopFeatures(object = split.obj, verbose = FALSE)
+  meta <- split.obj[[]]
+  # the summary is stored under every layer, and is the same for each
+  expect_true("vf_topfeatures_counts.1_count" %in% colnames(x = meta))
+  expect_true("vf_topfeatures_counts.2_count" %in% colnames(x = meta))
+  expect_equal(
+    object = meta$vf_topfeatures_counts.1_count,
+    expected = meta$vf_topfeatures_counts.2_count
+  )
+  # counts are summed over the layers, not taken from one of them
+  expect_equal(
+    object = meta$vf_topfeatures_counts.1_count,
+    expected = unname(obj = Matrix::rowSums(x = counts))
   )
 })
 
@@ -322,6 +358,35 @@ test_that("RunTFIDF Seurat populates data layer with normalized values", {
   expect_true(all(d@x > 0))
 })
 
+test_that("RunTFIDF gives the same result for dense and sparse input", {
+  m_sparse <- LayerData(object = atac_small[["peaks"]], layer = "counts")
+  m_dense <- as.matrix(x = m_sparse)
+  for (method in 1:4) {
+    sparse.res <- suppressWarnings(
+      RunTFIDF(object = m_sparse, method = method, verbose = FALSE)
+    )
+    dense.res <- suppressWarnings(
+      RunTFIDF(object = m_dense, method = method, verbose = FALSE)
+    )
+    expect_equal(
+      object = as.matrix(x = dense.res),
+      expected = as.matrix(x = sparse.res)
+    )
+    # zero-count features and cells must not produce Inf or NaN
+    expect_false(anyNA(x = as.matrix(x = dense.res)))
+  }
+})
+
+test_that("RunTFIDF handles features and cells with no counts", {
+  m <- LayerData(object = atac_small[["peaks"]], layer = "counts")
+  m[1, ] <- 0
+  m[, 1] <- 0
+  res <- suppressWarnings(RunTFIDF(object = m, verbose = FALSE))
+  expect_false(anyNA(x = as.matrix(x = res)))
+  expect_true(all(as.matrix(x = res)[1, ] == 0))
+  expect_true(all(as.matrix(x = res)[, 1] == 0))
+})
+
 test_that("RunTFIDF method 3 produces different values than method 1", {
   res1 <- RunTFIDF(atac_small, method = 1, verbose = FALSE)
   res3 <- RunTFIDF(atac_small, method = 3, verbose = FALSE)
@@ -465,4 +530,72 @@ test_that("FeatureMatrix works", {
     verbose = FALSE
   )
   expect_identical(object = fm, expected = computed_fmat)
+})
+
+test_that("FitMeanVar does not select features below min.cutoff", {
+  set.seed(42)
+  cm <- as(matrix(rpois(400 * 80, 1.2), nrow = 400), "CsparseMatrix")
+  rownames(cm) <- paste0("p", 1:400)
+  colnames(cm) <- paste0("c", 1:80)
+
+  # a threshold no feature can reach: nothing is eligible
+  expect_error(
+    suppressWarnings(FitMeanVar(
+      cm, min.cutoff = 1e6, nfeatures = 400, bins = 20,
+      sample_per_bin = 50, verbose = FALSE
+    )),
+    regexp = "No features remain after filtering by min.cutoff"
+  )
+
+  # a reachable threshold: only eligible features are marked variable
+  thresh <- quantile(Matrix::rowSums(cm), 0.9)
+  res <- suppressWarnings(FitMeanVar(
+    cm, min.cutoff = thresh, nfeatures = 400, bins = 20,
+    sample_per_bin = 50, verbose = FALSE
+  ))
+  expect_gt(sum(res$variable), 0)
+  expect_equal(sum(res$variable & res$total.counts < thresh), 0)
+  expect_equal(sum(res$variable), sum(res$total.counts >= thresh))
+})
+
+test_that("PearsonResidualVar honors min.counts", {
+  set.seed(7)
+  m <- as(matrix(rpois(100 * 40, 5), nrow = 100), "CsparseMatrix")
+  rownames(m) <- paste0("p", 1:100)
+  colnames(m) <- paste0("c", 1:40)
+  counts <- Matrix::rowSums(m)
+  thresh <- quantile(counts, 0.5)
+
+  res <- PearsonResidualVar(
+    object = m, min.counts = thresh, verbose = FALSE
+  )
+  # features below the threshold are not eligible for selection
+  expect_true(all(is.na(res$rank[res$count < thresh])))
+  expect_false(any(is.na(res$rank[res$count >= thresh])))
+
+  # a permissive threshold leaves every feature eligible
+  res.all <- PearsonResidualVar(object = m, min.counts = 1, verbose = FALSE)
+  expect_false(anyNA(res.all$rank))
+})
+
+test_that("FindTopFeatures handles layers with different features", {
+  counts <- LayerData(object = atac_small[["peaks"]], layer = "counts")
+  # the two layers share only a subset of their features
+  obj <- CreateAssay5Object(counts = list(
+    counts.1 = counts[1:80, 1:50],
+    counts.2 = counts[21:100, 51:100]
+  ))
+  res <- FindTopFeatures(object = obj, verbose = FALSE)
+  meta <- res[[]]
+  count.col <- grep("counts.1_count$", colnames(x = meta), value = TRUE)
+  expect_equal(nrow(x = meta), 100)
+  expect_false(anyNA(x = meta[[count.col]]))
+  # counts are summed over both layers, treating an absent feature as zero
+  expected <- Matrix::rowSums(x = counts[, 1:50])
+  expected[81:100] <- 0
+  expected <- expected + c(rep(0, 20), Matrix::rowSums(x = counts[21:100, 51:100]))
+  expect_equal(
+    object = unname(obj = meta[[count.col]]),
+    expected = unname(obj = expected[rownames(x = meta)])
+  )
 })

@@ -330,6 +330,88 @@ test_that("FindMotifs returns enrichment data.frame for each motif", {
   expect_true(all(res$pvalue >= 0 & res$pvalue <= 1))
 })
 
+test_that("CreateMotifObject populates motif.names from a named PWM list", {
+  motif.matrix <- matrix(
+    data = sample(x = c(0, 1), size = 20, replace = TRUE), ncol = 2
+  )
+  rownames(x = motif.matrix) <- paste0("feature", 1:10)
+  colnames(x = motif.matrix) <- c("MA1", "MA2")
+  pwm <- list(MA1 = matrix(0, 4, 4), MA2 = matrix(0, 4, 4))
+
+  mo <- CreateMotifObject(data = motif.matrix, pwm = pwm, motif.names = NULL)
+  names.stored <- GetMotifData(object = mo, slot = "motif.names")
+  expect_length(names.stored, 2)
+  expect_equal(names(x = names.stored), c("MA1", "MA2"))
+  expect_equal(unlist(x = names.stored, use.names = FALSE), c("MA1", "MA2"))
+
+  # ConvertMotifID can now round-trip
+  expect_equal(ConvertMotifID(object = mo, id = "MA1"), "MA1")
+
+  # no pwm at all still yields an empty (but valid) slot
+  mo.nopwm <- CreateMotifObject(data = motif.matrix)
+  expect_length(GetMotifData(object = mo.nopwm, slot = "motif.names"), 0)
+})
+
+test_that("FindMotifs works when motif.names come from the PWM list", {
+  # this combination previously failed with
+  # "arguments imply differing number of rows: 3, 0"
+  obj <- atac_small
+  nrow_data <- nrow(obj[["peaks"]])
+  set.seed(1)
+  motif_data <- sparseMatrix(
+    i = sample(1:nrow_data, 60, replace = TRUE),
+    j = sample(1:3, 60, replace = TRUE),
+    x = 1,
+    dims = c(nrow_data, 3),
+    dimnames = list(rownames(obj[["peaks"]]), paste0("M", 1:3))
+  )
+  motif_data <- as((motif_data > 0) * 1, "CsparseMatrix")
+  pwm <- setNames(
+    object = lapply(X = 1:3, FUN = function(i) matrix(0, 4, 4)),
+    nm = paste0("M", 1:3)
+  )
+  Motifs(obj) <- CreateMotifObject(
+    data = motif_data, pwm = pwm, motif.names = NULL
+  )
+  features <- head(rownames(obj[["peaks"]]), 20)
+  background <- setdiff(rownames(obj[["peaks"]]), features)[1:40]
+  res <- FindMotifs(
+    object = obj, features = features, background = background, verbose = FALSE
+  )
+  expect_s3_class(res, "data.frame")
+  expect_equal(nrow(res), 3)
+  expect_equal(sort(res$motif.name), paste0("M", 1:3))
+  expect_false(anyNA(res$motif.name))
+})
+
+test_that("Motif meta.data is validated and subset per motif", {
+  motif.matrix <- matrix(
+    data = sample(x = c(0, 1), size = 30, replace = TRUE), ncol = 3
+  )
+  rownames(x = motif.matrix) <- paste0("feature", 1:10)
+  colnames(x = motif.matrix) <- paste0("M", 1:3)
+  md <- data.frame(
+    tf = c("TFA", "TFB", "TFC"), row.names = paste0("M", 1:3)
+  )
+  mo <- CreateMotifObject(data = motif.matrix, meta.data = md)
+  expect_equal(nrow(GetMotifData(object = mo, slot = "meta.data")), 3)
+
+  # subsetting motifs carries the matching metadata rows
+  sub <- subset(x = mo, motifs = c("M1", "M3"))
+  expect_equal(
+    rownames(GetMotifData(object = sub, slot = "meta.data")), c("M1", "M3")
+  )
+  expect_equal(GetMotifData(object = sub, slot = "meta.data")$tf,
+               c("TFA", "TFC"))
+
+  # metadata that does not match the motifs is rejected
+  bad <- data.frame(tf = "x", row.names = "not_a_motif")
+  expect_error(
+    CreateMotifObject(data = motif.matrix, meta.data = bad),
+    regexp = "inconsistent"
+  )
+})
+
 test_that("FindMotifs warns on missing query features", {
   skip_if_not_installed("TFBSTools")
   obj <- atac_small

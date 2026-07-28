@@ -137,3 +137,22 @@ test_that("EnrichedTerms runs with var.features = FALSE (full universe)", {
   expect_type(res, "list")
   expect_true("A" %in% names(res))
 })
+
+test_that("EnrichedTerms padj.cutoff controls which terms are retained", {
+  skip_on_cran()
+  skip_if_not_installed("Seurat")
+  skip_if_not_installed("fgsea")
+  obj <- make_ontology_object()
+  terms <- list(T_up = paste0("g", 1:15), T_bg = paste0("g", 100:140))
+  n.terms <- function(x) sum(sapply(X = x, FUN = nrow))
+  loose <- EnrichedTerms(
+    object = obj, terms = terms, group.by = "grp",
+    padj.cutoff = 1, verbose = FALSE
+  )
+  strict <- EnrichedTerms(
+    object = obj, terms = terms, group.by = "grp",
+    padj.cutoff = 1e-12, verbose = FALSE
+  )
+  expect_gt(n.terms(loose), n.terms(strict))
+  expect_equal(n.terms(strict), 0)
+})
