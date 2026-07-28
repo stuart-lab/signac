@@ -155,7 +155,7 @@ AccessiblePeaks <- function(
     assay = assay,
     layer = layer
   )[, cells]
-  peaks <- names(x = which(x = rowSums(x = open.peaks > 0) > min.cells))
+  peaks <- names(x = which(x = rowSums(x = open.peaks > 0) >= min.cells))
   return(peaks)
 }
 
@@ -257,7 +257,7 @@ SortIdents <- function(
            Are you sure this is a categorical variable?")
   }
   if (length(x = uniq_cell_types) < 3) {
-    stop("Must have more than three different variables")
+    stop("Must have at least three different groups to sort")
   }
   if (verbose) {
     message(
@@ -636,19 +636,11 @@ LookupGeneCoords <- function(object, gene, assay = NULL) {
 #' query regions for any given set of characteristics, specified in the input
 #' `meta.feature` dataframe.
 #'
-#' For each requested feature to match, a density distribution is estimated
-#' using the [stats::density()] function,
-#' and a set of weights for each feature in the dataset estimated based on the
-#' density distribution. If multiple features are to be matched (for example,
-#' GC content and overall accessibility), features are first transformed such
-#' that they are uncorrelated with each other using a Cholesky decomposition and
-#' a joint density distribution is then computed by multiplying the individual
-#' feature weights. A set of features with characteristics matching the query
-#' regions is then selected using the [base::sample()] function, with
-#' the probability of randomly selecting each feature equal to the joint density
-#' distribution weight. If the `wrswoR` package is
-#' available, the [wrswoR::sample_int_crank()] function is used for
-#' faster sampling.
+#' If multiple features are to be matched (for example, GC content and overall
+#' accessibility), the features are first transformed so that they are
+#' uncorrelated with each other using a Cholesky decomposition. Each candidate
+#' region is then assigned to its nearest query region in this decorrelated
+#' space, using Euclidean distance.
 #'
 #' @param meta.feature A dataframe containing DNA sequence information for
 #' features to choose from
@@ -768,9 +760,9 @@ MatchRegionStats <- function(
   colnames(x = trans_mf) <- features.match
   colnames(x = trans_qf) <- features.match
 
-  # nearest-neighbor matching: for each background region, compute
-  # distance to nearest query region in the decorrelated feature space,
-  # then select the n closest background regions
+  # nearest-neighbor matching: assign each background region to its closest
+  # query region in the decorrelated feature space, then select from those
+  # assignments in rounds so that the selection follows the query distribution
   if (verbose) {
     message("Matching region characteristics using nearest-neighbor distance")
   }
@@ -778,6 +770,7 @@ MatchRegionStats <- function(
   n_q <- nrow(x = trans_qf)
   sq_q <- rowSums(x = trans_qf^2)
   min_dists <- numeric(length = n_bg)
+  nearest_q <- integer(length = n_bg)
 
   # process in chunks to limit memory usage
   chunk_size <- max(1L, as.integer(x = floor(x = 1e8 / n_q)))
@@ -792,11 +785,18 @@ MatchRegionStats <- function(
     cross <- bg_chunk %*% t(x = trans_qf)
     # squared Euclidean distance: ||bg - q||^2 = ||bg||^2 + ||q||^2 - 2*bg'q
     dist_mat <- outer(X = sq_bg, Y = sq_q, FUN = "+") - 2 * cross
-    min_dists[chunk_idx] <- apply(X = dist_mat, MARGIN = 1, FUN = min)
+    nearest <- max.col(m = -dist_mat, ties.method = "first")
+    nearest_q[chunk_idx] <- nearest
+    min_dists[chunk_idx] <- dist_mat[
+      cbind(seq_len(length.out = nrow(x = dist_mat)), nearest)
+    ]
   }
-  feature.select <- rownames(x = meta.feature)[order(min_dists)[
-    seq_len(length.out = n)
-  ]]
+  ord <- order(nearest_q, min_dists)
+  rank_within_q <- sequence(nvec = tabulate(bin = nearest_q, nbins = n_q))
+  selection.order <- ord[order(rank_within_q)]
+  feature.select <- rownames(x = meta.feature)[
+    selection.order[seq_len(length.out = n)]
+  ]
   return(feature.select)
 }
 
@@ -831,8 +831,8 @@ SubsetMatrix <- function(
 ) {
   rowcount <- rowSums(mat > 0)
   colcount <- colSums(mat > 0)
-  keeprows <- rowcount > min.rows
-  keepcols <- colcount > min.cols
+  keeprows <- rowcount >= min.rows
+  keepcols <- colcount >= min.cols
   if (!is.null(x = max.row.val)) {
     rowmax <- apply(X = mat, MARGIN = 1, FUN = max)
     keeprows <- keeprows & (rowmax < max.row.val)
@@ -880,24 +880,27 @@ AddMissing <- function(x, cells = NULL, features = NULL) {
   return(x)
 }
 
-# Calculate nCount and nFeature
+# Add zero rows for cells not present in a cell x position matrix, and reorder
+# the rows to match the requested cells. AddMissing treats rows as features and
+# columns as cells; in a cut matrix the cells are the rows.
 #
-# From Seurat
-#
-# @param object An Assay object
-#
-# @return A named list with nCount and nFeature
-#
-#' @importFrom Matrix colSums
-#
-CalcN <- function(object) {
-  if (IsMatrixEmpty(x = LayerData(object = object, layer = "counts"))) {
-    return(NULL)
+# @param mat A cell x position matrix
+# @param cells Character vector of cells to include, in the required order
+# @return Returns a matrix with one row per element of `cells`
+#' @importFrom Matrix sparseMatrix
+PadMissingCells <- function(mat, cells) {
+  missing.cells <- setdiff(x = cells, y = rownames(x = mat))
+  if (length(x = missing.cells) > 0) {
+    null.mat <- sparseMatrix(
+      i = c(),
+      j = c(),
+      dims = c(length(x = missing.cells), ncol(x = mat))
+    )
+    rownames(x = null.mat) <- missing.cells
+    colnames(x = null.mat) <- colnames(x = mat)
+    mat <- rbind(mat, null.mat)
   }
-  return(list(
-    nCount = colSums(x = object, slot = "counts"),
-    nFeature = colSums(x = LayerData(object = object, layer = "counts") > 0)
-  ))
+  return(mat[cells, , drop = FALSE])
 }
 
 globalVariables(
@@ -1507,11 +1510,19 @@ MultiRegionCutMatrix <- function(
       value = common.seqlevels,
       pruning.mode = "coarse"
     )
+    cells.use <- intersect(
+      x = cells %||% names(x = cellmap), y = names(x = cellmap)
+    )
+    if (length(x = cells.use) == 0) {
+      close(con = tabix.file)
+      next
+    }
     cm <- SingleFileCutMatrix(
       cellmap = cellmap,
       seqmap = seqmap,
       tabix.file = tabix.file,
       region = regions,
+      cells = cells.use,
       verbose = verbose
     )
     close(con = tabix.file)
@@ -1577,9 +1588,23 @@ CreateRegionPileupMatrix <- function(
   } else if (is.null(x = cut.matrix.minus)) {
     full.matrix <- cut.matrix.plus
   } else {
-    full.matrix <- cut.matrix.plus + cut.matrix.minus[, rev(
+    cut.matrix.minus <- cut.matrix.minus[, rev(
       x = colnames(x = cut.matrix.minus)
     )]
+    if (!identical(
+      x = rownames(x = cut.matrix.plus), y = rownames(x = cut.matrix.minus)
+    )) {
+      all.cells <- union(
+        x = rownames(x = cut.matrix.plus), y = rownames(x = cut.matrix.minus)
+      )
+      cut.matrix.plus <- PadMissingCells(
+        mat = cut.matrix.plus, cells = all.cells
+      )
+      cut.matrix.minus <- PadMissingCells(
+        mat = cut.matrix.minus, cells = all.cells
+      )
+    }
+    full.matrix <- cut.matrix.plus + cut.matrix.minus
   }
   # rename so 0 is center
   region.width <- width(x = regions)[[1]]
@@ -1740,22 +1765,6 @@ ExtractField <- function(string, field = 1, delim = "_") {
     stri_split_fixed(str = string, pattern = delim)[[1]][fields],
     collapse = delim
   ))
-}
-
-# Check if a matrix is empty
-#
-# From Seurat
-#
-# Takes a matrix and asks if it's empty (either 0x0 or 1x1 with a value of NA)
-#
-# @param x A matrix
-#
-# @return Whether or not \code{x} is empty
-#
-IsMatrixEmpty <- function(x) {
-  matrix.dims <- dim(x = x)
-  matrix.na <- all(matrix.dims == 1) && all(is.na(x = x))
-  return(all(matrix.dims == 0) || matrix.na)
 }
 
 # Resolve a cutoff value, interpreting "q<n>" strings as the nth percentile of
