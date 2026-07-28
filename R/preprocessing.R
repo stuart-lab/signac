@@ -385,12 +385,45 @@ FindTopFeatures.default <- function(
   ...
 ) {
   featurecounts <- rowSums(x = object)
-  e.dist <- ecdf(x = featurecounts)
+  return(HVFInfoFromCounts(counts = featurecounts, min.cutoff = min.cutoff))
+}
+
+# Build the highly-variable-feature info table from per-feature total counts
+#
+# Shared by the FindTopFeatures methods so that the min.cutoff semantics are
+# defined in one place.
+#
+# @param counts A named numeric vector of total counts per feature
+# @param min.cutoff Either NULL (all features variable), a numeric count
+# threshold, or a percentile given as "q<n>"
+#
+# @return A data.frame with count, percentile, rank and variable columns
+#
+#' @importFrom stats ecdf
+HVFInfoFromCounts <- function(counts, min.cutoff = "q5") {
+  e.dist <- ecdf(x = counts)
   hvf.info <- data.frame(
-    row.names = names(x = featurecounts),
-    count = featurecounts,
-    percentile = e.dist(featurecounts)
+    row.names = names(x = counts),
+    count = counts,
+    percentile = e.dist(counts)
   )
+  hvf.info$rank <- rank(x = -hvf.info$percentile, ties.method = "min")
+  if (is.null(x = min.cutoff)) {
+    hvf.info$variable <- TRUE
+  } else if (is.numeric(x = min.cutoff)) {
+    hvf.info$variable <- hvf.info$count > min.cutoff
+  } else {
+    percentile.use <- as.numeric(
+      x = sub(pattern = "q", replacement = "", x = as.character(x = min.cutoff))
+    ) / 100
+    if (is.na(x = percentile.use)) {
+      stop(
+        "min.cutoff must be NULL, a number, or a percentile given as ",
+        "'q' followed by a number, for example 'q5'"
+      )
+    }
+    hvf.info$variable <- hvf.info$percentile > percentile.use
+  }
   return(hvf.info)
 }
 
@@ -413,52 +446,46 @@ FindTopFeatures.Assay5 <- function(
   ...
 ) {
   layer <- Layers(object = object, search = layer)
+  total.counts <- NULL
   for (i in seq_along(along.with = layer)) {
     if (isTRUE(x = verbose)) {
       message("Finding variable features for layer ", layer[i])
     }
     data.use <- LayerData(object = object, layer = layer[i], fast = TRUE)
-    hvf <- FindTopFeatures(
-      object = data.use,
-      assay = assay,
-      min.cutoff = min.cutoff,
-      verbose = verbose,
-      ...
-    )
-    rownames(x = hvf) <- Features(x = object, layer = layer[i])
-    if (i == 1) {
-      hvf.use <- hvf
+    counts.layer <- rowSums(x = data.use)
+    names(x = counts.layer) <- Features(x = object, layer = layer[i])
+    if (is.null(x = total.counts)) {
+      total.counts <- counts.layer
     } else {
-      # sum feature counts across layers
-      hvf.use[rownames(x = hvf), ] <- hvf.use[rownames(x = hvf), ] + hvf
+      # sum feature counts across layers, retaining features that are present
+      # in only some of the layers
+      all.features <- union(
+        x = names(x = total.counts), y = names(x = counts.layer)
+      )
+      summed <- setNames(
+        object = numeric(length = length(x = all.features)), nm = all.features
+      )
+      summed[names(x = total.counts)] <- total.counts
+      summed[names(x = counts.layer)] <- summed[names(x = counts.layer)] +
+        counts.layer
+      total.counts <- summed
     }
   }
-  # re-compute percentile due to multiple layers
-  e.dist <- ecdf(x = hvf.use$count)
-  hvf.use$percentile <- e.dist(hvf.use$count)
-  hvf.use$rank <- rank(x = hvf.use$percentile)
-  hvf.use$variable <- FALSE
-
-  if (is.null(x = min.cutoff)) {
-    hvf.use$variable <- TRUE
-  } else if (is.numeric(x = min.cutoff)) {
-    hvf.use[hvf.use[, 1] > min.cutoff, "variable"] <- TRUE
-  } else {
-    percentile.use <- as.numeric(
-      x = sub(pattern = "q", replacement = "", x = as.character(x = min.cutoff))
-    ) / 100
-    hvf.use[hvf.use[, 2] > percentile.use, "variable"] <- TRUE
-  }
-  colnames(x = hvf.use) <- paste(
-    "vf",
-    key,
-    layer[i],
-    colnames(x = hvf.use),
-    sep = "_"
-  )
+  # percentile, rank and cutoff are computed on the counts summed over layers
+  hvf.use <- HVFInfoFromCounts(counts = total.counts, min.cutoff = min.cutoff)
   object[["var.features"]] <- NULL
   object[["var.features.rank"]] <- NULL
-  object[[names(x = hvf.use)]] <- hvf.use
+  for (i in seq_along(along.with = layer)) {
+    hvf.layer <- hvf.use
+    colnames(x = hvf.layer) <- paste(
+      "vf",
+      key,
+      layer[i],
+      colnames(x = hvf.use),
+      sep = "_"
+    )
+    object[[names(x = hvf.layer)]] <- hvf.layer
+  }
   return(object)
 }
 
@@ -674,10 +701,14 @@ FitMeanVar.default <- function(
   } else {
     count.thresh <- min.cutoff
   }
+  n.eligible <- sum(rs >= count.thresh)
   if (verbose) {
-    message("Retained ", nrow(x = object), " features after count filtering")
+    message(
+      n.eligible, " of ", nrow(x = object),
+      " features are eligible for selection after count filtering"
+    )
   }
-  if (nrow(x = object) == 0) {
+  if (n.eligible == 0) {
     stop("No features remain after filtering by min.cutoff")
   }
   df <- data.frame(
@@ -700,10 +731,14 @@ FitMeanVar.default <- function(
   )
 
   df$rank[df$total.counts < count.thresh] <- NA
-  vf <- head(
-    x = order(df$rank, decreasing = FALSE),
+  # order() sorts NA last rather than dropping it, so features below the count
+  # threshold would be selected once nfeatures exceeds the number of eligible
+  # features. Restrict the ranking to the eligible features.
+  eligible <- which(x = !is.na(x = df$rank))
+  vf <- eligible[head(
+    x = order(df$rank[eligible], decreasing = FALSE),
     n = nfeatures
-  )
+  )]
   df$variable <- FALSE
   df$variable[vf] <- TRUE
   return(df)
@@ -712,6 +747,7 @@ FitMeanVar.default <- function(
 #' @rdname FitMeanVar
 #' @importFrom sparseMatrixStats rowVars
 #' @importFrom stats loess predict
+#' @importFrom withr with_seed
 #' @export
 #' @concept preprocessing
 #' @method FitMeanVar data.frame
@@ -728,7 +764,6 @@ FitMeanVar.data.frame <- function(
   if (!all(c("mean", "variance") %in% colnames(x = object))) {
     stop("Mean and variance information must be stored in the input dataframe")
   }
-  set.seed(random.seed)
   object$log_mean <- log1p(x = object$mean)
   breaks <- seq(
     min(object$log_mean, na.rm = TRUE),
@@ -740,7 +775,7 @@ FitMeanVar.data.frame <- function(
     vec = breaks,
     rightmost.closed = TRUE
   )
-  sampled_df <- do.call(
+  sampled_df <- with_seed(seed = random.seed, code = do.call(
     what = rbind,
     args = lapply(X = split(object, object$bin), FUN = function(subset) {
       if (nrow(subset) > sample_per_bin) {
@@ -752,7 +787,7 @@ FitMeanVar.data.frame <- function(
       }
       return(subset)
     })
-  )
+  ))
   loess_fit <- loess(
     formula = log1p(x = variance) ~ log_mean,
     data = sampled_df,
@@ -866,6 +901,23 @@ PearsonResidualVar.default <- function(
 
   res_rank <- rank(x = -resid.all, ties.method = "average")
   mean_rank <- rank(x = -feature_means, ties.method = "average")
+  feature.rank <- (weight.mean * mean_rank) + ((1 - weight.mean) * res_rank)
+
+  # features with fewer than min.counts total counts are not eligible to be
+  # selected as variable features. Their statistics are still returned; the
+  # NA rank excludes them from selection in the Assay5 method, which sorts the
+  # ranks and drops NA
+  if (!is.null(x = min.counts)) {
+    ineligible <- rcount < min.counts
+    if (all(ineligible)) {
+      warning(
+        "No features have at least min.counts (", min.counts, ") counts; ",
+        "no features are eligible to be selected as variable features",
+        call. = FALSE
+      )
+    }
+    feature.rank[ineligible] <- NA
+  }
 
   # construct dataframe
   hvf.info <- data.frame(
@@ -873,7 +925,7 @@ PearsonResidualVar.default <- function(
     count = rcount,
     mean = feature_means,
     ResidualVariance = resid.all,
-    rank = (weight.mean * mean_rank) + ((1 - weight.mean) * res_rank)
+    rank = feature.rank
   )
 
   return(hvf.info)
@@ -994,7 +1046,7 @@ PearsonResidualVar.Seurat <- function(
   object,
   assay = NULL,
   min.counts = 100,
-  weight.mean = 0.5,
+  weight.mean = 0,
   theta = 10,
   ncell.batch = 100,
   key = "pearson",
@@ -1223,16 +1275,21 @@ RunTFIDF.default <- function(
     message("Performing TF-IDF normalization")
   }
   npeaks <- colSums(x = object)
-  if (any(npeaks == 0)) {
+  zero.cells <- npeaks == 0
+  if (any(zero.cells)) {
     warning("Some cells contain 0 total counts")
   }
+  # a cell with no counts has an undefined term frequency; give it a weight of
+  # zero so that it stays zero rather than becoming Inf or NA
+  cell.weight <- numeric(length = length(x = npeaks))
+  cell.weight[!zero.cells] <- 1 / npeaks[!zero.cells]
   if (method == 4) {
     tf <- object
   } else {
     if (inherits(x = object, what = "IterableMatrix")) {
-      tf <- BPCells::multiply_cols(mat = object, vec = 1 / npeaks)
+      tf <- BPCells::multiply_cols(mat = object, vec = cell.weight)
     } else {
-      tf <- tcrossprod(x = object, y = Diagonal(x = 1 / npeaks))
+      tf <- tcrossprod(x = object, y = Diagonal(x = cell.weight))
     }
   }
   if (!is.null(x = idf)) {
@@ -1255,10 +1312,12 @@ RunTFIDF.default <- function(
   } else {
     precomputed_idf <- FALSE
     rsums <- rowSums(x = object)
-    if (any(rsums == 0)) {
+    zero.count <- rsums == 0
+    if (any(zero.count)) {
       warning("Some features contain 0 total counts")
     }
-    idf <- ncol(x = object) / rsums
+    idf <- numeric(length = length(x = rsums))
+    idf[!zero.count] <- ncol(x = object) / rsums[!zero.count]
   }
 
   if (method == 2) {
@@ -1266,9 +1325,7 @@ RunTFIDF.default <- function(
       idf <- log(1 + idf)
     }
   } else if (method == 3) {
-    slot(object = tf, name = "x") <- log1p(
-      x = slot(object = tf, name = "x") * scale.factor
-    )
+    tf <- LogScaleMatrix(mat = tf, scale.factor = scale.factor)
     if (!precomputed_idf) {
       idf <- log(1 + idf)
     }
@@ -1279,13 +1336,7 @@ RunTFIDF.default <- function(
     norm.data <- Diagonal(n = length(x = idf), x = idf) %*% tf
   }
   if (method == 1) {
-    if (inherits(x = norm.data, what = "IterableMatrix")) {
-      norm.data <- log1p(scale.factor * norm.data)
-    } else {
-      slot(object = norm.data, name = "x") <- log1p(
-        x = slot(object = norm.data, name = "x") * scale.factor
-      )
-    }
+    norm.data <- LogScaleMatrix(mat = norm.data, scale.factor = scale.factor)
   }
   colnames(x = norm.data) <- colnames(x = object)
   rownames(x = norm.data) <- rownames(x = object)
@@ -1297,6 +1348,27 @@ RunTFIDF.default <- function(
   }
 
   return(norm.data)
+}
+
+# Apply log1p(x * scale.factor) to a matrix
+#
+# For a sparse matrix only the stored values are transformed, since
+# log1p(0) is 0. Dense matrices and BPCells IterableMatrix objects are
+# transformed as a whole.
+#
+# @param mat A matrix
+# @param scale.factor Value to scale by before taking the log
+#
+# @return A matrix of the same class as the input
+#
+LogScaleMatrix <- function(mat, scale.factor) {
+  if (inherits(x = mat, what = "sparseMatrix")) {
+    slot(object = mat, name = "x") <- log1p(
+      x = slot(object = mat, name = "x") * scale.factor
+    )
+    return(mat)
+  }
+  return(log1p(x = mat * scale.factor))
 }
 
 #' @rdname RunTFIDF
