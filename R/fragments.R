@@ -21,7 +21,9 @@ NULL
 #'
 head.Fragment2 <- function(x, n = 6L, ...) {
   fpath <- GetFragmentData(object = x, slot = "file.path")
-  df <- read.table(file = fpath, nrows = n, ...)
+  df <- read.table(
+    file = fpath, nrows = n, sep = "\t", comment.char = "#", ...
+  )
   if (ncol(x = df) == 5) {
     colnames(x = df) <- c("chrom", "start", "end", "barcode", "readCount")
   } else if (ncol(x = df) == 6) {
@@ -73,7 +75,7 @@ header <- function(x) {
 #' @return Returns a data.frame with the following columns:
 #'   - CB: the cell barcode
 #'   - frequency_count: total number of fragments sequenced for the cell
-#'   - mononucleosome: total number of fragments with length between 147 bp and
+#'   - mononucleosomal: total number of fragments with length between 147 bp and
 #'   294 bp
 #'   - nucleosome_free: total number of fragments with length <147 bp
 #'   - reads_count: total number of reads sequenced for the cell
@@ -115,7 +117,8 @@ CountFragments <- function(
       common <- intersect(
         x = rownames(x = allcounts), y = rownames(x = counts)
       )
-      allcounts[common, ] <- allcounts[common, ] + counts[common, ]
+      allcounts[common, ] <- allcounts[common, ] +
+        counts[common, colnames(x = allcounts)]
       missing_cells <- setdiff(x = rownames(x = counts), y = common)
       allcounts <- rbind(allcounts, counts[missing_cells, ])
     }
@@ -123,7 +126,9 @@ CountFragments <- function(
   # reformat for backwards compatibility
   allcounts$CB <- rownames(x = allcounts)
   rownames(x = allcounts) <- NULL
-  allcounts <- allcounts[, c(5, 1, 2, 3, 4)]
+  allcounts <- allcounts[, c(
+    "CB", "frequency_count", "mononucleosomal", "nucleosome_free", "reads_count"
+  )]
   return(allcounts)
 }
 
