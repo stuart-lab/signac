@@ -1268,6 +1268,9 @@ RunTFIDF.default <- function(
   verbose = TRUE,
   ...
 ) {
+  if (length(x = method) != 1 || !isTRUE(x = method %in% 1:4)) {
+    stop("method must be one of 1, 2, 3 or 4")
+  }
   if (inherits(x = object, what = "data.frame")) {
     object <- as.matrix(x = object)
   }
