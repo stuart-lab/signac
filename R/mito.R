@@ -175,8 +175,9 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
   md <- object[[]]
   assay <- assay %||% DefaultAssay(object = object)
   mat <- LayerData(object = object, assay = assay, layer = "data")
+  clonotypes <- as.character(x = unique(x = object$allele_ident_stash_clon))
   matty <- sapply(
-    X = unique(x = object$allele_ident_stash_clon),
+    X = clonotypes,
     FUN = function(x) {
       cells <- rownames(x = md[md$allele_ident_stash_clon == x, ])
       return(rowMeans(x = sqrt(x = mat[, cells])))
@@ -259,9 +260,15 @@ FindClonotypes <- function(
 
   # set levels based on hierarchical clustering
   hc <- ClusterClonotypes(object = object, assay = assay, group.by = NULL)
-  features <- as.character(rownames(x = object[[assay]])[hc$features$order])
+  features <- hc$features$labels[hc$features$order]
   VariableFeatures(object = object, assay = assay) <- features
-  levels(x = object) <- hc$cells$order - 1
+  clonotype.order <- hc$cells$labels[hc$cells$order]
+  # retain any identities that were not clustered, such as unused factor levels
+  clonotype.order <- c(
+    clonotype.order,
+    setdiff(x = levels(x = object), y = clonotype.order)
+  )
+  levels(x = object) <- clonotype.order
   return(object)
 }
 
