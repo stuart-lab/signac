@@ -31,7 +31,8 @@ bool validateCells(
   size_t line_counter {1};
   size_t total_seen {0};
   uint32_t buffer_length = 4096;
-  char *buffer = new char[buffer_length];
+  std::vector<char> buffer_store(buffer_length);
+  char *buffer = buffer_store.data();
 
   // Hash Map storing the barcodes to look for
   std::unordered_set<std::string> index_hash(cells.begin(), cells.end());

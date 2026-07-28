@@ -28,7 +28,8 @@ SEXP groupCommand(
   char* cb_char;
   size_t line_counter {1};
   uint32_t buffer_length = 4096;
-  char *buffer = new char[buffer_length];
+  std::vector<char> buffer_store(buffer_length);
+  char *buffer = buffer_store.data();
 
   // Hash Map storing the count data
   std::unordered_map<std::string, size_t> index_hash;
@@ -38,8 +39,9 @@ SEXP groupCommand(
   if (some_whitelist_cells.isNotNull()) {
     has_whitelist = true;
     Rcpp::StringVector whitelist_cells(some_whitelist_cells);
-    for (size_t i=0; i<whitelist_cells.size(); i++) {
-      index_hash[Rcpp::as<std::string>(whitelist_cells[i])] = i;
+    for (R_xlen_t i=0; i<whitelist_cells.size(); i++) {
+      index_hash.emplace(Rcpp::as<std::string>(whitelist_cells[i]),
+                         index_hash.size());
     }
 
     num_whitelist_cells = index_hash.size();
@@ -125,8 +127,17 @@ SEXP groupCommand(
       }
     }
 
-    uint8_t nuc_free_inc = end-start < 147 ? 1: 0;
-    uint8_t mono_inc = (end-start > 147) and (end-start < 294) ? 1: 0;
+    // end is unsigned, so a malformed record with end < start would wrap to a
+    // huge width and be silently miscategorised
+    if (end < start) {
+      Rcpp::Rcerr << "Error: fragment end is before fragment start on line "
+                  << line_counter << "\n" << std::flush;
+      gzclose(fileHandler);
+      return (Rcpp::DataFrame::create());
+    }
+    size_t frag_width = end - start;
+    uint8_t nuc_free_inc = frag_width < 147 ? 1: 0;
+    uint8_t mono_inc = (frag_width >= 147) and (frag_width < 294) ? 1: 0;
 
     // index of the cellular barcode
     size_t cb_idx = index_hash.size();
