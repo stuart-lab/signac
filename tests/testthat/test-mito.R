@@ -90,7 +90,20 @@ test_that("AlleleFreq errors informatively on a malformed count matrix", {
   colnames(m) <- c("cell1", "cell2")
   expect_error(
     AlleleFreq(object = m, variants = "100C>T"),
-    regexp = "required structure"
+    regexp = "forward and a reverse strand entry"
+  )
+})
+
+test_that("AlleleFreq names a variant that is absent from the matrix", {
+  m <- Matrix::Matrix(
+    data = c(1, 2, 3, 4), nrow = 2, ncol = 2, sparse = TRUE
+  )
+  rownames(m) <- c("T-100-fwd", "T-100-rev")
+  colnames(m) <- c("cell1", "cell2")
+  # a variant with no rows at all previously gave "subscript out of bounds"
+  expect_error(
+    AlleleFreq(object = m, variants = "200C>G"),
+    regexp = "200C>G"
   )
 })
 
@@ -150,4 +163,19 @@ test_that("ReadMQuad errors on invalid input", {
     ReadMQuad(dir = data.dir, cb = "/nonexistent/file.csv"),
     "Cell barcode file not found"
   )
+})
+
+test_that("IdentifyVariants is invariant to dropped explicit zeros", {
+  d <- system.file("extdata", "test_mgatk", package = "Signac")
+  mg <- ReadMGATK(dir = d, verbose = FALSE)
+  a <- IdentifyVariants(
+    mg$counts, refallele = mg$refallele, verbose = FALSE
+  )
+  b <- IdentifyVariants(
+    Matrix::drop0(mg$counts), refallele = mg$refallele, verbose = FALSE
+  )
+  expect_equal(nrow(a), nrow(b))
+  expect_equal(a$strand_correlation, b$strand_correlation)
+  expect_equal(a$vmr, b$vmr)
+  expect_equal(a$mean, b$mean)
 })

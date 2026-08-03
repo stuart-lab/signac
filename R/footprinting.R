@@ -253,6 +253,9 @@ Footprint.ChromatinAssay5 <- function(
     if (!all(all.widths)) {
       stop("Manually-supplied regions must all have the same width.")
     }
+    if (length(x = regionlist) != length(x = key)) {
+      stop("A key needs to be supplied for each set of regions")
+    }
   }
   if (compute.expected) {
     # check that bias is computed
@@ -445,7 +448,7 @@ InsertionBias.ChromatinAssay5 <- function(
     width = 6
   )
   if (inherits(x = genome_freq, what = "matrix")) {
-    genome_freq <- genome_freq[1, ]
+    genome_freq <- colSums(x = genome_freq)
   }
   if (nrow(x = insertion_hex_freq) != length(x = genome_freq)) {
     stop("Not all hexamers represented in input region")
@@ -483,10 +486,25 @@ InsertionBias.Seurat <- function(
 
 ####### Not exported #######
 
+# Positions making up the left and right flanks of a position matrix or vector
+# @param n Total number of positions
+# @param background Number of positions to take from each end
+# @return Returns an integer vector of positions
+FlankPositions <- function(n, background = 50) {
+  if (n < (2 * background)) {
+    stop(
+      "Cannot compute flanking positions: the region contains ", n,
+      " positions but ", background, " positions are required at each end. ",
+      "Reduce the background width or extend the region."
+    )
+  }
+  return(c(seq_len(length.out = background), seq(n - background + 1, n)))
+}
+
 # Divide matrix by flanks
 #' @importMethodsFrom Matrix mean
 BackgroundMeanNorm <- function(x, background = 50) {
-  positions.use <- c(1:background, (ncol(x = x) - background):ncol(x = x))
+  positions.use <- FlankPositions(n = ncol(x = x), background = background)
   flanks <- mean(x = x[, positions.use])
   x <- x / flanks
   return(x)
@@ -533,14 +551,17 @@ FindExpectedInsertions <- function(dna.sequence, bias, verbose = TRUE) {
     resized <- resized[!grepl(pattern = "N", x = resized)]
     # count
     frequencies <- table(resized)
+    # drop anything not in the bias vector (for example hexamers containing an
+    # IUPAC ambiguity code) before sizing the triplet slice, otherwise i is
+    # filled from a shorter vector than x and j and gets silently recycled
+    frequencies <- frequencies[names(x = frequencies) %in% names(x = hex.key)]
+    if (length(x = frequencies) == 0) {
+      next
+    }
     end.pos <- current.pos + length(x = frequencies) - 1
     # append
     x[current.pos:end.pos] <- as.numeric(x = frequencies)
     j[current.pos:end.pos] <- jj
-
-    # remove frequencies not present in hex.key
-    frequencies <- frequencies[names(x = frequencies) %in% names(x = hex.key)]
-
     i[current.pos:end.pos] <- as.vector(x = hex.key[names(x = frequencies)])
     # shift current position
     current.pos <- end.pos + 1
@@ -568,16 +589,12 @@ FindExpectedInsertions <- function(dna.sequence, bias, verbose = TRUE) {
     x = crossprod(x = hexamer.matrix, y = as.matrix(x = bias))
   )
 
-  # normalize expected by dividing by flanks
-  # TODO use BackgroundMeanNorm function here
-  flanks <- mean(
-    x = c(
-      expected.insertions[1:50],
-      expected.insertions[
-        (total.hexamer.positions - 50):total.hexamer.positions
-      ]
-    )
+  # normalize expected by dividing by flanks, using the same flank definition
+  # as BackgroundMeanNorm applies to the observed insertions
+  positions.use <- FlankPositions(
+    n = total.hexamer.positions, background = 50
   )
+  flanks <- mean(x = expected.insertions[positions.use])
   expected.insertions <- expected.insertions / flanks
   return(expected.insertions)
 }
@@ -717,8 +734,15 @@ RunFootprint <- function(
   # count insertions at each position for each cell
   insertion.matrix <- CreateRegionPileupMatrix(
     object = object,
-    regions = regions
+    regions = regions,
+    cells = Cells(x = object)
   ) # returns a sparse dgcMatrix that does not have nrows()
+  # rows are ordered by fragment file, and cells with no fragments in any
+  # region are absent, so align to the assay's cells before labelling them.
+  # Passing Cells(object) positionally would otherwise mislabel the rows
+  insertion.matrix <- PadMissingCells(
+    mat = insertion.matrix, cells = Cells(x = object)
+  )
   # get expected insertions
   expected.insertions <- as.numeric(x = expected.insertions)
   agg.obj <- CreateRegionAggregationObject(
@@ -728,7 +752,7 @@ RunFootprint <- function(
     downstream = downstream,
     name = name,
     expected = expected.insertions,
-    cells = Cells(x = object)
+    cells = rownames(x = insertion.matrix)
   )
 
   return(agg.obj)

@@ -26,6 +26,7 @@
 #' one direction is testable, so set `direction` accordingly.
 #' @param top.n Number of top enriched terms to retain for each set of cells. If
 #' NULL, retain all terms.
+#' @param padj.cutoff Maximum adjusted p-value for a term to be retained.
 #' @param verbose Display messages.
 #' @param ... Additional arguments passed to [Seurat::FindMarkers()]
 #'
@@ -46,6 +47,7 @@ EnrichedTerms <- function(
   scoreType = "std",
   direction = c("up", "down", "both"),
   top.n = NULL,
+  padj.cutoff = 0.05,
   verbose = TRUE,
   ...
 ) {
@@ -123,7 +125,7 @@ EnrichedTerms <- function(
       down = fgsea_results[fgsea_results$NES < 0, ],
       both = fgsea_results
     )
-    fgsea_results <- fgsea_results[fgsea_results$padj < 0.05, ]
+    fgsea_results <- fgsea_results[fgsea_results$padj < padj.cutoff, ]
     sort_score <- switch(
       EXPR = direction,
       up = fgsea_results$NES,
@@ -137,7 +139,7 @@ EnrichedTerms <- function(
     ), ]
     if (!is.null(x = top.n)) {
       n.use <- min(nrow(x = fgsea_results), top.n)
-      fgsea_results <- fgsea_results[1:n.use, ]
+      fgsea_results <- fgsea_results[seq_len(length.out = n.use), ]
     }
     pred[[as.character(cellgroups[i])]] <- fgsea_results
     if (verbose) {

@@ -91,7 +91,8 @@ test_that("GetLinkedPeaks works on assay with links present", {
   )
   gi$score <- c(0.6, 0.8)
   gi$anchor2.gene_name <- c("geneA", "geneB")
-  gi$peak <- c("chr1:100-150", "chr1:200-250")
+  # no `peak` metadata column: this is the shape LinkPeaks actually stores, and
+  # the peak is recovered from the first anchor
   obj <- atac_small
   Links(obj) <- list(linkpeaks = gi)
   pks <- GetLinkedPeaks(object = obj, features = "geneA", key = "linkpeaks")
@@ -105,13 +106,32 @@ test_that("GetLinkedPeaks with min.abs.score filter", {
   )
   gi$score <- c(0.1, 0.9)
   gi$anchor2.gene_name <- c("geneA", "geneA")
-  gi$peak <- c("chr1:100-150", "chr1:200-250")
   obj <- atac_small
   Links(obj) <- list(linkpeaks = gi)
   res <- GetLinkedPeaks(
     object = obj, features = "geneA", key = "linkpeaks", min.abs.score = 0.5
   )
   expect_equal(res, "chr1:200-250")
+})
+
+test_that("GetLinkedPeaks reads peaks from links built by LinksToGInteractions", {
+  linkmat <- Matrix::sparseMatrix(
+    i = c(1, 2), j = c(1, 2), x = c(0.6, 0.8), dims = c(2, 2),
+    dimnames = list(c("geneA", "geneB"), c("chr1:100-150", "chr1:200-250"))
+  )
+  gene.coords <- GRanges(
+    "chr1", IRanges(c(500, 600), c(550, 650)), gene_name = c("geneA", "geneB")
+  )
+  gi <- Signac:::LinksToGInteractions(
+    linkmat = linkmat, gene.coords = gene.coords
+  )
+  expect_null(gi$peak)
+
+  obj <- atac_small
+  Links(obj) <- list(linkpeaks = gi)
+  pks <- GetLinkedPeaks(object = obj, features = "geneA", key = "linkpeaks")
+  expect_equal(pks, "chr1:100-150")
+  expect_false(is.null(x = pks))
 })
 
 test_that("GetLinkedGenes works on assay with links present", {
@@ -247,7 +267,7 @@ test_that("LinkPeaks errors when no gene coordinates match", {
   )
 })
 
-# DistanceToTSS / LinksToGRanges / LinksToGInteractions -----------------------
+# DistanceToTSS / LinksToGInteractions ----------------------------------------
 
 test_that("DistanceToTSS returns sparse matrix", {
   peaks <- GRanges("chr1", IRanges(c(100, 5000, 20000), c(200, 5100, 20100)))
@@ -263,24 +283,6 @@ test_that("DistanceToTSS returns sparse matrix", {
   expect_equal(as.numeric(res[1, ]), c(1, 0))
   expect_equal(as.numeric(res[2, ]), c(1, 1))
   expect_equal(as.numeric(res[3, ]), c(0, 0))
-})
-
-test_that("LinksToGRanges converts a link matrix", {
-  set.seed(1)
-  gene.coords <- GRanges(
-    "chr1", IRanges(c(1000, 5000), c(2000, 6000)),
-    strand = c("+", "+"), gene_name = c("g1", "g2")
-  )
-  linkmat <- sparseMatrix(
-    i = c(1, 2), j = c(1, 2), x = c(0.5, 0.8),
-    dimnames = list(c("g1", "g2"), c("chr1:1500-1600", "chr1:5500-5600"))
-  )
-  gr <- Signac:::LinksToGRanges(linkmat = linkmat, gene.coords = gene.coords)
-  expect_s4_class(gr, "GRanges")
-  expect_equal(length(gr), 2)
-  expect_equal(gr$score, c(0.5, 0.8))
-  expect_equal(gr$gene, c("g1", "g2"))
-  expect_equal(gr$peak, c("chr1:1500-1600", "chr1:5500-5600"))
 })
 
 test_that("LinksToGInteractions converts link matrix", {

@@ -4,12 +4,14 @@
 \alias{ValidateHash}
 \title{Validate hashes for Fragment object}
 \usage{
-ValidateHash(object, verbose = TRUE)
+ValidateHash(object, verbose = TRUE, ...)
 }
 \arguments{
 \item{object}{A \link[=Fragment2-class]{Fragment2} object}
 
 \item{verbose}{Display messages}
+
+\item{...}{Arguments passed to other methods. Ignored.}
 }
 \description{
 Validate hashes for Fragment object

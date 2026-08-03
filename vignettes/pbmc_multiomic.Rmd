@@ -45,10 +45,6 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
   install.packages("remotes")
 }
 
-if (!requireNamespace("SeuratDisk", quietly = TRUE)) {
-  remotes::install_github("mojaveazure/seurat-disk")
-}
-
 if (!requireNamespace("glmGamPoi", quietly = TRUE)) {
   BiocManager::install("glmGamPoi")
 }

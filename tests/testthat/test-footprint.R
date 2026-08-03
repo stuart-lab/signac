@@ -47,7 +47,7 @@ test_that("Footprint works end-to-end", {
     compute.expected = FALSE, genome = genome
   )
   test_df <- GetFootprintData(object = test_atac, features = c("MA0031.1"))
-  expect_equal(sum(test_df$count), 1013)
+  expect_equal(sum(test_df$count), 1008, tolerance = 1e-3)
 
   test_width <- length(pwm[[1]]) +
     RegionAggr(test_atac)[[1]]@upstream +
@@ -65,9 +65,66 @@ test_that("BackgroundMeanNorm divides matrix by flank mean", {
   m <- matrix(1:1000, nrow = 5, ncol = 200)
   res <- Signac:::BackgroundMeanNorm(m, background = 50)
   expect_equal(dim(res), dim(m))
-  # The implementation uses positions 1:50 and (ncol-50):ncol for the flank
-  flank_mean <- mean(m[, c(1:50, (ncol(m) - 50):ncol(m))])
+  flank_mean <- mean(m[, c(1:50, (ncol(m) - 49):ncol(m))])
   expect_equal(as.vector(res), as.vector(m) / flank_mean)
+})
+
+test_that("BackgroundMeanNorm errors on a window narrower than the flanks", {
+  m <- matrix(1:400, nrow = 5, ncol = 80)
+  expect_error(
+    Signac:::BackgroundMeanNorm(m, background = 50),
+    regexp = "Cannot compute flanking positions"
+  )
+})
+
+# Cut matrix cell handling -----------------------------------------------------
+
+test_that("MultiRegionCutMatrix restricts to the requested cells", {
+  obj <- atac_small
+  regions <- GenomicRanges::resize(
+    granges(obj[["peaks"]])[1:5], width = 200, fix = "center"
+  )
+  want <- colnames(obj)[1:5]
+  cm <- Signac:::MultiRegionCutMatrix(
+    object = obj[["peaks"]], regions = regions, cells = want
+  )
+  expect_equal(nrow(cm), length(want))
+  expect_setequal(rownames(cm), want)
+
+  # NULL still means all cells in the fragment file
+  cm.all <- Signac:::MultiRegionCutMatrix(
+    object = obj[["peaks"]], regions = regions, cells = NULL
+  )
+  expect_equal(nrow(cm.all), ncol(obj))
+})
+
+test_that("Footprint labels aggregation rows with the matching cells", {
+  skip_if_not_installed("motifmatchr")
+  expect_warning(test_atac <- AddMotifs(
+    object = atac_small, genome = genome, pfm = pwm, verbose = FALSE
+  ))
+  test_atac <- Footprint(
+    object = test_atac, motif.name = names(x = pwm)[1],
+    compute.expected = FALSE, genome = genome
+  )
+  agg <- RegionAggr(object = test_atac)[[1]]
+  expect_equal(nrow(agg@matrix), length(agg@cells))
+  expect_equal(agg@cells, Cells(test_atac[["peaks"]]))
+  expect_false(anyNA(agg@cells))
+})
+
+test_that("Footprint requires a key for each set of supplied regions", {
+  regions <- list(
+    GRanges("chr1", IRanges(c(100, 200), width = 10)),
+    GRanges("chr1", IRanges(c(300, 400), width = 10))
+  )
+  expect_error(
+    Footprint(
+      object = atac_small[["peaks"]], genome = genome, regions = regions,
+      key = "onlyone", compute.expected = FALSE, verbose = FALSE
+    ),
+    regexp = "key needs to be supplied for each"
+  )
 })
 
 # GetMotifSize -----------------------------------------------------------------

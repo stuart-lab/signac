@@ -9,7 +9,7 @@ count_vec <- c(
 
 mononucleosome <- c(
   0, 1, 0, 1, 4, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1,
-  1, 1, 2, 1, 1, 2, 1, 1, 2, 2, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1,
+  1, 1, 2, 1, 1, 2, 1, 1, 2, 3, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1,
   1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 2, 0, 0, 0, 0, 0, 1, 0, 1,
   0, 0, 2, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0
 )
@@ -760,4 +760,39 @@ test_that("fragment parsers detect lines longer than the read buffer", {
   )
 
   unlink(c(out, fp_long, fp_huge, fp_ok, fp_huge_first))
+})
+
+test_that("groupCommand classifies fragments at the size boundaries", {
+  # a width of exactly 147 (or 294)
+  bc <- "AAACGAACAAGCACTT-1"
+  p <- tempfile(fileext = ".tsv.gz")
+  con <- gzfile(description = p, open = "w")
+  writeLines(
+    text = c(
+      paste0("chr1\t100\t246\t", bc, "\t1"),  # width 146 -> nucleosome free
+      paste0("chr1\t100\t247\t", bc, "\t1"),  # width 147 -> mononucleosomal
+      paste0("chr1\t100\t393\t", bc, "\t1"),  # width 293 -> mononucleosomal
+      paste0("chr1\t100\t394\t", bc, "\t1")   # width 294 -> neither
+    ),
+    con = con
+  )
+  close(con = con)
+
+  counts <- groupCommand(fragments = p, verbose = FALSE)
+  expect_equal(counts$frequency_count, 4)
+  expect_equal(counts$nucleosome_free, 1)
+  expect_equal(counts$mononucleosomal, 2)
+  unlink(p)
+})
+
+test_that("groupCommand rejects a fragment ending before it starts", {
+  bc <- "AAACGAACAAGCACTT-1"
+  p <- tempfile(fileext = ".tsv.gz")
+  con <- gzfile(description = p, open = "w")
+  writeLines(text = paste0("chr1\t500\t100\t", bc, "\t1"), con = con)
+  close(con = con)
+  # previously the unsigned subtraction wrapped and the record was silently
+  # miscategorised rather than reported
+  expect_equal(nrow(x = groupCommand(fragments = p, verbose = FALSE)), 0)
+  unlink(p)
 })

@@ -345,9 +345,21 @@ RunChromVAR.GRangesAssay <- function(
   }
   idx.keep <- rowSums(x = peak.matrix) > 0
   peak.matrix <- peak.matrix[idx.keep, , drop = FALSE]
-  motif.matrix <- motif.matrix[idx.keep, , drop = FALSE]
   peak.ranges <- granges(x = object)
   peak.ranges <- peak.ranges[idx.keep]
+  # a ChromatinAssay5 does not require the motif matrix to mirror the data
+  # layer, so align on feature name rather than assuming the rows correspond
+  missing.features <- setdiff(
+    x = rownames(x = peak.matrix), y = rownames(x = motif.matrix)
+  )
+  if (length(x = missing.features) > 0) {
+    stop(
+      length(x = missing.features),
+      " features are not present in the motif matrix, for example: ",
+      paste(head(x = missing.features, n = 3), collapse = ", ")
+    )
+  }
+  motif.matrix <- motif.matrix[rownames(x = peak.matrix), , drop = FALSE]
   chromvar.obj <- SummarizedExperiment::SummarizedExperiment(
     assays = list(counts = peak.matrix),
     rowRanges = peak.ranges
@@ -513,6 +525,9 @@ ReadJASPAR <- function(file, pseudocount = 1) {
       x = sub(pattern = "^>", replacement = "", x = lines[start]),
       split = ".", fixed = TRUE
     )[[1]][[1]]
+    if (end <= start) {
+      stop("Motif ", name, " has no matrix rows")
+    }
     mat_lines <- lines[(start + 1):end]
     mat <- do.call(what = rbind, args = lapply(
       X = mat_lines,
@@ -780,7 +795,9 @@ FindMotifs <- function(
   if (nrow(x = results) == 0) {
     return(results)
   } else {
-    return(results[order(results[, 7], -results[, 6]), ])
+    return(results[
+      order(results$pvalue, -results$fold.enrichment),
+    ])
   }
 }
 

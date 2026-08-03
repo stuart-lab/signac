@@ -55,7 +55,8 @@ include an option to use the `hmmratac` peak calling method in `macs3`.
 * **New data visualization methods**: we added the ability to plot GWAS and QTL
 data alongside single-cell chromatin data in the `CoveragePlot()` function
 
-For a full changelog please see the package [release notes](news.html).
+For a full changelog please see the package
+[release notes](../news/index.html).
 
 To update old `ChromatinAssay` assays you can use the `as.GRangesAssay()` 
 function in Signac v2.
@@ -171,6 +172,7 @@ ensdb_v98 <- ah[["AH75011"]]
 
 # convert EnsDb to GRanges
 gene.ranges <- GetGRangesFromEnsDb(ensdb = ensdb_v98)
+seqlevelsStyle(gene.ranges) <- "UCSC"
 
 # set gene annotations
 Annotation(atac_small) <- gene.ranges
@@ -263,22 +265,23 @@ chr_assay
 
 The `Fragment2` class is designed for storing and interacting with a
 [fragment file](https://support.10xgenomics.com/single-cell-atac/software/pipelines/latest/output/fragments)
-commonly used for single-cell chromatin data. It contains:
+commonly used for single-cell chromatin data. It contains:  
+
 * The path to an indexed fragment file on disk  
-* The path to the fragment file index 
-* An MD5 hash for the fragment file and the fragment file index
+* The path to the fragment file index  
+* An MD5 hash for the fragment file and the fragment file index  
 * A vector of cell names contained in the fragment file. Importantly,
 this is a named vector where the elements of the vector are the cell names as 
 they appear in the fragment file, and the name of each element is the cell
 name as it appears in the assay object storing the `Fragment2`
 object. This allows a mapping of cell names on disk to cell names in R, and 
 avoids the need to alter fragment files on disk. This path can also be a remote
-file accessible by `http` or `ftp`.
+file accessible by `http` or `ftp`.  
 * A vector of sequence names contained in the fragment file. This is a named 
 vector of sequence levels (eg, chromosome name) where each element is the
 sequence name as it appears in the fragment file, and then name of each element
 is the corresponding sequence name as stored in the assay. This enables renaming
-sequence names in your assay object without needing to change your fragment file.
+sequence names in your assay object without needing to change your fragment file.  
 
 ### Constructing the `Fragment2` class
 

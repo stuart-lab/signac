@@ -20,7 +20,9 @@ macs3_pathcheck <- function(macs3.path, mode) {
   }
 
   if (mode == "hmmratac") {
-    version <- system2("macs3", args = "--version", stdout = TRUE)
+    version <- system2(
+      command = macs3.path, args = "--version", stdout = TRUE, stderr = TRUE
+    )
     version_n <- gsub(".*macs3 ", "", version)
     if (package_version(version_n) < "3.0.4") {
       stop(
@@ -198,10 +200,17 @@ CallPeaks.Seurat <- function(
           cleanup = cleanup,
           verbose = FALSE
         )
+        if (length(x = gr) == 0) {
+          return(NULL)
+        }
         gr$ident <- x
         gr
       }
     )
+    pk.all <- Filter(f = Negate(f = is.null), x = pk.all)
+    if (length(x = pk.all) == 0) {
+      stop("No peaks were called for any group of cells")
+    }
     if (combine.peaks == TRUE) {
       peakcalls <- CombinePeaks(grlist = pk.all)
     } else {
@@ -290,8 +299,14 @@ CallPeaks.ChromatinAssay5 <- function(
         cleanup = cleanup,
         verbose = verbose
       )
+      if (length(x = gr) == 0) {
+        next
+      }
       gr$ident <- i
-      pk.all[[i]] <- gr
+      pk.all[[length(x = pk.all) + 1]] <- gr
+    }
+    if (length(x = pk.all) == 0) {
+      stop("No peaks were called for any of the fragment files")
     }
 
     # combine output
@@ -375,7 +390,7 @@ CallPeaks.Fragment2 <- function(
 
 #' @param barcodes Path to cell barcodes (`--barcodes` parameter for MACS).
 #' @importFrom GenomicRanges makeGRangesFromDataFrame
-#' @importFrom utils read.table
+#' @importFrom utils read.table tail
 #' @method CallPeaks default
 #' @rdname CallPeaks
 #' @concept quantification
@@ -413,14 +428,13 @@ CallPeaks.default <- function(
     stop("Invalid macs3 command, choose between `callpeak` or `hmmratac`")
   }
 
-  # check genome format
-  if (!is.null(x = genome) && genome %in% c("hs", "mm", "ce", "dm")) {
-    genome_string <- paste0(" -g ", genome, " ")
-  } else if (is.null(x = genome) && !is.null(x = gsize) && !is.na(x = gsize)) {
-    if (is.na(x = as.numeric(x = gsize))) {
+  if (!is.null(x = gsize) && !is.na(x = gsize)) {
+    if (is.na(x = suppressWarnings(expr = as.numeric(x = gsize)))) {
       stop("Requested non-numeric gsize value")
     }
     genome_string <- paste0(" --gsize ", gsize, " ")
+  } else if (!is.null(x = genome) && genome %in% c("hs", "mm", "ce", "dm")) {
+    genome_string <- paste0(" -g ", genome, " ")
   } else {
     stop(
       "Invalid genome size, choose between `hs` (human, GRCh38)",
@@ -470,15 +484,32 @@ CallPeaks.default <- function(
     additional.args
   )
 
-  # call macs3
+  # call macs3. Capture stderr rather than discarding it, so that the reason
+  # for a failure can be reported even when verbose = FALSE
+  err.file <- tempfile(pattern = "macs3_stderr_")
+  on.exit(expr = unlink(x = err.file), add = TRUE)
   exit_code <- system(
-    command = cmd,
+    command = paste0(cmd, " 2> ", shQuote(err.file)),
     wait = TRUE,
-    ignore.stderr = !verbose,
     ignore.stdout = !verbose
   )
+  macs.stderr <- if (file.exists(err.file)) {
+    readLines(con = err.file, warn = FALSE)
+  } else {
+    character()
+  }
+  if (verbose && length(x = macs.stderr) > 0) {
+    message(paste(macs.stderr, collapse = "\n"))
+  }
   if (exit_code != 0) {
-    stop("macs3 returned a non-zero exit code (", exit_code, ")")
+    stop(
+      "macs3 returned a non-zero exit code (", exit_code, ")",
+      if (length(x = macs.stderr) > 0) {
+        paste0(":\n", paste(tail(x = macs.stderr, n = 20), collapse = "\n"))
+      } else {
+        ""
+      }
+    )
   }
 
   if (broad) {

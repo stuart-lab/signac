@@ -48,6 +48,7 @@ ATACqc(object, ...)
   outdir = tempdir(),
   cleanup = TRUE,
   verbose = TRUE,
+  suffix = ".atacqc",
   ...
 )
 }
@@ -71,6 +72,13 @@ automatically.}
 \item{verbose}{Display messages}
 
 \item{assay}{Name of assay to use. If NULL, use the default assay.}
+
+\item{suffix}{Suffix to append to the names of QC metric columns that
+already exist in the object metadata, to avoid overwriting them. For
+example, if a \code{FRiP} column computed by \code{\link[=FRiP]{FRiP()}} is already present, the
+promoter-based FRiP metric computed here will instead be stored as
+\verb{FRiP<suffix>}. Set to \code{NULL} to disable this behavior and allow existing
+columns to be overwritten.}
 }
 \value{
 When run on a \link[SeuratObject:Seurat]{SeuratObject::Seurat} object, returns the input

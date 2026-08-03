@@ -13,6 +13,11 @@ int filterCells(
     int buffer_length,
     bool verbose = true
 ) {
+  if (buffer_length <= 0) {
+    Rcpp::Rcerr << "Error: buffer_length must be a positive integer\n"
+                << std::flush;
+    return 1;
+  }
   // opening gzipped compressed stream
   gzFile ifileHandler = gzopen(fragments.c_str(), "rb");
   std::ofstream ofileHandler;
@@ -27,7 +32,8 @@ int filterCells(
   // C based buffered string parsing
   char* cb_char;
   size_t line_counter {1};
-  char *buffer = new char[buffer_length];
+  std::vector<char> buffer_store(buffer_length);
+  char *buffer = buffer_store.data();
 
   // Hash Map storing the barcodes to keep
   std::unordered_set<std::string> index_hash(keep_cells.begin(), keep_cells.end());

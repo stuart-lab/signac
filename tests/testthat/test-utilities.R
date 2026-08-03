@@ -184,10 +184,14 @@ test_that("SubsetMatrix filters by min.rows/min.cols thresholds", {
   mat[1, 1:4] <- 1
   mat[2, 1:2] <- 1
   mat[3, 1]   <- 1
-  # min.rows = 2 keeps rows with rowcount > 2 (only "a"); same for cols (only "A")
+  # min.rows is a minimum, so rows with rowcount >= 2 are kept ("a" and "b"),
+  # and likewise cols "A" and "B"
   out <- SubsetMatrix(mat, min.rows = 2, min.cols = 2, max.row.val = 10)
-  # mat[keeprows, keepcols] with one row and one col drops dims to a scalar
-  expect_equal(out, 1)
+  expect_equal(rownames(out), c("a", "b"))
+  expect_equal(colnames(out), c("A", "B"))
+  # min.rows = 3 keeps only the row and column with 3 or more nonzero entries
+  out3 <- SubsetMatrix(mat, min.rows = 3, min.cols = 3, max.row.val = 10)
+  expect_equal(out3, 1)
   # max.col.val excludes columns whose max equals or exceeds the cutoff
   out2 <- SubsetMatrix(mat, max.row.val = 10, max.col.val = 0.5)
   # No column has max < 0.5 since each retained column has at least one 1
@@ -372,13 +376,6 @@ test_that("ExtractField extracts and joins fields", {
 
 test_that("ExtractField handles non-default delimiter", {
   expect_equal(ExtractField("a;b;c", field = 2, delim = ";"), "b")
-})
-
-test_that("IsMatrixEmpty detects emptiness", {
-  expect_true(Signac:::IsMatrixEmpty(matrix(0, 0, 0)))
-  expect_true(Signac:::IsMatrixEmpty(matrix(NA, 1, 1)))
-  expect_false(Signac:::IsMatrixEmpty(matrix(1:4, 2, 2)))
-  expect_false(Signac:::IsMatrixEmpty(matrix(1)))
 })
 
 test_that("isRemote detects HTTP/FTP paths", {

@@ -97,6 +97,24 @@ test_that("DensityScatter with raster = FALSE", {
     object = atac_small, x = "xtest", y = "ytest", raster = FALSE
   )
   expect_s3_class(p, "ggplot")
+  expect_s3_class(p$layers[[1]]$geom, "GeomPoint")
+})
+
+test_that("DensityScatter rasterizes only when asked", {
+  skip_if_not_installed("MASS")
+  skip_if_not_installed("fields")
+  skip_if_not_installed("scattermore")
+  atac_small$xtest <- runif(ncol(atac_small))
+  atac_small$ytest <- runif(ncol(atac_small))
+  p <- DensityScatter(
+    object = atac_small, x = "xtest", y = "ytest", raster = TRUE
+  )
+  expect_false(inherits(p$layers[[1]]$geom, "GeomPoint"))
+  # the default on a small object is not to rasterize
+  p.default <- DensityScatter(
+    object = atac_small, x = "xtest", y = "ytest"
+  )
+  expect_s3_class(p.default$layers[[1]]$geom, "GeomPoint")
 })
 
 test_that("DensityScatter warns on bad quantile values", {
@@ -878,4 +896,19 @@ test_that("GWASTrack with both LD and credset", {
     ld.file = ld_tf, ld.lead.snp = "rs1", credset.file = cs_tf
   )
   expect_s3_class(p, "ggplot")
+})
+
+test_that("RegionHeatmap errors on unmatched idents", {
+  obj <- setup_obj()
+  rm <- RegionMatrix(
+    object = obj, regions = head(granges(obj), 5),
+    upstream = 100, downstream = 100, verbose = FALSE
+  )
+  expect_error(
+    RegionHeatmap(
+      object = rm, upstream = 100, downstream = 100,
+      idents = "not_an_ident", window = 20
+    ),
+    regexp = "None of the requested idents found"
+  )
 })

@@ -21,7 +21,9 @@ NULL
 #'
 head.Fragment2 <- function(x, n = 6L, ...) {
   fpath <- GetFragmentData(object = x, slot = "file.path")
-  df <- read.table(file = fpath, nrows = n, ...)
+  df <- read.table(
+    file = fpath, nrows = n, sep = "\t", comment.char = "#", ...
+  )
   if (ncol(x = df) == 5) {
     colnames(x = df) <- c("chrom", "start", "end", "barcode", "readCount")
   } else if (ncol(x = df) == 6) {
@@ -73,7 +75,7 @@ header <- function(x) {
 #' @return Returns a data.frame with the following columns:
 #'   - CB: the cell barcode
 #'   - frequency_count: total number of fragments sequenced for the cell
-#'   - mononucleosome: total number of fragments with length between 147 bp and
+#'   - mononucleosomal: total number of fragments with length between 147 bp and
 #'   294 bp
 #'   - nucleosome_free: total number of fragments with length <147 bp
 #'   - reads_count: total number of reads sequenced for the cell
@@ -115,7 +117,8 @@ CountFragments <- function(
       common <- intersect(
         x = rownames(x = allcounts), y = rownames(x = counts)
       )
-      allcounts[common, ] <- allcounts[common, ] + counts[common, ]
+      allcounts[common, ] <- allcounts[common, ] +
+        counts[common, colnames(x = allcounts)]
       missing_cells <- setdiff(x = rownames(x = counts), y = common)
       allcounts <- rbind(allcounts, counts[missing_cells, ])
     }
@@ -123,7 +126,9 @@ CountFragments <- function(
   # reformat for backwards compatibility
   allcounts$CB <- rownames(x = allcounts)
   rownames(x = allcounts) <- NULL
-  allcounts <- allcounts[, c(5, 1, 2, 3, 4)]
+  allcounts <- allcounts[, c(
+    "CB", "frequency_count", "mononucleosomal", "nucleosome_free", "reads_count"
+  )]
   return(allcounts)
 }
 
@@ -343,13 +348,13 @@ ValidateCells <- function(
   }
   max.lines <- max.lines %||% 0
   filepath <- GetFragmentData(object = object, slot = "file.path")
-  filepath <- normalizePath(path = filepath, mustWork = TRUE)
-  is.remote <- isRemote(x = filepath)
-  find_n <- as.integer(x = length(x = cells) * (1 - tolerance))
-  # if remote, return TRUE
-  if (is.remote) {
+  # if remote, return TRUE. This must be checked before normalizePath, which
+  # errors on a remote path
+  if (isRemote(x = filepath)) {
     return(TRUE)
   }
+  filepath <- normalizePath(path = filepath, mustWork = TRUE)
+  find_n <- as.integer(x = length(x = cells) * (1 - tolerance))
   valid <- validateCells(
     fragments = filepath,
     cells = cells,
@@ -364,10 +369,11 @@ ValidateCells <- function(
 #'
 #' @param object A [Fragment2-class] object
 #' @param verbose Display messages
+#' @param ... Arguments passed to other methods. Ignored.
 #' @export
 #' @concept fragments
 #' @importFrom tools md5sum
-ValidateHash <- function(object, verbose = TRUE) {
+ValidateHash <- function(object, verbose = TRUE, ...) {
   path <- GetFragmentData(object = object, slot = "file.path")
   index.file <- GetFragmentData(object = object, slot = "file.index")
   is.remote <- isRemote(x = path)

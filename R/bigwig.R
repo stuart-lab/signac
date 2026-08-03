@@ -237,16 +237,16 @@ ExportBigwig <- function(
   covFiles <- mylapply(
     GroupsNames,
     FUN = CreateBWGroup,
-    availableChr,
-    chromLengths,
-    tiles,
-    normBy,
-    group.counts,
-    tileSize,
-    normMethod,
-    cutoff,
-    outdir,
-    temp.dir
+    availableChr = availableChr,
+    chromLengths = chromLengths,
+    tiles = tiles,
+    normBy = normBy,
+    nCells = group.counts,
+    tileSize = tileSize,
+    normMethod = normMethod,
+    cutoff = cutoff,
+    outdir = outdir,
+    bed.dir = temp.dir
   )
   # remove the intermediate split bed files (written for every group, including
   # those below minCells)

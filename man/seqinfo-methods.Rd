@@ -20,7 +20,7 @@
 \alias{seqlengths,Seurat-method}
 \alias{genome,Seurat-method}
 \alias{isCircular,Seurat-method}
-\title{Access and modify sequence information for GRangesAssay objects}
+\title{Access sequence information for GRangesAssay objects}
 \usage{
 \S4method{seqinfo}{GRangesAssay}(x)
 
@@ -50,9 +50,9 @@
 \item{x}{A \link[=GRangesAssay-class]{GRangesAssay} object}
 }
 \description{
-Methods for accessing and modifying
-\code{\link[Seqinfo:Seqinfo]{Seqinfo::Seqinfo()}} object information stored in a
-\link[=GRangesAssay-class]{GRangesAssay} object.
+Methods for accessing the \code{\link[Seqinfo:Seqinfo]{Seqinfo::Seqinfo()}} object information stored in a
+\link[=GRangesAssay-class]{GRangesAssay} object. To change the sequence information, set the
+ranges with \verb{granges<-}.
 }
 \section{Functions}{
 \itemize{

@@ -22,6 +22,11 @@ int splitFragments(
   if (cells.size() != idents.size()) {
     return 1;
   }
+  if (buffer_length <= 0) {
+    Rcpp::Rcerr << "Error: buffer_length must be a positive integer\n"
+                << std::flush;
+    return 1;
+  }
 
   // construct map
   // cell is the key, value is the ident
@@ -58,7 +63,8 @@ int splitFragments(
   // C based buffered string parsing
   char* cb_char;
   size_t line_counter {1};
-  char *buffer = new char[buffer_length];
+  std::vector<char> buffer_store(buffer_length);
+  char *buffer = buffer_store.data();
 
   size_t num_whitelist_cells {0};
   {

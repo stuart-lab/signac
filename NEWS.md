@@ -61,6 +61,7 @@ regions side-by-side with shared formatting and axis labels
 * Added `ReadPWM()` function to read `.pwm` files from a directory into a `PWMatrixList`
 * Added `ReadJASPAR()` function to read motifs from a JASPAR-format file into a `PWMatrixList`
 * Added `ExportBigwig()` function to export per-group Tn5 insertion coverage tracks as bigwig files
+* Added `max.length` argument to `FragmentHistogram()`
 
 Removed functions:
 
@@ -82,6 +83,8 @@ beyond the ends of chromosomes.
 * Updated `CoveragePlot()` to accept multi-range `GRanges` objects as input.
 * `SplitFragments()` now skips fragment files that contain none of the requested
 cells, avoiding an unnecessary scan of the whole file.
+* Functions no longer reset the random number seed.
+* Added back `RunChromVAR()` and `AddChromatinModule()`
 
 # Signac 1.17.1
 

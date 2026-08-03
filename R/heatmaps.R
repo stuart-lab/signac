@@ -97,6 +97,8 @@ RegionMatrix.ChromatinAssay5 <- function(
 #' @concept heatmap
 #' @rdname RegionMatrix
 #' @importFrom GenomicRanges resize strand
+#' @importFrom Rsamtools TabixFile scanTabix seqnamesTabix
+#' @importFrom Seqinfo seqnames
 #' @importFrom fastmatch fmatch
 RegionMatrix.default <- function(
   object,
@@ -157,8 +159,26 @@ RegionMatrix.default <- function(
       )
     }
 
-    if (length(x = regions) > 0) {
-      frags <- scanTabix(file = tabix.file, param = regions)
+    # remove regions on sequences that aren't in this fragment file, otherwise
+    # scanTabix aborts. orig.idx maps back to the input regions so that each
+    # matrix row still corresponds to the region supplied by the caller
+    in.file <- as.character(x = seqnames(x = regions)) %in%
+      seqnamesTabix(file = tabix.file)
+    regions.use <- regions[in.file]
+    orig.idx <- which(x = in.file)
+    n.dropped <- sum(!in.file)
+    if (n.dropped > 0) {
+      warning(
+        n.dropped,
+        ifelse(test = n.dropped == 1, yes = " region is", no = " regions are"),
+        " on seqnames not present in the fragment file ", fragfile,
+        ". These will be counted as zero.",
+        call. = FALSE
+      )
+    }
+
+    if (length(x = regions.use) > 0) {
+      frags <- scanTabix(file = tabix.file, param = regions.use)
       res <- TabixOutputToDataFrame(
         reads = frags, record.ident = TRUE
       )
@@ -167,20 +187,14 @@ RegionMatrix.default <- function(
       for (j in unique(x = res$ident)) { # for each region
         res_region <- res[res$ident == j, ]
         # subtract start from fragment position
-        on_plus <- as.logical(strand(x = regions[j]) == "+" |
-                                strand(x = regions[j]) == "*")
-        res_region$start <- res_region$start - start(x = regions[j])
-        res_region$end <- res_region$end - start(x = regions[j])
+        on_plus <- as.logical(strand(x = regions.use[j]) == "+" |
+                                strand(x = regions.use[j]) == "*")
+        res_region$start <- res_region$start - start(x = regions.use[j])
+        res_region$end <- res_region$end - start(x = regions.use[j])
 
-        # remove out of bounds positions
-        res_region <- res_region[
-          res_region$start > 0 & res_region$start < ncol.mat, ,
-          drop = FALSE
-        ]
-        res_region <- res_region[
-          res_region$end > 0 & res_region$end < ncol.mat, ,
-          drop = FALSE
-        ]
+        # positions outside the window are ignored by tabulate() below, so
+        # they are not filtered here. Dropping whole fragments that had one
+        # end outside the window discarded the in-window insertion too
         for (cell in unique.groups) {
           cells.keep <- names(x = group.by[group.by == cell])
           subfrag <- res_region[
@@ -200,8 +214,9 @@ RegionMatrix.default <- function(
               startpos <- total_bases - subfrag$start
               endpos <- total_bases - subfrag$end
             }
-            # accumulate insertions per position
-            tmplist[[cell]][j, ] <- tmplist[[cell]][j, ] +
+            # accumulate insertions per position. tabulate() ignores indices
+            # <= 0 and > nbins, clipping positions outside the window
+            tmplist[[cell]][orig.idx[j], ] <- tmplist[[cell]][orig.idx[j], ] +
               tabulate(bin = startpos, nbins = ncol.mat) +
               tabulate(bin = endpos, nbins = ncol.mat)
           }

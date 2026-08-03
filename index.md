@@ -25,15 +25,16 @@ Signac currently supports the following features:
 * Calculating single-cell QC metrics
 * Dimensional reduction, visualization, and clustering
 * Identifying cell-type-specific peaks
-* Visualizing 'pseudo-bulk' coverage tracks
+* Visualizing pseudobulk coverage tracks
 * Integration of multiple single-cell datasets
 * Integration with single-cell RNA-seq datasets
 * Sequence motif enrichment analysis
 * Transcription factor footprinting analysis
 * Linking peaks to correlated genes
 * Parallelization through the [future](https://cran.r-project.org/package=future) package
-* Seamless interface with [Seurat](https://satijalab.org/seurat), [SeuratWrappers](https://github.com/satijalab/seurat-wrappers), [SeuratDisk](https://github.com/mojaveazure/seurat-disk), and [SeuratData](https://github.com/satijalab/seurat-data) functionality
+* Seamless interface with [Seurat](https://satijalab.org/seurat) and [SeuratWrappers](https://github.com/satijalab/seurat-wrappers) 
 * Interoperability with [Bioconductor](https://bioconductor.org/) tools
+* Disk-backed operations with [BPCells](https://github.com/bnprks/BPCells) matrices
 
 Check out the Signac [vignettes](articles/overview.html) page for in-depth 
 tutorials.

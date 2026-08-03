@@ -51,11 +51,13 @@ assay must be a \link[=ChromatinAssay5-class]{ChromatinAssay5} with fragment inf
 via \code{\link[=Fragments]{Fragments()}}.}
 
 \item{cells}{Character vector of cell barcodes to include as columns in the
-output. If NULL, all cells present in the fragment file(s) are included.
-When called on a \link[SeuratObject:Seurat]{SeuratObject::Seurat} or \link[=ChromatinAssay5-class]{ChromatinAssay5} object,
-the assay's \code{colnames} are used as the default. Cell names are matched
-against the object-level names recorded in the \link[=Fragment2-class]{Fragment2} \code{cells}
-slot; file-level barcodes are resolved internally.}
+output. If NULL, all cells present in the fragment file(s) are included;
+this requires the R backend, since \code{fragtk} needs the set of cells up front
+(see \code{fragtk}). When called on a \link[SeuratObject:Seurat]{SeuratObject::Seurat} or
+\link[=ChromatinAssay5-class]{ChromatinAssay5} object, the assay's \code{colnames} are used as the
+default. Cell names are matched against the object-level names recorded in
+the \link[=Fragment2-class]{Fragment2} \code{cells} slot; file-level barcodes are resolved
+internally.}
 
 \item{file.index}{Path to the tabix index (\code{.tbi} or \code{.csi}) for the
 fragment file. If \code{NULL}, the index is located automatically from the

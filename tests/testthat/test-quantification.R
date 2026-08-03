@@ -25,6 +25,43 @@ test_that("FeatureMatrix works on grange on diff seqnames", {
   expect_equal(dim(mat), c(101, 76))
 })
 
+test_that("FeatureMatrix is invariant to process_n", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  cells <- colnames(x = atac_small)
+  names(x = cells) <- cells
+  fragments <- CreateFragmentObject(
+    path = fpath, cells = cells, validate.fragments = FALSE, verbose = FALSE
+  )
+  features <- granges(x = atac_small)[1:20]
+
+  one.chunk <- FeatureMatrix(
+    object = fragments, features = features, fragtk = FALSE,
+    process_n = 10000, verbose = FALSE
+  )
+  many.chunks <- FeatureMatrix(
+    object = fragments, features = features, fragtk = FALSE,
+    process_n = 5, verbose = FALSE
+  )
+  expect_identical(dim(many.chunks), dim(one.chunk))
+  expect_identical(rownames(many.chunks), rownames(one.chunk))
+  expect_equal(as.matrix(many.chunks), as.matrix(one.chunk))
+
+  # same, with keep_all_features
+  keep.one <- FeatureMatrix(
+    object = fragments, features = features, fragtk = FALSE,
+    keep_all_features = TRUE, process_n = 10000, verbose = FALSE
+  )
+  keep.many <- FeatureMatrix(
+    object = fragments, features = features, fragtk = FALSE,
+    keep_all_features = TRUE, process_n = 5, verbose = FALSE
+  )
+  expect_identical(rownames(keep.many), as.character(x = features))
+  expect_equal(sum(keep.many), sum(keep.one))
+  expect_equal(as.matrix(keep.many), as.matrix(keep.one))
+  # and no counts are lost relative to the default path
+  expect_equal(sum(keep.many), sum(one.chunk))
+})
+
 test_that("FeatureMatrix returns a BPCells IterableMatrix when bpcells = TRUE", {
   skip_if_not_installed("BPCells")
   fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
@@ -160,4 +197,23 @@ test_that("FeatureMatrix validates bpcells arguments", {
     ),
     regexp = "bpcells.dir` is ignored"
   )
+})
+
+test_that("FeatureMatrix requires cells for the fragtk backend", {
+  # `fragtk matrix` requires a --cells file; previously this reached
+  # writeLines(NULL) and failed with "can only write character objects"
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  expect_error(
+    FeatureMatrix(
+      object = fpath, features = granges(atac_small), fragtk = TRUE,
+      verbose = FALSE
+    ),
+    regexp = "requires a set of cells"
+  )
+  # the R backend still quantifies every cell in the file
+  mat <- FeatureMatrix(
+    object = fpath, features = granges(atac_small)[1:5], fragtk = FALSE,
+    verbose = FALSE
+  )
+  expect_gt(ncol(mat), 0)
 })

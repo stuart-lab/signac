@@ -44,6 +44,7 @@ GetLinkedPeaks.Assay5 <- function(
 #' be returned
 #' @export
 #' @method GetLinkedPeaks ChromatinAssay5
+#' @importFrom InteractionSet anchors
 #' @concept links
 #' @rdname GetLinkedPeaks
 GetLinkedPeaks.ChromatinAssay5 <- function(
@@ -60,9 +61,9 @@ GetLinkedPeaks.ChromatinAssay5 <- function(
   if (length(x = lnk) == 0) {
     stop("No links present in assay. Run LinkPeaks first.")
   }
-  lnk.keep <- lnk[(abs(x = lnk$score) > min.abs.score) & 
+  lnk.keep <- lnk[(abs(x = lnk$score) > min.abs.score) &
                     lnk$anchor2.gene_name %in% features]
-  return(unique(x = lnk.keep$peak))
+  return(unique(x = as.character(x = anchors(x = lnk.keep)$first)))
 }
 
 #' @param assay Name of assay to use. If NULL, use the default assay
@@ -871,7 +872,9 @@ LinkPeaks <- function(
         object = LayerData(object = object[[peak.assay]], layer = peak.layer),
         verbose = FALSE
       )
-      hvf.info <- hvf.info[rownames(meta.features), , drop = FALSE]
+      hvf.info <- hvf.info[
+        rownames(meta.features), c("count", "percentile"), drop = FALSE
+      ]
       meta.features <- cbind(meta.features, hvf.info)
     }
   }
@@ -973,23 +976,32 @@ LinkPeaks <- function(
       }
 
       peaks.test <- rownames(x = coef.result)
+      coef.vals <- as.vector(x = coef.result)
+      names(x = coef.vals) <- peaks.test
 
-      if (!isTRUE(calculate.zscore)) {
-        coef.vec <- as.numeric(coef.result[, 1])
-        names(x = coef.vec) <- peaks.test
+      if (!isTRUE(x = calculate.zscore)) {
         return(list(
-          "gene" = rep(i, length(x = coef.vec)),
-          "coef" = coef.vec,
-          "zscore" = rep(NA_real_, length(x = coef.vec))
+          "gene" = rep(x = i, length(x = coef.vals)),
+          "coef" = coef.vals,
+          "zscore" = rep(NA_real_, length(x = coef.vals))
         ))
       }
 
+      # select peaks at random with matching GC content and accessibility,
+      # sampling from peaks on a different chromosome to the gene. Use the
+      # actual peak chromosomes rather than assuming a chr-start-end peak name
       gene.chrom <- as.character(x = seqnames(x = gene.coords.use[i]))
-
-      # Original LinkPeaks samples background peaks from chromosomes different
-      # from the gene. Use actual peak chromosomes instead of assuming a
-      # chr-start-end peak-name format.
       trans.peaks <- all.peaks[all.peak.chroms != gene.chrom]
+      if (length(x = trans.peaks) < 2) {
+        # no background available on another chromosome; skip rather than
+        # computing a z-score against peaks that are cis to the gene
+        warning(
+          "Fewer than two peaks are available on a chromosome other than ",
+          gene.chrom, "; skipping genes on this chromosome",
+          call. = FALSE
+        )
+        return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
+      }
       meta.use <- meta.features[trans.peaks, , drop = FALSE]
       pk.use <- meta.features[peaks.test, , drop = FALSE]
 
@@ -1006,8 +1018,9 @@ LinkPeaks <- function(
         }
       )
 
+      # run background correlations
       unique.bg <- unique(x = unlist(x = bg.peaks))
-      if (length(unique.bg) == 0) {
+      if (length(x = unique.bg) == 0) {
         return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
       }
 
@@ -1032,21 +1045,15 @@ LinkPeaks <- function(
           zscores[[j]] <- (coef.result[j] - mean(x = coef.use)) / bg.sd
         }
       }
-
-      names(x = coef.result) <- peaks.test
       names(x = zscores) <- peaks.test
+      gc(verbose = FALSE)
 
-      pval.vec <- 2 * pnorm(q = -abs(x = zscores))
-      links.keep <- pval.vec < pvalue_cutoff
-
-      if (sum(x = links.keep) == 0) {
-        return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
-      }
-
+      # p-values are filtered once on the assembled links below, so no
+      # filtering is applied here
       list(
-        "gene" = rep(i, sum(links.keep)),
-        "coef" = coef.result[links.keep, , drop = TRUE],
-        "zscore" = zscores[links.keep]
+        "gene" = rep(x = i, length(x = coef.vals)),
+        "coef" = coef.vals,
+        "zscore" = zscores
       )
     }
   )
@@ -1161,54 +1168,33 @@ LinkPeaks <- function(
 
 ### Not exported ###
 
-# Link matrix to granges
+# Create an empty set of links
 #
-# Create set of genomic ranges from a sparse matrix containing links
+# Returns a zero-length GInteractions object carrying the same metadata columns
+# as the links created by LinkPeaks(), so that downstream code can rely on the
+# same schema whether or not any links were found.
 #
-# @param linkmat A sparse matrix with genes in the rows and peaks in the
-# columns
-# @param gene.coords Genomic coordinates for each gene
-# @return Returns a GRanges object
-#' @importFrom GenomicRanges resize start width makeGRangesFromDataFrame
-#' @importFrom IRanges IRanges
-#' @importFrom BiocGenerics sort
-LinksToGRanges <- function(linkmat, gene.coords) {
-  # get TSS for each gene
-  tss <- resize(gene.coords, width = 1, fix = "start")
-  gene.idx <- sapply(
-    X = rownames(x = linkmat),
-    FUN = function(x) {
-      which(x = x == tss$gene_name)[[1]]
-    }
+# @return Returns a GInteractions object of length zero
+#' @importFrom GenomicRanges GRanges
+#' @importFrom InteractionSet GInteractions
+#' @importFrom S4Vectors mcols DataFrame
+make_empty_links <- function() {
+  empty.gr <- GRanges()
+  gi <- GInteractions(anchor1 = empty.gr, anchor2 = empty.gr)
+  mcols(x = gi) <- DataFrame(
+    peak = character(),
+    gene = character(),
+    transcript_id = character(),
+    tss_distance = numeric(),
+    peak_overlap_gene = integer(),
+    frac_peak_in_gene = numeric(),
+    closest_gene = integer(),
+    closest_tss_id = character(),
+    score = numeric(),
+    zscore = numeric(),
+    pvalue = numeric()
   )
-  tss <- tss[gene.idx]
-
-  # get midpoint of each peak
-  peak.ranges <- GRanges(colnames(x = linkmat))
-  midpoints <- start(x = peak.ranges) + (width(x = peak.ranges) / 2)
-
-  # convert to triplet form
-  dgtm <- as(object = linkmat, Class = "TsparseMatrix")
-
-  # create dataframe
-  df <- data.frame(
-    chromosome = as.character(x = seqnames(x = peak.ranges)[dgtm@j + 1]),
-    tss = start(x = tss)[dgtm@i + 1],
-    pk = midpoints[dgtm@j + 1],
-    score = dgtm@x,
-    gene = rownames(x = linkmat)[dgtm@i + 1],
-    peak = colnames(x = linkmat)[dgtm@j + 1]
-  )
-
-  # work out start and end coords
-  df$start <- ifelse(test = df$tss < df$pk, yes = df$tss, no = df$pk)
-  df$end <- ifelse(test = df$tss < df$pk, yes = df$pk, no = df$tss)
-  df$tss <- NULL
-  df$pk <- NULL
-
-  # convert to granges
-  gr.use <- makeGRangesFromDataFrame(df = df, keep.extra.columns = TRUE)
-  return(sort(x = gr.use))
+  return(gi)
 }
 
 #' @importFrom GenomicRanges GRanges

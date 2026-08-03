@@ -53,6 +53,15 @@ AlleleFreq.default <- function(object, variants, ...) {
       which(ref_letter == x)
     }
   )
+  # each variant needs a forward and a reverse strand row in the matrix
+  n.found <- sapply(X = idx_numerator, FUN = length)
+  if (any(n.found != 2)) {
+    stop(
+      "The following variants do not have both a forward and a reverse ",
+      "strand entry in the count matrix: ",
+      paste(head(x = variants[n.found != 2]), collapse = ", ")
+    )
+  }
   fwd_half_idx <- sapply(X = idx_numerator, FUN = `[[`, 1)
   rev_half_idx <- sapply(X = idx_numerator, FUN = `[[`, 2)
 
@@ -166,8 +175,9 @@ ClusterClonotypes <- function(object, assay = NULL, group.by = NULL) {
   md <- object[[]]
   assay <- assay %||% DefaultAssay(object = object)
   mat <- LayerData(object = object, assay = assay, layer = "data")
+  clonotypes <- as.character(x = unique(x = object$allele_ident_stash_clon))
   matty <- sapply(
-    X = unique(x = object$allele_ident_stash_clon),
+    X = clonotypes,
     FUN = function(x) {
       cells <- rownames(x = md[md$allele_ident_stash_clon == x, ])
       return(rowMeans(x = sqrt(x = mat[, cells])))
@@ -250,9 +260,15 @@ FindClonotypes <- function(
 
   # set levels based on hierarchical clustering
   hc <- ClusterClonotypes(object = object, assay = assay, group.by = NULL)
-  features <- as.character(rownames(x = object[[assay]])[hc$features$order])
+  features <- hc$features$labels[hc$features$order]
   VariableFeatures(object = object, assay = assay) <- features
-  levels(x = object) <- hc$cells$order - 1
+  clonotype.order <- hc$cells$labels[hc$cells$order]
+  # retain any identities that were not clustered, such as unused factor levels
+  clonotype.order <- c(
+    clonotype.order,
+    setdiff(x = levels(x = object), y = clonotype.order)
+  )
+  levels(x = object) <- clonotype.order
   return(object)
 }
 
@@ -296,12 +312,30 @@ ReadMGATK <- function(dir, verbose = TRUE) {
     full.names = TRUE
   )
 
-  # The depth file lists all barcodes that were genotyped
+  # The depth file lists all barcodes that were genotyped. mgatk writes it
+  # uncompressed, but it is often gzipped afterwards
   depthfile.path <- list.files(
     path = dir,
-    pattern = "*.depthTable.txt",
+    pattern = "\\.depthTable\\.txt(\\.gz)?$",
     full.names = TRUE
   )
+
+  found <- list(
+    "A allele count" = a.path,
+    "C allele count" = c.path,
+    "T allele count" = t.path,
+    "G allele count" = g.path,
+    "reference allele" = refallele.path,
+    "depth table" = depthfile.path
+  )
+  for (i in seq_along(along.with = found)) {
+    if (length(x = found[[i]]) != 1) {
+      stop(
+        "Expected one ", names(x = found)[[i]], " file in ", dir,
+        ", found ", length(x = found[[i]])
+      )
+    }
+  }
 
   if (verbose) {
     message("Reading allele counts")
@@ -594,7 +628,7 @@ globalVariables(
 # @param coverage Total coverage for all bases and strands
 # @param verbose Display messages
 #' @importFrom Matrix summary rowMeans rowSums
-#' @importFrom data.table data.table
+#' @importFrom data.table data.table as.data.table
 ProcessLetter <- function(
   object,
   letter,
@@ -649,8 +683,21 @@ ProcessLetter <- function(
   bulk[is.nan(bulk)] <- 0
 
   # find correlation between strands for cells with >0 counts on either strand
-  # group by variant (row) and find correlation between strand depth
-  both.strand <- data.table(cbind(fwd.ijx, rev.ijx$x))
+  # group by variant (row) and find correlation between strand depth.
+  # The two matrices do not necessarily share a sparsity pattern (they only do
+  # when both strands retain explicit zeros, as they do straight out of
+  # ReadMGATK), so join on (i, j) rather than binding the value columns
+  colnames(x = fwd.ijx) <- c("i", "j", "forward")
+  colnames(x = rev.ijx) <- c("i", "j", "reverse")
+  both.strand <- merge(
+    x = as.data.table(x = fwd.ijx),
+    y = as.data.table(x = rev.ijx),
+    by = c("i", "j"),
+    all = TRUE
+  )
+  # an entry present on only one strand has zero counts on the other
+  both.strand$forward[is.na(x = both.strand$forward)] <- 0
+  both.strand$reverse[is.na(x = both.strand$reverse)] <- 0
   both.strand$i <- variant_name[both.strand$i]
   colnames(both.strand) <- c("variant", "cell_idx", "forward", "reverse")
 
