@@ -61,8 +61,9 @@ GetLinkedPeaks.ChromatinAssay5 <- function(
   if (length(x = lnk) == 0) {
     stop("No links present in assay. Run LinkPeaks first.")
   }
+  gene.names <- LinkGeneNames(links = lnk)
   lnk.keep <- lnk[(abs(x = lnk$score) > min.abs.score) &
-                    lnk$anchor2.gene_name %in% features]
+                    gene.names %in% features]
   return(unique(x = as.character(x = anchors(x = lnk.keep)$first)))
 }
 
@@ -126,8 +127,9 @@ GetLinkedGenes.ChromatinAssay5 <- function(
     stop("No links present in assay. Run LinkPeaks first.")
   }
   pknames <- as.character(x = anchors(x = lnk)$first)
-  lnk.keep <- lnk[(abs(x = lnk$score) > min.abs.score) & pknames %in% features]
-  return(unique(x = lnk.keep$anchor2.gene_name))
+  gene.names <- LinkGeneNames(links = lnk)
+  lnk.keep <- (abs(x = lnk$score) > min.abs.score) & pknames %in% features
+  return(unique(x = gene.names[lnk.keep]))
 }
 
 #' Cicero connections to links
@@ -194,10 +196,14 @@ ConnectionsToLinks <- function(
 
 #' Find candidate peak-gene links
 #'
-#' Identify candidate peak-gene pairs within a specified distance from a gene
-#' transcription start site (TSS). Candidates can be matched either to the
-#' collapsed most-5-prime gene model or to the nearest transcript TSS for each
-#' peak-gene pair.
+#' Identify candidate peak-gene pairs within a specified distance from a
+#' transcription start site (TSS).
+#'
+#' A TSS is computed for every transcript in the annotation, so a gene with
+#' multiple transcripts contributes multiple TSSs. A peak is a candidate for a
+#' gene if it falls within `distance` of any TSS of that gene. Each peak-gene
+#' pair is reported once, using the transcript whose TSS is closest to the peak,
+#' and `tss_distance` is the distance to that TSS.
 #'
 #' @param object A Seurat object.
 #' @param peak.assay Name of assay containing peak information.
@@ -218,24 +224,20 @@ ConnectionsToLinks <- function(
 #' @param gene.id Set to `TRUE` if genes in the expression assay are named by
 #' gene ID rather than gene name.
 #' @param verbose Display messages.
-#' @param tss.match.strategy Strategy used to assign candidate TSSs. Use
-#' `"most5"` to use one collapsed gene-level TSS, or `"transcript_nearest"` to
-#' choose the nearest transcript TSS for each peak-gene pair.
 #'
 #' @return A list containing objects used downstream by [LinkPeaks()]:
-#' `candidate.matrix`, `candidate.links`, `peaks`, `gene.coords`,
-#' `candidate.link.table`, `peak.data`, and `expression.data`.
+#' `candidate.matrix`, `candidate.links`, `peaks`, `gene.coords`, `peak.data`,
+#' and `expression.data`.
 #'
 #' @importFrom GenomicRanges GRanges granges seqnames start end width strand resize findOverlaps
 #' @importFrom IRanges IRanges
 #' @importFrom S4Vectors mcols queryHits subjectHits
 #' @importFrom InteractionSet GInteractions
-#' @importFrom Matrix rowSums sparseMatrix drop0 summary
+#' @importFrom Matrix rowSums sparseMatrix
 #' @importFrom SeuratObject LayerData Layers
 #' @importFrom stats ave
 #'
-#' @export
-#' @concept links
+#' @noRd
 FindCandidateLinks <- function(
   object,
   peak.assay,
@@ -248,10 +250,8 @@ FindCandidateLinks <- function(
   min.cells = 10,
   genes.use = NULL,
   gene.id = FALSE,
-  verbose = TRUE,
-  tss.match.strategy = c("transcript_nearest", "most5")
+  verbose = TRUE
 ) {
-  tss.match.strategy <- match.arg(tss.match.strategy)
   gene.key <- if (gene.id) "gene_id" else "gene_name"
 
   .peak_to_tss_distance <- function(peaks, tss, peak_index, tss_index) {
@@ -267,29 +267,14 @@ FindCandidateLinks <- function(
   }
 
   .add_closest_gene_info <- function(df) {
-    df$closest_tss <- as.integer(
-      df$tss_distance == ave(df$tss_distance, df$peak_index, FUN = min)
-    )
-    df$closest_gene <- df$closest_tss
-    df$closest_tss_id <- NA_character_
-
-    if ("transcript_id" %in% colnames(df)) {
-      by.peak <- split(seq_len(nrow(df)), df$peak_index)
-
-      for (idx in by.peak) {
-        closest.idx <- idx[df$closest_tss[idx] == 1L]
-        df$closest_tss_id[idx] <- paste(
-          unique(as.character(df$transcript_id[closest.idx])),
-          collapse = ";"
-        )
-      }
-    }
-
+    # TRUE when no other candidate gene has a TSS closer to this peak. Ties are
+    # all marked TRUE
+    df$closest_gene <- df$tss_distance ==
+      ave(df$tss_distance, df$peak_index, FUN = min)
     df
   }
 
   .add_peak_gene_overlap_info <- function(df, peaks, gene.body.coords, gene.key) {
-    df$peak_overlap_gene <- 0L
     df$frac_peak_in_gene <- 0
 
     if (nrow(df) == 0 || length(gene.body.coords) == 0) {
@@ -325,7 +310,6 @@ FindCandidateLinks <- function(
         0L
       )
 
-      df$peak_overlap_gene[ok] <- as.integer(overlap.width > 0L)
       df$frac_peak_in_gene[ok] <- overlap.width / width(peak.ranges)
     }
 
@@ -336,10 +320,18 @@ FindCandidateLinks <- function(
     stop("The requested peak assay is not a GRangesAssay")
   }
 
-  if (!is.null(min.distance)) {
-    if (!is.numeric(min.distance)) stop("min.distance should be numeric")
-    if (min.distance <= 0) min.distance <- NULL
-    if (!is.null(min.distance) && min.distance >= distance) {
+  if (!is.null(x = min.distance)) {
+    if (!is.numeric(x = min.distance)) {
+      stop("min.distance should be a numeric value")
+    }
+    if (min.distance < 0) {
+      warning(
+        "Requested a negative min.distance value, setting min.distance to zero"
+      )
+      min.distance <- NULL
+    } else if (min.distance == 0) {
+      min.distance <- NULL
+    } else if (min.distance >= distance) {
       stop("min.distance should be smaller than distance")
     }
   }
@@ -356,8 +348,7 @@ FindCandidateLinks <- function(
 
   if (!("gene_name" %in% colnames(mcols(gene.coords.input)))) {
     if (gene.id) {
-      mcols(gene.coords.input)$gene_name <-
-        mcols(gene.coords.input)$gene_id
+      mcols(gene.coords.input)$gene_name <- mcols(gene.coords.input)$gene_id
     } else {
       stop("gene.coords / annotation must contain 'gene_name' when gene.id = FALSE")
     }
@@ -374,8 +365,8 @@ FindCandidateLinks <- function(
   peak.data <- LayerData(object[[peak.assay]], layer = peak.layer)
   expression.data <- LayerData(object[[expression.assay]], layer = expression.layer)
 
-  peaks.keep <- rowSums(peak.data > 0) > min.cells
-  genes.keep <- names(which(rowSums(expression.data > 0) > min.cells))
+  peaks.keep <- rowSums(peak.data > 0) >= min.cells
+  genes.keep <- names(which(rowSums(expression.data > 0) >= min.cells))
 
   if (!is.null(genes.use)) {
     genes.keep <- intersect(genes.keep, genes.use)
@@ -392,7 +383,29 @@ FindCandidateLinks <- function(
   peak.names <- rownames(peak.data)
   if (is.null(peak.names)) peak.names <- as.character(peaks)
 
-  gene.body.coords <- CollapseToLongestTranscript(gene.coords.input)
+  gene.body.coords <- GetGeneRanges(ranges = gene.coords.input)
+
+  # one range per transcript, so that resizing to the 5' end gives the TSS of
+  # each transcript rather than the start of each exon
+  transcript.coords.use <- GetTranscriptRanges(ranges = gene.coords.input)
+
+  # GetGeneRanges() makes gene names unique, so carry those names onto the
+  # transcripts by gene ID. Genes are matched to the expression assay by name,
+  # and without this a duplicated gene symbol would have the transcripts of
+  # every gene sharing the symbol attributed to whichever gene kept the plain
+  # name, producing links to TSSs belonging to a different gene
+  gene.name.lookup <- gene.body.coords$gene_name
+  names(x = gene.name.lookup) <- gene.body.coords$gene_id
+  transcript.coords.use$gene_name <- as.character(
+    x = gene.name.lookup[transcript.coords.use$gene_id]
+  )
+
+  # a gene with no gene-level coordinates, for example one dropped for being
+  # annotated on more than one chromosome, cannot be linked: drop its
+  # transcripts so they are not attributed to a gene we have no extent for
+  transcript.coords.use <- transcript.coords.use[
+    transcript.coords.use$gene_id %in% gene.body.coords$gene_id
+  ]
 
   if (gene.id) {
     gene.body.coords <- gene.body.coords[gene.body.coords$gene_id %in% genes]
@@ -407,287 +420,186 @@ FindCandidateLinks <- function(
   keep.body.genes <- genes[genes %in% gene.body.values]
   gene.body.coords <- gene.body.coords[match(keep.body.genes, gene.body.values)]
 
-  if (tss.match.strategy == "most5") {
-    gene.coords.use <- gene.body.coords
-    gene.values <- mcols(gene.coords.use)[[gene.key]]
-
-    keep.genes <- genes[genes %in% gene.values]
-    if (length(keep.genes) == 0) {
-      stop("No expressed genes matched gene coordinates")
-    }
-
-    gene.coords.use <- gene.coords.use[match(keep.genes, gene.values)]
-    gene.values <- mcols(gene.coords.use)[[gene.key]]
-
-    candidate.matrix <- DistanceToTSS(
-      peaks = peaks,
-      genes = gene.coords.use,
-      distance = distance
-    )
-
-    rownames(candidate.matrix) <- peak.names
-    colnames(candidate.matrix) <- gene.values
-
-    if (!is.null(min.distance)) {
-      inner.matrix <- DistanceToTSS(
-        peaks = peaks,
-        genes = gene.coords.use,
-        distance = min.distance
-      )
-
-      rownames(inner.matrix) <- rownames(candidate.matrix)
-      colnames(inner.matrix) <- colnames(candidate.matrix)
-
-      candidate.matrix <- candidate.matrix - inner.matrix
-      candidate.matrix@x[candidate.matrix@x < 0] <- 0
-      candidate.matrix <- drop0(candidate.matrix)
-    }
-
-    if (sum(candidate.matrix) == 0) {
-      stop("No candidate peak-gene links found")
-    }
-
-    candidate.tss <- resize(
-      gene.coords.use,
-      width = 1,
-      fix = "start"
-    )
-    mcols(candidate.tss) <- NULL
-
-    candidate.link.table <- as.data.frame(summary(candidate.matrix))
-    colnames(candidate.link.table) <- c("peak_index", "gene_index", "x")
-
-    candidate.link.table$peak <- rownames(candidate.matrix)[candidate.link.table$peak_index]
-    candidate.link.table$gene <- gene.values[candidate.link.table$gene_index]
-    candidate.link.table$transcript_id <- NA_character_
-
-    candidate.link.table$tss_distance <- .peak_to_tss_distance(
-      peaks = peaks,
-      tss = candidate.tss,
-      peak_index = candidate.link.table$peak_index,
-      tss_index = candidate.link.table$gene_index
-    )
-
-    candidate.link.table <- .add_closest_gene_info(candidate.link.table)
-    candidate.link.table <- .add_peak_gene_overlap_info(
-      df = candidate.link.table,
-      peaks = peaks,
-      gene.body.coords = gene.body.coords,
-      gene.key = gene.key
-    )
-
-    candidate.links <- GInteractions(
-      peaks[candidate.link.table$peak_index],
-      candidate.tss[candidate.link.table$gene_index]
-    )
-
-    candidate.links$peak <- candidate.link.table$peak
-    candidate.links$gene <- candidate.link.table$gene
-    candidate.links$transcript_id <- candidate.link.table$transcript_id
-    candidate.links$tss_distance <- candidate.link.table$tss_distance
-    candidate.links$peak_overlap_gene <- candidate.link.table$peak_overlap_gene
-    candidate.links$frac_peak_in_gene <- candidate.link.table$frac_peak_in_gene
-    candidate.links$closest_gene <- candidate.link.table$closest_gene
-    candidate.links$closest_tss_id <- candidate.link.table$closest_tss_id
+  if (gene.id) {
+    transcript.coords.use <- transcript.coords.use[
+      transcript.coords.use$gene_id %in% genes
+    ]
+    transcript.coords.use$gene_name <- transcript.coords.use$gene_id
+  } else {
+    transcript.coords.use <- transcript.coords.use[
+      transcript.coords.use$gene_name %in% genes
+    ]
   }
 
-  if (tss.match.strategy == "transcript_nearest") {
-    transcript.coords.use <- gene.coords.input
+  if (length(transcript.coords.use) == 0) {
+    stop("No transcript/gene coordinates found")
+  }
 
-    if ("type" %in% colnames(mcols(transcript.coords.use))) {
-      tx.rows <- transcript.coords.use$type %in% c("transcript", "mRNA")
-      if (any(tx.rows, na.rm = TRUE)) {
-        transcript.coords.use <- transcript.coords.use[tx.rows]
-      }
-    }
+  transcript.gene.values <- as.character(
+    mcols(transcript.coords.use)[[gene.key]]
+  )
+  gene.values <- genes[genes %in% unique(transcript.gene.values)]
 
-    if (gene.id) {
-      transcript.coords.use <- transcript.coords.use[
-        transcript.coords.use$gene_id %in% genes
-      ]
-      transcript.coords.use$gene_name <- transcript.coords.use$gene_id
-    } else {
-      transcript.coords.use <- transcript.coords.use[
-        transcript.coords.use$gene_name %in% genes
-      ]
-    }
+  if (length(gene.values) == 0) {
+    stop("No expressed genes matched transcript coordinates")
+  }
 
-    if (length(transcript.coords.use) == 0) {
-      stop("No transcript/gene coordinates found")
-    }
+  # keep gene-level coordinates in the same order as the columns of the
+  # candidate matrix, since LinkPeaks indexes into this by gene
+  gene.coords.use <- gene.body.coords[
+    match(gene.values, as.character(mcols(gene.body.coords)[[gene.key]]))
+  ]
 
-    transcript.gene.values <- mcols(transcript.coords.use)[[gene.key]]
-    gene.values <- genes[genes %in% unique(transcript.gene.values)]
+  # resize() is strand aware, so fix = "start" gives the 5' end of the
+  # transcript on both strands
+  transcript.tss <- resize(
+    transcript.coords.use,
+    width = 1,
+    fix = "start"
+  )
 
-    if (length(gene.values) == 0) {
-      stop("No expressed genes matched transcript coordinates")
-    }
+  outer.hits <- findOverlaps(
+    query = peaks,
+    subject = Extend(
+      transcript.tss,
+      upstream = distance,
+      downstream = distance
+    ),
+    type = "any"
+  )
 
-    gene.coords.use <- transcript.coords.use[match(gene.values, transcript.gene.values)]
+  if (length(outer.hits) == 0) {
+    stop("No candidate peak-transcript links found")
+  }
 
-    transcript.tss <- resize(
-      transcript.coords.use,
-      width = 1,
-      fix = "start"
-    )
+  outer.df <- data.frame(
+    peak_index = queryHits(outer.hits),
+    transcript_index = subjectHits(outer.hits)
+  )
 
-    outer.hits <- findOverlaps(
+  outer.df$gene <- transcript.gene.values[outer.df$transcript_index]
+  outer.df <- outer.df[outer.df$gene %in% gene.values, , drop = FALSE]
+
+  if (nrow(outer.df) == 0) {
+    stop("No candidate peak-transcript links matched expressed genes")
+  }
+
+  if (!is.null(min.distance)) {
+    inner.hits <- findOverlaps(
       query = peaks,
       subject = Extend(
         transcript.tss,
-        upstream = distance,
-        downstream = distance
+        upstream = min.distance,
+        downstream = min.distance
       ),
       type = "any"
     )
 
-    if (length(outer.hits) == 0) {
-      stop("No candidate peak-transcript links found")
-    }
-
-    outer.df <- data.frame(
-      peak_index = queryHits(outer.hits),
-      transcript_index = subjectHits(outer.hits)
-    )
-
-    outer.df$gene <- transcript.gene.values[outer.df$transcript_index]
-    outer.df <- outer.df[outer.df$gene %in% gene.values, , drop = FALSE]
-
-    if (nrow(outer.df) == 0) {
-      stop("No candidate peak-transcript links matched expressed genes")
-    }
-
-    if (!is.null(min.distance)) {
-      inner.hits <- findOverlaps(
-        query = peaks,
-        subject = Extend(
-          transcript.tss,
-          upstream = min.distance,
-          downstream = min.distance
-        ),
-        type = "any"
+    if (length(inner.hits) > 0) {
+      inner.df <- data.frame(
+        peak_index = queryHits(inner.hits),
+        transcript_index = subjectHits(inner.hits)
       )
 
-      if (length(inner.hits) > 0) {
-        inner.df <- data.frame(
-          peak_index = queryHits(inner.hits),
-          transcript_index = subjectHits(inner.hits)
-        )
+      inner.df$gene <- transcript.gene.values[inner.df$transcript_index]
+      inner.df <- inner.df[inner.df$gene %in% gene.values, , drop = FALSE]
 
-        inner.df$gene <- transcript.gene.values[inner.df$transcript_index]
-        inner.df <- inner.df[inner.df$gene %in% gene.values, , drop = FALSE]
-
-        outer.df <- outer.df[
-          !(paste(outer.df$peak_index, outer.df$gene, sep = "\r") %in%
-              paste(inner.df$peak_index, inner.df$gene, sep = "\r")),
-          ,
-          drop = FALSE
-        ]
-      }
+      outer.df <- outer.df[
+        !(paste(outer.df$peak_index, outer.df$gene, sep = "\r") %in%
+            paste(inner.df$peak_index, inner.df$gene, sep = "\r")),
+        ,
+        drop = FALSE
+      ]
     }
-
-    if (nrow(outer.df) == 0) {
-      stop("No candidate links remain after min.distance filtering")
-    }
-
-    outer.df$gene_index <- match(outer.df$gene, gene.values)
-
-    outer.df$tss_distance <- .peak_to_tss_distance(
-      peaks = peaks,
-      tss = transcript.tss,
-      peak_index = outer.df$peak_index,
-      tss_index = outer.df$transcript_index
-    )
-
-    outer.df$tss_seqname <- as.character(
-      seqnames(transcript.tss)
-    )[outer.df$transcript_index]
-
-    outer.df$tss_position <- start(transcript.tss)[
-      outer.df$transcript_index
-    ]
-
-    outer.df$tss_strand <- as.character(
-      strand(transcript.tss)
-    )[outer.df$transcript_index]
-
-    outer.df$transcript_id <- if (
-      "transcript_id" %in% colnames(mcols(transcript.coords.use))
-    ) {
-      as.character(transcript.coords.use$transcript_id[outer.df$transcript_index])
-    } else {
-      paste0("transcript_row_", outer.df$transcript_index)
-    }
-
-    outer.df <- outer.df[order(
-      outer.df$peak_index,
-      outer.df$gene_index,
-      outer.df$tss_distance,
-      outer.df$transcript_index
-    ), , drop = FALSE]
-
-    outer.df <- outer.df[
-      !duplicated(paste(outer.df$peak_index, outer.df$gene_index, sep = "\r")),
-      ,
-      drop = FALSE
-    ]
-
-    outer.df$peak <- peak.names[outer.df$peak_index]
-    outer.df <- .add_closest_gene_info(outer.df)
-    outer.df <- .add_peak_gene_overlap_info(
-      df = outer.df,
-      peaks = peaks,
-      gene.body.coords = gene.body.coords,
-      gene.key = gene.key
-    )
-
-    candidate.matrix <- sparseMatrix(
-      i = outer.df$peak_index,
-      j = outer.df$gene_index,
-      x = 1,
-      dims = c(length(peaks), length(gene.values))
-    )
-
-    rownames(candidate.matrix) <- peak.names
-    colnames(candidate.matrix) <- gene.values
-
-    candidate.tss <- GRanges(
-      seqnames = outer.df$tss_seqname,
-      ranges = IRanges(
-        start = outer.df$tss_position,
-        end = outer.df$tss_position
-      ),
-      strand = outer.df$tss_strand
-    )
-    mcols(candidate.tss) <- NULL
-
-    candidate.links <- GInteractions(
-      peaks[outer.df$peak_index],
-      candidate.tss
-    )
-
-    candidate.links$peak <- outer.df$peak
-    candidate.links$gene <- outer.df$gene
-    candidate.links$transcript_id <- outer.df$transcript_id
-    candidate.links$tss_distance <- outer.df$tss_distance
-    candidate.links$peak_overlap_gene <- outer.df$peak_overlap_gene
-    candidate.links$frac_peak_in_gene <- outer.df$frac_peak_in_gene
-    candidate.links$closest_gene <- outer.df$closest_gene
-    candidate.links$closest_tss_id <- outer.df$closest_tss_id
-
-    candidate.link.table <- outer.df
   }
+
+  if (nrow(outer.df) == 0) {
+    stop("No candidate links remain after min.distance filtering")
+  }
+
+  outer.df$gene_index <- match(outer.df$gene, gene.values)
+
+  outer.df$tss_distance <- .peak_to_tss_distance(
+    peaks = peaks,
+    tss = transcript.tss,
+    peak_index = outer.df$peak_index,
+    tss_index = outer.df$transcript_index
+  )
+
+  outer.df$tss_seqname <- as.character(
+    seqnames(transcript.tss)
+  )[outer.df$transcript_index]
+
+  outer.df$tss_position <- start(transcript.tss)[
+    outer.df$transcript_index
+  ]
+
+  outer.df$tss_strand <- as.character(
+    strand(transcript.tss)
+  )[outer.df$transcript_index]
+
+  # keep the transcript whose TSS is closest to the peak for each peak-gene pair
+  outer.df <- outer.df[order(
+    outer.df$peak_index,
+    outer.df$gene_index,
+    outer.df$tss_distance,
+    outer.df$transcript_index
+  ), , drop = FALSE]
+
+  outer.df <- outer.df[
+    !duplicated(paste(outer.df$peak_index, outer.df$gene_index, sep = "\r")),
+    ,
+    drop = FALSE
+  ]
+
+  outer.df$peak <- peak.names[outer.df$peak_index]
+  outer.df <- .add_closest_gene_info(outer.df)
+  outer.df <- .add_peak_gene_overlap_info(
+    df = outer.df,
+    peaks = peaks,
+    gene.body.coords = gene.body.coords,
+    gene.key = gene.key
+  )
+
+  candidate.matrix <- sparseMatrix(
+    i = outer.df$peak_index,
+    j = outer.df$gene_index,
+    x = 1,
+    dims = c(length(peaks), length(gene.values))
+  )
+
+  rownames(candidate.matrix) <- peak.names
+  colnames(candidate.matrix) <- gene.values
+
+  candidate.tss <- GRanges(
+    seqnames = outer.df$tss_seqname,
+    ranges = IRanges(
+      start = outer.df$tss_position,
+      end = outer.df$tss_position
+    ),
+    strand = outer.df$tss_strand
+  )
+  mcols(candidate.tss) <- NULL
+
+  candidate.links <- GInteractions(
+    peaks[outer.df$peak_index],
+    candidate.tss
+  )
+
+  candidate.links$peak <- outer.df$peak
+  candidate.links$gene <- outer.df$gene
+  candidate.links$tss_distance <- outer.df$tss_distance
+  candidate.links$frac_peak_in_gene <- outer.df$frac_peak_in_gene
+  candidate.links$closest_gene <- outer.df$closest_gene
 
   if (verbose) {
     message(
       "Identified ", length(candidate.links),
       " candidate peak-gene links across ", ncol(candidate.matrix),
       " genes and ", sum(rowSums(candidate.matrix) > 0),
-      " peaks using strategy '", tss.match.strategy, "'"
+      " peaks"
     )
   }
-
-  candidate.link.table <- candidate.link.table[, c("peak", "gene"), drop = FALSE]
 
   # Return only objects used downstream by LinkPeaks().
   list(
@@ -695,7 +607,6 @@ FindCandidateLinks <- function(
     candidate.links = candidate.links,
     peaks = peaks,
     gene.coords = gene.coords.use,
-    candidate.link.table = candidate.link.table,
     peak.data = peak.data,
     expression.data = expression.data
   )
@@ -703,19 +614,33 @@ FindCandidateLinks <- function(
 
 #' Link peaks to genes
 #'
-#' Find peaks that are correlated with the expression of nearby genes. For each
-#' gene, this function computes the correlation coefficient between gene
+#' Compute the correlation between peak DNA accessibility and the RNA abundance
+#' of nearby genes.
+#' 
+#' For each gene, this function computes the correlation coefficient between gene
 #' expression and accessibility of candidate peaks within a specified distance
-#' from the gene TSS. By default, links are retained using the observed
-#' correlation coefficient only. If `calculate.zscore = TRUE`, the function also
-#' computes an expected correlation coefficient for each peak using background
-#' peaks matched on GC content, accessibility, and sequence length, and uses this
-#' background distribution to compute a z-score and p-value.
-#'
-#' This function was inspired by the method originally described by SHARE-seq
-#' (Sai Ma et al. 2020, Cell). Please consider citing the original SHARE-seq
-#' work if using this function:
-#' [doi: 10.1016/j.cell.2020.09.056](https://pubmed.ncbi.nlm.nih.gov/33098772/)
+#' from a transcription start site (TSS) of that gene. A TSS is computed for
+#' every transcript in the annotation, so a peak is a candidate for a gene if it
+#' falls within `distance` of any of that gene's TSSs. By default, links are
+#' retained using the observed correlation coefficient only. If `zscore = TRUE`,
+#' the function also computes an expected correlation coefficient for each peak
+#' following the method of Ma et al. ([doi: 10.1016/j.cell.2020.09.056](https://pubmed.ncbi.nlm.nih.gov/33098772/))
+#' using background peaks matched on GC content, accessibility, and sequence
+#' length, and uses this background distribution to compute a z-score and
+#' p-value.
+#' 
+#' Note that in Signac v2 the default `LinkPeaks` behavior has changed to skip
+#' computation of the z-scores. This change was made due to work by Leblanc &
+#' Lettre ([doi: 10.1038/s41598-023-31040-w](https://doi.org/10.1038/s41598-023-31040-w))
+#' showing that the z-score method is influenced by the cell type composition of
+#' the dataset, and can result in a higher false negative rate. If required,
+#' z-scores can still be computed by setting `zscore=TRUE`.
+#' 
+#' The main purpose of `LinkPeaks` is to provide the raw correlation
+#' coefficients between DNA accessibility and gene expression. For accurate
+#' peak-gene linkage, these correlation coefficients alone are often
+#' insufficient. We recommend exploring other methods such as pgBoost, ScarLink,
+#' and scE2G.
 #'
 #' @param object A Seurat object.
 #' @param peak.assay Name of assay containing peak information.
@@ -727,30 +652,27 @@ FindCandidateLinks <- function(
 #' @param gene.coords A [GenomicRanges::GRanges] object containing gene or
 #' transcript coordinates. If `NULL`, gene annotations are extracted from the
 #' peak assay.
+#' @param genes.use Optional vector of genes to test. If `NULL`, genes are
+#' selected from the expression assay after `min.cells` filtering.
 #' @param distance Maximum distance from a TSS for peaks to include as candidate
 #' links.
 #' @param min.distance Optional minimum distance from a TSS. Candidate links
 #' closer than this distance are excluded.
+#' @param cor.cutoff Minimum absolute correlation coefficient for a link to be
+#' retained.
 #' @param min.cells Minimum number of cells positive for the peak and gene
 #' needed to include them in the analysis.
-#' @param genes.use Optional vector of genes to test. If `NULL`, genes are
-#' selected from the expression assay after `min.cells` filtering.
 #' @param n_sample Number of background peaks to sample when computing the null
-#' distribution. Only used when `calculate.zscore = TRUE`.
+#' distribution. Only used when `zscore = TRUE`.
 #' @param pvalue_cutoff Maximum p-value for retaining a link. Links with a
 #' p-value greater than or equal to this value are removed from the output. Only
-#' used when `calculate.zscore = TRUE`.
-#' @param score_cutoff Minimum absolute correlation coefficient for a link to be
-#' retained.
-#' @param calculate.zscore Compute background-matched z-scores and p-values. If
+#' used when `zscore = TRUE`.
+#' @param zscore Compute background-matched z-scores and p-values. If
 #' `FALSE` (default), background peak matching is skipped and links are retained
-#' using `score_cutoff` only.
+#' using `cor.cutoff` only.
 #' @param gene.id Set to `TRUE` if genes in the expression assay are named by
 #' gene ID rather than gene name.
 #' @param verbose Display messages.
-#' @param tss.match.strategy Strategy used to assign candidate TSSs. Use
-#' `"most5"` to use one collapsed gene-level TSS, or `"transcript_nearest"` to
-#' choose the nearest transcript TSS for each peak-gene pair.
 #' @param peak.slot Deprecated; use `peak.layer`.
 #' @param expression.slot Deprecated; use `expression.layer`.
 #'
@@ -760,23 +682,19 @@ FindCandidateLinks <- function(
 #' stored on each link includes:
 #' * `peak`: peak identifier
 #' * `gene`: linked gene identifier
-#' * `transcript_id`: selected transcript identifier, when available
 #' * `tss_distance`: distance from the peak to the selected TSS
-#' * `peak_overlap_gene`: binary indicator for any peak overlap with the linked
-#' gene body
 #' * `frac_peak_in_gene`: fraction of the peak width overlapping the linked gene
 #' body
-#' * `closest_gene`: binary indicator for whether this gene is closest to the
-#' peak among candidate genes
-#' * `closest_tss_id`: transcript IDs for the closest TSSs to the peak
+#' * `closest_gene`: `TRUE` when no other candidate gene has a TSS closer to
+#' this peak
 #' * `score`: observed correlation coefficient
 #' * `zscore`: z-score of the observed correlation coefficient; `NA` when
-#' `calculate.zscore = FALSE`
+#' `zscore = FALSE`
 #' * `pvalue`: p-value associated with the z-score; `NA` when
-#' `calculate.zscore = FALSE`
+#' `zscore = FALSE`
 #'
 #' @importFrom SeuratObject LayerData Layers as.sparse
-#' @importFrom Matrix sparseMatrix rowSums drop0
+#' @importFrom Matrix sparseMatrix rowSums
 #' @importMethodsFrom Matrix t
 #' @importFrom GenomicRanges seqnames
 #' @importFrom S4Vectors mcols DataFrame
@@ -797,41 +715,26 @@ LinkPeaks <- function(
   method = "pearson",
   key = "linkpeaks",
   gene.coords = NULL,
+  genes.use = NULL,
   distance = 5e+05,
   min.distance = NULL,
+  cor.cutoff = 0.05,
   min.cells = 10,
-  genes.use = NULL,
   n_sample = 200,
   pvalue_cutoff = 0.05,
-  score_cutoff = 0.05,
-  calculate.zscore = FALSE,
+  zscore = FALSE,
   gene.id = FALSE,
   verbose = TRUE,
-  tss.match.strategy = c("transcript_nearest", "most5"),
   peak.slot = deprecated(),
   expression.slot = deprecated()
 ) {
-  tss.match.strategy <- match.arg(tss.match.strategy)
-
   if (!inherits(x = object[[peak.assay]], what = "GRangesAssay")) {
     stop("The requested assay is not a GRangesAssay")
   }
 
-  if (!is.null(x = min.distance)) {
-    if (!is.numeric(x = min.distance)) {
-      stop("min.distance should be a numeric value")
-    }
-    if (min.distance < 0) {
-      warning("Requested a negative min.distance value, setting min.distance to zero")
-      min.distance <- NULL
-    } else if (min.distance == 0) {
-      min.distance <- NULL
-    }
-  }
-
   if (is_present(arg = expression.slot)) {
     deprecate_warn(
-      when = "1.16.0",
+      when = "2.0.0",
       what = "LinkPeaks(expression.slot)",
       with = "LinkPeaks(expression.layer)"
     )
@@ -840,7 +743,7 @@ LinkPeaks <- function(
 
   if (is_present(arg = peak.slot)) {
     deprecate_warn(
-      when = "1.16.0",
+      when = "2.0.0",
       what = "LinkPeaks(peak.slot)",
       with = "LinkPeaks(peak.layer)"
     )
@@ -858,7 +761,7 @@ LinkPeaks <- function(
   }
 
   meta.features <- NULL
-  if (isTRUE(calculate.zscore)) {
+  if (isTRUE(zscore)) {
     meta.features <- object[[peak.assay]][[]]
     if (!(all(c("GC.percent", "sequence.length") %in% colnames(x = meta.features)))) {
       stop(
@@ -879,42 +782,29 @@ LinkPeaks <- function(
     }
   }
 
-  candidates <- tryCatch(
-    FindCandidateLinks(
-      object = object,
-      peak.assay = peak.assay,
-      expression.assay = expression.assay,
-      peak.layer = peak.layer,
-      expression.layer = expression.layer,
-      gene.coords = gene.coords,
-      distance = distance,
-      min.distance = min.distance,
-      min.cells = min.cells,
-      genes.use = genes.use,
-      gene.id = gene.id,
-      verbose = verbose,
-      tss.match.strategy = tss.match.strategy
-    ),
-    error = function(e) {
-      if (verbose) message("Candidate-finding skipped: ", conditionMessage(e))
-      NULL
-    }
+  candidates <- FindCandidateLinks(
+    object = object,
+    peak.assay = peak.assay,
+    expression.assay = expression.assay,
+    peak.layer = peak.layer,
+    expression.layer = expression.layer,
+    gene.coords = gene.coords,
+    distance = distance,
+    min.distance = min.distance,
+    min.cells = min.cells,
+    genes.use = genes.use,
+    gene.id = gene.id,
+    verbose = verbose
   )
-
-  if (is.null(candidates)) {
-    Links(object = object[[peak.assay]], key = key) <- make_empty_links()
-    return(object)
-  }
 
   peak_distance_matrix <- candidates$candidate.matrix
   candidate.links <- candidates$candidate.links
-  candidate.link.table <- candidates$candidate.link.table
   peak.data <- candidates$peak.data
   expression.data <- candidates$expression.data
   gene.coords.use <- candidates$gene.coords
-  genes.use <- colnames(x = peak_distance_matrix)
+  genes.test <- colnames(x = peak_distance_matrix)
   all.peaks <- rownames(x = peak.data)
-  all.peak.chroms <- if (isTRUE(calculate.zscore)) {
+  all.peak.chroms <- if (isTRUE(zscore)) {
     as.character(seqnames(candidates$peaks))
   } else {
     NULL
@@ -943,10 +833,10 @@ LinkPeaks <- function(
   }
 
   res <- mylapply(
-    X = seq_along(along.with = genes.use),
+    X = seq_along(along.with = genes.test),
     FUN = function(i) {
-      peak.use <- as.logical(x = peak_distance_matrix[, genes.use[[i]]])
-      gene.expression <- t(x = expression.data[genes.use[[i]], , drop = FALSE])
+      peak.use <- as.logical(x = peak_distance_matrix[, genes.test[[i]]])
+      gene.expression <- t(x = expression.data[genes.test[[i]], , drop = FALSE])
 
       if (sum(peak.use) < 2) {
         return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
@@ -965,11 +855,14 @@ LinkPeaks <- function(
         Y = gene.expression
       )
       rownames(x = coef.result) <- colnames(x = peak.access)
-      coef.result <- coef.result[
-        abs(x = coef.result) > score_cutoff,
-        ,
-        drop = FALSE
-      ]
+      # a peak or gene with zero variance across cells gives a non-finite
+      # correlation (Inf when the peak is constant, NaN when the gene is).
+      # Drop those explicitly: Inf would otherwise be kept as a top-scoring
+      # link, and subsetting by an index containing NA would insert rows with
+      # an NA peak name
+      keep.peaks <- is.finite(x = coef.result[, 1]) &
+        (abs(x = coef.result[, 1]) >= cor.cutoff)
+      coef.result <- coef.result[keep.peaks, , drop = FALSE]
 
       if (nrow(x = coef.result) == 0) {
         return(list("gene" = NULL, "coef" = NULL, "zscore" = NULL))
@@ -979,7 +872,7 @@ LinkPeaks <- function(
       coef.vals <- as.vector(x = coef.result)
       names(x = coef.vals) <- peaks.test
 
-      if (!isTRUE(x = calculate.zscore)) {
+      if (!isTRUE(x = zscore)) {
         return(list(
           "gene" = rep(x = i, length(x = coef.vals)),
           "coef" = coef.vals,
@@ -1063,7 +956,7 @@ LinkPeaks <- function(
   zscore.vec <- do.call(what = c, args = lapply(X = res, FUN = `[[`, 3))
 
   if (length(x = coef.vec) == 0) {
-    if (verbose) message("No links pass score_cutoff")
+    if (verbose) message("No links pass cor.cutoff")
     Links(object = object[[peak.assay]], key = key) <- make_empty_links()
     return(object)
   }
@@ -1071,9 +964,9 @@ LinkPeaks <- function(
   sig.df <- data.frame(
     peak = names(x = coef.vec),
     gene_index = as.integer(gene.vec),
-    gene = genes.use[as.integer(gene.vec)],
+    gene = genes.test[as.integer(gene.vec)],
     score = as.numeric(coef.vec),
-    zscore = if (isTRUE(calculate.zscore)) {
+    zscore = if (isTRUE(zscore)) {
       as.numeric(zscore.vec)
     } else {
       rep(NA_real_, length(x = coef.vec))
@@ -1081,7 +974,7 @@ LinkPeaks <- function(
     stringsAsFactors = FALSE
   )
 
-  if (isTRUE(calculate.zscore)) {
+  if (isTRUE(zscore)) {
     sig.df$pvalue <- 2 * pnorm(q = -abs(x = sig.df$zscore))
     sig.df <- sig.df[sig.df$pvalue < pvalue_cutoff, , drop = FALSE]
 
@@ -1094,7 +987,7 @@ LinkPeaks <- function(
     sig.df$pvalue <- NA_real_
   }
 
-  candidate.key <- paste(candidate.link.table$peak, candidate.link.table$gene, sep = "\r")
+  candidate.key <- paste(candidate.links$peak, candidate.links$gene, sep = "\r")
   sig.key <- paste(sig.df$peak, sig.df$gene, sep = "\r")
   link.idx <- match(sig.key, candidate.key)
 
@@ -1110,24 +1003,11 @@ LinkPeaks <- function(
   links$peak <- sig.df$peak
   links$gene <- sig.df$gene
 
-  if (!("transcript_id" %in% colnames(mcols(links)))) {
-    links$transcript_id <- rep(NA_character_, length(links))
-  }
-  if (!("closest_tss_id" %in% colnames(mcols(links)))) {
-    links$closest_tss_id <- rep(NA_character_, length(links))
-  }
-  if (!("peak_overlap_gene" %in% colnames(mcols(links)))) {
-    links$peak_overlap_gene <- rep(NA_integer_, length(links))
-  }
   if (!("frac_peak_in_gene" %in% colnames(mcols(links)))) {
     links$frac_peak_in_gene <- rep(NA_real_, length(links))
   }
   if (!("closest_gene" %in% colnames(mcols(links)))) {
-    if ("closest_tss" %in% colnames(mcols(links))) {
-      links$closest_gene <- as.integer(links$closest_tss)
-    } else {
-      links$closest_gene <- rep(NA_integer_, length(links))
-    }
+    links$closest_gene <- rep(NA, length(links))
   }
 
   links$score <- sig.df$score
@@ -1151,12 +1031,9 @@ LinkPeaks <- function(
   mcols(links) <- DataFrame(
     peak = as.character(.link_mcol(links, "peak")),
     gene = as.character(.link_mcol(links, "gene")),
-    transcript_id = as.character(.link_mcol(links, "transcript_id")),
     tss_distance = as.numeric(.link_mcol(links, "tss_distance")),
-    peak_overlap_gene = as.integer(.link_mcol(links, "peak_overlap_gene")),
     frac_peak_in_gene = as.numeric(.link_mcol(links, "frac_peak_in_gene")),
-    closest_gene = as.integer(.link_mcol(links, "closest_gene")),
-    closest_tss_id = as.character(.link_mcol(links, "closest_tss_id")),
+    closest_gene = as.logical(.link_mcol(links, "closest_gene")),
     score = as.numeric(.link_mcol(links, "score")),
     zscore = as.numeric(.link_mcol(links, "zscore")),
     pvalue = as.numeric(.link_mcol(links, "pvalue"))
@@ -1167,6 +1044,27 @@ LinkPeaks <- function(
 }
 
 ### Not exported ###
+
+# Get the linked gene name for each link
+#
+# LinkPeaks() stores the linked gene in a `gene` metadata column, whereas links
+# created from a set of gene ranges (for example by LinksToGInteractions())
+# carry the gene name through on the second anchor. Look for both so that the
+# link accessors work regardless of how the links were created.
+#
+# @param links A GInteractions object
+# @return Returns a character vector with one element per link
+#' @importFrom S4Vectors mcols
+LinkGeneNames <- function(links) {
+  link.cols <- colnames(x = mcols(x = links))
+  if ("gene" %in% link.cols) {
+    return(as.character(x = links$gene))
+  }
+  if ("anchor2.gene_name" %in% link.cols) {
+    return(as.character(x = links$anchor2.gene_name))
+  }
+  stop("Links do not contain gene information")
+}
 
 # Create an empty set of links
 #
@@ -1184,12 +1082,9 @@ make_empty_links <- function() {
   mcols(x = gi) <- DataFrame(
     peak = character(),
     gene = character(),
-    transcript_id = character(),
     tss_distance = numeric(),
-    peak_overlap_gene = integer(),
     frac_peak_in_gene = numeric(),
-    closest_gene = integer(),
-    closest_tss_id = character(),
+    closest_gene = logical(),
     score = numeric(),
     zscore = numeric(),
     pvalue = numeric()
@@ -1209,45 +1104,3 @@ LinksToGInteractions <- function(linkmat, gene.coords) {
   return(gi)
 }
 
-# Find peaks near genes
-#
-# Find peaks that are within a given distance threshold to each gene
-#
-# @param peaks A GRanges object containing peak coordinates
-# @param genes A GRanges object containing gene coordinates
-# @param distance Distance threshold. Peaks within this distance from the gene
-# will be recorded.
-#
-#' @importFrom GenomicRanges findOverlaps
-#' @importFrom S4Vectors queryHits subjectHits
-#' @importFrom Matrix sparseMatrix
-#' @importFrom GenomicRanges resize
-#
-# @return Returns a sparse matrix
-DistanceToTSS <- function(
-  peaks,
-  genes,
-  distance = 200000
-) {
-  tss <- resize(x = genes, width = 1, fix = "start")
-  genes.extended <- suppressWarnings(
-    expr = Extend(
-      x = tss, upstream = distance, downstream = distance
-    )
-  )
-  overlaps <- findOverlaps(
-    query = peaks,
-    subject = genes.extended,
-    type = "any",
-    select = "all"
-  )
-  hit_matrix <- sparseMatrix(
-    i = queryHits(x = overlaps),
-    j = subjectHits(x = overlaps),
-    x = 1,
-    dims = c(length(x = peaks), length(x = genes.extended))
-  )
-  rownames(x = hit_matrix) <- as.character(x = peaks)
-  colnames(x = hit_matrix) <- genes.extended$gene_name
-  return(hit_matrix)
-}
