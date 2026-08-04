@@ -206,7 +206,7 @@ GeneActivity <- function(
   if (verbose) {
     message("Extracting gene coordinates")
   }
-  transcripts <- CollapseToLongestTranscript(ranges = annotation)
+  transcripts <- GetGeneRanges(ranges = annotation)
   if (gene.id) {
     transcripts$gene_name <- transcripts$gene_id
   }
