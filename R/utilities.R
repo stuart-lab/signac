@@ -487,7 +487,7 @@ GetTSSPositions <- function(ranges, biotypes = "protein_coding") {
   if (!is.null(x = biotypes)) {
     ranges <- ranges[ranges$gene_biotype %in% biotypes]
   }
-  gene.ranges <- CollapseToLongestTranscript(ranges = ranges)
+  gene.ranges <- GetGeneRanges(ranges = ranges)
   # shrink to TSS position
   tss <- resize(gene.ranges, width = 1, fix = "start")
   return(tss)
@@ -904,30 +904,46 @@ PadMissingCells <- function(mat, cells) {
 }
 
 globalVariables(
-  names = c("start", "end", "seqnames", "strand", "gene_biotype", "gene_name"),
+  names = c(
+    "start", "end", "seqnames", "strand", "gene_biotype", "gene_name",
+    "gene_id", "tx_id"
+  ),
   package = "Signac"
 )
-#' @importFrom GenomicRanges makeGRangesFromDataFrame
-#' @importFrom data.table as.data.table
-CollapseToLongestTranscript <- function(ranges) {
-  range.df <- as.data.table(x = as.data.frame(x = ranges))
 
-  if (!"gene_id" %in% colnames(x = range.df)) {
+# Coerce a gene annotation to a data.table with the expected columns
+#
+# Signac annotations store one row per sub-transcript feature (exon, cds, utr,
+# gap), so the extent of a transcript or gene has to be derived by grouping.
+# This normalizes the columns those groupings rely on.
+#
+# @param ranges A GRanges object containing gene annotations
+# @return Returns a data.table
+#' @importFrom data.table as.data.table
+#' @importFrom S4Vectors mcols
+AnnotationToTable <- function(ranges) {
+  # row.names = NULL: annotations are usually named by exon, and those names
+  # are not unique once collapsed to the transcript or gene level
+  range.df <- as.data.table(x = as.data.frame(x = ranges, row.names = NULL))
+
+  if (!("gene_id" %in% colnames(x = range.df))) {
     stop("Input ranges must contain gene_id")
   }
 
-  if (!"gene_name" %in% colnames(x = range.df)) {
-    range.df[, gene_name := gene_id]
+  if (!("gene_name" %in% colnames(x = range.df))) {
+    range.df$gene_name <- range.df$gene_id
   }
 
-  if (!"gene_biotype" %in% colnames(x = range.df)) {
-    range.df[, gene_biotype := if ("gene_type" %in% colnames(x = range.df)) {
-      gene_type
+  if (!("gene_biotype" %in% colnames(x = range.df))) {
+    # gencode annotations store the biotype as gene_type
+    range.df$gene_biotype <- if ("gene_type" %in% colnames(x = range.df)) {
+      range.df$gene_type
     } else {
       NA_character_
-    }]
+    }
   }
 
+  # a '*' strand has no defined 5' end, so treat it as '+' when locating a TSS
   range.df$strand <- as.character(x = range.df$strand)
   range.df$strand <- ifelse(
     test = range.df$strand == "*",
@@ -935,9 +951,70 @@ CollapseToLongestTranscript <- function(ranges) {
     no = range.df$strand
   )
 
+  return(range.df)
+}
+
+# Remove annotation groups that span more than one chromosome
+#
+# A gene or transcript should be confined to a single chromosome. Collapsing one
+# that is not would silently produce a range running from the lowest start to the
+# highest end across chromosomes, reported on whichever chromosome came first,
+# so drop those groups and report which were dropped.
+#
+# @param range.df A data.table of annotation rows
+# @param group Name of the column identifying each group, e.g. "gene_id"
+# @return Returns range.df with any offending groups removed
+DropMultiChromosomeGroups <- function(range.df, group) {
+  seqname.count <- range.df[
+    , list(n_seqnames = length(x = unique(x = seqnames))), by = group
+  ]
+  drop.groups <- seqname.count[[group]][seqname.count$n_seqnames > 1]
+
+  if (length(x = drop.groups) == 0) {
+    return(range.df)
+  }
+
+  shown <- drop.groups[seq_len(length.out = min(5, length(x = drop.groups)))]
+  warning(
+    "Dropping ", length(x = drop.groups), " ", group,
+    if (length(x = drop.groups) == 1) " that spans " else " that span ",
+    "more than one chromosome: ",
+    paste(shown, collapse = ", "),
+    if (length(x = drop.groups) > length(x = shown)) ", ..." else "",
+    call. = FALSE
+  )
+
+  return(range.df[!(range.df[[group]] %in% drop.groups), ])
+}
+
+# Get the range spanned by each gene
+#
+# Collapse an annotation to one range per gene, spanning from the lowest start
+# to the highest end across every feature assigned to that gene. Note that this
+# is the union extent over all transcripts of the gene, which can be wider than
+# any individual transcript.
+#
+# @param ranges A GRanges object containing gene annotations
+# @return Returns a GRanges object with one range per gene
+#' @importFrom GenomicRanges makeGRangesFromDataFrame GRanges
+#' @importFrom S4Vectors mcols "mcols<-" DataFrame
+GetGeneRanges <- function(ranges) {
+  range.df <- AnnotationToTable(ranges = ranges)
+  range.df <- DropMultiChromosomeGroups(range.df = range.df, group = "gene_id")
+
+  if (nrow(x = range.df) == 0) {
+    empty.ranges <- GRanges()
+    mcols(x = empty.ranges) <- DataFrame(
+      gene_id = character(),
+      gene_biotype = character(),
+      gene_name = character()
+    )
+    return(empty.ranges)
+  }
+
   collapsed <- range.df[
     , list(
-      seqnames = unique(seqnames)[1],
+      seqnames = seqnames[[1]],
       start = min(start),
       end = max(end),
       strand = strand[[1]],
@@ -955,6 +1032,69 @@ CollapseToLongestTranscript <- function(ranges) {
   )
 
   return(gene.ranges)
+}
+
+# Get the range spanned by each transcript
+#
+# Collapse an annotation to one range per transcript, spanning from the lowest
+# start to the highest end across the features (exons, UTRs) belonging to that
+# transcript. Resizing the result to width 1 with `fix = "start"` then gives the
+# TSS of each transcript, since `resize()` is strand aware.
+#
+# Transcripts are identified by `tx_id`, or by `transcript_id` if `tx_id` is
+# absent. If the annotation has neither, each gene is treated as a single
+# transcript, which is the appropriate behaviour for a gene-level annotation.
+#
+# @param ranges A GRanges object containing gene annotations
+# @return Returns a GRanges object with one range per transcript
+#' @importFrom GenomicRanges makeGRangesFromDataFrame GRanges
+#' @importFrom S4Vectors mcols "mcols<-" DataFrame
+GetTranscriptRanges <- function(ranges) {
+  range.df <- AnnotationToTable(ranges = ranges)
+
+  if (nrow(x = range.df) > 0) {
+    if (!("tx_id" %in% colnames(x = range.df))) {
+      range.df$tx_id <- if ("transcript_id" %in% colnames(x = range.df)) {
+        as.character(x = range.df$transcript_id)
+      } else {
+        # gene-level annotation: one transcript per gene
+        as.character(x = range.df$gene_id)
+      }
+    }
+    range.df$tx_id <- as.character(x = range.df$tx_id)
+    range.df <- DropMultiChromosomeGroups(range.df = range.df, group = "tx_id")
+  }
+
+  if (nrow(x = range.df) == 0) {
+    empty.ranges <- GRanges()
+    mcols(x = empty.ranges) <- DataFrame(
+      tx_id = character(),
+      gene_id = character(),
+      gene_biotype = character(),
+      gene_name = character()
+    )
+    return(empty.ranges)
+  }
+
+  collapsed <- range.df[
+    , list(
+      seqnames = seqnames[[1]],
+      start = min(start),
+      end = max(end),
+      strand = strand[[1]],
+      gene_id = gene_id[[1]],
+      gene_biotype = gene_biotype[[1]],
+      gene_name = gene_name[[1]]
+    ),
+    by = "tx_id"
+  ]
+
+  transcript.ranges <- makeGRangesFromDataFrame(
+    df = collapsed,
+    keep.extra.columns = TRUE
+  )
+
+  return(transcript.ranges)
 }
 
 # Chunk GRanges
