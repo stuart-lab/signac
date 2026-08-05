@@ -13,13 +13,14 @@ LinkPeaks(
   method = "pearson",
   key = "linkpeaks",
   gene.coords = NULL,
+  genes.use = NULL,
   distance = 5e+05,
   min.distance = NULL,
+  cor.cutoff = 0.05,
   min.cells = 10,
-  genes.use = NULL,
   n_sample = 200,
   pvalue_cutoff = 0.05,
-  score_cutoff = 0.05,
+  zscore = FALSE,
   gene.id = FALSE,
   verbose = TRUE,
   peak.slot = deprecated(),
@@ -27,82 +28,107 @@ LinkPeaks(
 )
 }
 \arguments{
-\item{object}{A Seurat object}
+\item{object}{A Seurat object.}
 
-\item{peak.assay}{Name of assay containing peak information}
+\item{peak.assay}{Name of assay containing peak information.}
 
-\item{expression.assay}{Name of assay containing gene expression information}
+\item{expression.assay}{Name of assay containing gene expression information.}
 
-\item{peak.layer}{Name of layer to pull chromatin data from}
+\item{peak.layer}{Name of layer to pull chromatin data from.}
 
-\item{expression.layer}{Name of layer to pull expression data from}
+\item{expression.layer}{Name of layer to pull expression data from.}
 
-\item{method}{Correlation method to use. One of "pearson" or "spearman"}
+\item{method}{Correlation method to use. One of \code{"pearson"} or \code{"spearman"}.}
 
-\item{key}{Key to use when storing link information in the assay}
+\item{key}{Key to use when storing link information in the assay.}
 
-\item{gene.coords}{GRanges object containing coordinates of genes in the
-expression assay. If NULL, extract from gene annotations stored in the assay.}
+\item{gene.coords}{A \link[GenomicRanges:GRanges]{GenomicRanges::GRanges} object containing gene or
+transcript coordinates. If \code{NULL}, gene annotations are extracted from the
+peak assay.}
 
-\item{distance}{Distance threshold for peaks to include in regression model}
+\item{genes.use}{Optional vector of genes to test. If \code{NULL}, genes are
+selected from the expression assay after \code{min.cells} filtering.}
 
-\item{min.distance}{Minimum distance between peak and TSS to include in
-regression model. If NULL (default), no minimum distance is used.}
+\item{distance}{Maximum distance from a TSS for peaks to include as candidate
+links.}
+
+\item{min.distance}{Optional minimum distance from a TSS. Candidate links
+closer than this distance are excluded.}
+
+\item{cor.cutoff}{Minimum absolute correlation coefficient for a link to be
+retained.}
 
 \item{min.cells}{Minimum number of cells positive for the peak and gene
-needed to include in the results.}
+needed to include them in the analysis.}
 
-\item{genes.use}{Genes to test. If NULL, determine from expression assay.}
+\item{n_sample}{Number of background peaks to sample when computing the null
+distribution. Only used when \code{zscore = TRUE}.}
 
-\item{n_sample}{Number of peaks to sample at random when computing the null
-distribution.}
+\item{pvalue_cutoff}{Maximum p-value for retaining a link. Links with a
+p-value greater than or equal to this value are removed from the output. Only
+used when \code{zscore = TRUE}.}
 
-\item{pvalue_cutoff}{Minimum p-value required to retain a link. Links with a
-p-value equal or greater than this value will be removed from the output.}
+\item{zscore}{Compute background-matched z-scores and p-values. If
+\code{FALSE} (default), background peak matching is skipped and links are retained
+using \code{cor.cutoff} only.}
 
-\item{score_cutoff}{Minimum absolute value correlation coefficient for a link
-to be retained}
+\item{gene.id}{Set to \code{TRUE} if genes in the expression assay are named by
+gene ID rather than gene name.}
 
-\item{gene.id}{Set to TRUE if genes in the expression assay are named
-using gene IDs rather than gene names.}
+\item{verbose}{Display messages.}
 
-\item{verbose}{Display messages}
+\item{peak.slot}{Deprecated; use \code{peak.layer}.}
 
-\item{peak.slot}{Deprecated (use \code{peak.layer})}
-
-\item{expression.slot}{Deprecated (used \code{expression.layer})}
+\item{expression.slot}{Deprecated; use \code{expression.layer}.}
 }
 \value{
-Returns a Seurat object with results added to the \code{links} slot in the
-assay, stored under the key specified in the function. The results are stored
-as an \link[InteractionSet:GInteractions]{InteractionSet::GInteractions} object accessible via the \code{\link[=Links]{Links()}}
-function. This contains the \link[GenomicRanges:GRanges]{GenomicRanges::GRanges} for the pair of linked
-regions (peak and gene), with \code{anchor1} corresponding to the peak region and
-\code{anchor2} corresponding to the gene region linked to the peak. The following
-metadata is also stored in the \code{GInteractions} object:
+Returns a Seurat object with results added to the links slot in the
+peak assay, stored under \code{key}. The results are stored as an
+\link[InteractionSet:GInteractions]{InteractionSet::GInteractions} object accessible via \code{\link[=Links]{Links()}}. The metadata
+stored on each link includes:
 \itemize{
-\item \code{anchor2.gene_id}: The gene ID for the linked gene
-\item \code{anchor2.gene_name}: The name of the linked gene
-\item \code{score}: the correlation coefficient between the accessibility of the
-peak and expression of the gene
-\item \code{zscore}: the z-score of the correlation coefficient, computed based on
-the distribution of correlation coefficients from a set of background peaks
-\item \code{pvalue}: the p-value associated with the z-score for the link
+\item \code{peak}: peak identifier
+\item \code{gene}: linked gene identifier
+\item \code{tss_distance}: distance from the peak to the selected TSS
+\item \code{frac_peak_in_gene}: fraction of the peak width overlapping the linked gene
+body
+\item \code{closest_gene}: \code{TRUE} when no other candidate gene has a TSS closer to
+this peak
+\item \code{score}: observed correlation coefficient
+\item \code{zscore}: z-score of the observed correlation coefficient; \code{NA} when
+\code{zscore = FALSE}
+\item \code{pvalue}: p-value associated with the z-score; \code{NA} when
+\code{zscore = FALSE}
 }
 }
 \description{
-Find peaks that are correlated with the expression of nearby genes.
-For each gene, this function computes the correlation coefficient between
-the gene expression and accessibility of each peak within a given distance
-from the gene TSS, and computes an expected correlation coefficient for each
-peak given the GC content, accessibility, and length of the peak. The
-expected coefficient values for the peak are then used to compute a z-score
-and p-value.
+Compute the correlation between peak DNA accessibility and the RNA abundance
+of nearby genes.
 }
 \details{
-This function was inspired by the method originally described by SHARE-seq
-(Sai Ma et al. 2020, Cell). Please consider citing the original SHARE-seq
-work if using this function:
-\href{https://pubmed.ncbi.nlm.nih.gov/33098772/}{doi: 10.1016/j.cell.2020.09.056}
+For each gene, this function computes the correlation coefficient between gene
+expression and accessibility of candidate peaks within a specified distance
+from a transcription start site (TSS) of that gene. A TSS is computed for
+every transcript in the annotation, so a peak is a candidate for a gene if it
+falls within \code{distance} of any of that gene's TSSs. By default, links are
+retained using the observed correlation coefficient only. If \code{zscore = TRUE},
+the function also computes an expected correlation coefficient for each peak
+following the method of Ma et al. (\href{https://pubmed.ncbi.nlm.nih.gov/33098772/}{doi: 10.1016/j.cell.2020.09.056})
+using background peaks matched on GC content, accessibility, and sequence
+length, and uses this background distribution to compute a z-score and
+p-value.
+
+Note that in Signac v2 the default \code{LinkPeaks} behavior has changed to skip
+computation of the z-scores. This change was made due to work by Leblanc &
+Lettre (\href{https://doi.org/10.1038/s41598-023-31040-w}{doi: 10.1038/s41598-023-31040-w})
+showing that the z-score method is influenced by the cell type composition of
+the dataset, and can result in a higher false negative rate. If required,
+z-scores can still be computed by setting \code{zscore=TRUE}.
+
+The main purpose of \code{LinkPeaks} is to provide the raw correlation
+coefficients between DNA accessibility and gene expression. For accurate
+peak-gene linkage, these correlation coefficients alone are often
+insufficient. We recommend exploring other methods such as pgBoost, ScarLink,
+and scE2G.
 }
 \concept{links}

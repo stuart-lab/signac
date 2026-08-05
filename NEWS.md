@@ -85,6 +85,11 @@ beyond the ends of chromosomes.
 cells, avoiding an unnecessary scan of the whole file.
 * Functions no longer reset the random number seed.
 * Added back `RunChromVAR()` and `AddChromatinModule()`
+* Changed the behavior of `LinkPeaks()`: zscores are not computed by default;
+the distance parameter now checks the distance to any gene TSS, not just the TSS
+of the longest transcript; `score_cutoff` parameter renamed to `cor.cutoff`;
+output includes the distance to the gene TSS, the fraction of the peak that
+overlaps the gene, and whether the gene is the closest gene to the peak.
 
 # Signac 1.17.1
 
