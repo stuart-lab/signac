@@ -290,14 +290,15 @@ test_that("FindRegion errors on unknown gene", {
   )
 })
 
-test_that("CollapseToLongestTranscript works", {
+test_that("GetGeneRanges collapses to one range per gene", {
   ann <- Annotation(atac_small)
-  collapsed <- Signac:::CollapseToLongestTranscript(ranges = ann)
+  collapsed <- Signac:::GetGeneRanges(ranges = ann)
   expect_s4_class(collapsed, "GRanges")
-  expect_true(length(collapsed) > 0)
+  expect_equal(length(collapsed), length(unique(ann$gene_id)))
+  expect_false(any(duplicated(collapsed$gene_id)))
 })
 
-test_that("CollapseToLongestTranscript handles unstranded ranges", {
+test_that("GetGeneRanges handles unstranded ranges", {
   gr <- GRanges(
     "chr1", IRanges(c(100, 200), c(150, 250)),
     strand = c("*", "*"),
@@ -307,8 +308,135 @@ test_that("CollapseToLongestTranscript handles unstranded ranges", {
     gene_biotype = c("protein_coding", "protein_coding"),
     type = c("exon", "exon")
   )
-  res <- Signac:::CollapseToLongestTranscript(gr)
+  res <- Signac:::GetGeneRanges(gr)
   expect_s4_class(res, "GRanges")
+  expect_equal(as.character(strand(res)), "+")
+  expect_equal(start(res), 100)
+  expect_equal(end(res), 250)
+})
+
+test_that("GetGeneRanges spans all transcripts of a gene", {
+  # two transcripts of one gene with distant first exons
+  gr <- GRanges(
+    "chr1", IRanges(c(1000, 5000, 20000, 24000), c(1200, 5200, 20200, 24200)),
+    strand = "+",
+    tx_id = c("t1", "t1", "t2", "t2"),
+    gene_id = "g1", gene_name = "g1",
+    gene_biotype = "protein_coding", type = "exon"
+  )
+  res <- Signac:::GetGeneRanges(gr)
+  expect_equal(length(res), 1)
+  expect_equal(start(res), 1000)
+  expect_equal(end(res), 24200)
+})
+
+test_that("GetGeneRanges drops genes spanning several chromosomes", {
+  # geneA is confined to chr1; PAR1 is annotated on both chrX and chrY, which
+  # would otherwise collapse to a nonsense chrX range absorbing the chrY end
+  gr <- GRanges(
+    c("chr1", "chr1", "chrX", "chrX", "chrY", "chrY"),
+    IRanges(c(10000, 20000, 1000, 2000, 50000, 51000),
+            c(10500, 20500, 1200, 2200, 50200, 51200)),
+    strand = "+"
+  )
+  gr$tx_id <- c("txA", "txA", "txX", "txX", "txY", "txY")
+  gr$gene_id <- c("ENSGA", "ENSGA", "PAR1", "PAR1", "PAR1", "PAR1")
+  gr$gene_name <- c("geneA", "geneA", "PAR1", "PAR1", "PAR1", "PAR1")
+  gr$gene_biotype <- "protein_coding"
+  gr$type <- "exon"
+
+  expect_warning(
+    res <- Signac:::GetGeneRanges(gr),
+    regexp = "more than one chromosome"
+  )
+  expect_equal(res$gene_id, "ENSGA")
+  expect_equal(as.character(seqnames(res)), "chr1")
+  expect_equal(end(res), 20500)
+})
+
+test_that("GetTranscriptRanges drops transcripts spanning several chromosomes", {
+  gr <- GRanges(
+    c("chr1", "chr1", "chrX", "chrY"),
+    IRanges(c(10000, 20000, 1000, 50000), c(10500, 20500, 1200, 50200)),
+    strand = "+"
+  )
+  gr$tx_id <- c("txA", "txA", "txBAD", "txBAD")
+  gr$gene_id <- "ENSGA"
+  gr$gene_name <- "geneA"
+  gr$gene_biotype <- "protein_coding"
+  gr$type <- "exon"
+
+  expect_warning(
+    res <- Signac:::GetTranscriptRanges(gr),
+    regexp = "more than one chromosome"
+  )
+  expect_equal(res$tx_id, "txA")
+})
+
+test_that("no multi-chromosome warning on a well formed annotation", {
+  ann <- Annotation(atac_small)
+  expect_no_warning(Signac:::GetGeneRanges(ranges = ann))
+  expect_no_warning(Signac:::GetTranscriptRanges(ranges = ann))
+})
+
+test_that("GetTranscriptRanges returns one range per transcript", {
+  gr <- GRanges(
+    "chr1", IRanges(c(1000, 5000, 20000, 24000), c(1200, 5200, 20200, 24200)),
+    strand = "+",
+    tx_id = c("t1", "t1", "t2", "t2"),
+    gene_id = "g1", gene_name = "g1",
+    gene_biotype = "protein_coding", type = "exon"
+  )
+  res <- Signac:::GetTranscriptRanges(gr)
+  expect_equal(length(res), 2)
+  expect_setequal(res$tx_id, c("t1", "t2"))
+  expect_equal(start(res)[res$tx_id == "t1"], 1000)
+  expect_equal(end(res)[res$tx_id == "t1"], 5200)
+  expect_equal(start(res)[res$tx_id == "t2"], 20000)
+  expect_true(all(res$gene_name == "g1"))
+})
+
+test_that("GetTranscriptRanges gives the correct TSS on both strands", {
+  # a minus-strand transcript's TSS is its highest coordinate
+  gr <- GRanges(
+    "chr1", IRanges(c(1000, 5000, 1000, 5000), c(1200, 5200, 1200, 5200)),
+    strand = c("+", "+", "-", "-"),
+    tx_id = c("plus", "plus", "minus", "minus"),
+    gene_id = c("gp", "gp", "gm", "gm"),
+    gene_name = c("gp", "gp", "gm", "gm"),
+    gene_biotype = "protein_coding", type = "exon"
+  )
+  tx <- Signac:::GetTranscriptRanges(gr)
+  tss <- GenomicRanges::resize(tx, width = 1, fix = "start")
+  expect_equal(start(tss)[tx$tx_id == "plus"], 1000)
+  expect_equal(start(tss)[tx$tx_id == "minus"], 5200)
+})
+
+test_that("GetTranscriptRanges falls back to gene_id without a transcript column", {
+  gr <- GRanges(
+    "chr1", IRanges(c(1000, 5000), c(1200, 5200)),
+    strand = "+",
+    gene_id = c("g1", "g2"), gene_name = c("g1", "g2"),
+    gene_biotype = "protein_coding"
+  )
+  res <- Signac:::GetTranscriptRanges(gr)
+  expect_equal(length(res), 2)
+  expect_setequal(res$tx_id, c("g1", "g2"))
+})
+
+test_that("GetTranscriptRanges uses transcript_id when tx_id is absent", {
+  gr <- GRanges(
+    "chr1", IRanges(c(1000, 5000), c(1200, 5200)),
+    strand = "+",
+    transcript_id = c("t1", "t1"),
+    gene_id = "g1", gene_name = "g1",
+    gene_biotype = "protein_coding"
+  )
+  res <- Signac:::GetTranscriptRanges(gr)
+  expect_equal(length(res), 1)
+  expect_equal(res$tx_id, "t1")
+  expect_equal(start(res), 1000)
+  expect_equal(end(res), 5200)
 })
 
 test_that("GetTSSPositions returns TSS GRanges", {
