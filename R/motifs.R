@@ -440,6 +440,164 @@ RunChromVAR.Seurat <- function(
   return(object)
 }
 
+#' Resolve motifs sharing the same name
+#'
+#' Given a list of motifs and a quality score for each motif (lower is better),
+#' either make all names unique by appending a suffix, or retain only the
+#' best-scoring motif for each name.
+#'
+#' @param motifs A list of motif objects
+#' @param names Motif names (may contain duplicates)
+#' @param quality Numeric vector giving the quality rank of each motif, where
+#'   lower values indicate higher-quality motifs. Ties are broken by the order
+#'   the motifs appear in `motifs`.
+#' @param keep Either "all" or "best"
+#' @return The named list of motifs, in the original order
+#' @keywords internal
+#' @noRd
+ResolveMotifNames <- function(motifs, names, quality, keep = c("all", "best")) {
+  keep <- match.arg(arg = keep)
+  if (keep == "all") {
+    names(x = motifs) <- make.unique(names = names)
+    return(motifs)
+  }
+  # order by name, then quality, then original position: the first entry
+  # within each name group is the one to retain
+  idx <- order(names, quality, seq_along(along.with = names))
+  best <- idx[!duplicated(x = names[idx])]
+  best <- sort(x = best)
+  motifs <- motifs[best]
+  names(x = motifs) <- names[best]
+  return(motifs)
+}
+
+#' Parse motif IDs
+#'
+#' Extract the transcription factor name and relative motif quality from motif
+#' IDs. Both are encoded in the ID, but the encoding differs between motif
+#' collections:
+#'
+#' * `mode = "hocomoco"`: IDs are structured as
+#'   `<TF>.<collection>.<model index>.[<source>.]<quality>`, for example
+#'   `ALX3.H14CORE.0.SM.B` or `AHR_HUMAN.H11MO.0.B` (v11 IDs omit the source
+#'   field, so the number of fields is not fixed). The quality letter is the
+#'   final field and the model index is the third field. Per
+#'   <https://hocomoco14.autosome.org/help>, models carry "a quality rating
+#'   from A to D where A represents motifs with the highest confidence", and
+#'   since v11 alternative motifs for a TF are "ranked from 0 (the primary
+#'   model) to 1,2,.. (the alternative motifs)", where rank 0 models "are the
+#'   most 'general' variants with the best performance across available data".
+#'   The source field, when present, is any combination of the experiment-type
+#'   abbreviations `P`, `S`, `M`, `G`, `I` and `B`.
+#' * `mode = "jaspar"`: IDs are structured as `<base ID>.<version>`, for
+#'   example `MA1104.2`. Higher versions are more recent. JASPAR IDs do not
+#'   contain the TF name, which is instead given as a separate field on the
+#'   header line.
+#'
+#' @param ids Character vector of motif IDs
+#' @param mode Which convention to assume, either "jaspar" or "hocomoco". IDs
+#'   that cannot be parsed under the requested convention carry no quality
+#'   information and are ranked last.
+#' @return A list with elements:
+#'
+#'   * `name`: the first `.`-separated field of each ID
+#'   * `ranked`: whether any quality information could be extracted
+#'   * `letter`: HOCOMOCO quality letter as an integer, or 0
+#'   * `index`: HOCOMOCO model index or negated JASPAR version, so that lower
+#'     values are always better
+#' @keywords internal
+#' @noRd
+ParseMotifID <- function(ids, mode = c("jaspar", "hocomoco")) {
+  mode <- match.arg(arg = mode)
+  parts <- strsplit(x = ids, split = ".", fixed = TRUE)
+  nfield <- lengths(x = parts)
+  field <- function(i) {
+    vapply(
+      X = seq_along(along.with = parts), FUN.VALUE = character(1L),
+      FUN = function(j) {
+        pos <- if (i < 0) nfield[[j]] + 1 + i else i
+        if (pos < 1 || pos > nfield[[j]]) NA_character_ else parts[[j]][[pos]]
+      }
+    )
+  }
+  last <- field(i = -1L)
+  # quality is documented as running from A to D only, so a final field
+  # outside that range is a source abbreviation or some other convention
+  # rather than a quality rating
+  letter <- match(x = toupper(x = last), table = LETTERS[1:4])
+  index <- suppressWarnings(expr = as.numeric(x = field(i = 3L)))
+  version <- suppressWarnings(expr = as.numeric(x = last))
+  none <- rep_len(x = FALSE, length.out = length(x = ids))
+  hocomoco <- if (mode == "hocomoco") !is.na(x = letter) else none
+  jaspar <- if (mode == "jaspar") {
+    nfield >= 2 & !is.na(x = version)
+  } else {
+    none
+  }
+  list(
+    name = field(i = 1L),
+    ranked = hocomoco | jaspar,
+    letter = ifelse(test = hocomoco, yes = letter, no = 0),
+    index = ifelse(
+      test = hocomoco,
+      yes = ifelse(test = is.na(x = index), yes = Inf, no = index),
+      # higher JASPAR version is better, so negate
+      no = ifelse(test = jaspar, yes = -version, no = 0)
+    )
+  )
+}
+
+#' Rank motif quality from the motif ID
+#'
+#' @param ids Character vector of motif IDs
+#' @param names Motif names, used to detect whether any choice between motifs
+#'   is actually needed
+#' @param mode Which convention to assume, either "jaspar" or "hocomoco"
+#' @return Integer vector of quality ranks, where lower values are better.
+#'   IDs carrying no quality information are ranked last, and ties are broken
+#'   by the position of the ID in `ids`.
+#' @keywords internal
+#' @noRd
+MotifQuality <- function(ids, names, mode = c("jaspar", "hocomoco")) {
+  mode <- match.arg(arg = mode)
+  parsed <- ParseMotifID(ids = ids, mode = mode)
+  # a motif has to be chosen for each duplicated name, so warn if none of the
+  # IDs involved carry quality information: this usually means the wrong
+  # convention was requested
+  duplicated_names <- names %in% names[duplicated(x = names)]
+  if (any(duplicated_names) && !any(parsed$ranked[duplicated_names])) {
+    warning(
+      "No motif quality information could be read from the motif IDs using ",
+      "mode = \"", mode, "\". The first motif for each name will be kept. ",
+      "Check that the correct value of mode is set for this motif collection.",
+      call. = FALSE
+    )
+  }
+  order(order(!parsed$ranked, parsed$letter, parsed$index))
+}
+
+#' Determine a motif name from its ID
+#'
+#' The first `.`-separated field of the ID holds the TF name for HOCOMOCO IDs
+#' and the base matrix ID for JASPAR IDs, so this does not depend on which
+#' convention the ID follows.
+#'
+#' @param ids Character vector of motif IDs
+#' @param short_names Use the first `.`-separated field of the ID as the name
+#' @return Character vector of motif names
+#' @keywords internal
+#' @noRd
+MotifNameFromID <- function(ids, short_names) {
+  if (!short_names) {
+    return(ids)
+  }
+  vapply(
+    X = strsplit(x = ids, split = ".", fixed = TRUE),
+    FUN = function(x) x[[1L]],
+    FUN.VALUE = character(1L)
+  )
+}
+
 #' Read PWM files into a PWMatrixList
 #'
 #' Read position weight matrices from a directory of `.pwm` files
@@ -452,10 +610,33 @@ RunChromVAR.Seurat <- function(
 #' @param short_names Use the first section of the motif ID (before the first
 #'   `.`) as the motif name. For example, `AHR.H14CORE.0.P.B` becomes `AHR`.
 #'   Default is `TRUE`.
+#' @param keep How to handle motifs that share the same name. This commonly
+#'   happens when `short_names = TRUE`, as many collections contain several
+#'   motifs per transcription factor. Options are:
+#'
+#'   * `"all"`: retain all motifs, appending a numeric suffix to duplicated
+#'     names (`AHR`, `AHR.1`, `AHR.2`). This is the default.
+#'   * `"best"`: retain only the highest-quality motif for each name. Quality
+#'     is taken from the HOCOMOCO motif ID, using the quality letter (A is
+#'     best, D is worst) and then the model index (lower is better). For
+#'     example, `AHR.H14CORE.0.P.A` is preferred over both
+#'     `AHR.H14CORE.1.P.A` and `AHR.H14CORE.0.P.B`. Both the four-field v11 ID
+#'     format (`AHR_HUMAN.H11MO.0.B`) and the five-field format used from v12
+#'     onwards are recognised. Motifs with IDs that do not follow this
+#'     convention are ranked last.
+#' @param mode Which motif ID convention to use when ranking motif quality for
+#'   `keep = "best"`. Has no effect when `keep = "all"`.
 #' @return A [TFBSTools::PWMatrixList]
 #' @export
 #' @concept motifs
-ReadPWM <- function(pwm_dir, short_names = TRUE) {
+ReadPWM <- function(
+  pwm_dir,
+  short_names = TRUE,
+  keep = c("all", "best"),
+  mode = c("hocomoco", "jaspar")
+) {
+  keep <- match.arg(arg = keep)
+  mode <- match.arg(arg = mode)
   if (!requireNamespace("TFBSTools", quietly = TRUE)) {
     stop("Please install TFBSTools.
          https://www.bioconductor.org/packages/TFBSTools/")
@@ -466,11 +647,7 @@ ReadPWM <- function(pwm_dir, short_names = TRUE) {
   pwm_list <- lapply(X = pwm_files, FUN = function(f) {
     lines <- readLines(con = f)
     motif_id <- sub(pattern = "^>", replacement = "", x = lines[1])
-    motif_name <- if (short_names) {
-      strsplit(x = motif_id, split = ".", fixed = TRUE)[[1]][[1]]
-    } else {
-      motif_id
-    }
+    motif_name <- MotifNameFromID(ids = motif_id, short_names = short_names)
     mat <- do.call(what = rbind, args = lapply(
       X = lines[-1],
       FUN = function(l) {
@@ -488,7 +665,15 @@ ReadPWM <- function(pwm_dir, short_names = TRUE) {
   raw_names <- vapply(
     X = pwm_list, FUN = TFBSTools::name, FUN.VALUE = character(1L)
   )
-  names(x = pwm_list) <- make.unique(names = raw_names)
+  raw_ids <- vapply(
+    X = pwm_list, FUN = TFBSTools::ID, FUN.VALUE = character(1L)
+  )
+  pwm_list <- ResolveMotifNames(
+    motifs = pwm_list,
+    names = raw_names,
+    quality = MotifQuality(ids = raw_ids, names = raw_names, mode = mode),
+    keep = keep
+  )
   do.call(what = TFBSTools::PWMatrixList, args = pwm_list)
 }
 
@@ -500,20 +685,64 @@ ReadPWM <- function(pwm_dir, short_names = TRUE) {
 #' may optionally include nucleotide labels and brackets
 #' (e.g. `A  [ 4 19 0 0 ]`).
 #'
+#' The header line should contain the matrix ID, optionally followed by
+#' whitespace and the transcription factor name (for example
+#' `>MA1104.2 GATA6`). The full matrix ID is stored as the motif ID, and the
+#' transcription factor name is used to name the returned motifs. Collections
+#' distributed in JASPAR format do not always include the transcription factor
+#' name as a separate field: HOCOMOCO, for example, encodes it in the matrix
+#' ID (`>ALX3.H14CORE.0.SM.B`). In that case the name is taken from the ID
+#' according to `short_names`.
+#'
 #' @param file Path to JASPAR-format PFM file
 #' @param pseudocount Pseudocount added during PFM to PWM conversion
+#' @param short_names Use the first section of the motif ID (before the first
+#'   `.`) as the motif name when the header line does not include a separate
+#'   transcription factor name. For example, `ALX3.H14CORE.0.SM.B` becomes
+#'   `ALX3` and `MA0004.1` becomes `MA0004`. If `FALSE`, the full matrix ID is
+#'   always used as the name. Default is `TRUE`.
+#' @param keep How to handle motifs that share the same name, which happens
+#'   when a file contains several matrices for one transcription factor.
+#'   Options are:
+#'
+#'   * `"all"`: retain all motifs, appending a numeric suffix to duplicated
+#'     names (`ALX3`, `ALX3.1`). This is the default.
+#'   * `"best"`: retain only the highest-quality motif for each name. Quality
+#'     is taken from the matrix ID, interpreted according to `mode`. With
+#'     `mode = "jaspar"` motifs are ranked on the matrix version (higher is
+#'     better), so `MA1104.2` is preferred over `MA1104.1`. With
+#'     `mode = "hocomoco"` they are ranked on the quality letter (A is best,
+#'     D is worst) and then the model index (lower is better), so
+#'     `ALX3.H14CORE.0.SM.B` is preferred over `ALX3.H14CORE.1.S.B`. Motifs
+#'     with IDs carrying no quality information are ranked last.
+#' @param mode Which motif ID convention to use when ranking motif quality for
+#'   `keep = "best"`. The default is `"jaspar"`; set `"hocomoco"` when reading
+#'   a HOCOMOCO collection distributed in JASPAR format, since those IDs
+#'   encode a quality rating rather than a version. A warning is given if no
+#'   quality information can be read from the IDs. Has no effect when
+#'   `keep = "all"`.
 #' @return A [TFBSTools::PWMatrixList]
 #' @importFrom methods is
 #' @export
 #' @concept motifs
-ReadJASPAR <- function(file, pseudocount = 1) {
+ReadJASPAR <- function(
+  file,
+  pseudocount = 1,
+  short_names = TRUE,
+  keep = c("all", "best"),
+  mode = c("jaspar", "hocomoco")
+) {
   if (!requireNamespace("TFBSTools", quietly = TRUE)) {
     stop("Please install TFBSTools.
          https://www.bioconductor.org/packages/TFBSTools/")
   }
+  keep <- match.arg(arg = keep)
+  mode <- match.arg(arg = mode)
   lines <- trimws(x = readLines(con = file))
   motif_indices <- grep(pattern = "^>", x = lines)
   motifs <- list()
+  motif_names <- character()
+  motif_ids <- character()
   for (i in seq_along(along.with = motif_indices)) {
     start <- motif_indices[i]
     end <- if (i < length(x = motif_indices)) {
@@ -521,12 +750,20 @@ ReadJASPAR <- function(file, pseudocount = 1) {
     } else {
       length(x = lines)
     }
-    name <- strsplit(
+    header <- strsplit(
       x = sub(pattern = "^>", replacement = "", x = lines[start]),
-      split = ".", fixed = TRUE
-    )[[1]][[1]]
+      split = "\\s+"
+    )[[1]]
+    id <- header[[1]]
+    # a separate TF name field takes precedence over the ID, but only when
+    # short names were requested: otherwise the full ID is used as the name
+    name <- if (length(x = header) > 1 && short_names) {
+      header[[2]]
+    } else {
+      MotifNameFromID(ids = id, short_names = short_names)
+    }
     if (end <= start) {
-      stop("Motif ", name, " has no matrix rows")
+      stop("Motif ", id, " has no matrix rows")
     }
     mat_lines <- lines[(start + 1):end]
     mat <- do.call(what = rbind, args = lapply(
@@ -539,21 +776,29 @@ ReadJASPAR <- function(file, pseudocount = 1) {
     ))
     if (nrow(x = mat) != 4) {
       stop(
-        "Motif ", name, " has ", nrow(x = mat),
+        "Motif ", id, " has ", nrow(x = mat),
         " rows; expected 4 (A,C,G,T)."
       )
     }
     rownames(x = mat) <- c("A", "C", "G", "T")
     pfm <- TFBSTools::PFMatrix(
-      ID = name, name = name, profileMatrix = mat
+      ID = id, name = name, profileMatrix = mat
     )
     pwm <- suppressWarnings(
       expr = TFBSTools::toPWM(x = pfm, pseudocounts = pseudocount)
     )
     if (is(object = pwm, class2 = "PWMatrix")) {
-      motifs[[name]] <- pwm
+      motifs[[length(x = motifs) + 1]] <- pwm
+      motif_names <- c(motif_names, name)
+      motif_ids <- c(motif_ids, id)
     }
   }
+  motifs <- ResolveMotifNames(
+    motifs = motifs,
+    names = motif_names,
+    quality = MotifQuality(ids = motif_ids, names = motif_names, mode = mode),
+    keep = keep
+  )
   do.call(what = TFBSTools::PWMatrixList, args = motifs)
 }
 

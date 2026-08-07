@@ -28,6 +28,31 @@ test_that("ReadPWM short_names FALSE works", {
   ))
 })
 
+test_that("ReadPWM handles duplicated motif names", {
+  skip_if_not_installed("TFBSTools")
+  pwm_dir <- file.path(tempdir(), "dup_pwm")
+  dir.create(pwm_dir, showWarnings = FALSE)
+  on.exit(unlink(pwm_dir, recursive = TRUE))
+  mat <- c("0.1 0.2 0.3 0.4", "0.4 0.3 0.2 0.1")
+  # written so that file order does not match quality order
+  writeLines(c(">AHR.H14CORE.1.P.A", mat), file.path(pwm_dir, "a.pwm"))
+  writeLines(c(">AHR.H14CORE.0.P.B", mat), file.path(pwm_dir, "b.pwm"))
+  writeLines(c(">AHR.H14CORE.0.P.A", mat), file.path(pwm_dir, "c.pwm"))
+  writeLines(c(">ALX1.H14CORE.0.SM.B", mat), file.path(pwm_dir, "d.pwm"))
+
+  all_motifs <- ReadPWM(pwm_dir)
+  expect_equal(length(all_motifs), 4)
+  expect_equal(names(all_motifs), c("AHR", "AHR.1", "AHR.2", "ALX1"))
+
+  best <- ReadPWM(pwm_dir, keep = "best")
+  expect_equal(names(best), c("AHR", "ALX1"))
+  # quality letter takes precedence over model index
+  expect_equal(TFBSTools::ID(best[["AHR"]]), "AHR.H14CORE.0.P.A")
+
+  # short_names = FALSE gives unique names, so nothing is dropped
+  expect_equal(length(ReadPWM(pwm_dir, short_names = FALSE, keep = "best")), 4)
+})
+
 # ReadJASPAR -------------------------------------------------------------------
 
 test_that("ReadJASPAR works", {
@@ -35,10 +60,176 @@ test_that("ReadJASPAR works", {
   result <- ReadJASPAR("../testdata/test_jaspar.txt")
   expect_s4_class(result, "PWMatrixList")
   expect_equal(length(result), 2)
-  expect_true(all(c("MA0004", "MA0069") %in% names(result)))
-  expect_equal(nrow(TFBSTools::Matrix(result[["MA0004"]])), 4)
-  expect_equal(ncol(TFBSTools::Matrix(result[["MA0004"]])), 6)
-  expect_equal(ncol(TFBSTools::Matrix(result[["MA0069"]])), 14)
+  expect_true(all(c("Arnt", "PAX6") %in% names(result)))
+  expect_equal(TFBSTools::ID(result[["Arnt"]]), "MA0004.1")
+  expect_equal(nrow(TFBSTools::Matrix(result[["Arnt"]])), 4)
+  expect_equal(ncol(TFBSTools::Matrix(result[["Arnt"]])), 6)
+  expect_equal(ncol(TFBSTools::Matrix(result[["PAX6"]])), 14)
+})
+
+test_that("ReadJASPAR short_names FALSE works", {
+  skip_if_not_installed("TFBSTools")
+  result <- ReadJASPAR("../testdata/test_jaspar.txt", short_names = FALSE)
+  expect_equal(names(result), c("MA0004.1", "MA0069.1"))
+})
+
+test_that("ReadJASPAR derives the name from the ID when no TF name is given", {
+  skip_if_not_installed("TFBSTools")
+  jaspar <- tempfile()
+  on.exit(unlink(jaspar))
+  writeLines(c(
+    ">MA0004.1",
+    "A [ 4 19 0 ]", "C [ 16 0 20 ]", "G [ 0 1 0 ]", "T [ 0 0 0 ]"
+  ), jaspar)
+  expect_equal(names(ReadJASPAR(jaspar)), "MA0004")
+  expect_equal(names(ReadJASPAR(jaspar, short_names = FALSE)), "MA0004.1")
+})
+
+test_that("ReadJASPAR handles HOCOMOCO-format motifs", {
+  skip_if_not_installed("TFBSTools")
+  # HOCOMOCO PFMs distributed in JASPAR format: no TF name field, no
+  # nucleotide labels or brackets, and quality encoded in the motif ID
+  all_motifs <- ReadJASPAR("../testdata/test_hocomoco.txt")
+  expect_s4_class(all_motifs, "PWMatrixList")
+  expect_equal(names(all_motifs), c("ALX3", "ALX3.1", "ALX4", "ALX4.1"))
+  expect_equal(TFBSTools::ID(all_motifs[["ALX3"]]), "ALX3.H14CORE.0.SM.B")
+  expect_equal(ncol(TFBSTools::Matrix(all_motifs[["ALX3"]])), 12)
+  expect_equal(ncol(TFBSTools::Matrix(all_motifs[["ALX3.1"]])), 20)
+
+  best <- ReadJASPAR(
+    "../testdata/test_hocomoco.txt", keep = "best", mode = "hocomoco"
+  )
+  expect_equal(names(best), c("ALX3", "ALX4"))
+  expect_equal(TFBSTools::ID(best[["ALX3"]]), "ALX3.H14CORE.0.SM.B")
+  expect_equal(TFBSTools::ID(best[["ALX4"]]), "ALX4.H14CORE.0.S.B")
+
+  # full IDs are unique, so nothing is dropped
+  expect_equal(
+    length(ReadJASPAR(
+      "../testdata/test_hocomoco.txt", short_names = FALSE, keep = "best",
+      mode = "hocomoco"
+    )),
+    4
+  )
+})
+
+test_that("HOCOMOCO motif IDs are parsed", {
+  ids <- c(
+    "AHR_HUMAN.H11MO.0.B",  # HOCOMOCO v11: four fields, no source field
+    "AHR_HUMAN.H11MO.1.A",
+    "ALX3.H14CORE.0.SM.B",  # HOCOMOCO v14: five fields
+    "ALX3.H14CORE.1.S.B",
+    "GATA6",                # no quality information
+    "ALX3.H14CORE.0.P"      # trailing source letter, not a quality rating
+  )
+  parsed <- Signac:::ParseMotifID(ids, mode = "hocomoco")
+  expect_equal(
+    parsed$name,
+    c("AHR_HUMAN", "AHR_HUMAN", "ALX3", "ALX3", "GATA6", "ALX3")
+  )
+  # quality ratings run A-D only, so a trailing source abbreviation is not
+  # mistaken for a quality rating
+  expect_equal(parsed$ranked, c(rep(TRUE, 4), FALSE, FALSE))
+
+  rank <- Signac:::MotifQuality(ids, names = ids, mode = "hocomoco")
+  # quality letter outranks model index, for both HOCOMOCO ID formats
+  expect_lt(rank[[2]], rank[[1]])
+  expect_lt(rank[[3]], rank[[4]])
+  # IDs with no quality information rank last
+  expect_gt(rank[[5]], rank[[1]])
+  expect_gt(rank[[6]], rank[[1]])
+})
+
+test_that("JASPAR motif IDs are parsed", {
+  ids <- c("MA1104.2", "MA1104.1", "GATA6", "ALX3.H14CORE.0.SM.B")
+  parsed <- Signac:::ParseMotifID(ids, mode = "jaspar")
+  expect_equal(parsed$name, c("MA1104", "MA1104", "GATA6", "ALX3"))
+  # HOCOMOCO IDs carry no version, so they are not ranked in jaspar mode
+  expect_equal(parsed$ranked, c(TRUE, TRUE, FALSE, FALSE))
+
+  rank <- Signac:::MotifQuality(ids, names = ids, mode = "jaspar")
+  # higher JASPAR version wins
+  expect_lt(rank[[1]], rank[[2]])
+  expect_gt(rank[[3]], rank[[1]])
+})
+
+test_that("MotifQuality handles empty input", {
+  expect_equal(
+    Signac:::MotifQuality(character(0), names = character(0)), integer(0)
+  )
+})
+
+test_that("MotifQuality warns when the mode yields no quality information", {
+  # duplicated names, but no quality information to choose between them
+  expect_warning(
+    Signac:::MotifQuality(
+      ids = c("ALX3.H14CORE.0.SM.B", "ALX3.H14CORE.1.S.B"),
+      names = c("ALX3", "ALX3"),
+      mode = "jaspar"
+    ),
+    "No motif quality information"
+  )
+  # no duplicated names, so no choice has to be made and no warning is given
+  expect_silent(
+    Signac:::MotifQuality(
+      ids = c("ALX3.H14CORE.0.SM.B", "ALX4.H14CORE.0.S.B"),
+      names = c("ALX3", "ALX4"),
+      mode = "jaspar"
+    )
+  )
+})
+
+test_that("ReadJASPAR mode selects the ranking convention", {
+  skip_if_not_installed("TFBSTools")
+  f <- "../testdata/test_hocomoco.txt"
+  best <- ReadJASPAR(f, keep = "best", mode = "hocomoco")
+  expect_equal(names(best), c("ALX3", "ALX4"))
+  expect_equal(TFBSTools::ID(best[["ALX3"]]), "ALX3.H14CORE.0.SM.B")
+
+  # HOCOMOCO IDs carry no JASPAR version, so the default mode cannot rank
+  # them and warns rather than silently keeping the first of each name
+  expect_warning(
+    best_jaspar <- ReadJASPAR(f, keep = "best"),
+    "No motif quality information"
+  )
+  expect_equal(names(best_jaspar), c("ALX3", "ALX4"))
+})
+
+test_that("ReadJASPAR ranks HOCOMOCO quality letter above model index", {
+  skip_if_not_installed("TFBSTools")
+  hocomoco <- tempfile()
+  on.exit(unlink(hocomoco))
+  # written so that file order does not match quality order
+  writeLines(c(
+    ">ALX3.H14CORE.0.P.C", "4 19 0", "16 0 20", "0 1 0", "0 0 0",
+    ">ALX3.H14CORE.1.P.A", "1 2 3", "3 2 1", "1 1 1", "2 2 2"
+  ), hocomoco)
+  best <- ReadJASPAR(hocomoco, keep = "best", mode = "hocomoco")
+  expect_equal(names(best), "ALX3")
+  expect_equal(TFBSTools::ID(best[["ALX3"]]), "ALX3.H14CORE.1.P.A")
+})
+
+test_that("ReadJASPAR handles duplicated TF names", {
+  skip_if_not_installed("TFBSTools")
+  jaspar <- tempfile()
+  on.exit(unlink(jaspar))
+  # written so that file order does not match version order
+  writeLines(c(
+    ">MA0004.1\tArnt",
+    "A [ 4 19 0 ]", "C [ 16 0 20 ]", "G [ 0 1 0 ]", "T [ 0 0 0 ]",
+    ">MA0004.2\tArnt",
+    "A [ 1 2 3 ]", "C [ 3 2 1 ]", "G [ 1 1 1 ]", "T [ 2 2 2 ]",
+    ">MA0069.1\tPAX6",
+    "A [ 2 2 4 ]", "C [ 4 2 26 ]", "G [ 4 0 1 ]", "T [ 33 39 12 ]"
+  ), jaspar)
+
+  all_motifs <- ReadJASPAR(jaspar)
+  expect_equal(length(all_motifs), 3)
+  expect_equal(names(all_motifs), c("Arnt", "Arnt.1", "PAX6"))
+
+  best <- ReadJASPAR(jaspar, keep = "best")
+  expect_equal(names(best), c("Arnt", "PAX6"))
+  expect_equal(TFBSTools::ID(best[["Arnt"]]), "MA0004.2")
 })
 
 test_that("ReadJASPAR errors on malformed input", {

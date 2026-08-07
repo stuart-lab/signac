@@ -4,7 +4,12 @@
 \alias{ReadPWM}
 \title{Read PWM files into a PWMatrixList}
 \usage{
-ReadPWM(pwm_dir, short_names = TRUE)
+ReadPWM(
+  pwm_dir,
+  short_names = TRUE,
+  keep = c("all", "best"),
+  mode = c("hocomoco", "jaspar")
+)
 }
 \arguments{
 \item{pwm_dir}{Path to directory containing \code{.pwm} files}
@@ -12,6 +17,25 @@ ReadPWM(pwm_dir, short_names = TRUE)
 \item{short_names}{Use the first section of the motif ID (before the first
 \code{.}) as the motif name. For example, \code{AHR.H14CORE.0.P.B} becomes \code{AHR}.
 Default is \code{TRUE}.}
+
+\item{keep}{How to handle motifs that share the same name. This commonly
+happens when \code{short_names = TRUE}, as many collections contain several
+motifs per transcription factor. Options are:
+\itemize{
+\item \code{"all"}: retain all motifs, appending a numeric suffix to duplicated
+names (\code{AHR}, \code{AHR.1}, \code{AHR.2}). This is the default.
+\item \code{"best"}: retain only the highest-quality motif for each name. Quality
+is taken from the HOCOMOCO motif ID, using the quality letter (A is
+best, D is worst) and then the model index (lower is better). For
+example, \code{AHR.H14CORE.0.P.A} is preferred over both
+\code{AHR.H14CORE.1.P.A} and \code{AHR.H14CORE.0.P.B}. Both the four-field v11 ID
+format (\code{AHR_HUMAN.H11MO.0.B}) and the five-field format used from v12
+onwards are recognised. Motifs with IDs that do not follow this
+convention are ranked last.
+}}
+
+\item{mode}{Which motif ID convention to use when ranking motif quality for
+\code{keep = "best"}. Has no effect when \code{keep = "all"}.}
 }
 \value{
 A \link[TFBSTools:PWMatrixList]{TFBSTools::PWMatrixList}

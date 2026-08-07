@@ -4,12 +4,47 @@
 \alias{ReadJASPAR}
 \title{Read JASPAR-format PFMs and convert to PWMs}
 \usage{
-ReadJASPAR(file, pseudocount = 1)
+ReadJASPAR(
+  file,
+  pseudocount = 1,
+  short_names = TRUE,
+  keep = c("all", "best"),
+  mode = c("jaspar", "hocomoco")
+)
 }
 \arguments{
 \item{file}{Path to JASPAR-format PFM file}
 
 \item{pseudocount}{Pseudocount added during PFM to PWM conversion}
+
+\item{short_names}{Use the first section of the motif ID (before the first
+\code{.}) as the motif name when the header line does not include a separate
+transcription factor name. For example, \code{ALX3.H14CORE.0.SM.B} becomes
+\code{ALX3} and \code{MA0004.1} becomes \code{MA0004}. If \code{FALSE}, the full matrix ID is
+always used as the name. Default is \code{TRUE}.}
+
+\item{keep}{How to handle motifs that share the same name, which happens
+when a file contains several matrices for one transcription factor.
+Options are:
+\itemize{
+\item \code{"all"}: retain all motifs, appending a numeric suffix to duplicated
+names (\code{ALX3}, \code{ALX3.1}). This is the default.
+\item \code{"best"}: retain only the highest-quality motif for each name. Quality
+is taken from the matrix ID, interpreted according to \code{mode}. With
+\code{mode = "jaspar"} motifs are ranked on the matrix version (higher is
+better), so \code{MA1104.2} is preferred over \code{MA1104.1}. With
+\code{mode = "hocomoco"} they are ranked on the quality letter (A is best,
+D is worst) and then the model index (lower is better), so
+\code{ALX3.H14CORE.0.SM.B} is preferred over \code{ALX3.H14CORE.1.S.B}. Motifs
+with IDs carrying no quality information are ranked last.
+}}
+
+\item{mode}{Which motif ID convention to use when ranking motif quality for
+\code{keep = "best"}. The default is \code{"jaspar"}; set \code{"hocomoco"} when reading
+a HOCOMOCO collection distributed in JASPAR format, since those IDs
+encode a quality rating rather than a version. A warning is given if no
+quality information can be read from the IDs. Has no effect when
+\code{keep = "all"}.}
 }
 \value{
 A \link[TFBSTools:PWMatrixList]{TFBSTools::PWMatrixList}
@@ -20,5 +55,15 @@ convert to position weight matrices (PWMs). Each motif entry should have
 a header line starting with \code{>} followed by 4 rows (A, C, G, T). Rows
 may optionally include nucleotide labels and brackets
 (e.g. \verb{A  [ 4 19 0 0 ]}).
+}
+\details{
+The header line should contain the matrix ID, optionally followed by
+whitespace and the transcription factor name (for example
+\verb{>MA1104.2 GATA6}). The full matrix ID is stored as the motif ID, and the
+transcription factor name is used to name the returned motifs. Collections
+distributed in JASPAR format do not always include the transcription factor
+name as a separate field: HOCOMOCO, for example, encodes it in the matrix
+ID (\verb{>ALX3.H14CORE.0.SM.B}). In that case the name is taken from the ID
+according to \code{short_names}.
 }
 \concept{motifs}
