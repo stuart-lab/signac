@@ -47,6 +47,31 @@ test_that("AverageCountMatrix returns features x groups matrix", {
   expect_true(all(res >= 0))
 })
 
+test_that("AverageCountMatrix retains group names as colnames", {
+  res <- Signac:::AverageCountMatrix(
+    object = atac_small, group.by = "cluster"
+  )
+  expect_setequal(
+    object = colnames(x = res),
+    expected = as.character(x = unique(x = atac_small$cluster))
+  )
+})
+
+test_that("AverageCountMatrix subsets to the requested idents", {
+  res <- Signac:::AverageCountMatrix(
+    object = atac_small, group.by = "cluster", idents = "1"
+  )
+  expect_equal(object = colnames(x = res), expected = "1")
+  expect_equal(object = nrow(x = res), expected = nrow(x = atac_small[["peaks"]]))
+  # values match the average over only the cells in that group
+  cells.1 <- WhichCells(object = atac_small, expression = cluster == "1")
+  counts <- LayerData(object = atac_small, assay = "peaks", layer = "counts")
+  expect_equal(
+    object = as.vector(x = res[, 1]),
+    expected = as.vector(x = Matrix::rowMeans(x = counts[, cells.1]))
+  )
+})
+
 test_that("AverageCountMatrix errors on missing layer", {
   expect_error(
     Signac:::AverageCountMatrix(
@@ -97,6 +122,38 @@ test_that("SortIdents works", {
   expect_equal(
     object = levels(Idents(atac_small)),
     expected = c("10", "5", "7", "3", "6", "4", "2", "8", "1", "9")
+  )
+})
+
+test_that("SortIdents retains group labels for character and factor input", {
+  set.seed(1)
+  groups <- sample(x = c("a", "b", "c", "d"), size = ncol(x = atac_small),
+                   replace = TRUE)
+  atac_small$chr <- groups
+  atac_small$fct <- factor(x = groups, levels = c("d", "c", "b", "a"))
+  chr <- SortIdents(object = atac_small, label = "chr", verbose = FALSE)
+  fct <- SortIdents(object = atac_small, label = "fct", verbose = FALSE)
+  # values are unchanged, only the level order differs
+  expect_equal(object = as.character(x = chr$chr), expected = groups)
+  expect_equal(object = as.character(x = fct$fct), expected = groups)
+  # levels are the group labels, not integer indices
+  expect_setequal(object = levels(x = chr$chr), expected = unique(x = groups))
+  expect_equal(object = levels(x = chr$chr), expected = levels(x = fct$fct))
+})
+
+test_that("SortIdents orders idents by pseudobulk clustering", {
+  set.seed(1)
+  Idents(object = atac_small) <- sample(
+    x = c("a", "b", "c", "d"), size = ncol(x = atac_small), replace = TRUE
+  )
+  pseudobulk <- Signac:::AverageCountMatrix(
+    object = atac_small, layer = "data"
+  )
+  hc <- hclust(d = dist(x = t(x = pseudobulk)))
+  sorted <- SortIdents(object = atac_small, verbose = FALSE)
+  expect_equal(
+    object = levels(x = Idents(object = sorted)),
+    expected = colnames(x = pseudobulk)[hc$order]
   )
 })
 
