@@ -262,7 +262,7 @@ SortIdents <- function(
   if (verbose) {
     message(
       "Creating pseudobulk profiles for ",
-      length(x = unique(x = Idents(object = object))),
+      length(x = uniq_cell_types),
       " cell groups"
     )
   }
@@ -292,7 +292,7 @@ SortIdents <- function(
     )
   }
 
-  ordered_cell_types <- uniq_cell_types[hc$order]
+  ordered_cell_types <- colnames(x = pseudobulk)[hc$order]
   if (is.null(x = label)) {
     Idents(object = object) <- factor(
       x = Idents(object = object),
@@ -326,11 +326,16 @@ AverageCountMatrix <- function(
     group.by = group.by,
     idents = idents
   )
+  if (!is.null(x = idents)) {
+    countmatrix <- countmatrix[, colnames(x = ident.matrix), drop = FALSE]
+  }
   collapsed.counts <- countmatrix %*% as.matrix(x = t(x = ident.matrix))
   avg.counts <- tcrossprod(
     x = collapsed.counts,
     y = Diagonal(x = 1 / rowSums(x = ident.matrix))
   )
+  # tcrossprod with a diagonal matrix drops the dimnames
+  dimnames(x = avg.counts) <- dimnames(x = collapsed.counts)
   return(as.matrix(x = avg.counts))
 }
 
