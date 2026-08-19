@@ -279,242 +279,286 @@ importClassesFrom(Matrix,CsparseMatrix)
 importClassesFrom(Matrix,dgCMatrix)
 importClassesFrom(SeuratObject,Assay)
 importClassesFrom(SeuratObject,Assay5)
-importFrom(BiocGenerics,end)
-importFrom(BiocGenerics,sort)
-importFrom(BiocGenerics,start)
-importFrom(BiocGenerics,strand)
-importFrom(BiocGenerics,width)
-importFrom(GenomeInfoDb,"seqlevelsStyle<-")
-importFrom(GenomeInfoDb,keepSeqlevels)
-importFrom(GenomeInfoDb,keepStandardChromosomes)
-importFrom(GenomeInfoDb,renameSeqlevels)
-importFrom(GenomeInfoDb,seqlevelsStyle)
-importFrom(GenomicRanges,GRanges)
-importFrom(GenomicRanges,end)
-importFrom(GenomicRanges,findOverlaps)
-importFrom(GenomicRanges,granges)
-importFrom(GenomicRanges,isDisjoint)
-importFrom(GenomicRanges,makeGRangesFromDataFrame)
-importFrom(GenomicRanges,reduce)
-importFrom(GenomicRanges,resize)
-importFrom(GenomicRanges,seqnames)
-importFrom(GenomicRanges,slidingWindows)
-importFrom(GenomicRanges,start)
-importFrom(GenomicRanges,strand)
-importFrom(GenomicRanges,tileGenome)
-importFrom(GenomicRanges,trim)
-importFrom(GenomicRanges,union)
-importFrom(GenomicRanges,width)
-importFrom(IRanges,"ranges<-")
-importFrom(IRanges,IRanges)
-importFrom(IRanges,countOverlaps)
-importFrom(IRanges,coverage)
-importFrom(IRanges,disjoin)
-importFrom(IRanges,disjointBins)
-importFrom(IRanges,distance)
-importFrom(IRanges,distanceToNearest)
-importFrom(IRanges,end)
-importFrom(IRanges,extractList)
-importFrom(IRanges,findOverlaps)
-importFrom(IRanges,follow)
-importFrom(IRanges,gaps)
-importFrom(IRanges,isDisjoint)
-importFrom(IRanges,narrow)
-importFrom(IRanges,nearest)
-importFrom(IRanges,precede)
-importFrom(IRanges,ranges)
-importFrom(IRanges,reduce)
-importFrom(IRanges,start)
-importFrom(IRanges,subsetByOverlaps)
-importFrom(IRanges,width)
-importFrom(InteractionSet,GInteractions)
-importFrom(InteractionSet,anchors)
-importFrom(Matrix,Diagonal)
-importFrom(Matrix,colSums)
-importFrom(Matrix,crossprod)
-importFrom(Matrix,drop0)
-importFrom(Matrix,readMM)
-importFrom(Matrix,rowMeans)
-importFrom(Matrix,rowSums)
-importFrom(Matrix,sparseMatrix)
-importFrom(Matrix,summary)
-importFrom(Matrix,tcrossprod)
+importFrom(BiocGenerics,
+  end,
+  sort,
+  start,
+  strand,
+  width
+)
+importFrom(GenomeInfoDb,
+  "seqlevelsStyle<-",
+  keepSeqlevels,
+  keepStandardChromosomes,
+  renameSeqlevels,
+  seqlevelsStyle
+)
+importFrom(GenomicRanges,
+  GRanges,
+  end,
+  findOverlaps,
+  granges,
+  isDisjoint,
+  makeGRangesFromDataFrame,
+  reduce,
+  resize,
+  seqnames,
+  slidingWindows,
+  start,
+  strand,
+  tileGenome,
+  trim,
+  union,
+  width
+)
+importFrom(IRanges,
+  "ranges<-",
+  IRanges,
+  countOverlaps,
+  coverage,
+  disjoin,
+  disjointBins,
+  distance,
+  distanceToNearest,
+  end,
+  extractList,
+  findOverlaps,
+  follow,
+  gaps,
+  isDisjoint,
+  narrow,
+  nearest,
+  precede,
+  ranges,
+  reduce,
+  start,
+  subsetByOverlaps,
+  width
+)
+importFrom(InteractionSet,
+  GInteractions,
+  anchors
+)
+importFrom(Matrix,
+  Diagonal,
+  colSums,
+  crossprod,
+  drop0,
+  readMM,
+  rowMeans,
+  rowSums,
+  sparseMatrix,
+  summary,
+  tcrossprod
+)
 importFrom(RSpectra,svds)
 importFrom(Rcpp,evalCpp)
-importFrom(RcppRoll,roll_mean)
-importFrom(RcppRoll,roll_sum)
-importFrom(Rsamtools,TabixFile)
-importFrom(Rsamtools,bgzip)
-importFrom(Rsamtools,indexTabix)
-importFrom(Rsamtools,scanTabix)
-importFrom(Rsamtools,seqnamesTabix)
-importFrom(S4Vectors,"mcols<-")
-importFrom(S4Vectors,DataFrame)
-importFrom(S4Vectors,elementNROWS)
-importFrom(S4Vectors,mcols)
-importFrom(S4Vectors,queryHits)
-importFrom(S4Vectors,split)
-importFrom(S4Vectors,subjectHits)
-importFrom(S4Vectors,unstrsplit)
-importFrom(Seqinfo,"seqinfo<-")
-importFrom(Seqinfo,"seqlengths<-")
-importFrom(Seqinfo,"seqlevels<-")
-importFrom(Seqinfo,Seqinfo)
-importFrom(Seqinfo,genome)
-importFrom(Seqinfo,isCircular)
-importFrom(Seqinfo,seqinfo)
-importFrom(Seqinfo,seqlengths)
-importFrom(Seqinfo,seqlevels)
-importFrom(Seqinfo,seqnames)
-importFrom(Seqinfo,sortSeqlevels)
-importFrom(SeuratObject,"Idents<-")
-importFrom(SeuratObject,"Key<-")
-importFrom(SeuratObject,"LayerData<-")
-importFrom(SeuratObject,"VariableFeatures<-")
-importFrom(SeuratObject,AddMetaData)
-importFrom(SeuratObject,Assays)
-importFrom(SeuratObject,Cells)
-importFrom(SeuratObject,CreateAssay5Object)
-importFrom(SeuratObject,CreateAssayObject)
-importFrom(SeuratObject,CreateDimReducObject)
-importFrom(SeuratObject,CreateSeuratObject)
-importFrom(SeuratObject,DefaultAssay)
-importFrom(SeuratObject,DefaultLayer)
-importFrom(SeuratObject,Embeddings)
-importFrom(SeuratObject,Features)
-importFrom(SeuratObject,GetAssayData)
-importFrom(SeuratObject,Idents)
-importFrom(SeuratObject,Key)
-importFrom(SeuratObject,LayerData)
-importFrom(SeuratObject,Layers)
-importFrom(SeuratObject,Project)
-importFrom(SeuratObject,RenameCells)
-importFrom(SeuratObject,RenameIdents)
-importFrom(SeuratObject,RowMergeSparseMatrices)
-importFrom(SeuratObject,SetAssayData)
-importFrom(SeuratObject,VariableFeatures)
-importFrom(SeuratObject,WhichCells)
-importFrom(SeuratObject,as.sparse)
-importFrom(data.table,as.data.table)
-importFrom(data.table,data.table)
-importFrom(data.table,fread)
-importFrom(dplyr,group_by)
-importFrom(dplyr,mutate)
-importFrom(dplyr,slice_sample)
-importFrom(dplyr,summarize)
-importFrom(dplyr,top_n)
-importFrom(dplyr,ungroup)
+importFrom(RcppRoll,
+  roll_mean,
+  roll_sum
+)
+importFrom(Rsamtools,
+  TabixFile,
+  bgzip,
+  indexTabix,
+  scanTabix,
+  seqnamesTabix
+)
+importFrom(S4Vectors,
+  "mcols<-",
+  DataFrame,
+  elementNROWS,
+  mcols,
+  queryHits,
+  split,
+  subjectHits,
+  unstrsplit
+)
+importFrom(Seqinfo,
+  "seqinfo<-",
+  "seqlengths<-",
+  "seqlevels<-",
+  Seqinfo,
+  genome,
+  isCircular,
+  seqinfo,
+  seqlengths,
+  seqlevels,
+  seqnames,
+  sortSeqlevels
+)
+importFrom(SeuratObject,
+  "Idents<-",
+  "Key<-",
+  "LayerData<-",
+  "VariableFeatures<-",
+  AddMetaData,
+  Assays,
+  Cells,
+  CreateAssay5Object,
+  CreateAssayObject,
+  CreateDimReducObject,
+  CreateSeuratObject,
+  DefaultAssay,
+  DefaultLayer,
+  Embeddings,
+  Features,
+  GetAssayData,
+  Idents,
+  Key,
+  LayerData,
+  Layers,
+  Project,
+  RenameCells,
+  RenameIdents,
+  RowMergeSparseMatrices,
+  SetAssayData,
+  VariableFeatures,
+  WhichCells,
+  as.sparse
+)
+importFrom(data.table,
+  as.data.table,
+  data.table,
+  fread
+)
+importFrom(dplyr,
+  group_by,
+  mutate,
+  slice_sample,
+  summarize,
+  top_n,
+  ungroup
+)
 importFrom(fastmatch,fmatch)
 importFrom(future,nbrOfWorkers)
 importFrom(future.apply,future_lapply)
-importFrom(ggplot2,.data)
-importFrom(ggplot2,aes)
-importFrom(ggplot2,element_blank)
-importFrom(ggplot2,element_line)
-importFrom(ggplot2,element_text)
-importFrom(ggplot2,facet_wrap)
-importFrom(ggplot2,geom_area)
-importFrom(ggplot2,geom_histogram)
-importFrom(ggplot2,geom_hline)
-importFrom(ggplot2,geom_label)
-importFrom(ggplot2,geom_line)
-importFrom(ggplot2,geom_point)
-importFrom(ggplot2,geom_raster)
-importFrom(ggplot2,geom_rect)
-importFrom(ggplot2,geom_segment)
-importFrom(ggplot2,geom_text)
-importFrom(ggplot2,geom_tile)
-importFrom(ggplot2,geom_violin)
-importFrom(ggplot2,geom_vline)
-importFrom(ggplot2,ggplot)
-importFrom(ggplot2,ggtitle)
-importFrom(ggplot2,guide_legend)
-importFrom(ggplot2,guides)
-importFrom(ggplot2,labs)
-importFrom(ggplot2,margin)
-importFrom(ggplot2,scale_color_gradient2)
-importFrom(ggplot2,scale_color_grey)
-importFrom(ggplot2,scale_color_identity)
-importFrom(ggplot2,scale_color_manual)
-importFrom(ggplot2,scale_color_viridis_c)
-importFrom(ggplot2,scale_fill_gradient)
-importFrom(ggplot2,scale_fill_grey)
-importFrom(ggplot2,scale_fill_manual)
-importFrom(ggplot2,scale_fill_viridis_c)
-importFrom(ggplot2,scale_shape_manual)
-importFrom(ggplot2,scale_size_manual)
-importFrom(ggplot2,scale_x_continuous)
-importFrom(ggplot2,scale_x_log10)
-importFrom(ggplot2,scale_y_continuous)
-importFrom(ggplot2,scale_y_discrete)
-importFrom(ggplot2,scale_y_log10)
-importFrom(ggplot2,scale_y_reverse)
-importFrom(ggplot2,theme)
-importFrom(ggplot2,theme_bw)
-importFrom(ggplot2,theme_classic)
-importFrom(ggplot2,theme_light)
-importFrom(ggplot2,unit)
-importFrom(ggplot2,vars)
-importFrom(ggplot2,xlab)
-importFrom(ggplot2,xlim)
-importFrom(ggplot2,ylab)
-importFrom(ggplot2,ylim)
+importFrom(ggplot2,
+  .data,
+  aes,
+  element_blank,
+  element_line,
+  element_text,
+  facet_wrap,
+  geom_area,
+  geom_histogram,
+  geom_hline,
+  geom_label,
+  geom_line,
+  geom_point,
+  geom_raster,
+  geom_rect,
+  geom_segment,
+  geom_text,
+  geom_tile,
+  geom_violin,
+  geom_vline,
+  ggplot,
+  ggtitle,
+  guide_legend,
+  guides,
+  labs,
+  margin,
+  scale_color_gradient2,
+  scale_color_grey,
+  scale_color_identity,
+  scale_color_manual,
+  scale_color_viridis_c,
+  scale_fill_gradient,
+  scale_fill_grey,
+  scale_fill_manual,
+  scale_fill_viridis_c,
+  scale_shape_manual,
+  scale_size_manual,
+  scale_x_continuous,
+  scale_x_log10,
+  scale_y_continuous,
+  scale_y_discrete,
+  scale_y_log10,
+  scale_y_reverse,
+  theme,
+  theme_bw,
+  theme_classic,
+  theme_light,
+  unit,
+  vars,
+  xlab,
+  xlim,
+  ylab,
+  ylim
+)
 importFrom(grid,arrow)
-importFrom(lifecycle,deprecate_soft)
-importFrom(lifecycle,deprecate_warn)
-importFrom(lifecycle,deprecated)
-importFrom(lifecycle,is_present)
-importFrom(methods,"slot<-")
-importFrom(methods,as)
-importFrom(methods,callGeneric)
-importFrom(methods,hasArg)
-importFrom(methods,is)
-importFrom(methods,new)
-importFrom(methods,setClass)
-importFrom(methods,setClassUnion)
-importFrom(methods,setMethod)
-importFrom(methods,slot)
-importFrom(methods,slotNames)
-importFrom(patchwork,guide_area)
-importFrom(patchwork,plot_layout)
-importFrom(patchwork,wrap_plots)
+importFrom(lifecycle,
+  deprecate_soft,
+  deprecate_warn,
+  deprecated,
+  is_present
+)
+importFrom(methods,
+  "slot<-",
+  as,
+  callGeneric,
+  hasArg,
+  is,
+  new,
+  setClass,
+  setClassUnion,
+  setMethod,
+  slot,
+  slotNames
+)
+importFrom(patchwork,
+  guide_area,
+  plot_layout,
+  wrap_plots
+)
 importFrom(pbapply,pblapply)
-importFrom(rlang,.data)
-importFrom(rlang,is_integerish)
-importFrom(scales,comma)
-importFrom(scales,hue_pal)
+importFrom(rlang,
+  .data,
+  is_integerish
+)
+importFrom(scales,
+  comma,
+  hue_pal
+)
 importFrom(sparseMatrixStats,rowVars)
-importFrom(stats,ave)
-importFrom(stats,cor)
-importFrom(stats,cov)
-importFrom(stats,dist)
-importFrom(stats,ecdf)
-importFrom(stats,hclust)
-importFrom(stats,loess)
-importFrom(stats,median)
-importFrom(stats,na.omit)
-importFrom(stats,p.adjust)
-importFrom(stats,phyper)
-importFrom(stats,pnorm)
-importFrom(stats,predict)
-importFrom(stats,quantile)
-importFrom(stats,sd)
-importFrom(stats,setNames)
-importFrom(stats,var)
+importFrom(stats,
+  ave,
+  cor,
+  cov,
+  dist,
+  ecdf,
+  hclust,
+  loess,
+  median,
+  na.omit,
+  p.adjust,
+  phyper,
+  pnorm,
+  predict,
+  quantile,
+  sd,
+  setNames,
+  var
+)
 importFrom(stringi,stri_split_fixed)
 importFrom(tidyr,pivot_longer)
 importFrom(tidyselect,all_of)
-importFrom(tools,file_ext)
-importFrom(tools,md5sum)
-importFrom(utils,globalVariables)
-importFrom(utils,head)
-importFrom(utils,packageVersion)
-importFrom(utils,read.delim)
-importFrom(utils,read.table)
-importFrom(utils,setTxtProgressBar)
-importFrom(utils,tail)
-importFrom(utils,txtProgressBar)
-importFrom(utils,write.table)
+importFrom(tools,
+  file_ext,
+  md5sum
+)
+importFrom(utils,
+  globalVariables,
+  head,
+  packageVersion,
+  read.delim,
+  read.table,
+  setTxtProgressBar,
+  tail,
+  txtProgressBar,
+  write.table
+)
 importFrom(withr,with_seed)
 importMethodsFrom(GenomicRanges,end)
 importMethodsFrom(GenomicRanges,intersect)
