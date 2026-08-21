@@ -171,17 +171,38 @@ CreateChromatinAssay5 <- function(
     if (!all(obj.class)) {
       stop("All objects in fragments list must be Fragment-class objects")
     }
+    # a fragment object with no cell information is assumed to contain every
+    # cell in the assay, so only one of them can be given cell names here
+    no.cells <- vapply(
+      X = fragments,
+      FUN = function(x) is.null(x = Cells(x = x)),
+      FUN.VALUE = logical(1)
+    )
+    if (length(x = fragments) > 1 && any(no.cells)) {
+      stop(
+        "When more than one fragment object is supplied, the cells contained ",
+        "in each fragment file must be given. ", sum(no.cells), " of the ",
+        length(x = fragments),
+        ngettext(
+          n = sum(no.cells),
+          msg1 = " fragment objects contains no cell information.",
+          msg2 = " fragment objects contain no cell information."
+        )
+      )
+    }
     frags <- lapply(
       X = fragments,
       FUN = AssignFragCellnames,
       cellnames = colnames(x = seurat.assay)
     )
-    # subset to cells in the assay
+    # subset to cells in the assay, dropping any fragment object left with
+    # no cells (subset.Fragment2 returns NULL in that case)
     frags <- lapply(
       X = frags,
       FUN = subset,
       cells = colnames(x = seurat.assay)
     )
+    frags <- Filter(f = Negate(f = is.null), x = frags)
   } else if (inherits(x = fragments, what = "Fragment2")) {
     # single Fragment object supplied
     frags <- AssignFragCellnames(
@@ -594,7 +615,8 @@ CreateRegionAggregationObject <- function(
 #'
 #' Each element of the vector should be a cell barcode that appears in the
 #' fragment file, and the name of each element should be the corresponding cell
-#' name in the object.
+#' name in the object. The names must be unique: a cell can be linked to only
+#' one fragment file.
 #' @param seqlevels A named vector of sequence levels (eg, chromosome name)
 #' where each element is the sequence name as it appears in the fragment file,
 #' and the name of each element is the corresponding sequence name as stored in
@@ -671,6 +693,10 @@ CreateFragmentObject <- function(
     if (is.null(names(x = cells))) {
       # assume cells are as they appear in the assay
       names(x = cells) <- cells
+    }
+    cell.problem <- CheckFragmentCells(cells = cells)
+    if (!is.null(x = cell.problem)) {
+      stop(cell.problem)
     }
   }
   if (!is.null(x = seqlevels)) {
@@ -1130,6 +1156,10 @@ RenameCells.Fragment2 <- function(object, new.names, ...) {
   }
   cells <- cells[common]
   names(x = cells) <- unname(obj = new.names[common])
+  cell.problem <- CheckFragmentCells(cells = cells)
+  if (!is.null(x = cell.problem)) {
+    stop(cell.problem)
+  }
   slot(object = object, name = "cells") <- cells
   return(object)
 }
@@ -1266,21 +1296,35 @@ SetAssayData.ChromatinAssay5 <- function(
       warning("Overwriting existing fragment objects")
     }
 
+    # every construction path reaches this method, so this is where the
+    # requirement that a cell is linked to at most one fragment file is
+    # enforced
+    fragment.problem <- CheckFragmentList(fragments = new.data)
+    if (!is.null(x = fragment.problem)) {
+      stop(fragment.problem)
+    }
+
     # resolve any duplicated fragment file paths
     all.path <- lapply(X = new.data, FUN = GetFragmentData, slot = "file.path")
     unique.paths <- unique(all.path)
     if (length(x = unique.paths) != length(x = new.data)) {
-      # consolidate duplicated fragment paths
+      # consolidate duplicated fragment paths. Cell names are unique across
+      # the whole list (checked above), so the cell vectors can be combined
       new.data <- lapply(unique.paths, function(p) {
         idx <- which(all.path == p)
         objs <- new.data[idx]
         # merge cell vectors
         all.cells <- do.call(c, lapply(objs, GetFragmentData, slot = "cells"))
-        duplicate.cells <- duplicated(x = all.cells)
-        all.cells <- all.cells[!duplicate.cells]
         objs[[1]]@cells <- all.cells
         objs[[1]]
       })
+      # combining the cell vectors can bring two cells onto one barcode, which
+      # happens when objects holding the same cells from the same fragment
+      # file are merged
+      fragment.problem <- CheckFragmentList(fragments = new.data)
+      if (!is.null(x = fragment.problem)) {
+        stop(fragment.problem)
+      }
     }
     methods::slot(object = object, name = "fragments") <- new.data
   } else if (layer == "annotation") {
@@ -1685,10 +1729,12 @@ subset.ChromatinAssay5 <- function(
   # subset cells in Fragments objects
   if (!is.null(x = cells)) {
     frags <- Fragments(object = x)
-    Fragments(object = x) <- NULL
-    for (i in seq_along(along.with = frags)) {
-      frags[[i]] <- subset(x = frags[[i]], cells = cells)
+    if (length(x = frags) > 0) {
+      # subset.Fragment2 returns NULL when no cells remain
+      frags <- lapply(X = frags, FUN = subset, cells = cells)
+      frags <- Filter(f = Negate(f = is.null), x = frags)
     }
+    Fragments(object = x) <- NULL
     Fragments(object = x) <- frags
   }
 
@@ -2008,6 +2054,22 @@ merge.ChromatinAssay5 <- function(
       }
     }
     if (!is.null(x = add.cell.ids)) {
+      # a repeated or missing prefix would give cells from different objects
+      # the same name, linking one cell to each object's fragment file
+      if (length(x = add.cell.ids) != length(x = assays)) {
+        stop(
+          "add.cell.ids must contain one value for each object being merged: ",
+          length(x = assays), " objects, but ",
+          ngettext(
+            n = length(x = add.cell.ids),
+            msg1 = "1 cell ID",
+            msg2 = paste(length(x = add.cell.ids), "cell IDs")
+          ), " given"
+        )
+      }
+      if (anyDuplicated(x = add.cell.ids) > 0) {
+        stop("add.cell.ids must be unique")
+      }
       for (i in seq_along(along.with = assays)) {
         assays[[i]] <- RenameCells(
           object = assays[[i]],
@@ -2767,13 +2829,6 @@ AddFragments <- function(object, fragments) {
         slot(object = fragments, name = "cells") <- cell.barcodes[keep.cells]
       }
     }
-    # check that cells not found in any existing fragment objects
-    current.frags <- GetAssayData(object = object, layer = "fragments")
-    for (i in seq_along(along.with = current.frags)) {
-      if (any(Cells(x = fragments) %in% Cells(x = current.frags[[i]]))) {
-        stop("Cells already present in a fragment object")
-      }
-    }
   }
   # check file is not already linked to the object
   current.frags <- GetAssayData(object = object, layer = "fragments")
@@ -2786,8 +2841,13 @@ AddFragments <- function(object, fragments) {
   if (new.path %in% all.path) {
     stop("Fragment file already present in the object")
   }
-  # append fragments to list
+  # append fragments to list, checking that each cell is still linked to
+  # only one fragment file
   current.frags[[length(x = current.frags) + 1]] <- fragments
+  fragment.problem <- CheckFragmentList(fragments = current.frags)
+  if (!is.null(x = fragment.problem)) {
+    stop(fragment.problem)
+  }
   slot(object = object, name = "fragments") <- current.frags
   return(object)
 }
@@ -2819,6 +2879,132 @@ CheckBias <- function(bias) {
   )
   if (!all(hexamers %in% names(x = bias))) {
     return("Bias vector must contain each hexamer")
+  }
+  return(NULL)
+}
+
+# Format a vector of cell names for use in an error message
+#
+# @param cells A character vector of cell names
+# @param n Maximum number of cell names to include
+#
+# @return A single string
+#
+FormatCells <- function(cells, n = 5) {
+  out <- paste(head(x = cells, n = n), collapse = ", ")
+  if (length(x = cells) > n) {
+    out <- paste0(out, ", ... (", length(x = cells) - n, " more)")
+  }
+  return(out)
+}
+
+# Check that the cell information in a Fragment object is well formed
+#
+# Shared by Cells<-, CreateFragmentObject, RenameCells and CheckFragmentList,
+# so that a malformed cell mapping is reported when it is created rather than
+# when it is used. The mapping between the cell names in the assay (the names
+# of the vector) and the barcodes in the fragment file (the values) must be
+# one-to-one in both directions: a cell listed twice is read from the file
+# twice, and a barcode used by two cells gives both cells the same fragments.
+#
+# @param cells The contents of the cells slot of a Fragment object, or NULL
+#
+# @return NULL if valid, otherwise a string describing the problem
+#
+CheckFragmentCells <- function(cells) {
+  if (is.null(x = cells) || length(x = cells) == 0) {
+    return(NULL)
+  }
+  cellnames <- names(x = cells)
+  if (is.null(x = cellnames)) {
+    return("Cells must be a named vector")
+  }
+  if (anyNA(x = cellnames) || any(cellnames == "")) {
+    return("Cell names must not be NA or empty")
+  }
+  if (anyNA(x = cells)) {
+    return("Cell barcodes must not be NA")
+  }
+  duplicated.cells <- unique(x = cellnames[duplicated(x = cellnames)])
+  if (length(x = duplicated.cells) > 0) {
+    return(paste0(
+      "Each cell can appear only once in a Fragment object. ",
+      ngettext(
+        n = length(x = duplicated.cells),
+        msg1 = "1 cell is",
+        msg2 = paste(length(x = duplicated.cells), "cells are")
+      ),
+      " listed more than once: ", FormatCells(cells = duplicated.cells)
+    ))
+  }
+  duplicated.barcodes <- unique(x = cells[duplicated(x = cells)])
+  if (length(x = duplicated.barcodes) > 0) {
+    return(paste0(
+      "Each barcode in a fragment file can be linked to only one cell. ",
+      ngettext(
+        n = length(x = duplicated.barcodes),
+        msg1 = "1 barcode is",
+        msg2 = paste(length(x = duplicated.barcodes), "barcodes are")
+      ),
+      " used by more than one cell: ",
+      FormatCells(cells = duplicated.barcodes)
+    ))
+  }
+  return(NULL)
+}
+
+# Check that each cell is linked to at most one fragment file
+#
+# Data is read from every fragment object in the assay and combined, so a cell
+# linked to more than one fragment file has its fragments counted once per
+# file: FeatureMatrix sums the matrix computed from each fragment object,
+# CoveragePlot sums the insertion counts, and the QC functions concatenate
+# their per-file results.
+#
+# A fragment object holding no cell information is treated as containing every
+# cell in the assay, so it cannot be stored alongside any other fragment
+# object.
+#
+# @param fragments A list of Fragment2 objects
+#
+# @return NULL if valid, otherwise a string describing the problem
+#
+CheckFragmentList <- function(fragments) {
+  if (length(x = fragments) == 0) {
+    return(NULL)
+  }
+  for (i in seq_along(along.with = fragments)) {
+    problem <- CheckFragmentCells(
+      cells = GetFragmentData(object = fragments[[i]], slot = "cells")
+    )
+    if (!is.null(x = problem)) {
+      return(problem)
+    }
+  }
+  if (length(x = fragments) == 1) {
+    return(NULL)
+  }
+  cell.list <- lapply(X = fragments, FUN = Cells)
+  if (any(vapply(X = cell.list, FUN = is.null, FUN.VALUE = logical(1)))) {
+    return(paste0(
+      "A fragment object containing no cell information is assumed to hold ",
+      "every cell in the assay, so it cannot be stored alongside other ",
+      "fragment objects. Supply the cells contained in each fragment file."
+    ))
+  }
+  all.cells <- unlist(x = cell.list, use.names = FALSE)
+  duplicated.cells <- unique(x = all.cells[duplicated(x = all.cells)])
+  if (length(x = duplicated.cells) > 0) {
+    return(paste0(
+      "Each cell can be linked to only one fragment file. ",
+      ngettext(
+        n = length(x = duplicated.cells),
+        msg1 = "1 cell is",
+        msg2 = paste(length(x = duplicated.cells), "cells are")
+      ),
+      " present in more than one fragment object: ",
+      FormatCells(cells = duplicated.cells)
+    ))
   }
   return(NULL)
 }

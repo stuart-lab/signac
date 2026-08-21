@@ -22,7 +22,8 @@ setClassUnion(name = "NumericOrNULL", members = c("numeric", "NULL"))
 #' fragment file, the second element is the md5sum of the index.
 #' @slot cells A named vector of cells where each element is the cell barcode
 #' as it appears in the fragment file, and the name of each element is the
-#' corresponding cell barcode as stored in the ChromatinAssay5 object.
+#' corresponding cell barcode as stored in the ChromatinAssay5 object. Each
+#' cell can appear only once.
 #' @slot seqlevels A named vector of sequence levels (eg, chromosome name) where
 #' each element is the sequence name as it appears in the fragment file, and
 #' then name of each element is the corresponding sequence name as stored in the
@@ -149,7 +150,11 @@ setValidity(Class = "RegionAggregation", function(object) {
   TRUE
 })
 
-#' @slot fragments A list of [Fragment()] objects.
+#' @slot fragments A list of [Fragment()] objects. Each cell can be linked to
+#' at most one fragment file, so a cell can appear in only one of these
+#' objects. A fragment object holding no cell information is assumed to contain
+#' every cell in the assay, and so cannot be stored alongside any other
+#' fragment object.
 #' @slot annotation A  [GenomicRanges::GRanges()] object containing
 #' genomic annotations. This should be a GRanges object with the following
 #' columns:
@@ -205,6 +210,10 @@ setValidity(Class = "ChromatinAssay5", function(object) {
       logical(1)
     ))) {
     return("All elements of 'fragments' must be Fragment2 objects")
+  }
+  fragment.problem <- CheckFragmentList(fragments = object@fragments)
+  if (!is.null(x = fragment.problem)) {
+    return(fragment.problem)
   }
   if (length(x = object@region.aggregation) > 0 &&
     !all(vapply(

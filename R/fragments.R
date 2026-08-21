@@ -451,6 +451,10 @@ SeuratObject::Cells
   if (is.null(x = names(x = value))) {
     stop("Cells must be a named vector")
   }
+  cell.problem <- CheckFragmentCells(cells = value)
+  if (!is.null(x = cell.problem)) {
+    stop(cell.problem)
+  }
   slot(object = x, name = "cells") <- value
   if (!ValidateCells(object = x, verbose = FALSE, ...)) {
     stop("Cells not present in fragment file")

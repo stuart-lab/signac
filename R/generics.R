@@ -367,7 +367,9 @@ Fragments <- function(object, ...) {
   UseMethod(generic = "Fragments", object = object)
 }
 
-#' @param value A [Fragment2-class] object or list of Fragment objects
+#' @param value A [Fragment2-class] object or list of Fragment objects. The
+#' cells contained in each fragment object must be distinct from those in the
+#' fragment objects already stored in the assay.
 #'
 #' @rdname Fragments
 #' @export Fragments<-
