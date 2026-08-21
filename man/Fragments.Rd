@@ -26,7 +26,9 @@ Fragments(object, ...) <- value
 
 \item{...}{Arguments passed to other methods}
 
-\item{value}{A \link[=Fragment2-class]{Fragment2} object or list of Fragment objects}
+\item{value}{A \link[=Fragment2-class]{Fragment2} object or list of Fragment objects. The
+cells contained in each fragment object must be distinct from those in the
+fragment objects already stored in the assay.}
 
 \item{assay}{Name of assay to use}
 }

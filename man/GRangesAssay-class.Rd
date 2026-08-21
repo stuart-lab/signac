@@ -14,7 +14,11 @@ features in the assay are genomic ranges.
 \section{Slots}{
 
 \describe{
-\item{\code{fragments}}{A list of \code{\link[=Fragment]{Fragment()}} objects.}
+\item{\code{fragments}}{A list of \code{\link[=Fragment]{Fragment()}} objects. Each cell can be linked to
+at most one fragment file, so a cell can appear in only one of these
+objects. A fragment object holding no cell information is assumed to contain
+every cell in the assay, and so cannot be stored alongside any other
+fragment object.}
 
 \item{\code{annotation}}{A  \code{\link[GenomicRanges:GRanges]{GenomicRanges::GRanges()}} object containing
 genomic annotations. This should be a GRanges object with the following

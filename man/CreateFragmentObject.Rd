@@ -28,7 +28,8 @@ fragment from each cell is found. If NULL, don't check for expected cells.
 
 Each element of the vector should be a cell barcode that appears in the
 fragment file, and the name of each element should be the corresponding cell
-name in the object.}
+name in the object. The names must be unique: a cell can be linked to only
+one fragment file.}
 
 \item{seqlevels}{A named vector of sequence levels (eg, chromosome name)
 where each element is the sequence name as it appears in the fragment file,
