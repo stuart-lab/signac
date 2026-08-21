@@ -816,3 +816,439 @@ test_that("AddFragments adds fragments to assay", {
   res <- Signac:::AddFragments(obj, fragments = frags)
   expect_equal(length(Fragments(res)), 1)
 })
+
+# One cell, one fragment file ---------------------------------------------------
+
+# Copy the test fragment file so that two fragment objects can point at
+# different files on disk
+copy_fragments <- function() {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  newpath <- tempfile(fileext = ".tsv.gz")
+  file.copy(from = fpath, to = newpath)
+  file.copy(from = paste0(fpath, ".tbi"), to = paste0(newpath, ".tbi"))
+  return(newpath)
+}
+
+test_that("CreateFragmentObject rejects a malformed cells vector", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  cells <- colnames(atac_small)
+  expect_error(
+    CreateFragmentObject(
+      path = fpath, 
+      cells = stats::setNames(cells[1:2], c(cells[1], cells[1])),
+      validate.fragments = FALSE,
+      verbose = FALSE
+    ),
+    regexp = "only once in a Fragment object"
+  )
+  expect_error(
+    CreateFragmentObject(
+      path = fpath,
+      cells = stats::setNames(cells[1:2], c(cells[1], NA)),
+      validate.fragments = FALSE,
+      verbose = FALSE
+    ),
+    regexp = "must not be NA or empty"
+  )
+})
+
+test_that("Cells<-.Fragment2 rejects duplicated cell names", {
+  frags <- make_fragments()
+  cells <- colnames(atac_small)
+  expect_error(
+    Cells(frags) <- stats::setNames(cells[1:2], c(cells[1], cells[1])),
+    regexp = "only once in a Fragment object"
+  )
+  expect_error(Cells(frags) <- NULL, regexp = "named vector")
+})
+
+test_that("RenameCells.Fragment2 rejects a non-injective mapping", {
+  frags <- make_fragments()
+  cells <- colnames(atac_small)
+  expect_error(
+    RenameCells(frags, new.names = stats::setNames(rep("same", length(cells)), cells)),
+    regexp = "only once in a Fragment object"
+  )
+})
+
+test_that("a cell cannot be linked to two fragment files by the constructor", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  fpath2 <- copy_fragments()
+  cells <- colnames(atac_small)
+  counts <- GetAssayData(atac_small[["peaks"]], layer = "counts")
+
+  # explicitly overlapping cells
+  expect_error(
+    CreateGRangesAssay(
+      counts = counts,
+      fragments = list(
+        CreateFragmentObject(
+          path = fpath, cells = cells,
+          validate.fragments = FALSE, verbose = FALSE
+        ),
+        CreateFragmentObject(
+          path = fpath2, cells = cells,
+          validate.fragments = FALSE, verbose = FALSE
+        )
+      ),
+      validate.fragments = FALSE, verbose = FALSE
+    ),
+    regexp = "only one fragment file"
+  )
+
+  # fragment objects with no cell information are assumed to hold every cell,
+  # so more than one cannot be supplied
+  expect_error(
+    CreateGRangesAssay(
+      counts = counts,
+      fragments = list(
+        CreateFragmentObject(
+          path = fpath, cells = NULL,
+          validate.fragments = FALSE, verbose = FALSE
+        ),
+        CreateFragmentObject(
+          path = fpath2, cells = NULL,
+          validate.fragments = FALSE, verbose = FALSE
+        )
+      ),
+      validate.fragments = FALSE, verbose = FALSE
+    ),
+    regexp = "cells contained in each fragment file must be given"
+  )
+
+  # disjoint cells are allowed
+  assay <- CreateGRangesAssay(
+    counts = counts,
+    fragments = list(
+      CreateFragmentObject(
+        path = fpath, cells = cells[1:50],
+        validate.fragments = FALSE, verbose = FALSE
+      ),
+      CreateFragmentObject(
+        path = fpath2, cells = cells[51:100],
+        validate.fragments = FALSE, verbose = FALSE
+      )
+    ),
+    validate.fragments = FALSE, verbose = FALSE
+  )
+  expect_equal(length(Fragments(assay)), 2)
+  expect_false(anyDuplicated(unlist(lapply(Fragments(assay), Cells))) > 0)
+})
+
+test_that("SetAssayData rejects fragment objects sharing cells", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  fpath2 <- copy_fragments()
+  cells <- colnames(atac_small)
+  obj <- atac_small[["peaks"]]
+
+  expect_error(
+    SetAssayData(obj, layer = "fragments", new.data = list(
+      CreateFragmentObject(
+        path = fpath, cells = cells,
+        validate.fragments = FALSE, verbose = FALSE
+      ),
+      CreateFragmentObject(
+        path = fpath2, cells = cells,
+        validate.fragments = FALSE, verbose = FALSE
+      )
+    )),
+    regexp = "only one fragment file"
+  )
+
+  # a fragment object with no cells claims every cell in the assay
+  expect_error(
+    SetAssayData(obj, layer = "fragments", new.data = list(
+      CreateFragmentObject(
+        path = fpath, cells = cells,
+        validate.fragments = FALSE, verbose = FALSE
+      ),
+      CreateFragmentObject(
+        path = fpath2, cells = NULL,
+        validate.fragments = FALSE, verbose = FALSE
+      )
+    )),
+    regexp = "no cell information"
+  )
+
+  # two objects for the same file are consolidated, and must not both claim
+  # the same cell
+  expect_error(
+    SetAssayData(obj, layer = "fragments", new.data = list(
+      CreateFragmentObject(
+        path = fpath, cells = stats::setNames(cells[1:2], c("a", "b")),
+        validate.fragments = FALSE, verbose = FALSE
+      ),
+      CreateFragmentObject(
+        path = fpath, cells = stats::setNames(cells[3:4], c("a", "c")),
+        validate.fragments = FALSE, verbose = FALSE
+      )
+    )),
+    regexp = "only one fragment file"
+  )
+})
+
+test_that("SetAssayData keeps every cell when consolidating one fragment file", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  cells <- colnames(atac_small)
+  obj <- atac_small[["peaks"]]
+  # two objects for the same file holding different cells: consolidating them
+  # into one object must keep every cell
+  res <- SetAssayData(obj, layer = "fragments", new.data = list(
+    CreateFragmentObject(
+      path = fpath, cells = cells[1:5],
+      validate.fragments = FALSE, verbose = FALSE
+    ),
+    CreateFragmentObject(
+      path = fpath, cells = cells[6:10],
+      validate.fragments = FALSE, verbose = FALSE
+    )
+  ))
+  expect_equal(length(Fragments(res)), 1)
+  expect_setequal(Cells(Fragments(res)[[1]]), cells[1:10])
+
+  # but the same cell cannot be claimed by both
+  expect_error(
+    SetAssayData(obj, layer = "fragments", new.data = list(
+      CreateFragmentObject(
+        path = fpath, cells = cells[1:5],
+        validate.fragments = FALSE, verbose = FALSE
+      ),
+      CreateFragmentObject(
+        path = fpath, cells = cells[5:10],
+        validate.fragments = FALSE, verbose = FALSE
+      )
+    )),
+    regexp = "only one fragment file"
+  )
+
+  # nor can two cells be consolidated onto the same barcode: neither object is
+  # invalid on its own, so this is only detectable after they are combined
+  expect_error(
+    SetAssayData(obj, layer = "fragments", new.data = list(
+      CreateFragmentObject(
+        path = fpath,
+        cells = stats::setNames(cells[1:5], paste0("s1_", cells[1:5])),
+        validate.fragments = FALSE, verbose = FALSE
+      ),
+      CreateFragmentObject(
+        path = fpath,
+        cells = stats::setNames(cells[1:5], paste0("s2_", cells[1:5])),
+        validate.fragments = FALSE, verbose = FALSE
+      )
+    )),
+    regexp = "only one cell"
+  )
+})
+
+test_that("as.ChromatinAssay5 and as.GRangesAssay reject shared cells", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  fpath2 <- copy_fragments()
+  cells <- colnames(atac_small)
+  a5 <- CreateAssay5Object(
+    counts = GetAssayData(atac_small[["peaks"]], layer = "counts")
+  )
+  frags <- list(
+    CreateFragmentObject(
+      path = fpath, cells = cells,
+      validate.fragments = FALSE, verbose = FALSE
+    ),
+    CreateFragmentObject(
+      path = fpath2, cells = cells,
+      validate.fragments = FALSE, verbose = FALSE
+    )
+  )
+  expect_error(
+    as.ChromatinAssay5(a5, fragments = frags), regexp = "only one fragment file"
+  )
+  expect_error(
+    as.GRangesAssay(a5, ranges = granges(atac_small), fragments = frags),
+    regexp = "only one fragment file"
+  )
+})
+
+test_that("merge requires one unique cell ID per object", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  fpath2 <- copy_fragments()
+  cells <- colnames(atac_small)
+  counts <- GetAssayData(atac_small[["peaks"]], layer = "counts")
+  a1 <- CreateGRangesAssay(
+    counts = counts,
+    fragments = CreateFragmentObject(
+      path = fpath, cells = cells,
+      validate.fragments = FALSE, verbose = FALSE
+    ),
+    validate.fragments = FALSE, verbose = FALSE
+  )
+  a2 <- CreateGRangesAssay(
+    counts = counts,
+    fragments = CreateFragmentObject(
+      path = fpath2, cells = cells,
+      validate.fragments = FALSE, verbose = FALSE
+    ),
+    validate.fragments = FALSE, verbose = FALSE
+  )
+  expect_error(
+    merge(a1, a2, add.cell.ids = c("s", "s")), regexp = "must be unique"
+  )
+  expect_error(
+    merge(a1, list(a2, a1), add.cell.ids = "s"),
+    regexp = "one value for each object"
+  )
+  merged <- merge(a1, a2, add.cell.ids = c("s1", "s2"))
+  expect_false(anyDuplicated(unlist(lapply(Fragments(merged), Cells))) > 0)
+})
+
+test_that("the class validity method catches shared cells", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  fpath2 <- copy_fragments()
+  cells <- colnames(atac_small)
+  obj <- atac_small[["peaks"]]
+  # bypass the assignment methods to check the validity method itself
+  methods::slot(obj, "fragments") <- list(
+    CreateFragmentObject(
+      path = fpath, cells = cells,
+      validate.fragments = FALSE, verbose = FALSE
+    ),
+    CreateFragmentObject(
+      path = fpath2, cells = cells,
+      validate.fragments = FALSE, verbose = FALSE
+    )
+  )
+  expect_error(methods::validObject(obj), regexp = "only one fragment file")
+})
+
+test_that("subset drops fragment objects with no remaining cells", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  fpath2 <- copy_fragments()
+  cells <- colnames(atac_small)
+  counts <- GetAssayData(atac_small[["peaks"]], layer = "counts")
+  assay <- CreateGRangesAssay(
+    counts = counts,
+    fragments = list(
+      CreateFragmentObject(
+        path = fpath, cells = cells[1:50],
+        validate.fragments = FALSE, verbose = FALSE
+      ),
+      CreateFragmentObject(
+        path = fpath2, cells = cells[51:100],
+        validate.fragments = FALSE, verbose = FALSE
+      )
+    ),
+    validate.fragments = FALSE, verbose = FALSE
+  )
+  # only cells from the first fragment file are retained
+  res <- subset(assay, cells = cells[1:20])
+  expect_equal(length(Fragments(res)), 1)
+  expect_setequal(Cells(Fragments(res)[[1]]), cells[1:20])
+
+  # dropping the first fragment object shrinks the list mid-iteration
+  res <- subset(assay, cells = cells[81:100])
+  expect_equal(length(Fragments(res)), 1)
+  expect_setequal(Cells(Fragments(res)[[1]]), cells[81:100])
+})
+
+test_that("Fragments<- rejects a fragment object sharing cells", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  fpath2 <- copy_fragments()
+  cells <- colnames(atac_small)
+  obj <- atac_small[["peaks"]]
+
+  Fragments(obj) <- CreateFragmentObject(
+    path = fpath, cells = cells[1:50],
+    validate.fragments = FALSE, verbose = FALSE
+  )
+  # a second file covering cells already linked to the first
+  expect_error(
+    Fragments(obj) <- CreateFragmentObject(
+      path = fpath2, cells = cells[40:100],
+      validate.fragments = FALSE, verbose = FALSE
+    ),
+    regexp = "only one fragment file"
+  )
+  # the assay is unchanged by the failed assignment
+  expect_equal(length(Fragments(obj)), 1)
+
+  # the remaining cells can still be added
+  Fragments(obj) <- CreateFragmentObject(
+    path = fpath2, cells = cells[51:100],
+    validate.fragments = FALSE, verbose = FALSE
+  )
+  expect_equal(length(Fragments(obj)), 2)
+  expect_false(anyDuplicated(unlist(lapply(Fragments(obj), Cells))) > 0)
+})
+
+test_that("CreateGRangesAssay drops fragment objects with no cells in the assay", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  fpath2 <- copy_fragments()
+  cells <- colnames(atac_small)
+  # counts cover only the cells of the first fragment object
+  counts <- GetAssayData(atac_small[["peaks"]], layer = "counts")[, 1:50]
+  assay <- CreateGRangesAssay(
+    counts = counts,
+    fragments = list(
+      CreateFragmentObject(
+        path = fpath, cells = cells[1:50],
+        validate.fragments = FALSE, verbose = FALSE
+      ),
+      CreateFragmentObject(
+        path = fpath2, cells = cells[51:100],
+        validate.fragments = FALSE, verbose = FALSE
+      )
+    ),
+    validate.fragments = FALSE, verbose = FALSE
+  )
+  expect_equal(length(Fragments(assay)), 1)
+  expect_setequal(Cells(Fragments(assay)[[1]]), cells[1:50])
+})
+
+test_that("a fragment file barcode can be linked to only one cell", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  cells <- colnames(atac_small)
+  # two cell names pointing at the same barcode
+  expect_error(
+    CreateFragmentObject(
+      path = fpath, cells = stats::setNames(rep(cells[1], 2), c("a", "b")),
+      validate.fragments = FALSE, verbose = FALSE
+    ),
+    regexp = "only one cell"
+  )
+})
+
+test_that("merging objects holding the same cells from one fragment file errors", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  cells <- colnames(atac_small)
+  o1 <- atac_small
+  Fragments(o1) <- CreateFragmentObject(
+    path = fpath, cells = cells,
+    validate.fragments = FALSE, verbose = FALSE
+  )
+  o2 <- atac_small
+  Fragments(o2) <- CreateFragmentObject(
+    path = fpath, cells = cells,
+    validate.fragments = FALSE, verbose = FALSE
+  )
+  # consolidating the two fragment objects would map two cells onto every
+  # barcode, which previously discarded the second object's cells
+  expect_error(
+    merge(o1, o2, add.cell.ids = c("r1", "r2")), regexp = "only one cell"
+  )
+})
+
+test_that("merging objects with distinct cells from one fragment file works", {
+  fpath <- system.file("extdata", "fragments.tsv.gz", package = "Signac")
+  cells <- colnames(atac_small)
+  o1 <- subset(atac_small, cells = cells[1:50])
+  Fragments(o1) <- CreateFragmentObject(
+    path = fpath, cells = cells[1:50],
+    validate.fragments = FALSE, verbose = FALSE
+  )
+  o2 <- subset(atac_small, cells = cells[51:100])
+  Fragments(o2) <- CreateFragmentObject(
+    path = fpath, cells = cells[51:100],
+    validate.fragments = FALSE, verbose = FALSE
+  )
+  merged <- merge(o1, o2)
+  # the two fragment objects are consolidated into one, keeping every cell
+  expect_equal(length(Fragments(merged)), 1)
+  expect_setequal(Cells(Fragments(merged)[[1]]), colnames(merged))
+})
