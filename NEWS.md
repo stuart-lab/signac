@@ -48,6 +48,10 @@ include an option to use the `hmmratac` peak calling method in `macs3`.
 object, `ChromatinAssay5` object, `Fragment2` object, or a character string giving
 the path to a single fragment file
 * Added the `fragtk` parameter to `GeneActivity()`
+* Signac now requires `fragtk` >= 1.7.0, and checks the installed version
+before running it rather than failing later with an error from `fragtk`
+* The fraction-in-promoters column returned by `ATACqc()` is now named `FIP`,
+following the rename in `fragtk` v1.7.0.
 * Added the `fragtk` parameter to `FeatureMatrix()`
 * Added `bpcells` and `bpcells.dir` parameters to `FeatureMatrix()`,
 `GeneActivity()`, and `GenomeBinMatrix()` to return a `BPCells::IterableMatrix`
