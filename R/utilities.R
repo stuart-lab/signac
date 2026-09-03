@@ -1409,6 +1409,105 @@ isRemote <- function(x) {
   return(grepl(pattern = "^http|^ftp", x = x))
 }
 
+# Minimum fragtk version required by Signac
+#
+# Kept as a constant so that the requirement is stated in one place and can be
+# raised without touching the call sites.
+FRAGTK_MIN_VERSION <- "1.7.0"
+
+# Get the version of a fragtk executable
+#
+# @param fragtk.path Path to the fragtk executable
+#
+# @return Returns the version as a numeric_version, or NULL if the version
+# could not be determined (fragtk failed to run, or printed something we cannot
+# parse)
+#
+FragtkVersion <- function(fragtk.path) {
+  version.string <- tryCatch(
+    expr = suppressWarnings(expr = system2(
+      command = fragtk.path,
+      args = "--version",
+      stdout = TRUE,
+      stderr = TRUE
+    )),
+    error = function(e) NULL
+  )
+  status <- attr(x = version.string, which = "status")
+  if (is.null(x = version.string) ||
+        (!is.null(x = status) && status != 0)) {
+    return(NULL)
+  }
+  # `fragtk --version` prints "fragtk <version>"; take the first dotted-numeric
+  # token so that a pre-release suffix or extra output does not break parsing
+  version.string <- paste(version.string, collapse = " ")
+  matched <- regmatches(
+    x = version.string,
+    m = regexpr(pattern = "[0-9]+(\\.[0-9]+)*", text = version.string)
+  )
+  if (length(x = matched) == 0) {
+    return(NULL)
+  }
+  return(numeric_version(x = matched, strict = FALSE))
+}
+
+# Locate the fragtk executable and check that it is recent enough
+#
+# @param fragtk.path Path to the fragtk executable. If NULL, look up fragtk on
+# the PATH.
+# @param min_version Minimum required fragtk version, given as a string. If
+# NULL, the version is not checked.
+#
+# @return Returns the path to the fragtk executable
+#
+fragtk_pathcheck <- function(
+  fragtk.path = NULL,
+  min_version = FRAGTK_MIN_VERSION
+) {
+  fragtk.path <- fragtk.path %||% unname(obj = Sys.which(names = "fragtk"))
+  if (nchar(x = fragtk.path) == 0) {
+    stop(
+      "fragtk not found. Please install fragtk: ",
+      "https://crates.io/crates/fragtk",
+      call. = FALSE
+    )
+  }
+  if (file.access(names = fragtk.path, mode = 0) == -1) {
+    stop(
+      "fragtk executable does not exist at supplied path: ", fragtk.path,
+      call. = FALSE
+    )
+  }
+  if (file.access(names = fragtk.path, mode = 1) == -1) {
+    stop(
+      "fragtk exists but is not executable: ", fragtk.path,
+      call. = FALSE
+    )
+  }
+  if (is.null(x = min_version)) {
+    return(fragtk.path)
+  }
+  found.version <- FragtkVersion(fragtk.path = fragtk.path)
+  if (is.null(x = found.version)) {
+    stop(
+      "Could not determine the fragtk version by running `",
+      fragtk.path, " --version`. Signac requires fragtk >= ", min_version,
+      "; check that the executable works and is on the PATH, or install a ",
+      "current version from https://crates.io/crates/fragtk",
+      call. = FALSE
+    )
+  }
+  if (found.version < numeric_version(x = min_version)) {
+    stop(
+      "fragtk ", as.character(x = found.version), " was found at ",
+      fragtk.path, ", but Signac requires fragtk >= ", min_version,
+      ". Please update fragtk: https://crates.io/crates/fragtk",
+      call. = FALSE
+    )
+  }
+  return(fragtk.path)
+}
+
 # Run GetReadsInRegion for a list of Fragment objects
 # concatenate the output dataframes and return
 # @param object A Seurat or ChromatinAssay object
@@ -1592,26 +1691,31 @@ CutMatrix <- function(
     )
     tabix.file <- TabixFile(file = fragment.path, index = index.path)
     open(con = tabix.file)
-    # remove regions that aren't in the fragment file
+    # remove regions that aren't in this fragment file. The pruned ranges are
+    # held in a loop-local variable: assigning back to region would carry the
+    # pruning into every later fragment file, so a seqname missing from one
+    # file would be dropped for all of them
     seqnames.in.both <- intersect(
       x = seqnames(x = region),
       y = seqnamesTabix(file = tabix.file)
     )
-    region <- keepSeqlevels(
+    region.use <- keepSeqlevels(
       x = region,
       value = seqnames.in.both,
       pruning.mode = "coarse"
     )
-    if (length(x = region) != 0) {
+    if (length(x = region.use) != 0) {
       cm <- SingleFileCutMatrix(
-        region = region,
+        region = region.use,
         cellmap = cellmap,
         seqmap = seqmap,
         tabix.file = tabix.file,
         cells = cells,
         verbose = FALSE
       )
-      res[[i]] <- cm
+      # append rather than assigning at i, which would leave NULL entries for
+      # the files that were skipped and break the Reduce below
+      res[[length(x = res) + 1]] <- cm
     }
     close(con = tabix.file)
   }
@@ -1663,12 +1767,15 @@ MultiRegionCutMatrix <- function(
     }
     tabix.file <- TabixFile(file = frag.path, index = file.index)
     open(con = tabix.file)
-    # remove regions that aren't in the fragment file
+    # remove regions that aren't in this fragment file. The pruned ranges are
+    # held in a loop-local variable: assigning back to regions would carry the
+    # pruning into every later fragment file, so a seqname missing from one
+    # file would be dropped for all of them
     common.seqlevels <- intersect(
       x = seqlevels(x = regions),
       y = seqnamesTabix(file = tabix.file)
     )
-    regions <- keepSeqlevels(
+    regions.use <- keepSeqlevels(
       x = regions,
       value = common.seqlevels,
       pruning.mode = "coarse"
@@ -1676,7 +1783,7 @@ MultiRegionCutMatrix <- function(
     cells.use <- intersect(
       x = cells %||% names(x = cellmap), y = names(x = cellmap)
     )
-    if (length(x = cells.use) == 0) {
+    if (length(x = cells.use) == 0 || length(x = regions.use) == 0) {
       close(con = tabix.file)
       next
     }
@@ -1684,12 +1791,14 @@ MultiRegionCutMatrix <- function(
       cellmap = cellmap,
       seqmap = seqmap,
       tabix.file = tabix.file,
-      region = regions,
+      region = regions.use,
       cells = cells.use,
       verbose = verbose
     )
     close(con = tabix.file)
-    res[[i]] <- cm
+    # append rather than assigning at i, so that skipped files do not leave
+    # gaps in the list passed to rbind below
+    res[[length(x = res) + 1]] <- cm
   }
   # each matrix contains data for different cells at same positions
   # bind all matrices together
@@ -2114,12 +2223,19 @@ SparsifiedRanks <- function(X) {
   n_zeros_per_col <- nrow(x = X) - non_zeros_per_col
   offsets <- (n_zeros_per_col - 1) / 2
   x <- X@x
-  ## split entries to columns
+  ## split entries to columns. The grouping variable is a factor carrying one
+  ## level per column, so that a column with no non-zero entries is retained as
+  ## an empty element. Splitting on the bare integer vector drops those columns,
+  ## and every column after one of them is then shifted by an offset belonging
+  ## to a different column
   col_lst <- split(
     x = x,
-    f = rep.int(
-      x = seq_len(length.out = ncol(x = X)),
-      times = non_zeros_per_col
+    f = factor(
+      x = rep.int(
+        x = seq_len(length.out = ncol(x = X)),
+        times = non_zeros_per_col
+      ),
+      levels = seq_len(length.out = ncol(x = X))
     )
   )
   ## calculate sparsified ranks and do shifting
@@ -2127,7 +2243,8 @@ SparsifiedRanks <- function(X) {
     x = lapply(
       X = seq_along(col_lst),
       FUN = function(i) rank(x = col_lst[[i]]) + offsets[i]
-    )
+    ),
+    use.names = FALSE
   )
   ## Create template rank matrix
   X.ranks <- X
