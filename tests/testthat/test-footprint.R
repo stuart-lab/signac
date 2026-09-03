@@ -328,3 +328,109 @@ test_that("RegionAggr<- assignment works", {
   expect_true("TF2" %in% RegionAggNames(obj))
 })
 
+
+# Seqlevels across multiple fragment files --------------------------------------
+
+# Write a small tabix-indexed fragment file containing the given fragments
+write_test_fragments <- function(df) {
+  raw <- tempfile(fileext = ".tsv")
+  out <- tempfile(fileext = ".tsv.gz")
+  write.table(
+    x = df, file = raw, sep = "\t",
+    row.names = FALSE, col.names = FALSE, quote = FALSE
+  )
+  Rsamtools::bgzip(file = raw, dest = out, overwrite = TRUE)
+  file.remove(raw)
+  Rsamtools::indexTabix(file = out, format = "bed")
+  return(out)
+}
+
+test_that("CutMatrix reads a seqname missing from an earlier fragment file", {
+  obj <- atac_small
+  all.cells <- colnames(x = obj)
+  cells.a <- all.cells[1:10]
+  cells.b <- all.cells[11:20]
+
+  # first file holds chr1 only, second holds the chr2 region we ask for. Each
+  # cell is linked to exactly one file
+  frag.a <- write_test_fragments(data.frame(
+    chr = "chr1",
+    start = seq(from = 1000, by = 100, length.out = length(x = cells.a)),
+    end = seq(from = 1050, by = 100, length.out = length(x = cells.a)),
+    cell = cells.a,
+    count = 1L
+  ))
+  frag.b <- write_test_fragments(data.frame(
+    chr = "chr2",
+    start = seq(from = 2000, by = 100, length.out = length(x = cells.b)),
+    end = seq(from = 2050, by = 100, length.out = length(x = cells.b)),
+    cell = cells.b,
+    count = 1L
+  ))
+
+  obj.a <- CreateFragmentObject(
+    path = frag.a, cells = setNames(cells.a, cells.a), verbose = FALSE
+  )
+  obj.b <- CreateFragmentObject(
+    path = frag.b, cells = setNames(cells.b, cells.b), verbose = FALSE
+  )
+  Fragments(obj[["peaks"]]) <- NULL
+  Fragments(obj[["peaks"]]) <- list(obj.a, obj.b)
+
+  region <- GRanges("chr2", IRanges(start = 1500, end = 3500))
+  cm <- Signac:::CutMatrix(
+    object = obj, region = region, assay = "peaks", verbose = FALSE
+  )
+
+  # the chr2 fragments live in the second file only, so pruning the region
+  # against the first file must not remove chr2 for the second
+  expect_false(is.null(x = cm))
+  expect_equal(nrow(x = cm), length(x = all.cells))
+  expect_gt(sum(cm), 0)
+  expect_equal(sum(cm[cells.a, ]), 0)
+  expect_gt(sum(cm[cells.b, ]), 0)
+})
+
+test_that("MultiRegionCutMatrix reads across fragment files with disjoint seqnames", {
+  obj <- atac_small
+  all.cells <- colnames(x = obj)
+  cells.a <- all.cells[1:10]
+  cells.b <- all.cells[11:20]
+
+  frag.a <- write_test_fragments(data.frame(
+    chr = "chr1",
+    start = seq(from = 1000, by = 100, length.out = length(x = cells.a)),
+    end = seq(from = 1050, by = 100, length.out = length(x = cells.a)),
+    cell = cells.a,
+    count = 1L
+  ))
+  frag.b <- write_test_fragments(data.frame(
+    chr = "chr2",
+    start = seq(from = 2000, by = 100, length.out = length(x = cells.b)),
+    end = seq(from = 2050, by = 100, length.out = length(x = cells.b)),
+    cell = cells.b,
+    count = 1L
+  ))
+
+  obj.a <- CreateFragmentObject(
+    path = frag.a, cells = setNames(cells.a, cells.a), verbose = FALSE
+  )
+  obj.b <- CreateFragmentObject(
+    path = frag.b, cells = setNames(cells.b, cells.b), verbose = FALSE
+  )
+  Fragments(obj[["peaks"]]) <- NULL
+  Fragments(obj[["peaks"]]) <- list(obj.a, obj.b)
+
+  regions <- GRanges(
+    c("chr1", "chr2"), IRanges(start = c(500, 1500), width = 2001)
+  )
+  cm <- Signac:::MultiRegionCutMatrix(
+    object = obj[["peaks"]], regions = regions, cells = all.cells
+  )
+
+  # only the cells linked to a fragment file get a row, but both files must
+  # contribute: the chr2 file is read even though chr2 is absent from the first
+  expect_setequal(rownames(x = cm), c(cells.a, cells.b))
+  expect_gt(sum(cm[cells.a, ]), 0)
+  expect_gt(sum(cm[cells.b, ]), 0)
+})

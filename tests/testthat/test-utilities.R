@@ -569,3 +569,35 @@ test_that("isRemote detects HTTP/FTP paths", {
   expect_true(Signac:::isRemote("ftp://example.com"))
   expect_false(Signac:::isRemote("/local/file.tsv"))
 })
+
+# SparsifiedRanks --------------------------------------------------------------
+
+test_that("SparsifiedRanks offsets each column by its own zero count", {
+  # the middle column has no non-zero entries. split() drops empty groups, so
+  # indexing the offsets by position in the split list would give column 3 the
+  # offset belonging to column 2
+  m <- as(
+    matrix(c(1, 2, 3, 0, 0, 0, 4, 5, 6), nrow = 3),
+    "CsparseMatrix"
+  )
+  ranked <- as.matrix(Signac:::SparsifiedRanks(X = m))
+  # 3 rows, 3 non-zero entries per populated column, so offset = (3 - 3 - 1) / 2
+  expect_equal(ranked[, 1], c(0.5, 1.5, 2.5))
+  expect_equal(ranked[, 2], c(0, 0, 0))
+  expect_equal(ranked[, 3], c(0.5, 1.5, 2.5))
+})
+
+test_that("SparseSpearmanCor is unaffected by an all-zero column", {
+  set.seed(2)
+  m <- matrix(rpois(100, 2), 10, 10)
+  m[, 4] <- 0
+  res <- Signac:::SparseSpearmanCor(X = as(m, "CsparseMatrix"))
+  # column 4 is constant, so its correlations are undefined; the rest must
+  # still match base R
+  keep <- setdiff(seq_len(10), 4)
+  expect_equal(
+    unname(as.matrix(res)[keep, keep]),
+    unname(cor(m[, keep], method = "spearman")),
+    tolerance = 1e-6
+  )
+})

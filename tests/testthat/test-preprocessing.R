@@ -494,24 +494,26 @@ test_that("ATACqc does not overwrite existing metadata columns", {
   )
   obj <- atac_small
   Fragments(obj[["peaks"]]) <- frags
-  # pre-existing peak-based FRiP column, as produced by FRiP()
-  obj$FRiP <- 0.5
+  # pre-existing column that ATACqc also computes, as would be left behind by
+  # an earlier ATACqc run
+  obj$TSS_enrichment <- 0.5
 
   res <- expect_warning(
     object = ATACqc(object = obj, assay = "peaks", verbose = FALSE),
-    regexp = "FRiP"
+    regexp = "TSS_enrichment"
   )
-  # existing FRiP column is preserved, not overwritten
-  expect_true(all(res$FRiP == 0.5))
-  # ATACqc FRiP is stored under the suffixed name
-  expect_true("FRiP.atacqc" %in% colnames(res[[]]))
+  # existing column is preserved, not overwritten
+  expect_true(all(res$TSS_enrichment == 0.5))
+  # the newly computed value is stored under the suffixed name
+  expect_true("TSS_enrichment.atacqc" %in% colnames(res[[]]))
 
   # suffix = NULL restores overwriting behavior
   res2 <- suppressWarnings(
     ATACqc(object = obj, assay = "peaks", suffix = NULL, verbose = FALSE)
   )
-  expect_false("FRiP.atacqc" %in% colnames(res2[[]]))
-  expect_true("FRiP" %in% colnames(res2[[]]))
+  expect_false("TSS_enrichment.atacqc" %in% colnames(res2[[]]))
+  expect_true("TSS_enrichment" %in% colnames(res2[[]]))
+  expect_false(all(res2$TSS_enrichment == 0.5))
 })
 
 test_that("FeatureMatrix works", {
