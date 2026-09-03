@@ -101,7 +101,7 @@ brain <- ATACqc(brain)
 ```{r message=FALSE, warning=FALSE, fig.width=18, fig.height=6}
 VlnPlot(
   object = brain,
-  features = c("total_fragments", "TSS_enrichment", "Nucleosome_signal", "FRiP"),
+  features = c("total_fragments", "TSS_enrichment", "Nucleosome_signal", "FIP"),
   pt.size = 0.1,
   ncol = 5
 )

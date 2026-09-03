@@ -297,7 +297,7 @@ factors.
   to low sequencing depth. Cells with extremely high levels may
   represent doublets, nuclei clumps, or other artefacts.
 
-- Fraction of fragments in promoters: Represents the fraction of all
+- Fraction of fragments in promoters (FIP): Represents the fraction of all
   fragments that fall within promoter regions. Cells with low values
   (i.e. \<15-20%) often represent low-quality cells or technical
   artifacts that should be removed.
@@ -332,7 +332,7 @@ plot:
 ```{r message=FALSE, warning=FALSE, fig.width=18, fig.height=6}
 VlnPlot(
   object = pbmc,
-  features = c("nCount_peaks", "total_fragments", "TSS_enrichment", "FRiP"),
+  features = c("nCount_peaks", "total_fragments", "TSS_enrichment", "FIP"),
   pt.size = 0.1,
   ncol = 4
 )
@@ -347,8 +347,8 @@ pbmc <- subset(
   x = pbmc,
   subset = total_fragments > 10000 &
     total_fragments < 90000 &
-    TSS_enrichment > 10 &
-    FRiP > 0.1
+    TSS_enrichment > 20 &
+    FIP > 0.2
 )
 pbmc
 ```
