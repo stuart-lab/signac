@@ -843,14 +843,8 @@ RunFragtk <- function(
   bpcells.dir = NULL,
   verbose = TRUE
 ) {
-  # find fragtk
-  fragtk.path <- fragtk.path %||% unname(obj = Sys.which(names = "fragtk"))
-  if (nchar(x = fragtk.path) == 0) {
-    stop(
-      "fragtk not found. Please install fragtk:",
-      "https://crates.io/crates/fragtk"
-    )
-  }
+  # find fragtk and check that it is recent enough
+  fragtk.path <- fragtk_pathcheck(fragtk.path = fragtk.path)
 
   if (!dir.exists(paths = outdir)) {
     stop("Requested output directory does not exist")

@@ -15,17 +15,8 @@ ATACqc.default <- function(
   verbose = TRUE,
   ...
 ) {
-  # find fragtk
-  fragtk.path <- fragtk.path %||% unname(obj = Sys.which(names = "fragtk"))
-  if (nchar(x = fragtk.path) == 0) {
-    stop(
-      "fragtk not found. Please install fragtk:",
-      "https://crates.io/crates/fragtk"
-    )
-  }
-  if (!file.exists(fragtk.path)) {
-    stop("fragtk executable does not exist at supplied path")
-  }
+  # find fragtk and check that it is recent enough
+  fragtk.path <- fragtk_pathcheck(fragtk.path = fragtk.path)
   if (!dir.exists(paths = outdir)) {
     stop("Requested output directory does not exist")
   }
@@ -178,10 +169,14 @@ ATACqc.ChromatinAssay5 <- function(
 #' @param assay Name of assay to use. If NULL, use the default assay.
 #' @param suffix Suffix to append to the names of QC metric columns that
 #' already exist in the object metadata, to avoid overwriting them. For
-#' example, if a `FRiP` column computed by [FRiP()] is already present, the
-#' promoter-based FRiP metric computed here will instead be stored as
-#' `FRiP<suffix>`. Set to `NULL` to disable this behavior and allow existing
-#' columns to be overwritten.
+#' example, if a `TSS_enrichment` column is already present, the value computed
+#' here will instead be stored as `TSS_enrichment<suffix>`. Set to `NULL` to
+#' disable this behavior and allow existing columns to be overwritten.
+#'
+#' Note that the `FIP` metric returned here is the fraction of insertions in
+#' promoters, computed by `fragtk`, and is different from the
+#' fraction of reads in peaks computed by [FRiP()].
+#' 
 #' @rdname ATACqc
 #' @method ATACqc Seurat
 #' @importFrom SeuratObject AddMetaData DefaultAssay
@@ -208,7 +203,8 @@ ATACqc.Seurat <- function(
     verbose = verbose,
     ...
   )
-  # avoid overwriting existing metadata columns (e.g. FRiP from FRiP())
+  # avoid overwriting existing metadata columns, for example when ATACqc has
+  # already been run on the object
   if (!is.null(x = suffix)) {
     clash <- intersect(x = colnames(x = md), y = colnames(x = object[[]]))
     if (length(x = clash) > 0) {
