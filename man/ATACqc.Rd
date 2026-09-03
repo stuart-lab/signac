@@ -75,10 +75,13 @@ automatically.}
 
 \item{suffix}{Suffix to append to the names of QC metric columns that
 already exist in the object metadata, to avoid overwriting them. For
-example, if a \code{FRiP} column computed by \code{\link[=FRiP]{FRiP()}} is already present, the
-promoter-based FRiP metric computed here will instead be stored as
-\verb{FRiP<suffix>}. Set to \code{NULL} to disable this behavior and allow existing
-columns to be overwritten.}
+example, if a \code{TSS_enrichment} column is already present, the value computed
+here will instead be stored as \verb{TSS_enrichment<suffix>}. Set to \code{NULL} to
+disable this behavior and allow existing columns to be overwritten.
+
+Note that the \code{FIP} metric returned here is the fraction of insertions in
+promoters, computed by \code{fragtk}, and is different from the
+fraction of reads in peaks computed by \code{\link[=FRiP]{FRiP()}}.}
 }
 \value{
 When run on a \link[SeuratObject:Seurat]{SeuratObject::Seurat} object, returns the input
