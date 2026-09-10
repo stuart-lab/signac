@@ -912,3 +912,65 @@ test_that("RegionHeatmap errors on unmatched idents", {
     regexp = "None of the requested idents found"
   )
 })
+
+test_that("CombineTracks aligns the expression plot with the requested track", {
+  make <- function(label) {
+    ggplot(data.frame(x = 1:3, y = 1:3), aes(x, y)) + geom_point() + ylab(label)
+  }
+  tracks <- list(make("TOP"), make("COV"), make("BOTTOM1"), make("BOTTOM2"))
+  expr <- make("EXPR")
+  ylabs <- function(p) {
+    vapply(p$patches$plots, function(x) {
+      if (inherits(x, "patchwork")) return("nested")
+      y <- x$labels$y
+      if (is.null(y)) "" else y
+    }, character(1))
+  }
+  # default: aligned with the first plot
+  p <- CombineTracks(tracks, expression.plot = expr, heights = 1:4, widths = c(3, 1))
+  labels <- ylabs(p)
+  expect_equal(labels[which(labels == "EXPR") - 1], "TOP")
+  # aligned with the second plot: tracks above and below are nested
+  p <- CombineTracks(
+    tracks, expression.plot = expr, heights = 1:4, widths = c(3, 1),
+    expression.index = 2
+  )
+  labels <- ylabs(p)
+  expect_equal(labels, c("nested", "", "COV", "EXPR", "nested"))
+  expect_s3_class(ggplot2::ggplot_build(p), "ggplot_built")
+  # aligned with the last plot
+  p <- CombineTracks(
+    tracks, expression.plot = expr, heights = 1:4, widths = c(3, 1),
+    expression.index = 4
+  )
+  labels <- ylabs(p)
+  expect_equal(labels[which(labels == "EXPR") - 1], "BOTTOM2")
+})
+
+test_that("CoveragePlot aligns the expression plot with the coverage track", {
+  obj <- setup_obj()
+  avi <- data.frame(
+    chromosome = "chr1", position = rep(c(782100, 785000), each = 3),
+    ref = "A", alt = rep(c("C", "G", "T"), times = 2), MAX_ABS_ATAC = runif(6)
+  )
+  variants <- data.frame(position = 782100, rsid = "rs1", color = "black")
+  seen <- NULL
+  local_mocked_bindings(
+    CombineTracks = function(plotlist, expression.plot = NULL, heights = NULL,
+                             widths = NULL, expression.index = 1) {
+      seen <<- expression.index
+      Filter(Negate(is.null), plotlist)[[1]]
+    }
+  )
+  CoveragePlot(
+    object = obj, region = "chr1:780000-790000", features = "GYG2",
+    annotation = FALSE, peaks = FALSE, avi = avi, variants = variants
+  )
+  # variants and AVI tracks precede the coverage track
+  expect_equal(seen, 3)
+  CoveragePlot(
+    object = obj, region = "chr1:780000-790000", features = "GYG2",
+    annotation = FALSE, peaks = FALSE
+  )
+  expect_equal(seen, 1)
+})
