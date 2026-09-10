@@ -143,6 +143,7 @@ export("Links<-")
 export("Motifs<-")
 export("RegionAggr<-")
 export(ATACqc)
+export(AVITrack)
 export(AccessiblePeaks)
 export(AddChromatinModule)
 export(AddMotifs)
@@ -157,6 +158,7 @@ export(BinarizeCounts)
 export(CallPeaks)
 export(Cells)
 export(CellsPerGroup)
+export(ClearAtlasCache)
 export(ClusterClonotypes)
 export(CombineTracks)
 export(ConnectionsToLinks)
@@ -203,6 +205,8 @@ export(Jaccard)
 export(LinkPeaks)
 export(LinkPlot)
 export(Links)
+export(ListAtlasScorers)
+export(LoadAVIFromAtlas)
 export(LoadCredibleSets)
 export(LoadGWAS)
 export(LoadLDData)
@@ -303,6 +307,7 @@ importFrom(GenomicRanges,
   reduce,
   resize,
   seqnames,
+  setdiff,
   slidingWindows,
   start,
   strand,
@@ -420,7 +425,8 @@ importFrom(SeuratObject,
 importFrom(data.table,
   as.data.table,
   data.table,
-  fread
+  fread,
+  rbindlist
 )
 importFrom(dplyr,
   group_by,
@@ -436,11 +442,13 @@ importFrom(future.apply,future_lapply)
 importFrom(ggplot2,
   .data,
   aes,
+  coord_cartesian,
   element_blank,
   element_line,
   element_text,
   facet_wrap,
   geom_area,
+  geom_col,
   geom_histogram,
   geom_hline,
   geom_label,
@@ -465,6 +473,7 @@ importFrom(ggplot2,
   scale_color_manual,
   scale_color_viridis_c,
   scale_fill_gradient,
+  scale_fill_gradient2,
   scale_fill_grey,
   scale_fill_manual,
   scale_fill_viridis_c,

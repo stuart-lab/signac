@@ -46,6 +46,13 @@ CoveragePlot(
   gwas.credset.file = NULL,
   gwas.credset.threshold = 0.01,
   variants = NULL,
+  avi = NULL,
+  avi.features = c("Expression", "Accessibility", "Total"),
+  avi.type = "stacked",
+  avi.bins = 200,
+  avi.api.key = NULL,
+  avi.max.workers = 4,
+  avi.verbose = FALSE,
   ...
 )
 }
@@ -139,8 +146,8 @@ the type for each individual track in the provided list of bigwig files.}
 files when plotted with \code{bigwig.type="coverage"}}
 
 \item{heights}{Relative heights for each displayed track, given in plotting
-order (top to bottom): GWAS, variants, accessibility, pseudobulk, bigWig,
-tile, gene annotations, peaks, ranges, links. Only the tracks actually shown
+order (top to bottom): GWAS, variants, AVI SHAP, accessibility, pseudobulk,
+bigWig, tile, gene annotations, peaks, ranges, links. Only the tracks actually shown
 are counted, so the vector must have one value per displayed track. If
 \code{NULL} (default), heights are chosen automatically.}
 
@@ -203,6 +210,32 @@ sets (default: 0.01)}
 
 \item{variants}{Dataframe containing variants to display
 (see \code{\link[=VariantTrack]{VariantTrack()}})}
+
+\item{avi}{AlphaGenome Atlas AVI SHAP feature attributions to display on
+the plot. Either a dataframe with one row per variant (see \code{\link[=AVITrack]{AVITrack()}}
+and \code{\link[=LoadAVIFromAtlas]{LoadAVIFromAtlas()}}) or \code{TRUE} to query the AlphaGenome Atlas API for
+the plotted region. \code{NULL} or \code{FALSE} disables the track. The AlphaGenome
+Atlas covers hg38 only: if the genome of the gene annotations stored in
+the assay (\code{genome(Annotation(object))}) is set to a different build, the
+track is skipped with a warning.}
+
+\item{avi.features}{AVI SHAP features to plot, given as feature column
+names and/or modality group labels (see \code{\link[=AVITrack]{AVITrack()}}), or "Total"
+for the total AVI score. Groups without any feature in the data are skipped.
+Set to \code{NULL} to plot all features.}
+
+\item{avi.type}{Plot type for the AVI SHAP track. One of "stacked" or
+"heatmap" (see \code{\link[=AVITrack]{AVITrack()}}).}
+
+\item{avi.bins}{Number of bins (bars) across the region for the AVI SHAP
+track.}
+
+\item{avi.api.key}{AlphaGenome API key, used when \code{avi = TRUE}. If
+NULL, the \code{ALPHA_GENOME_API_KEY} environment variable is used.}
+
+\item{avi.max.workers}{Number of concurrent Atlas API requests.}
+
+\item{avi.verbose}{Show Atlas query progress and fallback messages.}
 
 \item{...}{Additional arguments passed to \code{\link[patchwork:wrap_plots]{patchwork::wrap_plots()}}}
 }

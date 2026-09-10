@@ -144,6 +144,11 @@ reference:
   - contents: 
     - has_concept("gwas")
 
+  - title: "AlphaGenome"
+    desc: "Functions for working with AlphaGenome Atlas variant impact scores"
+  - contents:
+    - has_concept("alphagenome")
+
   - title: "Nearest methods"
     desc: "Nearest genomic range methods for Signac-defined classes"
   - contents:
