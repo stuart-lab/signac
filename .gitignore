@@ -29,3 +29,5 @@ build.sh
 .RDataTmp4
 .claude
 .positai
+__pycache__/
+*.py[cod]

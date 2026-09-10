@@ -29,3 +29,6 @@ build.sh
 .claude
 ^\.positai$
 ^\.claude$
+^CLAUDE\.md$
+(^|/)__pycache__($|/)
+\.py[co]$

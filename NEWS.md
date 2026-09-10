@@ -37,6 +37,17 @@ New features:
 alongside single-cell accessibility data. This has also been added to the `CoveragePlot()` function
 with the addition of the parameters `gwas`, `gwas.ld.file`, `gwas.ld.lead.snp`, `gwas.credset.file`, and `gwas.credset.threshold`.  
 * Added functions to load GWAS and QTL data from various sources: `LoadGWAS()`, `LoadLDData()`, `LoadCredibleSets()`.  
+* Added `AVITrack()` to plot AlphaGenome Atlas AVI SHAP feature attributions
+(Cheng et al. 2026) as a genome browser track. Features can be shown
+individually or grouped by modality, with the total AVI score optionally
+overlaid. AVI SHAP tracks can be added to `CoveragePlot()` with the new
+parameters `avi`, `avi.features`, `avi.type`, `avi.bins`, `avi.api.key`,
+`avi.max.workers`, and `avi.verbose`; the track is only shown for hg38
+annotations, since the Atlas covers hg38 only.  
+* Added `LoadAVIFromAtlas()` and `ListAtlasScorers()` to query the AlphaGenome
+Atlas API. These require the `reticulate` package, the `alphagenome` Python
+package, and an AlphaGenome API key (`ALPHA_GENOME_API_KEY` environment
+variable). Results are cached for the session (see `ClearAtlasCache()`).  
 * More flexible storage of genomic links: you can now store multiple sets of
 genomic links within the same assay. We have also moved to storing this information
 using the well-established `GInteractions` format from the [InteractionSet](https://www.bioconductor.org/packages/InteractionSet/)

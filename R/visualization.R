@@ -1904,7 +1904,14 @@ SingleCoveragePlot <- function(
   gwas.ld.lead.snp = NULL,
   gwas.credset.file = NULL,
   gwas.credset.threshold = 0.01,
-  variants = NULL
+  variants = NULL,
+  avi = NULL,
+  avi.features = c("Expression", "Accessibility", "Total"),
+  avi.type = "stacked",
+  avi.bins = 200,
+  avi.api.key = NULL,
+  avi.max.workers = 4,
+  avi.verbose = FALSE
 ) {
   valid.assay.scale <- c("common", "separate")
   if (!(assay.scale %in% valid.assay.scale)) {
@@ -2238,6 +2245,23 @@ SingleCoveragePlot <- function(
     variant.track <- NULL
   }
 
+  # AlphaGenome Atlas AVI SHAP feature attributions
+  if (!is.null(x = avi)) {
+    avi.track <- AVITrack(
+      avi = avi,
+      region = region,
+      features = avi.features,
+      type = avi.type,
+      bins = avi.bins,
+      show.axis = FALSE,
+      api.key = avi.api.key,
+      max.workers = avi.max.workers,
+      verbose = avi.verbose
+    )
+  } else {
+    avi.track <- NULL
+  }
+
   nident <- length(x = unique(x = obj.groups))
   if (split.assays) {
     nident <- nident * length(x = assay)
@@ -2246,9 +2270,11 @@ SingleCoveragePlot <- function(
   bw.height <- 10
   gwas.height <- 3
   variants.height <- 1
+  avi.height <- 3
   plot.list <- list(
     gwas.tracks,
     variant.track,
+    avi.track,
     p,
     bulk.plot,
     bigwig.tracks,
@@ -2264,6 +2290,7 @@ SingleCoveragePlot <- function(
     heights <- c(
       gwas.height,
       variants.height,
+      avi.height,
       10,
       bulk.height,
       bw.height,
@@ -2280,11 +2307,19 @@ SingleCoveragePlot <- function(
       )
     }
   }
+  # the expression plot is aligned with the coverage track, which follows the
+  # optional GWAS, variant and AVI tracks
+  coverage.index <- 1 + sum(!vapply(
+    X = list(gwas.tracks, variant.track, avi.track),
+    FUN = is.null,
+    FUN.VALUE = logical(length = 1)
+  ))
   p <- CombineTracks(
     plotlist = plot.list,
     expression.plot = ex.plot,
     heights = heights,
-    widths = widths
+    widths = widths,
+    expression.index = coverage.index
   ) & theme(
     legend.key.size = unit(x = 1 / 2, units = "lines"),
     legend.text = element_text(size = 7),
@@ -2588,8 +2623,8 @@ CoverageTrack <- function(
 #' grouping by "celltype" and splitting by "batch" will create separate tracks
 #' for each combination of celltype and batch.
 #' @param heights Relative heights for each displayed track, given in plotting
-#' order (top to bottom): GWAS, variants, accessibility, pseudobulk, bigWig,
-#' tile, gene annotations, peaks, ranges, links. Only the tracks actually shown
+#' order (top to bottom): GWAS, variants, AVI SHAP, accessibility, pseudobulk,
+#' bigWig, tile, gene annotations, peaks, ranges, links. Only the tracks actually shown
 #' are counted, so the vector must have one value per displayed track. If
 #' `NULL` (default), heights are chosen automatically.
 #' @param max.downsample Maximum amount of downsampling to apply. Corresponds to
@@ -2612,9 +2647,30 @@ CoverageTrack <- function(
 #' sets (default: 0.01)
 #' @param variants Dataframe containing variants to display
 #' (see [VariantTrack()])
+#' @param avi AlphaGenome Atlas AVI SHAP feature attributions to display on
+#' the plot. Either a dataframe with one row per variant (see [AVITrack()]
+#' and [LoadAVIFromAtlas()]) or `TRUE` to query the AlphaGenome Atlas API for
+#' the plotted region. `NULL` or `FALSE` disables the track. The AlphaGenome
+#' Atlas covers hg38 only: if the genome of the gene annotations stored in
+#' the assay (`genome(Annotation(object))`) is set to a different build, the
+#' track is skipped with a warning.
+#' @param avi.features AVI SHAP features to plot, given as feature column
+#' names and/or modality group labels (see [AVITrack()]), or "Total"
+#' for the total AVI score. Groups without any feature in the data are skipped.
+#' Set to `NULL` to plot all features.
+#' @param avi.type Plot type for the AVI SHAP track. One of "stacked" or
+#' "heatmap" (see [AVITrack()]).
+#' @param avi.bins Number of bins (bars) across the region for the AVI SHAP
+#' track.
+#' @param avi.api.key AlphaGenome API key, used when `avi = TRUE`. If
+#' NULL, the `ALPHA_GENOME_API_KEY` environment variable is used.
+#' @param avi.max.workers Number of concurrent Atlas API requests.
+#' @param avi.verbose Show Atlas query progress and fallback messages.
 #' @param ... Additional arguments passed to [patchwork::wrap_plots()]
 #'
 #' @importFrom patchwork wrap_plots
+#' @importFrom SeuratObject DefaultAssay
+#' @importFrom Seqinfo genome
 #' @export
 #' @concept visualization
 #' @return Returns a [patchwork::patchwork()] object
@@ -2703,12 +2759,39 @@ CoveragePlot <- function(
   gwas.credset.file = NULL,
   gwas.credset.threshold = 0.01,
   variants = NULL,
+  avi = NULL,
+  avi.features = c("Expression", "Accessibility", "Total"),
+  avi.type = "stacked",
+  avi.bins = 200,
+  avi.api.key = NULL,
+  avi.max.workers = 4,
+  avi.verbose = FALSE,
   ...
 ) {
   if (inherits(x = region, what = "GRanges") && length(x = region) > 1) {
     region <- as.list(x = split(x = region, f = seq_along(region)))
   } else if (length(x = region) == 1) {
     region <- list(region)
+  }
+  if (isFALSE(x = avi)) {
+    avi <- NULL
+  }
+  if (!is.null(x = avi)) {
+    # the AlphaGenome Atlas covers hg38 only
+    avi.assay <- if (inherits(x = assay, what = "list")) assay[[1]] else assay
+    avi.assay <- avi.assay %||% DefaultAssay(object = object)
+    build <- unique(x = genome(x = Annotation(object = object[[avi.assay]])))
+    build <- build[!is.na(x = build)]
+    is.hg38 <- grepl(pattern = "^(hg38|grch38)", x = tolower(x = build))
+    if (length(x = build) > 0 && !any(is.hg38)) {
+      warning(
+        "The AlphaGenome Atlas provides scores for hg38 only, but the genome ",
+        "of the gene annotations in the '", avi.assay, "' assay is ",
+        paste(build, collapse = ", "), ". The AVI SHAP track will not be shown.",
+        immediate. = TRUE, call. = FALSE
+      )
+      avi <- NULL
+    }
   }
   plot.list <- lapply(
     X = seq_along(region),
@@ -2754,7 +2837,14 @@ CoveragePlot <- function(
         gwas.ld.lead.snp = gwas.ld.lead.snp,
         gwas.credset.file = gwas.credset.file,
         gwas.credset.threshold = gwas.credset.threshold,
-        variants = variants
+        variants = variants,
+        avi = avi,
+        avi.features = avi.features,
+        avi.type = avi.type,
+        avi.bins = avi.bins,
+        avi.api.key = avi.api.key,
+        avi.max.workers = avi.max.workers,
+        avi.verbose = avi.verbose
       )
     }
   )
@@ -2959,6 +3049,9 @@ FragmentHistogram <- function(
 #' with each track
 #' @param heights Relative heights for each plot. If NULL, the first plot will
 #' be 8x the height of the other tracks.
+#' @param expression.index Position in `plotlist` (after removing `NULL`
+#' entries) of the plot that the expression plot is aligned with. Default: the
+#' first plot.
 #' @param widths Relative widths for each plot. Only required if adding a gene
 #' expression panel. If NULL, main plots will be 8x the width of the gene
 #' expression panel
@@ -2977,7 +3070,8 @@ CombineTracks <- function(
   plotlist,
   expression.plot = NULL,
   heights = NULL,
-  widths = NULL
+  widths = NULL,
+  expression.index = 1
 ) {
   # remove any that are NULL
   nullplots <- sapply(X = plotlist, FUN = is.null)
@@ -3009,16 +3103,36 @@ CombineTracks <- function(
     }
   }
   if (!is.null(x = expression.plot)) {
-    # align expression plot with the first element in plot list
-    p <- (plotlist[[1]] + expression.plot) +
-      plot_layout(widths = widths)
-
+    # two-column grid: the expression plot sits beside the track at
+    # expression.index; tracks above and below are stacked in nested
+    # patchworks with an empty cell (or the legend) beside them
     n <- length(x = plotlist)
-    heights.2 <- heights[2:n]
-    p2 <- wrap_plots(plotlist[2:n], ncol = 1, heights = heights.2)
-
-    p <- p + p2 + guide_area() + plot_layout(
-      ncol = 2, heights = c(heights[[1]], sum(heights.2)),
+    i <- max(1, min(expression.index, n))
+    cells <- list()
+    row.heights <- c()
+    if (i > 1) {
+      above <- seq_len(length.out = i - 1)
+      cells <- c(cells, list(
+        wrap_plots(plotlist[above], ncol = 1, heights = heights[above]),
+        plot_spacer()
+      ))
+      row.heights <- c(row.heights, sum(heights[above]))
+    }
+    cells <- c(cells, list(plotlist[[i]], expression.plot))
+    row.heights <- c(row.heights, heights[[i]])
+    if (i < n) {
+      below <- (i + 1):n
+      cells <- c(cells, list(
+        wrap_plots(plotlist[below], ncol = 1, heights = heights[below]),
+        guide_area()
+      ))
+      row.heights <- c(row.heights, sum(heights[below]))
+    } else {
+      cells <- c(cells, list(plot_spacer(), guide_area()))
+      row.heights <- c(row.heights, 0.01)
+    }
+    p <- wrap_plots(
+      cells, ncol = 2, heights = row.heights, widths = widths,
       guides = "collect"
     )
   } else {
@@ -3743,6 +3857,303 @@ VariantTrack <- function(
     theme(plot.margin = margin(t = 5, r = 5, b = 0, l = 5))
 
   return(snp_plot)
+}
+
+#' Plot AlphaGenome Atlas AVI SHAP feature attributions
+#'
+#' Plot AlphaGenome Variant Impact (AVI) SHAP feature attributions from the
+#' AlphaGenome Atlas across a genomic region. For each variant, the AlphaGenome
+#' Atlas decomposes the raw AVI score into 18 additive SHAP contributions, one
+#' per input feature (chromatin accessibility, TF binding, histone marks,
+#' expression, splicing, protein impact, conservation, etc.). This function
+#' summarizes those attributions along the genome and draws them as a track
+#' that can be combined with other Signac genome browser tracks (see
+#' [CoveragePlot()]).
+#'
+#' The 18 AVI input features (named as in the AlphaGenome Atlas publication
+#' and API) are grouped by modality for display:
+#'
+#' * **Accessibility**: `MAX_ABS_ATAC`, `MAX_ABS_DNASE`
+#' * **TF binding**: `MAX_ABS_CHIP_TF`
+#' * **Histone**: `MAX_ABS_CHIP_HISTONE`
+#' * **Expression**: `MAX_ABS_CAGE`, `MAX_ABS_PROCAP`, `MAX_ABS_RNA_SEQ`
+#' * **Polyadenylation**: `MAX_ABS_POLYADENYLATION`
+#' * **Splicing**: `MERGED_SPLICING`
+#' * **Contact maps**: `MAX_ABS_CONTACT_MAPS`
+#' * **Protein**: `ALPHAMISSENSE`, `PROTEIN_TERMINATION`, `START_LOST`,
+#'   `STOP_LOST`
+#' * **Conservation**: `PHASTCONS_470_WAY`, `CACTUS_241_WAY`
+#' * **Indel**: `IS_INSERTION`, `IS_DELETION`
+#'
+#' By default the Expression and Accessibility groups are shown. Other
+#' features can be selected by column name or by group label, for example
+#' `features = c("Accessibility", "Splicing")`, and `features = NULL`
+#' shows all features. Only these 18 columns are treated as feature
+#' attributions; other numeric columns, such as `AVI_SCORE`, are ignored
+#' unless requested explicitly by name. The total impact score
+#' (the raw AVI score, which equals the sum of all feature attributions) can
+#' be requested with `features = "Total"`. In the "stacked" plot type the
+#' total is drawn as points over the stacked feature contributions (as on the
+#' AlphaGenome Atlas website) rather than being stacked itself. Note that the raw AVI score is on the model logit
+#' scale; the PHRED-scaled AVI score shown on the AlphaGenome Atlas website can
+#' be retrieved separately with `scorer = "AVI_SCORE"` in
+#' [LoadAVIFromAtlas()].
+#'
+#' The Atlas contains three SNVs at each genomic position (one per alternate
+#' allele). Following the AlphaGenome Atlas publication, the variant with the
+#' largest absolute total AVI score is kept at each position. The region is
+#' then divided into `bins` equal-width bins and each bin shows the value of
+#' largest magnitude among its positions, so that sharp SHAP peaks are
+#' preserved while large regions remain fast to plot. Positions without a
+#' variant contribute a value of zero.
+#'
+#' @param avi AVI SHAP feature attributions. Either a `data.frame` with one
+#' row per variant containing chromosome, position, ref and alt columns along
+#' with one numeric column per feature (for example as returned by
+#' [LoadAVIFromAtlas()]), or `TRUE` to query the AlphaGenome Atlas API for the
+#' region (see [LoadAVIFromAtlas()]; requires the **reticulate** package, the
+#' `alphagenome` Python package, and an API key). If no variants fall in the
+#' region an empty track is drawn.
+#' @param region Genomic region ([GenomicRanges::GRanges] or a string that can
+#' be converted to `GRanges` like "chr11:5225000-5230000")
+#' @param features Features to plot, given as feature column names and/or
+#' modality group labels (see Details), or "Total" for the total
+#' AVI score. Groups without any feature in the data are skipped. Set to `NULL`
+#' to plot all features. Features are stacked and listed in the legend in the
+#' order given.
+#' @param group.features Combine features into modality groups (see Details)
+#' before plotting. If `FALSE`, each feature is
+#' shown separately.
+#' @param type Plot type. One of "stacked" (stacked bars showing the signed
+#' contribution of each feature group) or "heatmap" (one row per feature
+#' group, colored by SHAP value).
+#' @param bins Number of bars (bins) to display across the region. Each bin
+#' is `width(region) / bins` bp wide.
+#' @param ymax Maximum absolute y-axis value for the "stacked" plot type. If
+#' `NULL`, determined from the data.
+#' @param colors Named vector of colors for feature groups (or features,
+#' if `group.features = FALSE`). Groups without an entry use the default
+#' palette.
+#' @param y_label Y-axis label
+#' @param show.axis Show x-axis (default: TRUE)
+#' @param api.key AlphaGenome API key, used when `avi = TRUE`. If
+#' `NULL`, the `ALPHA_GENOME_API_KEY` environment variable is used.
+#' @param max.workers Number of concurrent requests to the Atlas API when
+#' `avi = TRUE` (see [LoadAVIFromAtlas()]).
+#' @param max.retries Maximum number of retries per throttled Atlas API
+#' request when `avi = TRUE` (see [LoadAVIFromAtlas()]).
+#' @param verbose Show Atlas query progress messages when `avi = TRUE`.
+#'
+#' @return Returns a [ggplot2::ggplot()] object
+#'
+#' @references Cheng et al. (2026). AlphaGenome Atlas: in silico mutagenesis of
+#' the entire human genome improves prioritization and interpretation of
+#' non-coding variants
+#' <https://deepmind.google.com/science/alphagenome/atlas>
+#'
+#' @importFrom ggplot2 ggplot aes geom_col geom_point geom_hline geom_tile scale_fill_manual scale_fill_gradient2 scale_shape_manual guides guide_legend coord_cartesian xlab ylab theme element_blank
+#' @importFrom GenomicRanges GRanges start end width
+#' @importFrom Seqinfo seqnames
+#' @importFrom scales hue_pal
+#' @importFrom stats setNames
+#' @export
+#' @concept visualization
+#' @concept alphagenome
+#' @examples
+#' # simulated AVI SHAP feature attributions for three positions
+#' avi <- data.frame(
+#'   chromosome = "chr1",
+#'   position = rep(c(713600, 713800, 714200), each = 3),
+#'   ref = "A",
+#'   alt = rep(c("C", "G", "T"), times = 3),
+#'   MAX_ABS_ATAC = runif(9, 0, 1),
+#'   MERGED_SPLICING = runif(9, 0, 2),
+#'   CACTUS_241_WAY = runif(9, -0.5, 0.5)
+#' )
+#' # expression and accessibility features (default)
+#' AVITrack(avi = avi, region = "chr1:713500-714500")
+#' # all features, one row per modality group
+#' AVITrack(avi = avi, region = "chr1:713500-714500", features = NULL,
+#'          type = "heatmap")
+#' # feature contributions with the total AVI score overlaid
+#' AVITrack(avi = avi, region = "chr1:713500-714500",
+#'          features = c("Accessibility", "Splicing", "Total"))
+#'
+#' \dontrun{
+#' # query the AlphaGenome Atlas API (requires ALPHA_GENOME_API_KEY)
+#' AVITrack(avi = TRUE, region = "chr11:5225000-5230000")
+#' }
+AVITrack <- function(
+  avi,
+  region,
+  features = c("Expression", "Accessibility", "Total"),
+  group.features = TRUE,
+  type = "stacked",
+  bins = 200,
+  ymax = NULL,
+  colors = NULL,
+  y_label = "AVI SHAP",
+  show.axis = TRUE,
+  api.key = NULL,
+  max.workers = 4,
+  max.retries = 5,
+  verbose = FALSE
+) {
+  possible.types <- c("stacked", "heatmap")
+  if (!(type %in% possible.types)) {
+    stop(
+      "Invalid type requested. Choose ",
+      paste(possible.types, collapse = ", ")
+    )
+  }
+  if (!inherits(x = region, what = "GRanges")) {
+    region <- GRanges(region)
+  }
+  if (length(x = region) != 1) {
+    stop("region must describe a single genomic range")
+  }
+  if (isTRUE(x = avi)) {
+    avi <- LoadAVIFromAtlas(
+      region = region, api.key = api.key, max.workers = max.workers,
+      max.retries = max.retries, verbose = verbose
+    )
+  } else if (inherits(x = avi, what = "data.frame")) {
+    avi <- as.data.frame(x = avi)
+    avi <- CheckAVIColumns(avi = avi)
+    keep <- avi[["chromosome"]] == as.character(x = seqnames(x = region)) &
+      avi[["position"]] >= start(x = region) &
+      avi[["position"]] <= end(x = region)
+    avi <- avi[keep, , drop = FALSE]
+  } else {
+    stop("avi must be a data.frame or TRUE to query the Atlas API")
+  }
+  if (nrow(x = avi) == 0) {
+    message("No AVI data found in region; drawing an empty track")
+  }
+  # the SHAP attributions sum to the raw AVI score
+  all.features <- AVIFeatureColumns(avi = avi, allow.empty = TRUE)
+  if (length(x = all.features) > 0) {
+    avi[["Total"]] <- rowSums(
+      x = as.matrix(x = avi[, all.features, drop = FALSE]), na.rm = TRUE
+    )
+  }
+  features <- ResolveAVIFeatures(avi = avi, features = features)
+  collapsed <- CollapseAVIAlleles(avi = avi, features = features)
+  # combine contributions of features in the same group
+  if (group.features) {
+    feature.groups <- AVIFeatureGroups(features = features)
+    tracks <- unique(x = unname(obj = feature.groups))
+    for (track in tracks) {
+      members <- features[feature.groups == track]
+      collapsed[[track]] <- rowSums(
+        x = as.matrix(x = collapsed[, members, drop = FALSE]), na.rm = TRUE
+      )
+    }
+  } else {
+    tracks <- features
+  }
+  # groups are ordered as the features were requested (or as the columns
+  # appear in the data when features = NULL)
+  group.levels <- unique(x = tracks)
+
+  # bin, keeping the value of largest magnitude in each bin
+  long <- BinAVI(
+    values = collapsed,
+    region = region,
+    tracks = tracks,
+    bins = bins,
+    rank.by = if (type == "stacked") "Total" else NULL
+  )
+  bin.size <- attr(x = long, which = "bin.size")
+  long[["group"]] <- factor(x = long[["group"]], levels = group.levels)
+  feature.table <- AVIFeatureTable()
+  defaults <- c(
+    setNames(object = feature.table[["color"]], nm = feature.table[["group"]]),
+    "Total" = "#000000"
+  )
+  colors <- c(colors, defaults)
+  colors <- colors[!duplicated(x = names(x = colors))]
+  missing.groups <- setdiff(x = group.levels, y = names(x = colors))
+  if (length(x = missing.groups) > 0) {
+    colors <- c(
+      colors,
+      setNames(
+        object = hue_pal()(length(x = missing.groups)),
+        nm = missing.groups
+      )
+    )
+  }
+  colors <- colors[group.levels]
+
+  chromosome <- as.character(x = seqnames(x = region))
+  xlim <- c(start(x = region), end(x = region))
+  if (type == "stacked") {
+    ylim <- NULL
+    if (!is.null(x = ymax)) {
+      ylim <- c(min(0, -ymax), ymax)
+    }
+    # the total is drawn over the stacked components rather than stacked
+    has.total <- "Total" %in% group.levels && length(x = group.levels) > 1
+    components <- long
+    if (has.total) {
+      components <- long[long[["group"]] != "Total", , drop = FALSE]
+      total <- long[long[["group"]] == "Total", , drop = FALSE]
+    }
+    p <- ggplot(
+      data = components,
+      mapping = aes(
+        x = .data[["position"]], y = .data[["value"]], fill = .data[["group"]]
+      )
+    ) +
+      geom_col(position = "stack", width = bin.size) +
+      geom_hline(yintercept = 0, linewidth = 0.3, color = "grey40") +
+      scale_fill_manual(values = colors, name = "Feature") +
+      coord_cartesian(xlim = xlim, ylim = ylim) +
+      theme_browser(axis.text.y = TRUE)
+    if (has.total) {
+      p <- p +
+        geom_point(
+          data = total,
+          mapping = aes(
+            x = .data[["position"]], y = .data[["value"]], shape = "Total"
+          ),
+          inherit.aes = FALSE,
+          color = colors[["Total"]],
+          size = 0.4
+        ) +
+        scale_shape_manual(values = c("Total" = 18), name = NULL) +
+        guides(shape = guide_legend(override.aes = list(size = 2)))
+    }
+  } else {
+    long[["group"]] <- factor(
+      x = long[["group"]], levels = rev(x = group.levels)
+    )
+    p <- ggplot(
+      data = long,
+      mapping = aes(
+        x = .data[["position"]], y = .data[["group"]], fill = .data[["value"]]
+      )
+    ) +
+      geom_tile(width = bin.size) +
+      scale_fill_gradient2(
+        low = "#2166AC", mid = "white", high = "#B2182B", midpoint = 0,
+        name = "AVI SHAP"
+      ) +
+      coord_cartesian(xlim = xlim) +
+      theme_browser(axis.text.y = TRUE)
+  }
+  p <- p +
+    xlab(label = paste0(chromosome, " position (bp)")) +
+    ylab(label = y_label)
+  if (!show.axis) {
+    p <- p + theme(
+      axis.title.x = element_blank(),
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      axis.line.x = element_blank()
+    )
+  }
+  return(p)
 }
 
 #' Plot integration sites per cell

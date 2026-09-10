@@ -1,7 +1,7 @@
 Package: Signac
 Title: Analysis of Single-Cell Chromatin Data
-Version: 1.9999.11
-Date: 2026-09-03
+Version: 1.9999.12
+Date: 2026-09-10
 Authors@R: c(
   person(given = 'Tim', family = 'Stuart', email = 'stuartt@a-star.edu.sg', role = c('aut', 'cre'), comment = c(ORCID = '0000-0002-3044-0897')),
   person(given = 'Avi', family = 'Srivastava', email = 'asrivastava@wistar.org', role = 'ctb', comment = c(ORCID = '0000-0001-9798-2079')),
@@ -24,6 +24,8 @@ Depends:
     R (>= 4.1.0),
     methods
 License: MIT + file LICENSE
+SystemRequirements: Python (>= 3.10) and the Python package alphagenome
+    (>= 0.9.0; optional, only for AlphaGenome Atlas API queries)
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/stuart-lab/signac, https://stuartlab.org/signac
@@ -65,6 +67,7 @@ Imports:
 Collate: 
     'RcppExports.R'
     'Signac-package.R'
+    'alphagenome.R'
     'generics.R'
     'bigwig.R'
     'classes.R'
@@ -111,6 +114,7 @@ Suggests:
     wrswoR,
     scattermore,
     fields,
-    fgsea
+    fgsea,
+    reticulate
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.1.0
