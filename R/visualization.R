@@ -3934,7 +3934,8 @@ VariantTrack <- function(
 #' @param colors Named vector of colors for feature groups (or features,
 #' if `group.features = FALSE`). Groups without an entry use the default
 #' palette.
-#' @param y_label Y-axis label
+#' @param y_label Y-axis label. If `NULL`, "AVI SHAP" is used, or "AVI score
+#' (raw)" when only the total AVI score is plotted.
 #' @param show.axis Show x-axis (default: TRUE)
 #' @param api.key AlphaGenome API key, used when `avi = TRUE`. If
 #' `NULL`, the `ALPHA_GENOME_API_KEY` environment variable is used.
@@ -3992,7 +3993,7 @@ AVITrack <- function(
   bins = 200,
   ymax = NULL,
   colors = NULL,
-  y_label = "AVI SHAP",
+  y_label = NULL,
   show.axis = TRUE,
   api.key = NULL,
   max.workers = 4,
@@ -4055,6 +4056,11 @@ AVITrack <- function(
   # groups are ordered as the features were requested (or as the columns
   # appear in the data when features = NULL)
   group.levels <- unique(x = tracks)
+  # the attributions are labelled "AVI SHAP" as in the Atlas publication; on
+  # its own the total is the raw AVI score
+  only.total <- identical(x = group.levels, y = "Total")
+  value.label <- if (only.total) "AVI score (raw)" else "AVI SHAP"
+  y_label <- y_label %||% value.label
 
   # bin, keeping the value of largest magnitude in each bin
   long <- BinAVI(
@@ -4137,7 +4143,7 @@ AVITrack <- function(
       geom_tile(width = bin.size) +
       scale_fill_gradient2(
         low = "#2166AC", mid = "white", high = "#B2182B", midpoint = 0,
-        name = "AVI SHAP"
+        name = value.label
       ) +
       coord_cartesian(xlim = xlim) +
       theme_browser(axis.text.y = TRUE)

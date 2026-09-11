@@ -13,7 +13,7 @@ AVITrack(
   bins = 200,
   ymax = NULL,
   colors = NULL,
-  y_label = "AVI SHAP",
+  y_label = NULL,
   show.axis = TRUE,
   api.key = NULL,
   max.workers = 4,
@@ -57,7 +57,8 @@ is \code{width(region) / bins} bp wide.}
 if \code{group.features = FALSE}). Groups without an entry use the default
 palette.}
 
-\item{y_label}{Y-axis label}
+\item{y_label}{Y-axis label. If \code{NULL}, "AVI SHAP" is used, or "AVI score
+(raw)" when only the total AVI score is plotted.}
 
 \item{show.axis}{Show x-axis (default: TRUE)}
 
